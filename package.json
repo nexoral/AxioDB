@@ -2,17 +2,47 @@
   "name": "axiodb",
   "version": "1.0.0",
   "description": "A fast, lightweight, and scalable open-source DBMS for modern apps. Supports JSON-based data storage, simple APIs, and secure data management. Ideal for projects needing efficient and flexible database solutions.",
-  "main": "DB.js",
+  "main": "./lib/config/DB.js",
+  "types": "./lib/config/DB.d.ts",
   "scripts": {
-    "test": "test"
+    "test": "eslint source/**/*.ts --fix",
+    "build": "npm test && tsc",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/AnkanSaha/AxioDB.git"
   },
   "keywords": [
-    "d"
+    "database",
+    "dbms",
+    "db",
+    "json",
+    "json database",
+    "json db",
+    "json storage",
+    "json data storage",
+    "json data management"
   ],
-  "author": "An",
-  "license": "MIT"
+  "author": "Ankan Saha",
+  "license": "MIT",
+  "sponsor": {
+    "url": "https://github.com/sponsors/AnkanSaha"
+  },
+  "funding": {
+    "type": "git",
+    "url": "https://github.com/sponsors/AnkanSaha"
+  },
+  "dependencies": {
+    "joi": "^17.13.3",
+    "outers": "^8.5.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.11.1",
+    "@types/crypto-js": "^4.2.1",
+    "eslint": "^8.57.1",
+    "globals": "^15.9.0",
+    "typescript": "^5.6.2",
+    "typescript-eslint": "^8.8.0"
+  }
 }
