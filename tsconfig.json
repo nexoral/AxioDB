@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "outDir": "./lib",
+    "target": "ES6",
+    "module": "CommonJS",
+    "declaration": true,
+    "moduleResolution": "Node",
+    "checkJs": false, // Disable checking of JavaScript files
+    "allowJs": true, // Allow JavaScript files to be included
+    "sourceMap": true,
+    "jsx": "react", // Specify the JSX factory function
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true, // Skip type checking of declaration files from dependencies
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["ES6", "DOM"], // Include the necessary TypeScript library declarations
+    "rootDir": "./source" // Specify the root directory for your source code
+  },
+  "include": ["source/**/*.ts", "source/**/*.tsx"], // Include TypeScript and TSX files
+  "exclude": ["node_modules"]
+}
