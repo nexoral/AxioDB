@@ -1,0 +1,67 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+{
+	"name": "Node.js & TypeScript",
+	"hostRequirements": {
+		"cpus": 2, // 2 CPUs are required for the universal image
+		"gpu": true, // GPU is required for the universal image
+		"storage": "20gb", // 20gb is the minimum requirement for the universal image
+		"memory": "4gb" // 4gb is the minimum requirement for the universal image
+	},
+	// // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	// "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
+	
+		// Use 'features' to add new features.
+	// "features": {},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [4442, 6379, 5432, 3306, 8080, 3307],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand":"./.devcontainer/postCreateCommand.sh",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.azure-account",
+				"ms-vscode.azure-repos",
+				"Sharafdin.better-reactjs-code-snippet",
+				"streetsidesoftware.code-spell-checker",
+				"ms-vscode-remote.remote-containers",
+				"ms-azuretools.vscode-docker",
+				"dbaeumer.vscode-eslint",
+				"GitHub.codespaces",
+				"GitHub.copilot",
+				"GitHub.copilot-chat",
+				"GitHub.remotehub",
+				"eamodio.gitlens",
+				"PKief.material-icon-theme",
+				"mongodb.mongodb-vscode",
+				"christian-kohler.npm-intellisense",
+				"esbenp.prettier-vscode",
+				"ms-vscode-remote.remote-ssh",
+				"ms-vscode-remote.remote-ssh-edit",
+				"ms-vscode.remote-server",
+				"ms-vscode.remote-explorer",
+				"ms-vscode.remote-repositories",
+				"bradlc.vscode-tailwindcss",
+				"redhat.vscode-yaml",
+				"formulahendry.code-runner",
+				"TabNine.tabnine-vscode",
+				"pnp.polacode",
+				"Anan.jetbrains-darcula-theme",
+				"foxundermoon.shell-format",
+				"rangav.vscode-thunder-client"
+			],
+			"settings" :{
+				"editor.formatOnSave": true,
+				"editor.tabSize": 2,
+				"files.autoSave": "afterDelay"
+			}
+		}
+	},
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	"remoteUser": "root"
+}
