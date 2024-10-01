@@ -26,3 +26,4 @@ To install AxioDB, run the following command:
 
 ```bash
 npm install axiodb@latest --save
+```
