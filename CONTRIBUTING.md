@@ -1,21 +1,20 @@
-# Contributing to outers
+# Contributing to AxioDB
 
-Welcome to outers! We appreciate your interest in contributing. By participating in this project, you agree to abide by the [Code of Conduct](CODE_OF_CONDUCT.md).
+Welcome to **AxioDB**! We're thrilled that you're interested in contributing to the project. By contributing, you agree to follow our [Code of Conduct](CODE_OF_CONDUCT.md) to ensure a collaborative and respectful environment.
 
 ## Getting Started
 
-Before you start contributing, please make sure you have read and understood the [README.md](README.md) file to get an overview of the project.
+Before you begin contributing, please take the time to read the [README.md](README.md) file to get an understanding of the project’s goals, structure, and how it works.
 
 ## How to Contribute
 
 ### 1. Fork the Repository
 
-Click the "Fork" button in the upper right corner of the repository to create your own fork. This will allow you to make changes without affecting the main project.
+Start by forking the repository. Click the "Fork" button at the top right of the repository page. This creates your own copy of the repository, where you can make changes without affecting the original project.
 
-### 2. Clone the Repository
+### 2. Clone the Forked Repository
 
-Clone your forked repository to your local machine:
-
+Once your fork is created, clone it to your local development environment using the following command:
+PPPP
 ```bash
-git clone https://github.com/AnkanSaha/outers.git
-```
+git clone https://github.com/AnkanSaha/AxioDB.git
