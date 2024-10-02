@@ -1,5 +1,5 @@
 // Import All Required Sub Modules
-import { SchemaTypes } from "../validator/DataTypes.joi";
+import { SchemaTypes } from "../Models/DataTypes.models";
 
 
 // Export Specific Modules
