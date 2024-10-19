@@ -162,7 +162,7 @@ export default class FileManager {
    */
   public async MoveFile(
     oldPath: string,
-    newPath: string
+    newPath: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const MoveResponse = await this.fileSystem.rename(oldPath, newPath);
@@ -186,7 +186,9 @@ export default class FileManager {
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const Stats = await this.fileSystem.stat(path);
-      return this.responseHelper.Success(Stats.mode.toString(8).slice(-3) === "400");
+      return this.responseHelper.Success(
+        Stats.mode.toString(8).slice(-3) === "400",
+      );
     } catch (error) {
       return this.responseHelper.Error(error);
     }
