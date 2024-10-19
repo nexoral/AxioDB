@@ -2,14 +2,14 @@
 
 // Interface for the Success method in the response helper.
 export interface SuccessInterface {
-    statusCode: number;
-    status: boolean;
-    data?: any;
+  statusCode: number;
+  status: boolean;
+  data?: any;
 }
 
 // Interface for the Error method in the response helper.
 export interface ErrorInterface {
-    statusCode: number;
-    status: boolean;
-    message?: string;
+  statusCode: number;
+  status: boolean;
+  message?: string;
 }
