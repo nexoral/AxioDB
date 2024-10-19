@@ -99,23 +99,6 @@ export default class FileManager {
   }
 
   /**
-   * Creates a new directory at the specified path.
-   *
-   * @param path - The path of the directory to create.
-   * @returns A promise that resolves when the directory has been created.
-   */
-  public async CreateDirectory(
-    path: string,
-  ): Promise<SuccessInterface | ErrorInterface> {
-    try {
-      const CreateResponse = await this.fileSystem.mkdir(path);
-      return this.responseHelper.Success(CreateResponse);
-    } catch (error) {
-      return this.responseHelper.Error(error);
-    }
-  }
-
-  /**
    * Creates a new file at the specified path.
    *
    * @param path - The path of the file to create.
@@ -128,40 +111,6 @@ export default class FileManager {
     try {
       const CreateResponse = await this.fileSystem.writeFile(path, "");
       return this.responseHelper.Success(CreateResponse);
-    } catch (error) {
-      return this.responseHelper.Error(error);
-    }
-  }
-
-  /**
-   * Deletes a directory at the specified path.
-   *
-   * @param path - The path of the directory to delete.
-   * @returns A promise that resolves when the directory has been deleted.
-   */
-  public async DeleteDirectory(
-    path: string,
-  ): Promise<SuccessInterface | ErrorInterface> {
-    try {
-      const DeleteResponse = await this.fileSystem.rmdir(path);
-      return this.responseHelper.Success(DeleteResponse);
-    } catch (error) {
-      return this.responseHelper.Error(error);
-    }
-  }
-
-  /**
-   * Checks if a directory exists at the specified path.
-   *
-   * @param path - The path of the directory to check.
-   * @returns A promise that resolves with a boolean indicating if the directory exists.
-   */
-  public async DirectoryExists(
-    path: string,
-  ): Promise<SuccessInterface | ErrorInterface> {
-    try {
-      const ExistsResponse = await this.fileSystem.access(path);
-      return this.responseHelper.Success(ExistsResponse);
     } catch (error) {
       return this.responseHelper.Error(error);
     }
