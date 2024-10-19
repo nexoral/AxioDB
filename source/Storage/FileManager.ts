@@ -153,6 +153,26 @@ export default class FileManager {
   }
 
   /**
+   * Moves a file from the specified old path to the new path.
+   *
+   * @param oldPath - The current path of the file to be moved.
+   * @param newPath - The destination path where the file should be moved.
+   * @returns A promise that resolves to a SuccessInterface if the file is moved successfully,
+   * or an ErrorInterface if an error occurs during the move operation.
+   */
+  public async MoveFile(
+    oldPath: string,
+    newPath: string
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      const MoveResponse = await this.fileSystem.rename(oldPath, newPath);
+      return this.responseHelper.Success(MoveResponse);
+    } catch (error) {
+      return this.responseHelper.Error(error);
+    }
+  }
+
+  /**
    * Checks if a file is locked by examining its file mode.
    *
    * @param path - The path to the file to check.
