@@ -116,6 +116,62 @@ export default class FileManager {
     }
   }
 
+  // Lock/Unlock Operations
+
+  /**
+   * Locks a file at the specified path.
+   *
+   * @param path - The path of the file to lock.
+   * @returns A promise that resolves when the file has been locked.
+   */
+  public async LockFile(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      const LockResponse = await this.fileSystem.chmod(path, 0o400);
+      return this.responseHelper.Success(LockResponse);
+    } catch (error) {
+      return this.responseHelper.Error(error);
+    }
+  }
+
+  /**
+   * Unlocks a file at the specified path.
+   *
+   * @param path - The path of the file to unlock.
+   * @returns A promise that resolves when the file has been unlocked.
+   */
+  public async UnlockFile(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      const UnlockResponse = await this.fileSystem.chmod(path, 0o777);
+      return this.responseHelper.Success(UnlockResponse);
+    } catch (error) {
+      return this.responseHelper.Error(error);
+    }
+  }
+
+  /**
+   * Checks if a file is locked by examining its file mode.
+   *
+   * @param path - The path to the file to check.
+   * @returns A promise that resolves to a `SuccessInterface` if the file is locked,
+   *          or an `ErrorInterface` if an error occurs.
+   *
+   * The file is considered locked if its mode (permissions) ends with "400".
+   */
+  public async IsFileLocked(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      const Stats = await this.fileSystem.stat(path);
+      return this.responseHelper.Success(Stats.mode.toString(8).slice(-3) === "400");
+    } catch (error) {
+      return this.responseHelper.Error(error);
+    }
+  }
+
   // Stream Operations
 
   /**

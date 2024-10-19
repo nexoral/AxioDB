@@ -69,4 +69,92 @@ export default class FolderManager {
       return this.responseHelper.Error(error);
     }
   }
+
+    /**
+     * Lists the contents of a directory at the specified path.
+     *
+     * @param path - The path of the directory to list.
+     * @returns A promise that resolves with an array of directory contents.
+     */
+
+    public async ListDirectory(path: string): Promise<SuccessInterface | ErrorInterface> {
+        try{
+            const ListResponse = await this.fileSystem.readdir(path);
+            return this.responseHelper.Success(ListResponse);
+        } catch (error) {
+            return this.responseHelper.Error(error);
+        }
+    }
+
+    /**
+     * Moves a directory from the old path to the new path.
+     *
+     * @param oldPath - The current path of the directory to be moved.
+     * @param newPath - The new path where the directory should be moved.
+     * @returns A promise that resolves to a SuccessInterface if the operation is successful,
+     * or an ErrorInterface if an error occurs.
+     */
+    public async MoveDirectory(
+        oldPath: string,
+        newPath: string
+    ): Promise<SuccessInterface | ErrorInterface> {
+        try {
+            const MoveResponse = await this.fileSystem.rename(oldPath, newPath);
+            return this.responseHelper.Success(MoveResponse);
+        } catch (error) {
+            return this.responseHelper.Error(error);
+        }
+    }
+
+    /**
+     * Locks a directory at the specified path.
+     *
+     * @param path - The path of the directory to lock.
+     * @returns A promise that resolves when the directory has been locked.
+     */
+    public async LockDirectory(
+        path: string
+    ): Promise<SuccessInterface | ErrorInterface> {
+        try {
+            const LockResponse = await this.fileSystem.chmod(path, 0o400);
+            return this.responseHelper.Success(LockResponse);
+        } catch (error) {
+            return this.responseHelper.Error(error);
+        }
+    }
+
+    /**
+     * Unlocks a directory at the specified path.
+     *
+     * @param path - The path of the directory to unlock.
+     * @returns A promise that resolves when the directory has been unlocked.
+     */
+    public async UnlockDirectory(
+        path: string,
+    ): Promise<SuccessInterface | ErrorInterface> {
+        try {
+            const UnlockResponse = await this.fileSystem.chmod(path, 0o777);
+            return this.responseHelper.Success(UnlockResponse);
+        } catch (error) {
+            return this.responseHelper.Error(error);
+        }
+    }
+
+    /**
+     * Checks if a directory is locked at the specified path.
+     *
+     * @param path - The path of the directory to check.
+     * @returns A promise that resolves with a boolean indicating if the directory is locked.
+     */
+    public async IsDirectoryLocked(
+        path: string,
+    ): Promise<SuccessInterface | ErrorInterface> {
+        try {
+            const Stats = await this.fileSystem.stat(path);
+            const IsLocked = Stats.mode.toString(8).slice(-3) === "400";
+            return this.responseHelper.Success(IsLocked);
+        } catch (error) {
+            return this.responseHelper.Error(error);
+        }
+    }
 }
