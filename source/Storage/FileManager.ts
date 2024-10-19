@@ -99,23 +99,6 @@ export default class FileManager {
   }
 
   /**
-   * Creates a new directory at the specified path.
-   *
-   * @param path - The path of the directory to create.
-   * @returns A promise that resolves when the directory has been created.
-   */
-  public async CreateDirectory(
-    path: string,
-  ): Promise<SuccessInterface | ErrorInterface> {
-    try {
-      const CreateResponse = await this.fileSystem.mkdir(path);
-      return this.responseHelper.Success(CreateResponse);
-    } catch (error) {
-      return this.responseHelper.Error(error);
-    }
-  }
-
-  /**
    * Creates a new file at the specified path.
    *
    * @param path - The path of the file to create.
@@ -133,35 +116,79 @@ export default class FileManager {
     }
   }
 
+  // Lock/Unlock Operations
+
   /**
-   * Deletes a directory at the specified path.
+   * Locks a file at the specified path.
    *
-   * @param path - The path of the directory to delete.
-   * @returns A promise that resolves when the directory has been deleted.
+   * @param path - The path of the file to lock.
+   * @returns A promise that resolves when the file has been locked.
    */
-  public async DeleteDirectory(
+  public async LockFile(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const DeleteResponse = await this.fileSystem.rmdir(path);
-      return this.responseHelper.Success(DeleteResponse);
+      const LockResponse = await this.fileSystem.chmod(path, 0o400);
+      return this.responseHelper.Success(LockResponse);
     } catch (error) {
       return this.responseHelper.Error(error);
     }
   }
 
   /**
-   * Checks if a directory exists at the specified path.
+   * Unlocks a file at the specified path.
    *
-   * @param path - The path of the directory to check.
-   * @returns A promise that resolves with a boolean indicating if the directory exists.
+   * @param path - The path of the file to unlock.
+   * @returns A promise that resolves when the file has been unlocked.
    */
-  public async DirectoryExists(
+  public async UnlockFile(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const ExistsResponse = await this.fileSystem.access(path);
-      return this.responseHelper.Success(ExistsResponse);
+      const UnlockResponse = await this.fileSystem.chmod(path, 0o777);
+      return this.responseHelper.Success(UnlockResponse);
+    } catch (error) {
+      return this.responseHelper.Error(error);
+    }
+  }
+
+  /**
+   * Moves a file from the specified old path to the new path.
+   *
+   * @param oldPath - The current path of the file to be moved.
+   * @param newPath - The destination path where the file should be moved.
+   * @returns A promise that resolves to a SuccessInterface if the file is moved successfully,
+   * or an ErrorInterface if an error occurs during the move operation.
+   */
+  public async MoveFile(
+    oldPath: string,
+    newPath: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      const MoveResponse = await this.fileSystem.rename(oldPath, newPath);
+      return this.responseHelper.Success(MoveResponse);
+    } catch (error) {
+      return this.responseHelper.Error(error);
+    }
+  }
+
+  /**
+   * Checks if a file is locked by examining its file mode.
+   *
+   * @param path - The path to the file to check.
+   * @returns A promise that resolves to a `SuccessInterface` if the file is locked,
+   *          or an `ErrorInterface` if an error occurs.
+   *
+   * The file is considered locked if its mode (permissions) ends with "400".
+   */
+  public async IsFileLocked(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      const Stats = await this.fileSystem.stat(path);
+      return this.responseHelper.Success(
+        Stats.mode.toString(8).slice(-3) === "400",
+      );
     } catch (error) {
       return this.responseHelper.Error(error);
     }
