@@ -14,7 +14,7 @@ export default class Configure {
 
   constructor(
     Sheema: object | any,
-    isEncrypted: boolean = false,
+    isEncrypted = false,
     ClusterName: string = DBMS_Name,
   ) {
     this.Sheema = Sheema;
