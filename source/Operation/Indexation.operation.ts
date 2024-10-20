@@ -8,7 +8,7 @@ export default class Configure {
   private isEncrypted: boolean; // Private Property
   #encryptionKey: string; // Private Property
 
-  constructor(Sheema: object | any, isEncrypted: boolean = false) {
+  constructor(Sheema: object | any, isEncrypted = false) {
     this.Sheema = Sheema;
     this.isEncrypted = isEncrypted;
     this.#encryptionKey = DBMS_Name;
