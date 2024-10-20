@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Joi from "joi";
 
 // Create an object to hold all Joi types under the name SchemaTypes
@@ -24,4 +25,6 @@ export const SchemaTypes = {
   pattern: (regex: RegExp) => Joi.string().pattern(regex),
   required: () => Joi.required(),
   optional: () => Joi.optional(),
+  allow: (values: any[]) => Joi.allow(values),
+  valid: (values: any[]) => Joi.valid(values),
 };
