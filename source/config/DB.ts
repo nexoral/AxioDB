@@ -6,8 +6,8 @@ import FolderManager from "../Storage/FolderManager";
 import Configure from "../Operation/Indexation.operation";
 
 // Default Keys
-export const DBMS_Name: string = "AxioDB";
-export const DBMS_File_EXT: string = ".axiodb";
+export const DBMS_Name = "AxioDB";
+export const DBMS_File_EXT = ".axiodb";
 
 // Export Specific Modules
 export { SchemaTypes, schemaValidate, FileManager, FolderManager, Configure };

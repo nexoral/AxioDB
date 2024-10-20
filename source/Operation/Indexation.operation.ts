@@ -21,26 +21,26 @@ export default class Configure {
         this.CreateTreeRoot(); // Create
     }
 
-    // Configure Methos
-    public getSchema(): object | any {
-        return this.Sheema;
-    }
+  // Configure Methos
+  public getSchema(): object | any {
+    return this.Sheema;
+  }
 
-    public EncryptionStatus(): boolean {
-        return this.isEncrypted;
-    }
+  public EncryptionStatus(): boolean {
+    return this.isEncrypted;
+  }
 
-    public getEncryptionKey(): string {
-        return this.#encryptionKey;
-    }
+  public getEncryptionKey(): string {
+    return this.#encryptionKey;
+  }
 
-    public setEncryptionKey(key: string): void {
-        this.#encryptionKey = key;
-    }
+  public setEncryptionKey(key: string): void {
+    this.#encryptionKey = key;
+  }
 
-    public setEncryptionStatus(status: boolean): void {
-        this.isEncrypted = status;
-    }
+  public setEncryptionStatus(status: boolean): void {
+    this.isEncrypted = status;
+  }
 
     public getConfiguration(): object | any {
         return {
