@@ -8,10 +8,7 @@ import Joi, { Schema } from "joi"; // Ensure to import Joi correctly
  * @param data - The data to be validated.
  * @returns A promise that resolves with the validated data if validation is successful, or rejects with a validation error.
  */
-export default async function schemaValidate(
-  dataSchema: Schema,
-  data: any
-) {
+export default async function schemaValidate(dataSchema: Schema, data: any) {
   try {
     // Use Joi.object() correctly to wrap the schema and validate data.
     const joiSchema = Joi.object(dataSchema); // Converts the provided schema to a Joi object
