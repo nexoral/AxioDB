@@ -4,14 +4,14 @@
 import { DBMS_Name } from "../config/DB";
 export default class Configure {
     // Properties
-    private readonly Sheema: object | any;
-    private isEncrypted: boolean;
-    private encryptionKey: string;
+    private readonly Sheema: object | any; // Private Property
+    private isEncrypted: boolean; // Private Property
+    #encryptionKey: string; // Private Property
 
     constructor(Sheema: object|any, isEncrypted: boolean = false, ) {
         this.Sheema = Sheema;
         this.isEncrypted = isEncrypted;
-        this.encryptionKey = DBMS_Name;
+        this.#encryptionKey = DBMS_Name;
 
     }
 
@@ -25,11 +25,11 @@ export default class Configure {
     }
 
     public getEncryptionKey(): string {
-        return this.encryptionKey;
+        return this.#encryptionKey;
     }
 
     public setEncryptionKey(key: string): void {
-        this.encryptionKey = key;
+        this.#encryptionKey = key;
     }
 
     public setEncryptionStatus(status: boolean): void {
