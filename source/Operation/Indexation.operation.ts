@@ -6,18 +6,18 @@ import path from "path";
 
 export default class Configure {
   // Properties
-  private readonly Sheema: object | any; // Private Property
+  private readonly Schema: object | any; // Private Property
   private isEncrypted: boolean; // Private Property
   #encryptionKey: string; // Private Property
   private readonly clusterName: string; // Private Property
   private readonly currentPATH: string; // Private Property
 
   constructor(
-    Sheema: object | any,
+    Schema: object | any,
     isEncrypted = false,
     ClusterName: string = DBMS_Name,
   ) {
-    this.Sheema = Sheema;
+    this.Schema = Schema;
     this.isEncrypted = isEncrypted;
     this.#encryptionKey = DBMS_Name;
     this.clusterName = ClusterName;
@@ -25,9 +25,9 @@ export default class Configure {
     this.CreateTreeRoot(); // Create
   }
 
-  // Configure Methos
+  // Configure Method
   public getSchema(): object | any {
-    return this.Sheema;
+    return this.Schema;
   }
 
   public EncryptionStatus(): boolean {
