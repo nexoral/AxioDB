@@ -5,6 +5,10 @@ import FileManager from "../Storage/FileManager";
 import FolderManager from "../Storage/FolderManager";
 import Configure from "../Operation/Indexation.operation";
 
+// Web Server Configuration
+import WebServer from "../Web/Fastify";
+WebServer();
+
 // Default Keys
 export const DBMS_Name = "AxioDB";
 export const DBMS_File_EXT = ".axiodb";
