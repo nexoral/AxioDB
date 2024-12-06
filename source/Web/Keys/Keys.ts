@@ -1,3 +1,3 @@
 export enum General {
-    PORT= 27018,
+  PORT = 27018,
 }
