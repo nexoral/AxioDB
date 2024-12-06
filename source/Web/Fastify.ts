@@ -6,7 +6,7 @@ import fastifyView from '@fastify/view';
 import ejs from 'ejs';
 
 // Import the Details
-import { General } from './Keys/Keys';
+import { General } from "./Keys/Keys";
 
 
 export default async function WebServer() {
