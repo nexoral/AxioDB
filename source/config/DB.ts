@@ -9,10 +9,6 @@ import Configure from "../Operation/Indexation.operation";
 import WebServer from "../Web/Fastify";
 WebServer();
 
-// Default Keys
-export const DBMS_Name = "AxioDB";
-export const DBMS_File_EXT = ".axiodb";
-
 // Export Specific Modules
 export { SchemaTypes, schemaValidate, FileManager, FolderManager, Configure };
 
