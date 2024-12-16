@@ -5,7 +5,7 @@ import { FolderManager } from "../config/DB";
 import { General } from "../config/Keys/Keys";
 import path from "path";
 
-export default class Configure {
+export default class AxioDB {
   // Properties
   private readonly Schema: object | any; // Private Property
   private isEncrypted: boolean; // Private Property
