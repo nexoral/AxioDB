@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Import Libraries
-import { DBMS_Name, FolderManager } from "../config/DB";
+import FolderManager from "../Storage/FolderManager";
+import { General } from "../config/Keys/Keys";
 import path from "path";
 
-export default class Configure {
+export default class AxioDB {
   // Properties
   private readonly Schema: object | any; // Private Property
   private isEncrypted: boolean; // Private Property
@@ -13,16 +14,15 @@ export default class Configure {
   private readonly currentPATH: string; // Private Property
 
   constructor(
-    Schema: object | any,
+    Schema?: object | any,
     isEncrypted = false,
-    ClusterName: string = DBMS_Name,
+    ClusterName: string = General.DBMS_Name,
   ) {
     this.Schema = Schema;
     this.isEncrypted = isEncrypted;
-    this.#encryptionKey = DBMS_Name;
+    this.#encryptionKey = General.DBMS_Name;
     this.clusterName = ClusterName;
     this.currentPATH = path.resolve(".");
-    this.CreateTreeRoot(); // Create
   }
 
   // Configure Method
@@ -65,7 +65,7 @@ export default class Configure {
    *
    * @returns {Promise<void>} A promise that resolves when the directory is created.
    */
-  private async CreateTreeRoot(): Promise<void> {
+  public async CreateTreeRoot(): Promise<void> {
     await new FolderManager().CreateDirectory(
       `${this.currentPATH}/${this.clusterName}`,
     );
