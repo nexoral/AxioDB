@@ -1,11 +1,10 @@
 // Import All Required Sub Modules
-import {General} from "./Keys/Keys";
+import { General } from "./Keys/Keys";
 import { SchemaTypes } from "../Models/DataTypes.models";
 import schemaValidate from "../Models/validator.models";
 import Configure from "../Operation/Indexation.operation";
 // Web Server Configuration
 import WebServer from "../Web/Fastify";
-
 
 // Initialize Configuration Cluster in start
 WebServer().then((r) => console.log(r));
