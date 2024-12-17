@@ -6,10 +6,9 @@ import { General } from "../config/Keys/Keys";
 import path from "path";
 import Insertion from "./Create.operation";
 
-
 export default class AxioDB {
   // Properties
-  private  readonly  collectionName: string; // Private Property
+  private readonly collectionName: string; // Private Property
   private readonly Schema: object | any; // Private Property
   private isEncrypted: boolean; // Private Property
   #encryptionKey: string; // Private Property
@@ -18,7 +17,7 @@ export default class AxioDB {
   private collectionPath: string; // Private Property
 
   constructor(
-      collectionName: string,
+    collectionName: string,
     Schema?: object | any,
     isEncrypted = false,
     ClusterName: string = General.DBMS_Name,
@@ -64,7 +63,7 @@ export default class AxioDB {
   }
 
   // Public Functions
-  public  async Insert(data: object | any): Promise<void> {
+  public async Insert(data: object | any): Promise<void> {
     await new Insertion(this.collectionName, data).Save();
   }
 
@@ -83,18 +82,17 @@ export default class AxioDB {
     );
   }
 
-  private  async createCollection(): Promise<void> {
-    if(this.isEncrypted){
+  private async createCollection(): Promise<void> {
+    if (this.isEncrypted) {
       await new FolderManager().CreateDirectory(
-            `${this.currentPATH}/${this.clusterName}/${this.collectionName}/Encrypted`,
-        );
-      this.collectionPath = `${this.currentPATH}/${this.clusterName}/${this.collectionName}/Encrypted`;
-    }
-    else {
-      await new FolderManager().CreateDirectory(
-          `${this.currentPATH}/${this.clusterName}/${this.collectionName}`,
+        `${this.currentPATH}/${this.clusterName}/${this.collectionName}/Encrypted`,
       );
-        this.collectionPath = `${this.currentPATH}/${this.clusterName}/${this.collectionName}`;
+      this.collectionPath = `${this.currentPATH}/${this.clusterName}/${this.collectionName}/Encrypted`;
+    } else {
+      await new FolderManager().CreateDirectory(
+        `${this.currentPATH}/${this.clusterName}/${this.collectionName}`,
+      );
+      this.collectionPath = `${this.currentPATH}/${this.clusterName}/${this.collectionName}`;
     }
   }
 }
