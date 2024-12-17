@@ -6,6 +6,7 @@ import { General } from "../config/Keys/Keys";
 import path from "path";
 import Insertion from "./Create.operation";
 
+
 export default class AxioDB {
   // Properties
   private  readonly  collectionName: string; // Private Property
