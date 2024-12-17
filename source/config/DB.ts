@@ -7,7 +7,7 @@ import WebServer from "../Web/Fastify";
 
 // Initialize Configuration Cluster in start
 WebServer().then((r) => console.log(r));
-new Configure().CreateTreeRoot().then((r  ) => console.log(r));
+new Configure().CreateTreeRoot().then((r) => console.log(r));
 
 // Export Specific Modules
 export { SchemaTypes, schemaValidate, Configure };
@@ -16,5 +16,5 @@ export { SchemaTypes, schemaValidate, Configure };
 export default {
   SchemaTypes,
   schemaValidate,
-  Configure
+  Configure,
 };
