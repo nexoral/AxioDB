@@ -6,7 +6,10 @@ import { General } from "../config/Keys/Keys";
 import path from "path";
 import Insertion from "./Create.operation";
 import responseHelper from "../Helper/response.helper";
-import { SuccessInterface, ErrorInterface } from "../config/Interfaces/Helper/response.helper.interface";
+import {
+  SuccessInterface,
+  ErrorInterface,
+} from "../config/Interfaces/Helper/response.helper.interface";
 
 /**
  * Class representing the AxioDB database.
@@ -106,25 +109,21 @@ export default class AxioDB {
    * @param {object | any} data - The data to be inserted.
    * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves when the data is inserted.
    */
-  public async Insert(data: object | any): Promise<SuccessInterface | ErrorInterface> {
+  public async Insert(
+    data: object | any,
+  ): Promise<SuccessInterface | ErrorInterface> {
     const response = await new Insertion(this.collectionName, data).Save();
     if (response.status) {
-      return new responseHelper().Success(
-        {
-          Message: "Data Inserted Successfully",
-          DocumentID: response.data.DocumentID,
-          Data: { ...response.data.Data },
-        },
-      )
+      return new responseHelper().Success({
+        Message: "Data Inserted Successfully",
+        DocumentID: response.data.DocumentID,
+        Data: { ...response.data.Data },
+      });
+    } else {
+      return new responseHelper().Error({
+        Message: "Failed to Insert Data",
+      });
     }
-    else {
-        return new responseHelper().Error(
-            {
-            Message: "Failed to Insert Data",
-            },
-        )
-    }
-
   }
 
   // Internal Functions
