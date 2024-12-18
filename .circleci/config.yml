@@ -61,8 +61,6 @@ workflows:
     jobs:
       - Publish_To_NPM:
           name: Publish to NPM Registry
-          requires:
-            - Push to Gitlab
           filters:
             branches:
               only: main
