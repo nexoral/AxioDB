@@ -6,6 +6,9 @@ import { General } from "../config/Keys/Keys";
 import path from "path";
 import Insertion from "./Create.operation";
 
+/**
+ * Class representing the AxioDB database.
+ */
 export default class AxioDB {
   // Properties
   private readonly collectionName: string; // Private Property
@@ -16,6 +19,13 @@ export default class AxioDB {
   private readonly currentPATH: string; // Private Property
   private collectionPath: string; // Private Property
 
+  /**
+   * Creates an instance of AxioDB.
+   * @param {string} collectionName - The name of the collection.
+   * @param {object | any} [Schema] - The schema object defining the structure of the collection.
+   * @param {boolean} [isEncrypted=false] - Indicates if the collection is encrypted.
+   * @param {string} [ClusterName=General.DBMS_Name] - The name of the cluster.
+   */
   constructor(
     collectionName: string,
     Schema?: object | any,
@@ -32,26 +42,51 @@ export default class AxioDB {
   }
 
   // Configure Method
+
+  /**
+   * Gets the schema of the collection.
+   * @returns {object | any} The schema of the collection.
+   */
   public getSchema(): object | any {
     return this.Schema;
   }
 
+  /**
+   * Gets the encryption status of the collection.
+   * @returns {boolean} The encryption status of the collection.
+   */
   public EncryptionStatus(): boolean {
     return this.isEncrypted;
   }
 
+  /**
+   * Gets the encryption key of the collection.
+   * @returns {string} The encryption key of the collection.
+   */
   public getEncryptionKey(): string {
     return this.#encryptionKey;
   }
 
+  /**
+   * Sets the encryption key of the collection.
+   * @param {string} key - The new encryption key.
+   */
   public setEncryptionKey(key: string): void {
     this.#encryptionKey = key;
   }
 
+  /**
+   * Sets the encryption status of the collection.
+   * @param {boolean} status - The new encryption status.
+   */
   public setEncryptionStatus(status: boolean): void {
     this.isEncrypted = status;
   }
 
+  /**
+   * Gets the configuration of the collection.
+   * @returns {object | any} The configuration of the collection.
+   */
   public getConfiguration(): object | any {
     return {
       Schema: this.getSchema(),
@@ -63,11 +98,18 @@ export default class AxioDB {
   }
 
   // Public Functions
+
+  /**
+   * Inserts data into the collection.
+   * @param {object | any} data - The data to be inserted.
+   * @returns {Promise<void>} A promise that resolves when the data is inserted.
+   */
   public async Insert(data: object | any): Promise<void> {
     await new Insertion(this.collectionName, data).Save();
   }
 
   // Internal Functions
+
   /**
    * Creates the root directory for the tree structure.
    *
@@ -82,6 +124,10 @@ export default class AxioDB {
     );
   }
 
+  /**
+   * Creates the collection directory.
+   * @returns {Promise<void>} A promise that resolves when the collection directory is created.
+   */
   private async createCollection(): Promise<void> {
     if (this.isEncrypted) {
       await new FolderManager().CreateDirectory(
