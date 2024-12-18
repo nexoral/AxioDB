@@ -49,7 +49,7 @@ jobs:
           name: Change the Package name in Package.json
           command: |
             apt-get update && apt-get install -y sed
-            sed -i "2s/\"react-caches\"/\"@${GITHUB_USER_NAME}\/react-caches\"/" package.json
+            sed -i "2s/\"react-caches\"/\"@${GITHUB_USER_NAME}\/axiodb\"/" package.json
 
       - run:
           name: Publish to Github Package Registry
