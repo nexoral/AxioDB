@@ -7,8 +7,10 @@ import responseHelper from "../Helper/response.helper";
  * Class representing an insertion operation.
  */
 export default class Insertion {
+    private readonly Operator: FileManager;
     private readonly collectionName: string;
     private readonly data: object | any;
+    private documentId: string | null;
 
     /**
      * Creates an instance of Insertion.
@@ -16,33 +18,30 @@ export default class Insertion {
      * @param {object | any} data - The data to be inserted.
      */
     constructor(collectionName: string, data: object | any) {
+        this.Operator = new FileManager();
         this.collectionName = collectionName;
         this.data = data;
+        this.documentId = null;
+        this.setDocumentID();
     }
 
-  /**
+    /**
      * Saves the data to a file.
      * @returns {Promise<any>} A promise that resolves with the response of the save operation.
      */
-    public async Save(): Promise<any>{
-        console.log("00", this.data);
-        const DocumentId = await this.generateUniqueDocumentId();
-        await  new FileManager().CreateFile(`${this.collectionName}/${DocumentId}.json`);
-        const response = await new FileManager().WriteFile(
-            `${this.collectionName}/${DocumentId}.json`,
+    public async Save(): Promise<any> {
+        const response = await this.Operator.WriteFile(
+            `${this.collectionName}/${this.documentId}.json`,
             JSON.stringify(this.data),
         );
 
-        console.log("00", response);
         if (response.status) {
             return await new responseHelper().Success({
                 Message: "Data Inserted Successfully",
-                DocumentID: DocumentId,
-            });
-        }
-        else {
-            return await new responseHelper().Error({
-                Message: "Failed to Insert Data",
+                DocumentID: this.documentId,
+                Data: {
+                    ...this.data
+                }
             });
         }
     }
@@ -56,7 +55,7 @@ export default class Insertion {
         let ID;
         do {
             ID = new ClassBased.UniqueGenerator(15).RandomWord(true);
-            const response = await new FileManager().FileExists(
+            const response = await this.Operator.FileExists(
                 `${this.collectionName}/${ID}.json`,
             );
           // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -64,5 +63,14 @@ export default class Insertion {
         } while (isExist == false);
 
         return ID;
+    }
+
+    /**
+     * Sets the document ID by generating a unique ID.
+     */
+    private setDocumentID() {
+        this.generateUniqueDocumentId().then((ID) => {
+            this.documentId = ID;
+        });
     }
 }
