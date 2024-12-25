@@ -4,7 +4,7 @@ import { SchemaTypes } from "../Models/DataTypes.models";
 import schemaValidate from "../Models/validator.models";
 import Configure from "../Operation/Indexation.operation";
 // Web Server Configuration
-import WebServer from "../Web/Fastify";
+import WebServer from "../server/Fastify";
 
 // Initialize Configuration Cluster in start
 WebServer().then((r) => console.log(r));

@@ -3,7 +3,7 @@
  * @description This class is responsible for caching data in memory
  * @class InMemoryCache
  * @export InMemoryCache
- * @version 1.0.0
+ * @version 1.0.1
  * @since 24 December 2024
  **/
 export default class InMemoryCache {
@@ -38,5 +38,22 @@ export default class InMemoryCache {
       value: value,
       expiry: Date.now() + this.ttl * 1000,
     };
+  }
+
+  /**
+   * Retrieves a value from the cache using the specified key
+   * @param key - The unique identifier to lookup in the cache
+   * @returns A Promise that resolves to the cached value if found and not expired, null otherwise
+   */
+  public async getCache(key: string) {
+    const cacheItem = this.cacheObject[key];
+    if (!cacheItem) {
+      return null;
+    }
+    if (cacheItem.expiry < Date.now()) {
+      delete this.cacheObject[key];
+      return null;
+    }
+    return cacheItem.value;
   }
 }

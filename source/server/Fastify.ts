@@ -2,8 +2,6 @@ import Fastify from "fastify";
 import { Console } from "outers";
 import path from "path";
 import fastifyStatic from "@fastify/static";
-import fastifyView from "@fastify/view";
-import ejs from "ejs";
 
 // Import the Details
 import { General } from "./Keys/Keys";
@@ -15,15 +13,6 @@ export default async function WebServer() {
   Server.register(fastifyStatic, {
     root: path.join(__dirname, "public"), // Directory for static files
     prefix: "/public/", // URL prefix for static files
-  });
-
-  // Register view plugin with EJS
-  Server.register(fastifyView, {
-    engine: {
-      ejs: ejs,
-    },
-    root: path.join(__dirname, "Views"), // Directory for EJS templates
-    viewExt: "ejs", // Default file extension for templates
   });
 
   // Listen to the server
