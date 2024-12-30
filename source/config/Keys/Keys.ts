@@ -3,7 +3,6 @@ export enum General {
   DBMS_File_EXT = ".axiodb",
 }
 
-
 // Web Server Configuration
 export enum WebServer {
   ServerPORT = 2025,
