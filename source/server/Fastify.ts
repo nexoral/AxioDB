@@ -1,22 +1,20 @@
 import Fastify from "fastify";
 import { Console } from "outers";
+import { WebServer as ConfigWebServer } from "../config/Keys/Keys";
 import path from "path";
 import fastifyStatic from "@fastify/static";
 
-// Import the Details
-import { General } from "./Keys/Keys";
-
-export default async function WebServer() {
+export default async function startWebServer() {
   const Server = Fastify({ logger: false });
 
   // Register static file plugin to serve files
   Server.register(fastifyStatic, {
-    root: path.join(__dirname, "public"), // Directory for static files
+    root: path.resolve(process.cwd(), "public"), // Directory for static files
     prefix: "/public/", // URL prefix for static files
   });
 
   // Listen to the server
-  Server.listen({ port: General.PORT }, (err, address) => {
+  Server.listen({ port: ConfigWebServer.ServerPORT }, (err, address) => {
     if (err) {
       Server.log.error(err);
       Console.red("Failed to start the server", err);
