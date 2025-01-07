@@ -4,7 +4,20 @@ import { WebServer as ConfigWebServer } from "../config/Keys/Keys";
 import path from "path";
 import fastifyStatic from "@fastify/static";
 
-export default async function startWebServer() {
+/**
+ * Starts the web server using Fastify.
+ *
+ * This function initializes a Fastify server instance with logging disabled.
+ * It registers a static file plugin to serve files from the "public" directory
+ * with a URL prefix of "/public/".
+ *
+ * The server listens on the port specified in the configuration (`ConfigWebServer.ServerPORT`).
+ * If an error occurs while starting the server, it logs the error and exits the process.
+ * On successful start, it logs the address the server is listening on.
+ *
+ * @module Fastify
+ */
+export default function startWebServer() {
   const Server = Fastify({ logger: false });
 
   // Register static file plugin to serve files
@@ -18,7 +31,6 @@ export default async function startWebServer() {
     if (err) {
       Server.log.error(err);
       Console.red("Failed to start the server", err);
-      process.exit(1);
     }
     Server.log.info(`AxioDB Web Interface is  listening on ${address}`);
     Console.green("Web Interface Server is running on", address);

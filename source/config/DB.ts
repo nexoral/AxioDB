@@ -7,7 +7,7 @@ import Configure from "../Operation/Indexation.operation";
 import WebServer from "../server/Fastify";
 
 // Initialize Configuration Cluster in start
-WebServer().then((r) => console.log(r));
+WebServer();
 new Configure(General.DBMS_Name).CreateTreeRoot().then((r) => console.log(r));
 
 // Export Specific Modules
