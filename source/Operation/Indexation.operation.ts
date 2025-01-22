@@ -113,7 +113,7 @@ export default class AxioDB {
     data: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
     const response = await new Insertion(this.collectionName, data).Save();
-    if (response.status) {
+    if (response?.status && 'data' in response) {
       return new responseHelper().Success({
         Message: "Data Inserted Successfully",
         DocumentID: response.data.DocumentID,
