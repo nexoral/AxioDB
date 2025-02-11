@@ -21,142 +21,115 @@ export default class FolderManager {
 
   /**
    * Creates a new directory at the specified path.
-   *
-   * @param path - The path of the directory to create.
-   * @returns A promise that resolves when the directory has been created.
    */
   public async CreateDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const CreateResponse = await this.fileSystem.mkdir(path);
-      return this.responseHelper.Success(CreateResponse);
+      await this.fileSystem.mkdir(path, { recursive: true });
+      return this.responseHelper.Success(`Directory created at: ${path}`);
     } catch (error) {
-      return this.responseHelper.Error(error);
+      return this.responseHelper.Error(`Failed to create directory: ${error}`);
     }
   }
 
   /**
    * Deletes a directory at the specified path.
-   *
-   * @param path - The path of the directory to delete.
-   * @returns A promise that resolves when the directory has been deleted.
    */
   public async DeleteDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const DeleteResponse = await this.fileSystem.rmdir(path);
-      return this.responseHelper.Success(DeleteResponse);
+      await this.fileSystem.rm(path, { recursive: true, force: true });
+      return this.responseHelper.Success(`Directory deleted: ${path}`);
     } catch (error) {
-      return this.responseHelper.Error(error);
+      return this.responseHelper.Error(`Failed to delete directory: ${error}`);
     }
   }
 
   /**
    * Checks if a directory exists at the specified path.
-   *
-   * @param path - The path of the directory to check.
-   * @returns A promise that resolves with a boolean indicating if the directory exists.
    */
   public async DirectoryExists(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const ExistsResponse = await this.fileSystem.access(path);
-      return this.responseHelper.Success(ExistsResponse);
-    } catch (error) {
-      return this.responseHelper.Error(error);
+      await this.fileSystem.access(path);
+      return this.responseHelper.Success(true);
+    } catch {
+      return this.responseHelper.Success(false);
     }
   }
 
   /**
    * Lists the contents of a directory at the specified path.
-   *
-   * @param path - The path of the directory to list.
-   * @returns A promise that resolves with an array of directory contents.
    */
-
   public async ListDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const ListResponse = await this.fileSystem.readdir(path);
-      return this.responseHelper.Success(ListResponse);
+      const contents = await this.fileSystem.readdir(path);
+      return this.responseHelper.Success(contents);
     } catch (error) {
-      return this.responseHelper.Error(error);
+      return this.responseHelper.Error(`Failed to list directory: ${error}`);
     }
   }
 
   /**
    * Moves a directory from the old path to the new path.
-   *
-   * @param oldPath - The current path of the directory to be moved.
-   * @param newPath - The new path where the directory should be moved.
-   * @returns A promise that resolves to a SuccessInterface if the operation is successful,
-   * or an ErrorInterface if an error occurs.
    */
   public async MoveDirectory(
     oldPath: string,
     newPath: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const MoveResponse = await this.fileSystem.rename(oldPath, newPath);
-      return this.responseHelper.Success(MoveResponse);
+      await this.fileSystem.rename(oldPath, newPath);
+      return this.responseHelper.Success(`Moved directory to: ${newPath}`);
     } catch (error) {
-      return this.responseHelper.Error(error);
+      return this.responseHelper.Error(`Failed to move directory: ${error}`);
     }
   }
 
   /**
    * Locks a directory at the specified path.
-   *
-   * @param path - The path of the directory to lock.
-   * @returns A promise that resolves when the directory has been locked.
    */
   public async LockDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const LockResponse = await this.fileSystem.chmod(path, 0o400);
-      return this.responseHelper.Success(LockResponse);
+      await this.fileSystem.chmod(path, 0o400);
+      return this.responseHelper.Success(`Directory locked: ${path}`);
     } catch (error) {
-      return this.responseHelper.Error(error);
+      return this.responseHelper.Error(`Failed to lock directory: ${error}`);
     }
   }
 
   /**
    * Unlocks a directory at the specified path.
-   *
-   * @param path - The path of the directory to unlock.
-   * @returns A promise that resolves when the directory has been unlocked.
    */
   public async UnlockDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const UnlockResponse = await this.fileSystem.chmod(path, 0o777);
-      return this.responseHelper.Success(UnlockResponse);
+      await this.fileSystem.chmod(path, 0o777);
+      return this.responseHelper.Success(`Directory unlocked: ${path}`);
     } catch (error) {
-      return this.responseHelper.Error(error);
+      return this.responseHelper.Error(`Failed to unlock directory: ${error}`);
     }
   }
 
   /**
    * Checks if a directory is locked at the specified path.
-   *
-   * @param path - The path of the directory to check.
-   * @returns A promise that resolves with a boolean indicating if the directory is locked.
    */
   public async IsDirectoryLocked(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const Stats = await this.fileSystem.stat(path);
-      const IsLocked = Stats.mode.toString(8).slice(-3) === "400";
-      return this.responseHelper.Success(IsLocked);
+      const stats = await this.fileSystem.stat(path);
+      const isLocked = (stats.mode & 0o400) === 0o400;
+      return this.responseHelper.Success(isLocked);
     } catch (error) {
-      return this.responseHelper.Error(error);
+      return this.responseHelper.Error(`Failed to check lock status: ${error}`);
     }
   }
 }

@@ -2,12 +2,15 @@
 import FileManager from "../Storage/FileManager";
 import { ClassBased } from "outers";
 import responseHelper from "../Helper/response.helper";
+import {
+  ErrorInterface,
+  SuccessInterface,
+} from "../config/Interfaces/Helper/response.helper.interface";
 
 /**
  * Class representing an insertion operation.
  */
 export default class Insertion {
-  private readonly Operator: FileManager;
   private readonly collectionName: string;
   private readonly data: object | any;
   private documentId: string | null;
@@ -18,7 +21,6 @@ export default class Insertion {
    * @param {object | any} data - The data to be inserted.
    */
   constructor(collectionName: string, data: object | any) {
-    this.Operator = new FileManager();
     this.collectionName = collectionName;
     this.data = data;
     this.documentId = null;
@@ -29,8 +31,8 @@ export default class Insertion {
    * Saves the data to a file.
    * @returns {Promise<any>} A promise that resolves with the response of the save operation.
    */
-  public async Save(): Promise<any> {
-    const response = await this.Operator.WriteFile(
+  public async Save(): Promise<SuccessInterface | ErrorInterface | undefined> {
+    const response = await new FileManager().WriteFile(
       `${this.collectionName}/${this.documentId}.json`,
       JSON.stringify(this.data),
     );
@@ -55,7 +57,7 @@ export default class Insertion {
     let ID;
     do {
       ID = new ClassBased.UniqueGenerator(15).RandomWord(true);
-      const response = await this.Operator.FileExists(
+      const response = await new FileManager().FileExists(
         `${this.collectionName}/${ID}.json`,
       );
       // eslint-disable-next-line @typescript-eslint/no-unused-expressions
