@@ -12,7 +12,10 @@ export default class FileManager {
     this.responseHelper = new ResponseHelper();
   }
 
-  public async WriteFile(path: string, data: string): Promise<SuccessInterface | ErrorInterface> {
+  public async WriteFile(
+    path: string,
+    data: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await fs.writeFile(path, data, "utf-8");
       return this.responseHelper.Success("File written successfully.");
@@ -21,7 +24,9 @@ export default class FileManager {
     }
   }
 
-  public async ReadFile(path: string): Promise<SuccessInterface | ErrorInterface> {
+  public async ReadFile(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const data = await fs.readFile(path, "utf-8");
       return this.responseHelper.Success(data);
@@ -30,7 +35,9 @@ export default class FileManager {
     }
   }
 
-  public async DeleteFile(path: string): Promise<SuccessInterface | ErrorInterface> {
+  public async DeleteFile(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await fs.unlink(path);
       return this.responseHelper.Success("File deleted successfully.");
@@ -39,7 +46,9 @@ export default class FileManager {
     }
   }
 
-  public async FileExists(path: string): Promise<SuccessInterface | ErrorInterface> {
+  public async FileExists(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await fs.access(path);
       return this.responseHelper.Success(true);
@@ -48,11 +57,15 @@ export default class FileManager {
     }
   }
 
-  public async CreateFile(path: string): Promise<SuccessInterface | ErrorInterface> {
+  public async CreateFile(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
     return this.WriteFile(path, "");
   }
 
-  public async LockFile(path: string): Promise<SuccessInterface | ErrorInterface> {
+  public async LockFile(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await fs.chmod(path, 0o400);
       return this.responseHelper.Success("File locked successfully.");
@@ -61,7 +74,9 @@ export default class FileManager {
     }
   }
 
-  public async UnlockFile(path: string): Promise<SuccessInterface | ErrorInterface> {
+  public async UnlockFile(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await fs.chmod(path, 0o777);
       return this.responseHelper.Success("File unlocked successfully.");
@@ -70,7 +85,10 @@ export default class FileManager {
     }
   }
 
-  public async MoveFile(oldPath: string, newPath: string): Promise<SuccessInterface | ErrorInterface> {
+  public async MoveFile(
+    oldPath: string,
+    newPath: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await fs.rename(oldPath, newPath);
       return this.responseHelper.Success("File moved successfully.");
@@ -79,7 +97,9 @@ export default class FileManager {
     }
   }
 
-  public async IsFileLocked(path: string): Promise<SuccessInterface | ErrorInterface> {
+  public async IsFileLocked(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const stats = await fs.stat(path);
       return this.responseHelper.Success((stats.mode & 0o777) === 0o400);

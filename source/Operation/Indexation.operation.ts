@@ -24,9 +24,7 @@ export class AxioDB {
    * @param {object | any} [Schema] - The schema object defining the structure of the collection.
    * @param {boolean} [isEncrypted=false] - Indicates if the collection is encrypted.
    */
-  constructor(
-
-  ) {
+  constructor() {
     this.RootName = General.DBMS_Name;
     this.currentPATH = path.resolve(".");
     this.DBNamePath = "./";
@@ -48,9 +46,11 @@ export class AxioDB {
    */
   public async CreateTreeRoot(): Promise<AxioDB> {
     await new FolderManager().CreateDirectory(
-      this.currentPATH = `${this.currentPATH}/${this.RootName}`,
+      (this.currentPATH = `${this.currentPATH}/${this.RootName}`),
     );
-    await new FileManager().CreateFile(this.MetaFileLocation = `${this.currentPATH}/${this.RootName}.${General.DBMS_File_EXT}`);
+    await new FileManager().CreateFile(
+      (this.MetaFileLocation = `${this.currentPATH}/${this.RootName}.${General.DBMS_File_EXT}`),
+    );
     return this;
   }
 
@@ -61,7 +61,7 @@ export class AxioDB {
   public async createDatabase(DBName: string): Promise<AxioDB> {
     if (DBName) {
       await new FolderManager().CreateDirectory(
-        `${this.currentPATH}/${DBName}/`
+        `${this.currentPATH}/${DBName}/`,
       );
 
       this.DBNamePath = `${this.currentPATH}/${DBName}/`;
@@ -69,10 +69,8 @@ export class AxioDB {
 
       console.log(`Collection Directory Created: ${this.currentPATH}`);
       return this;
-    }
-    else {
+    } else {
       return this;
     }
-
   }
 }

@@ -23,7 +23,7 @@ export default class FolderManager {
    * Creates a new directory at the specified path.
    */
   public async CreateDirectory(
-    path: string
+    path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await this.fileSystem.mkdir(path, { recursive: true });
@@ -37,7 +37,7 @@ export default class FolderManager {
    * Deletes a directory at the specified path.
    */
   public async DeleteDirectory(
-    path: string
+    path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await this.fileSystem.rm(path, { recursive: true, force: true });
@@ -51,7 +51,7 @@ export default class FolderManager {
    * Checks if a directory exists at the specified path.
    */
   public async DirectoryExists(
-    path: string
+    path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await this.fileSystem.access(path);
@@ -65,7 +65,7 @@ export default class FolderManager {
    * Lists the contents of a directory at the specified path.
    */
   public async ListDirectory(
-    path: string
+    path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const contents = await this.fileSystem.readdir(path);
@@ -80,7 +80,7 @@ export default class FolderManager {
    */
   public async MoveDirectory(
     oldPath: string,
-    newPath: string
+    newPath: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await this.fileSystem.rename(oldPath, newPath);
@@ -94,7 +94,7 @@ export default class FolderManager {
    * Locks a directory at the specified path.
    */
   public async LockDirectory(
-    path: string
+    path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await this.fileSystem.chmod(path, 0o400);
@@ -108,7 +108,7 @@ export default class FolderManager {
    * Unlocks a directory at the specified path.
    */
   public async UnlockDirectory(
-    path: string
+    path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await this.fileSystem.chmod(path, 0o777);
@@ -122,7 +122,7 @@ export default class FolderManager {
    * Checks if a directory is locked at the specified path.
    */
   public async IsDirectoryLocked(
-    path: string
+    path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const stats = await this.fileSystem.stat(path);
