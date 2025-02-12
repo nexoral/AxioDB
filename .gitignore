@@ -2,3 +2,4 @@ node_modules
 lib
 ./source/Web.Client/node_moduless
 ./GUI/node_modules
+test.js
