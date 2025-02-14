@@ -53,7 +53,7 @@ export default class FileManager {
       await fs.access(path);
       return this.responseHelper.Success(true);
     } catch {
-      return this.responseHelper.Success(false);
+      return this.responseHelper.Error(false);
     }
   }
 

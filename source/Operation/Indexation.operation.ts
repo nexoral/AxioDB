@@ -5,121 +5,109 @@ import FileManager from "../Storage/FileManager";
 import FolderManager from "../Storage/FolderManager";
 import { General } from "../config/Keys/Keys";
 import path from "path";
+import Database from "./Database/database.operation";
+import startWebServer from "../server/Fastify";
+import Converter from "../Helper/Converter.helper";
+import { StatusCodes } from "outers";
 
 /**
  * Class representing the AxioDB database.
  */
+/**
+ * Class representing the AxioDB database system.
+ */
 export class AxioDB {
-  // Properties
   private readonly RootName: string;
   private currentPATH: string;
-  private DBNamePath: string;
-  private MetaFileLocation: string;
-  private FileManager: FileManager;
-  private FolderManager: FolderManager;
+  private MetaFileLocation!: string;
+  private fileManager: FileManager;
+  private folderManager: FolderManager;
+  private Converter: Converter;
 
-  /**
-   * Creates an instance of AxioDB.
-   */
   constructor() {
     this.RootName = General.DBMS_Name;
-    this.currentPATH = path.resolve(".");
-    this.DBNamePath = "./";
-    this.MetaFileLocation = "";
-    this.FileManager = new FileManager();
-    this.FolderManager = new FolderManager();
+    this.currentPATH = path.resolve("."); // Set the base path
 
-    // Initialize AxioDB root
-    this.initializeRoot();
+    this.fileManager = new FileManager(); // Initialize the FileManager class
+    this.folderManager = new FolderManager(); // Initialize the FolderManager class
+    this.Converter = new Converter(); // Initialize the Converter class
+
+    this.initializeRoot(); // Ensure root initialization
   }
 
-  /**
-   * Initializes the root directory and metadata file.
-   */
   private async initializeRoot(): Promise<void> {
-    this.currentPATH = path.join(this.currentPATH, this.RootName);
-    this.MetaFileLocation = path.join(
-      this.currentPATH,
-      `${this.RootName}.${General.DBMS_File_EXT}`,
-    );
+    this.currentPATH = path.join(this.currentPATH, this.RootName); // Correctly set the path
 
-    // Create Root Folder & Metadata File
-    await this.FolderManager.CreateDirectory(this.currentPATH);
-    const exists = await this.FileManager.FileExists(this.MetaFileLocation);
-    if (!exists.status) {
-      await this.FileManager.CreateFile(this.MetaFileLocation);
-      await this.FileManager.WriteFile(
-        this.MetaFileLocation,
-        JSON.stringify({ databases: [] }, null, 2),
-      );
+    console.log(`Checking if AxioDB root exists at: ${this.currentPATH}`);
+
+    // Check if the AxioDB folder exists
+    const exists = await this.folderManager.DirectoryExists(this.currentPATH);
+
+    if (exists.statusCode !== StatusCodes.OK) {
+      console.log("AxioDB folder not found. Creating...");
+      const Dir_Status = await this.folderManager.CreateDirectory(this.currentPATH);
+
+      if (Dir_Status.statusCode !== StatusCodes.OK) {
+        throw new Error(`Failed to create AxioDB folder: ${Dir_Status.statusCode}`);
+      } else {
+        console.log(`AxioDB folder created at: ${this.currentPATH}`);
+      }
+    } else {
+      console.log("AxioDB root folder already exists.");
     }
+
+    // Set metadata file path AFTER updating currentPATH
+    this.MetaFileLocation = path.join(this.currentPATH, `${this.RootName}.${General.DBMS_File_EXT}`);
+
+    // Create metadata file if it doesn't exist
+    const metaExists = await this.fileManager.FileExists(this.MetaFileLocation);
+    if (metaExists.statusCode !== StatusCodes.OK) {
+      console.log("Creating metadata file...");
+      await this.fileManager.CreateFile(this.MetaFileLocation);
+      await this.fileManager.WriteFile(this.MetaFileLocation, this.Converter.ToString({ databases: [] }));
+      console.log("Metadata file created successfully.");
+    } else {
+      console.log("Metadata file already exists.");
+    }
+
+    startWebServer(); // Start the web server
   }
 
   /**
    * Creates a new database folder and updates the metadata file.
-   * @param {string} DBName - Name of the database.
-   * @returns {Promise<AxioDB>} - Returns the instance of AxioDB.
    */
-  public async createDB(DBName: string): Promise<AxioDB> {
+  public async createDB(DBName: string): Promise<Database> {
     const dbPath = path.join(this.currentPATH, DBName);
-    await this.FolderManager.CreateDirectory(dbPath);
 
-    // Update metadata
+    // Check if DB already exists
     const metadata = await this.getMetadata();
+    if (metadata.databases.some((db: any) => db.name === DBName)) {
+      throw new Error(`Database "${DBName}" already exists.`);
+    }
+
+    await this.folderManager.CreateDirectory(dbPath);
+
+    const newDB = new Database(DBName, dbPath, this.MetaFileLocation);
     metadata.databases.push({
       name: DBName,
       path: dbPath,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      collections: [],
     });
 
-    await this.FileManager.WriteFile(
-      this.MetaFileLocation,
-      JSON.stringify(metadata, null, 2),
-    );
+    await this.fileManager.WriteFile(this.MetaFileLocation, JSON.stringify(metadata, null, 2));
 
     console.log(`Database Created: ${dbPath}`);
-    return this;
-  }
-
-  /**
-   * Creates a new collection inside the database.
-   * @param {string} collectionName - Name of the collection.
-   * @returns {Promise<AxioDB>} - Returns the instance of AxioDB.
-   */
-  public async createCollection(collectionName: string): Promise<AxioDB> {
-    const collectionPath = path.join(this.currentPATH, collectionName);
-    await this.FolderManager.CreateDirectory(collectionPath);
-
-    // Update metadata
-    const metadata = await this.getMetadata();
-    const db = metadata.databases.find((db: any) => db.path === this.currentPATH);
-    if (db) {
-      db.collections = db.collections || [];
-      db.collections.push({
-        name: collectionName,
-        path: collectionPath,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-      db.updated_at = new Date().toISOString();
-    }
-
-    await this.FileManager.WriteFile(
-      this.MetaFileLocation,
-      JSON.stringify(metadata, null, 2),
-    );
-
-    console.log(`Collection Created: ${collectionPath}`);
-    return this;
+    return newDB;
   }
 
   /**
    * Reads the metadata file.
-   * @returns {Promise<any>} - Returns metadata object.
    */
-  private async getMetadata(): Promise<any> {
-    const metaData = await this.FileManager.ReadFile(this.MetaFileLocation);
-    return metaData.status ? metaData.status : { databases: [] };
+  public async getMetadata(): Promise<any> {
+    const metaData = await this.fileManager.ReadFile(this.MetaFileLocation);
+    return metaData.status ? metaData : { databases: [] };
   }
 }
+
