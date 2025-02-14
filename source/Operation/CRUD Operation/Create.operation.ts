@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import FileManager from "../Storage/FileManager";
+import FileManager from "../../Storage/FileManager";
 import { ClassBased } from "outers";
-import responseHelper from "../Helper/response.helper";
+import responseHelper from "../../Helper/response.helper";
 import {
   ErrorInterface,
   SuccessInterface,
-} from "../config/Interfaces/Helper/response.helper.interface";
+} from "../../config/Interfaces/Helper/response.helper.interface";
 
 /**
  * Class representing an insertion operation.
