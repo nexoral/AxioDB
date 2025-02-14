@@ -45,10 +45,14 @@ export class AxioDB {
 
     if (exists.statusCode !== StatusCodes.OK) {
       console.log("AxioDB folder not found. Creating...");
-      const Dir_Status = await this.folderManager.CreateDirectory(this.currentPATH);
+      const Dir_Status = await this.folderManager.CreateDirectory(
+        this.currentPATH,
+      );
 
       if (Dir_Status.statusCode !== StatusCodes.OK) {
-        throw new Error(`Failed to create AxioDB folder: ${Dir_Status.statusCode}`);
+        throw new Error(
+          `Failed to create AxioDB folder: ${Dir_Status.statusCode}`,
+        );
       } else {
         console.log(`AxioDB folder created at: ${this.currentPATH}`);
       }
@@ -57,14 +61,20 @@ export class AxioDB {
     }
 
     // Set metadata file path AFTER updating currentPATH
-    this.MetaFileLocation = path.join(this.currentPATH, `${this.RootName}.${General.DBMS_File_EXT}`);
+    this.MetaFileLocation = path.join(
+      this.currentPATH,
+      `${this.RootName}.${General.DBMS_File_EXT}`,
+    );
 
     // Create metadata file if it doesn't exist
     const metaExists = await this.fileManager.FileExists(this.MetaFileLocation);
     if (metaExists.statusCode !== StatusCodes.OK) {
       console.log("Creating metadata file...");
       await this.fileManager.CreateFile(this.MetaFileLocation);
-      await this.fileManager.WriteFile(this.MetaFileLocation, this.Converter.ToString({ databases: [] }));
+      await this.fileManager.WriteFile(
+        this.MetaFileLocation,
+        this.Converter.ToString({ databases: [] }),
+      );
       console.log("Metadata file created successfully.");
     } else {
       console.log("Metadata file already exists.");
@@ -96,7 +106,10 @@ export class AxioDB {
       collections: [],
     });
 
-    await this.fileManager.WriteFile(this.MetaFileLocation, JSON.stringify(metadata, null, 2));
+    await this.fileManager.WriteFile(
+      this.MetaFileLocation,
+      JSON.stringify(metadata, null, 2),
+    );
 
     console.log(`Database Created: ${dbPath}`);
     return newDB;
@@ -110,4 +123,3 @@ export class AxioDB {
     return metaData.status ? metaData : { databases: [] };
   }
 }
-
