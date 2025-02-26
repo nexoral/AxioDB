@@ -13,12 +13,10 @@ export default class Database {
   collections: Collection[];
   private fileManager: FileManager;
   private folderManager: FolderManager;
-  private metaFileLocation: string;
 
-  constructor(name: string, path: string, metaFileLocation: string) {
+  constructor(name: string, path: string) {
     this.name = name;
     this.path = path;
-    this.metaFileLocation = metaFileLocation;
     this.collections = [];
     this.fileManager = new FileManager();
     this.folderManager = new FolderManager();
@@ -30,46 +28,12 @@ export default class Database {
    * @returns {Promise<AxioDB>} - Returns the instance of AxioDB.
    */
   public async createCollection(
-    DBName: string,
-    collectionName: string,
+    collectionName: string
   ): Promise<Database> {
-    const dbMetadata = await this.getMetadata();
-
-    // Find the database in metadata
-    const db = dbMetadata.databases.find((db: any) => db.name === DBName);
-
-    if (!db) {
-      throw new Error(`Database '${DBName}' not found!`);
-    }
-
-    const collectionPath = path.join(db.path, collectionName);
+    console.log(`Creating Collection: ${collectionName}`);
+    const collectionPath = path.join(this.path, collectionName);
     await this.folderManager.CreateDirectory(collectionPath);
-
-    // Ensure collections array exists
-    db.collections = db.collections || [];
-
-    // Add collection metadata
-    db.collections.push({
-      name: collectionName,
-      path: collectionPath,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
-
-    db.updated_at = new Date().toISOString();
-
-    // Write updated metadata
-    await this.fileManager.WriteFile(this.metaFileLocation, dbMetadata);
-
     console.log(`Collection Created: ${collectionPath}`);
     return this;
-  }
-
-  /**
-   * Reads the metadata file.
-   */
-  private async getMetadata(): Promise<any> {
-    const metaData = await this.fileManager.ReadFile(this.metaFileLocation);
-    return metaData.status ? metaData : { databases: [] };
   }
 }
