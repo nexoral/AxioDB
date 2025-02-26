@@ -27,9 +27,7 @@ export default class Database {
    * @param {string} collectionName - Name of the collection.
    * @returns {Promise<AxioDB>} - Returns the instance of AxioDB.
    */
-  public async createCollection(
-    collectionName: string
-  ): Promise<Database> {
+  public async createCollection(collectionName: string): Promise<Database> {
     console.log(`Creating Collection: ${collectionName}`);
     const collectionPath = path.join(this.path, collectionName);
     await this.folderManager.CreateDirectory(collectionPath);
