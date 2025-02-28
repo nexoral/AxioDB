@@ -1,35 +1,49 @@
 version: 2.1
 
 jobs:
+  Test:
+    docker:
+      - image: node:latest
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: npm ci
+      - run:
+          name: Run Tests
+          command: npm test
+
   Publish_To_NPM:
     docker:
       - image: node:latest
-
+    working_directory: ~/repo
     steps:
       - checkout
-
       - run:
           name: Install Dependencies
-          command: npm install --force
-
+          command: npm ci
       - run:
           name: Build Package
           command: npm run build
-
       - run:
           name: Set NPM Auth Token
-          command: |
-            echo "//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}" > ~/.npmrc
-
+          command: echo "//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}" > ~/.npmrc
       - run:
           name: Publish to NPM Registry
-          command: npm publish --registry https://registry.npmjs.org --access public
+          command: npm publish --access public
+
 workflows:
   version: 2
-  Registry_Publish:
+  main_workflow:
     jobs:
+      - Test:
+          filters:
+            branches:
+              only: main
       - Publish_To_NPM:
-          name: Publish to NPM Registry
+          requires:
+            - Test
           filters:
             branches:
               only: main
