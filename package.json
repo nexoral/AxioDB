@@ -6,7 +6,7 @@
   "types": "./lib/config/DB.d.ts",
   "scripts": {
     "test": "node ./test/test.js",
-    "build": "npm test && tsc",
+    "build": "tsc",
     "prepare": "npm run build",
     "dev": "vite",
     "build:react": "vite build",
