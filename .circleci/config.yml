@@ -54,7 +54,7 @@ workflows:
       - Publish_To_NPM:
           name: Publish to NPM Registry
           requires:
-            - Test
+            - Run Tests
           filters:
             branches:
               only: main
