@@ -5,7 +5,7 @@
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
   "scripts": {
-    "test": "eslint source/**/*.ts --fix",
+    "test": "node ./test/test.js",
     "build": "npm test && tsc",
     "prepare": "npm run build",
     "dev": "vite",

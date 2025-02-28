@@ -24,12 +24,37 @@ jobs:
       - run:
           name: Publish to NPM Registry
           command: npm publish --registry https://registry.npmjs.org --access public
+
+  Test:
+    docker:
+      - image: node:latest
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install Dependencies
+          command: npm install --force
+
+      - run:
+          name: Run Tests
+          command: npm test
+
 workflows:
   version: 2
+  Test:
+    jobs:
+      - Test:
+          name: Run Tests
+          filters:
+            branches:
+              only: main
   Registry_Publish:
     jobs:
       - Publish_To_NPM:
           name: Publish to NPM Registry
+          requires:
+            - Test
           filters:
             branches:
               only: main
