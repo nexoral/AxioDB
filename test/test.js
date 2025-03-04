@@ -5,18 +5,18 @@ const { spawn } = require('child_process')
 const random = Math.floor(Math.random() * 5000) + 5000
 
 /**
- * Asynchronously runs a script to install AxioDB, create multiple databases and collections, 
+ * Asynchronously runs a script to install AxioDB, create multiple databases and collections,
  * and execute the generated script.
- * 
+ *
  * The script performs the following steps:
  * 1. Installs the AxioDB package using npm.
  * 2. Generates a script that creates 5000 databases, each with two collections.
  * 3. Writes the generated script to a file named 'serve.js'.
  * 4. Executes the generated script.
  * 5. Sets a timeout to ensure the script completes within 10 seconds.
- * 
+ *
  * If any step fails, the process exits with an error code.
- * 
+ *
  * @async
  * @function runScript
  * @throws Will throw an error if the AxioDB installation fails or if there is an error in script execution.

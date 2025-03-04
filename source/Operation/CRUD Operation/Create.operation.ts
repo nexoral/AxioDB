@@ -28,11 +28,13 @@ export default class Insertion {
    * Saves the data to a file.
    * @returns {Promise<any>} A promise that resolves with the response of the save operation.
    */
-  public async Save(data: object | any): Promise<SuccessInterface | ErrorInterface> {
+  public async Save(
+    data: object | any,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const documentId = await this.generateUniqueDocumentId();
       const filePath = `${this.path}/${documentId}.json`;
-      
+
       const response = await new FileManager().WriteFile(
         filePath,
         JSON.stringify(data),

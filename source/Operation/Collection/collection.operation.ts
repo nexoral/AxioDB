@@ -1,4 +1,7 @@
-import { ErrorInterface, SuccessInterface } from "../../config/Interfaces/Helper/response.helper.interface";
+import {
+  ErrorInterface,
+  SuccessInterface,
+} from "../../config/Interfaces/Helper/response.helper.interface";
 import Insertion from "../CRUD Operation/Create.operation";
 
 /**
@@ -25,12 +28,14 @@ export default class Collection {
    * @param {object} data - The data to be inserted.
    * @returns {Promise<any>} - A promise that resolves with the response of the insertion operation.
    */
-  public async insert(data: object): Promise<SuccessInterface | ErrorInterface | undefined> {
+  public async insert(
+    data: object,
+  ): Promise<SuccessInterface | ErrorInterface | undefined> {
     // Check if data is empty or not
     if (!data) {
       throw new Error("Data cannot be empty");
     }
-    
+
     // Check if data is an object or not
     if (typeof data !== "object") {
       throw new Error("Data must be an object.");
