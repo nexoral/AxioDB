@@ -1,6 +1,26 @@
 const fs = require('fs/promises')
 const { spawn } = require('child_process')
 
+// Generate a random number between 5000 and 10000
+const random = Math.floor(Math.random() * 5000) + 5000
+
+/**
+ * Asynchronously runs a script to install AxioDB, create multiple databases and collections,
+ * and execute the generated script.
+ *
+ * The script performs the following steps:
+ * 1. Installs the AxioDB package using npm.
+ * 2. Generates a script that creates 5000 databases, each with two collections.
+ * 3. Writes the generated script to a file named 'serve.js'.
+ * 4. Executes the generated script.
+ * 5. Sets a timeout to ensure the script completes within 10 seconds.
+ *
+ * If any step fails, the process exits with an error code.
+ *
+ * @async
+ * @function runScript
+ * @throws Will throw an error if the AxioDB installation fails or if there is an error in script execution.
+ */
 const runScript = async () => {
   try {
     // Ensure axiodb is installed
@@ -19,11 +39,23 @@ const runScript = async () => {
             const main = async () => {
         `
 
-    for (let i = 0; i < 5000; i++) {
+    for (let i = 0; i < random; i++) {
       scriptContent += `
                 const db${i} = await controller.createDB('db${i}');
-                await db${i}.createCollection('collection${i}');
-                await db${i}.createCollection('collection${i + 1}');
+                const collection${i} = await db${i}.createCollection('collection${i}');
+                const collection${i}_2 = await db${i}.createCollection('collection${i + 1}');
+                
+                await collection${i}.insert({
+                    name: "test",
+                }).then((res) => {
+                    console.log(res)
+                });
+                
+                await collection${i}_2.insert({
+                    name: "test",
+                }).then((res) => {
+                    console.log(res)
+                });
             `
     }
 
