@@ -63,6 +63,8 @@ export class AxioDB {
 
   /**
    * Creates a new database folder and updates the metadata file.
+   * @param DBName - The name of the database to create.
+   * @returns The newly created database object.
    */
   public async createDB(DBName: string): Promise<Database> {
     const dbPath = path.join(this.currentPATH, DBName);
@@ -70,7 +72,6 @@ export class AxioDB {
     await this.folderManager.CreateDirectory(dbPath);
 
     const newDB = new Database(DBName, dbPath);
-
     console.log(`Database Created: ${dbPath}`);
     return newDB;
   }
