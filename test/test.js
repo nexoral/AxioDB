@@ -44,18 +44,6 @@ const runScript = async () => {
                 const db${i} = await controller.createDB('db${i}');
                 const collection${i} = await db${i}.createCollection('collection${i}');
                 const collection${i}_2 = await db${i}.createCollection('collection${i + 1}');
-                
-                await collection${i}.insert({
-                    name: "test",
-                }).then((res) => {
-                    console.log(res)
-                });
-                
-                await collection${i}_2.insert({
-                    name: "test",
-                }).then((res) => {
-                    console.log(res)
-                });
             `
     }
 
