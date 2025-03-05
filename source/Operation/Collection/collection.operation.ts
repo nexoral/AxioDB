@@ -76,7 +76,6 @@ export default class Collection {
       data = await this.cryptoInstance.encrypt(this.Converter.ToString(data));
     }
 
-    console.log("Data to be saved", data);
     // Save the data
     return await this.Insertion.Save(data);
   }

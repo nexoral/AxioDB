@@ -6,6 +6,8 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
+import {General} from '../../config/Keys/Keys';
+import Converter from '../../Helper/Converter.helper';
 
 /**
  * Class representing an insertion operation.
@@ -13,16 +15,17 @@ import {
 export default class Insertion {
   private readonly collectionName: string;
   private readonly path: string | any;
+  private readonly Converter: Converter;
 
   /**
    * Creates an instance of Insertion.
    * @param {string} collectionName - The name of the collection.
-   * @param {object | any} data - The data to be inserted.
+   * @param {string | any} path - The data to be inserted.
    */
-  constructor(collectionName: string, path: object | any) {
+  constructor(collectionName: string, path: string | any) {
     this.collectionName = collectionName;
     this.path = path;
-  }
+    this.Converter = new Converter();}
 
   /**
    * Saves the data to a file.
@@ -33,18 +36,17 @@ export default class Insertion {
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const documentId = await this.generateUniqueDocumentId();
-      const filePath = `${this.path}/${documentId}.json`;
+      const filePath = `${this.path}/${documentId}${General.DBMS_File_EXT}`;
 
       const response = await new FileManager().WriteFile(
         filePath,
-        JSON.stringify(data),
+        this.Converter.ToString(data),
       );
 
       if (response.status) {
         return new responseHelper().Success({
           Message: "Data Inserted Successfully",
           DocumentID: documentId,
-          Data: data,
         });
       }
       return new responseHelper().Error("Failed to save data");
@@ -63,7 +65,7 @@ export default class Insertion {
     do {
       ID = new ClassBased.UniqueGenerator(15).RandomWord(true);
       const response = await new FileManager().FileExists(
-        `${this.path}/${ID}.json`,
+        `${this.path}/${ID}${General.DBMS_File_EXT}`,
       );
       isExist = response.status;
     } while (isExist);
