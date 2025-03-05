@@ -3,6 +3,7 @@ import Collection from "../Collection/collection.operation";
 import FileManager from "../../Storage/FileManager";
 import FolderManager from "../../Storage/FolderManager";
 import path from "path";
+import {SchemaTypes} from '../../Models/DataTypes.models';
 
 /**
  * Represents a database instance.
@@ -27,12 +28,12 @@ export default class Database {
    * @param {string} collectionName - Name of the collection.
    * @returns {Promise<AxioDB>} - Returns the instance of AxioDB.
    */
-  public async createCollection(collectionName: string): Promise<Collection> {
+  public async createCollection(collectionName: string, schema:object | any): Promise<Collection> {
     console.log(`Creating Collection: ${collectionName}`);
     const collectionPath = path.join(this.path, collectionName);
     await this.folderManager.CreateDirectory(collectionPath);
     console.log(`Collection Created: ${collectionPath}`);
-    const collection = new Collection(collectionName, collectionPath);
+    const collection = new Collection(collectionName, collectionPath, SchemaTypes.object(schema));
     return collection;
   }
 }

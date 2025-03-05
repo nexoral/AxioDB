@@ -1,8 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import Insertion from "../CRUD Operation/Create.operation";
+import {Console} from 'outers';
+// Validator
+import SchemaValidator from '../../Models/validator.models';
 
 /**
  * Represents a collection inside a database.
@@ -12,11 +16,14 @@ export default class Collection {
   path: string;
   createdAt: string;
   updatedAt: string;
+  private schema: object | any;
   private Insertion: Insertion;
+  
 
-  constructor(name: string, path: string) {
+  constructor(name: string, path: string, scema:object | any) {
     this.name = name;
     this.path = path;
+    this.schema = scema;
     this.createdAt = new Date().toISOString();
     this.updatedAt = new Date().toISOString();
     // Initialize the Insertion class
@@ -39,6 +46,14 @@ export default class Collection {
     // Check if data is an object or not
     if (typeof data !== "object") {
       throw new Error("Data must be an object.");
+    }
+
+    // Validate the data
+    const validator = await SchemaValidator(this.schema, data);
+
+    if(validator?.details) {
+      Console.red("Validation Error", validator.details);
+      return
     }
     // Save the data
     return await this.Insertion.Save(data);
