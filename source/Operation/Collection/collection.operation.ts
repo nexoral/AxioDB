@@ -4,13 +4,13 @@ import {
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import Insertion from "../CRUD Operation/Create.operation";
-import {Console} from 'outers';
+import { Console } from "outers";
 // Validator
-import SchemaValidator from '../../Models/validator.models';
+import SchemaValidator from "../../Models/validator.models";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 
 // Converter
-import Converter from '../../Helper/Converter.helper';
+import Converter from "../../Helper/Converter.helper";
 
 /**
  * Represents a collection inside a database.
@@ -25,14 +25,19 @@ export default class Collection {
   private cryptoInstance?: CryptoHelper;
   private Converter: Converter;
   private Insertion: Insertion;
-  
 
-  constructor(name: string, path: string, scema:object | any, isEncrypted = false, cryptoInstance?: CryptoHelper) {
+  constructor(
+    name: string,
+    path: string,
+    scema: object | any,
+    isEncrypted = false,
+    cryptoInstance?: CryptoHelper,
+  ) {
     this.name = name;
     this.path = path;
     this.schema = scema;
     this.isEncrypted = isEncrypted;
-    this.cryptoInstance = cryptoInstance
+    this.cryptoInstance = cryptoInstance;
     this.Converter = new Converter();
     this.createdAt = new Date().toISOString();
     this.updatedAt = new Date().toISOString();
@@ -61,9 +66,9 @@ export default class Collection {
     // Validate the data
     const validator = await SchemaValidator(this.schema, data);
 
-    if(validator?.details) {
+    if (validator?.details) {
       Console.red("Validation Error", validator.details);
-      return
+      return;
     }
 
     // Encrypt the data if crypto is enabled

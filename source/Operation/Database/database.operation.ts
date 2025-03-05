@@ -33,9 +33,16 @@ export default class Database {
    * @param {string} key - Key for crypto.
    * @returns {Promise<AxioDB>} - Returns the instance of AxioDB.
    */
-  public async createCollection(collectionName: string, schema:object | any, crypto: boolean=false, key?: string | undefined): Promise<Collection> {
+  public async createCollection(
+    collectionName: string,
+    schema: object | any,
+    crypto: boolean = false,
+    key?: string | undefined,
+  ): Promise<Collection> {
     // Check if the collection already exists
-    const collectionExists = await this.folderManager.DirectoryExists(path.join(this.path, collectionName));
+    const collectionExists = await this.folderManager.DirectoryExists(
+      path.join(this.path, collectionName),
+    );
     if (collectionExists.status === true) {
       throw new Error(`Collection ${collectionName} already exists.`);
     }
@@ -46,15 +53,19 @@ export default class Database {
     console.log(`Collection Created: ${collectionPath}`);
 
     // if crypto is enabled, hash the collection name
-    if(crypto){
+    if (crypto) {
       const newCryptoInstance = new CryptoHelper(key);
-      const collection = new Collection(collectionName, collectionPath, schema, crypto ,newCryptoInstance);
+      const collection = new Collection(
+        collectionName,
+        collectionPath,
+        schema,
+        crypto,
+        newCryptoInstance,
+      );
       return collection;
-    }
-    else {
+    } else {
       const collection = new Collection(collectionName, collectionPath, schema);
       return collection;
     }
-    
   }
 }
