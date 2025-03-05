@@ -46,17 +46,22 @@ export default class Insertion {
       if ("data" in isLocked) {
         if (isLocked.data == false) {
           // Write the data to the file
-          const response = await new FileManager().WriteFile(
+          const WriteResponse = await new FileManager().WriteFile(
             filePath,
             this.Converter.ToString(data),
           );
           const lockStatus = await new FolderManager().LockDirectory(this.path);
           if ("data" in lockStatus) {
             if (lockStatus.data == false) {
-              return new responseHelper().Error("Failed to lock directory");
+              const DeleteStatus = await new FileManager().DeleteFile(filePath);
+              if ("data" in DeleteStatus) {
+                if (DeleteStatus.data == false) {
+                  return new responseHelper().Error("Failed to lock directory");
+                }
+              }
             }
             else {
-              if (response.status) {
+              if (WriteResponse.status) {
                 return new responseHelper().Success({
                   Message: "Data Inserted Successfully",
                   DocumentID: documentId,
@@ -69,11 +74,11 @@ export default class Insertion {
           const unlockStatus = await new FolderManager().UnlockDirectory(this.path);
           if ("data" in unlockStatus) {
             if (unlockStatus.data == false) {
-              return new responseHelper().Error("Failed to lock directory");
+              return new responseHelper().Error("Failed to unlock directory");
             }
             else {
               // Write the data to the file
-              const response = await new FileManager().WriteFile(
+              const WriteResponse = await new FileManager().WriteFile(
                 filePath,
                 this.Converter.ToString(data),
               );
@@ -83,7 +88,7 @@ export default class Insertion {
                   return new responseHelper().Error("Failed to lock directory");
                 }
                 else {
-                  if (response.status) {
+                  if (WriteResponse.status) {
                     return new responseHelper().Success({
                       Message: "Data Inserted Successfully",
                       DocumentID: documentId,
