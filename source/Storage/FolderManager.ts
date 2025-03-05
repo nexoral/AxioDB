@@ -55,9 +55,9 @@ export default class FolderManager {
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await this.fileSystem.access(path);
-      return this.responseHelper.Success(true);
+      return this.responseHelper.Success(false);
     } catch {
-      return this.responseHelper.Error(false);
+      return this.responseHelper.Error(true);
     }
   }
 
