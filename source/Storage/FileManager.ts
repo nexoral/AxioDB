@@ -95,7 +95,7 @@ export default class FileManager {
   public async CreateFile(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
-    return this.WriteFile(path, "");
+    return await this.WriteFile(path, "");
   }
 
   /**
