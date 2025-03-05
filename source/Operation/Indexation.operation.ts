@@ -68,7 +68,7 @@ export class AxioDB {
    */
   public async createDB(DBName: string): Promise<Database> {
     const dbPath = path.join(this.currentPATH, DBName);
-    
+
     // Check if the database already exists
     const exists = await this.folderManager.DirectoryExists(dbPath);
     if (exists.statusCode !== StatusCodes.OK) {

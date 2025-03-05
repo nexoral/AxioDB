@@ -8,8 +8,8 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-import { General } from '../../config/Keys/Keys';
-import Converter from '../../Helper/Converter.helper';
+import { General } from "../../config/Keys/Keys";
+import Converter from "../../Helper/Converter.helper";
 
 /**
  * Class representing an insertion operation.
@@ -59,8 +59,7 @@ export default class Insertion {
                   return new responseHelper().Error("Failed to lock directory");
                 }
               }
-            }
-            else {
+            } else {
               if (WriteResponse.status) {
                 return new responseHelper().Success({
                   Message: "Data Inserted Successfully",
@@ -69,25 +68,26 @@ export default class Insertion {
               }
             }
           }
-        }
-        else {
-          const unlockStatus = await new FolderManager().UnlockDirectory(this.path);
+        } else {
+          const unlockStatus = await new FolderManager().UnlockDirectory(
+            this.path,
+          );
           if ("data" in unlockStatus) {
             if (unlockStatus.data == false) {
               return new responseHelper().Error("Failed to unlock directory");
-            }
-            else {
+            } else {
               // Write the data to the file
               const WriteResponse = await new FileManager().WriteFile(
                 filePath,
                 this.Converter.ToString(data),
               );
-              const lockStatus = await new FolderManager().LockDirectory(this.path);
+              const lockStatus = await new FolderManager().LockDirectory(
+                this.path,
+              );
               if ("data" in lockStatus) {
                 if (lockStatus.data == false) {
                   return new responseHelper().Error("Failed to lock directory");
-                }
-                else {
+                } else {
                   if (WriteResponse.status) {
                     return new responseHelper().Success({
                       Message: "Data Inserted Successfully",
@@ -100,8 +100,6 @@ export default class Insertion {
           }
         }
       }
-
-
 
       return new responseHelper().Error("Failed to save data");
     } catch (error) {

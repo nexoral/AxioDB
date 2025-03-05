@@ -41,9 +41,11 @@ export default class Database {
     key?: string | undefined,
   ): Promise<Collection> {
     // Check if the collection already exists
-    const collectionExists = await this.folderManager.DirectoryExists(path.join(this.path, collectionName));
+    const collectionExists = await this.folderManager.DirectoryExists(
+      path.join(this.path, collectionName),
+    );
     const collectionPath = path.join(this.path, collectionName);
-    
+
     // If the collection does not exist, create it
     if (collectionExists.statusCode !== StatusCodes.OK) {
       console.log(`Creating Collection: ${collectionName}`);

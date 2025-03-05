@@ -155,9 +155,9 @@ export default class FileManager {
 
   /**
    * Checks if the file at the given path is locked.
-   * 
+   *
    * A file is considered locked if its permissions are set to read-only for the owner (mode 0o400).
-   * 
+   *
    * @param path - The path to the file to check.
    * @returns A promise that resolves to a SuccessInterface if the file is locked, or an ErrorInterface if an error occurs.
    */
