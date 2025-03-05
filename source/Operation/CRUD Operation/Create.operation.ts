@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import FileManager from "../../Storage/FileManager";
+import FolderManager from "../../Storage/FolderManager";
+
 import { ClassBased } from "outers";
 import responseHelper from "../../Helper/response.helper";
 import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-import {General} from '../../config/Keys/Keys';
+import { General } from '../../config/Keys/Keys';
 import Converter from '../../Helper/Converter.helper';
 
 /**
@@ -25,7 +27,8 @@ export default class Insertion {
   constructor(collectionName: string, path: string | any) {
     this.collectionName = collectionName;
     this.path = path;
-    this.Converter = new Converter();}
+    this.Converter = new Converter();
+  }
 
   /**
    * Saves the data to a file.
@@ -38,17 +41,63 @@ export default class Insertion {
       const documentId = await this.generateUniqueDocumentId();
       const filePath = `${this.path}/${documentId}${General.DBMS_File_EXT}`;
 
-      const response = await new FileManager().WriteFile(
-        filePath,
-        this.Converter.ToString(data),
-      );
-
-      if (response.status) {
-        return new responseHelper().Success({
-          Message: "Data Inserted Successfully",
-          DocumentID: documentId,
-        });
+      // Check if Directory Locked or not
+      const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
+      if ("data" in isLocked) {
+        if (isLocked.data == false) {
+          // Write the data to the file
+          const response = await new FileManager().WriteFile(
+            filePath,
+            this.Converter.ToString(data),
+          );
+          const lockStatus = await new FolderManager().LockDirectory(this.path);
+          if ("data" in lockStatus) {
+            if (lockStatus.data == false) {
+              return new responseHelper().Error("Failed to lock directory");
+            }
+            else {
+              if (response.status) {
+                return new responseHelper().Success({
+                  Message: "Data Inserted Successfully",
+                  DocumentID: documentId,
+                });
+              }
+            }
+          }
+        }
+        else {
+          const unlockStatus = await new FolderManager().UnlockDirectory(this.path);
+          if ("data" in unlockStatus) {
+            if (unlockStatus.data == false) {
+              return new responseHelper().Error("Failed to lock directory");
+            }
+            else {
+              // Write the data to the file
+              const response = await new FileManager().WriteFile(
+                filePath,
+                this.Converter.ToString(data),
+              );
+              const lockStatus = await new FolderManager().LockDirectory(this.path);
+              if ("data" in lockStatus) {
+                if (lockStatus.data == false) {
+                  return new responseHelper().Error("Failed to lock directory");
+                }
+                else {
+                  if (response.status) {
+                    return new responseHelper().Success({
+                      Message: "Data Inserted Successfully",
+                      DocumentID: documentId,
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
       }
+
+
+
       return new responseHelper().Error("Failed to save data");
     } catch (error) {
       return new responseHelper().Error(error);

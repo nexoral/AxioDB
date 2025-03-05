@@ -12,6 +12,14 @@ export default class FileManager {
     this.responseHelper = new ResponseHelper();
   }
 
+  /**
+   * Writes data to a file at the specified path.
+   *
+   * @param path - The path where the file will be written.
+   * @param data - The data to be written to the file.
+   * @returns A promise that resolves to a SuccessInterface if the file is written successfully,
+   * or an ErrorInterface if an error occurs.
+   */
   public async WriteFile(
     path: string,
     data: string,
@@ -24,6 +32,13 @@ export default class FileManager {
     }
   }
 
+  /**
+   * Reads the content of a file at the specified path.
+   *
+   * @param path - The path to the file to be read.
+   * @returns A promise that resolves to a SuccessInterface containing the file data if the read operation is successful,
+   * or an ErrorInterface if an error occurs.
+   */
   public async ReadFile(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -35,6 +50,12 @@ export default class FileManager {
     }
   }
 
+  /**
+   * Deletes a file at the specified path.
+   *
+   * @param {string} path - The path to the file to be deleted.
+   * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves to a SuccessInterface if the file is deleted successfully, or an ErrorInterface if an error occurs.
+   */
   public async DeleteFile(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -46,6 +67,13 @@ export default class FileManager {
     }
   }
 
+  /**
+   * Checks if a file exists at the given path.
+   *
+   * @param path - The path to the file.
+   * @returns A promise that resolves to a SuccessInterface if the file exists,
+   *          or an ErrorInterface if the file does not exist.
+   */
   public async FileExists(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -57,12 +85,26 @@ export default class FileManager {
     }
   }
 
+  /**
+   * Creates a new file at the specified path.
+   *
+   * @param path - The path where the new file will be created.
+   * @returns A promise that resolves to a SuccessInterface if the file is created successfully,
+   * or an ErrorInterface if there is an error during file creation.
+   */
   public async CreateFile(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     return this.WriteFile(path, "");
   }
 
+  /**
+   * Locks the specified file by changing its permissions to read-only.
+   *
+   * @param path - The path to the file to be locked.
+   * @returns A promise that resolves to a SuccessInterface if the file is locked successfully,
+   * or an ErrorInterface if an error occurs.
+   */
   public async LockFile(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -74,6 +116,12 @@ export default class FileManager {
     }
   }
 
+  /**
+   * Unlocks the file at the specified path by changing its permissions to 777.
+   *
+   * @param {string} path - The path to the file to be unlocked.
+   * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves to a SuccessInterface if the file is unlocked successfully, or an ErrorInterface if an error occurs.
+   */
   public async UnlockFile(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -85,6 +133,14 @@ export default class FileManager {
     }
   }
 
+  /**
+   * Moves a file from the specified old path to the new path.
+   *
+   * @param oldPath - The current path of the file to be moved.
+   * @param newPath - The destination path where the file should be moved.
+   * @returns A promise that resolves to a SuccessInterface if the file is moved successfully,
+   * or an ErrorInterface if an error occurs during the file move operation.
+   */
   public async MoveFile(
     oldPath: string,
     newPath: string,
@@ -97,6 +153,14 @@ export default class FileManager {
     }
   }
 
+  /**
+   * Checks if the file at the given path is locked.
+   * 
+   * A file is considered locked if its permissions are set to read-only for the owner (mode 0o400).
+   * 
+   * @param path - The path to the file to check.
+   * @returns A promise that resolves to a SuccessInterface if the file is locked, or an ErrorInterface if an error occurs.
+   */
   public async IsFileLocked(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {

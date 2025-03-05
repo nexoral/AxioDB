@@ -97,7 +97,7 @@ export default class FolderManager {
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      await this.fileSystem.chmod(path, 0o400);
+      await this.fileSystem.chmod(path, 0o000);
       return this.responseHelper.Success(`Directory locked: ${path}`);
     } catch (error) {
       return this.responseHelper.Error(`Failed to lock directory: ${error}`);
@@ -126,7 +126,7 @@ export default class FolderManager {
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const stats = await this.fileSystem.stat(path);
-      const isLocked = (stats.mode & 0o400) === 0o400;
+      const isLocked = (stats.mode & 0o200) === 0; // Check if the directory is locked (no write permission for owner)
       return this.responseHelper.Success(isLocked);
     } catch (error) {
       return this.responseHelper.Error(`Failed to check lock status: ${error}`);
