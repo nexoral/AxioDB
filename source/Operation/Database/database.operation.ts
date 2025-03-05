@@ -6,6 +6,7 @@ import path from "path";
 
 // Crypto for hashing
 import { CryptoHelper } from "../../Helper/Crypto.helper";
+import { StatusCodes } from "outers";
 
 /**
  * Represents a database instance.
@@ -43,14 +44,14 @@ export default class Database {
     const collectionExists = await this.folderManager.DirectoryExists(
       path.join(this.path, collectionName),
     );
-    if (collectionExists.status === true) {
-      throw new Error(`Collection ${collectionName} already exists.`);
-    }
-
     console.log(`Creating Collection: ${collectionName}`);
     const collectionPath = path.join(this.path, collectionName);
-    await this.folderManager.CreateDirectory(collectionPath);
-    console.log(`Collection Created: ${collectionPath}`);
+
+    // If the collection does not exist, create it
+    if (collectionExists.statusCode !== StatusCodes.OK) {
+      await this.folderManager.CreateDirectory(collectionPath);
+      console.log(`Collection Created: ${collectionPath}`);
+    }
 
     // if crypto is enabled, hash the collection name
     if (crypto) {
