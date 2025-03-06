@@ -136,12 +136,16 @@ export default class FolderManager {
   /**
    * get the size of a directory at the specified path.
    */
-  public async GetDirectorySize(path: string): Promise<SuccessInterface | ErrorInterface> {
+  public async GetDirectorySize(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const stats = await this.fileSystem.stat(path);
       return this.responseHelper.Success(stats.size);
     } catch (error) {
-      return this.responseHelper.Error(`Failed to get directory size: ${error}`);
+      return this.responseHelper.Error(
+        `Failed to get directory size: ${error}`,
+      );
     }
   }
 }
