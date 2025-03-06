@@ -171,4 +171,22 @@ export default class FileManager {
       return this.responseHelper.Error(error);
     }
   }
+
+  /**
+   * Retrieves the size of a file in bytes.
+   *
+   * @param path - The path to the file.
+   * @returns A promise that resolves to a SuccessInterface containing the file size in bytes,
+   * or an ErrorInterface if an error occurs.
+   */
+  public async GetFileSize(
+    path: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      const stats = await fs.stat(path);
+      return this.responseHelper.Success(stats.size);
+    } catch (error) {
+      return this.responseHelper.Error(error);
+    }
+  }
 }
