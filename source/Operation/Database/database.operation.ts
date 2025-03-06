@@ -12,16 +12,14 @@ import { StatusCodes } from "outers";
  * Represents a database instance.
  */
 export default class Database {
-  name: string;
-  path: string;
-  collections: Collection[];
+  private name: string;
+  private path: string;
   private fileManager: FileManager;
   private folderManager: FolderManager;
 
   constructor(name: string, path: string) {
     this.name = name;
     this.path = path;
-    this.collections = [];
     this.fileManager = new FileManager();
     this.folderManager = new FolderManager();
   }
