@@ -12,4 +12,5 @@ export interface ErrorInterface {
   statusCode: number;
   status: boolean;
   message?: string;
+  data?: any;
 }

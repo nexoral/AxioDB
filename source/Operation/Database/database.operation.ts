@@ -6,7 +6,13 @@ import path from "path";
 
 // Crypto for hashing
 import { CryptoHelper } from "../../Helper/Crypto.helper";
+import ResponseHelper from "../../Helper/response.helper";
 import { StatusCodes } from "outers";
+import {
+  ErrorInterface,
+  SuccessInterface,
+} from "../../config/Interfaces/Helper/response.helper.interface";
+import { FinalCollectionsInfo } from "../../config/Interfaces/Operation/database.operation.interface";
 
 /**
  * Represents a database instance.
@@ -16,12 +22,14 @@ export default class Database {
   private path: string;
   private fileManager: FileManager;
   private folderManager: FolderManager;
+  private ResponseHelper: ResponseHelper;
 
   constructor(name: string, path: string) {
     this.name = name;
     this.path = path;
     this.fileManager = new FileManager();
     this.folderManager = new FolderManager();
+    this.ResponseHelper = new ResponseHelper();
   }
 
   /**
@@ -65,6 +73,52 @@ export default class Database {
     } else {
       const collection = new Collection(collectionName, collectionPath, schema);
       return collection;
+    }
+  }
+
+  /**
+   * Deletes a collection from the database.
+   * @param {string} collectionName - Name of the collection to delete.
+   * @returns {Promise<void>} - Returns a promise.
+   * @throws {Error} - Throws an error if the collection does not exist.
+   */
+  public async deleteCollection(
+    collectionName: string,
+  ): Promise<SuccessInterface | ErrorInterface | undefined> {
+    const collectionPath = path.join(this.path, collectionName);
+    const exists = await this.folderManager.DirectoryExists(collectionPath);
+    if (exists.statusCode === StatusCodes.OK) {
+      await this.folderManager.DeleteDirectory(collectionPath);
+      return this.ResponseHelper.Success(
+        `Collection: ${collectionName} deleted successfully`,
+      );
+    } else {
+      return this.ResponseHelper.Error(
+        `Collection: ${collectionName} does not exist`,
+      );
+    }
+  }
+
+  /**
+   * Lists all collections in the database.
+   * @returns {Promise<FinalCollectionsInfo>} - Returns a promise with the list of collections data.
+   * @throws {Error} - Throws an error if the database does not exist.
+   */
+  public async getCollectionInfo(): Promise<SuccessInterface | undefined> {
+    const collections = await this.folderManager.ListDirectory(this.path);
+    const totalSize = await this.folderManager.GetDirectorySize(
+      path.resolve(this.path),
+    );
+    if ("data" in collections && "data" in totalSize) {
+      const FinalCollections: FinalCollectionsInfo = {
+        TotalCollections: `${collections.data.length} Collections`,
+        TotalSize: `${(totalSize.data / 1024 / 1024).toFixed(4)} MB`,
+        ListOfCollections: collections.data,
+        AllCollectionsPaths: collections.data.map((collection: string) =>
+          path.join(this.path, collection),
+        ),
+      };
+      return this.ResponseHelper.Success(FinalCollections);
     }
   }
 }

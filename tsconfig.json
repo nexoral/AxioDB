@@ -1,17 +1,17 @@
 {
   "compilerOptions": {
-    "outDir": "./lib",
-    "target": "ES6",
-    "module": "CommonJS",
-    "declaration": true,
-    "moduleResolution": "Node",
+    "outDir": "./lib", // Specify an output directory for all emitted files
+    "target": "ES6", // Specify ECMAScript target version
+    "module": "CommonJS", // Specify module code generation
+    "declaration": true, // Generate declaration files
+    "moduleResolution": "Node", // Specify module resolution strategy
     "checkJs": false, // Disable checking of JavaScript files
     "allowJs": true, // Allow JavaScript files to be included
-    "sourceMap": true,
+    "sourceMap": true, // Generate source maps
     "jsx": "react", // Specify the JSX factory function
-    "strict": true,
-    "removeComments": false,
-    "esModuleInterop": true,
+    "strict": true, // Enable all strict type-checking options
+    "removeComments": false, // Preserve comments in the output
+    "esModuleInterop": true, // Enable compatibility with CommonJS modules
     "skipLibCheck": true, // Skip type checking of declaration files from dependencies
     "forceConsistentCasingInFileNames": true,
     "lib": ["ES6", "DOM"], // Include the necessary TypeScript library declarations
