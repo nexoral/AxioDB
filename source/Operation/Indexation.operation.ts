@@ -7,13 +7,18 @@ import { General } from "../config/Keys/Keys";
 import path from "path";
 import Database from "./Database/database.operation";
 // import startWebServer from "../server/Fastify";
+
+// Helper Classes
 import Converter from "../Helper/Converter.helper";
 import { StatusCodes } from "outers";
 import ResponseHelper from "../Helper/response.helper";
+
+// Interfaces
 import {
   ErrorInterface,
   SuccessInterface,
 } from "../config/Interfaces/Helper/response.helper.interface";
+import { FinalDatabaseInfo } from "../config/Interfaces/Operation/Indexation.operation.interface";
 
 /**
  * Class representing the AxioDB database.
@@ -41,7 +46,7 @@ export class AxioDB {
   private async initializeRoot(): Promise<void> {
     this.currentPATH = path.join(this.currentPATH, this.RootName); // Correctly set the path
 
-    console.log(`Checking if AxioDB root exists at: ${this.currentPATH}`);
+    console.log(`Checking if ${this.RootName} root exists at: ${this.currentPATH}`);
 
     // Check if the AxioDB folder exists
     const exists = await this.folderManager.DirectoryExists(this.currentPATH);
@@ -105,7 +110,7 @@ export class AxioDB {
 
     // check if all data is returned
     if ("data" in totalDatabases && "data" in totalSize) {
-      const FinalDatabaseInfo: object = {
+      const FinalDatabaseInfo: FinalDatabaseInfo = {
         TotalSize: `${(totalSize.data / 1024 / 1024).toFixed(4)} MB`,
         TotalDatabases: `${totalDatabases.data.length} Databases`,
         ListOfDatabases: totalDatabases.data,
