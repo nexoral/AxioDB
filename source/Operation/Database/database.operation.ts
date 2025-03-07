@@ -8,7 +8,10 @@ import path from "path";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
 import { StatusCodes } from "outers";
-import { ErrorInterface, SuccessInterface } from "../../config/Interfaces/Helper/response.helper.interface";
+import {
+  ErrorInterface,
+  SuccessInterface,
+} from "../../config/Interfaces/Helper/response.helper.interface";
 import { FinalCollectionsInfo } from "../../config/Interfaces/Operation/database.operation.interface";
 
 /**
@@ -79,7 +82,9 @@ export default class Database {
    * @returns {Promise<void>} - Returns a promise.
    * @throws {Error} - Throws an error if the collection does not exist.
    */
-  public async deleteCollection(collectionName: string): Promise<SuccessInterface | ErrorInterface | undefined> {
+  public async deleteCollection(
+    collectionName: string,
+  ): Promise<SuccessInterface | ErrorInterface | undefined> {
     const collectionPath = path.join(this.path, collectionName);
     const exists = await this.folderManager.DirectoryExists(collectionPath);
     if (exists.statusCode === StatusCodes.OK) {
@@ -88,7 +93,9 @@ export default class Database {
         `Collection: ${collectionName} deleted successfully`,
       );
     } else {
-      return this.ResponseHelper.Error(`Collection: ${collectionName} does not exist`);
+      return this.ResponseHelper.Error(
+        `Collection: ${collectionName} does not exist`,
+      );
     }
   }
 
