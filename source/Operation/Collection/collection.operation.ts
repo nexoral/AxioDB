@@ -4,6 +4,7 @@ import {
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import Insertion from "../CRUD Operation/Create.operation";
+import Reader from "../CRUD Operation/Reader.operation";
 import { Console } from "outers";
 // Validator
 import SchemaValidator from "../../Models/validator.models";
@@ -78,5 +79,22 @@ export default class Collection {
 
     // Save the data
     return await this.Insertion.Save(data);
+  }
+
+  /**
+   * Reads a document from the collection.
+   * @param {object} query - The query to be executed
+   * @returns {Reader} - An instance of the Reader class.
+   */
+  public query(
+    query: object | any,
+  ): Reader {
+    // Check if documentId is empty or not
+    if (!query) {
+      throw new Error("Query cannot be empty");
+    }
+
+    // Read the data
+    return new Reader(this.name, this.path, query, this.isEncrypted);
   }
 }
