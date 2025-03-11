@@ -44,7 +44,7 @@ export default class Reader {
      * Reads the data from a file.
      * @returns {Promise<any>} A promise that resolves with the response of the read operation.
      */
-    public async exac(): Promise<SuccessInterface | ErrorInterface> {
+    public async exac(callback?: typeof Function): Promise<SuccessInterface | ErrorInterface> {
         try {
             // Check if Directory Locked or not
             const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
@@ -68,7 +68,7 @@ export default class Reader {
                                 const ReadFileResponse = await new FileManager()
                                     .ReadFile(`${this.path}/${DataFilesList[i]}`);
                                 if ("data" in ReadFileResponse) {
-                                    console.log("readed", ReadFileResponse.data);
+                                    console.log("readed data", ReadFileResponse.data);
                                 }
                             }
                         }
