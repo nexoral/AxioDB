@@ -2,7 +2,7 @@
 
 Welcome to AxioDB, a JSON-based Database Management System (DBMS) designed for efficient data management. Built using Node.js streams for optimized read and write operations, AxioDB allows developers to easily manage, store, and retrieve data with customizable schema support. To ensure a safe, collaborative, and inclusive environment, we have established this Code of Conduct for all users and contributors in our community.
 
-## 1. Inclusively and Respect
+## 1. Inclusivity and Respect
 
 We value diversity and inclusion, and we expect all users to treat one another with respect. Any form of discrimination, harassment, or offensive behavior is strictly prohibited and will not be tolerated under any circumstances.
 
@@ -36,7 +36,7 @@ If you become aware of any breaches of this Code of Conduct, report them promptl
 
 ## 9. Consequences of Violations
 
-Violations of this Code of Conduct may result in appropriate actions, including warnings, temporary or permanent suspension of access, or legal consequences Failure to follow this Code of Conduct can result in actions that range from a warning to temporary or permanent suspension of access, depending on the nature and severity of the violation. Legal action may be taken in cases of serious breaches.
+Violations of this Code of Conduct may result in appropriate actions, including warnings, temporary or permanent suspension of access, or legal consequences. Failure to follow this Code of Conduct can result in actions that range from a warning to temporary or permanent suspension of access, depending on the nature and severity of the violation. Legal action may be taken in cases of serious breaches.
 
 ## 10. Code Updates
 

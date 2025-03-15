@@ -1,6 +1,6 @@
 # AxioDB
 
-AxioDB is a fast, lightweight, and scalable open-source DBMS for modern applications. It supports JSON-based data storage, simple APIs, and secure data management. Ideal for projects needing efficient and flexible database solutions.
+AxioDB is a fast, lightweight, and scalable open-source DBMS designed for modern applications. It supports JSON-based data storage, simple APIs, and secure data management, making it ideal for projects requiring efficient and flexible database solutions.
 
 ## Features
 
@@ -119,6 +119,21 @@ db.createDB('myDatabase').then(async (database) => {
 });
 ```
 
+## Motivation
+
+As a MERN Stack Developer, I encountered several challenges with existing database solutions:
+
+1. **Complex Setup:** Many databases require complex setup and configuration, which can be time-consuming and error-prone.
+2. **Performance Bottlenecks:** Handling large datasets efficiently was often a challenge, especially with traditional databases.
+3. **Flexibility:** I needed a flexible solution that could easily adapt to different project requirements without extensive modifications.
+4. **Security:** Ensuring data security and encryption was crucial, but existing solutions often lacked easy-to-implement encryption features.
+
+These pain points motivated me to develop AxioDB, a DBMS Npm Package that addresses these issues by providing a simple, efficient, and secure database solution for modern applications.
+
+## Development Status
+
+**Note:** This project is currently in development mode and is not stable. Features and APIs may change, and there may be bugs. Use it at your own risk and contribute to its development if possible.
+
 ## API Reference
 
 ### AxioDB
@@ -161,7 +176,7 @@ db.createDB('myDatabase').then(async (database) => {
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 
