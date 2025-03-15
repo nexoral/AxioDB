@@ -1,29 +1,172 @@
 # AxioDB
 
-[![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
-
-AxioDB is a JSON-based database management system built using Node.js streams, designed to offer an all-in-one solution for data management. It provides a flexible and efficient way to handle data storage, retrieval, and manipulation without the need for a traditional database setup.
+AxioDB is a fast, lightweight, and scalable open-source DBMS for modern applications. It supports JSON-based data storage, simple APIs, and secure data management. Ideal for projects needing efficient and flexible database solutions.
 
 ## Features
 
-- **Custom Schemas:** Define your own data schemas for structured data management.
-- **Data Manipulation:** Easily perform operations like create, read, update, and delete (CRUD) on your JSON files.
-- **Query Capabilities:** Support for advanced querying with methods like `find()`, `skip()`, and `limit()`.
-- **Stream Support:** Utilize Node.js streams for efficient data reading and writing.
-- **Custom Encryption:** Implement your own encryption algorithms to secure sensitive data.
-- **DaaS (Data as a Service):** Easily integrate your data management capabilities into a DaaS model.
+- **Custom Schema Support:** Define custom schemas to structure your data for consistency and validation.
+- **Chainable Query Methods:** Use familiar methods like `.find()`, `.skip()`, and `.limit()` for powerful query filtering.
+- **Node.js Streams for Efficient Read/Write:** Seamlessly handle large datasets with Node.js streams to avoid performance bottlenecks.
+- **Custom Data Storage:** Save and retrieve data directly from JSON files without needing a database server.
+- **Flexible Indexing:** Implement indexing to speed up query performance.
+- **Secure and Reliable:** Includes optional encryption to protect sensitive data stored in your JSON files.
+- **Simple Setup and Lightweight:** No additional database setup required; simply install and start using.
 
-## Getting Started
+## Installation
 
-### Prerequisites
+To get started with AxioDB, install it via npm:
 
-- Node.js (v14 or higher)
-- npm (v6 or higher)
-
-### Installation
-
-To install AxioDB, run the following command:
-
-```bash
+```shell
 npm install axiodb@latest --save
 ```
+
+## Usage
+
+### CommonJS
+
+```js
+const { AxioDB, schemaValidate, SchemaTypes } = require('axiodb');
+
+// Initialize AxioDB
+const db = new AxioDB();
+
+// Create a new database
+db.createDB('myDatabase').then(async (database) => {
+  // Define a schema
+  const userSchema = {
+    name: SchemaTypes.string().required(),
+    age: SchemaTypes.number().required(),
+  };
+
+  // Create a new collection with schema
+  const users = await database.createCollection('users', userSchema);
+
+  // Insert a document
+  users.insert({ name: 'John Doe', age: 30 }).then((response) => {
+    console.log('Insert Response:', response);
+  });
+
+  // Query documents
+  users.query({ age: { $gt: 25 } }).exac().then((response) => {
+    console.log('Query Response:', response);
+  });
+});
+```
+
+### ES6
+
+```js
+import { AxioDB, schemaValidate, SchemaTypes } from 'axiodb';
+
+// Initialize AxioDB
+const db = new AxioDB();
+
+// Create a new database
+db.createDB('myDatabase').then(async (database) => {
+  // Define a schema
+  const userSchema = {
+    name: SchemaTypes.string().required(),
+    age: SchemaTypes.number().required(),
+  };
+
+  // Create a new collection with schema
+  const users = await database.createCollection('users', userSchema);
+
+  // Insert a document
+  users.insert({ name: 'John Doe', age: 30 }).then((response) => {
+    console.log('Insert Response:', response);
+  });
+
+  // Query documents
+  users.query({ age: { $gt: 25 } }).exac().then((response) => {
+    console.log('Query Response:', response);
+  });
+});
+```
+
+## Encryption
+
+AxioDB supports optional encryption to protect sensitive data stored in your JSON files. You can enable encryption when creating a collection by passing the `crypto` flag and an encryption key.
+
+### Example with Encryption
+
+```js
+import { AxioDB, schemaValidate, SchemaTypes } from 'axiodb';
+
+// Initialize AxioDB
+const db = new AxioDB();
+
+// Create a new database
+db.createDB('myDatabase').then(async (database) => {
+  // Define a schema
+  const userSchema = {
+    name: SchemaTypes.string().required(),
+    age: SchemaTypes.number().required(),
+  };
+
+  // Create a new collection with schema and encryption
+  const users = await database.createCollection('users', userSchema, true, 'mySecretKey');
+
+  // Insert a document
+  users.insert({ name: 'John Doe', age: 30 }).then((response) => {
+    console.log('Insert Response:', response);
+  });
+
+  // Query documents
+  users.query({ age: { $gt: 25 } }).exac().then((response) => {
+    console.log('Query Response:', response);
+  });
+});
+```
+
+## API Reference
+
+### AxioDB
+
+- **createDB(dbName: string): Promise<Database>**
+  - Creates a new database with the specified name.
+
+### Database
+
+- **createCollection(collectionName: string, schema: object, crypto?: boolean, key?: string): Promise<Collection>**
+  - Creates a new collection with the specified name and schema.
+
+- **deleteCollection(collectionName: string): Promise<SuccessInterface | ErrorInterface>**
+  - Deletes the specified collection from the database.
+
+- **getCollectionInfo(): Promise<SuccessInterface>**
+  - Retrieves information about all collections in the database.
+
+### Collection
+
+- **insert(data: object): Promise<SuccessInterface | ErrorInterface>**
+  - Inserts a document into the collection.
+
+- **query(query: object): Reader**
+  - Queries documents in the collection.
+
+### Reader
+
+- **exac(callback?: Function): Promise<SuccessInterface | ErrorInterface>**
+  - Executes the query and returns the results.
+
+- **Limit(limit: number): Reader**
+  - Sets a limit on the number of documents to return.
+
+- **Skip(skip: number): Reader**
+  - Sets the number of documents to skip.
+
+- **Sort(sort: object): Reader**
+  - Sets the sort order for the query.
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Thanks to all contributors and supporters of this project.
