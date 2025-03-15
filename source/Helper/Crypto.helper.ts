@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // All Imports
 import { hostname, platform } from "node:os";
 import ResponseHelper from "./response.helper";
@@ -70,7 +71,7 @@ export class CryptoHelper {
    * @param data - The data to be decrypted.
    * @returns A promise that resolves to the decrypted data as an object.
    */
-  public async decrypt(data: string): Promise<object> {
+  public async decrypt(data: string): Promise<any> {
     return this.Converter.ToObject(await this.Cryptography.Decrypt(data));
   }
 

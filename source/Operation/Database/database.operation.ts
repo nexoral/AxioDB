@@ -60,7 +60,7 @@ export default class Database {
     }
 
     // if crypto is enabled, hash the collection name
-    if (crypto) {
+    if (crypto === true) {
       const newCryptoInstance = new CryptoHelper(key);
       const collection = new Collection(
         collectionName,
@@ -68,6 +68,7 @@ export default class Database {
         schema,
         crypto,
         newCryptoInstance,
+        key,
       );
       return collection;
     } else {

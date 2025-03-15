@@ -26,6 +26,7 @@ export default class Collection {
   private cryptoInstance?: CryptoHelper;
   private Converter: Converter;
   private Insertion: Insertion;
+  private encryptionKey: string | undefined;
 
   constructor(
     name: string,
@@ -33,6 +34,7 @@ export default class Collection {
     scema: object | any,
     isEncrypted = false,
     cryptoInstance?: CryptoHelper,
+    encryptionKey?: string,
   ) {
     this.name = name;
     this.path = path;
@@ -42,6 +44,7 @@ export default class Collection {
     this.Converter = new Converter();
     this.createdAt = new Date().toISOString();
     this.updatedAt = new Date().toISOString();
+    this.encryptionKey = encryptionKey;
     // Initialize the Insertion class
     this.Insertion = new Insertion(this.name, this.path);
   }
@@ -91,8 +94,13 @@ export default class Collection {
     if (!query) {
       throw new Error("Query cannot be empty");
     }
-
     // Read the data
-    return new Reader(this.name, this.path, query, this.isEncrypted);
+    return new Reader(
+      this.name,
+      this.path,
+      query,
+      this.isEncrypted,
+      this.encryptionKey,
+    );
   }
 }
