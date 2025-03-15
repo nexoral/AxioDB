@@ -95,6 +95,12 @@ export default class Collection {
       throw new Error("Query cannot be empty");
     }
     // Read the data
-    return new Reader(this.name, this.path, query, this.isEncrypted, this.encryptionKey);
+    return new Reader(
+      this.name,
+      this.path,
+      query,
+      this.isEncrypted,
+      this.encryptionKey,
+    );
   }
 }

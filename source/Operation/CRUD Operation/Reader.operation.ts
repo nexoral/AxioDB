@@ -108,19 +108,21 @@ export default class Reader {
 
   /**
    * Loads all buffer raw data from the specified directory.
-   * 
+   *
    * This method performs the following steps:
    * 1. Checks if the directory is locked.
    * 2. If the directory is not locked, it lists all files in the directory.
    * 3. Reads each file and decrypts the data if encryption is enabled.
    * 4. Stores the decrypted data in the `AllData` array.
    * 5. If the directory is locked, it unlocks the directory, reads the files, and then locks the directory again.
-   * 
+   *
    * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves to a success or error response.
-   * 
+   *
    * @throws {Error} Throws an error if any operation fails.
    */
-  private async LoadAllBufferRawData (): Promise<SuccessInterface | ErrorInterface> {
+  private async LoadAllBufferRawData(): Promise<
+    SuccessInterface | ErrorInterface
+  > {
     try {
       // Check if Directory Locked or not
       const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
@@ -136,9 +138,10 @@ export default class Reader {
             const DataFilesList: string[] = ReadResponse.data;
             // Read all files from the directory
             for (let i = 0; i < DataFilesList.length; i++) {
-              const ReadFileResponse: SuccessInterface | ErrorInterface = await new FileManager().ReadFile(
-                `${this.path}/${DataFilesList[i]}`,
-              );
+              const ReadFileResponse: SuccessInterface | ErrorInterface =
+                await new FileManager().ReadFile(
+                  `${this.path}/${DataFilesList[i]}`,
+                );
               // Check if the file is read successfully or not
               if ("data" in ReadFileResponse) {
                 if (this.isEncrypted === true && this.cryptoInstance) {
@@ -148,13 +151,15 @@ export default class Reader {
                   );
                   // Store all Decrypted Data in AllData
                   this.AllData.push(this.Converter.ToObject(ContaentResponse));
+                } else {
+                  this.AllData.push(
+                    this.Converter.ToObject(ReadFileResponse.data),
+                  );
                 }
-                else {
-                  this.AllData.push(this.Converter.ToObject(ReadFileResponse.data));
-                }
-              }
-              else {
-                return new responseHelper().Error(`Failed to read file: ${DataFilesList[i]}`);
+              } else {
+                return new responseHelper().Error(
+                  `Failed to read file: ${DataFilesList[i]}`,
+                );
               }
             }
             return new responseHelper().Success(this.AllData);
@@ -162,20 +167,22 @@ export default class Reader {
           return new responseHelper().Error("Failed to read directory");
         } else {
           // if Directory is locked then unlock it
-          const unlockResponse = await new FolderManager().UnlockDirectory(this.path);
+          const unlockResponse = await new FolderManager().UnlockDirectory(
+            this.path,
+          );
           if ("data" in unlockResponse) {
             // Read List the data from the file
-            const ReadResponse: SuccessInterface | ErrorInterface = await new FolderManager().ListDirectory(
-              this.path,
-            );
+            const ReadResponse: SuccessInterface | ErrorInterface =
+              await new FolderManager().ListDirectory(this.path);
             if ("data" in ReadResponse) {
               // Store all files in DataFilesList
               const DataFilesList: string[] = ReadResponse.data;
               // Read all files from the directory
               for (let i = 0; i < DataFilesList.length; i++) {
-                const ReadFileResponse: SuccessInterface | ErrorInterface = await new FileManager().ReadFile(
-                  `${this.path}/${DataFilesList[i]}`,
-                );
+                const ReadFileResponse: SuccessInterface | ErrorInterface =
+                  await new FileManager().ReadFile(
+                    `${this.path}/${DataFilesList[i]}`,
+                  );
                 // Check if the file is read successfully or not
                 if ("data" in ReadFileResponse) {
                   if (this.isEncrypted === true && this.cryptoInstance) {
@@ -184,29 +191,40 @@ export default class Reader {
                       this.Converter.ToObject(ReadFileResponse.data),
                     );
                     // Store all Decrypted Data in AllData
-                    this.AllData.push(this.Converter.ToObject(ContaentResponse));
+                    this.AllData.push(
+                      this.Converter.ToObject(ContaentResponse),
+                    );
+                  } else {
+                    this.AllData.push(
+                      this.Converter.ToObject(ReadFileResponse.data),
+                    );
                   }
-                  else {
-                    this.AllData.push(this.Converter.ToObject(ReadFileResponse.data));
-                  }
-                }
-                else {
-                  return new responseHelper().Error(`Failed to read file: ${DataFilesList[i]}`);
+                } else {
+                  return new responseHelper().Error(
+                    `Failed to read file: ${DataFilesList[i]}`,
+                  );
                 }
               }
 
               // Lock the directory after reading all files
-              const lockResponse = await new FolderManager().LockDirectory(this.path);
+              const lockResponse = await new FolderManager().LockDirectory(
+                this.path,
+              );
               if ("data" in lockResponse) {
                 return new responseHelper().Success(this.AllData);
-              }
-              else {
-                return new responseHelper().Error(`Failed to lock directory: ${this.path}`);
+              } else {
+                return new responseHelper().Error(
+                  `Failed to lock directory: ${this.path}`,
+                );
               }
             }
-            return new responseHelper().Error(`Failed to read directory: ${this.path}`);
+            return new responseHelper().Error(
+              `Failed to read directory: ${this.path}`,
+            );
           } else {
-            return new responseHelper().Error(`Failed to unlock directory: ${this.path}`);
+            return new responseHelper().Error(
+              `Failed to unlock directory: ${this.path}`,
+            );
           }
         }
       } else {
