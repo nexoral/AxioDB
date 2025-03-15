@@ -25,13 +25,13 @@ npm install axiodb@latest --save
 ### CommonJS
 
 ```js
-const { AxioDB, schemaValidate, SchemaTypes } = require('axiodb');
+const { AxioDB, schemaValidate, SchemaTypes } = require("axiodb");
 
 // Initialize AxioDB
 const db = new AxioDB();
 
 // Create a new database
-db.createDB('myDatabase').then(async (database) => {
+db.createDB("myDatabase").then(async (database) => {
   // Define a schema
   const userSchema = {
     name: SchemaTypes.string().required(),
@@ -39,30 +39,33 @@ db.createDB('myDatabase').then(async (database) => {
   };
 
   // Create a new collection with schema
-  const users = await database.createCollection('users', userSchema);
+  const users = await database.createCollection("users", userSchema);
 
   // Insert a document
-  users.insert({ name: 'John Doe', age: 30 }).then((response) => {
-    console.log('Insert Response:', response);
+  users.insert({ name: "John Doe", age: 30 }).then((response) => {
+    console.log("Insert Response:", response);
   });
 
   // Query documents
-  users.query({ age: { $gt: 25 } }).exac().then((response) => {
-    console.log('Query Response:', response);
-  });
+  users
+    .query({ age: { $gt: 25 } })
+    .exac()
+    .then((response) => {
+      console.log("Query Response:", response);
+    });
 });
 ```
 
 ### ES6
 
 ```js
-import { AxioDB, schemaValidate, SchemaTypes } from 'axiodb';
+import { AxioDB, schemaValidate, SchemaTypes } from "axiodb";
 
 // Initialize AxioDB
 const db = new AxioDB();
 
 // Create a new database
-db.createDB('myDatabase').then(async (database) => {
+db.createDB("myDatabase").then(async (database) => {
   // Define a schema
   const userSchema = {
     name: SchemaTypes.string().required(),
@@ -70,17 +73,20 @@ db.createDB('myDatabase').then(async (database) => {
   };
 
   // Create a new collection with schema
-  const users = await database.createCollection('users', userSchema);
+  const users = await database.createCollection("users", userSchema);
 
   // Insert a document
-  users.insert({ name: 'John Doe', age: 30 }).then((response) => {
-    console.log('Insert Response:', response);
+  users.insert({ name: "John Doe", age: 30 }).then((response) => {
+    console.log("Insert Response:", response);
   });
 
   // Query documents
-  users.query({ age: { $gt: 25 } }).exac().then((response) => {
-    console.log('Query Response:', response);
-  });
+  users
+    .query({ age: { $gt: 25 } })
+    .exac()
+    .then((response) => {
+      console.log("Query Response:", response);
+    });
 });
 ```
 
@@ -91,13 +97,13 @@ AxioDB supports optional encryption to protect sensitive data stored in your JSO
 ### Example with Encryption
 
 ```js
-import { AxioDB, schemaValidate, SchemaTypes } from 'axiodb';
+import { AxioDB, schemaValidate, SchemaTypes } from "axiodb";
 
 // Initialize AxioDB
 const db = new AxioDB();
 
 // Create a new database
-db.createDB('myDatabase').then(async (database) => {
+db.createDB("myDatabase").then(async (database) => {
   // Define a schema
   const userSchema = {
     name: SchemaTypes.string().required(),
@@ -105,17 +111,25 @@ db.createDB('myDatabase').then(async (database) => {
   };
 
   // Create a new collection with schema and encryption
-  const users = await database.createCollection('users', userSchema, true, 'mySecretKey');
+  const users = await database.createCollection(
+    "users",
+    userSchema,
+    true,
+    "mySecretKey",
+  );
 
   // Insert a document
-  users.insert({ name: 'John Doe', age: 30 }).then((response) => {
-    console.log('Insert Response:', response);
+  users.insert({ name: "John Doe", age: 30 }).then((response) => {
+    console.log("Insert Response:", response);
   });
 
   // Query documents
-  users.query({ age: { $gt: 25 } }).exac().then((response) => {
-    console.log('Query Response:', response);
-  });
+  users
+    .query({ age: { $gt: 25 } })
+    .exac()
+    .then((response) => {
+      console.log("Query Response:", response);
+    });
 });
 ```
 
@@ -144,9 +158,11 @@ These pain points motivated me to develop AxioDB, a DBMS Npm Package that addres
 ### Database
 
 - **createCollection(collectionName: string, schema: object, crypto?: boolean, key?: string): Promise<Collection>**
+
   - Creates a new collection with the specified name and schema.
 
 - **deleteCollection(collectionName: string): Promise<SuccessInterface | ErrorInterface>**
+
   - Deletes the specified collection from the database.
 
 - **getCollectionInfo(): Promise<SuccessInterface>**
@@ -155,6 +171,7 @@ These pain points motivated me to develop AxioDB, a DBMS Npm Package that addres
 ### Collection
 
 - **insert(data: object): Promise<SuccessInterface | ErrorInterface>**
+
   - Inserts a document into the collection.
 
 - **query(query: object): Reader**
@@ -163,12 +180,15 @@ These pain points motivated me to develop AxioDB, a DBMS Npm Package that addres
 ### Reader
 
 - **exac(callback?: Function): Promise<SuccessInterface | ErrorInterface>**
+
   - Executes the query and returns the results.
 
 - **Limit(limit: number): Reader**
+
   - Sets a limit on the number of documents to return.
 
 - **Skip(skip: number): Reader**
+
   - Sets the number of documents to skip.
 
 - **Sort(sort: object): Reader**

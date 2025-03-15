@@ -86,9 +86,7 @@ export default class Collection {
    * @param {object} query - The query to be executed
    * @returns {Reader} - An instance of the Reader class.
    */
-  public query(
-    query: object | any,
-  ): Reader {
+  public query(query: object | any): Reader {
     // Check if documentId is empty or not
     if (!query) {
       throw new Error("Query cannot be empty");
