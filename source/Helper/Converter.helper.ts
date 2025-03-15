@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export default class Converter {
   constructor() {} // Empty constructor
 
@@ -25,7 +26,7 @@ export default class Converter {
    * @param value The string to convert.
    * @returns The JSON object.
    */
-  public ToObject(value: string): object {
+  public ToObject(value: string): any {
     return JSON.parse(value);
   }
 
