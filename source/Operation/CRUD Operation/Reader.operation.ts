@@ -1,16 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import FileManager from "../../Storage/FileManager";
 import FolderManager from "../../Storage/FolderManager";
-
-import responseHelper from "../../Helper/response.helper";
 import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-// import { General } from "../../config/Keys/Keys";
+
+// Import All helpers
+import responseHelper from "../../Helper/response.helper";
 import Converter from "../../Helper/Converter.helper";
 import FileManager from "../../Storage/FileManager";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
+
+// Import All Utility
+import HashmapSearch from "../../utils/HashMapSearch.utils";
 
 /**
  * Class representing a read operation.
@@ -62,11 +65,15 @@ export default class Reader {
    * Reads the data from a file.
    * @returns {Promise<any>} A promise that resolves with the response of the read operation.
    */
-  public async exac(): Promise<SuccessInterface | ErrorInterface> {
+  public async exec(): Promise<SuccessInterface | ErrorInterface> {
     try {
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
-        return new responseHelper().Success(ReadResponse.data);
+        // Search the data from the AllData using HashMapSearch Searcher
+        const HashMapSearcher: HashmapSearch = new HashmapSearch(ReadResponse.data);
+        const SearchedData: any[] = await HashMapSearcher.find(this.baseQuery);
+        // console.log("FinedData", FinedData);
+        return new responseHelper().Success(SearchedData);
       }
       return new responseHelper().Error("Failed to read data");
     } catch (error) {
@@ -145,11 +152,11 @@ export default class Reader {
               if ("data" in ReadFileResponse) {
                 if (this.isEncrypted === true && this.cryptoInstance) {
                   // Decrypt the data if crypto is enabled
-                  const ContaentResponse = await this.cryptoInstance.decrypt(
+                  const ContentResponse = await this.cryptoInstance.decrypt(
                     this.Converter.ToObject(ReadFileResponse.data),
                   );
                   // Store all Decrypted Data in AllData
-                  this.AllData.push(this.Converter.ToObject(ContaentResponse));
+                  this.AllData.push(this.Converter.ToObject(ContentResponse));
                 } else {
                   this.AllData.push(
                     this.Converter.ToObject(ReadFileResponse.data),
