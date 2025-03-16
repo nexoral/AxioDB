@@ -12,6 +12,7 @@ import { CryptoHelper } from "../../Helper/Crypto.helper";
 
 // Converter
 import Converter from "../../Helper/Converter.helper";
+import { SchemaTypes } from "../../Models/DataTypes.models";
 
 /**
  * Represents a collection inside a database.
@@ -43,7 +44,7 @@ export default class Collection {
     this.cryptoInstance = cryptoInstance;
     this.Converter = new Converter();
     this.createdAt = new Date().toISOString();
-    this.updatedAt = new Date().toISOString();
+    this.updatedAt = this.createdAt; // Initially updatedAt is same as createdAt
     this.encryptionKey = encryptionKey;
     // Initialize the Insertion class
     this.Insertion = new Insertion(this.name, this.path);
@@ -66,6 +67,13 @@ export default class Collection {
     if (typeof data !== "object") {
       throw new Error("Data must be an object.");
     }
+
+    // Insert the createdAt and updatedAt fields & _fileId field in schema & data
+    data.createdAt = this.createdAt;
+    data.updatedAt = this.updatedAt;
+
+    this.schema.createdAt = SchemaTypes.date().required();
+    this.schema.updatedAt = SchemaTypes.date().required();
 
     // Validate the data
     const validator = await SchemaValidator(this.schema, data);
