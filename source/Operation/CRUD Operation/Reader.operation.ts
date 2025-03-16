@@ -70,7 +70,9 @@ export default class Reader {
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
         // Search the data from the AllData using HashMapSearch Searcher
-        const HashMapSearcher: HashmapSearch = new HashmapSearch(ReadResponse.data);
+        const HashMapSearcher: HashmapSearch = new HashmapSearch(
+          ReadResponse.data,
+        );
         const SearchedData: any[] = await HashMapSearcher.find(this.baseQuery);
         // console.log("FinedData", FinedData);
         return new responseHelper().Success(SearchedData);
