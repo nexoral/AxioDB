@@ -73,9 +73,9 @@ export default class Reader {
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
         // Check if any query is passed or not
-        if(Object.keys(this.baseQuery).length === 0){
+        if (Object.keys(this.baseQuery).length === 0) {
           // Check if any sort is passed or not
-          if(Object.keys(this.sort).length === 0){
+          if (Object.keys(this.sort).length === 0) {
             return this.ResponseHelper.Success(ReadResponse.data); // if no query and sort is passed then return all data
           }
           const Sorter: Sorting = new Sorting(ReadResponse.data, this.sort);
@@ -84,7 +84,9 @@ export default class Reader {
         }
 
         // Search the data from the AllData using HashMapSearch Searcher
-        const HashMapSearcher: HashmapSearch = new HashmapSearch(ReadResponse.data);
+        const HashMapSearcher: HashmapSearch = new HashmapSearch(
+          ReadResponse.data,
+        );
         const SearchedData: any[] = await HashMapSearcher.find(this.baseQuery);
 
         // Check if any sort is passed or not
