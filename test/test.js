@@ -6,14 +6,16 @@ const random = Math.floor(Math.random() * 5000) + 5000
 
 /**
  * Asynchronously runs a script to install AxioDB, create multiple databases and collections,
- * and execute the generated script.
+ * insert massive data, and execute queries.
  *
  * The script performs the following steps:
  * 1. Installs the AxioDB package using npm.
  * 2. Generates a script that creates 5000 databases, each with two collections.
- * 3. Writes the generated script to a file named 'serve.js'.
- * 4. Executes the generated script.
- * 5. Sets a timeout to ensure the script completes within 10 seconds.
+ * 3. Inserts massive data into each collection.
+ * 4. Queries the collections with a specific field and value.
+ * 5. Writes the generated script to a file named 'serve.js'.
+ * 6. Executes the generated script.
+ * 7. Sets a timeout to ensure the script completes within 10 seconds.
  *
  * If any step fails, the process exits with an error code.
  *
@@ -44,11 +46,23 @@ const runScript = async () => {
                 const db${i} = await controller.createDB('db${i}');
                 const collection${i} = await db${i}.createCollection('collection${i}');
                 const collection${i}_2 = await db${i}.createCollection('collection${i + 1}');
+                
+                // Insert massive data into each collection
+                for (let j = 0; j < 1000; j++) {
+                    await collection${i}.insert({ field: 'value' + j });
+                    await collection${i}_2.insert({ field: 'value' + j });
+                }
+                
+                // Query the collections with a specific field and value
+                const result${i} = await collection${i}.find({ field: 'value500' });
+                const result${i}_2 = await collection${i}_2.find({ field: 'value500' });
+                console.log('Query result for collection${i}:', result${i});
+                console.log('Query result for collection${i}_2:', result${i}_2);
             `
     }
 
     scriptContent += `
-            console.log("Databases and collections created successfully!");
+            console.log("Databases, collections, data insertion, and queries executed successfully!");
             };
             main().catch((err) => {
                 console.error("Test failed:", err);

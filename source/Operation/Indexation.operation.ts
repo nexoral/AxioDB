@@ -43,6 +43,15 @@ export class AxioDB {
     this.initializeRoot(); // Ensure root initialization
   }
 
+  /**
+   * Initializes the root directory for the AxioDB.
+   *
+   * This method sets the `currentPATH` to include the `RootName` and checks if the AxioDB folder exists.
+   * If the folder does not exist, it attempts to create it. If the creation fails, an error is thrown.
+   *
+   * @throws {Error} If the AxioDB folder cannot be created.
+   * @returns {Promise<void>} A promise that resolves when the initialization is complete.
+   */
   private async initializeRoot(): Promise<void> {
     this.currentPATH = path.join(this.currentPATH, this.RootName); // Correctly set the path
 
@@ -116,6 +125,8 @@ export class AxioDB {
         ),
       };
       return this.ResponseHelper.Success(FinalDatabaseInfo);
+    } else {
+      return this.ResponseHelper.Error("Failed to get database info");
     }
   }
 
