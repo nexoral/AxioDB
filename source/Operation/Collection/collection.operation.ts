@@ -17,9 +17,9 @@ import Converter from "../../Helper/Converter.helper";
  * Represents a collection inside a database.
  */
 export default class Collection {
-  name: string;
-  path: string;
-  createdAt: string;
+  private readonly name: string;
+  private readonly path: string;
+  private createdAt: string;
   updatedAt: string;
   private schema: object | any;
   private isEncrypted: boolean;

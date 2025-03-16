@@ -66,7 +66,6 @@ export default class Reader {
     try {
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
-        console.log("ReadResponse", ReadResponse);
         return new responseHelper().Success(ReadResponse.data);
       }
       return new responseHelper().Error("Failed to read data");

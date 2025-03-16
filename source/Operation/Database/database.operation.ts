@@ -54,7 +54,6 @@ export default class Database {
 
     // If the collection does not exist, create it
     if (collectionExists.statusCode !== StatusCodes.OK) {
-      console.log(`Creating Collection: ${collectionName}`);
       await this.folderManager.CreateDirectory(collectionPath);
       console.log(`Collection Created: ${collectionPath}`);
     }
