@@ -46,15 +46,10 @@ export class AxioDB {
   private async initializeRoot(): Promise<void> {
     this.currentPATH = path.join(this.currentPATH, this.RootName); // Correctly set the path
 
-    console.log(
-      `Checking if ${this.RootName} root exists at: ${this.currentPATH}`,
-    );
-
     // Check if the AxioDB folder exists
     const exists = await this.folderManager.DirectoryExists(this.currentPATH);
 
     if (exists.statusCode !== StatusCodes.OK) {
-      console.log("AxioDB folder not found. Creating...");
       const Dir_Status = await this.folderManager.CreateDirectory(
         this.currentPATH,
       );
