@@ -14,6 +14,7 @@ import { CryptoHelper } from "../../Helper/Crypto.helper";
 
 // Import All Utility
 import HashmapSearch from "../../utils/HashMapSearch.utils";
+import Sorting from "../../utils/SortData.utils";
 
 /**
  * Class representing a read operation.
@@ -29,6 +30,7 @@ export default class Reader {
   private isEncrypted: boolean;
   private encryptionKey: string | undefined;
   private cryptoInstance?: CryptoHelper;
+  private readonly ResponseHelper: responseHelper;
   private AllData: any[];
 
   /**
@@ -55,6 +57,7 @@ export default class Reader {
     this.baseQuery = baseQuery;
     this.Converter = new Converter();
     this.encryptionKey = encryptionKey;
+    this.ResponseHelper = new responseHelper();
     this.AllData = [];
     if (this.isEncrypted === true) {
       this.cryptoInstance = new CryptoHelper(this.encryptionKey);
@@ -69,17 +72,34 @@ export default class Reader {
     try {
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
+        // Check if any query is passed or not
+        if (Object.keys(this.baseQuery).length === 0) {
+          // Check if any sort is passed or not
+          if (Object.keys(this.sort).length === 0) {
+            return this.ResponseHelper.Success(ReadResponse.data); // if no query and sort is passed then return all data
+          }
+          const Sorter: Sorting = new Sorting(ReadResponse.data, this.sort);
+          const SortedData: any[] = await Sorter.sort(); // Sort the data
+          return this.ResponseHelper.Success(SortedData);
+        }
+
         // Search the data from the AllData using HashMapSearch Searcher
         const HashMapSearcher: HashmapSearch = new HashmapSearch(
           ReadResponse.data,
         );
         const SearchedData: any[] = await HashMapSearcher.find(this.baseQuery);
-        // console.log("FinedData", FinedData);
-        return new responseHelper().Success(SearchedData);
+
+        // Check if any sort is passed or not
+        if (Object.keys(this.sort).length === 0) {
+          return this.ResponseHelper.Success(SearchedData); // if no sort is passed then return searched data
+        }
+        const Sorter: Sorting = new Sorting(SearchedData, this.sort);
+        const SortedData: any[] = await Sorter.sort(); // Sort the data
+        return this.ResponseHelper.Success(SortedData);
       }
-      return new responseHelper().Error("Failed to read data");
+      return this.ResponseHelper.Error("Failed to read data");
     } catch (error) {
-      return new responseHelper().Error(error);
+      return this.ResponseHelper.Error(error);
     }
   }
 
@@ -165,14 +185,14 @@ export default class Reader {
                   );
                 }
               } else {
-                return new responseHelper().Error(
+                return this.ResponseHelper.Error(
                   `Failed to read file: ${DataFilesList[i]}`,
                 );
               }
             }
-            return new responseHelper().Success(this.AllData);
+            return this.ResponseHelper.Success(this.AllData);
           }
-          return new responseHelper().Error("Failed to read directory");
+          return this.ResponseHelper.Error("Failed to read directory");
         } else {
           // if Directory is locked then unlock it
           const unlockResponse = await new FolderManager().UnlockDirectory(
@@ -208,7 +228,7 @@ export default class Reader {
                     );
                   }
                 } else {
-                  return new responseHelper().Error(
+                  return this.ResponseHelper.Error(
                     `Failed to read file: ${DataFilesList[i]}`,
                   );
                 }
@@ -219,27 +239,27 @@ export default class Reader {
                 this.path,
               );
               if ("data" in lockResponse) {
-                return new responseHelper().Success(this.AllData);
+                return this.ResponseHelper.Success(this.AllData);
               } else {
-                return new responseHelper().Error(
+                return this.ResponseHelper.Error(
                   `Failed to lock directory: ${this.path}`,
                 );
               }
             }
-            return new responseHelper().Error(
+            return this.ResponseHelper.Error(
               `Failed to read directory: ${this.path}`,
             );
           } else {
-            return new responseHelper().Error(
+            return this.ResponseHelper.Error(
               `Failed to unlock directory: ${this.path}`,
             );
           }
         }
       } else {
-        return new responseHelper().Error(isLocked);
+        return this.ResponseHelper.Error(isLocked);
       }
     } catch (error) {
-      return new responseHelper().Error(error);
+      return this.ResponseHelper.Error(error);
     }
   }
 }
