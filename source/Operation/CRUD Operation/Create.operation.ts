@@ -44,7 +44,7 @@ export default class Insertion {
       // Check if Directory Locked or not
       const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
       if ("data" in isLocked) {
-        if (isLocked.data == false) {
+        if (isLocked.data === false) {
           // Write the data to the file
           const WriteResponse = await new FileManager().WriteFile(
             filePath,
@@ -52,10 +52,10 @@ export default class Insertion {
           );
           const lockStatus = await new FolderManager().LockDirectory(this.path);
           if ("data" in lockStatus) {
-            if (lockStatus.data == false) {
+            if (lockStatus.data === false) {
               const DeleteStatus = await new FileManager().DeleteFile(filePath);
               if ("data" in DeleteStatus) {
-                if (DeleteStatus.data == false) {
+                if (DeleteStatus.data === false) {
                   return new responseHelper().Error("Failed to lock directory");
                 }
               }
@@ -73,7 +73,7 @@ export default class Insertion {
             this.path,
           );
           if ("data" in unlockStatus) {
-            if (unlockStatus.data == false) {
+            if (unlockStatus.data === false) {
               return new responseHelper().Error("Failed to unlock directory");
             } else {
               // Write the data to the file
@@ -85,7 +85,7 @@ export default class Insertion {
                 this.path,
               );
               if ("data" in lockStatus) {
-                if (lockStatus.data == false) {
+                if (lockStatus.data === false) {
                   return new responseHelper().Error("Failed to lock directory");
                 } else {
                   if (WriteResponse.status) {
