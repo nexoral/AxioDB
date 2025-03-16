@@ -39,7 +39,7 @@ export default class Insertion {
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const documentId = await this.generateUniqueDocumentId();
-      const filePath = `${this.path}/${documentId}${General.DBMS_File_EXT}`;
+      const filePath = `${this.path}/.${documentId}${General.DBMS_File_EXT}`;
 
       // Check if Directory Locked or not
       const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
