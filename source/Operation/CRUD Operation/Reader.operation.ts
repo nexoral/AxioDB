@@ -274,7 +274,9 @@ export default class Reader {
    * @param {any[]} FinalData - The array of data to apply skip and limit to.
    * @returns {Promise<SuccessInterface | ErrorInterface>} - A promise that resolves to a success interface containing the sliced data or the original data.
    */
-  private async ApplySkipAndLimit(FinalData: any[]): Promise<SuccessInterface | ErrorInterface> {
+  private async ApplySkipAndLimit(
+    FinalData: any[],
+  ): Promise<SuccessInterface | ErrorInterface> {
     // Check if limit is passed or not
     if (this.limit !== undefined && this.skip !== undefined) {
       // Apply Skip and Limit
