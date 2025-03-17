@@ -277,7 +277,7 @@ export default class Reader {
   private async ApplySkipAndLimit(FinalData: any[]): Promise<SuccessInterface | ErrorInterface> {
     // Check if limit is passed or not
     if (this.limit !== undefined && this.skip !== undefined) {
-      console.log("limit and skip", this.limit, this.skip);
+      // Apply Skip and Limit
       const limitedAndSkippedData: any[] = FinalData.slice(
         this.skip,
         this.skip + this.limit,
