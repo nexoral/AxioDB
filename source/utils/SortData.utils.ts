@@ -29,8 +29,8 @@ export default class Sorting {
   public async sort(): Promise<any[]> {
     const [key, order] = Object.entries(this.query)[0] as [string, number]; // Extract the field and order (1 for ascending, -1 for descending)
     return [...this.arr].sort((a, b) => {
-      if (a[key] < b[key]) return order;
-      if (a[key] > b[key]) return -order;
+      if (a[key] < b[key]) return -order; // Swap order
+      if (a[key] > b[key]) return order;  // Swap order
       return 0;
     });
   }

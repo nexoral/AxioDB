@@ -76,11 +76,11 @@ export default class Reader {
         if (Object.keys(this.baseQuery).length === 0) {
           // Check if any sort is passed or not
           if (Object.keys(this.sort).length === 0) {
-            return this.ResponseHelper.Success(ReadResponse.data); // if no query and sort is passed then return all data
+            return await this.ApplySkipAndLimit(ReadResponse.data); // Apply Skip and Limit & return the data
           }
           const Sorter: Sorting = new Sorting(ReadResponse.data, this.sort);
           const SortedData: any[] = await Sorter.sort(); // Sort the data
-          return this.ResponseHelper.Success(SortedData);
+          return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
         }
 
         // Search the data from the AllData using HashMapSearch Searcher
@@ -91,11 +91,11 @@ export default class Reader {
 
         // Check if any sort is passed or not
         if (Object.keys(this.sort).length === 0) {
-          return this.ResponseHelper.Success(SearchedData); // if no sort is passed then return searched data
+          return await this.ApplySkipAndLimit(SearchedData); // if no sort is passed then return searched data
         }
         const Sorter: Sorting = new Sorting(SearchedData, this.sort);
         const SortedData: any[] = await Sorter.sort(); // Sort the data
-        return this.ResponseHelper.Success(SortedData);
+        return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
       }
       return this.ResponseHelper.Error("Failed to read data");
     } catch (error) {
@@ -120,7 +120,7 @@ export default class Reader {
    */
 
   public Skip(skip: number): Reader {
-    this.baseQuery.skip = skip;
+    this.skip = skip;
     return this;
   }
 
@@ -261,5 +261,29 @@ export default class Reader {
     } catch (error) {
       return this.ResponseHelper.Error(error);
     }
+  }
+
+  /**
+   * Applies skip and limit to the provided data array.
+   *
+   * This method checks if both `limit` and `skip` are defined. If they are,
+   * it slices the `FinalData` array according to the `skip` and `limit` values
+   * and returns the sliced data. If either `limit` or `skip` is not defined,
+   * it returns the original `FinalData` array.
+   *
+   * @param {any[]} FinalData - The array of data to apply skip and limit to.
+   * @returns {Promise<SuccessInterface | ErrorInterface>} - A promise that resolves to a success interface containing the sliced data or the original data.
+   */
+  private async ApplySkipAndLimit(FinalData: any[]): Promise<SuccessInterface | ErrorInterface> {
+    // Check if limit is passed or not
+    if (this.limit !== undefined && this.skip !== undefined) {
+      console.log("limit and skip", this.limit, this.skip);
+      const limitedAndSkippedData: any[] = FinalData.slice(
+        this.skip,
+        this.skip + this.limit,
+      );
+      return this.ResponseHelper.Success(limitedAndSkippedData);
+    }
+    return this.ResponseHelper.Success(FinalData);
   }
 }
