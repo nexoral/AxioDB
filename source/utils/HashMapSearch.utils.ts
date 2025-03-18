@@ -13,7 +13,10 @@ export default class HashmapSearch {
    * @param query - An object where the keys are the fields to search by, and the values can be exact values or operators.
    * @returns A promise that resolves to an array of items that match the query.
    */
-  public async find(query: { [key: string]: any }): Promise<any[]> {
+  public async find(query: { [key: string]: any }, aditionalFiled?: string | number | undefined): Promise<any[]> {
+    if (aditionalFiled) {
+      return this.data.filter((item) => this.matchesQuery(item[aditionalFiled], query));
+    }
     return this.data.filter((item) => this.matchesQuery(item, query));
   }
 
