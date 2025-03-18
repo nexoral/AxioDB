@@ -8,10 +8,7 @@
     "test": "node ./test/test.js",
     "build": "tsc",
     "prepare": "npm run build",
-    "dev": "vite",
-    "build:react": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
