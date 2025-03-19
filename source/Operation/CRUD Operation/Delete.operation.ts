@@ -14,6 +14,10 @@ import FolderManager from "../../Storage/FolderManager";
 import HashmapSearch from "../../utils/HashMapSearch.utils";
 import Sorting from "../../utils/SortData.utils";
 
+/**
+ * The DeleteOperation class is used to delete a document from a collection.
+ * This class provides methods to delete a single document that matches the base query.
+ */
 export default class DeleteOperation {
   // Properties
   protected readonly collectionName: string;
@@ -64,7 +68,7 @@ export default class DeleteOperation {
    *
    * @throws Will propagate any errors from underlying operations
    */
-  public async deleteOne() {
+  public async deleteOne(): Promise<SuccessInterface | ErrorInterface> {
     const response = await this.LoadAllBufferRawData();
     if ("data" in response) {
       const SearchedData = await new HashmapSearch(response.data).find(
@@ -101,6 +105,55 @@ export default class DeleteOperation {
       } else {
         return this.ResponseHelper.Error("Failed to delete data");
       }
+    } else {
+      return this.ResponseHelper.Error(response);
+    }
+  }
+
+  /**
+   * Deletes multiple documents that match the base query.
+   *
+   * This method:
+   * 1. Searches for documents matching the base query
+   * 2. Deletes each matching file
+   * 3. Returns success with the deleted data or an error
+   *
+   * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves to either:
+   *   - Success with a success message and the deleted data
+   *   - Error if:
+   *     - No matching data is found
+   *     - Any file deletion operation fails
+   *     - The initial buffer data loading fails
+   */
+  public async deleteMany(): Promise<SuccessInterface | ErrorInterface> {
+    const response = await this.LoadAllBufferRawData();
+    if ("data" in response) {
+      const SearchedData = await new HashmapSearch(response.data).find(
+        this.baseQuery,
+        "data",
+      );
+      if (SearchedData.length === 0) {
+        return this.ResponseHelper.Error(
+          "No data found with the specified query",
+        );
+      }
+
+      // Delete all files
+      for (let i = 0; i < SearchedData.length; i++) {
+        const deleteResponse = await this.deleteFile(SearchedData[i].fileName);
+        if ("data" in deleteResponse) {
+          continue;
+        } else {
+          return this.ResponseHelper.Error("Failed to delete data");
+        }
+      }
+
+      return this.ResponseHelper.Success({
+        message: "Data deleted successfully",
+        deleteData: SearchedData.map((data) => data.data),
+      });
+    } else {
+      return this.ResponseHelper.Error(response);
     }
   }
 

@@ -136,6 +136,12 @@ export default class Reader {
     return this;
   }
 
+  /**
+   * Sets whether to include the total count of matching documents in the result.
+   *
+   * @param count - Boolean flag indicating whether to include the total count
+   * @returns The Reader instance for method chaining
+   */
   public setCount(count: boolean): Reader {
     this.totalCount = count;
     return this;
