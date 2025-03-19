@@ -13,9 +13,14 @@ export default class HashmapSearch {
    * @param query - An object where the keys are the fields to search by, and the values can be exact values or operators.
    * @returns A promise that resolves to an array of items that match the query.
    */
-  public async find(query: { [key: string]: any }, aditionalFiled?: string | number | undefined): Promise<any[]> {
+  public async find(
+    query: { [key: string]: any },
+    aditionalFiled?: string | number | undefined,
+  ): Promise<any[]> {
     if (aditionalFiled) {
-      return this.data.filter((item) => this.matchesQuery(item[aditionalFiled], query));
+      return this.data.filter((item) =>
+        this.matchesQuery(item[aditionalFiled], query),
+      );
     }
     return this.data.filter((item) => this.matchesQuery(item, query));
   }
@@ -34,8 +39,14 @@ export default class HashmapSearch {
 
       if (typeof queryValue === "object" && queryValue !== null) {
         // Handle MongoDB-like operators
-        if ("$regex" in queryValue && typeof queryValue["$regex"] === "string") {
-          const regex = new RegExp(queryValue["$regex"], queryValue["$options"] || "i");
+        if (
+          "$regex" in queryValue &&
+          typeof queryValue["$regex"] === "string"
+        ) {
+          const regex = new RegExp(
+            queryValue["$regex"],
+            queryValue["$options"] || "i",
+          );
           return regex.test(itemValue);
         }
 
@@ -47,11 +58,11 @@ export default class HashmapSearch {
           return itemValue < queryValue["$lt"];
         }
 
-        if("$gte" in queryValue && typeof itemValue === "number") {
+        if ("$gte" in queryValue && typeof itemValue === "number") {
           return itemValue >= queryValue["$gte"];
         }
 
-        if("$lte" in queryValue && typeof itemValue === "number") {
+        if ("$lte" in queryValue && typeof itemValue === "number") {
           return itemValue <= queryValue["$lte"];
         }
 

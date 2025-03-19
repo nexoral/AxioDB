@@ -107,25 +107,40 @@ const insertCode = async () => {
 
   const DB1 = await db.createDB("DB1");
   const DB2 = await db.createDB("DB2");
-  const collection = await DB1.createCollection("collection1", schema, true, "Ankan");
+  const collection = await DB1.createCollection(
+    "collection1",
+    schema,
+    true,
+    "Ankan",
+  );
   const collection2 = await DB1.createCollection("collection2", schema, false);
 
   // Insert data
   for (let i = 0; i < 300; i++) {
-    await collection.insert({
-      name: `Ankan${i}`,
-      age: i + 18,
-    }).then((data) => {
-      console.log(data);
-      collection.insert({
-        name: `Saha${i}`,
+    await collection
+      .insert({
+        name: `Ankan${i}`,
         age: i + 18,
-      }).then(console.log);
-    });
+      })
+      .then((data) => {
+        console.log(data);
+        collection
+          .insert({
+            name: `Saha${i}`,
+            age: i + 18,
+          })
+          .then(console.log);
+      });
   }
 
   // Query data
-  collection.query({}).Sort({ age: -1 }).Skip(2).Limit(10).exec().then(console.log);
+  collection
+    .query({})
+    .Sort({ age: -1 })
+    .Skip(2)
+    .Limit(10)
+    .exec()
+    .then(console.log);
 
   // Delete collection
   DB1.deleteCollection("collection1").then(console.log);
@@ -204,6 +219,7 @@ These pain points motivated me to develop AxioDB, a DBMS Npm Package that addres
 ### AxioDB
 
 - **createDB(dbName: string): Promise<Database>**
+
   - Creates a new database with the specified name.
 
 - **deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>**
@@ -212,9 +228,11 @@ These pain points motivated me to develop AxioDB, a DBMS Npm Package that addres
 ### Database
 
 - **createCollection(collectionName: string, schema: object, crypto?: boolean, key?: string): Promise<Collection>**
+
   - Creates a new collection with the specified name and schema.
 
 - **deleteCollection(collectionName: string): Promise<SuccessInterface | ErrorInterface>**
+
   - Deletes the specified collection from the database.
 
 - **getCollectionInfo(): Promise<SuccessInterface>**
@@ -223,6 +241,7 @@ These pain points motivated me to develop AxioDB, a DBMS Npm Package that addres
 ### Collection
 
 - **insert(data: object): Promise<SuccessInterface | ErrorInterface>**
+
   - Inserts a document into the collection.
 
 - **query(query: object): Reader**
@@ -231,12 +250,15 @@ These pain points motivated me to develop AxioDB, a DBMS Npm Package that addres
 ### Reader
 
 - **exac(callback?: Function): Promise<SuccessInterface | ErrorInterface>**
+
   - Executes the query and returns the results.
 
 - **Limit(limit: number): Reader**
+
   - Sets a limit on the number of documents to return.
 
 - **Skip(skip: number): Reader**
+
   - Sets the number of documents to skip.
 
 - **Sort(sort: object): Reader**

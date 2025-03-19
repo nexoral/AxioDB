@@ -294,17 +294,16 @@ export default class Reader {
       if (this.totalCount) {
         return this.ResponseHelper.Success({
           documents: limitedAndSkippedData,
-          totalDocuments: limitedAndSkippedData.length
+          totalDocuments: limitedAndSkippedData.length,
         });
-      }
-      else {
+      } else {
         return this.ResponseHelper.Success({
-          documents: limitedAndSkippedData
+          documents: limitedAndSkippedData,
         });
       }
     }
     return this.ResponseHelper.Success({
-      documents: FinalData
+      documents: FinalData,
     });
   }
 }
