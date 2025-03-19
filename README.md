@@ -25,7 +25,7 @@ npm install axiodb@latest --save
 ### CommonJS
 
 ```js
-const { AxioDB, schemaValidate, SchemaTypes } = require("axiodb");
+const { AxioDB, SchemaTypes } = require("axiodb");
 
 // Initialize AxioDB
 const db = new AxioDB();
@@ -90,6 +90,72 @@ db.createDB("myDatabase").then(async (database) => {
 });
 ```
 
+### Additional Features
+
+#### Creating Multiple Databases and Collections & Deletations of Database
+
+```js
+const { AxioDB, SchemaTypes } = require("axiodb");
+
+const db = new AxioDB();
+
+const insertCode = async () => {
+  const schema = {
+    name: SchemaTypes.string().required().max(15),
+    age: SchemaTypes.number().required().min(18),
+  };
+
+  const DB1 = await db.createDB("DB1");
+  const DB2 = await db.createDB("DB2");
+  const collection = await DB1.createCollection(
+    "collection1",
+    schema,
+    true,
+    "Ankan",
+  );
+  const collection2 = await DB1.createCollection("collection2", schema, false);
+
+  // Insert data
+  for (let i = 0; i < 300; i++) {
+    await collection
+      .insert({
+        name: `Ankan${i}`,
+        age: i + 18,
+      })
+      .then((data) => {
+        console.log(data);
+        collection
+          .insert({
+            name: `Saha${i}`,
+            age: i + 18,
+          })
+          .then(console.log);
+      });
+  }
+
+  // Query data
+  collection
+    .query({})
+    .Sort({ age: -1 })
+    .Skip(2)
+    .Limit(10)
+    .exec()
+    .then(console.log);
+
+  // Delete collection
+  DB1.deleteCollection("collection1").then(console.log);
+
+  // Get collection info
+  DB1.getCollectionInfo().then(console.log);
+
+  // Delete databases
+  db.deleteDatabase("DB2").then(console.log);
+  db.deleteDatabase("DB1").then(console.log);
+};
+
+insertCode();
+```
+
 ## Encryption
 
 AxioDB supports optional encryption to protect sensitive data stored in your JSON files. You can enable encryption when creating a collection by passing the `crypto` flag and an encryption key.
@@ -97,7 +163,7 @@ AxioDB supports optional encryption to protect sensitive data stored in your JSO
 ### Example with Encryption
 
 ```js
-import { AxioDB, schemaValidate, SchemaTypes } from "axiodb";
+import { AxioDB, SchemaTypes } from "axiodb";
 
 // Initialize AxioDB
 const db = new AxioDB();
@@ -153,7 +219,11 @@ These pain points motivated me to develop AxioDB, a DBMS Npm Package that addres
 ### AxioDB
 
 - **createDB(dbName: string): Promise<Database>**
+
   - Creates a new database with the specified name.
+
+- **deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>**
+  - Deletes the specified database.
 
 ### Database
 

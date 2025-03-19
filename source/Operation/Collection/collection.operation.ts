@@ -3,8 +3,11 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
+// Operations
 import Insertion from "../CRUD Operation/Create.operation";
 import Reader from "../CRUD Operation/Reader.operation";
+import DeleteOperation from "../CRUD Operation/Delete.operation";
+
 import { Console } from "outers";
 // Validator
 import SchemaValidator from "../../Models/validator.models";
@@ -104,6 +107,34 @@ export default class Collection {
     }
     // Read the data
     return new Reader(
+      this.name,
+      this.path,
+      query,
+      this.isEncrypted,
+      this.encryptionKey,
+    );
+  }
+
+  /**
+   * Initiates a delete operation on the collection with the provided query.
+   *
+   * @param query - The query object that specifies which documents to delete.
+   * @returns A DeleteOperation instance that can be executed to perform the deletion.
+   * @throws {Error} Throws an error if the query is empty.
+   *
+   * @example
+   * ```typescript
+   * // Delete all documents where age is greater than 30
+   * collection.delete({ age: { $gt: 30 } });
+   * ```
+   */
+  public delete(query: object | any): DeleteOperation {
+    // Check if documentId is empty or not
+    if (!query) {
+      throw new Error("Query cannot be empty");
+    }
+    // Delete the data
+    return new DeleteOperation(
       this.name,
       this.path,
       query,

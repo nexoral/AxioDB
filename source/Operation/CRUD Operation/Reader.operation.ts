@@ -30,6 +30,7 @@ export default class Reader {
   private isEncrypted: boolean;
   private encryptionKey: string | undefined;
   private cryptoInstance?: CryptoHelper;
+  private totalCount: boolean;
   private readonly ResponseHelper: responseHelper;
   private AllData: any[];
 
@@ -58,6 +59,7 @@ export default class Reader {
     this.Converter = new Converter();
     this.encryptionKey = encryptionKey;
     this.ResponseHelper = new responseHelper();
+    this.totalCount = false;
     this.AllData = [];
     if (this.isEncrypted === true) {
       this.cryptoInstance = new CryptoHelper(this.encryptionKey);
@@ -131,6 +133,11 @@ export default class Reader {
    */
   public Sort(sort: object | any): Reader {
     this.sort = sort;
+    return this;
+  }
+
+  public setCount(count: boolean): Reader {
+    this.totalCount = count;
     return this;
   }
 
@@ -284,8 +291,19 @@ export default class Reader {
         this.skip,
         this.skip + this.limit,
       );
-      return this.ResponseHelper.Success(limitedAndSkippedData);
+      if (this.totalCount) {
+        return this.ResponseHelper.Success({
+          documents: limitedAndSkippedData,
+          totalDocuments: limitedAndSkippedData.length,
+        });
+      } else {
+        return this.ResponseHelper.Success({
+          documents: limitedAndSkippedData,
+        });
+      }
     }
-    return this.ResponseHelper.Success(FinalData);
+    return this.ResponseHelper.Success({
+      documents: FinalData,
+    });
   }
 }

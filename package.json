@@ -1,6 +1,6 @@
 {
   "name": "axiodb",
-  "version": "1.3.6",
+  "version": "1.3.7",
   "description": "A fast, lightweight, and scalable open-source DBMS for modern apps. Supports JSON-based data storage, simple APIs, and secure data management. Ideal for projects needing efficient and flexible database solutions.",
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
@@ -8,10 +8,7 @@
     "test": "node ./test/test.js",
     "build": "tsc",
     "prepare": "npm run build",
-    "dev": "vite",
-    "build:react": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",

@@ -26,12 +26,20 @@ export default class Sorting {
    * @param query - The query object containing the sorting key and order.
    * @returns A promise that resolves to the sorted array.
    */
-  public async sort(): Promise<any[]> {
+  public async sort(aditionalField?: string): Promise<any[]> {
     const [key, order] = Object.entries(this.query)[0] as [string, number]; // Extract the field and order (1 for ascending, -1 for descending)
-    return [...this.arr].sort((a, b) => {
-      if (a[key] < b[key]) return -order; // Swap order
-      if (a[key] > b[key]) return order; // Swap order
-      return 0;
-    });
+    if (aditionalField) {
+      return [...this.arr].sort((a, b) => {
+        if (a[aditionalField][key] < b[aditionalField][key]) return -order; // Swap order
+        if (a[aditionalField][key] > b[aditionalField][key]) return order; // Swap order
+        return 0;
+      });
+    } else {
+      return [...this.arr].sort((a, b) => {
+        if (a[key] < b[key]) return -order; // Swap order
+        if (a[key] > b[key]) return order; // Swap order
+        return 0;
+      });
+    }
   }
 }
