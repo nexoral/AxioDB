@@ -9,6 +9,7 @@ import FolderManager from "../../Storage/FolderManager";
 
 // Import All Utility
 import HashmapSearch from "../../utils/HashMapSearch.utils";
+import Sorting from "../../utils/SortData.utils";
 
 export default class DeleteOperation {
     // Properties
@@ -21,6 +22,7 @@ export default class DeleteOperation {
     private readonly cryptoInstance?: CryptoHelper;
     private readonly Converter: Converter;
     private allDataWithFileName: any[] = [];
+    private sort: object | any;
 
     constructor(collectionName: string, path: string, baseQuery: object | any, isEncrypted: boolean = false, encryptionKey?: string,) {
         this.collectionName = collectionName;
@@ -28,6 +30,7 @@ export default class DeleteOperation {
         this.baseQuery = baseQuery;
         this.isEncrypted = isEncrypted;
         this.encryptionKey = encryptionKey;
+        this.sort = {};
         this.ResponseHelper = new ResponseHelper();
         this.Converter = new Converter();
         if (this.isEncrypted && this.encryptionKey) {
@@ -44,7 +47,32 @@ export default class DeleteOperation {
             if (SearchedData.length === 0) {
                 return this.ResponseHelper.Error("No data found with the specified query");
             }
-            console.log(SearchedData);
+
+            let selectedFirstData = SearchedData[0]; // Select the first data
+            let fileName: string = selectedFirstData?.fileName; // Get the file name
+
+            // Sort the data if sort is provided then select the first data for deletion
+            if (Object.keys(this.sort).length === 0) {
+                selectedFirstData = SearchedData[0]; // Select the first data
+                fileName = selectedFirstData?.fileName; // Get the file name
+            } else {
+                const Sorter: Sorting = new Sorting(SearchedData, this.sort);
+                const SortedData: any[] = await Sorter.sort("data"); // Sort the data
+                selectedFirstData = SortedData[0]; // Select the first data
+                fileName = selectedFirstData?.fileName; // Get the file name
+            }
+
+            // Delete the file
+            const deleteResponse = await this.deleteFile(fileName);
+            if ("data" in deleteResponse) {
+                return this.ResponseHelper.Success({
+                    message: "Data deleted successfully",
+                    deleteData: selectedFirstData?.data,
+                });
+            }
+            else {
+                return this.ResponseHelper.Error("Failed to delete data");
+            }
         }
     }
 
@@ -188,5 +216,76 @@ export default class DeleteOperation {
         } catch (error) {
             return this.ResponseHelper.Error(error);
         }
+    }
+
+    /**
+     * Deletes a file from the specified path.
+     * 
+     * This method checks if the directory is locked before attempting to delete the file.
+     * If the directory is locked, it tries to unlock it, delete the file, and then lock it again.
+     * 
+     * @param fileName - The name of the file to be deleted
+     * @returns A response object indicating success or failure
+     *          Success response: { status: true, message: "File deleted successfully" }
+     *          Error response: { status: false, message: <error message> }
+     * @private
+     */
+    private async deleteFile(fileName: string) {
+        // Check if Directory Locked or not
+        const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
+        if ("data" in isLocked) {
+            // If Directory is not locked
+            if (isLocked.data === false) {
+                const deleteResponse = await new FileManager().DeleteFile(
+                    `${this.path}/${fileName}`,
+                );
+                if ("data" in deleteResponse) {
+                    return this.ResponseHelper.Success("File deleted successfully");
+                }
+                else {
+                    return this.ResponseHelper.Error("Failed to delete file");
+                }
+            }
+            else {
+                const unlockResponse = await new FolderManager().UnlockDirectory(
+                    this.path,
+                );
+                if ("data" in unlockResponse) {
+                    const deleteResponse = await new FileManager().DeleteFile(
+                        `${this.path}/${fileName}`,
+                    );
+                    if ("data" in deleteResponse) {
+                        const lockResponse = await new FolderManager().LockDirectory(
+                            this.path,
+                        );
+                        if ("data" in lockResponse) {
+                            return this.ResponseHelper.Success("File deleted successfully");
+                        }
+                        else {
+                            return this.ResponseHelper.Error("Failed to lock directory");
+                        }
+                    }
+                    else {
+                        return this.ResponseHelper.Error("Failed to delete file");
+                    }
+                }
+                else {
+                    return this.ResponseHelper.Error("Failed to unlock directory");
+                }
+            }
+        }
+        else {
+            return this.ResponseHelper.Error("Failed to delete file");
+        }
+    }
+
+    /**
+ * to be sorted to the query
+ * @param {object} sort - The sort to be set.
+ * @returns {DeleteOperation} - An instance of the DeleteOperation class.
+ */
+    public Sort(sort: object | any): DeleteOperation {
+        this.sort = sort;
+        return this;
     }
 }
