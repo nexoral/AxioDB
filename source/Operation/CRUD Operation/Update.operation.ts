@@ -1,6 +1,5 @@
-
 export default class UpdateOperation {
-    constructor() {
-        console.log('UpdateOperation');
-    }
+  constructor() {
+    console.log("UpdateOperation");
+  }
 }

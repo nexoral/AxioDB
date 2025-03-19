@@ -138,7 +138,7 @@ export default class Reader {
 
   /**
    * Sets whether to include the total count of matching documents in the result.
-   * 
+   *
    * @param count - Boolean flag indicating whether to include the total count
    * @returns The Reader instance for method chaining
    */
