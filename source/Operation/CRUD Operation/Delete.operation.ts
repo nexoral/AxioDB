@@ -49,6 +49,21 @@ export default class DeleteOperation {
   }
 
   // Methods
+/**
+ * Deletes a single document that matches the base query.
+ * 
+ * This method:
+ * 1. Loads all raw data from buffers
+ * 2. Searches for documents matching the base query
+ * 3. Selects the first matching document (applying sort if provided)
+ * 4. Deletes the file associated with the selected document
+ * 
+ * @returns {Promise<object>} A response object containing either:
+ *   - Success: { message: "Data deleted successfully", deleteData: object }
+ *   - Error: An error message if no data found or deletion fails
+ * 
+ * @throws Will propagate any errors from underlying operations
+ */
   public async deleteOne() {
     const response = await this.LoadAllBufferRawData();
     if ("data" in response) {
