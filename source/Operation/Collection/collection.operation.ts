@@ -16,6 +16,7 @@ import { CryptoHelper } from "../../Helper/Crypto.helper";
 // Converter
 import Converter from "../../Helper/Converter.helper";
 import { SchemaTypes } from "../../Models/DataTypes.models";
+import UpdateOperation from "../CRUD Operation/Update.operation";
 
 /**
  * Represents a collection inside a database.
@@ -23,8 +24,7 @@ import { SchemaTypes } from "../../Models/DataTypes.models";
 export default class Collection {
   private readonly name: string;
   private readonly path: string;
-  private createdAt: string;
-  updatedAt: string;
+  private updatedAt: string;
   private schema: object | any;
   private isEncrypted: boolean;
   private cryptoInstance?: CryptoHelper;
@@ -46,8 +46,7 @@ export default class Collection {
     this.isEncrypted = isEncrypted;
     this.cryptoInstance = cryptoInstance;
     this.Converter = new Converter();
-    this.createdAt = new Date().toISOString();
-    this.updatedAt = this.createdAt; // Initially updatedAt is same as createdAt
+    this.updatedAt = new Date().toISOString();
     this.encryptionKey = encryptionKey;
     // Initialize the Insertion class
     this.Insertion = new Insertion(this.name, this.path);
@@ -71,11 +70,9 @@ export default class Collection {
       throw new Error("Data must be an object.");
     }
 
-    // Insert the createdAt and updatedAt fields & _fileId field in schema & data
-    data.createdAt = this.createdAt;
+    // Insert the updatedAt field in schema & data
     data.updatedAt = this.updatedAt;
 
-    this.schema.createdAt = SchemaTypes.date().required();
     this.schema.updatedAt = SchemaTypes.date().required();
 
     // Validate the data
@@ -141,5 +138,12 @@ export default class Collection {
       this.isEncrypted,
       this.encryptionKey,
     );
+  }
+
+  public update(query: object | any): UpdateOperation {
+    if (!query) {
+      throw new Error("Query cannot be empty");
+    }
+    return new UpdateOperation(this.name, this.path, query, this.schema, this.isEncrypted, this.encryptionKey);
   }
 }
