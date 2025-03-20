@@ -39,7 +39,10 @@ export default class Insertion {
     ExistingdocumentId?: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const documentId: string = ExistingdocumentId === undefined ? await this.generateUniqueDocumentId() : ExistingdocumentId;
+      const documentId: string =
+        ExistingdocumentId === undefined
+          ? await this.generateUniqueDocumentId()
+          : ExistingdocumentId;
       const filePath = `${this.path}/.${documentId}${General.DBMS_File_EXT}`;
 
       // Check if Directory Locked or not

@@ -144,6 +144,13 @@ export default class Collection {
     if (!query) {
       throw new Error("Query cannot be empty");
     }
-    return new UpdateOperation(this.name, this.path, query, this.schema, this.isEncrypted, this.encryptionKey);
+    return new UpdateOperation(
+      this.name,
+      this.path,
+      query,
+      this.schema,
+      this.isEncrypted,
+      this.encryptionKey,
+    );
   }
 }

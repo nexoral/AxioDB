@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ErrorInterface, SuccessInterface } from "../../config/Interfaces/Helper/response.helper.interface";
+import {
+  ErrorInterface,
+  SuccessInterface,
+} from "../../config/Interfaces/Helper/response.helper.interface";
 import Converter from "../../Helper/Converter.helper";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
@@ -57,28 +60,28 @@ export default class UpdateOperation {
 
   /**
    * Updates a single document that matches the base query.
-   * 
+   *
    * This method performs the following operations:
    * 1. Searches for documents matching the base query
    * 2. If documents are found, selects the first document (or first after sorting if sort criteria are provided)
    * 3. Deletes the existing document file
    * 4. Inserts a new file with updated data using the same document ID
-   * 
+   *
    * @param newData - The new data to replace the existing document
    * @returns A Promise resolving to:
    *          - Success with updated data and previous data if successful
-   *          - Error if any step fails 
+   *          - Error if any step fails
    * @throws May throw errors during file operations or data processing
    */
-  public async UpdateOne(newData: object | any): Promise<
-    SuccessInterface | ErrorInterface
-   > {
+  public async UpdateOne(
+    newData: object | any,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
         const SearchedData = await new HashmapSearch(ReadResponse.data).find(
           this.baseQuery,
-          "data"
+          "data",
         );
         if (SearchedData.length === 0) {
           return this.ResponseHelper.Error(
@@ -99,7 +102,9 @@ export default class UpdateOperation {
           selectedFirstData = SortedData[0]; // Select the first data
           fileName = selectedFirstData?.fileName; // Get the file name
         }
-        const documentId: string = fileName.startsWith('.') ? fileName.slice(1).split('.')[0] : fileName.split('.')[0];
+        const documentId: string = fileName.startsWith(".")
+          ? fileName.slice(1).split(".")[0]
+          : fileName.split(".")[0];
 
         // Delete the file
         const deleteResponse = await this.deleteFileUpdate(fileName);
@@ -113,20 +118,16 @@ export default class UpdateOperation {
               previousData: selectedFirstData.data,
               documentId: documentId,
             });
-          }
-          else {
+          } else {
             return this.ResponseHelper.Error("Failed to insert data");
           }
-        }
-        else {
+        } else {
           return this.ResponseHelper.Error("Failed to delete file");
         }
-      }
-      else {
+      } else {
         return this.ResponseHelper.Error("Failed to read  raw data");
       }
-    }
-    catch (error) {
+    } catch (error) {
       return this.ResponseHelper.Error("Failed to update data");
     }
   }
@@ -157,8 +158,8 @@ export default class UpdateOperation {
    * @throws {Error} Throws an error if any operation fails.
    */
   private async LoadAllBufferRawData(): Promise<
-      SuccessInterface | ErrorInterface
-    > {
+    SuccessInterface | ErrorInterface
+  > {
     try {
       // Check if Directory Locked or not
       const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
@@ -277,60 +278,60 @@ export default class UpdateOperation {
     }
   }
 
-    /**
-     * Deletes a file from the specified path.
-     *
-     * This method checks if the directory is locked before attempting to delete the file.
-     * If the directory is locked, it tries to unlock it, delete the file, and then lock it again.
-     *
-     * @param fileName - The name of the file to be deleted
-     * @returns A response object indicating success or failure
-     *          Success response: { status: true, message: "File deleted successfully" }
-     *          Error response: { status: false, message: <error message> }
-     * @private
-     */
-    private async deleteFileUpdate(fileName: string) {
-      // Check if Directory Locked or not
-      const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
-      if ("data" in isLocked) {
-        // If Directory is not locked
-        if (isLocked.data === false) {
+  /**
+   * Deletes a file from the specified path.
+   *
+   * This method checks if the directory is locked before attempting to delete the file.
+   * If the directory is locked, it tries to unlock it, delete the file, and then lock it again.
+   *
+   * @param fileName - The name of the file to be deleted
+   * @returns A response object indicating success or failure
+   *          Success response: { status: true, message: "File deleted successfully" }
+   *          Error response: { status: false, message: <error message> }
+   * @private
+   */
+  private async deleteFileUpdate(fileName: string) {
+    // Check if Directory Locked or not
+    const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
+    if ("data" in isLocked) {
+      // If Directory is not locked
+      if (isLocked.data === false) {
+        const deleteResponse = await new FileManager().DeleteFile(
+          `${this.path}/${fileName}`,
+        );
+        if ("data" in deleteResponse) {
+          return this.ResponseHelper.Success("File deleted successfully");
+        } else {
+          return this.ResponseHelper.Error("Failed to delete file");
+        }
+      } else {
+        const unlockResponse = await new FolderManager().UnlockDirectory(
+          this.path,
+        );
+        if ("data" in unlockResponse) {
           const deleteResponse = await new FileManager().DeleteFile(
             `${this.path}/${fileName}`,
           );
           if ("data" in deleteResponse) {
-            return this.ResponseHelper.Success("File deleted successfully");
+            const lockResponse = await new FolderManager().LockDirectory(
+              this.path,
+            );
+            if ("data" in lockResponse) {
+              return this.ResponseHelper.Success("File deleted successfully");
+            } else {
+              return this.ResponseHelper.Error("Failed to lock directory");
+            }
           } else {
             return this.ResponseHelper.Error("Failed to delete file");
           }
         } else {
-          const unlockResponse = await new FolderManager().UnlockDirectory(
-            this.path,
-          );
-          if ("data" in unlockResponse) {
-            const deleteResponse = await new FileManager().DeleteFile(
-              `${this.path}/${fileName}`,
-            );
-            if ("data" in deleteResponse) {
-              const lockResponse = await new FolderManager().LockDirectory(
-                this.path,
-              );
-              if ("data" in lockResponse) {
-                return this.ResponseHelper.Success("File deleted successfully");
-              } else {
-                return this.ResponseHelper.Error("Failed to lock directory");
-              }
-            } else {
-              return this.ResponseHelper.Error("Failed to delete file");
-            }
-          } else {
-            return this.ResponseHelper.Error("Failed to unlock directory");
-          }
+          return this.ResponseHelper.Error("Failed to unlock directory");
         }
-      } else {
-        return this.ResponseHelper.Error("Failed to delete file");
       }
+    } else {
+      return this.ResponseHelper.Error("Failed to delete file");
     }
+  }
 
   /**
    * Inserts a document into the collection.
@@ -362,10 +363,10 @@ export default class UpdateOperation {
 
     // delete the extra fields from the schema if not present in the data
     for (const key in data) {
-        const newSchema = {
-          [key]: this.schema[key],
-        }
-        this.schema = newSchema;
+      const newSchema = {
+        [key]: this.schema[key],
+      };
+      this.schema = newSchema;
     }
 
     // Validate the data
