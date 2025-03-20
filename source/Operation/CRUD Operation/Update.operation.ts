@@ -109,7 +109,7 @@ export default class UpdateOperation {
           if ("data" in InsertResponse) {
             return this.ResponseHelper.Success({
               message: "Data updated successfully",
-              data: newData,
+              newData: newData,
               previousData: selectedFirstData.data,
               documentId: documentId,
             });
