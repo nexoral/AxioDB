@@ -45,7 +45,7 @@ export default class UpdateOperation {
     this.encryptionKey = encryptionKey;
     this.updatedAt = new Date().toISOString();
     this.sort = {};
-    this.schema = {};
+    this.schema = schema;
     this.Insertion = new Insertion(this.collectionName, this.path);
     this.ResponseHelper = new ResponseHelper();
     this.Converter = new Converter();
@@ -55,9 +55,24 @@ export default class UpdateOperation {
     this.allDataWithFileName = []; // To store all data with file name
   }
 
+  /**
+   * Updates a single document that matches the base query.
+   * 
+   * This method performs the following operations:
+   * 1. Searches for documents matching the base query
+   * 2. If documents are found, selects the first document (or first after sorting if sort criteria are provided)
+   * 3. Deletes the existing document file
+   * 4. Inserts a new file with updated data using the same document ID
+   * 
+   * @param newData - The new data to replace the existing document
+   * @returns A Promise resolving to:
+   *          - Success with updated data and previous data if successful
+   *          - Error if any step fails 
+   * @throws May throw errors during file operations or data processing
+   */
   public async UpdateOne(newData: object | any): Promise<
     SuccessInterface | ErrorInterface
-  > {
+   > {
     try {
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
@@ -73,13 +88,6 @@ export default class UpdateOperation {
 
         let selectedFirstData = SearchedData[0]; // Select the first data
         let fileName: string = selectedFirstData?.fileName; // Get the file name
-        const documentId: string = fileName.startsWith('.') ? fileName.slice(1).split('.')[0] : fileName.split('.')[0];
-        console.log("fileName", documentId, selectedFirstData);
-        return this.ResponseHelper.Success({
-          message: "Data updated successfully",
-          documentId: documentId,
-          data: newData,
-        });
 
         // Sort the data if sort is provided then select the first data for deletion
         if (Object.keys(this.sort).length === 0) {
@@ -90,6 +98,28 @@ export default class UpdateOperation {
           const SortedData: any[] = await Sorter.sort("data"); // Sort the data
           selectedFirstData = SortedData[0]; // Select the first data
           fileName = selectedFirstData?.fileName; // Get the file name
+        }
+        const documentId: string = fileName.startsWith('.') ? fileName.slice(1).split('.')[0] : fileName.split('.')[0];
+
+        // Delete the file
+        const deleteResponse = await this.deleteFileUpdate(fileName);
+        if ("data" in deleteResponse) {
+          // Insert the new Data in the file
+          const InsertResponse = await this.insertUpdate(newData, documentId);
+          if ("data" in InsertResponse) {
+            return this.ResponseHelper.Success({
+              message: "Data updated successfully",
+              data: newData,
+              previousData: selectedFirstData.data,
+              documentId: documentId,
+            });
+          }
+          else {
+            return this.ResponseHelper.Error("Failed to insert data");
+          }
+        }
+        else {
+          return this.ResponseHelper.Error("Failed to delete file");
         }
       }
       else {
@@ -310,7 +340,7 @@ export default class UpdateOperation {
   public async insertUpdate(
     data: object | any,
     ExistingdocumentId?: string,
-  ): Promise<SuccessInterface | ErrorInterface | undefined> {
+  ): Promise<SuccessInterface | ErrorInterface> {
     // Check if data is empty or not
     if (!data) {
       throw new Error("Data cannot be empty");
@@ -322,16 +352,28 @@ export default class UpdateOperation {
     }
 
     // Insert the updatedAt field in schema & data
+    this.schema.updatedAt = SchemaTypes.date().required();
     data.updatedAt = this.updatedAt;
 
-    this.schema.updatedAt = SchemaTypes.date().required();
+    // check if the data is an object or not
+    if (typeof data !== "object") {
+      throw new Error("Data must be an object.");
+    }
+
+    // delete the extra fields from the schema if not present in the data
+    for (const key in data) {
+        const newSchema = {
+          [key]: this.schema[key],
+        }
+        this.schema = newSchema;
+    }
 
     // Validate the data
     const validator = await SchemaValidator(this.schema, data);
 
     if (validator?.details) {
       Console.red("Validation Error", validator.details);
-      return;
+      return this.ResponseHelper.Error(validator.details);
     }
 
     // Encrypt the data if crypto is enabled
