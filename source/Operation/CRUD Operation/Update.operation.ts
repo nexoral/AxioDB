@@ -77,6 +77,34 @@ export default class UpdateOperation {
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
+
+      // Insert the updatedAt field in schema & data
+      this.schema.updatedAt = SchemaTypes.date().required();
+      newData.updatedAt = this.updatedAt;
+
+      // check if the data is an object or not
+      if (typeof newData !== "object") {
+        throw new Error("Data must be an object.");
+      }
+
+      // delete the extra fields from the schema if not present in the data
+      for (const key in newData) {
+        if (this.schema[key]) {
+          const newSchema = {
+            [key]: this.schema[key],
+          };
+          this.schema = newSchema;
+        }
+      }
+      // Validate the data
+      const validator = await SchemaValidator(this.schema, newData, false);
+
+      if (validator?.details) {
+        Console.red("Validation Error", validator.details);
+        return this.ResponseHelper.Error(validator.details);
+      }
+
+
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
         const SearchedData = await new HashmapSearch(ReadResponse.data).find(
@@ -91,6 +119,7 @@ export default class UpdateOperation {
 
         let selectedFirstData = SearchedData[0]; // Select the first data
         let fileName: string = selectedFirstData?.fileName; // Get the file name
+        const documentOldData = selectedFirstData.data; // Get the old data
 
         // Sort the data if sort is provided then select the first data for deletion
         if (Object.keys(this.sort).length === 0) {
@@ -106,11 +135,16 @@ export default class UpdateOperation {
           ? fileName.slice(1).split(".")[0]
           : fileName.split(".")[0];
 
+        // Update All new Fields in the old data
+        for (const key in newData) {
+          documentOldData[key] = newData[key];
+        }
+
         // Delete the file
         const deleteResponse = await this.deleteFileUpdate(fileName);
         if ("data" in deleteResponse) {
           // Insert the new Data in the file
-          const InsertResponse = await this.insertUpdate(newData, documentId);
+          const InsertResponse = await this.insertUpdate(documentOldData, documentId,);
           if ("data" in InsertResponse) {
             return this.ResponseHelper.Success({
               message: "Data updated successfully",
@@ -124,6 +158,116 @@ export default class UpdateOperation {
         } else {
           return this.ResponseHelper.Error("Failed to delete file");
         }
+      } else {
+        return this.ResponseHelper.Error("Failed to read  raw data");
+      }
+    } catch (error) {
+      return this.ResponseHelper.Error("Failed to update data");
+    }
+  }
+
+  /**
+   * Updates multiple documents that match the base query.
+   *
+   * This method performs the following operations:
+   * 1. Searches for documents matching the base query
+   * 2. Deletes the existing documents
+   * 3. Inserts new files with updated data for each document
+   *
+   * @param newData - The new data to replace the existing documents
+   * @returns A Promise resolving to:
+   *          - Success with updated data and previous data if successful
+   *          - Error if any step fails
+   * @throws May throw errors during file operations or data processing
+   */
+  public async UpdateMany(
+    newData: object | any,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      // Insert the updatedAt field in schema & data
+      this.schema.updatedAt = SchemaTypes.date().required();
+      newData.updatedAt = this.updatedAt;
+
+      // check if the data is an object or not
+      if (typeof newData !== "object") {
+        throw new Error("Data must be an object.");
+      }
+
+      // delete the extra fields from the schema if not present in the data
+      for (const key in newData) {
+        if (this.schema[key]) {
+          const newSchema = {
+            [key]: this.schema[key],
+          };
+          this.schema = newSchema;
+        }
+      }
+      // Validate the data
+      const validator = await SchemaValidator(this.schema, newData, true);
+
+      if (validator?.details) {
+        Console.red("Validation Error", validator.details);
+        return this.ResponseHelper.Error(validator.details);
+      }
+
+      const ReadResponse = await this.LoadAllBufferRawData();
+      if ("data" in ReadResponse) {
+        const SearchedData = await new HashmapSearch(ReadResponse.data).find(
+          this.baseQuery,
+          "data",
+        );
+        if (SearchedData.length === 0) {
+          return this.ResponseHelper.Error(
+            "No data found with the specified query",
+          );
+        }
+
+        const documentIds: string[] = [];
+        for (let i = 0; i < SearchedData.length; i++) {
+          let selectedData = SearchedData[i]; // Select the first data
+          let fileName: string = selectedData?.fileName; // Get the file name
+          const documentOldData = selectedData.data; // Get the old data
+
+          // Sort the data if sort is provided then select the first data for deletion
+          if (Object.keys(this.sort).length === 0) {
+            selectedData = SearchedData[i]; // Select the first data
+            fileName = selectedData?.fileName; // Get the file name
+
+          } else {
+            const Sorter: Sorting = new Sorting(SearchedData, this.sort);
+            const SortedData: any[] = await Sorter.sort("data"); // Sort the data
+            selectedData = SortedData[i]; // Select the first data
+            fileName = selectedData?.fileName; // Get the file name
+          }
+          const documentId: string = fileName.startsWith(".")
+            ? fileName.slice(1).split(".")[0]
+            : fileName.split(".")[0];
+          documentIds.push(documentId);
+
+          // Update All new Fields in the old data
+          for (const key in newData) {
+            documentOldData[key] = newData[key];
+          }
+
+          // Delete the file
+          const deleteResponse = await this.deleteFileUpdate(fileName);
+          if ("data" in deleteResponse) {
+            // Insert the new Data in the file
+            const InsertResponse = await this.insertUpdate(documentOldData, documentId);
+            if ("data" in InsertResponse) {
+              continue;
+            } else {
+              return this.ResponseHelper.Error("Failed to insert data");
+            }
+          } else {
+            return this.ResponseHelper.Error("Failed to delete file");
+          }
+        }
+        return this.ResponseHelper.Success({
+          message: "Data updated successfully",
+          newData: newData,
+          documentIds: documentIds,
+        });
       } else {
         return this.ResponseHelper.Error("Failed to read  raw data");
       }
@@ -350,31 +494,6 @@ export default class UpdateOperation {
     // Check if data is an object or not
     if (typeof data !== "object") {
       throw new Error("Data must be an object.");
-    }
-
-    // Insert the updatedAt field in schema & data
-    this.schema.updatedAt = SchemaTypes.date().required();
-    data.updatedAt = this.updatedAt;
-
-    // check if the data is an object or not
-    if (typeof data !== "object") {
-      throw new Error("Data must be an object.");
-    }
-
-    // delete the extra fields from the schema if not present in the data
-    for (const key in data) {
-      const newSchema = {
-        [key]: this.schema[key],
-      };
-      this.schema = newSchema;
-    }
-
-    // Validate the data
-    const validator = await SchemaValidator(this.schema, data);
-
-    if (validator?.details) {
-      Console.red("Validation Error", validator.details);
-      return this.ResponseHelper.Error(validator.details);
     }
 
     // Encrypt the data if crypto is enabled
