@@ -77,7 +77,6 @@ export default class UpdateOperation {
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-
       // Insert the updatedAt field in schema & data
       this.schema.updatedAt = SchemaTypes.date().required();
       newData.updatedAt = this.updatedAt;
@@ -103,7 +102,6 @@ export default class UpdateOperation {
         Console.red("Validation Error", validator.details);
         return this.ResponseHelper.Error(validator.details);
       }
-
 
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
@@ -144,7 +142,10 @@ export default class UpdateOperation {
         const deleteResponse = await this.deleteFileUpdate(fileName);
         if ("data" in deleteResponse) {
           // Insert the new Data in the file
-          const InsertResponse = await this.insertUpdate(documentOldData, documentId,);
+          const InsertResponse = await this.insertUpdate(
+            documentOldData,
+            documentId,
+          );
           if ("data" in InsertResponse) {
             return this.ResponseHelper.Success({
               message: "Data updated successfully",
@@ -232,7 +233,6 @@ export default class UpdateOperation {
           if (Object.keys(this.sort).length === 0) {
             selectedData = SearchedData[i]; // Select the first data
             fileName = selectedData?.fileName; // Get the file name
-
           } else {
             const Sorter: Sorting = new Sorting(SearchedData, this.sort);
             const SortedData: any[] = await Sorter.sort("data"); // Sort the data
@@ -253,7 +253,10 @@ export default class UpdateOperation {
           const deleteResponse = await this.deleteFileUpdate(fileName);
           if ("data" in deleteResponse) {
             // Insert the new Data in the file
-            const InsertResponse = await this.insertUpdate(documentOldData, documentId);
+            const InsertResponse = await this.insertUpdate(
+              documentOldData,
+              documentId,
+            );
             if ("data" in InsertResponse) {
               continue;
             } else {

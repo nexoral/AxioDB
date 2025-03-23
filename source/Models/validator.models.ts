@@ -12,7 +12,7 @@ import Joi, { Schema } from "joi"; // Ensure to import Joi correctly
 export default async function schemaValidate(
   dataSchema: Schema,
   data: any,
-  isUpdate = false
+  isUpdate = false,
 ): Promise<any> {
   if (isUpdate) {
     // For update operations, we allow partial data
@@ -23,8 +23,7 @@ export default async function schemaValidate(
     } catch (error) {
       return error;
     }
-  }
-  else {
+  } else {
     // For create operations, we require all data fields
     try {
       return await dataSchema.validateAsync(data); // Validate the actual data against the schema
