@@ -76,7 +76,7 @@ export default class Collection {
     this.schema.updatedAt = SchemaTypes.date().required();
 
     // Validate the data
-    const validator = await SchemaValidator(this.schema, data);
+    const validator = await SchemaValidator(this.schema, data, false);
 
     if (validator?.details) {
       Console.red("Validation Error", validator.details);
