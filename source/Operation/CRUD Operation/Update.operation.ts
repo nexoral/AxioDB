@@ -79,7 +79,7 @@ export default class UpdateOperation {
     try {
       // Insert the updatedAt field in schema & data
       this.schema.updatedAt = SchemaTypes.date().required();
-      newData.updatedAt = this.updatedAt;
+      newData.updatedAt = new Date().toISOString();
 
       // check if the data is an object or not
       if (typeof newData !== "object") {
@@ -136,6 +136,8 @@ export default class UpdateOperation {
         // Update All new Fields in the old data
         for (const key in newData) {
           documentOldData[key] = newData[key];
+          // also change the updatedAt field
+          documentOldData.updatedAt = this.updatedAt;
         }
 
         // Delete the file
@@ -187,7 +189,7 @@ export default class UpdateOperation {
     try {
       // Insert the updatedAt field in schema & data
       this.schema.updatedAt = SchemaTypes.date().required();
-      newData.updatedAt = this.updatedAt;
+      newData.updatedAt = new Date().toISOString();
 
       // check if the data is an object or not
       if (typeof newData !== "object") {
@@ -247,6 +249,8 @@ export default class UpdateOperation {
           // Update All new Fields in the old data
           for (const key in newData) {
             documentOldData[key] = newData[key];
+            // also change the updatedAt field
+            documentOldData.updatedAt = this.updatedAt;
           }
 
           // Delete the file
