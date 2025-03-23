@@ -31,6 +31,7 @@ export default class Reader {
   private encryptionKey: string | undefined;
   private cryptoInstance?: CryptoHelper;
   private totalCount: boolean;
+  private project: object | any;
   private readonly ResponseHelper: responseHelper;
   private AllData: any[];
 
@@ -55,6 +56,7 @@ export default class Reader {
     this.skip = 0;
     this.isEncrypted = isEncrypted;
     this.sort = {};
+    this.project = {};
     this.baseQuery = baseQuery;
     this.Converter = new Converter();
     this.encryptionKey = encryptionKey;
@@ -111,6 +113,10 @@ export default class Reader {
    * @returns {Reader} - An instance of the Reader class.
    */
   public Limit(limit: number): Reader {
+    // Check if limit is a number or not
+    if (typeof limit !== "number") {
+      throw new Error("Limit should be a number");
+    }
     this.limit = limit;
     return this;
   }
@@ -122,6 +128,10 @@ export default class Reader {
    */
 
   public Skip(skip: number): Reader {
+    // Check if skip is a number or not
+    if (typeof skip !== "number") {
+      throw new Error("Skip should be a number");
+    }
     this.skip = skip;
     return this;
   }
@@ -132,6 +142,10 @@ export default class Reader {
    * @returns {Reader} - An instance of the Reader class.
    */
   public Sort(sort: object | any): Reader {
+    // check if sort is an object or not
+    if (typeof sort !== "object") {
+      throw new Error("Sort should be an object");
+    }
     this.sort = sort;
     return this;
   }
@@ -144,6 +158,15 @@ export default class Reader {
    */
   public setCount(count: boolean): Reader {
     this.totalCount = count;
+    return this;
+  }
+
+  public setProject(project: object | any): Reader {
+    // check if project is an object or not
+    if (typeof project !== "object") {
+      throw new Error("Project should be an object");
+    }
+    this.project = project;
     return this;
   }
 
@@ -297,16 +320,63 @@ export default class Reader {
         this.skip,
         this.skip + this.limit,
       );
+
       if (this.totalCount) {
+        // Apply Projectd if total count is true
+        if (Object.keys(this.project).length !== 0) {
+          const projectionresponse = await this.ApplyProjection(
+            limitedAndSkippedData,
+          );
+          if ("data" in projectionresponse) {
+            return this.ResponseHelper.Success({
+              documents: projectionresponse.data.documents,
+              totalDocuments: FinalData.length,
+            });
+          }
+        }
         return this.ResponseHelper.Success({
           documents: limitedAndSkippedData,
           totalDocuments: limitedAndSkippedData.length,
         });
       } else {
+        if (Object.keys(this.project).length !== 0) {
+          const projectionresponse = await this.ApplyProjection(
+            limitedAndSkippedData,
+          );
+          if ("data" in projectionresponse) {
+            return this.ResponseHelper.Success({
+              documents: projectionresponse.data.documents,
+            });
+          }
+        }
         return this.ResponseHelper.Success({
           documents: limitedAndSkippedData,
         });
       }
+    }
+    return this.ResponseHelper.Success({
+      documents: FinalData,
+    });
+  }
+
+  // Apply Projection
+  private async ApplyProjection(
+    FinalData: any[],
+  ): Promise<SuccessInterface | ErrorInterface> {
+    // Apply Project
+    if (Object.keys(this.project).length !== 0) {
+      const projectedData: any[] = FinalData.map((data) => {
+        const projectedObject: any = {};
+        Object.keys(this.project).forEach((key) => {
+          if (key in data) {
+            projectedObject[key] = data[key];
+          }
+        });
+        return projectedObject;
+      });
+      return this.ResponseHelper.Success({
+        documents: projectedData,
+      });
     }
     return this.ResponseHelper.Success({
       documents: FinalData,
