@@ -324,7 +324,9 @@ export default class Reader {
       if (this.totalCount) {
         // Apply Projectd if total count is true
         if (Object.keys(this.project).length !== 0) {
-          const projectionresponse = await this.ApplyProjection(limitedAndSkippedData);
+          const projectionresponse = await this.ApplyProjection(
+            limitedAndSkippedData,
+          );
           if ("data" in projectionresponse) {
             return this.ResponseHelper.Success({
               documents: projectionresponse.data.documents,
@@ -338,7 +340,9 @@ export default class Reader {
         });
       } else {
         if (Object.keys(this.project).length !== 0) {
-          const projectionresponse = await this.ApplyProjection(limitedAndSkippedData);
+          const projectionresponse = await this.ApplyProjection(
+            limitedAndSkippedData,
+          );
           if ("data" in projectionresponse) {
             return this.ResponseHelper.Success({
               documents: projectionresponse.data.documents,
