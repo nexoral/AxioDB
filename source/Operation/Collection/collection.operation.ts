@@ -7,6 +7,8 @@ import {
 import Insertion from "../CRUD Operation/Create.operation";
 import Reader from "../CRUD Operation/Reader.operation";
 import DeleteOperation from "../CRUD Operation/Delete.operation";
+import UpdateOperation from "../CRUD Operation/Update.operation";
+import Aggregation from "../Aggregation/Aggregation.Operation";
 
 import { Console } from "outers";
 // Validator
@@ -16,7 +18,6 @@ import { CryptoHelper } from "../../Helper/Crypto.helper";
 // Converter
 import Converter from "../../Helper/Converter.helper";
 import { SchemaTypes } from "../../Models/DataTypes.models";
-import UpdateOperation from "../CRUD Operation/Update.operation";
 
 /**
  * Represents a collection inside a database.
@@ -107,6 +108,31 @@ export default class Collection {
       this.name,
       this.path,
       query,
+      this.isEncrypted,
+      this.encryptionKey,
+    );
+  }
+
+  /**
+   * Initiates an aggregation operation on the collection with the provided pipeline steps.
+   * @param {object[]} PipelineQuerySteps - The pipeline steps to be executed.
+   * @returns {Aggregation} - An instance of the Aggregation class.
+   * @throws {Error} Throws an error if the pipeline steps are empty.
+   * @example
+   * ```typescript
+   * // Aggregate the collection to get the total count of documents
+   * collection.aggregate([{$match: {}}, ${group: {_id: null, count: {$sum: 1}}}]).exec();
+   * ```
+   */
+  public aggregate(PipelineQuerySteps: object[]): Aggregation {
+    // Check if Pipeline Steps is valid Array of Object
+    if (!PipelineQuerySteps) {
+      throw new Error("Please provide valid Pipeline Steps");
+    }
+    return new Aggregation(
+      this.name,
+      this.path,
+      PipelineQuerySteps,
       this.isEncrypted,
       this.encryptionKey,
     );
