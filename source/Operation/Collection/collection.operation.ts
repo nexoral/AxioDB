@@ -123,7 +123,7 @@ export default class Collection {
    * // Aggregate the collection to get the total count of documents
    * collection.aggregate([{$match: {}}, ${group: {_id: null, count: {$sum: 1}}}]).exec();
    * ```
-   */ 
+   */
   public aggregate(PipelineQuerySteps: object[]): Aggregation {
     // Check if Pipeline Steps is valid Array of Object
     if (!PipelineQuerySteps) {
