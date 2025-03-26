@@ -113,6 +113,17 @@ export default class Collection {
     );
   }
 
+  /**
+   * Initiates an aggregation operation on the collection with the provided pipeline steps.
+   * @param {object[]} PipelineQuerySteps - The pipeline steps to be executed.
+   * @returns {Aggregation} - An instance of the Aggregation class.
+   * @throws {Error} Throws an error if the pipeline steps are empty.
+   * @example
+   * ```typescript
+   * // Aggregate the collection to get the total count of documents
+   * collection.aggregate([{$match: {}}, ${group: {_id: null, count: {$sum: 1}}}]).exec();
+   * ```
+   */ 
   public aggregate(PipelineQuerySteps: object[]): Aggregation {
     // Check if Pipeline Steps is valid Array of Object
     if (!PipelineQuerySteps) {
