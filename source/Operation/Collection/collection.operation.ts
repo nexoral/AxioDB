@@ -118,11 +118,13 @@ export default class Collection {
     if (!PipelineQuerySteps) {
       throw new Error("Please provide valid Pipeline Steps");
     }
-    return new Aggregation(this.name
-      , this.path
-      , PipelineQuerySteps
-      , this.isEncrypted
-      , this.encryptionKey);
+    return new Aggregation(
+      this.name,
+      this.path,
+      PipelineQuerySteps,
+      this.isEncrypted,
+      this.encryptionKey,
+    );
   }
 
   /**
