@@ -91,8 +91,31 @@ export default class Aggregation {
         for (const stage of this.Pipeline) {
             if (stage.$match) {
                 result = result.filter(item => {
-                    const MatchedData = Object.entries(stage.$match).every(([key, value]) => item[key] === value);
-                    return MatchedData;
+                    return Object.entries(stage.$match).every(([key, value]) => {
+                        const itemValue = item[key] ?? ''; // Ensure item[key] exists
+
+                        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+                            return itemValue === value;
+                        }
+
+                        if (typeof value === 'object' && value !== null) {
+                            if (value instanceof RegExp) {
+                                return value.test(itemValue);
+                            }
+                            if ('$regex' in value) {
+                                const regexPattern = value.$regex;
+                                const regexOptions = '$options' in value ? (value.$options as string) : '';
+                                try {
+                                    const regex = new RegExp(String(regexPattern), regexOptions);
+                                    return regex.test(itemValue);
+                                } catch (error) {
+                                    console.error(`Invalid regex: ${regexPattern} with options: ${regexOptions}`, error);
+                                    return false;
+                                }
+                            }
+                        }
+                        return false;
+                    });
                 });
             }
             if (stage.$group) {
@@ -100,14 +123,11 @@ export default class Aggregation {
                 for (const item of result) {
                     let groupKey;
 
-                    // Handle different types of _id specifications
                     if (typeof stage.$group._id === 'string') {
-                        // If _id is a string like '$fieldName'
                         groupKey = stage.$group._id.startsWith('$')
                             ? item[stage.$group._id.substring(1)]
                             : stage.$group._id;
                     } else if (typeof stage.$group._id === 'object') {
-                        // For compound keys or expressions
                         groupKey = JSON.stringify(
                             Object.entries(stage.$group._id).reduce((acc, [k, v]) => {
                                 const fieldPath = (v as string).replace('$', '');
@@ -116,7 +136,6 @@ export default class Aggregation {
                             }, {} as Record<string, any>)
                         );
                     } else {
-                        // Default to a constant key if _id is null or undefined
                         groupKey = 'null';
                     }
 
@@ -185,6 +204,8 @@ export default class Aggregation {
                 result = result.map(item => ({ ...item, ...stage.$addFields }));
             }
         }
+
+
         return this.ResponseHelper.Success(result);
     }
 
