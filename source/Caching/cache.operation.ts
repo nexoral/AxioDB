@@ -59,8 +59,11 @@ export default class InMemoryCache {
   }
 
   private async autoResetCache() {
-    setInterval(() => {
-      this.cacheObject = {};
-    }, parseInt(String(this.ttl)));
+    setInterval(
+      () => {
+        this.cacheObject = {};
+      },
+      parseInt(String(this.ttl)),
+    );
   }
 }

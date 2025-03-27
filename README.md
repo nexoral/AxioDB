@@ -68,7 +68,10 @@ const main = async () => {
   await users.insert({ name: "John Doe", age: 30 });
 
   // Query data
-  const result = await users.query({ age: { $gt: 25 } }).Limit(10).exec();
+  const result = await users
+    .query({ age: { $gt: 25 } })
+    .Limit(10)
+    .exec();
   console.log("Query Result:", result);
 };
 
@@ -93,7 +96,12 @@ const setup = async () => {
   };
 
   const DB1 = await db.createDB("DB1");
-  const collection1 = await DB1.createCollection("collection1", schema, true, "secretKey");
+  const collection1 = await DB1.createCollection(
+    "collection1",
+    schema,
+    true,
+    "secretKey",
+  );
 
   // Insert data
   for (let i = 0; i < 300; i++) {
@@ -101,7 +109,11 @@ const setup = async () => {
   }
 
   // Query data
-  const results = await collection1.query({}).Sort({ age: -1 }).Limit(10).exec();
+  const results = await collection1
+    .query({})
+    .Sort({ age: -1 })
+    .Limit(10)
+    .exec();
   console.log("Query Results:", results);
 
   // Delete collection
@@ -118,12 +130,14 @@ setup();
 Perform advanced operations like filtering, sorting, grouping, and projecting data.
 
 ```javascript
-const aggregationResult = await collection1.aggregate([
-  { $match: { name: { $regex: "User" } } },
-  { $project: { name: 1, age: 1 } },
-  { $sort: { age: -1 } },
-  { $limit: 10 },
-]).exec();
+const aggregationResult = await collection1
+  .aggregate([
+    { $match: { name: { $regex: "User" } } },
+    { $project: { name: 1, age: 1 } },
+    { $sort: { age: -1 } },
+    { $limit: 10 },
+  ])
+  .exec();
 
 console.log("Aggregation Result:", aggregationResult);
 ```
@@ -135,7 +149,12 @@ console.log("Aggregation Result:", aggregationResult);
 Enable encryption for sensitive data by providing a secret key during collection creation.
 
 ```javascript
-const encryptedCollection = await DB1.createCollection("secureCollection", schema, true, "mySecretKey");
+const encryptedCollection = await DB1.createCollection(
+  "secureCollection",
+  schema,
+  true,
+  "mySecretKey",
+);
 
 // Insert encrypted data
 await encryptedCollection.insert({ name: "Encrypted User", age: 25 });
@@ -150,15 +169,21 @@ console.log("Encrypted Query Result:", encryptedResult);
 ### 4. **Update and Delete Operations**
 
 #### Update Documents
+
 ```javascript
 // Update a single document
-await collection1.update({ age: 20 }).UpdateOne({ name: "Updated User", gender: "Male" });
+await collection1
+  .update({ age: 20 })
+  .UpdateOne({ name: "Updated User", gender: "Male" });
 
 // Update multiple documents
-await collection1.update({ name: { $regex: "User" } }).UpdateMany({ isActive: true });
+await collection1
+  .update({ name: { $regex: "User" } })
+  .UpdateMany({ isActive: true });
 ```
 
 #### Delete Documents
+
 ```javascript
 // Delete a single document
 await collection1.delete({ name: "User1" }).deleteOne();
@@ -172,6 +197,7 @@ await collection1.delete({ age: { $lt: 25 } }).deleteMany();
 ## 📖 API Reference
 
 ### AxioDB
+
 - **`createDB(dbName: string): Promise<Database>`**  
   Creates a new database.
 
@@ -179,6 +205,7 @@ await collection1.delete({ age: { $lt: 25 } }).deleteMany();
   Deletes a database.
 
 ### Database
+
 - **`createCollection(name: string, schema: object, crypto?: boolean, key?: string): Promise<Collection>`**  
   Creates a collection with an optional schema and encryption.
 
@@ -189,6 +216,7 @@ await collection1.delete({ age: { $lt: 25 } }).deleteMany();
   Retrieves information about all collections.
 
 ### Collection
+
 - **`insert(data: object): Promise<SuccessInterface | ErrorInterface>`**  
   Inserts a document into the collection.
 
@@ -199,6 +227,7 @@ await collection1.delete({ age: { $lt: 25 } }).deleteMany();
   Performs aggregation operations.
 
 ### Reader
+
 - **`Limit(limit: number): Reader`**  
   Sets a limit on the number of documents.
 
@@ -216,6 +245,7 @@ await collection1.delete({ age: { $lt: 25 } }).deleteMany();
 ## 🔒 Security
 
 AxioDB prioritizes data security with features like:
+
 - Optional encryption for collections.
 - Secure `.axiodb` file-based storage.
 
@@ -225,7 +255,7 @@ For vulnerabilities, please refer to the [SECURITY.md](SECURITY.md) file.
 
 ## 🤝 Contributing
 
-As the sole developer working on this project while maintaining a full-time software engineering career, it can be challenging to dedicate as much time as I'd like to AxioDB's development. If you find this project valuable and believe it solves problems for you, your contributions would be greatly appreciated. 
+As the sole developer working on this project while maintaining a full-time software engineering career, it can be challenging to dedicate as much time as I'd like to AxioDB's development. If you find this project valuable and believe it solves problems for you, your contributions would be greatly appreciated.
 
 Whether it's code improvements, documentation updates, bug reports, or feature suggestions - every contribution helps make this project better for everyone. Please read the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to get started.
 
