@@ -10,8 +10,7 @@ export default class InMemoryCache {
   // Properties
   private readonly ttl: number | string;
   private cacheObject: { [key: string]: { value: any; expiry: number } };
-  private tempSearchQyeury: any[] = [];
-
+  private tempSearchQuery: any[] = [];
   /**
    * Creates a new instance of the cache operation class
    * @param TTL - Time to live in seconds for cache entries. Defaults to 86400 seconds (24 hours)
