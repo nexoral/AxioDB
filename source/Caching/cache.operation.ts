@@ -8,14 +8,15 @@
  **/
 export default class InMemoryCache {
   // Properties
-  private readonly ttl: number;
+  private readonly ttl: number | string;
   private cacheObject: { [key: string]: { value: any; expiry: number } };
+  private tempSearchQyeury: any[] = [];
 
   /**
    * Creates a new instance of the cache operation class
-   * @param TTL - Time to live in seconds for cache entries. Defaults to 60 seconds
+   * @param TTL - Time to live in seconds for cache entries. Defaults to 86400 seconds (24 hours)
    */
-  constructor(TTL: string | number = 60) {
+  constructor(TTL: string | number = 86400) {
     this.ttl = typeof TTL === "string" ? parseInt(TTL) : TTL;
     this.cacheObject = {};
   }
@@ -36,7 +37,7 @@ export default class InMemoryCache {
   public async setCache(key: string, value: any) {
     this.cacheObject[key] = {
       value: value,
-      expiry: Date.now() + this.ttl * 1000,
+      expiry: Date.now() + parseInt(String(this.ttl)) * 1000,
     };
   }
 
@@ -55,5 +56,11 @@ export default class InMemoryCache {
       return null;
     }
     return cacheItem.value;
+  }
+
+  private async autoResetCache() {
+    setInterval(() => {
+      this.cacheObject = {};
+    }, parseInt(String(this.ttl)));
   }
 }

@@ -1,277 +1,244 @@
 # AxioDB
 
-AxioDB is a fast, lightweight, and scalable open-source DBMS designed for modern applications. It supports JSON-based data storage, simple APIs, and secure data management, making it ideal for projects requiring efficient and flexible database solutions.
+AxioDB is a fast, lightweight, and scalable open-source DBMS designed for modern applications. It supports `.axiodb` file-based data storage, simple APIs, and secure data management, making it ideal for projects requiring efficient and flexible database solutions.
 
-## Features
+AxioDB is specifically designed for small to medium-sized websites, blogs, and personal projects. While it provides excellent performance for these use cases, please note that it is currently optimized for smaller data loads rather than massive enterprise-level datasets. We are continuously working to improve performance and scalability in future updates.
 
-- **Custom Schema Support:** Define custom schemas to structure your data for consistency and validation.
-- **Chainable Query Methods:** Use familiar methods like `.find()`, `.skip()`, and `.limit()` for powerful query filtering.
-- **Node.js Streams for Efficient Read/Write:** Seamlessly handle large datasets with Node.js streams to avoid performance bottlenecks.
-- **Custom Data Storage:** Save and retrieve data directly from JSON files without needing a database server.
-- **Flexible Indexing:** Implement indexing to speed up query performance.
-- **Secure and Reliable:** Includes optional encryption to protect sensitive data stored in your JSON files.
-- **Simple Setup and Lightweight:** No additional database setup required; simply install and start using.
+---
 
-## Installation
+## 🚀 Features
 
-To get started with AxioDB, install it via npm:
+- **Schema Support:** Define schemas to structure your data for consistency and validation.
+- **Chainable Query Methods:** Use methods like `.query()`, `.Sort()`, `.Limit()`, and `.Skip()` for powerful query filtering.
+- **Node.js Streams for Efficiency:** Handle large datasets seamlessly with optimized read/write operations.
+- **Encryption Support:** Secure sensitive data with optional encryption for collections.
+- **Aggregation Pipelines:** Perform advanced data operations like `$match`, `$sort`, `$group`, and more.
+- **Simple Setup:** No additional database server required—just install and start using.
 
-```shell
+---
+
+## 🔮 Future Plans
+
+We're actively working to enhance AxioDB with several exciting features and improvements:
+
+- **In-Memory Cache Strategy:** Implementing an efficient caching mechanism to significantly speed up query operations.
+- **Performance Optimizations:** Continuous improvements to make data handling faster and more efficient.
+- **Extended Query Capabilities:** Additional operators and more flexible querying options.
+- **Improved Documentation:** More examples, tutorials, and API references.
+- **Better TypeScript Support:** Enhanced type definitions for better developer experience.
+
+We invite all developer enthusiasts to contribute to making AxioDB more reliable and powerful. Your insights and contributions can help shape the future of this project!
+
+---
+
+## 📦 Installation
+
+Install AxioDB via npm:
+
+```bash
 npm install axiodb@latest --save
 ```
 
-## Usage
+---
 
-### CommonJS
+## 🛠️ Usage
 
-```js
+### CommonJS Example
+
+```javascript
 const { AxioDB, SchemaTypes } = require("axiodb");
 
 // Initialize AxioDB
 const db = new AxioDB();
 
-// Create a new database
-db.createDB("myDatabase").then(async (database) => {
+const main = async () => {
+  // Create a database
+  const database = await db.createDB("myDatabase");
+
   // Define a schema
   const userSchema = {
     name: SchemaTypes.string().required(),
     age: SchemaTypes.number().required(),
   };
 
-  // Create a new collection with schema
+  // Create a collection with schema
   const users = await database.createCollection("users", userSchema);
 
-  // Insert a document
-  users.insert({ name: "John Doe", age: 30 }).then((response) => {
-    console.log("Insert Response:", response);
-  });
+  // Insert data
+  await users.insert({ name: "John Doe", age: 30 });
 
-  // Query documents
-  users
-    .query({ age: { $gt: 25 } })
-    .exac()
-    .then((response) => {
-      console.log("Query Response:", response);
-    });
-});
+  // Query data
+  const result = await users.query({ age: { $gt: 25 } }).Limit(10).exec();
+  console.log("Query Result:", result);
+};
+
+main();
 ```
 
-### ES6
+---
 
-```js
-import { AxioDB, schemaValidate, SchemaTypes } from "axiodb";
+## 🌟 Advanced Features
 
-// Initialize AxioDB
-const db = new AxioDB();
+### 1. **Creating Multiple Databases and Collections**
 
-// Create a new database
-db.createDB("myDatabase").then(async (database) => {
-  // Define a schema
-  const userSchema = {
-    name: SchemaTypes.string().required(),
-    age: SchemaTypes.number().required(),
-  };
-
-  // Create a new collection with schema
-  const users = await database.createCollection("users", userSchema);
-
-  // Insert a document
-  users.insert({ name: "John Doe", age: 30 }).then((response) => {
-    console.log("Insert Response:", response);
-  });
-
-  // Query documents
-  users
-    .query({ age: { $gt: 25 } })
-    .exac()
-    .then((response) => {
-      console.log("Query Response:", response);
-    });
-});
-```
-
-### Additional Features
-
-#### Creating Multiple Databases and Collections & Deletations of Database
-
-```js
+```javascript
 const { AxioDB, SchemaTypes } = require("axiodb");
 
 const db = new AxioDB();
 
-const insertCode = async () => {
+const setup = async () => {
   const schema = {
     name: SchemaTypes.string().required().max(15),
     age: SchemaTypes.number().required().min(18),
   };
 
   const DB1 = await db.createDB("DB1");
-  const DB2 = await db.createDB("DB2");
-  const collection = await DB1.createCollection(
-    "collection1",
-    schema,
-    true,
-    "Ankan",
-  );
-  const collection2 = await DB1.createCollection("collection2", schema, false);
+  const collection1 = await DB1.createCollection("collection1", schema, true, "secretKey");
 
   // Insert data
   for (let i = 0; i < 300; i++) {
-    await collection
-      .insert({
-        name: `Ankan${i}`,
-        age: i + 18,
-      })
-      .then((data) => {
-        console.log(data);
-        collection
-          .insert({
-            name: `Saha${i}`,
-            age: i + 18,
-          })
-          .then(console.log);
-      });
+    await collection1.insert({ name: `User${i}`, age: i + 18 });
   }
 
   // Query data
-  collection
-    .query({})
-    .Sort({ age: -1 })
-    .Skip(2)
-    .Limit(10)
-    .exec()
-    .then(console.log);
+  const results = await collection1.query({}).Sort({ age: -1 }).Limit(10).exec();
+  console.log("Query Results:", results);
 
   // Delete collection
-  DB1.deleteCollection("collection1").then(console.log);
-
-  // Get collection info
-  DB1.getCollectionInfo().then(console.log);
-
-  // Delete databases
-  db.deleteDatabase("DB2").then(console.log);
-  db.deleteDatabase("DB1").then(console.log);
+  await DB1.deleteCollection("collection1");
 };
 
-insertCode();
+setup();
 ```
 
-## Encryption
+---
 
-AxioDB supports optional encryption to protect sensitive data stored in your JSON files. You can enable encryption when creating a collection by passing the `crypto` flag and an encryption key.
+### 2. **Aggregation Pipelines**
 
-### Example with Encryption
+Perform advanced operations like filtering, sorting, grouping, and projecting data.
 
-```js
-import { AxioDB, SchemaTypes } from "axiodb";
+```javascript
+const aggregationResult = await collection1.aggregate([
+  { $match: { name: { $regex: "User" } } },
+  { $project: { name: 1, age: 1 } },
+  { $sort: { age: -1 } },
+  { $limit: 10 },
+]).exec();
 
-// Initialize AxioDB
-const db = new AxioDB();
-
-// Create a new database
-db.createDB("myDatabase").then(async (database) => {
-  // Define a schema
-  const userSchema = {
-    name: SchemaTypes.string().required(),
-    age: SchemaTypes.number().required(),
-  };
-
-  // Create a new collection with schema and encryption
-  const users = await database.createCollection(
-    "users",
-    userSchema,
-    true,
-    "mySecretKey",
-  );
-
-  // Insert a document
-  users.insert({ name: "John Doe", age: 30 }).then((response) => {
-    console.log("Insert Response:", response);
-  });
-
-  // Query documents
-  users
-    .query({ age: { $gt: 25 } })
-    .exac()
-    .then((response) => {
-      console.log("Query Response:", response);
-    });
-});
+console.log("Aggregation Result:", aggregationResult);
 ```
 
-## Motivation
+---
 
-As a MERN Stack Developer, I encountered several challenges with existing database solutions:
+### 3. **Encryption**
 
-1. **Complex Setup:** Many databases require complex setup and configuration, which can be time-consuming and error-prone.
-2. **Performance Bottlenecks:** Handling large datasets efficiently was often a challenge, especially with traditional databases.
-3. **Flexibility:** I needed a flexible solution that could easily adapt to different project requirements without extensive modifications.
-4. **Security:** Ensuring data security and encryption was crucial, but existing solutions often lacked easy-to-implement encryption features.
+Enable encryption for sensitive data by providing a secret key during collection creation.
 
-These pain points motivated me to develop AxioDB, a DBMS Npm Package that addresses these issues by providing a simple, efficient, and secure database solution for modern applications.
+```javascript
+const encryptedCollection = await DB1.createCollection("secureCollection", schema, true, "mySecretKey");
 
-## Development Status
+// Insert encrypted data
+await encryptedCollection.insert({ name: "Encrypted User", age: 25 });
 
-**Note:** This project is currently in development mode and is not stable. Features and APIs may change, and there may be bugs. Use it at your own risk and contribute to its development if possible.
+// Query encrypted data
+const encryptedResult = await encryptedCollection.query({ age: 25 }).exec();
+console.log("Encrypted Query Result:", encryptedResult);
+```
 
-## API Reference
+---
+
+### 4. **Update and Delete Operations**
+
+#### Update Documents
+```javascript
+// Update a single document
+await collection1.update({ age: 20 }).UpdateOne({ name: "Updated User", gender: "Male" });
+
+// Update multiple documents
+await collection1.update({ name: { $regex: "User" } }).UpdateMany({ isActive: true });
+```
+
+#### Delete Documents
+```javascript
+// Delete a single document
+await collection1.delete({ name: "User1" }).deleteOne();
+
+// Delete multiple documents
+await collection1.delete({ age: { $lt: 25 } }).deleteMany();
+```
+
+---
+
+## 📖 API Reference
 
 ### AxioDB
+- **`createDB(dbName: string): Promise<Database>`**  
+  Creates a new database.
 
-- **createDB(dbName: string): Promise<Database>**
-
-  - Creates a new database with the specified name.
-
-- **deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>**
-  - Deletes the specified database.
+- **`deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>`**  
+  Deletes a database.
 
 ### Database
+- **`createCollection(name: string, schema: object, crypto?: boolean, key?: string): Promise<Collection>`**  
+  Creates a collection with an optional schema and encryption.
 
-- **createCollection(collectionName: string, schema: object, crypto?: boolean, key?: string): Promise<Collection>**
+- **`deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>`**  
+  Deletes a collection.
 
-  - Creates a new collection with the specified name and schema.
-
-- **deleteCollection(collectionName: string): Promise<SuccessInterface | ErrorInterface>**
-
-  - Deletes the specified collection from the database.
-
-- **getCollectionInfo(): Promise<SuccessInterface>**
-  - Retrieves information about all collections in the database.
+- **`getCollectionInfo(): Promise<SuccessInterface>`**  
+  Retrieves information about all collections.
 
 ### Collection
+- **`insert(data: object): Promise<SuccessInterface | ErrorInterface>`**  
+  Inserts a document into the collection.
 
-- **insert(data: object): Promise<SuccessInterface | ErrorInterface>**
+- **`query(query: object): Reader`**  
+  Queries documents in the collection.
 
-  - Inserts a document into the collection.
-
-- **query(query: object): Reader**
-  - Queries documents in the collection.
+- **`aggregate(pipeline: object[]): Aggregation`**  
+  Performs aggregation operations.
 
 ### Reader
+- **`Limit(limit: number): Reader`**  
+  Sets a limit on the number of documents.
 
-- **exac(callback?: Function): Promise<SuccessInterface | ErrorInterface>**
+- **`Skip(skip: number): Reader`**  
+  Skips a number of documents.
 
-  - Executes the query and returns the results.
+- **`Sort(sort: object): Reader`**  
+  Sorts the query results.
 
-- **Limit(limit: number): Reader**
+- **`exec(): Promise<SuccessInterface | ErrorInterface>`**  
+  Executes the query.
 
-  - Sets a limit on the number of documents to return.
+---
 
-- **Skip(skip: number): Reader**
+## 🔒 Security
 
-  - Sets the number of documents to skip.
+AxioDB prioritizes data security with features like:
+- Optional encryption for collections.
+- Secure `.axiodb` file-based storage.
 
-- **Sort(sort: object): Reader**
-  - Sets the sort order for the query.
+For vulnerabilities, please refer to the [SECURITY.md](SECURITY.md) file.
 
-## Contributing
+---
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+## 🤝 Contributing
 
-## License
+As the sole developer working on this project while maintaining a full-time software engineering career, it can be challenging to dedicate as much time as I'd like to AxioDB's development. If you find this project valuable and believe it solves problems for you, your contributions would be greatly appreciated. 
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Whether it's code improvements, documentation updates, bug reports, or feature suggestions - every contribution helps make this project better for everyone. Please read the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to get started.
 
-## Acknowledgments
+Together, we can build something remarkable that serves the needs of the developer community!
 
-- Thanks to all contributors and supporters of this project.
+---
+
+## 📜 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙌 Acknowledgments
+
+Special thanks to all contributors and supporters of AxioDB. Your feedback and contributions make this project better!
