@@ -7,6 +7,7 @@ import {
 import FolderManager from "../../Storage/FolderManager";
 import FileManager from "../../Storage/FileManager";
 import Converter from "../../Helper/Converter.helper";
+import { Console } from "outers";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -86,7 +87,7 @@ export default class Aggregation {
     // Load all buffer raw data from the specified directory
     await this.LoadAllBufferRawData().then((response) => {
       if ("data" in response) {
-        console.log("Data Loaded Successfully for Aggregation");
+        Console.green("Data Loaded Successfully for Aggregation");
       }
     });
 
@@ -118,7 +119,7 @@ export default class Aggregation {
                   const regex = new RegExp(String(regexPattern), regexOptions);
                   return regex.test(itemValue);
                 } catch (error) {
-                  console.error(
+                  Console.red(
                     `Invalid regex: ${regexPattern} with options: ${regexOptions}`,
                     error,
                   );
