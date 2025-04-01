@@ -79,7 +79,7 @@ export default class Reader {
       const responseFromCache = await InMemoryCache.getCache(
         this.Converter.ToString(this.baseQuery),
       );
-      if (responseFromCache === true) {
+      if (responseFromCache !== false) {
         SearchedData = responseFromCache; // if the data is in cache then use it instead of searching
         // Check if any sort is passed or not
         if (Object.keys(this.sort).length === 0) {
