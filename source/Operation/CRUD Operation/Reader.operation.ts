@@ -11,7 +11,7 @@ import responseHelper from "../../Helper/response.helper";
 import Converter from "../../Helper/Converter.helper";
 import FileManager from "../../Storage/FileManager";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
-
+import InMemoryCache from "../../Caching/cache.operation";
 // Import All Utility
 import HashmapSearch from "../../utils/HashMapSearch.utils";
 import Sorting from "../../utils/SortData.utils";
@@ -74,25 +74,13 @@ export default class Reader {
    */
   public async exec(): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const ReadResponse = await this.LoadAllBufferRawData();
-      if ("data" in ReadResponse) {
-        // Check if any query is passed or not
-        if (Object.keys(this.baseQuery).length === 0) {
-          // Check if any sort is passed or not
-          if (Object.keys(this.sort).length === 0) {
-            return await this.ApplySkipAndLimit(ReadResponse.data); // Apply Skip and Limit & return the data
-          }
-          const Sorter: Sorting = new Sorting(ReadResponse.data, this.sort);
-          const SortedData: any[] = await Sorter.sort(); // Sort the data
-          return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
-        }
-
-        // Search the data from the AllData using HashMapSearch Searcher
-        const HashMapSearcher: HashmapSearch = new HashmapSearch(
-          ReadResponse.data,
-        );
-        const SearchedData: any[] = await HashMapSearcher.find(this.baseQuery);
-
+      let SearchedData: any[] = [];
+      // At first check if the data is in cache or not
+      const responseFromCache = await InMemoryCache.getCache(
+        this.Converter.ToString(this.baseQuery),
+      );
+      if (responseFromCache !== false) {
+        SearchedData = responseFromCache; // if the data is in cache then use it instead of searching
         // Check if any sort is passed or not
         if (Object.keys(this.sort).length === 0) {
           return await this.ApplySkipAndLimit(SearchedData); // if no sort is passed then return searched data
@@ -100,6 +88,39 @@ export default class Reader {
         const Sorter: Sorting = new Sorting(SearchedData, this.sort);
         const SortedData: any[] = await Sorter.sort(); // Sort the data
         return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
+      } else {
+        const ReadResponse = await this.LoadAllBufferRawData();
+        if ("data" in ReadResponse) {
+          // Check if any query is passed or not
+          if (Object.keys(this.baseQuery).length === 0) {
+            // Check if any sort is passed or not
+            if (Object.keys(this.sort).length === 0) {
+              return await this.ApplySkipAndLimit(ReadResponse.data); // Apply Skip and Limit & return the data
+            }
+            const Sorter: Sorting = new Sorting(ReadResponse.data, this.sort);
+            const SortedData: any[] = await Sorter.sort(); // Sort the data
+            return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
+          }
+
+          // Search the data from the AllData using HashMapSearch Searcher
+          const HashMapSearcher: HashmapSearch = new HashmapSearch(
+            ReadResponse.data,
+          );
+          SearchedData = await HashMapSearcher.find(this.baseQuery);
+
+          await InMemoryCache.setCache(
+            this.Converter.ToString(this.baseQuery),
+            SearchedData,
+          );
+
+          // Check if any sort is passed or not
+          if (Object.keys(this.sort).length === 0) {
+            return await this.ApplySkipAndLimit(SearchedData); // if no sort is passed then return searched data
+          }
+          const Sorter: Sorting = new Sorting(SearchedData, this.sort);
+          const SortedData: any[] = await Sorter.sort(); // Sort the data
+          return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
+        }
       }
       return this.ResponseHelper.Error("Failed to read data");
     } catch (error) {
