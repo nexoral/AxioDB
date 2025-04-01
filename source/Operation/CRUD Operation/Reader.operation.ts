@@ -75,8 +75,10 @@ export default class Reader {
   public async exec(): Promise<SuccessInterface | ErrorInterface> {
     try {
       let SearchedData: any[] = [];
-      // At first check if the data is in cache or not 
-      const responseFromCache = await InMemoryCache.getCache(this.Converter.ToString(this.baseQuery));
+      // At first check if the data is in cache or not
+      const responseFromCache = await InMemoryCache.getCache(
+        this.Converter.ToString(this.baseQuery),
+      );
       if (responseFromCache === true) {
         SearchedData = responseFromCache; // if the data is in cache then use it instead of searching
         // Check if any sort is passed or not
@@ -86,8 +88,7 @@ export default class Reader {
         const Sorter: Sorting = new Sorting(SearchedData, this.sort);
         const SortedData: any[] = await Sorter.sort(); // Sort the data
         return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
-      }
-      else {
+      } else {
         const ReadResponse = await this.LoadAllBufferRawData();
         if ("data" in ReadResponse) {
           // Check if any query is passed or not
@@ -102,10 +103,15 @@ export default class Reader {
           }
 
           // Search the data from the AllData using HashMapSearch Searcher
-          const HashMapSearcher: HashmapSearch = new HashmapSearch(ReadResponse.data);
+          const HashMapSearcher: HashmapSearch = new HashmapSearch(
+            ReadResponse.data,
+          );
           SearchedData = await HashMapSearcher.find(this.baseQuery);
-          
-          await InMemoryCache.setCache(this.Converter.ToString(this.baseQuery), SearchedData);
+
+          await InMemoryCache.setCache(
+            this.Converter.ToString(this.baseQuery),
+            SearchedData,
+          );
 
           // Check if any sort is passed or not
           if (Object.keys(this.sort).length === 0) {

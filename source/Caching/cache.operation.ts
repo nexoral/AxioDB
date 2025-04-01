@@ -51,9 +51,7 @@ class InMemoryCache {
           registeredAt: new Date(),
         };
         return true;
-      }
-        
-      else {
+      } else {
         // check if the cache is expired or not
         const now = new Date();
         const diff = Math.abs(now.getTime() - cacheItem.registeredAt.getTime());
@@ -65,31 +63,30 @@ class InMemoryCache {
             registeredAt: new Date(),
           };
           return true;
-        }
-        else {
+        } else {
           return true;
         }
       }
-    }
-    else {
+    } else {
       return false;
     }
   }
 
-  public async setTempSearchQuery(queryString: any) : Promise<boolean> {
+  public async setTempSearchQuery(queryString: any): Promise<boolean> {
     // check if the query string is already in the temp search query for the threshold times
-    const existingQuery = this.tempSearchQuery.filter((item) => item.queryString === queryString);
-      if(existingQuery?.length >= this.threshold) {
-        return true;
-      }
-      else {
-        // if the query string is not in the temp search query, add it to the temp search query
-        this.tempSearchQuery.push({
-          queryString: queryString,
-          registeredAt: new Date(),
-        });
-        return false;
-      }
+    const existingQuery = this.tempSearchQuery.filter(
+      (item) => item.queryString === queryString,
+    );
+    if (existingQuery?.length >= this.threshold) {
+      return true;
+    } else {
+      // if the query string is not in the temp search query, add it to the temp search query
+      this.tempSearchQuery.push({
+        queryString: queryString,
+        registeredAt: new Date(),
+      });
+      return false;
+    }
   }
 
   /**
@@ -108,14 +105,14 @@ class InMemoryCache {
   /**
    * Sets up an automatic cache reset mechanism.
    * This method creates an interval timer that periodically checks and removes expired items from the cache.
-   * 
+   *
    * The method performs the following operations:
    * 1. Checks if the cache is empty, and returns early if it is.
    * 2. Iterates through all cache items and removes those that have expired based on the `autoResetCacheInterval`.
    * 3. Filters out expired temporary search queries based on the same interval.
-   * 
+   *
    * The interval for this automatic reset is determined by the `ttl` (time-to-live) property.
-   * 
+   *
    * @private
    * @returns {Promise<void>} A promise that resolves when the interval is set up.
    */
@@ -132,7 +129,9 @@ class InMemoryCache {
         for (const key in this.cacheObject) {
           const cacheItem = this.cacheObject[key];
           if (cacheItem) {
-            const diff = Math.abs(now.getTime() - cacheItem.registeredAt.getTime());
+            const diff = Math.abs(
+              now.getTime() - cacheItem.registeredAt.getTime(),
+            );
             if (diff > this.autoResetCacheInterval * 1000) {
               delete this.cacheObject[key];
             }
