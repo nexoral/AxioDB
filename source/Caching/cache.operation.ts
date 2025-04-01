@@ -22,7 +22,6 @@ class InMemoryCache {
     this.cacheObject = {};
     this.tempSearchQuery = [];
     // this.autoResetCacheInterval is already initialized to 86400 (24 hours)
-    this.threshold = 10; // 10 times
     this.autoResetCache(); // Start the auto-reset cache process
   }
 
