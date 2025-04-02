@@ -245,8 +245,7 @@ AxioDB prioritizes data security with features like:
 
 - Optional encryption for collections.
 - Secure `.axiodb` file-based storage.
-- InMemoryCache for faster and secure query handling.
-
+- InMemoryCache for faster and more secure query handling.
 For vulnerabilities, please refer to the [SECURITY.md](SECURITY.md) file.
 
 ---
