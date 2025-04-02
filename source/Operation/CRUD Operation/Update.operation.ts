@@ -16,6 +16,7 @@ import { Console } from "outers";
 // Validator
 import SchemaValidator from "../../Models/validator.models";
 import Insertion from "./Create.operation";
+import InMemoryCache from "../../Caching/cache.operation";
 
 export default class UpdateOperation {
   // Properties
@@ -149,6 +150,7 @@ export default class UpdateOperation {
             documentId,
           );
           if ("data" in InsertResponse) {
+            await InMemoryCache.clearAllCache(); // clear the cache
             return this.ResponseHelper.Success({
               message: "Data updated successfully",
               newData: newData,
@@ -270,6 +272,7 @@ export default class UpdateOperation {
             return this.ResponseHelper.Error("Failed to delete file");
           }
         }
+        await InMemoryCache.clearAllCache(); // clear the cache
         return this.ResponseHelper.Success({
           message: "Data updated successfully",
           newData: newData,
