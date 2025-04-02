@@ -12,7 +12,7 @@ class InMemoryCache {
   private cacheObject: { [key: string]: { value: any; registeredAt: Date } };
   private tempSearchQuery: Array<{ queryString: any; registeredAt: Date }> = [];
   private readonly autoResetCacheInterval: number = 86400; // 24 hours
-  private readonly threshold: number = 10; // 10 times
+  private readonly threshold: number = 3; // 3 times
   /**
    * Creates a new instance of the cache operation class
    * @param TTL - Time to live in seconds for cache entries. Defaults to 86400 seconds (24 hours)
@@ -99,6 +99,19 @@ class InMemoryCache {
       return false;
     }
     return cacheItem.value;
+  }
+
+  /**
+   * Clears all cached data stored in memory.
+   * Resets the cache object and temporary search query array to their initial empty states.
+   *
+   * @returns A Promise that resolves to true when the cache has been successfully cleared.
+   */
+  public async clearAllCache(): Promise<boolean> {
+    // clear all cache
+    this.cacheObject = {};
+    this.tempSearchQuery = [];
+    return true;
   }
 
   /**
