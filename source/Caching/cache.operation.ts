@@ -104,7 +104,7 @@ class InMemoryCache {
   /**
    * Clears all cached data stored in memory.
    * Resets the cache object and temporary search query array to their initial empty states.
-   * 
+   *
    * @returns A Promise that resolves to true when the cache has been successfully cleared.
    */
   public async clearAllCache(): Promise<boolean> {
