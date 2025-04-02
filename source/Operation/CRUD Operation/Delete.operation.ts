@@ -13,7 +13,7 @@ import FolderManager from "../../Storage/FolderManager";
 // Import All Utility
 import HashmapSearch from "../../utils/HashMapSearch.utils";
 import Sorting from "../../utils/SortData.utils";
-
+import InMemoryCache from "../../Caching/cache.operation";
 /**
  * The DeleteOperation class is used to delete a document from a collection.
  * This class provides methods to delete a single document that matches the base query.
@@ -98,6 +98,7 @@ export default class DeleteOperation {
       // Delete the file
       const deleteResponse = await this.deleteFile(fileName);
       if ("data" in deleteResponse) {
+        await InMemoryCache.clearAllCache(); // clear the cache
         return this.ResponseHelper.Success({
           message: "Data deleted successfully",
           deleteData: selectedFirstData?.data,
@@ -147,6 +148,8 @@ export default class DeleteOperation {
           return this.ResponseHelper.Error("Failed to delete data");
         }
       }
+
+      await InMemoryCache.clearAllCache(); // clear the cache
 
       return this.ResponseHelper.Success({
         message: "Data deleted successfully",
