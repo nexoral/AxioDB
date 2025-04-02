@@ -1,7 +1,7 @@
 {
   "name": "axiodb",
-  "version": "1.5.8",
-  "description": "A fast, lightweight, and scalable open-source DBMS for modern apps. Supports JSON-based data storage, simple APIs, and secure data management. Ideal for projects needing efficient and flexible database solutions.",
+  "version": "1.5.9",
+  "description": "A blazing-fast, lightweight, and scalable nodejs package based DBMS for modern applications. Supports schemas, encryption, and advanced query capabilities.",
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
   "scripts": {
@@ -13,13 +13,19 @@
   "keywords": [
     "database",
     "dbms",
-    "db",
-    "json",
     "json database",
     "json db",
-    "json storage",
-    "json data storage",
-    "json data management"
+    "file-based database",
+    "lightweight database",
+    "secure database",
+    "schema validation",
+    "data encryption",
+    "aggregation pipelines",
+    "nodejs database",
+    "high-performance database",
+    "in-memory cache",
+    "query optimization",
+    "modern database solution"
   ],
   "author": "Ankan Saha",
   "license": "MIT",

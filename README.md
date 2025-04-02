@@ -1,33 +1,30 @@
 # AxioDB
 
-AxioDB is a fast, lightweight, and scalable open-source DBMS designed for modern applications. It supports `.axiodb` file-based data storage, simple APIs, and secure data management, making it ideal for projects requiring efficient and flexible database solutions.
-
-AxioDB is specifically designed for small to medium-sized websites, blogs, and personal projects. While it provides excellent performance for these use cases, please note that it is currently optimized for smaller data loads rather than massive enterprise-level datasets. We are continuously working to improve performance and scalability in future updates.
+AxioDB is a blazing-fast, lightweight, and scalable open-source Database Management System (DBMS) tailored for modern applications. It supports `.axiodb` file-based data storage, offers intuitive APIs, and ensures secure data management. AxioDB is the ultimate solution for developers seeking efficient, flexible, and production-ready database solutions.
 
 ---
 
 ## 🚀 Features
 
-- **Schema Support:** Define schemas to structure your data for consistency and validation.
-- **Chainable Query Methods:** Use methods like `.query()`, `.Sort()`, `.Limit()`, and `.Skip()` for powerful query filtering.
-- **Node.js Streams for Efficiency:** Handle large datasets seamlessly with optimized read/write operations.
-- **Encryption Support:** Secure sensitive data with optional encryption for collections.
-- **Aggregation Pipelines:** Perform advanced data operations like `$match`, `$sort`, `$group`, and more.
-- **Simple Setup:** No additional database server required—just install and start using.
+- **Advanced Schema Validation:** Define robust schemas to ensure data consistency and integrity.
+- **Chainable Query Methods:** Leverage powerful methods like `.query()`, `.Sort()`, `.Limit()`, and `.Skip()` for seamless data filtering.
+- **Optimized Node.js Streams:** Handle massive datasets effortlessly with high-performance read/write operations.
+- **Encryption-First Design:** Protect sensitive data with optional AES-256 encryption for collections.
+- **Aggregation Pipelines:** Perform advanced data operations like `$match`, `$sort`, `$group`, and more with MongoDB-like syntax.
+- **InMemoryCache Mechanism:** Accelerate query execution by caching frequently accessed data, reducing query response time significantly.
+- **Plug-and-Play Setup:** No additional database server required—install and start building instantly.
 
 ---
 
 ## 🔮 Future Plans
 
-We're actively working to enhance AxioDB with several exciting features and improvements:
+We're committed to continuously enhancing AxioDB with cutting-edge features:
 
-- **In-Memory Cache Strategy:** Implementing an efficient caching mechanism to significantly speed up query operations.
-- **Performance Optimizations:** Continuous improvements to make data handling faster and more efficient.
-- **Extended Query Capabilities:** Additional operators and more flexible querying options.
-- **Improved Documentation:** More examples, tutorials, and API references.
-- **Better TypeScript Support:** Enhanced type definitions for better developer experience.
-
-We invite all developer enthusiasts to contribute to making AxioDB more reliable and powerful. Your insights and contributions can help shape the future of this project!
+- **Inbuilt Web-Based GUI Dashboard:** Provide a user-friendly, web-based interface similar to PhpMyAdmin for managing databases, collections, and data visually.
+- **Data Export and Import Mechanisms:** Enable seamless export and import of data in various formats like JSON, CSV, and more.
+- **Docker Image with ODM Integration:** Build a Docker image for this npm package-based DBMS, allowing integration with other programming languages via Object Document Mapping (ODM). Once completed, simply run the Docker image and connect with the ODM.
+- **Advanced Indexing:** Implement multi-level indexing for lightning-fast queries.
+- **Comprehensive Documentation:** Expand tutorials, examples, and API references for developers.
 
 ---
 
@@ -248,6 +245,7 @@ AxioDB prioritizes data security with features like:
 
 - Optional encryption for collections.
 - Secure `.axiodb` file-based storage.
+- InMemoryCache for faster and secure query handling.
 
 For vulnerabilities, please refer to the [SECURITY.md](SECURITY.md) file.
 
@@ -255,11 +253,7 @@ For vulnerabilities, please refer to the [SECURITY.md](SECURITY.md) file.
 
 ## 🤝 Contributing
 
-As the sole developer working on this project while maintaining a full-time software engineering career, it can be challenging to dedicate as much time as I'd like to AxioDB's development. If you find this project valuable and believe it solves problems for you, your contributions would be greatly appreciated.
-
-Whether it's code improvements, documentation updates, bug reports, or feature suggestions - every contribution helps make this project better for everyone. Please read the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to get started.
-
-Together, we can build something remarkable that serves the needs of the developer community!
+We welcome contributions from the community! Whether it's code improvements, documentation updates, bug reports, or feature suggestions, your input helps make AxioDB better. Please read the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to get started.
 
 ---
 
