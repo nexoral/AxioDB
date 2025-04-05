@@ -53,7 +53,7 @@ jobs:
           name: Change the Package name in Package.json
           command: |
             apt-get update && apt-get install -y sed
-            sed -i "2s/\"outers\"/\"@${GITHUB_USER_NAME}\/axiodb\"/" package.json
+            sed -i "2s/\"axiodb\"/\"@${GITHUB_USER_NAME}\/axiodb\"/" package.json
       - run:
           name: Publish to Github Package Registry
           command: npm publish --registry=https://npm.pkg.github.com --scope=@${GITHUB_USER_NAME} --access public
