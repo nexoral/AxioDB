@@ -33,6 +33,34 @@ jobs:
           name: Publish to NPM Registry
           command: npm publish --access public
 
+  Publish_To_Github:
+    docker:
+      - image: node:latest
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: npm install
+      - run:
+          name: Build Package
+          command: npm run build
+      - run:
+          name: Test Package
+          command: npm run test
+      - run:
+          name: Set Github Auth Token
+          command: |
+            echo "//npm.pkg.github.com/:_authToken=${GITHUB_AUTH_TOKEN}" >> ~/.npmrc
+      - run:
+          name: Change the Package name in Package.json
+          command: |
+            apt-get update && apt-get install -y sed
+            sed -i "2s/\"outers\"/\"@${GITHUB_USER_NAME}\/axiodb\"/" package.json
+      - run:
+          name: Publish to Github Package Registry
+          command: npm publish --registry=https://npm.pkg.github.com --scope=@${GITHUB_USER_NAME} --access public
+
 workflows:
   version: 2
   Pipeline:
@@ -42,6 +70,12 @@ workflows:
             branches:
               only: main
       - Publish_To_NPM:
+          requires:
+            - Test
+          filters:
+            branches:
+              only: main
+      - Publish_To_Github:
           requires:
             - Test
           filters:
