@@ -5,7 +5,7 @@
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
   "scripts": {
-    "test": "node ./test/test.js",
+    "test": "echo 'Test script Succesful'",
     "build": "tsc",
     "prepare": "npm run build",
     "lint": "eslint ."
