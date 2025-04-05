@@ -2,6 +2,24 @@
 
 AxioDB is a blazing-fast, lightweight, and scalable open-source Database Management System (DBMS) tailored for modern applications. It supports `.axiodb` file-based data storage, offers intuitive APIs, and ensures secure data management. AxioDB is the ultimate solution for developers seeking efficient, flexible, and production-ready database solutions.
 
+![AxioDB Logo](https://raw.githubusercontent.com/AnkanSaha/AxioDB/main/assets/AxioDB-logo.png)
+
+## ⚠️ Current Limitations
+
+While AxioDB offers many powerful features, there are some limitations to consider:
+
+- **No Relation Mapping:** Unlike MongoDB or other NoSQL databases, AxioDB currently doesn't support document relations or referencing between collections.
+
+- **Not Optimized for Heavy Workloads:** The database may not perform optimally with rapid data input/output scenarios or extremely large datasets (10M+ documents).
+
+- **Single-Thread Operations:** Operations are performed on the main thread which can impact application performance during complex queries.
+
+- **Limited Query Complexity:** Some advanced query patterns found in mature databases are not yet implemented.
+
+- **No Built-in Replication:** Currently lacks distributed data replication capabilities for high availability setups.
+
+We're actively working to address these limitations in future releases.
+
 ---
 
 ## 🚀 Features
@@ -24,6 +42,10 @@ We're committed to continuously enhancing AxioDB with cutting-edge features:
 - **Data Export and Import Mechanisms:** Enable seamless export and import of data in various formats like JSON, CSV, and more.
 - **Docker Image with ODM Integration:** Build a Docker image for this npm package-based DBMS, allowing integration with other programming languages via Object Document Mapping (ODM). Once completed, simply run the Docker image and connect with the ODM.
 - **Advanced Indexing:** Implement multi-level indexing for lightning-fast queries.
+- **Replication and Sharding:** Introduce support for distributed data replication and sharding for high availability and scalability.
+- **Improved Query Optimization:** Enhance query performance with advanced optimization techniques.
+- **Relational Mapping:** Introduce support for document relations and referencing between collections.
+- **Data Backup and Restore:** Implement robust backup and restore mechanisms for data safety.
 - **Comprehensive Documentation:** Expand tutorials, examples, and API references for developers.
 
 ---
