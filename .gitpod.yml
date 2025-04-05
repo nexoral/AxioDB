@@ -8,11 +8,7 @@
 # VS Code Conf Codes
 vscode:
   extensions:
-    - ms-azuretools.vscode-docker
-    - ms-vscode.azure-account
-    - dbaeumer.vscode-eslint
     - streetsidesoftware.code-spell-checker
-    - TabNine.tabnine-vscode
     - eamodio.gitlens
     - PKief.material-icon-theme
     - mongodb.mongodb-vscode
@@ -24,36 +20,10 @@ vscode:
     - adpyke.codesnap
     - foxundermoon.shell-format
     - rangav.vscode-thunder-client
+    - DeepSourceCorp.deepsource-vscode
 
 # Run Some Commands
 tasks:
   - name: First Time Setup
   - command: bash ./.devcontainer/postCreateCommand.sh
-
-# Expose PORTS
-ports:
-  - name: MongoDB
-    description: MongoDB Port for MongoDB
-    port: 4442
-    visibility: public
-    onOpen: ignore
-  - name: Redis
-    description: Redis Port for Redis
-    port: 6379
-    visibility: public
-  - name: PostgreSQL
-    description: PostgreSQL Port for Redis
-    port: 5432
-    visibility: public
-  - name: MySQL
-    description: MySQL Port for Redis
-    port: 3306
-    visibility: public
-  - name: phpMyAdmin
-    description: phpMyAdmin Port for Redis
-    port: 8080
-    visibility: public
-  - name: MariaDB
-    description: MariaDB Port for Redis
-    port: 3307
-    visibility: public
+    init: true
