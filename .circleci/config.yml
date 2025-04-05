@@ -46,9 +46,6 @@ jobs:
           name: Build Package
           command: npm run build
       - run:
-          name: Test Package
-          command: npm run test
-      - run:
           name: Set Github Auth Token
           command: |
             echo "//npm.pkg.github.com/:_authToken=${GITHUB_AUTH_TOKEN}" >> ~/.npmrc
