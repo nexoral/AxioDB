@@ -43,6 +43,7 @@ export default class Insertion {
         ExistingdocumentId === undefined
           ? await this.generateUniqueDocumentId()
           : ExistingdocumentId;
+
       const filePath = `${this.path}/.${documentId}${General.DBMS_File_EXT}`;
 
       // Check if Directory Locked or not
@@ -115,7 +116,7 @@ export default class Insertion {
    * Generates a unique document ID.
    * @returns {Promise<string>} A promise that resolves with a unique document ID.
    */
-  private async generateUniqueDocumentId(): Promise<string> {
+  public async generateUniqueDocumentId(): Promise<string> {
     let isExist = true;
     let ID;
     do {
