@@ -84,13 +84,17 @@ export default class Collection {
       return;
     }
 
+    // Add the documentId to the data
+    const documentId: string = await this.Insertion.generateUniqueDocumentId();
+    data.documentId = documentId;
+
     // Encrypt the data if crypto is enabled
     if (this.cryptoInstance && this.isEncrypted) {
       data = await this.cryptoInstance.encrypt(this.Converter.ToString(data));
     }
 
     // Save the data
-    return await this.Insertion.Save(data);
+    return await this.Insertion.Save(data, documentId);
   }
 
   /**
