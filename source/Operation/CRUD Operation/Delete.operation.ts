@@ -48,6 +48,9 @@ export default class DeleteOperation {
     this.ResponseHelper = new ResponseHelper();
     this.Converter = new Converter();
     if (this.isEncrypted === true) {
+      if (!this.encryptionKey) {
+        throw new Error("Encryption key must be provided when isEncrypted is true.");
+      }
       this.cryptoInstance = new CryptoHelper(this.encryptionKey);
     }
     this.allDataWithFileName = []; // To store all data with file name
