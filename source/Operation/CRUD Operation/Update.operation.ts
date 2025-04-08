@@ -55,7 +55,7 @@ export default class UpdateOperation {
     this.ResponseHelper = new ResponseHelper();
     this.Converter = new Converter();
     if (this.isEncrypted === true) {
-      this.cryptoInstance = new CryptoHelper(this.encryptionKey); 
+      this.cryptoInstance = new CryptoHelper(this.encryptionKey);
     }
     this.allDataWithFileName = []; // To store all data with file name
   }
@@ -106,14 +106,15 @@ export default class UpdateOperation {
       }
 
       // if documentId is provided in the baseQuery then read the file with the documentId
-        let ReadResponse; // Read Response Holder
-        if (this.baseQuery?.documentId !== undefined) {
-          const FilePath = [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
-          ReadResponse = await this.LoadAllBufferRawData(FilePath);
-        }
-        else {
-          ReadResponse = await this.LoadAllBufferRawData();
-        }
+      let ReadResponse; // Read Response Holder
+      if (this.baseQuery?.documentId !== undefined) {
+        const FilePath = [
+          `.${this.baseQuery.documentId}${General.DBMS_File_EXT}`,
+        ];
+        ReadResponse = await this.LoadAllBufferRawData(FilePath);
+      } else {
+        ReadResponse = await this.LoadAllBufferRawData();
+      }
 
       if ("data" in ReadResponse) {
         const SearchedData = await new HashmapSearch(ReadResponse.data).find(
@@ -321,9 +322,9 @@ export default class UpdateOperation {
    *
    * @throws {Error} Throws an error if any operation fails.
    */
-  private async LoadAllBufferRawData(documentIdDirectFile?: string[] | undefined): Promise<
-    SuccessInterface | ErrorInterface
-  > {
+  private async LoadAllBufferRawData(
+    documentIdDirectFile?: string[] | undefined,
+  ): Promise<SuccessInterface | ErrorInterface> {
     try {
       // Check if Directory Locked or not
       const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
@@ -336,7 +337,10 @@ export default class UpdateOperation {
           );
           if ("data" in ReadResponse) {
             // Store all files in DataFilesList
-            const DataFilesList: string[] = documentIdDirectFile !== undefined ? documentIdDirectFile : ReadResponse.data; 
+            const DataFilesList: string[] =
+              documentIdDirectFile !== undefined
+                ? documentIdDirectFile
+                : ReadResponse.data;
             // Read all files from the directory
             for (let i = 0; i < DataFilesList.length; i++) {
               const ReadFileResponse: SuccessInterface | ErrorInterface =
@@ -345,7 +349,10 @@ export default class UpdateOperation {
                 );
               // Check if the file is read successfully or not
               if ("data" in ReadFileResponse) {
-                if (this.isEncrypted === true && this.cryptoInstance !== undefined) {
+                if (
+                  this.isEncrypted === true &&
+                  this.cryptoInstance !== undefined
+                ) {
                   // Decrypt the data if crypto is enabled
                   const ContentResponse = await this.cryptoInstance.decrypt(
                     this.Converter.ToObject(ReadFileResponse.data),
@@ -378,20 +385,25 @@ export default class UpdateOperation {
           if ("data" in unlockResponse) {
             // Read List the data from the file
             const ReadResponse: SuccessInterface | ErrorInterface =
-            await new FolderManager().ListDirectory(this.path);
+              await new FolderManager().ListDirectory(this.path);
             if ("data" in ReadResponse) {
               // Store all files in DataFilesList
-              const DataFilesList: string[] = documentIdDirectFile !== undefined ? documentIdDirectFile : ReadResponse.data;
+              const DataFilesList: string[] =
+                documentIdDirectFile !== undefined
+                  ? documentIdDirectFile
+                  : ReadResponse.data;
               // Read all files from the directory
               for (let i = 0; i < DataFilesList.length; i++) {
                 const ReadFileResponse: SuccessInterface | ErrorInterface =
-                await new FileManager().ReadFile(
-                  `${this.path}/${DataFilesList[i]}`,
-                );
+                  await new FileManager().ReadFile(
+                    `${this.path}/${DataFilesList[i]}`,
+                  );
                 // Check if the file is read successfully or not
                 if ("data" in ReadFileResponse) {
-                  
-                  if (this.isEncrypted === true && this.cryptoInstance !== undefined) {
+                  if (
+                    this.isEncrypted === true &&
+                    this.cryptoInstance !== undefined
+                  ) {
                     // Decrypt the data if crypto is enabled
                     const ContentResponse = await this.cryptoInstance.decrypt(
                       this.Converter.ToObject(ReadFileResponse.data),
