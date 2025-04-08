@@ -181,6 +181,7 @@ export default class Collection {
       this.schema,
       this.isEncrypted,
       this.encryptionKey,
+
     );
   }
 }

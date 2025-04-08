@@ -53,8 +53,8 @@ export default class UpdateOperation {
     this.Insertion = new Insertion(this.collectionName, this.path);
     this.ResponseHelper = new ResponseHelper();
     this.Converter = new Converter();
-    if (this.isEncrypted && this.encryptionKey) {
-      this.cryptoInstance = new CryptoHelper(this.encryptionKey);
+    if (this.isEncrypted === true) {
+      this.cryptoInstance = new CryptoHelper(this.encryptionKey); 
     }
     this.allDataWithFileName = []; // To store all data with file name
   }
@@ -335,7 +335,7 @@ export default class UpdateOperation {
                 );
               // Check if the file is read successfully or not
               if ("data" in ReadFileResponse) {
-                if (this.isEncrypted === true && this.cryptoInstance) {
+                if (this.isEncrypted === true && this.cryptoInstance !== undefined) {
                   // Decrypt the data if crypto is enabled
                   const ContentResponse = await this.cryptoInstance.decrypt(
                     this.Converter.ToObject(ReadFileResponse.data),
@@ -368,27 +368,28 @@ export default class UpdateOperation {
           if ("data" in unlockResponse) {
             // Read List the data from the file
             const ReadResponse: SuccessInterface | ErrorInterface =
-              await new FolderManager().ListDirectory(this.path);
+            await new FolderManager().ListDirectory(this.path);
             if ("data" in ReadResponse) {
               // Store all files in DataFilesList
               const DataFilesList: string[] = ReadResponse.data;
               // Read all files from the directory
               for (let i = 0; i < DataFilesList.length; i++) {
                 const ReadFileResponse: SuccessInterface | ErrorInterface =
-                  await new FileManager().ReadFile(
-                    `${this.path}/${DataFilesList[i]}`,
-                  );
+                await new FileManager().ReadFile(
+                  `${this.path}/${DataFilesList[i]}`,
+                );
                 // Check if the file is read successfully or not
                 if ("data" in ReadFileResponse) {
-                  if (this.isEncrypted === true && this.cryptoInstance) {
+                  
+                  if (this.isEncrypted === true && this.cryptoInstance !== undefined) {
                     // Decrypt the data if crypto is enabled
-                    const ContaentResponse = await this.cryptoInstance.decrypt(
+                    const ContentResponse = await this.cryptoInstance.decrypt(
                       this.Converter.ToObject(ReadFileResponse.data),
                     );
                     // Store all Decrypted Data in AllData
                     this.allDataWithFileName.push({
                       fileName: DataFilesList[i],
-                      data: this.Converter.ToObject(ContaentResponse),
+                      data: this.Converter.ToObject(ContentResponse),
                     });
                   } else {
                     this.allDataWithFileName.push({
@@ -507,7 +508,7 @@ export default class UpdateOperation {
     }
 
     // Encrypt the data if crypto is enabled
-    if (this.cryptoInstance && this.isEncrypted) {
+    if (this.isEncrypted && this.cryptoInstance !== undefined) {
       data = await this.cryptoInstance.encrypt(this.Converter.ToString(data));
     }
 

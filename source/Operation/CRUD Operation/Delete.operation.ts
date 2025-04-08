@@ -46,7 +46,7 @@ export default class DeleteOperation {
     this.sort = {};
     this.ResponseHelper = new ResponseHelper();
     this.Converter = new Converter();
-    if (this.isEncrypted && this.encryptionKey) {
+    if (this.isEncrypted === true) {
       this.cryptoInstance = new CryptoHelper(this.encryptionKey);
     }
     this.allDataWithFileName = []; // To store all data with file name
