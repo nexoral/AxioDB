@@ -1,4 +1,4 @@
-# AxioDB
+# AxioDB: A NoSQL Based Database Management System
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
 [![CodeQL](https://github.com/AnkanSaha/AxioDB/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/AnkanSaha/AxioDB/actions/workflows/github-code-scanning/codeql)
@@ -24,7 +24,7 @@ AxioDB is a blazing-fast, lightweight, and scalable open-source Database Managem
 
 While AxioDB offers many powerful features, there are some limitations to consider:
 
-- **No Relation Mapping:** Unlike MongoDB or other NoSQL databases, AxioDB currently doesn't support document relations or referencing between collections.
+- **No Built-in Relation Tools:** Unlike ODMs such as Mongoose, AxioDB doesn't provide built-in tools for managing document relations. While MongoDB-like NoSQL databases naturally don't enforce relations at the database level, AxioDB currently requires manual handling of references between collections.
 
 - **Not Optimized for Heavy Workloads:** The database may not perform optimally with rapid data input/output scenarios or extremely large datasets (10M+ documents).
 
@@ -38,7 +38,7 @@ We're actively working to address these limitations in future releases.
 
 ---
 
-## 🚀 Features
+## 🚀 Current Featured Features
 
 - **Advanced Schema Validation:** Define robust schemas to ensure data consistency and integrity.
 - **Chainable Query Methods:** Leverage powerful methods like `.query()`, `.Sort()`, `.Limit()`, and `.Skip()` for seamless data filtering.
@@ -47,6 +47,8 @@ We're actively working to address these limitations in future releases.
 - **Aggregation Pipelines:** Perform advanced data operations like `$match`, `$sort`, `$group`, and more with MongoDB-like syntax.
 - **InMemoryCache Mechanism:** Accelerate query execution by caching frequently accessed data, reducing query response time significantly.
 - **Plug-and-Play Setup:** No additional database server required—install and start building instantly.
+- **Tree-like Structure:** Store data in a tree-like structure for efficient data retrieval and management.
+- **Auto Indexing on documentId:** Automatically create index on documentId for faster queries.
 
 ---
 
@@ -60,7 +62,6 @@ We're committed to continuously enhancing AxioDB with cutting-edge features:
 - **Advanced Indexing:** Implement multi-level indexing for lightning-fast queries.
 - **Replication and Sharding:** Introduce support for distributed data replication and sharding for high availability and scalability.
 - **Improved Query Optimization:** Enhance query performance with advanced optimization techniques.
-- **Relational Mapping:** Introduce support for document relations and referencing between collections.
 - **Data Backup and Restore:** Implement robust backup and restore mechanisms for data safety.
 - **Comprehensive Documentation:** Expand tutorials, examples, and API references for developers.
 
