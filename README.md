@@ -49,6 +49,8 @@ We're actively working to address these limitations in future releases.
 - **Plug-and-Play Setup:** No additional database server required—install and start building instantly.
 - **Tree-like Structure:** Store data in a tree-like structure for efficient data retrieval and management.
 - **Auto Indexing on documentId:** Automatically create index on documentId for faster queries.
+
+
 ---
 
 ## 🔮 Future Plans
