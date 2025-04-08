@@ -15,6 +15,7 @@ import InMemoryCache from "../../Caching/cache.operation";
 // Import All Utility
 import HashmapSearch from "../../utils/HashMapSearch.utils";
 import Sorting from "../../utils/SortData.utils";
+import { General } from "../../config/Keys/Keys";
 
 /**
  * Class representing a read operation.
@@ -89,7 +90,14 @@ export default class Reader {
         const SortedData: any[] = await Sorter.sort(); // Sort the data
         return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
       } else {
-        const ReadResponse = await this.LoadAllBufferRawData();
+        let ReadResponse; // Read Response Holder
+        if (this.baseQuery?.documentId !== undefined) {
+          const FilePath = [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
+          ReadResponse = await this.LoadAllBufferRawData(FilePath);
+        }
+        else {
+          ReadResponse = await this.LoadAllBufferRawData();
+        }
         if ("data" in ReadResponse) {
           // Check if any query is passed or not
           if (Object.keys(this.baseQuery).length === 0) {
@@ -205,7 +213,7 @@ export default class Reader {
    *
    * @throws {Error} Throws an error if any operation fails.
    */
-  private async LoadAllBufferRawData(): Promise<
+  private async LoadAllBufferRawData(documentIdDirectFile?: string[] | undefined): Promise<
     SuccessInterface | ErrorInterface
   > {
     try {
@@ -220,7 +228,7 @@ export default class Reader {
           );
           if ("data" in ReadResponse) {
             // Store all files in DataFilesList
-            const DataFilesList: string[] = ReadResponse.data;
+            const DataFilesList: string[] = documentIdDirectFile !== undefined ? documentIdDirectFile : ReadResponse.data; 
             // Read all files from the directory
             for (let i = 0; i < DataFilesList.length; i++) {
               const ReadFileResponse: SuccessInterface | ErrorInterface =
@@ -261,7 +269,8 @@ export default class Reader {
               await new FolderManager().ListDirectory(this.path);
             if ("data" in ReadResponse) {
               // Store all files in DataFilesList
-              const DataFilesList: string[] = ReadResponse.data;
+              const DataFilesList: string[] = documentIdDirectFile !== undefined ? documentIdDirectFile : ReadResponse.data; 
+
               // Read all files from the directory
               for (let i = 0; i < DataFilesList.length; i++) {
                 const ReadFileResponse: SuccessInterface | ErrorInterface =

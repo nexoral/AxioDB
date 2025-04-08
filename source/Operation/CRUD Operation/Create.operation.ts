@@ -68,7 +68,7 @@ export default class Insertion {
               if (WriteResponse.status) {
                 return new responseHelper().Success({
                   Message: "Data Inserted Successfully",
-                  DocumentID: documentId,
+                  documentId: documentId,
                 });
               }
             }

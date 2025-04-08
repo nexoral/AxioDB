@@ -17,6 +17,7 @@ import { Console } from "outers";
 import SchemaValidator from "../../Models/validator.models";
 import Insertion from "./Create.operation";
 import InMemoryCache from "../../Caching/cache.operation";
+import { General } from "../../config/Keys/Keys";
 
 export default class UpdateOperation {
   // Properties
@@ -104,7 +105,16 @@ export default class UpdateOperation {
         return this.ResponseHelper.Error(validator.details);
       }
 
-      const ReadResponse = await this.LoadAllBufferRawData();
+      // if documentId is provided in the baseQuery then read the file with the documentId
+        let ReadResponse; // Read Response Holder
+        if (this.baseQuery?.documentId !== undefined) {
+          const FilePath = [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
+          ReadResponse = await this.LoadAllBufferRawData(FilePath);
+        }
+        else {
+          ReadResponse = await this.LoadAllBufferRawData();
+        }
+
       if ("data" in ReadResponse) {
         const SearchedData = await new HashmapSearch(ReadResponse.data).find(
           this.baseQuery,
@@ -311,7 +321,7 @@ export default class UpdateOperation {
    *
    * @throws {Error} Throws an error if any operation fails.
    */
-  private async LoadAllBufferRawData(): Promise<
+  private async LoadAllBufferRawData(documentIdDirectFile?: string[] | undefined): Promise<
     SuccessInterface | ErrorInterface
   > {
     try {
@@ -326,7 +336,7 @@ export default class UpdateOperation {
           );
           if ("data" in ReadResponse) {
             // Store all files in DataFilesList
-            const DataFilesList: string[] = ReadResponse.data;
+            const DataFilesList: string[] = documentIdDirectFile !== undefined ? documentIdDirectFile : ReadResponse.data; 
             // Read all files from the directory
             for (let i = 0; i < DataFilesList.length; i++) {
               const ReadFileResponse: SuccessInterface | ErrorInterface =
@@ -371,7 +381,7 @@ export default class UpdateOperation {
             await new FolderManager().ListDirectory(this.path);
             if ("data" in ReadResponse) {
               // Store all files in DataFilesList
-              const DataFilesList: string[] = ReadResponse.data;
+              const DataFilesList: string[] = documentIdDirectFile !== undefined ? documentIdDirectFile : ReadResponse.data;
               // Read all files from the directory
               for (let i = 0; i < DataFilesList.length; i++) {
                 const ReadFileResponse: SuccessInterface | ErrorInterface =

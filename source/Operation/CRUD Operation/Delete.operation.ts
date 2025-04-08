@@ -14,6 +14,7 @@ import FolderManager from "../../Storage/FolderManager";
 import HashmapSearch from "../../utils/HashMapSearch.utils";
 import Sorting from "../../utils/SortData.utils";
 import InMemoryCache from "../../Caching/cache.operation";
+import { General } from "../../config/Keys/Keys";
 /**
  * The DeleteOperation class is used to delete a document from a collection.
  * This class provides methods to delete a single document that matches the base query.
@@ -69,9 +70,18 @@ export default class DeleteOperation {
    * @throws Will propagate any errors from underlying operations
    */
   public async deleteOne(): Promise<SuccessInterface | ErrorInterface> {
-    const response = await this.LoadAllBufferRawData();
-    if ("data" in response) {
-      const SearchedData = await new HashmapSearch(response.data).find(
+      // if documentId is provided in the baseQuery then read the file with the documentId
+        let ReadResponse; // Read Response Holder
+        if (this.baseQuery?.documentId !== undefined) {
+          const FilePath = [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
+          ReadResponse = await this.LoadAllBufferRawData(FilePath);
+        }
+        else {
+          ReadResponse = await this.LoadAllBufferRawData();
+        }
+
+    if ("data" in ReadResponse) {
+      const SearchedData = await new HashmapSearch(ReadResponse.data).find(
         this.baseQuery,
         "data",
       );
@@ -107,7 +117,7 @@ export default class DeleteOperation {
         return this.ResponseHelper.Error("Failed to delete data");
       }
     } else {
-      return this.ResponseHelper.Error(response);
+      return this.ResponseHelper.Error(ReadResponse);
     }
   }
 
@@ -174,7 +184,7 @@ export default class DeleteOperation {
    *
    * @throws {Error} Throws an error if any operation fails.
    */
-  private async LoadAllBufferRawData(): Promise<
+  private async LoadAllBufferRawData(documentIdDirectFile?: string[] | undefined): Promise<
     SuccessInterface | ErrorInterface
   > {
     try {
@@ -189,7 +199,7 @@ export default class DeleteOperation {
           );
           if ("data" in ReadResponse) {
             // Store all files in DataFilesList
-            const DataFilesList: string[] = ReadResponse.data;
+            const DataFilesList: string[] = documentIdDirectFile !== undefined ? documentIdDirectFile : ReadResponse.data; 
             // Read all files from the directory
             for (let i = 0; i < DataFilesList.length; i++) {
               const ReadFileResponse: SuccessInterface | ErrorInterface =
@@ -234,7 +244,7 @@ export default class DeleteOperation {
               await new FolderManager().ListDirectory(this.path);
             if ("data" in ReadResponse) {
               // Store all files in DataFilesList
-              const DataFilesList: string[] = ReadResponse.data;
+              const DataFilesList: string[] = documentIdDirectFile !== undefined ? documentIdDirectFile : ReadResponse.data; 
               // Read all files from the directory
               for (let i = 0; i < DataFilesList.length; i++) {
                 const ReadFileResponse: SuccessInterface | ErrorInterface =
