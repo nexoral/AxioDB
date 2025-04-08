@@ -49,7 +49,9 @@ export default class DeleteOperation {
     this.Converter = new Converter();
     if (this.isEncrypted === true) {
       if (!this.encryptionKey) {
-        throw new Error("Encryption key must be provided when isEncrypted is true.");
+        throw new Error(
+          "Encryption key must be provided when isEncrypted is true.",
+        );
       }
       this.cryptoInstance = new CryptoHelper(this.encryptionKey);
     }
