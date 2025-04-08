@@ -1,4 +1,4 @@
-# AxioDB: A NoSQL Based Database Management System
+# AxioDB: A NoSQL Database Management System
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
 [![CodeQL](https://github.com/AnkanSaha/AxioDB/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/AnkanSaha/AxioDB/actions/workflows/github-code-scanning/codeql)
@@ -8,8 +8,8 @@ AxioDB is a blazing-fast, lightweight, and scalable open-source Database Managem
 
 ## 🌐 Table of Contents
 
-- [⚠️ Current Limitations](#-current-limitations)
 - [🚀 Features](#-features)
+- [⚠️ Current Limitations](#-current-limitations)
 - [🔮 Future Plans](#-future-plans)
 - [📦 Installation](#-installation)
 - [🛠️ Usage](#-usage)
@@ -19,6 +19,20 @@ AxioDB is a blazing-fast, lightweight, and scalable open-source Database Managem
 - [🤝 Contributing](#-contributing)
 - [📜 License](#-license)
 - [🙌 Acknowledgments](#-acknowledgments)
+
+## 🚀 Current Featured Features
+
+- **Advanced Schema Validation:** Define robust schemas to ensure data consistency and integrity.
+- **Chainable Query Methods:** Leverage powerful methods like `.query()`, `.Sort()`, `.Limit()`, and `.Skip()` for seamless data filtering.
+- **Optimized Node.js Streams:** Handle massive datasets effortlessly with high-performance read/write operations.
+- **Encryption-First Design:** Protect sensitive data with optional AES-256 encryption for collections.
+- **Aggregation Pipelines:** Perform advanced data operations like `$match`, `$sort`, `$group`, and more with MongoDB-like syntax.
+- **InMemoryCache Mechanism:** Accelerate query execution by caching frequently accessed data, reducing query response time significantly.
+- **Plug-and-Play Setup:** No additional database server required—install and start building instantly.
+- **Tree-like Structure:** Store data in a tree-like structure for efficient data retrieval and management.
+- **Auto Indexing on documentId:** Automatically create index on documentId for faster queries.
+
+---
 
 ## ⚠️ Current Limitations
 
@@ -35,20 +49,6 @@ While AxioDB offers many powerful features, there are some limitations to consid
 - **No Built-in Replication:** Currently lacks distributed data replication capabilities for high availability setups.
 
 We're actively working to address these limitations in future releases.
-
----
-
-## 🚀 Current Featured Features
-
-- **Advanced Schema Validation:** Define robust schemas to ensure data consistency and integrity.
-- **Chainable Query Methods:** Leverage powerful methods like `.query()`, `.Sort()`, `.Limit()`, and `.Skip()` for seamless data filtering.
-- **Optimized Node.js Streams:** Handle massive datasets effortlessly with high-performance read/write operations.
-- **Encryption-First Design:** Protect sensitive data with optional AES-256 encryption for collections.
-- **Aggregation Pipelines:** Perform advanced data operations like `$match`, `$sort`, `$group`, and more with MongoDB-like syntax.
-- **InMemoryCache Mechanism:** Accelerate query execution by caching frequently accessed data, reducing query response time significantly.
-- **Plug-and-Play Setup:** No additional database server required—install and start building instantly.
-- **Tree-like Structure:** Store data in a tree-like structure for efficient data retrieval and management.
-- **Auto Indexing on documentId:** Automatically create index on documentId for faster queries.
 
 ---
 
