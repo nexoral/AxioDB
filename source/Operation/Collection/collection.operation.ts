@@ -120,13 +120,6 @@ export default class Collection {
     } catch (error) {
       return new ResponseHelper().Error(error);
     }
-
-    // Get list of files in the collection
-    const files = await new FolderManager().ListDirectory(
-      this.path);
-    console.log(files);
-
-    return files.data.length;
   }
 
   /**
