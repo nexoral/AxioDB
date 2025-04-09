@@ -33,9 +33,9 @@ export class AxioDB {
   private Converter: Converter;
   private ResponseHelper: ResponseHelper;
 
-  constructor(RootName?: string) {
+  constructor(RootName?: string, CustomPath?: string) {
     this.RootName = RootName || General.DBMS_Name; // Set the root name
-    this.currentPATH = path.resolve("."); // Set the base path
+    this.currentPATH = path.resolve(CustomPath || "."); // Set the current path
     this.fileManager = new FileManager(); // Initialize the FileManager class
     this.folderManager = new FolderManager(); // Initialize the FolderManager class
     this.Converter = new Converter(); // Initialize the Converter class
@@ -117,7 +117,7 @@ export class AxioDB {
     // check if all data is returned
     if ("data" in totalDatabases && "data" in totalSize) {
       const FinalDatabaseInfo: FinalDatabaseInfo = {
-        TotalSize: `${(totalSize.data / 1024 / 1024).toFixed(4)} MB`,
+        TotalSize: `${totalSize.data / 1024 / 1024} MB`,
         TotalDatabases: `${totalDatabases.data.length} Databases`,
         ListOfDatabases: totalDatabases.data,
         AllDatabasesPaths: totalDatabases.data.map((db: string) =>

@@ -3,6 +3,7 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
+import ResponseHelper from "../../Helper/response.helper";
 // Operations
 import Insertion from "../CRUD Operation/Create.operation";
 import Reader from "../CRUD Operation/Reader.operation";
@@ -18,6 +19,7 @@ import { CryptoHelper } from "../../Helper/Crypto.helper";
 // Converter
 import Converter from "../../Helper/Converter.helper";
 import { SchemaTypes } from "../../Models/DataTypes.models";
+import FolderManager from "../../Storage/FolderManager";
 
 /**
  * Represents a collection inside a database.
@@ -51,6 +53,65 @@ export default class Collection {
     this.encryptionKey = encryptionKey;
     // Initialize the Insertion class
     this.Insertion = new Insertion(this.name, this.path);
+  }
+
+  /**
+   * Get Numbers of Documents in the Collection
+   * @returns {Promise<number>} - A promise that resolves with the number of documents in the collection.
+   * @throws {Error} - Throws an error if the collection is empty or if there is an issue with the query.
+   */
+  public async totalDocuments(): Promise<SuccessInterface | ErrorInterface> {
+    // Check if the collection is empty
+    if (!this.name) {
+      throw new Error("Collection name cannot be empty");
+    }
+
+    // Check if the path is empty
+    if (!this.path) {
+      throw new Error("Path cannot be empty");
+    }
+
+    try {
+      // Check if Directory Locked or not
+      const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
+      if ("data" in isLocked) {
+        if (isLocked.data === false) {
+          // List all files in the directory
+          const files = await new FolderManager().ListDirectory(this.path);
+          return new ResponseHelper().Success({
+            message: "Total Documents in the Collection",
+            total: files.data.length,
+          });
+        } else {
+          // if Directory is locked then unlock it
+          const unlockResponse = await new FolderManager().UnlockDirectory(
+            this.path,
+          );
+          if ("data" in unlockResponse) {
+            // List all files in the directory
+            const files = await new FolderManager().ListDirectory(this.path);
+            // Lock the directory again
+            const lockResponse = await new FolderManager().LockDirectory(
+              this.path,
+            );
+            if ("data" in lockResponse) {
+              return new ResponseHelper().Success({
+                message: "Total Documents in the Collection",
+                total: files.data.length,
+              });
+            } else {
+              return new ResponseHelper().Error("Cannot lock the directory");
+            }
+          } else {
+            return new ResponseHelper().Error("Cannot unlock the directory");
+          }
+        }
+      } else {
+        return new ResponseHelper().Error("Cannot access the directory");
+      }
+    } catch (error) {
+      return new ResponseHelper().Error(error);
+    }
   }
 
   /**
