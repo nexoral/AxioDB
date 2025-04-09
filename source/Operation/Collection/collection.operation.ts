@@ -77,24 +77,19 @@ export default class Collection {
       if ("data" in isLocked) {
         if (isLocked.data === false) {
           // List all files in the directory
-          const files = await new FolderManager().ListDirectory(
-            this.path,
-          );
+          const files = await new FolderManager().ListDirectory(this.path);
           return new ResponseHelper().Success({
             message: "Total Documents in the Collection",
             total: files.data.length,
           });
-        }
-        else {
+        } else {
           // if Directory is locked then unlock it
           const unlockResponse = await new FolderManager().UnlockDirectory(
             this.path,
           );
           if ("data" in unlockResponse) {
             // List all files in the directory
-            const files = await new FolderManager().ListDirectory(
-              this.path,
-            );
+            const files = await new FolderManager().ListDirectory(this.path);
             // Lock the directory again
             const lockResponse = await new FolderManager().LockDirectory(
               this.path,
@@ -104,17 +99,14 @@ export default class Collection {
                 message: "Total Documents in the Collection",
                 total: files.data.length,
               });
-            }
-            else {
+            } else {
               return new ResponseHelper().Error("Cannot lock the directory");
             }
-          }
-          else {
+          } else {
             return new ResponseHelper().Error("Cannot unlock the directory");
           }
         }
-      }
-      else {
+      } else {
         return new ResponseHelper().Error("Cannot access the directory");
       }
     } catch (error) {
