@@ -84,31 +84,152 @@ npm install axiodb@latest --save
 ```javascript
 const { AxioDB, SchemaTypes } = require("axiodb");
 
-// Initialize AxioDB
-const db = new AxioDB();
-
 const main = async () => {
+  const db = new AxioDB();
+
   // Create a database
-  const database = await db.createDB("myDatabase");
+  const db1 = await db.createDB("testDB");
 
   // Define a schema
-  const userSchema = {
+  const schema = {
     name: SchemaTypes.string().required(),
-    age: SchemaTypes.number().required(),
+    age: SchemaTypes.number().required().min(1).max(100),
+    email: SchemaTypes.string().required().email(),
   };
 
-  // Create a collection with schema
-  const users = await database.createCollection("users", userSchema);
+  // Create collections
+  const collection = await db1.createCollection("testCollection", schema);
+  const collection2 = await db1.createCollection("testCollection2", schema, true);
+  const collection3 = await db1.createCollection("testCollection3", schema, "myKey");
 
   // Insert data
-  await users.insert({ name: "John Doe", age: 30 });
+  const saveStatus = await collection.insert({
+    name: "Ankan",
+    age: 21,
+    email: "ankan@example.com",
+  });
+  console.log(saveStatus);
 
   // Query data
-  const result = await users
-    .query({ age: { $gt: 25 } })
-    .Limit(10)
+  const totalDocuments = await collection
+    .query({})
+    .Limit(1)
+    .Skip(0)
+    .Sort({ name: 1 })
+    .setCount(true)
+    .setProject({ name: 1, age: 1 })
     .exec();
-  console.log("Query Result:", result);
+  console.log(totalDocuments);
+
+      const FastDocument = await collection.query({documentId: "S4ACDVS6SZ4S6VS"}).exec(); // By using documentId you can get the document in Lightning Fast Speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
+    console.log(FastDocument);
+
+    const ArrayFirstDocument = await collection.query({ documentId: ["S4ACDVS6SZ4S6VS", "VESV61Z6VS16VSE6V1S"] }).exec(); // query using an array of documentId to get multiple documents in lightning fast speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
+    console.log(ArrayFirstDocument);
+
+  // Update data
+  const updatedDocuments = await collection
+    .update({ name: { $regex: "Ankan" } })
+    .UpdateOne({ name: "Ankan Saha", age: 22 });
+  console.log(updatedDocuments);
+
+  // Delete data
+  const deletedDocuments = await collection
+    .delete({ name: { $regex: "Ankan" } })
+    .deleteOne();
+  console.log(deletedDocuments);
+
+  // Aggregation
+  const response = await collection
+    .aggregate([
+      { $match: { age: { $gt: 20 }, name: { $regex: "Ankan" } } },
+      { $group: { _id: "$age", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $project: { _id: 0, age: "$_id", count: 1 } },
+      { $limit: 10 },
+      { $skip: 0 },
+    ])
+    .exec();
+  console.log(response);
+};
+
+main();
+```
+
+---
+
+### ES6 Example
+
+```javascript
+import { AxioDB, SchemaTypes } from "axiodb";
+
+const main = async () => {
+  const db = new AxioDB();
+
+  // Create a database
+  const db1 = await db.createDB("testDB");
+
+  // Define a schema
+  const schema = {
+    name: SchemaTypes.string().required(),
+    age: SchemaTypes.number().required().min(1).max(100),
+    email: SchemaTypes.string().required().email(),
+  };
+
+  // Create collections
+  const collection = await db1.createCollection("testCollection", schema);
+  const collection2 = await db1.createCollection("testCollection2", schema, true);
+  const collection3 = await db1.createCollection("testCollection3", schema, "myKey");
+
+  // Insert data
+  const saveStatus = await collection.insert({
+    name: "Ankan",
+    age: 21,
+    email: "ankan@example.com",
+  });
+  console.log(saveStatus);
+
+  // Query data
+  const totalDocuments = await collection
+    .query({})
+    .Limit(1)
+    .Skip(0)
+    .Sort({ name: 1 })
+    .setCount(true)
+    .setProject({ name: 1, age: 1 })
+    .exec();
+  console.log(totalDocuments);
+
+      const FastDocument = await collection.query({documentId: "S4ACDVS6SZ4S6VS"}).exec(); // By using documentId you can get the document in Lightning Fast Speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
+    console.log(FastDocument);
+
+    const ArrayFirstDocument = await collection.query({ documentId: ["S4ACDVS6SZ4S6VS", "VESV61Z6VS16VSE6V1S"] }).exec(); // query using an array of documentId to get multiple documents in lightning fast speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
+    console.log(ArrayFirstDocument);
+
+  // Update data
+  const updatedDocuments = await collection
+    .update({ name: { $regex: "Ankan" } })
+    .UpdateOne({ name: "Ankan Saha", age: 22 });
+  console.log(updatedDocuments);
+
+  // Delete data
+  const deletedDocuments = await collection
+    .delete({ name: { $regex: "Ankan" } })
+    .deleteOne();
+  console.log(deletedDocuments);
+
+  // Aggregation
+  const response = await collection
+    .aggregate([
+      { $match: { age: { $gt: 20 }, name: { $regex: "Ankan" } } },
+      { $group: { _id: "$age", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $project: { _id: 0, age: "$_id", count: 1 } },
+      { $limit: 10 },
+      { $skip: 0 },
+    ])
+    .exec();
+  console.log(response);
 };
 
 main();
