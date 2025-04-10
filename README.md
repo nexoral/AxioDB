@@ -99,8 +99,16 @@ const main = async () => {
 
   // Create collections
   const collection = await db1.createCollection("testCollection", schema);
-  const collection2 = await db1.createCollection("testCollection2", schema, true);
-  const collection3 = await db1.createCollection("testCollection3", schema, "myKey");
+  const collection2 = await db1.createCollection(
+    "testCollection2",
+    schema,
+    true,
+  );
+  const collection3 = await db1.createCollection(
+    "testCollection3",
+    schema,
+    "myKey",
+  );
 
   // Insert data
   const saveStatus = await collection.insert({
@@ -121,11 +129,15 @@ const main = async () => {
     .exec();
   console.log(totalDocuments);
 
-      const FastDocument = await collection.query({documentId: "S4ACDVS6SZ4S6VS"}).exec(); // By using documentId you can get the document in Lightning Fast Speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
-    console.log(FastDocument);
+  const FastDocument = await collection
+    .query({ documentId: "S4ACDVS6SZ4S6VS" })
+    .exec(); // By using documentId you can get the document in Lightning Fast Speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
+  console.log(FastDocument);
 
-    const ArrayFirstDocument = await collection.query({ documentId: ["S4ACDVS6SZ4S6VS", "VESV61Z6VS16VSE6V1S"] }).exec(); // query using an array of documentId to get multiple documents in lightning fast speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
-    console.log(ArrayFirstDocument);
+  const ArrayFirstDocument = await collection
+    .query({ documentId: ["S4ACDVS6SZ4S6VS", "VESV61Z6VS16VSE6V1S"] })
+    .exec(); // query using an array of documentId to get multiple documents in lightning fast speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
+  console.log(ArrayFirstDocument);
 
   // Update data
   const updatedDocuments = await collection
@@ -178,8 +190,16 @@ const main = async () => {
 
   // Create collections
   const collection = await db1.createCollection("testCollection", schema);
-  const collection2 = await db1.createCollection("testCollection2", schema, true);
-  const collection3 = await db1.createCollection("testCollection3", schema, "myKey");
+  const collection2 = await db1.createCollection(
+    "testCollection2",
+    schema,
+    true,
+  );
+  const collection3 = await db1.createCollection(
+    "testCollection3",
+    schema,
+    "myKey",
+  );
 
   // Insert data
   const saveStatus = await collection.insert({
@@ -200,11 +220,15 @@ const main = async () => {
     .exec();
   console.log(totalDocuments);
 
-      const FastDocument = await collection.query({documentId: "S4ACDVS6SZ4S6VS"}).exec(); // By using documentId you can get the document in Lightning Fast Speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
-    console.log(FastDocument);
+  const FastDocument = await collection
+    .query({ documentId: "S4ACDVS6SZ4S6VS" })
+    .exec(); // By using documentId you can get the document in Lightning Fast Speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
+  console.log(FastDocument);
 
-    const ArrayFirstDocument = await collection.query({ documentId: ["S4ACDVS6SZ4S6VS", "VESV61Z6VS16VSE6V1S"] }).exec(); // query using an array of documentId to get multiple documents in lightning fast speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
-    console.log(ArrayFirstDocument);
+  const ArrayFirstDocument = await collection
+    .query({ documentId: ["S4ACDVS6SZ4S6VS", "VESV61Z6VS16VSE6V1S"] })
+    .exec(); // query using an array of documentId to get multiple documents in lightning fast speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
+  console.log(ArrayFirstDocument);
 
   // Update data
   const updatedDocuments = await collection
