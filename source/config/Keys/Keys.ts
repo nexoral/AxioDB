@@ -5,5 +5,9 @@ export enum General {
 
 // Web Server Configuration
 export enum WebServer {
-  ServerPORT = 2025,
+  StaticServerPORT = 2025,
+  ApiServerPORT = 2026,
+  TCPServerPORT = 2027,
+  WebSocketServerPORT = 2028,
+  GraphQLServerPORT = 2029
 }

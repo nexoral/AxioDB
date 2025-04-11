@@ -10,5 +10,5 @@ export { SchemaTypes, schemaValidate, AxioDB };
 export default {
   SchemaTypes,
   schemaValidate,
-  AxioDB,
+  AxioDB
 };
