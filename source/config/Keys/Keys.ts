@@ -9,5 +9,5 @@ export enum WebServer {
   ApiServerPORT = 2026,
   TCPServerPORT = 2027,
   WebSocketServerPORT = 2028,
-  GraphQLServerPORT = 2029
+  GraphQLServerPORT = 2029,
 }
