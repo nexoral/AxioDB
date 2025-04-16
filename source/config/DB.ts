@@ -22,9 +22,8 @@ const InstanceTypes = {
   Converter,
   CryptoHelper,
   ResponseHelper,
-  InMemoryCache
-
-}
+  InMemoryCache,
+};
 // Export Specific Modules
 export { SchemaTypes, schemaValidate, AxioDB, InstanceTypes };
 
@@ -33,5 +32,5 @@ export default {
   SchemaTypes,
   schemaValidate,
   AxioDB,
-  InstanceTypes
+  InstanceTypes,
 };
