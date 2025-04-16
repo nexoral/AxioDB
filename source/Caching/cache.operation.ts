@@ -6,7 +6,7 @@
  * @version 1.0.1
  * @since 24 December 2024
  **/
-class InMemoryCache {
+export class InMemoryCache {
   // Properties
   private readonly ttl: number;
   private cacheObject: { [key: string]: { value: any; registeredAt: Date } };
