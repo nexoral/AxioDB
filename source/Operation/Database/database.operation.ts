@@ -19,17 +19,19 @@ import { FinalCollectionsInfo } from "../../config/Interfaces/Operation/database
  */
 export default class Database {
   private name: string;
-  private path: string;
+  private readonly path: string;
   private fileManager: FileManager;
   private folderManager: FolderManager;
+  private readonly isSchema: boolean;
   private ResponseHelper: ResponseHelper;
 
-  constructor(name: string, path: string) {
+  constructor(name: string, path: string, isSchema: boolean = true) {
     this.name = name;
     this.path = path;
     this.fileManager = new FileManager();
     this.folderManager = new FolderManager();
     this.ResponseHelper = new ResponseHelper();
+    this.isSchema = isSchema;
   }
 
   /**
@@ -42,7 +44,7 @@ export default class Database {
    */
   public async createCollection(
     collectionName: string,
-    schema: object | any,
+    schema?: object | any,
     crypto: boolean = false,
     key?: string | undefined,
   ): Promise<Collection> {
@@ -51,6 +53,13 @@ export default class Database {
       path.join(this.path, collectionName),
     );
     const collectionPath = path.join(this.path, collectionName);
+
+    // if schema is not provided, set it to default
+    if (this.isSchema === false) {
+      schema = {};
+    } else {
+      throw new Error("Schema is not provided");
+    }
 
     // If the collection does not exist, create it
     if (collectionExists.statusCode !== StatusCodes.OK) {
@@ -64,6 +73,7 @@ export default class Database {
       const collection = new Collection(
         collectionName,
         collectionPath,
+        this.isSchema,
         schema,
         crypto,
         newCryptoInstance,
@@ -71,7 +81,12 @@ export default class Database {
       );
       return collection;
     } else {
-      const collection = new Collection(collectionName, collectionPath, schema);
+      const collection = new Collection(
+        collectionName,
+        collectionPath,
+        this.isSchema,
+        schema,
+      );
       return collection;
     }
   }
