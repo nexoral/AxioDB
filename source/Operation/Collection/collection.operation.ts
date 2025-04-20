@@ -132,9 +132,8 @@ export default class Collection {
 
     // if schema is not provided, set it to default
     if (this.isSchema === false) {
-      this.schema = {}
-    }
-    else {
+      this.schema = {};
+    } else {
       throw new Error("Schema is not provided");
     }
 

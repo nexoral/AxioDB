@@ -56,9 +56,8 @@ export default class Database {
 
     // if schema is not provided, set it to default
     if (this.isSchema === false) {
-      schema = {}
-    }
-    else {
+      schema = {};
+    } else {
       throw new Error("Schema is not provided");
     }
 
@@ -82,7 +81,12 @@ export default class Database {
       );
       return collection;
     } else {
-      const collection = new Collection(collectionName, collectionPath, this.isSchema, schema);
+      const collection = new Collection(
+        collectionName,
+        collectionPath,
+        this.isSchema,
+        schema,
+      );
       return collection;
     }
   }

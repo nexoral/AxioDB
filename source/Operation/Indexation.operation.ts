@@ -79,7 +79,10 @@ export class AxioDB {
    * @param DBName - The name of the database to create.
    * @returns The newly created database object.
    */
-  public async createDB(DBName: string, isSchema: boolean = true): Promise<Database> {
+  public async createDB(
+    DBName: string,
+    isSchema: boolean = true,
+  ): Promise<Database> {
     const dbPath = path.join(this.currentPATH, DBName);
 
     // Check if the database already exists

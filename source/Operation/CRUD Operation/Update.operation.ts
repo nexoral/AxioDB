@@ -93,12 +93,10 @@ export default class UpdateOperation {
 
       // if schema is not provided, set it to default
       if (this.isSchema === false) {
-        this.schema = {}
-      }
-      else {
+        this.schema = {};
+      } else {
         throw new Error("Schema is not provided");
       }
-
 
       // delete the extra fields from the schema if not present in the data
       for (const key in newData) {
