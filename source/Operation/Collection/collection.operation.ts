@@ -27,25 +27,27 @@ import FolderManager from "../../Storage/FolderManager";
 export default class Collection {
   private readonly name: string;
   private readonly path: string;
-  private updatedAt: string;
+  private readonly updatedAt: string;
   private schema: object | any;
-  private isEncrypted: boolean;
-  private cryptoInstance?: CryptoHelper;
+  private readonly isEncrypted: boolean;
+  private readonly cryptoInstance?: CryptoHelper;
   private Converter: Converter;
   private Insertion: Insertion;
-  private encryptionKey: string | undefined;
+  private readonly isSchema: boolean;
+  private readonly encryptionKey: string | undefined;
 
   constructor(
     name: string,
     path: string,
-    scema: object | any,
+    isSchema: boolean = true,
+    schema?: object | any,
     isEncrypted = false,
     cryptoInstance?: CryptoHelper,
     encryptionKey?: string,
   ) {
     this.name = name;
     this.path = path;
-    this.schema = scema;
+    this.schema = schema;
     this.isEncrypted = isEncrypted;
     this.cryptoInstance = cryptoInstance;
     this.Converter = new Converter();
@@ -53,6 +55,7 @@ export default class Collection {
     this.encryptionKey = encryptionKey;
     // Initialize the Insertion class
     this.Insertion = new Insertion(this.name, this.path);
+    this.isSchema = isSchema;
   }
 
   /**
@@ -127,6 +130,14 @@ export default class Collection {
       throw new Error("Data cannot be empty");
     }
 
+    // if schema is not provided, set it to default
+    if (this.isSchema === false) {
+      this.schema = {}
+    }
+    else {
+      throw new Error("Schema is not provided");
+    }
+
     // Check if data is an object or not
     if (typeof data !== "object") {
       throw new Error("Data must be an object.");
@@ -137,12 +148,15 @@ export default class Collection {
 
     this.schema.updatedAt = SchemaTypes.date().required();
 
-    // Validate the data
-    const validator = await SchemaValidator(this.schema, data, false);
+    // Check if the schema is provided, then validate the data
+    if (this.isSchema) {
+      // Validate the data
+      const validator = await SchemaValidator(this.schema, data, false);
 
-    if (validator?.details) {
-      Console.red("Validation Error", validator.details);
-      return;
+      if (validator?.details) {
+        Console.red("Validation Error", validator.details);
+        return;
+      }
     }
 
     // Add the documentId to the data
@@ -239,6 +253,7 @@ export default class Collection {
       this.name,
       this.path,
       query,
+      this.isSchema,
       this.schema,
       this.isEncrypted,
       this.encryptionKey,
