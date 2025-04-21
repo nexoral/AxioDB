@@ -11,6 +11,7 @@ AxioDB is a blazing-fast, lightweight, and scalable open-source Database Managem
 - [🚀 Features](#-features)
 - [⚠️ Current Limitations](#-current-limitations)
 - [🔮 Future Plans](#-future-plans)
+- [🐳 AxioDB Docker - Under Development](#-axiodb-docker---under-development)
 - [📦 Installation](#-installation)
 - [🛠️ Usage](#-usage)
 - [🌟 Advanced Features](#-advanced-features)
@@ -22,7 +23,7 @@ AxioDB is a blazing-fast, lightweight, and scalable open-source Database Managem
 
 ## 🚀 Current Featured Features
 
-- **Advanced Schema Validation:** Define robust schemas to ensure data consistency and integrity.
+- **Advanced Schema Validation:** Define robust schemas to ensure data consistency and integrity, with the flexibility to disable validation when needed.
 - **Chainable Query Methods:** Leverage powerful methods like `.query()`, `.Sort()`, `.Limit()`, and `.Skip()` for seamless data filtering.
 - **Optimized Node.js Streams:** Handle massive datasets effortlessly with high-performance read/write operations.
 - **Encryption-First Design:** Protect sensitive data with optional AES-256 encryption for collections.
@@ -67,6 +68,46 @@ We're committed to continuously enhancing AxioDB with cutting-edge features:
 
 ---
 
+## 🐳 AxioDB Docker - Under Development
+
+<div align="center">
+  <img src="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png" alt="Docker Logo" width="100" />
+  <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Logo" width="80" style="margin-left: 30px;" />
+</div>
+
+We're excited to announce that work is in progress on **AxioDB-Docker Image** to extend the power of AxioDB to non-JavaScript languages!
+
+### What to Expect:
+
+- **Multi-Protocol Support:** Connect via TCP, HTTP, gRPC, or WebSocket ports
+- **Web-Based GUI Management Dashboard:** Easily manage your databases visually
+- **Multi-User System with Authentication:** Secure access controls for your data
+- **Language-Agnostic Integration:** Use AxioDB with Python, Java, Go, and more
+- **Containerized Deployment:** Simple setup in any environment that supports Docker
+
+### Early Access:
+
+While this feature is still under development, you can try out early versions:
+
+<div align="center">
+
+[![Docker Hub](https://img.shields.io/badge/Docker_Hub-AxioDB-blue?style=for-the-badge&logo=docker)](https://hub.docker.com/r/theankansaha/axiodb)
+[![GitHub Packages](https://img.shields.io/badge/GitHub_Packages-AxioDB-black?style=for-the-badge&logo=github)](https://github.com/AnkanSaha/AxioDB-Docker/pkgs/container/axiodb)
+
+</div>
+
+```bash
+# Pull from Docker Hub
+docker pull theankansaha/axiodb:latest
+
+# Or pull from GitHub Packages
+docker pull ghcr.io/ankansaha/axiodb:latest
+```
+
+Stay tuned for more updates on this exciting expansion of AxioDB's capabilities!
+
+---
+
 ## 📦 Installation
 
 Install AxioDB via npm:
@@ -87,8 +128,11 @@ const { AxioDB, SchemaTypes } = require("axiodb");
 const main = async () => {
   const db = new AxioDB();
 
-  // Create a database
+  // Create a database with schema validation (default)
   const db1 = await db.createDB("testDB");
+  
+  // Create a database without schema validation
+  const db2 = await db.createDB("testDB2", false);
 
   // Define a schema
   const schema = {
@@ -178,8 +222,11 @@ import { AxioDB, SchemaTypes } from "axiodb";
 const main = async () => {
   const db = new AxioDB();
 
-  // Create a database
+  // Create a database with schema validation (default)
   const db1 = await db.createDB("testDB");
+  
+  // Create a database without schema validation
+  const db2 = await db.createDB("testDB2", false);
 
   // Define a schema
   const schema = {
@@ -379,8 +426,8 @@ await collection1.delete({ age: { $lt: 25 } }).deleteMany();
 
 ### AxioDB
 
-- **`createDB(dbName: string): Promise<Database>`**  
-  Creates a new database.
+- **`createDB(dbName: string, schemaValidation: boolean = true): Promise<Database>`**  
+  Creates a new database. The optional `schemaValidation` parameter (default: true) determines whether schema validation will be enforced for collections in this database.
 
 - **`deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>`**  
   Deletes a database.
