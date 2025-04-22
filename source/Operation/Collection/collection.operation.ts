@@ -137,14 +137,13 @@ export default class Collection {
 
     this.schema.updatedAt = SchemaTypes.date().required();
 
+    // Validate the data
+    const validator = await SchemaValidator(this.schema, data, false);
 
-      // Validate the data
-      const validator = await SchemaValidator(this.schema, data, false);
-
-      if (validator?.details) {
-        Console.red("Validation Error", validator.details);
-        return new ResponseHelper().Error(validator.details);
-      }
+    if (validator?.details) {
+      Console.red("Validation Error", validator.details);
+      return new ResponseHelper().Error(validator.details);
+    }
 
     // Add the documentId to the data
     const documentId: string = await this.Insertion.generateUniqueDocumentId();
