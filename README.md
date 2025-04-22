@@ -130,7 +130,7 @@ const main = async () => {
 
   // Create a database with schema validation (default)
   const db1 = await db.createDB("testDB");
-  
+
   // Create a database without schema validation
   const db2 = await db.createDB("testDB2", false);
 
@@ -224,7 +224,7 @@ const main = async () => {
 
   // Create a database with schema validation (default)
   const db1 = await db.createDB("testDB");
-  
+
   // Create a database without schema validation
   const db2 = await db.createDB("testDB2", false);
 
