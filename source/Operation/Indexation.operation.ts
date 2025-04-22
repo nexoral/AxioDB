@@ -80,8 +80,7 @@ export class AxioDB {
    * @returns The newly created database object.
    */
   public async createDB(
-    DBName: string,
-    isSchema: boolean = true,
+    DBName: string
   ): Promise<Database> {
     const dbPath = path.join(this.currentPATH, DBName);
 
@@ -91,7 +90,7 @@ export class AxioDB {
       await this.folderManager.CreateDirectory(dbPath);
       console.log(`Database Created: ${dbPath}`);
     }
-    const newDB = new Database(DBName, dbPath, isSchema);
+    const newDB = new Database(DBName, dbPath);
     return newDB;
   }
 

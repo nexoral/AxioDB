@@ -33,14 +33,12 @@ export default class UpdateOperation {
   private sort: object | any;
   private updatedAt: string;
   private schema: object | any;
-  private readonly isSchema: boolean;
   private readonly Insertion: Insertion;
 
   constructor(
     collectionName: string,
     path: string,
     baseQuery: object | any,
-    isSchema: boolean = true,
     schema: object | any,
     isEncrypted: boolean = false,
     encryptionKey?: string,
@@ -52,7 +50,6 @@ export default class UpdateOperation {
     this.encryptionKey = encryptionKey;
     this.updatedAt = new Date().toISOString();
     this.sort = {};
-    this.isSchema = isSchema;
     this.schema = schema;
     this.Insertion = new Insertion(this.collectionName, this.path);
     this.ResponseHelper = new ResponseHelper();
@@ -91,13 +88,6 @@ export default class UpdateOperation {
         throw new Error("Data must be an object.");
       }
 
-      // if schema is not provided, set it to default
-      if (this.isSchema === false) {
-        this.schema = {};
-      } else {
-        throw new Error("Schema is not provided");
-      }
-
       // delete the extra fields from the schema if not present in the data
       for (const key in newData) {
         if (this.schema[key]) {
@@ -107,16 +97,12 @@ export default class UpdateOperation {
           this.schema = newSchema;
         }
       }
+      // Validate the data
+      const validator = await SchemaValidator(this.schema, newData, false);
 
-      // if schema is provided, then validate the data
-      if (this.isSchema) {
-        // Validate the data
-        const validator = await SchemaValidator(this.schema, newData, false);
-
-        if (validator?.details) {
-          Console.red("Validation Error", validator.details);
-          return this.ResponseHelper.Error(validator.details);
-        }
+      if (validator?.details) {
+        Console.red("Validation Error", validator.details);
+        return this.ResponseHelper.Error(validator.details);
       }
 
       // if documentId is provided in the baseQuery then read the file with the documentId
@@ -223,17 +209,6 @@ export default class UpdateOperation {
         throw new Error("Data must be an object.");
       }
 
-      // if schema is provided, then validate the data
-      if (this.isSchema) {
-        // Validate the data
-        const validator = await SchemaValidator(this.schema, newData, false);
-
-        if (validator?.details) {
-          Console.red("Validation Error", validator.details);
-          return this.ResponseHelper.Error(validator.details);
-        }
-      }
-
       // delete the extra fields from the schema if not present in the data
       for (const key in newData) {
         if (this.schema[key]) {
@@ -311,7 +286,7 @@ export default class UpdateOperation {
         await InMemoryCache.clearAllCache(); // clear the cache
         return this.ResponseHelper.Success({
           message: "Data updated successfully",
-          effectedDocuments: SearchedData.length,
+          effectedData: SearchedData.length,
           documentIds: documentIds,
         });
       } else {
@@ -540,7 +515,7 @@ export default class UpdateOperation {
    * @param {object} data - The data to be inserted.
    * @returns {Promise<any>} - A promise that resolves with the response of the insertion operation.
    */
-  private async insertUpdate(
+  public async insertUpdate(
     data: object | any,
     ExistingdocumentId?: string,
   ): Promise<SuccessInterface | ErrorInterface> {
