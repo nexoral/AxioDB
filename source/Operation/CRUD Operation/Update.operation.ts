@@ -178,7 +178,7 @@ export default class UpdateOperation {
             await InMemoryCache.clearAllCache(); // clear the cache
             return this.ResponseHelper.Success({
               message: "Data updated successfully",
-              newData: newData,
+              newData: documentOldData,
               previousData: selectedFirstData.data,
               documentId: documentId,
             });
@@ -311,7 +311,7 @@ export default class UpdateOperation {
         await InMemoryCache.clearAllCache(); // clear the cache
         return this.ResponseHelper.Success({
           message: "Data updated successfully",
-          newData: newData,
+          effectedDocuments: SearchedData.length,
           documentIds: documentIds,
         });
       } else {
@@ -540,7 +540,7 @@ export default class UpdateOperation {
    * @param {object} data - The data to be inserted.
    * @returns {Promise<any>} - A promise that resolves with the response of the insertion operation.
    */
-  public async insertUpdate(
+  private async insertUpdate(
     data: object | any,
     ExistingdocumentId?: string,
   ): Promise<SuccessInterface | ErrorInterface> {
