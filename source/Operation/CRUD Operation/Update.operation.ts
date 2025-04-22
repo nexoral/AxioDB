@@ -515,7 +515,7 @@ export default class UpdateOperation {
    * @param {object} data - The data to be inserted.
    * @returns {Promise<any>} - A promise that resolves with the response of the insertion operation.
    */
-  public async insertUpdate(
+  private async insertUpdate(
     data: object | any,
     ExistingdocumentId?: string,
   ): Promise<SuccessInterface | ErrorInterface> {
