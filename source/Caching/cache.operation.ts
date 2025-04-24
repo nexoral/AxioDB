@@ -9,17 +9,17 @@
 export class InMemoryCache {
   // Properties
   private readonly ttl: number;
-  private cacheObject: { [key: string]: { value: any; registeredAt: Date } };
+  private cacheObject: Map<string, { value: any; registeredAt: Date }>;
   private tempSearchQuery: Array<{ queryString: any; registeredAt: Date }> = [];
   private readonly autoResetCacheInterval: number = 86400; // 24 hours
-  private readonly threshold: number = 3; // 3 times
+  private readonly threshold: number = 2; // 2 times
   /**
    * Creates a new instance of the cache operation class
    * @param TTL - Time to live in seconds for cache entries. Defaults to 86400 seconds (24 hours)
    */
   constructor(TTL: string | number = 86400) {
     this.ttl = typeof TTL === "string" ? parseInt(TTL) : TTL;
-    this.cacheObject = {};
+    this.cacheObject = new Map();
     this.tempSearchQuery = [];
     // this.autoResetCacheInterval is already initialized to 86400 (24 hours)
     this.autoResetCache(); // Start the auto-reset cache process
@@ -43,12 +43,12 @@ export class InMemoryCache {
     const KeyStatus = await this.setTempSearchQuery(key);
     if (KeyStatus === true) {
       // check if the key is already in the cache
-      const cacheItem = this.cacheObject[key];
+      const cacheItem = this.cacheObject.get(key);
       if (!cacheItem) {
-        this.cacheObject[key] = {
+        this.cacheObject.set(key, {
           value: value,
           registeredAt: new Date(),
-        };
+        });
         return true;
       } else {
         // check if the cache is expired or not
@@ -56,11 +56,11 @@ export class InMemoryCache {
         const diff = Math.abs(now.getTime() - cacheItem.registeredAt.getTime());
         if (diff > this.ttl * 1000) {
           // if the cache is expired, remove it from the cache
-          delete this.cacheObject[key];
-          this.cacheObject[key] = {
+          this.cacheObject.delete(key);
+          this.cacheObject.set(key, {
             value: value,
             registeredAt: new Date(),
-          };
+          });
           return true;
         } else {
           return true;
@@ -94,7 +94,7 @@ export class InMemoryCache {
    * @returns A Promise that resolves to the cached value if found and not expired, null otherwise
    */
   public async getCache(key: string): Promise<any | boolean> {
-    const cacheItem = this.cacheObject[key];
+    const cacheItem = this.cacheObject.get(key);
     if (!cacheItem) {
       return false;
     }
@@ -109,7 +109,7 @@ export class InMemoryCache {
    */
   public async clearAllCache(): Promise<boolean> {
     // clear all cache
-    this.cacheObject = {};
+    this.cacheObject.clear();
     this.tempSearchQuery = [];
     return true;
   }
@@ -139,13 +139,13 @@ export class InMemoryCache {
         // if the cache is expired, remove it from the cache
         const now = new Date();
         for (const key in this.cacheObject) {
-          const cacheItem = this.cacheObject[key];
+          const cacheItem = this.cacheObject.get(key);
           if (cacheItem) {
             const diff = Math.abs(
               now.getTime() - cacheItem.registeredAt.getTime(),
             );
             if (diff > this.autoResetCacheInterval * 1000) {
-              delete this.cacheObject[key];
+              this.cacheObject.delete(key);
             }
           }
         }
