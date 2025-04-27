@@ -26,4 +26,3 @@ vscode:
 tasks:
   - name: First Time Setup
   - command: bash ./.devcontainer/postCreateCommand.sh
-    init: true
