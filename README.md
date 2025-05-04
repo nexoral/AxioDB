@@ -7,6 +7,8 @@
 
 AxioDB is a blazing-fast, lightweight, and scalable open-source Database Management System (DBMS) tailored for modern applications. It supports `.axiodb` file-based data storage, offers intuitive APIs, and ensures secure data management. AxioDB is the ultimate solution for developers seeking efficient, flexible, and production-ready database solutions.
 
+👉 **[Official Documentation](https://axiodb.site/)**: Access the full power of AxioDB with detailed guides, examples, and API references.
+
 ## 🌐 Table of Contents
 
 - [🚀 Features](#-features)
