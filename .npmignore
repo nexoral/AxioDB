@@ -25,3 +25,6 @@ AxioDB
 test
 .idea
 ./source/**/*
+
+# Ignore the following directories and files for the GUI
+./Document/**/*

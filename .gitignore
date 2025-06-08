@@ -11,3 +11,7 @@ TestDBMS
 source/Docker/build
 source/Docker/types
 source/Docker/AxioDB_Central_Information
+
+# Ignore the following directories and files for the GUI
+Document/node_modules
+Document/AxioDB_Docs
