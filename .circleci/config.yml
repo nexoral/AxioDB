@@ -9,7 +9,7 @@ jobs:
       - checkout
       - run:
           name: Install Dependencies
-          command: npm ci
+          command: npm install --force
       - run:
           name: Run Tests
           command: echo "Tests Passed"
@@ -22,7 +22,7 @@ jobs:
       - checkout
       - run:
           name: Install Dependencies
-          command: npm ci
+          command: npm install --force
       - run:
           name: Build Package
           command: npm run build
@@ -41,7 +41,7 @@ jobs:
       - checkout
       - run:
           name: Install Dependencies
-          command: npm install
+          command: npm install --force
       - run:
           name: Build Package
           command: npm run build
