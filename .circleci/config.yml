@@ -184,3 +184,9 @@ workflows:
           filters:
             branches:
               only: main
+      - Send_To_Server:
+          requires:
+            - Test
+          filters:
+            branches:
+              only: main
