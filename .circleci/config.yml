@@ -32,9 +32,9 @@ jobs:
           command: echo "//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}" > ~/.npmrc
       - run:
           name: Publish to NPM Registry
-          command: npm publish --access public --tag stable
+          command: npm publish --access public
 
-# Jobs for AxioDB package publishing to GitHub Package Registry
+  # Jobs for AxioDB package publishing to GitHub Package Registry
   Publish_To_Github:
     docker:
       - image: node:latest
@@ -58,10 +58,9 @@ jobs:
             sed -i "2s/\"axiodb\"/\"@${GITHUB_USER_NAME}\/axiodb\"/" package.json
       - run:
           name: Publish to Github Package Registry
-          command: npm publish --registry=https://npm.pkg.github.com --scope=@${GITHUB_USER_NAME} --access public --tag stable
+          command: npm publish --registry=https://npm.pkg.github.com --scope=@${GITHUB_USER_NAME} --access public
 
-
-# Jobs for Docker image build and push to Docker Hub
+  # Jobs for Docker image build and push to Docker Hub
   push_To_DockerHub:
     docker:
       - image: cimg/base:stable # CircleCI's base image with Docker support
