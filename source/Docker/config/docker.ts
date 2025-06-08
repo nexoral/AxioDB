@@ -15,17 +15,23 @@ const main = async () => {
     CentralInformation.CentralDB_InstanceName,
     ".",
   );
-  Console.green(`Central AxioDB Instance Created with ${CentralInformation.CentralDB_InstanceName}`);
+  Console.green(
+    `Central AxioDB Instance Created with ${CentralInformation.CentralDB_InstanceName}`,
+  );
   /// Create Central Database
   const centralDB = await centralAxioDBInstance.createDB(
     CentralInformation.CentralDB_Name,
   );
-  Console.green(`Central AxioDB Database Created with ${CentralInformation.CentralDB_Name}`);
+  Console.green(
+    `Central AxioDB Database Created with ${CentralInformation.CentralDB_Name}`,
+  );
   const centralAuthCollection = await centralDB.createCollection(
     CentralInformation.CentralDB_Collection_Auth,
     CentralInformation.CentralDB_Auth_UserCollection_Schema,
   );
-  Console.green(`Central Auth Collection Created with ${CentralInformation.CentralDB_Collection_Auth}`);
+  Console.green(
+    `Central Auth Collection Created with ${CentralInformation.CentralDB_Collection_Auth}`,
+  );
 
   /// Start All Servers ========================== X ==========================
 
