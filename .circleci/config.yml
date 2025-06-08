@@ -24,7 +24,7 @@ jobs:
       - run:
           name: Check if package.json changed
           command: |
-            CHANGED=$(git diff --name-only origin/main... | grep "^package.json" || true)
+            CHANGED=$(git diff --name-only origin/newfeature-setup... | grep "^package.json" || true)
             if [ -z "$CHANGED" ]; then
               echo "No changes in package.json, skipping Publish_To_NPM."
               circleci-agent step halt
@@ -52,7 +52,7 @@ jobs:
       - run:
           name: Check if package.json changed
           command: |
-            CHANGED=$(git diff --name-only origin/main... | grep "^package.json" || true)
+            CHANGED=$(git diff --name-only origin/newfeature-setup... | grep "^package.json" || true)
             if [ -z "$CHANGED" ]; then
               echo "No changes in package.json, skipping Publish_To_Github."
               circleci-agent step halt
@@ -85,7 +85,7 @@ jobs:
       - run:
           name: Check if Docker directory changed
           command: |
-            CHANGED=$(git diff --name-only origin/main... | grep "^source/Docker/" || true)
+            CHANGED=$(git diff --name-only origin/newfeature-setup... | grep "^source/Docker/" || true)
             if [ -z "$CHANGED" ]; then
               echo "No changes in Docker directory, skipping push_To_DockerHub."
               circleci-agent step halt
@@ -120,7 +120,7 @@ jobs:
       - run:
           name: Check if Docker directory changed
           command: |
-            CHANGED=$(git diff --name-only origin/main... | grep "^source/Docker/" || true)
+            CHANGED=$(git diff --name-only origin/newfeature-setup... | grep "^source/Docker/" || true)
             if [ -z "$CHANGED" ]; then
               echo "No changes in Docker directory, skipping push_To_Github."
              circleci-agent step halt
@@ -155,7 +155,7 @@ jobs:
       - run:
           name: Check if Document directory changed
           command: |
-            CHANGED=$(git diff --name-only origin/main... | grep "^Document/" || true)
+            CHANGED=$(git diff --name-only origin/newfeature-setup... | grep "^Document/" || true)
             if [ -z "$CHANGED" ]; then
               echo "No changes in Document directory, skipping Send_To_Server."
               circleci-agent step halt
