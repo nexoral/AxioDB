@@ -63,4 +63,5 @@ const main = async () => {
     CentralDBInstance: centralAxioDBInstance,
   });
 };
-main(); // Start the main function
+
+main(); // Start the main function to start all servers
