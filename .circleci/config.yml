@@ -113,6 +113,44 @@ jobs:
           command: |
             docker push $GITHUB_REGISTRY/$GITHUB_USERNAME/$DOCKER_IMAGE:$DOCKER_VERSION_TAG
             docker push $GITHUB_REGISTRY/$GITHUB_USERNAME/$DOCKER_IMAGE:latest
+  # Job to send built client files to a remote server and deploy them
+  Send_To_Server:
+    docker:
+      - image: node:latest
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - ${SSH_FINGERPRINT}
+      - run:
+          name: Install client Dependencies
+          command: | 
+            cd ./Document && npm install --force
+      - run:
+          name: Build client Project
+          command: |
+            cd ./Document && npm run build
+      - run:
+          name: Check if client Build Folder Already Exists in server
+          command: |
+            cd ./Document && ssh -o StrictHostKeyChecking=no ${SSH_USER}@${VM_IP} "sudo rm -rf ${PROJECT_NAME}"
+      - run:
+          name: Send client Files to server
+          command: |
+            cd ./Document && scp -o StrictHostKeyChecking=no -r ${PROJECT_NAME}/ ${SSH_USER}@${VM_IP}:/home/${SSH_USER}/
+      - run:
+          name: Check if Already Exists in Nginx Static Folder
+          command: |
+            ssh -o StrictHostKeyChecking=no ${SSH_USER}@${VM_IP} "sudo rm -rf /var/www/html/${PROJECT_NAME}"
+      - run:
+          name: Move Files to Nginx Static Folder
+          command: |
+            ssh -o StrictHostKeyChecking=no ${SSH_USER}@${VM_IP} "sudo mv /home/${SSH_USER}/${PROJECT_NAME} /var/www/html/"
+      - run:
+          name: Restart Nginx
+          command: |
+            ssh -o StrictHostKeyChecking=no ${SSH_USER}@${VM_IP} "sudo systemctl restart nginx"
+
 
 workflows:
   version: 2
