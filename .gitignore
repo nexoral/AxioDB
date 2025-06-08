@@ -1,7 +1,13 @@
 node_modules
 lib
-./source/Web.Client/node_moduless
+./source/Web.Client/node_modules
 ./GUI/node_modules
 AxioDB
 test.js
 TestDBMS
+./source/Docker/node_modules
+
+# Ignore the following directories and files for Docker builds
+source/Docker/build
+source/Docker/types
+source/Docker/AxioDB_Central_Information

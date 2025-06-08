@@ -1,0 +1,20 @@
+{
+    "watch": [
+        "src",
+        "build"
+    ],
+    "ext": "js,ts,json",
+    "exec": "node ./build/config/docker.js",
+    "restartable": "rs",
+    "ignore": [
+        "node_modules",
+        "build/**/*.map"
+    ],
+    "events": {
+        "exit": "echo 'Process exited. Restarting...'",
+        "restart": "echo 'Process crashed. Restarting...'"
+    },
+    "delay": "1000",
+    "crash": true,
+    "exitcrash": true
+}
