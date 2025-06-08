@@ -7,6 +7,7 @@
   "scripts": {
     "test": "echo 'Test script Succesful'",
     "build": "tsc",
+    "prepare": "npm run build",
     "lint": "eslint ."
   },
   "keywords": [
