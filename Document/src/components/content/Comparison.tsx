@@ -1,5 +1,5 @@
-import React from 'react';
-import { Zap, Server, GitCompare } from 'lucide-react';
+import React from "react";
+import { Zap, Server, GitCompare } from "lucide-react";
 
 const Comparison: React.FC = () => {
   return (
@@ -10,14 +10,20 @@ const Comparison: React.FC = () => {
       </h2>
 
       <p className="text-gray-700 dark:text-gray-300 mb-8">
-        AxioDB stands out from other NPM-based database management systems through its innovative architecture and performance optimizations.
+        AxioDB stands out from other NPM-based database management systems
+        through its innovative architecture and performance optimizations.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md border border-gray-100 dark:border-gray-700">
-          <h3 className="text-xl font-semibold mb-4 text-red-500">Other NPM DBMSs</h3>
+          <h3 className="text-xl font-semibold mb-4 text-red-500">
+            Other NPM DBMSs
+          </h3>
           <ul className="space-y-3 list-disc pl-6 text-gray-700 dark:text-gray-300">
-            <li>Single JSON file storage leading to heavy Read/Write I/O operations</li>
+            <li>
+              Single JSON file storage leading to heavy Read/Write I/O
+              operations
+            </li>
             <li>No built-in caching mechanism</li>
             <li>Linear search for document retrieval</li>
             <li>Performance degrades with larger datasets</li>
@@ -26,7 +32,9 @@ const Comparison: React.FC = () => {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md border border-gray-100 dark:border-gray-700">
-          <h3 className="text-xl font-semibold mb-4 text-green-500">AxioDB Advantages</h3>
+          <h3 className="text-xl font-semibold mb-4 text-green-500">
+            AxioDB Advantages
+          </h3>
           <ul className="space-y-3 list-disc pl-6 text-gray-700 dark:text-gray-300">
             <li>Tree-structured storage for optimized data management</li>
             <li>InMemoryCache strategy for faster queries</li>
@@ -41,42 +49,90 @@ const Comparison: React.FC = () => {
         <table className="table-auto w-full border-collapse border border-gray-200 dark:border-gray-700">
           <thead>
             <tr className="bg-gradient-to-r from-purple-500 to-blue-500 text-white">
-              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left">Feature</th>
-              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left">AxioDB</th>
-              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left">MongoDB</th>
-              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left">Redis</th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left">
+                Feature
+              </th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left">
+                AxioDB
+              </th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left">
+                MongoDB
+              </th>
+              <th className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-left">
+                Redis
+              </th>
             </tr>
           </thead>
           <tbody>
             <tr className="bg-gray-50 dark:bg-gray-900">
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">Ease of Setup</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">Very Easy</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-yellow-500 font-semibold">Moderate</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-blue-500 font-semibold">Easy</td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">
+                Ease of Setup
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">
+                Very Easy
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-yellow-500 font-semibold">
+                Moderate
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-blue-500 font-semibold">
+                Easy
+              </td>
             </tr>
             <tr>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">Performance (Small Datasets)</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">High</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-yellow-500 font-semibold">Moderate</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">High</td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">
+                Performance (Small Datasets)
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">
+                High
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-yellow-500 font-semibold">
+                Moderate
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">
+                High
+              </td>
             </tr>
             <tr className="bg-gray-50 dark:bg-gray-900">
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">Memory Usage</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">Optimized</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-yellow-500 font-semibold">Moderate</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-red-500 font-semibold">High</td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">
+                Memory Usage
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">
+                Optimized
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-yellow-500 font-semibold">
+                Moderate
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-red-500 font-semibold">
+                High
+              </td>
             </tr>
             <tr>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">Query Speed</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">Fast</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-yellow-500 font-semibold">Moderate</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">Fast</td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">
+                Query Speed
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">
+                Fast
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-yellow-500 font-semibold">
+                Moderate
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">
+                Fast
+              </td>
             </tr>
             <tr className="bg-gray-50 dark:bg-gray-900">
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">Best Use Case</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">Small Projects</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-yellow-500 font-semibold">Scalable Applications</td>
-              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-blue-500 font-semibold">Caching</td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2">
+                Best Use Case
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-green-500 font-semibold">
+                Small Projects
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-yellow-500 font-semibold">
+                Scalable Applications
+              </td>
+              <td className="border border-gray-200 dark:border-gray-700 px-4 py-2 text-blue-500 font-semibold">
+                Caching
+              </td>
             </tr>
           </tbody>
         </table>
@@ -91,11 +147,13 @@ const Comparison: React.FC = () => {
             </h3>
 
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              We're extending AxioDB's power beyond JavaScript with our upcoming Docker image, featuring:
+              We're extending AxioDB's power beyond JavaScript with our upcoming
+              Docker image, featuring:
             </p>
 
             <ul className="space-y-2 mb-6 list-disc pl-6 text-gray-700 dark:text-gray-300">
-              <li>Multiple connection protocols:
+              <li>
+                Multiple connection protocols:
                 <ul className="pl-4 mt-2 space-y-1">
                   <li>TCP Port</li>
                   <li>HTTP Port</li>
@@ -110,29 +168,41 @@ const Comparison: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-4 min-w-[300px]">
-            <a href="https://hub.docker.com/r/theankansaha/axiodb"
+            <a
+              href="https://hub.docker.com/r/theankansaha/axiodb"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <img src="https://images.icon-icons.com/2530/PNG/512/dockerhub_button_icon_151899.png"
+              className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+            >
+              <img
+                src="https://images.icon-icons.com/2530/PNG/512/dockerhub_button_icon_151899.png"
                 alt="Docker Hub"
-                className="h-8 w-8 object-contain dark:invert" />
+                className="h-8 w-8 object-contain dark:invert"
+              />
               <div>
                 <h4 className="font-semibold">Docker Hub</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Official Docker Image</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Official Docker Image
+                </p>
               </div>
             </a>
 
-            <a href="https://github.com/AnkanSaha/AxioDB-Docker/pkgs/container/axiodb"
+            <a
+              href="https://github.com/AnkanSaha/AxioDB-Docker/pkgs/container/axiodb"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+              className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+            >
+              <img
+                src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
                 alt="GitHub Packages"
-                className="h-8 w-8 object-contain dark:invert" />
+                className="h-8 w-8 object-contain dark:invert"
+              />
               <div>
                 <h4 className="font-semibold">GitHub Packages</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Container Registry</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Container Registry
+                </p>
               </div>
             </a>
           </div>
@@ -145,7 +215,9 @@ const Comparison: React.FC = () => {
           Performance Metrics
         </h4>
         <p className="text-gray-700 dark:text-gray-300">
-          In benchmark tests with 1 million documents, AxioDB's documentId search performed up to 10x faster than traditional JSON-based DBMSs, thanks to its tree structure and auto-indexing system.
+          In benchmark tests with 1 million documents, AxioDB's documentId
+          search performed up to 10x faster than traditional JSON-based DBMSs,
+          thanks to its tree structure and auto-indexing system.
         </p>
       </div>
     </section>

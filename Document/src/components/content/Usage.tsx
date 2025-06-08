@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
-import { BookOpen } from 'lucide-react';
-import CodeBlock from '../ui/CodeBlock';
-import Button from '../ui/Button';
+import React, { useState } from "react";
+import { BookOpen } from "lucide-react";
+import CodeBlock from "../ui/CodeBlock";
+import Button from "../ui/Button";
 
 const Usage: React.FC = () => {
-  const [step, setStep] = useState<'selectCodeType' | 'selectExampleType' | 'showExample'>('selectCodeType');
-  const [codeType, setCodeType] = useState<'commonjs' | 'es6' | null>(null);
-  const [exampleType, setExampleType] = useState<'read' | 'write' | 'update' | 'delete' | 'aggregate' | 'fastRetrieval' | null>(null);
+  const [step, setStep] = useState<
+    "selectCodeType" | "selectExampleType" | "showExample"
+  >("selectCodeType");
+  const [codeType, setCodeType] = useState<"commonjs" | "es6" | null>(null);
+  const [exampleType, setExampleType] = useState<
+    | "read"
+    | "write"
+    | "update"
+    | "delete"
+    | "aggregate"
+    | "fastRetrieval"
+    | null
+  >(null);
 
   const examples = {
     commonjs: {
@@ -120,39 +130,112 @@ console.log(paginatedDocuments);`,
         Basic Usage
       </h2>
 
-      {step === 'selectCodeType' && (
+      {step === "selectCodeType" && (
         <div className="flex flex-col items-center">
-          <p className="text-gray-700 dark:text-gray-300 mb-4">Select the code type you want to see:</p>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            Select the code type you want to see:
+          </p>
           <div className="flex gap-4">
-            <Button variant="primary" onClick={() => { setCodeType('commonjs'); setStep('selectExampleType'); }}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setCodeType("commonjs");
+                setStep("selectExampleType");
+              }}
+            >
               CommonJS
             </Button>
-            <Button variant="primary" onClick={() => { setCodeType('es6'); setStep('selectExampleType'); }}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setCodeType("es6");
+                setStep("selectExampleType");
+              }}
+            >
               ES6 Modules
             </Button>
           </div>
         </div>
       )}
 
-      {step === 'selectExampleType' && (
+      {step === "selectExampleType" && (
         <div className="flex flex-col items-center">
-          <p className="text-gray-700 dark:text-gray-300 mb-4">Select the example usage you want to see:</p>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            Select the example usage you want to see:
+          </p>
           <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" onClick={() => { setExampleType('read'); setStep('showExample'); }}>Read</Button>
-            <Button variant="outline" onClick={() => { setExampleType('write'); setStep('showExample'); }}>Write</Button>
-            <Button variant="outline" onClick={() => { setExampleType('update'); setStep('showExample'); }}>Update</Button>
-            <Button variant="outline" onClick={() => { setExampleType('delete'); setStep('showExample'); }}>Delete</Button>
-            <Button variant="outline" onClick={() => { setExampleType('aggregate'); setStep('showExample'); }}>Aggregate</Button>
-            <Button variant="outline" onClick={() => { setExampleType('fastRetrieval'); setStep('showExample'); }}>Fast Retrieval</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setExampleType("read");
+                setStep("showExample");
+              }}
+            >
+              Read
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setExampleType("write");
+                setStep("showExample");
+              }}
+            >
+              Write
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setExampleType("update");
+                setStep("showExample");
+              }}
+            >
+              Update
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setExampleType("delete");
+                setStep("showExample");
+              }}
+            >
+              Delete
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setExampleType("aggregate");
+                setStep("showExample");
+              }}
+            >
+              Aggregate
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setExampleType("fastRetrieval");
+                setStep("showExample");
+              }}
+            >
+              Fast Retrieval
+            </Button>
           </div>
         </div>
       )}
 
-      {step === 'showExample' && codeType && exampleType && (
+      {step === "showExample" && codeType && exampleType && (
         <div className="flex flex-col items-center">
-          <p className="text-gray-700 dark:text-gray-300 mb-4">Here is the {exampleType} example for {codeType}:</p>
-          <CodeBlock code={examples[codeType][exampleType]} language="javascript" />
-          <Button variant="outline" className="mt-4" onClick={() => setStep('selectExampleType')}>
+          <p className="text-gray-700 dark:text-gray-300 mb-4">
+            Here is the {exampleType} example for {codeType}:
+          </p>
+          <CodeBlock
+            code={examples[codeType][exampleType]}
+            language="javascript"
+          />
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => setStep("selectExampleType")}
+          >
             Back to Example Selection
           </Button>
         </div>

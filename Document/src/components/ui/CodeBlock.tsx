@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Check, Copy } from 'lucide-react';
+import React, { useState } from "react";
+import { Check, Copy } from "lucide-react";
 
 interface CodeBlockProps {
   code: string;
@@ -24,7 +24,11 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
           className="text-gray-400 hover:text-white transition-colors p-1 rounded"
           aria-label="Copy code"
         >
-          {copied ? <Check size={18} className="text-green-400" /> : <Copy size={18} />}
+          {copied ? (
+            <Check size={18} className="text-green-400" />
+          ) : (
+            <Copy size={18} />
+          )}
         </button>
       </div>
       <pre className="overflow-x-auto p-4 bg-gray-900 text-white text-sm">

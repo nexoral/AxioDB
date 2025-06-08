@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import Header from './Header';
-import Sidebar from './Sidebar';
-import { ThemeProvider } from '../../context/ThemeContext';
+import React, { useState, useEffect } from "react";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
+import { ThemeProvider } from "../../context/ThemeContext";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -14,21 +14,25 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const sidebar = document.querySelector('aside');
-      const sidebarButton = document.querySelector('button[aria-label="Open sidebar"]');
-      
-      if (sidebar && 
-          !sidebar.contains(event.target as Node) && 
-          sidebarButton && 
-          !sidebarButton.contains(event.target as Node) &&
-          window.innerWidth < 768) {
+      const sidebar = document.querySelector("aside");
+      const sidebarButton = document.querySelector(
+        'button[aria-label="Open sidebar"]',
+      );
+
+      if (
+        sidebar &&
+        !sidebar.contains(event.target as Node) &&
+        sidebarButton &&
+        !sidebarButton.contains(event.target as Node) &&
+        window.innerWidth < 768
+      ) {
         setIsSidebarOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -36,15 +40,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY + 100;
-      
+
       // Get all section elements
-      const sections = document.querySelectorAll('section[id]');
-      
+      const sections = document.querySelectorAll("section[id]");
+
       // Find the current section
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = sections[i];
         const sectionTop = (section as HTMLElement).offsetTop;
-        
+
         if (scrollPosition >= sectionTop) {
           setActiveSection(section.id);
           break;
@@ -52,27 +56,27 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   return (
     <ThemeProvider>
       <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-        <Header 
-          toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} 
-          isSidebarOpen={isSidebarOpen} 
+        <Header
+          toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+          isSidebarOpen={isSidebarOpen}
         />
-        
+
         <div className="flex">
-          <Sidebar 
-            isOpen={isSidebarOpen} 
+          <Sidebar
+            isOpen={isSidebarOpen}
             activeSection={activeSection}
             setActiveSection={setActiveSection}
           />
-          
+
           <main className="flex-1 pt-16 pb-16 transition-all duration-300 md:ml-64">
             <div className="container mx-auto px-4 py-8 max-w-4xl">
               {children}
