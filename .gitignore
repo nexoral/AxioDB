@@ -6,3 +6,6 @@ AxioDB
 test.js
 TestDBMS
 ./source/Docker/node_modules
+source/Docker/build
+source/Docker/types
+source/Docker/AxioDB_Central_Information

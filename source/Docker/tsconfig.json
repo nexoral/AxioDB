@@ -4,6 +4,7 @@
     "target": "ES6",
     "module": "CommonJS",
     "declaration": true,
+    "declarationDir": "./build/types", // Specify the output directory for declaration files
     "moduleResolution": "Node",
     "checkJs": false, // Disable checking of JavaScript files
     "allowJs": true, // Allow JavaScript files to be included
@@ -17,12 +18,12 @@
       "ES6",
       "DOM"
     ], // Include the necessary TypeScript library declarations
-    "rootDir": "./src" // Specify the root directory for your source code
+    "rootDir": "./" // Specify the root directory for your source code
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.proto"
+    "./**/*.ts",
+    "./**/*.tsx",
+    "./**/*.proto"
   ], // Include TypeScript, TSX, and Proto files
   "exclude": [
     "node_modules"

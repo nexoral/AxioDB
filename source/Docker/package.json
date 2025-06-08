@@ -4,12 +4,13 @@
   "Published": "4th May 2025",
   "description": "AxioDB Docker is designed to extend the capabilities of AxioDB, enabling seamless integration with other programming languages and systems via REST APIs, TCP connections, WebSocket, and more. This Docker image provides a scalable and efficient way to deploy AxioDB as a service.",
   "main": "docker.js",
+  "types": "./types",
   "scripts": {
     "test": "test",
-    "build": "tsc",
+    "copy-protos": "cp -r ./Server/GRPC/Protos build/Server/GRPC/Protos",
+    "build": "tsc && npm run copy-protos",
     "start": "nodemon ./build/config/docker.js",
-    "copy-protos": "cp -r src/Server/GRPC/Protos build/Server/GRPC/Protos",
-    "dev": "ts-node ./src/config/docker.ts",
+    "dev": "ts-node ./config/docker.ts",
     "lint": "eslint ."
   },
   "repository": {
