@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package axio_db;
+
+option java_multiple_files = true;
+option java_package = "io.axiodb.grpc";
+option java_outer_classname = "AxioServiceProto";
+option objc_class_prefix = "ADB";
+
+// Service definition
+service AxioDBService {
+    // Get a value by key
+    rpc Get (GetRequest) returns (GetResponse);
+    
+    // Set a key-value pair
+    rpc Set (SetRequest) returns (SetResponse);
+    
+    // Delete a key
+    rpc Delete (DeleteRequest) returns (DeleteResponse);
+    
+    // Check if key exists
+    rpc Exists (ExistsRequest) returns (ExistsResponse);
+    
+    // List all keys with optional pattern matching
+    rpc Keys (KeysRequest) returns (KeysResponse);
+}
+
+// Request and response message definitions
+message GetRequest {
+    string key = 1;
+}
+
+message GetResponse {
+    bool success = 1;
+    string value = 2;
+    string error_message = 3;
+}
+
+message SetRequest {
+    string key = 1;
+    string value = 2;
+    optional int32 ttl = 3; // Time-to-live in seconds, if any
+}
+
+message SetResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+message DeleteRequest {
+    string key = 1;
+}
+
+message DeleteResponse {
+    bool success = 1;
+    string error_message = 2;
+}
+
+message ExistsRequest {
+    string key = 1;
+}
+
+message ExistsResponse {
+    bool exists = 1;
+}
+
+message KeysRequest {
+    optional string pattern = 1; // Optional pattern for filtering keys
+}
+
+message KeysResponse {
+    repeated string keys = 1;
+}

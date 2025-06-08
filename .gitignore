@@ -5,3 +5,4 @@ lib
 AxioDB
 test.js
 TestDBMS
+./source/Docker/node_modules

@@ -1,0 +1,51 @@
+{
+  "name": "axiodb-docker",
+  "version": "1.4.14",
+  "Published": "4th May 2025",
+  "description": "AxioDB Docker is designed to extend the capabilities of AxioDB, enabling seamless integration with other programming languages and systems via REST APIs, TCP connections, WebSocket, and more. This Docker image provides a scalable and efficient way to deploy AxioDB as a service.",
+  "main": "docker.js",
+  "scripts": {
+    "test": "test",
+    "build": "tsc",
+    "start": "nodemon ./build/config/docker.js",
+    "copy-protos": "cp -r src/Server/GRPC/Protos build/Server/GRPC/Protos",
+    "dev": "ts-node ./src/config/docker.ts",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git"
+  },
+  "keywords": [
+    "Docker Images",
+    "Docker Containers",
+    "Docker Compose",
+    "Docker Swarm",
+    "Docker Stacks",
+    "Docker Services",
+    "Docker Networks",
+    "Docker Volumes"
+  ],
+  "author": "Ankan Saha",
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/middie": "^9.0.3",
+    "@fastify/rate-limit": "^10.2.2",
+    "@grpc/grpc-js": "^1.13.3",
+    "@grpc/proto-loader": "^0.7.13",
+    "axiodb": "^2.10.15",
+    "bcryptjs": "^3.0.2",
+    "fastify": "^5.3.2",
+    "nodemon": "^3.1.7",
+    "outers": "^8.6.3",
+    "pm2": "^5.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "ts-node": "^10.9.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
