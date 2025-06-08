@@ -27,4 +27,4 @@ test
 ./source/**/*
 
 # Ignore the following directories and files for the GUI
-./Document
+Document/
