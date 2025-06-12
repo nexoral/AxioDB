@@ -1,4 +1,4 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyReply } from "fastify";
 import { StatusCodes } from "outers";
 import { RequestBody } from "../config/Interfaces/RequestInterface";
 import { ClassBased } from "outers";
@@ -16,7 +16,7 @@ export default async function validateToken(
     return reply.status(StatusCodes.UNAUTHORIZED).send({
       statusCode: StatusCodes.UNAUTHORIZED,
       success: false,
-      error: "Unauthorized",
+      error: "Unauthorized user",
       message:
         "No service token provided, please provide servicetoken in the header",
     });
