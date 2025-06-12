@@ -1,4 +1,5 @@
-import { FastifyInstance, FastifyRequest } from "fastify";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { FastifyInstance } from "fastify";
 import userAuthentication from "./Authentication/Authentication";
 import validateToken from "../../../Middlewares/validateToken.middleware";
 import { RequestBody } from "../../../config/Interfaces/RequestInterface";
@@ -18,7 +19,7 @@ export default function MainServiceRoutes(
 
   // Register DB instances for the central service
   fastify.register(
-    async function (instance: FastifyInstance, opts: any) {
+    async function (instance: FastifyInstance) {
       // Register the Middleware for the /auth routes
       instance.addHook("preHandler", async (request, reply) =>
         validateToken(request as RequestBody, reply),

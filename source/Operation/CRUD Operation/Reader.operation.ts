@@ -32,6 +32,7 @@ export default class Reader {
   private encryptionKey: string | undefined;
   private cryptoInstance?: CryptoHelper;
   private totalCount: boolean;
+  private FindOneStatus: boolean;
   private project: object | any;
   private readonly ResponseHelper: responseHelper;
   private AllData: any[];
@@ -55,6 +56,7 @@ export default class Reader {
     this.path = path;
     this.limit = 10;
     this.skip = 0;
+    this.FindOneStatus = false; // Default value for FindOneStatus
     this.isEncrypted = isEncrypted;
     this.sort = {};
     this.project = {};
@@ -192,6 +194,11 @@ export default class Reader {
    */
   public setCount(count: boolean): Reader {
     this.totalCount = count;
+    return this;
+  }
+
+  public findOne(status:boolean = false): Reader {
+    this.FindOneStatus = status;
     return this;
   }
 
@@ -354,6 +361,25 @@ export default class Reader {
   private async ApplySkipAndLimit(
     FinalData: any[],
   ): Promise<SuccessInterface | ErrorInterface> {
+    // Check if FindOneStatus is true
+    if (this.FindOneStatus === true) {
+      // If FindOneStatus is true then return the first document
+      if (FinalData.length > 0) {
+        if (Object.keys(this.project).length !== 0) {
+          const projectionresponse = await this.ApplyProjection([FinalData[0]]);
+          if ("data" in projectionresponse) {
+            return this.ResponseHelper.Success({
+              documents: projectionresponse.data.documents[0],
+            });
+          }
+        }
+        return this.ResponseHelper.Success({
+          documents: FinalData[0],
+        });
+      } else {
+        return this.ResponseHelper.Error("No documents found");
+      }
+    }
     // Check if limit is passed or not
     if (this.limit !== undefined && this.skip !== undefined) {
       // Apply Skip and Limit

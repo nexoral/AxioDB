@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Fastify from "fastify";
 import ServerInfo from "../../config/Info";
 import { ServerPorts } from "../../config/Keys";

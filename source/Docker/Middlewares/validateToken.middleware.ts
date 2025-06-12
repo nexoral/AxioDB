@@ -35,8 +35,7 @@ export default async function validateToken(
       message: "Invalid or expired token",
     });
   }
-  console.log("Decoded Token", decodedToken.data.data);
-
+  
   // Set the user data in the request body
   request.body = {
     ...request.body,

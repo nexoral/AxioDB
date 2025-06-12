@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FastifyInstance } from "fastify";
 
 // Import Controllers
