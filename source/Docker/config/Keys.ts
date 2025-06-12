@@ -8,7 +8,7 @@ export enum ServerPorts {
   UDP = 27022,
 }
 
-// CentralDB Information
+// CentralDB Informations
 export const CentralDB_Auth_UserCollection_Schema = {
   name: ["required"],
   email: ["required"],
