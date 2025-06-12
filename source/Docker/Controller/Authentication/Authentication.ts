@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Collection from "axiodb/lib/Operation/Collection/collection.operation";
 import { StatusCodes } from "outers";
 import bcrypt from "../../Helper/bcrypt.helper";

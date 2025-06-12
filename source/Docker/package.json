@@ -34,7 +34,7 @@
     "@fastify/rate-limit": "^10.2.2",
     "@grpc/grpc-js": "^1.13.3",
     "@grpc/proto-loader": "^0.7.13",
-    "axiodb": "^2.10.27",
+    "axiodb": "^2.10.28",
     "bcryptjs": "^3.0.2",
     "fastify": "^5.3.2",
     "nodemon": "^3.1.7",
