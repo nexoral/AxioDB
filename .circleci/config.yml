@@ -111,6 +111,30 @@ jobs:
             docker push $DOCKER_REGISTRY/$DOCKERHUB_USERNAME/$DOCKER_IMAGE:$DOCKER_VERSION_TAG
             docker push $DOCKER_REGISTRY/$DOCKERHUB_USERNAME/$DOCKER_IMAGE:latest
 
+      - run:
+          name: Clean up old Docker Hub images
+          command: |
+            # Install Docker Hub API tools
+            apt-get update && apt-get install -y jq curl
+            
+            # Get all tags except 'latest'
+            TAGS=$(curl -s "https://hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/$DOCKER_IMAGE/tags?page_size=100" | jq -r '.results[] | select(.name != "latest") | .name')
+            
+            # Keep the current version tag
+            TAGS_TO_DELETE=$(echo "$TAGS" | grep -v "$DOCKER_VERSION_TAG" || true)
+            
+            # Delete old tags
+            if [ -n "$TAGS_TO_DELETE" ]; then
+              for TAG in $TAGS_TO_DELETE; do
+                echo "Deleting tag: $TAG"
+                curl -X DELETE \
+                  -H "Authorization: JWT $DOCKERHUB_API_KEY" \
+                  "https://hub.docker.com/v2/repositories/$DOCKERHUB_USERNAME/$DOCKER_IMAGE/tags/$TAG/"
+              done
+            else
+              echo "No old tags to delete"
+            fi
+
   # Job to push Docker image to GitHub Container Registry
   push_To_Github:
     docker:
@@ -145,6 +169,33 @@ jobs:
           command: |
             docker push $GITHUB_REGISTRY/$GITHUB_USERNAME/$DOCKER_IMAGE:$DOCKER_VERSION_TAG
             docker push $GITHUB_REGISTRY/$GITHUB_USERNAME/$DOCKER_IMAGE:latest
+
+      - run:
+          name: Clean up old GitHub Container Registry images
+          command: |
+            # Install required tools
+            apt-get update && apt-get install -y jq curl
+
+            # Get authentication token for GitHub API
+            TOKEN=$(echo "$GITHUB_TOKEN" | tr -d '\n')
+            
+            # Get list of all tags except latest and current version
+            PACKAGE_NAME=$(echo "$DOCKER_IMAGE" | tr '[:upper:]' '[:lower:]')
+            API_URL="https://api.github.com/users/$GITHUB_USERNAME/packages/container/$PACKAGE_NAME/versions"
+            
+            echo "Fetching versions from GitHub Container Registry..."
+            VERSIONS=$(curl -s -H "Authorization: Bearer $TOKEN" $API_URL | jq -r '.[] | select(.metadata.container.tags[] != "latest" and .metadata.container.tags[] != "'$DOCKER_VERSION_TAG'") | .id')
+            
+            # Delete old versions
+            if [ -n "$VERSIONS" ]; then
+              for VERSION_ID in $VERSIONS; do
+                echo "Deleting image version with ID: $VERSION_ID"
+                curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+                  "https://api.github.com/users/$GITHUB_USERNAME/packages/container/$PACKAGE_NAME/versions/$VERSION_ID"
+              done
+            else
+              echo "No old versions to delete"
+            fi
 
   # Job to send built client files to a remote server and deploy them
   Send_To_Server:
