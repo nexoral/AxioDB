@@ -55,7 +55,7 @@ const start = async (options: ServerOptions) => {
 
   // Serve the GUI files from the public folder
   await fastify.register(fastifyStatic, {
-    root: path.join(__dirname, "../../AxioControl"),
+    root: path.resolve(__dirname, "../../AxioControl"),
     prefix: "/",
   });
 

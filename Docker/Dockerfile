@@ -13,6 +13,9 @@ RUN npm install
 # Copy the rest of the application source code from the current directory to the working directory in the container
 COPY . .
 
+# Move the AxioControl directory to the correct location
+RUN mv ./AxioControl ./build/
+
 # Install TypeScript and ts-node globally
 RUN npm install -g typescript ts-node
 
