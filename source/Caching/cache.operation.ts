@@ -4,7 +4,7 @@
  * @class InMemoryCache
  * @export InMemoryCache
  * @version 1.0.1
- * @since 24 December 2024
+ * @since 23 April 2025
  **/
 export class InMemoryCache {
   // Properties
