@@ -37,7 +37,7 @@ export default class HashmapSearch {
     // Handle root-level $or
     if ("$or" in query && Array.isArray(query.$or)) {
       const { $or, ...rest } = query;
-      const orMatch = query.$or.some((sub) => this.matchesQuery(item, sub));
+      const orMatch = $or.some((sub) => this.matchesQuery(item, sub));
       const restMatch = Object.keys(rest).length
         ? this.matchesQuery(item, rest)
         : true;
