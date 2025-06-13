@@ -86,6 +86,12 @@ jobs:
             echo "$DOCKERHUB_API_KEY" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
       - run:
+          name: Install Node.js and npm
+          command: |
+            curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+
+      - run:
           name: Build GUI
           command: |
             cd ./GUI && ls && npm install && npm run build
@@ -129,6 +135,12 @@ jobs:
           name: Login to GitHub Container Registry
           command: |
             echo "$GITHUB_TOKEN" | docker login $GITHUB_REGISTRY -u $GITHUB_USERNAME --password-stdin
+
+      - run:
+          name: Install Node.js and npm
+          command: |
+            curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+            sudo apt-get install -y nodejs
 
       - run:
           name: Build GUI
