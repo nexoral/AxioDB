@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export default class HashmapSearch {
   private data: any[];
@@ -33,6 +34,26 @@ export default class HashmapSearch {
    * @returns A boolean indicating if the object matches the query.
    */
   private matchesQuery(item: any, query: { [key: string]: any }): boolean {
+    // Handle root-level $or
+    if ('$or' in query && Array.isArray(query.$or)) {
+      const { $or, ...rest } = query;
+      const orMatch = query.$or.some((sub) => this.matchesQuery(item, sub));
+      const restMatch = Object.keys(rest).length
+        ? this.matchesQuery(item, rest)
+        : true;
+      return orMatch && restMatch;
+    }
+
+    // Handle root-level $and
+    if ('$and' in query && Array.isArray(query.$and)) {
+      const { $and, ...rest } = query;
+      const andMatch = query.$and.every((sub) => this.matchesQuery(item, sub));
+      const restMatch = Object.keys(rest).length
+        ? this.matchesQuery(item, rest)
+        : true;
+      return andMatch && restMatch;
+    }
+
     return Object.keys(query).every((key) => {
       const queryValue = query[key];
       const itemValue = item[key];
