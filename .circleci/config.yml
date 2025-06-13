@@ -72,7 +72,7 @@ jobs:
       - run:
           name: Check if Docker directory changed
           command: |
-            CHANGED=$(git diff --name-only HEAD~1..HEAD | grep "^source/Docker/" || true)
+            CHANGED=$(git diff --name-only HEAD~1..HEAD | grep "^Docker/" || true)
             if [ -z "$CHANGED" ]; then
               echo "No changes in Docker directory, skipping push_To_DockerHub."
               circleci-agent step halt
@@ -131,7 +131,7 @@ jobs:
       - run:
           name: Check if Docker directory changed
           command: |
-            CHANGED=$(git diff --name-only HEAD~1..HEAD | grep "^source/Docker/" || true)
+            CHANGED=$(git diff --name-only HEAD~1..HEAD | grep "^Docker/" || true)
             if [ -z "$CHANGED" ]; then
               echo "No changes in Docker directory, skipping push_To_Github."
               circleci-agent step halt
@@ -147,7 +147,7 @@ jobs:
       - run:
           name: Build Docker image with version and latest tags
           command: |
-            cd ./source/Docker && ls && docker build -t $GITHUB_REGISTRY/$GITHUB_USERNAME/$DOCKER_IMAGE:$DOCKER_VERSION_TAG .
+            cd ./Docker && ls && docker build -t $GITHUB_REGISTRY/$GITHUB_USERNAME/$DOCKER_IMAGE:$DOCKER_VERSION_TAG .
             docker tag $GITHUB_REGISTRY/$GITHUB_USERNAME/$DOCKER_IMAGE:$DOCKER_VERSION_TAG \
             $GITHUB_REGISTRY/$GITHUB_USERNAME/$DOCKER_IMAGE:latest
 

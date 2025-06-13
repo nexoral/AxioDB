@@ -18,5 +18,5 @@
     "rootDir": "./source" // Specify the root directory for your source code
   },
   "include": ["source/**/*.ts", "source/**/*.tsx"], // Include TypeScript and TSX files
-  "exclude": ["node_modules", "source/Docker/**"]
+  "exclude": ["node_modules", "Docker/**"]
 }

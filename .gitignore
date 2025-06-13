@@ -5,12 +5,12 @@ lib
 AxioDB
 test.js
 TestDBMS
-./source/Docker/node_modules
+./Docker/node_modules
 
 # Ignore the following directories and files for Docker builds
-source/Docker/build
-source/Docker/types
-source/Docker/AxioDB_Central_Information
+Docker/build
+Docker/types
+Docker/AxioDB_Central_Information
 
 # Ignore the following directories and files for the GUI
 Document/node_modules
