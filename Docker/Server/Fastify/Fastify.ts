@@ -59,7 +59,7 @@ const start = async (options: ServerOptions) => {
     prefix: "/",
   });
 
-  // Root route will now serve the index.html from the public folder
+  // Root route will now serve the index.html for the GUI of AxioDB
   fastify.get("/", async (request, reply) => {
     return reply.sendFile("index.html");
   });
