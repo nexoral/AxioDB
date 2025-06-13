@@ -3,7 +3,8 @@ import Collection from "axiodb/lib/Operation/Collection/collection.operation";
 import { StatusCodes } from "outers";
 import bcrypt from "../../Helper/bcrypt.helper";
 import { ClassBased } from "outers";
-import { CentralInformation } from "../../config/Keys";
+import { CentralDB_Auth_UserCollection_Schema, CentralInformation } from "../../config/Keys";
+import validateSchema from "../../Helper/schemaValidator.helper";
 // Interfaces
 interface RegisterRequest {
   username: string;
@@ -51,52 +52,63 @@ export default class Authentication {
         };
       }
 
-      // Hash Password
-      const hashedPassword = await bcrypt.hashPassword(userData.password);
-
-      // Create User Object
-      const user = {
-        ...userData,
-        password: hashedPassword,
-      };
-
-      // Create User in Database
-      const createdUser = await CollectionInstance.insert(user);
-      if (createdUser?.statusCode !== StatusCodes.OK) {
+      // Validate the userData against the schema
+      const validation = validateSchema(CentralDB_Auth_UserCollection_Schema, userData);
+      if (validation.status == false) {
         return {
-          status: false,
-          title: "Error in Creating User",
-          message: "User could not be created in the database",
+          status: 400,
+          title: "Validation Error",
+          statusCode: StatusCodes.CONFLICT,
+          message: validation.message || "Validation failed for user data",
         };
       }
 
-      return {
-        status: true,
-        statusCode: StatusCodes.OK,
-        title: "User Created Successfully",
-        message:
-          "User has been created successfully, please login with your credentials",
-        data: {
-          username: userData.username,
-          password: userData.password,
-        },
-      };
-    } catch (error) {
-      console.error("Error in Registering User", error);
-      return {
-        status: false,
-        title: "Error in Registering User",
-        message: "Error in Registering User when creating user",
-        data: error,
-      };
+      // Hash Password
+      const hashedPassword = await bcrypt.hashPassword(userData.password);
+
+        // Create User Object
+        const user = {
+          ...userData,
+          password: hashedPassword,
+        };
+
+        // Create User in Database
+        const createdUser = await CollectionInstance.insert(user);
+        if (createdUser?.statusCode !== StatusCodes.OK) {
+          return {
+            status: false,
+            title: "Error in Creating User",
+            message: "User could not be created in the database",
+          };
+        }
+
+        return {
+          status: true,
+          statusCode: StatusCodes.OK,
+          title: "User Created Successfully",
+          message:
+            "User has been created successfully, please login with your credentials",
+          data: {
+            username: userData.username,
+            password: userData.password,
+          },
+        };
+      } catch (error) {
+        console.error("Error in Registering User", error);
+        return {
+          status: false,
+          title: "Error in Registering User",
+          message: "Error in Registering User when creating user",
+          data: error,
+        };
+      }
     }
-  }
 
   // Method to handle user login management
   public static async Login(
-    userData: LoginRequest,
-    CollectionInstance: Collection,
-  ): Promise<any> {
+      userData: LoginRequest,
+      CollectionInstance: Collection,
+    ): Promise<any> {
     try {
       // check if all fields are filled
       for (const key in userData) {
