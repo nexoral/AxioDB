@@ -8,7 +8,7 @@
   "scripts": {
     "test": "test",
     "copy-protos": "cp -r ./Server/GRPC/Protos build/Server/GRPC/Protos",
-    "build": "tsc && npm run copy-protos",
+    "build": "rm -rf build && tsc && npm run copy-protos",
     "start": "nodemon ./build/config/docker.js",
     "dev": "ts-node ./config/docker.ts",
     "lint": "eslint ."
