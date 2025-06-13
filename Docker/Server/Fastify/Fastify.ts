@@ -52,16 +52,16 @@ const start = async (options: ServerOptions) => {
   });
 
   // Define a simple important route
-  
+
   // Serve the GUI files from the public folder
   await fastify.register(fastifyStatic, {
-    root: path.join(__dirname, '../../AxioControl'),
-    prefix: '/',
+    root: path.join(__dirname, "../../AxioControl"),
+    prefix: "/",
   });
 
   // Root route will now serve the index.html from the public folder
   fastify.get("/", async (request, reply) => {
-    return reply.sendFile('index.html');
+    return reply.sendFile("index.html");
   });
 
   fastify.get("/status", async (_request: any, reply: any) => {
