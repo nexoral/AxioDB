@@ -35,7 +35,7 @@ export default class HashmapSearch {
    */
   private matchesQuery(item: any, query: { [key: string]: any }): boolean {
     // Handle root-level $or
-    if ('$or' in query && Array.isArray(query.$or)) {
+    if ("$or" in query && Array.isArray(query.$or)) {
       const { $or, ...rest } = query;
       const orMatch = query.$or.some((sub) => this.matchesQuery(item, sub));
       const restMatch = Object.keys(rest).length
@@ -45,7 +45,7 @@ export default class HashmapSearch {
     }
 
     // Handle root-level $and
-    if ('$and' in query && Array.isArray(query.$and)) {
+    if ("$and" in query && Array.isArray(query.$and)) {
       const { $and, ...rest } = query;
       const andMatch = query.$and.every((sub) => this.matchesQuery(item, sub));
       const restMatch = Object.keys(rest).length
