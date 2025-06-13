@@ -47,21 +47,33 @@ export default function generateSchema(
 
     for (let i = 0; i < modifiers.length; i++) {
       const mod = modifiers[i];
-      if (mod === "required") field = i === 0 ? SchemaTypes.required() : field.required();
-      else if (mod === "optional") field = i === 0 ? SchemaTypes.optional() : field.optional();
-      else if (mod === "allow:null") field = i === 0 ? SchemaTypes.allow([null]) : field.allow([null]);
+      if (mod === "required")
+        field = i === 0 ? SchemaTypes.required() : field.required();
+      else if (mod === "optional")
+        field = i === 0 ? SchemaTypes.optional() : field.optional();
+      else if (mod === "allow:null")
+        field = i === 0 ? SchemaTypes.allow([null]) : field.allow([null]);
       else if (mod.startsWith("min:"))
-        field = i === 0 ? SchemaTypes.min(Number(mod.split(":")[1])) : field.min(Number(mod.split(":")[1]));
+        field =
+          i === 0
+            ? SchemaTypes.min(Number(mod.split(":")[1]))
+            : field.min(Number(mod.split(":")[1]));
       else if (mod.startsWith("max:"))
-        field = i === 0 ? SchemaTypes.max(Number(mod.split(":")[1])) : field.max(Number(mod.split(":")[1]));
+        field =
+          i === 0
+            ? SchemaTypes.max(Number(mod.split(":")[1]))
+            : field.max(Number(mod.split(":")[1]));
       else if (mod.startsWith("length:"))
-        field = i === 0 ? SchemaTypes.length(Number(mod.split(":")[1])) : field.length(Number(mod.split(":")[1]));
+        field =
+          i === 0
+            ? SchemaTypes.length(Number(mod.split(":")[1]))
+            : field.length(Number(mod.split(":")[1]));
       else if (mod.startsWith("pattern:")) {
         const pattern = new RegExp(mod.split(":")[1]);
         field = i === 0 ? SchemaTypes.pattern(pattern) : field.pattern(pattern);
       } else if (mod.startsWith("email")) {
         field = i === 0 ? SchemaTypes.email() : field.email();
-      }else if (mod.startsWith("alphanum")) {
+      } else if (mod.startsWith("alphanum")) {
         field = i === 0 ? SchemaTypes.alphanum() : field.alphanum();
       } else {
         throw new Error(`Unsupported modifier '${mod}' for key '${key}'.`);

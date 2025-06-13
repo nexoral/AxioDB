@@ -18,7 +18,12 @@ export const CentralDB_Auth_UserCollection_Schema = {
   updatedAt: ["optional"],
   lastLogin: ["optional"],
   isActive: ["optional"],
-  password: ["required", "min:8", "max:100", "pattern:^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$"],
+  password: [
+    "required",
+    "min:8",
+    "max:100",
+    "pattern:^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$",
+  ],
   AccessToken: ["optional"],
 };
 
