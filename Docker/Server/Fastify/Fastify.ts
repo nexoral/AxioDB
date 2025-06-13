@@ -11,6 +11,8 @@ import Database from "axiodb/lib/Operation/Database/database.operation";
 import MainServiceRoutes from "./Router/Router";
 import fastifyRateLimit from "@fastify/rate-limit";
 import { StatusCodes } from "outers";
+import fastifyStatic from "@fastify/static";
+import path from "path";
 
 // Interface
 interface ServerOptions {
@@ -50,8 +52,16 @@ const start = async (options: ServerOptions) => {
   });
 
   // Define a simple important route
-  fastify.get("/", async (_request: any, _reply: any) => {
-    return { message: "Hello, from AxioDB Docker Container" };
+  
+  // Serve the GUI files from the public folder
+  await fastify.register(fastifyStatic, {
+    root: path.join(__dirname, '../../AxioControl'),
+    prefix: '/',
+  });
+
+  // Root route will now serve the index.html from the public folder
+  fastify.get("/", async (request, reply) => {
+    return reply.sendFile('index.html');
   });
 
   fastify.get("/status", async (_request: any, reply: any) => {
