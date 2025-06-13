@@ -24,7 +24,6 @@ export type SchemaInput = {
  *   age: ['number', 'min:18', 'default:21']
  * });
  * ```
- *
  * @returns A schema object with dynamically built validation rules.
  */
 export default function generateSchema(
