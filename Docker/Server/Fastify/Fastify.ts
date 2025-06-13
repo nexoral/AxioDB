@@ -32,7 +32,7 @@ const start = async (options: ServerOptions) => {
 
   // Register the rate limit plugin with custom error response
   // This will limit the number of requests to 100 per minute
-  await fastify.register(fastifyRateLimit, {
+  fastify.register(fastifyRateLimit, {
     max: 100, // Max number of requests
     timeWindow: "1 minute", // Time window for the max
     errorResponseBuilder: function (req, context) {
@@ -54,7 +54,7 @@ const start = async (options: ServerOptions) => {
   // Define a simple important route
 
   // Serve the GUI files from the public folder
-  await fastify.register(fastifyStatic, {
+  fastify.register(fastifyStatic, {
     root: path.resolve(__dirname, "../../AxioControl"),
     prefix: "/",
   });

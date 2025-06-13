@@ -3,7 +3,11 @@ import Collection from "axiodb/lib/Operation/Collection/collection.operation";
 import { StatusCodes } from "outers";
 import bcrypt from "../../Helper/bcrypt.helper";
 import { ClassBased } from "outers";
-import { CentralInformation } from "../../config/Keys";
+import {
+  CentralDB_Auth_UserCollection_Schema,
+  CentralInformation,
+} from "../../config/Keys";
+import validateSchema from "../../Helper/schemaValidator.helper";
 // Interfaces
 interface RegisterRequest {
   username: string;
@@ -34,8 +38,7 @@ export default class Authentication {
       const { email, username } = userData; // Destructure the userData object
       // check if username already exists
       const existingUser = await CollectionInstance.query({
-        email: email,
-        username: username,
+        $or: [{ email: email }, { username: username }],
       }).exec();
       if (
         existingUser.statusCode === StatusCodes.OK &&
@@ -46,6 +49,20 @@ export default class Authentication {
           status: false,
           title: "User Already Exists",
           message: "User with this email or username already exists",
+        };
+      }
+
+      // Validate the userData against the schema
+      const validation = validateSchema(
+        CentralDB_Auth_UserCollection_Schema,
+        userData,
+      );
+      if (validation.status == false) {
+        return {
+          status: 400,
+          title: "Validation Error",
+          statusCode: StatusCodes.CONFLICT,
+          message: validation.message || "Validation failed for user data",
         };
       }
 

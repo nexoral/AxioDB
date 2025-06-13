@@ -7,7 +7,7 @@ import { SchemaTypes } from "axiodb";
  * The first element is the type (e.g., "string", "number") followed by validation modifiers.
  */
 export type SchemaInput = {
-  [key: string]: [...string[]];
+  [key: string]: string[]; // modifiers or [type, ...modifiers]
 };
 
 /**
@@ -24,6 +24,7 @@ export type SchemaInput = {
  *   age: ['number', 'min:18', 'default:21']
  * });
  * ```
+ *
  * @returns A schema object with dynamically built validation rules.
  */
 export default function generateSchema(
@@ -31,40 +32,51 @@ export default function generateSchema(
 ): Record<string, any> {
   const schema: Record<string, any> = {};
 
-  for (const [key, value] of Object.entries(input)) {
-    const [type, ...modifiers] = value;
-    const schemaFunction = SchemaTypes[type as keyof typeof SchemaTypes];
-    let field = schemaFunction ? (schemaFunction as any)() : null;
+  for (const [key, arr] of Object.entries(input)) {
+    // treat first element as type if recognized, otherwise default to string
+    const first = arr[0];
+    const hasType = typeof first === "string" && first in SchemaTypes;
+    const typeName = hasType ? first : "string";
+    const schemaFunction = SchemaTypes[typeName as keyof typeof SchemaTypes];
+    let field: any = (schemaFunction as any)(); // always call builder
+    const modifiers = hasType ? arr.slice(1) : arr;
 
     if (!field) {
-      throw new Error(`Unsupported type '${type}' for key '${key}'.`);
+      throw new Error(`Unsupported type '${typeName}' for key '${key}'.`);
     }
 
-    for (const mod of modifiers) {
-      if (mod === "required") field = field.required();
-      else if (mod === "optional") field = field.optional();
-      else if (mod === "email") field = field.email();
-      else if (mod === "alphanum") field = field.alphanum();
-      else if (mod === "trim") field = field.trim();
-      else if (mod === "allow:null") field = field.allow(null);
+    for (let i = 0; i < modifiers.length; i++) {
+      const mod = modifiers[i];
+      if (mod === "required")
+        field = i === 0 ? SchemaTypes.required() : field.required();
+      else if (mod === "optional")
+        field = i === 0 ? SchemaTypes.optional() : field.optional();
+      else if (mod === "allow:null")
+        field = i === 0 ? SchemaTypes.allow([null]) : field.allow([null]);
       else if (mod.startsWith("min:"))
-        field = field.min(Number(mod.split(":")[1]));
+        field =
+          i === 0
+            ? SchemaTypes.min(Number(mod.split(":")[1]))
+            : field.min(Number(mod.split(":")[1]));
       else if (mod.startsWith("max:"))
-        field = field.max(Number(mod.split(":")[1]));
+        field =
+          i === 0
+            ? SchemaTypes.max(Number(mod.split(":")[1]))
+            : field.max(Number(mod.split(":")[1]));
       else if (mod.startsWith("length:"))
-        field = field.length(Number(mod.split(":")[1]));
-      else if (mod.startsWith("default:")) {
-        const val = mod.split(":")[1];
-        field = field.default(isNaN(Number(val)) ? val : Number(val));
-      } else if (mod.startsWith("valid:")) {
-        const vals = mod.split(":")[1].split(",");
-        field = field.valid(...vals);
-      } else if (mod.startsWith("invalid:")) {
-        const vals = mod.split(":")[1].split(",");
-        field = field.invalid(...vals);
-      } else if (mod.startsWith("pattern:")) {
-        const pattern = mod.split(":")[1];
-        field = field.pattern(new RegExp(pattern));
+        field =
+          i === 0
+            ? SchemaTypes.length(Number(mod.split(":")[1]))
+            : field.length(Number(mod.split(":")[1]));
+      else if (mod.startsWith("pattern:")) {
+        const pattern = new RegExp(mod.split(":")[1]);
+        field = i === 0 ? SchemaTypes.pattern(pattern) : field.pattern(pattern);
+      } else if (mod.startsWith("email")) {
+        field = i === 0 ? SchemaTypes.email() : field.email();
+      } else if (mod.startsWith("alphanum")) {
+        field = i === 0 ? SchemaTypes.alphanum() : field.alphanum();
+      } else {
+        throw new Error(`Unsupported modifier '${mod}' for key '${key}'.`);
       }
     }
 
