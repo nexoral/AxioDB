@@ -34,8 +34,10 @@ export default class Authentication {
       const { email, username } = userData; // Destructure the userData object
       // check if username already exists
       const existingUser = await CollectionInstance.query({
-        email: email,
-        username: username,
+        $or: [
+          { email: email },
+          { username: username },
+        ]
       }).exec();
       if (
         existingUser.statusCode === StatusCodes.OK &&

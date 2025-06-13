@@ -11,8 +11,13 @@ export enum ServerPorts {
 // CentralDB Informations
 export const CentralDB_Auth_UserCollection_Schema = {
   name: ["required"],
-  email: ["required"],
-  username: ["required"],
+  email: ["required", "pattern:^\\S+@\\S+\\.\\S+$"],
+  username: ["required", "min:3", "max:30"],
+  role: ["required"],
+  createdAt: ["optional"],
+  updatedAt: ["optional"],
+  lastLogin: ["optional"],
+  isActive: ["optional"],
   password: ["required"],
   AccessToken: ["optional"],
 };
