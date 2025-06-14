@@ -132,10 +132,16 @@ export default class Collection {
       throw new Error("Data must be an object.");
     }
 
+    // Add the documentId to the data
+    const documentId: string = await this.Insertion.generateUniqueDocumentId();
+    data.documentId = documentId;
+
     // Insert the updatedAt field in schema & data
     data.updatedAt = this.updatedAt;
 
     this.schema.updatedAt = SchemaTypes.date().required();
+    this.schema.documentId = SchemaTypes.string().required();
+
     // Validate the data
     const validator = await SchemaValidator(this.schema, data, false);
 
@@ -143,10 +149,6 @@ export default class Collection {
       Console.red("Validation Error", validator.details);
       return new ResponseHelper().Error(validator.details);
     }
-
-    // Add the documentId to the data
-    const documentId: string = await this.Insertion.generateUniqueDocumentId();
-    data.documentId = documentId;
 
     // Encrypt the data if crypto is enabled
     if (this.cryptoInstance && this.isEncrypted) {
