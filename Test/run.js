@@ -2,8 +2,7 @@ const { AxioDB } = require('../lib/config/DB.js')
 const key = require('./key.js')
 
 const main = async () => {
-
-  const DocumentId = [];
+  const DocumentId = []
 
   // Create multiple DB instances
   for (let i = 0; i < key.Count_To_Loop_DB; i++) {
@@ -34,10 +33,11 @@ const main = async () => {
           const randomIndex = Math.floor(Math.random() * DocumentId.length)
           const randomId = DocumentId[randomIndex]
           console.time('queryTime')
-          const queryResult = await collection.query({ documentId: randomId }).exec();
+          const queryResult = await collection
+            .query({ documentId: randomId })
+            .exec()
           console.timeEnd('queryTime')
           console.log(queryResult)
-
         } else {
           const collection = await database.createCollection(
             `TestCollection${i}_${j}_${k}`,
@@ -55,7 +55,9 @@ const main = async () => {
           const randomIndex = Math.floor(Math.random() * DocumentId.length)
           const randomId = DocumentId[randomIndex]
           console.time('queryTime')
-          const queryResult = await collection.query({ documentId: randomId }).exec();
+          const queryResult = await collection
+            .query({ documentId: randomId })
+            .exec()
           console.timeEnd('queryTime')
           console.log(queryResult)
         }

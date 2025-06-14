@@ -1,12 +1,12 @@
-const { SchemaTypes } = require('../lib/config/DB.js');
+const { SchemaTypes } = require('../lib/config/DB.js')
 
 /* eslint-disable no-undef */
 const Data_Dir = 'TestDB'
-const Count_To_Loop_DB = 10;
-const Count_To_Loop_Data = 10000;
+const Count_To_Loop_DB = 10
+const Count_To_Loop_Data = 10000
 
 const Data_To_Insert = {
-  name: "Ankan Saha",
+  name: 'Ankan Saha',
   age: 21
 }
 
