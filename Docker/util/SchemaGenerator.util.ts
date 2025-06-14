@@ -75,8 +75,6 @@ export default function generateSchema(
         field = i === 0 ? SchemaTypes.email() : field.email();
       } else if (mod.startsWith("alphanum")) {
         field = i === 0 ? SchemaTypes.alphanum() : field.alphanum();
-      } else {
-        throw new Error(`Unsupported modifier '${mod}' for key '${key}'.`);
       }
     }
 
