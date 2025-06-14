@@ -3,6 +3,8 @@ const key = require('./key.js')
 
 const main = async () => {
 
+  const DocumentId = [];
+
   // Create multiple DB instances
   for (let i = 0; i < key.Count_To_Loop_DB; i++) {
     const dbInstance = new AxioDB(`MainDB${i}`, `./${key.Data_Dir}`)
@@ -22,11 +24,19 @@ const main = async () => {
             'MeyKey'
           )
 
-          // Insert 10,000 documents per collection
+          // Insert documents
           for (let m = 0; m < key.Count_To_Loop_Data; m++) {
             const Status = await collection.insert(key.Data_To_Insert)
-            console.log(`Inserted document ${m} into TestCollection${i}_${j}_${k}: ${Status}`)
+            DocumentId.push(Status.data.documentId)
           }
+
+          // -- new: query a random document and measure time
+          const randomIndex = Math.floor(Math.random() * DocumentId.length)
+          const randomId = DocumentId[randomIndex]
+          console.time('queryTime')
+          const queryResult = await collection.query({ documentId: randomId }).exec();
+          console.timeEnd('queryTime')
+          console.log(queryResult)
 
         } else {
           const collection = await database.createCollection(
@@ -35,11 +45,19 @@ const main = async () => {
             even
           )
 
-          // Insert 10,000 documents per collection
+          // Insert documents
           for (let m = 0; m < key.Count_To_Loop_Data; m++) {
             const Status = await collection.insert(key.Data_To_Insert)
-            console.log(`Inserted document ${m} into TestCollection${i}_${j}_${k}: ${Status}`)
+            DocumentId.push(Status.data.documentId)
           }
+
+          // -- new: query a random document and measure time
+          const randomIndex = Math.floor(Math.random() * DocumentId.length)
+          const randomId = DocumentId[randomIndex]
+          console.time('queryTime')
+          const queryResult = await collection.query({ documentId: randomId }).exec();
+          console.timeEnd('queryTime')
+          console.log(queryResult)
         }
       }
     }
