@@ -15,7 +15,9 @@ Docker/AxioDB_Central_Information
 # Ignore the following directories and files for the GUI
 Document/node_modules
 Document/AxioDB_Docs
+Document/.vite
 
 # Ignore the following directories and files for the Web Client
 GUI/node_modules
 GUI/AxioControl
+GUI/.vite

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Menu, X, Moon, Sun, Search } from "lucide-react";
+import { Menu, Moon, Search, Sun, X } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -48,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
               className="flex items-center gap-2 text-gray-900 dark:text-white"
             >
               <img src="/AXioDB.png" alt="AxioDB Logo" className="h-8 w-8" />
-              <span className="text-xl font-bold">AxioDB</span>
+              <span className="text-xl font-bold">AxioDB Docs</span>
             </Link>
           </div>
 
