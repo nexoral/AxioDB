@@ -25,7 +25,7 @@ AxioDB
 test
 .idea
 ./source/**/*
-
+Test/
 # Ignore the following directories and files for the GUI
 Document/
 Docker/
