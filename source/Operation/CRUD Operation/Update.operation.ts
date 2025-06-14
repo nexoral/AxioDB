@@ -80,10 +80,6 @@ export default class UpdateOperation {
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      // Insert the updatedAt field in schema & data
-      this.schema.updatedAt = SchemaTypes.date().required();
-      newData.updatedAt = new Date().toISOString();
-
       // check if the data is an object or not
       if (typeof newData !== "object") {
         throw new Error("Data must be an object.");
@@ -105,6 +101,10 @@ export default class UpdateOperation {
         Console.red("Validation Error", validator.details);
         return this.ResponseHelper.Error(validator.details);
       }
+
+      // Insert the updatedAt field in schema & data
+      this.schema.updatedAt = SchemaTypes.date().required();
+      newData.updatedAt = new Date().toISOString();
 
       // if documentId is provided in the baseQuery then read the file with the documentId
       let ReadResponse; // Read Response Holder
