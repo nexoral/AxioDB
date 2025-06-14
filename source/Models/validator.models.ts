@@ -14,7 +14,7 @@ export default async function schemaValidate(
   data: any,
   isUpdate = false,
 ): Promise<any> {
-  if (isUpdate) {
+  if (isUpdate == true) {
     // For update operations, we allow partial data
     try {
       // Use Joi.object() correctly to wrap the schema and validate data.
@@ -26,7 +26,8 @@ export default async function schemaValidate(
   } else {
     // For create operations, we require all data fields
     try {
-      return await dataSchema.validateAsync(data); // Validate the actual data against the schema
+      const joiSchema = Joi.object(dataSchema); // Wrap the schema with Joi.object() for proper validation
+      return await joiSchema.validateAsync(data); // Validate the actual data against the schema
     } catch (error) {
       return error;
     }

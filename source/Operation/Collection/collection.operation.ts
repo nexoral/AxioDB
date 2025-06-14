@@ -136,7 +136,6 @@ export default class Collection {
     data.updatedAt = this.updatedAt;
 
     this.schema.updatedAt = SchemaTypes.date().required();
-
     // Validate the data
     const validator = await SchemaValidator(this.schema, data, false);
 
