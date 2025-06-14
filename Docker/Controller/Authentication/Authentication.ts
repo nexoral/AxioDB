@@ -184,7 +184,7 @@ export default class Authentication {
       // Update in DB
       const updateResponse = await CollectionInstance.update({
         username: username,
-      }).UpdateOne({ AccessToken: newAccessToken.toKen });
+      }).UpdateOne({ AccessToken: newAccessToken.toKen, lastLogin: Date.now() });
 
       if (
         updateResponse.status == true &&
@@ -216,6 +216,62 @@ export default class Authentication {
         status: false,
         title: "Error in Login User",
         message: "Error in Login User when creating user",
+        data: error,
+      };
+    }
+  }
+
+  // Method to get user information by AccessToken
+  public static async GetUserByAccessToken(token: string, CollectionInstance: Collection): Promise<any> {
+    try {
+      // Validate the token
+      if (!token) {
+        return {
+          status: false,
+          title: "Invalid Token",
+          message: "AccessToken is required",
+        };
+      }
+
+      // Decode the token to get the user information
+      const decodedToken = new ClassBased.JWT_Manager(
+        CentralInformation.CentralDB_JWT_Secret,
+      ).decode(token);
+
+      // Find the user by AccessToken
+      const user = await CollectionInstance.query({
+        documentId: decodedToken.data.data.documentId,
+      }).findOne(true).setProject({
+        username: 1,
+        email: 1,
+        name: 1,
+        role: 1,
+        documentId: 1,
+        updatedAt: 1,
+        lastLogin: 1,
+        isActive: 1,
+      }).exec();
+
+      if (user.statusCode === StatusCodes.OK && user.status == true) {
+        return {
+          status: true,
+          title: "User Found",
+          message: "User information retrieved successfully",
+          data: user.data.documents,
+        };
+      } else {
+        return {
+          status: false,
+          title: "User Not Found",
+          message: "User with this AccessToken does not exist",
+        };
+      }
+    } catch (error) {
+      console.error("Error in GetUserByAccessToken", error);
+      return {
+        status: false,
+        title: "Error in GetUserByAccessToken",
+        message: "Error in GetUserByAccessToken when fetching user",
         data: error,
       };
     }

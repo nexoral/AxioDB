@@ -14,7 +14,6 @@ export const CentralDB_Auth_UserCollection_Schema = {
   email: ["required"],
   username: ["required"],
   role: ["required"],
-  createdAt: ["optional"],
   updatedAt: ["optional"],
   lastLogin: ["optional"],
   isActive: ["optional"],

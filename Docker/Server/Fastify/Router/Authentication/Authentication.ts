@@ -29,4 +29,21 @@ export default function userAuthentication(
     const result = await Authentication.Login(userData, CentralAuthCollection);
     return reply.status(result.status ? 200 : 401).send(result);
   });
+
+  fastify.get("/userInfo", async (request: any, reply: any) => {
+    const AccessToken: string  = request.headers["accesstoken"] as string;
+    if (!AccessToken) {
+      return reply.status(400).send({
+        status: false,
+        title: "Bad Request",
+        message: "accesstoken is required",
+      });
+    }
+
+    const result = await Authentication.GetUserByAccessToken(
+      AccessToken,
+      CentralAuthCollection,
+    );
+    return reply.status(result.status ? 200 : 404).send(result);
+  });
 }
