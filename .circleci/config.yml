@@ -1,6 +1,19 @@
 version: 2.1
 
 jobs:
+  Test:
+    docker:
+      - image: node:latest
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: npm ci && npm run build
+      - run:
+          name: Run Tests
+          command: npm run test
+
   # Jobs for AxioDB package testing and publishing to NPM Package Registry
   Publish_To_NPM:
     docker:
@@ -215,23 +228,37 @@ workflows:
   version: 2
   Pipeline:
     jobs:
+      - Test:
+          filters:
+            branches:
+              only: main
       - Publish_To_NPM:
+          requires:
+            - Test
           filters:
             branches:
               only: main
       - Publish_To_Github:
+          requires:
+            - Test
           filters:
             branches:
               only: main
       - push_To_DockerHub:
+          requires:
+            - Test
           filters:
             branches:
               only: main
       - push_To_Github:
+          requires:
+            - Test
           filters:
             branches:
               only: main
       - Send_To_Server:
+          requires:
+            - Test
           filters:
             branches:
               only: main

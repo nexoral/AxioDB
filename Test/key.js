@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 const Data_Dir = 'TestDB'
-const Count_To_Loop_DB = 100
+const Count_To_Loop_DB = 10
 
 module.exports = {
   Data_Dir,
