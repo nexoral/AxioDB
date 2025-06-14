@@ -29,15 +29,29 @@ const main = async () => {
             DocumentId.push(Status.data.documentId)
           }
 
-          // -- new: query a random document and measure time
-          const randomIndex = Math.floor(Math.random() * DocumentId.length)
+          // -- existing: query by documentId
+          const randomIndex = DocumentId.length - 1
           const randomId = DocumentId[randomIndex]
-          console.time('queryTime')
+          console.time('queryTime for documentId')
           const queryResult = await collection
             .query({ documentId: randomId })
             .exec()
-          console.timeEnd('queryTime')
+          console.timeEnd('queryTime for documentId')
           console.log(queryResult)
+
+          // -- new: query by age = 21
+          console.time('queryTime for age 21')
+          const ageResult = await collection.query({ age: 21 }).exec()
+          console.timeEnd('queryTime for age 21')
+          console.log(ageResult)
+
+          // For Checking cache search Same document 4 times
+          for (let n = 0; n < 4; n++) {
+            console.time(`queryTime for age - cache ${n}`)
+            const cachedResult = await collection.query({ age: 21 }).exec()
+            console.timeEnd(`queryTime for age - cache ${n}`)
+            console.log(cachedResult)
+          }
         } else {
           const collection = await database.createCollection(
             `TestCollection${i}_${j}_${k}`,
@@ -51,15 +65,29 @@ const main = async () => {
             DocumentId.push(Status.data.documentId)
           }
 
-          // -- new: query a random document and measure time
-          const randomIndex = Math.floor(Math.random() * DocumentId.length)
+          // -- existing: query by documentId
+          const randomIndex = DocumentId.length - 1
           const randomId = DocumentId[randomIndex]
-          console.time('queryTime')
+          console.time('queryTime for documentId')
           const queryResult = await collection
             .query({ documentId: randomId })
             .exec()
-          console.timeEnd('queryTime')
+          console.timeEnd('queryTime for documentId')
           console.log(queryResult)
+
+          // -- new: query by age = 21
+          console.time('queryTime for age 21')
+          const ageResult = await collection.query({ age: 21 }).exec()
+          console.timeEnd('queryTime for age 21')
+          console.log(ageResult)
+
+          // For Checking cache search Same document 4 times
+          for (let n = 0; n < 4; n++) {
+            console.time(`queryTime for age - cache ${n}`)
+            const cachedResult = await collection.query({ age: 21 }).exec()
+            console.timeEnd(`queryTime for age - cache ${n}`)
+            console.log(cachedResult)
+          }
         }
       }
     }
