@@ -48,9 +48,7 @@ const main = async () => {
           // For Checking cache search Same document 4 times
           for (let n = 0; n < 4; n++) {
             console.time(`queryTime for age - cache ${n}`)
-            const cachedResult = await collection
-              .query({ age: 21 })
-              .exec()
+            const cachedResult = await collection.query({ age: 21 }).exec()
             console.timeEnd(`queryTime for age - cache ${n}`)
             console.log(cachedResult)
           }
@@ -86,12 +84,10 @@ const main = async () => {
           // For Checking cache search Same document 4 times
           for (let n = 0; n < 4; n++) {
             console.time(`queryTime for age - cache ${n}`)
-            const cachedResult = await collection
-              .query({ age: 21 })
-              .exec()
+            const cachedResult = await collection.query({ age: 21 }).exec()
             console.timeEnd(`queryTime for age - cache ${n}`)
             console.log(cachedResult)
-                    }
+          }
         }
       }
     }
