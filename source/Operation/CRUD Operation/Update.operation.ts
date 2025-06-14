@@ -19,7 +19,6 @@ import Insertion from "./Create.operation";
 import InMemoryCache from "../../Caching/cache.operation";
 import { General } from "../../config/Keys/Keys";
 
-
 export default class UpdateOperation {
   // Properties
   protected readonly collectionName: string;
