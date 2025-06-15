@@ -17,7 +17,7 @@ COPY . .
 RUN npm install -g typescript ts-node
 
 # Compile TypeScript to JavaScript
-RUN npm run build && npm run copy-protos
+RUN npm run build
 
 # Move the AxioControl directory to the correct location
 RUN mv ./AxioControl ./build/
