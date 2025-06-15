@@ -7,15 +7,15 @@ import {
 } from "../../config/Interfaces/Helper/response.helper.interface";
 
 // Import All helpers
-import responseHelper from "../../Helper/response.helper";
-import Converter from "../../Helper/Converter.helper";
-import FileManager from "../../Storage/FileManager";
-import { CryptoHelper } from "../../Helper/Crypto.helper";
 import InMemoryCache from "../../Caching/cache.operation";
+import Converter from "../../Helper/Converter.helper";
+import { CryptoHelper } from "../../Helper/Crypto.helper";
+import responseHelper from "../../Helper/response.helper";
+import FileManager from "../../Storage/FileManager";
 // Import All Utility
+import { General } from "../../config/Keys/Keys";
 import HashmapSearch from "../../utils/HashMapSearch.utils";
 import Sorting from "../../utils/SortData.utils";
-import { General } from "../../config/Keys/Keys";
 
 /**
  * Class representing a read operation.
@@ -97,8 +97,8 @@ export default class Reader {
           const FilePath =
             Array.isArray(this.baseQuery?.documentId) == true
               ? this.baseQuery.documentId.map(
-                  (id: any) => `.${id}${General.DBMS_File_EXT}`,
-                )
+                (id: any) => `.${id}${General.DBMS_File_EXT}`,
+              )
               : [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
           ReadResponse = await this.LoadAllBufferRawData(FilePath);
           //  Send the data to the client directly
@@ -430,6 +430,10 @@ export default class Reader {
   private async ApplyProjection(
     FinalData: any[],
   ): Promise<SuccessInterface | ErrorInterface> {
+    
+    // Special keys
+    const SpecialKeys = ["documentId"];
+
     // Apply Project
     if (Object.keys(this.project).length !== 0) {
       const projectedData: any[] = FinalData.map((data) => {
@@ -453,6 +457,13 @@ export default class Reader {
         } else {
           throw new Error("Invalid projection: mixing inclusion and exclusion is not allowed.");
         }
+
+        // Always include documentId (and optionally updatedAt)
+        SpecialKeys.forEach((key) => {
+          if (key in data) {
+            projectedObject[key] = data[key];
+          }
+        });
         return projectedObject;
       });
       return this.ResponseHelper.Success({
