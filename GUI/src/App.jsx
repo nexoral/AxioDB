@@ -1,36 +1,40 @@
 import './App.css'
 
-function App () {
+export default function App() {
   return (
-    <div className='App'>
-      <header className='App-header'>
-        <h1>Welcome to AxioDB Control Center</h1>
-      </header>
-      <main>
-        <p>Here you can access AxioDB-Docker’s GUI features:</p>
-        <ul className='features'>
-          <li>Import</li>
-          <li>Export</li>
-          <li>CRUD Operations</li>
-          <li>And more…</li>
-        </ul>
-        <section className='upcoming-features'>
-          <h2>Upcoming Features</h2>
-          <ul>
-            <li>Dashboard & Analytics</li>
-            <li>User Management</li>
-            <li>Role-Based Access</li>
-            <li>Multi-Database Support</li>
-            <li>Custom Themes</li>
-          </ul>
-        </section>
-        <p className='under-development'>
-          This site is currently <strong>Under Development</strong>. Please wait
-          for the Stable Release.
+    <div className="landing-page">
+      <div className="hero">
+        <div className="loader" />
+        <h1>AxioDB Control Board</h1>
+        <p className="subtitle">
+          A next-generation GUI for AxioDB-Docker is <strong>Coming Soon</strong>
         </p>
-      </main>
+      </div>
+
+      <section className="features">
+        <h2>Upcoming Features</h2>
+        <div className="cards">
+          <div className="card">
+            <h3>Import & Export</h3>
+          </div>
+          <div className="card">
+            <h3>CRUD Operations</h3>
+          </div>
+          <div className="card">
+            <h3>Dashboard & Analytics</h3>
+          </div>
+          <div className="card">
+            <h3>User Management</h3>
+          </div>
+          <div className="card">
+            <h3>Role-Based Access</h3>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <p>Site under development — stay tuned for the stable release.</p>
+      </footer>
     </div>
   )
 }
-
-export default App
