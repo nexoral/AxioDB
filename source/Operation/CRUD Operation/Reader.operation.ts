@@ -434,11 +434,19 @@ export default class Reader {
     if (Object.keys(this.project).length !== 0) {
       const projectedData: any[] = FinalData.map((data) => {
         const projectedObject: any = {};
-        Object.keys(this.project).forEach((key) => {
-          if (key in data) {
+        for (const [key, value] of Object.entries(this.project)) {
+          if (key in data && value === 1) {
             projectedObject[key] = data[key];
           }
-        });
+          else if (key in data && value === 0) {
+            // If value is 0, we skip this key
+            continue;
+          }
+          else if (value === 1) {
+            // If value is 1 and key does not exist in data, we add it with null value
+            projectedObject[key] = null;
+          }
+        }
         return projectedObject;
       });
       return this.ResponseHelper.Success({
