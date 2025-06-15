@@ -94,7 +94,7 @@ export default class UpdateOperation {
         }
       }
       // Validate the data
-      const validator = await SchemaValidator(this.schema, newData, false);
+      const validator = await SchemaValidator(this.schema, newData, true);
 
       if (validator?.details) {
         Console.red("Validation Error", validator.details);
