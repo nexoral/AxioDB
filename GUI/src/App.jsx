@@ -1,6 +1,6 @@
 import './App.css'
 
-function App() {
+function App () {
   return (
     <div className='App'>
       <header className='App-header'>
@@ -25,8 +25,8 @@ function App() {
           </ul>
         </section>
         <p className='under-development'>
-          This site is currently <strong>Under Development</strong>. Please wait for
-          the Stable Release.
+          This site is currently <strong>Under Development</strong>. Please wait
+          for the Stable Release.
         </p>
       </main>
     </div>
