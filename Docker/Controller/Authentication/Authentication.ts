@@ -184,7 +184,10 @@ export default class Authentication {
       // Update in DB
       const updateResponse = await CollectionInstance.update({
         username: username,
-      }).UpdateOne({ AccessToken: newAccessToken.toKen, lastLogin: Date.now() });
+      }).UpdateOne({
+        AccessToken: newAccessToken.toKen,
+        lastLogin: Date.now(),
+      });
 
       if (
         updateResponse.status == true &&
@@ -222,7 +225,10 @@ export default class Authentication {
   }
 
   // Method to get user information by AccessToken
-  public static async GetUserByAccessToken(token: string, CollectionInstance: Collection): Promise<any> {
+  public static async GetUserByAccessToken(
+    token: string,
+    CollectionInstance: Collection,
+  ): Promise<any> {
     try {
       // Validate the token
       if (!token) {
@@ -241,16 +247,19 @@ export default class Authentication {
       // Find the user by AccessToken
       const user = await CollectionInstance.query({
         documentId: decodedToken.data.data.documentId,
-      }).findOne(true).setProject({
-        username: 1,
-        email: 1,
-        name: 1,
-        role: 1,
-        documentId: 1,
-        updatedAt: 1,
-        lastLogin: 1,
-        isActive: 1,
-      }).exec();
+      })
+        .findOne(true)
+        .setProject({
+          username: 1,
+          email: 1,
+          name: 1,
+          role: 1,
+          documentId: 1,
+          updatedAt: 1,
+          lastLogin: 1,
+          isActive: 1,
+        })
+        .exec();
 
       if (user.statusCode === StatusCodes.OK && user.status == true) {
         return {
