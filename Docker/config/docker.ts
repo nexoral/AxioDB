@@ -28,6 +28,8 @@ const main = async () => {
   const centralAuthCollection = await centralDB.createCollection(
     CentralInformation.CentralDB_Collection_Auth,
     CentralInformation.CentralDB_Auth_UserCollection_Schema,
+    true,
+    CentralInformation.CentralDB_JWT_Secret
   );
   Console.green(
     `Central Auth Collection Created with ${CentralInformation.CentralDB_Collection_Auth}`,
