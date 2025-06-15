@@ -5,6 +5,19 @@
   text-align: center;
 }
 
+.App {
+  text-align: center;
+  padding: 2rem;
+}
+
+.App-header {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  padding: 2rem;
+  color: #fff;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -35,6 +48,31 @@
 
 .card {
   padding: 2em;
+}
+
+main {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.features,
+.upcoming-features ul {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+.features li,
+.upcoming-features li {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+.upcoming-features {
+  margin-top: 2rem;
+}
+.under-development {
+  margin-top: 1.5rem;
+  color: #d35400;
+  font-weight: bold;
 }
 
 .read-the-docs {

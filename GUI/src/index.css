@@ -24,6 +24,9 @@ a:hover {
 
 body {
   margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f7fc;
+  color: #333;
   display: flex;
   place-items: center;
   min-width: 320px;
