@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Collection from "axiodb/lib/Operation/Collection/collection.operation";
-import { StatusCodes } from "outers";
-import bcrypt from "../../Helper/bcrypt.helper";
-import { ClassBased } from "outers";
+import { ClassBased, StatusCodes } from "outers";
 import {
   CentralDB_Auth_UserCollection_Schema,
   CentralInformation,
 } from "../../config/Keys";
+import bcrypt from "../../Helper/bcrypt.helper";
 import validateSchema from "../../Helper/schemaValidator.helper";
 // Interfaces
 interface RegisterRequest {
@@ -186,7 +185,7 @@ export default class Authentication {
         username: username,
       }).UpdateOne({
         AccessToken: newAccessToken.toKen,
-        lastLogin: Date.now(),
+        lastLogin: new Date().toISOString(),
       });
 
       if (
@@ -250,14 +249,8 @@ export default class Authentication {
       })
         .findOne(true)
         .setProject({
-          username: 1,
-          email: 1,
-          name: 1,
-          role: 1,
-          documentId: 1,
-          updatedAt: 1,
-          lastLogin: 1,
-          isActive: 1,
+          password: 0,
+          AccessToken: 0,
         })
         .exec();
 
