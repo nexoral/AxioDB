@@ -434,19 +434,24 @@ export default class Reader {
     if (Object.keys(this.project).length !== 0) {
       const projectedData: any[] = FinalData.map((data) => {
         const projectedObject: any = {};
-        for (const [key, value] of Object.entries(this.project)) {
-          if (key in data && value === 1) {
-            projectedObject[key] = data[key];
-          } else if (key in data && value === 0) {
-            // If value is 0, we skip this key
-            continue;
-          } else if (value === 1) {
-            // If value is 1 and key does not exist in data, we add it with null value
-            projectedObject[key] = null;
-          } else {
-            // If key is not in data and value is not 1 or 0, we skip this key
-            projectedObject[key] = data[key];
+        const keys = Object.keys(this.project);
+        const hasInclude = keys.some(key => this.project[key] === 1);
+        const hasExclude = keys.every(key => this.project[key] === 0);
+
+        if (hasInclude) {
+          for (const [key, value] of Object.entries(this.project)) {
+            if (value === 1) {
+              projectedObject[key] = key in data ? data[key] : null;
+            }
           }
+        } else if (hasExclude) {
+          for (const key in data) {
+            if (!(key in this.project)) {
+              projectedObject[key] = data[key];
+            }
+          }
+        } else {
+          throw new Error("Invalid projection: mixing inclusion and exclusion is not allowed.");
         }
         return projectedObject;
       });
