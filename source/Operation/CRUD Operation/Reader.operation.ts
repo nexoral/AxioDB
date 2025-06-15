@@ -443,6 +443,9 @@ export default class Reader {
           } else if (value === 1) {
             // If value is 1 and key does not exist in data, we add it with null value
             projectedObject[key] = null;
+          } else {
+            // If key is not in data and value is not 1 or 0, we skip this key
+            projectedObject[key] = data[key];
           }
         }
         return projectedObject;
