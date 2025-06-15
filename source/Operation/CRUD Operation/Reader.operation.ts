@@ -197,7 +197,7 @@ export default class Reader {
     return this;
   }
 
-  public findOne(status:boolean = false): Reader {
+  public findOne(status: boolean = false): Reader {
     this.FindOneStatus = status;
     return this;
   }
@@ -437,12 +437,10 @@ export default class Reader {
         for (const [key, value] of Object.entries(this.project)) {
           if (key in data && value === 1) {
             projectedObject[key] = data[key];
-          }
-          else if (key in data && value === 0) {
+          } else if (key in data && value === 0) {
             // If value is 0, we skip this key
             continue;
-          }
-          else if (value === 1) {
+          } else if (value === 1) {
             // If value is 1 and key does not exist in data, we add it with null value
             projectedObject[key] = null;
           }
