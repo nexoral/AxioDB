@@ -7,15 +7,15 @@ import {
 } from "../../config/Interfaces/Helper/response.helper.interface";
 
 // Import All helpers
-import responseHelper from "../../Helper/response.helper";
-import Converter from "../../Helper/Converter.helper";
-import FileManager from "../../Storage/FileManager";
-import { CryptoHelper } from "../../Helper/Crypto.helper";
 import InMemoryCache from "../../Caching/cache.operation";
+import Converter from "../../Helper/Converter.helper";
+import { CryptoHelper } from "../../Helper/Crypto.helper";
+import responseHelper from "../../Helper/response.helper";
+import FileManager from "../../Storage/FileManager";
 // Import All Utility
+import { General } from "../../config/Keys/Keys";
 import HashmapSearch from "../../utils/HashMapSearch.utils";
 import Sorting from "../../utils/SortData.utils";
-import { General } from "../../config/Keys/Keys";
 
 /**
  * Class representing a read operation.
@@ -430,24 +430,41 @@ export default class Reader {
   private async ApplyProjection(
     FinalData: any[],
   ): Promise<SuccessInterface | ErrorInterface> {
+    // Special keys
+    const SpecialKeys = ["documentId"];
+
     // Apply Project
     if (Object.keys(this.project).length !== 0) {
       const projectedData: any[] = FinalData.map((data) => {
         const projectedObject: any = {};
-        for (const [key, value] of Object.entries(this.project)) {
-          if (key in data && value === 1) {
-            projectedObject[key] = data[key];
-          } else if (key in data && value === 0) {
-            // If value is 0, we skip this key
-            continue;
-          } else if (value === 1) {
-            // If value is 1 and key does not exist in data, we add it with null value
-            projectedObject[key] = null;
-          } else {
-            // If key is not in data and value is not 1 or 0, we skip this key
+        const keys = Object.keys(this.project);
+        const hasInclude = keys.some((key) => this.project[key] === 1);
+        const hasExclude = keys.every((key) => this.project[key] === 0);
+
+        if (hasInclude) {
+          for (const [key, value] of Object.entries(this.project)) {
+            if (value === 1) {
+              projectedObject[key] = key in data ? data[key] : null;
+            }
+          }
+        } else if (hasExclude) {
+          for (const key in data) {
+            if (!(key in this.project)) {
+              projectedObject[key] = data[key];
+            }
+          }
+        } else {
+          throw new Error(
+            "Invalid projection: mixing inclusion and exclusion is not allowed.",
+          );
+        }
+
+        // Always include documentId (and optionally updatedAt)
+        SpecialKeys.forEach((key) => {
+          if (key in data) {
             projectedObject[key] = data[key];
           }
-        }
+        });
         return projectedObject;
       });
       return this.ResponseHelper.Success({
