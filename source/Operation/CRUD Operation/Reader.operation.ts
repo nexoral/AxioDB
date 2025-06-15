@@ -97,8 +97,8 @@ export default class Reader {
           const FilePath =
             Array.isArray(this.baseQuery?.documentId) == true
               ? this.baseQuery.documentId.map(
-                (id: any) => `.${id}${General.DBMS_File_EXT}`,
-              )
+                  (id: any) => `.${id}${General.DBMS_File_EXT}`,
+                )
               : [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
           ReadResponse = await this.LoadAllBufferRawData(FilePath);
           //  Send the data to the client directly
@@ -430,7 +430,6 @@ export default class Reader {
   private async ApplyProjection(
     FinalData: any[],
   ): Promise<SuccessInterface | ErrorInterface> {
-    
     // Special keys
     const SpecialKeys = ["documentId"];
 
@@ -439,8 +438,8 @@ export default class Reader {
       const projectedData: any[] = FinalData.map((data) => {
         const projectedObject: any = {};
         const keys = Object.keys(this.project);
-        const hasInclude = keys.some(key => this.project[key] === 1);
-        const hasExclude = keys.every(key => this.project[key] === 0);
+        const hasInclude = keys.some((key) => this.project[key] === 1);
+        const hasExclude = keys.every((key) => this.project[key] === 0);
 
         if (hasInclude) {
           for (const [key, value] of Object.entries(this.project)) {
@@ -455,7 +454,9 @@ export default class Reader {
             }
           }
         } else {
-          throw new Error("Invalid projection: mixing inclusion and exclusion is not allowed.");
+          throw new Error(
+            "Invalid projection: mixing inclusion and exclusion is not allowed.",
+          );
         }
 
         // Always include documentId (and optionally updatedAt)
