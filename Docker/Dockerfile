@@ -19,8 +19,14 @@ RUN npm install -g typescript ts-node
 # Compile TypeScript to JavaScript
 RUN npm run build
 
-# Move the AxioControl directory to the correct location
-RUN mv ./AxioControl ./build/
+# Build the GUI application Next.js
+RUN cd ./GUI && npm install && npm run build
+
+# Install pm2 globally for process management
+RUN npm install -g pm2
+
+# Start the application using pm2
+RUN pm2 start npm --name "AxioDB GUI" -- start
 
 # Expose the port the app runs on
 EXPOSE 27018
@@ -29,6 +35,7 @@ EXPOSE 27020
 EXPOSE 27021
 EXPOSE 27022
 EXPOSE 27023
+EXPOSE 27024
 
 # Command to run the application
 ENTRYPOINT ["npm", "run", "start"]

@@ -53,17 +53,6 @@ const start = async (options: ServerOptions) => {
 
   // Define a simple important route
 
-  // Serve the GUI files from the public folder
-  fastify.register(fastifyStatic, {
-    root: path.resolve(__dirname, "../../AxioControl"),
-    prefix: "/",
-  });
-
-  // Root route will now serve the index.html for the GUI of AxioDB
-  fastify.get("/", async (request, reply) => {
-    return reply.sendFile("index.html");
-  });
-
   fastify.get("/status", async (_request: any, reply: any) => {
     return reply.status(StatusCodes.OK).send({
       status: "OK",

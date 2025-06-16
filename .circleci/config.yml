@@ -112,7 +112,7 @@ jobs:
       - run:
           name: Move GUI build to Docker directory
           command: |
-            mv ./GUI/AxioControl ./Docker/ && cd ..
+            mv ./GUI ./Docker/ && cd ..
 
       - run:
           name: Build Docker image with version and latest tags
@@ -163,7 +163,7 @@ jobs:
       - run:
           name: Move GUI build to Docker directory
           command: |
-            mv ./GUI/AxioControl ./Docker/ && cd ..
+            mv ./GUI ./Docker/ && cd ..
 
       - run:
           name: Build Docker image with version and latest tags
