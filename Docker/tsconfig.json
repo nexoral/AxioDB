@@ -26,6 +26,7 @@
     "./**/*.proto"
   ], // Include TypeScript, TSX, and Proto files
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "GUI",
   ]
 }
