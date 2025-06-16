@@ -31,12 +31,12 @@ export default function userAuthentication(
   });
 
   fastify.get("/userInfo", async (request: any, reply: any) => {
-    const AccessToken: string = request.headers["accesstoken"] as string;
+    const AccessToken: string = request.headers["token"] as string;
     if (!AccessToken) {
       return reply.status(400).send({
         status: false,
         title: "Bad Request",
-        message: "accesstoken is required",
+        message: "token is required",
       });
     }
 
