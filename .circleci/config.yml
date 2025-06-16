@@ -105,11 +105,6 @@ jobs:
             sudo apt-get install -y nodejs
 
       - run:
-          name: Build GUI
-          command: |
-            cd ./GUI && ls && npm install && npm run build
-
-      - run:
           name: Move GUI build to Docker directory
           command: |
             mv ./GUI ./Docker/ && cd ..
