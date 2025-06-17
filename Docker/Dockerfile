@@ -25,8 +25,6 @@ RUN cd ./GUI && npm install && npm run build
 # Install pm2 globally for process management
 RUN npm install -g pm2
 
-# Start the application using pm2
-RUN pm2 start npm --name "AxioDB GUI" -- start
 
 # Expose the port the app runs on
 EXPOSE 27018
@@ -38,4 +36,4 @@ EXPOSE 27023
 EXPOSE 27024
 
 # Command to run the application
-ENTRYPOINT ["npm", "run", "start"]
+ENTRYPOINT ["bash", "-c", "npm run run-gui & npm run start"]

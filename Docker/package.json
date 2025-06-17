@@ -9,6 +9,7 @@
     "test": "test",
     "copy-protos": "cp -r ./Server/GRPC/Protos build/Server/GRPC/Protos",
     "build": "tsc && npm run copy-protos",
+    "run-gui": "cd ./GUI && pm2 start npm --name \"AxioDB GUI\" -- start && cd ..",
     "start": "nodemon ./build/config/docker.js",
     "dev": "ts-node ./config/docker.ts",
     "lint": "eslint ."
