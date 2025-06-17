@@ -36,4 +36,4 @@ EXPOSE 27023
 EXPOSE 27024
 
 # Command to run the application
-ENTRYPOINT ["bash", "-c", "npm run run-gui & npm run start"]
+ENTRYPOINT ["sh", "-c", "npm run run-gui & npm run start"]
