@@ -50,13 +50,13 @@ jobs:
       - name: Build package
         run: npm run build
       - name: Set GitHub Auth Token
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_AUTH_TOKEN }}" >> ~/.npmrc
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GIT_AUTH_TOKEN }}" >> ~/.npmrc
       - name: Change package name in package.json
         run: |
           sudo apt-get update && sudo apt-get install -y sed
-          sed -i '2s/"axiodb"/"@${{ secrets.GITHUB_USER_NAME }}\/axiodb"/' package.json
+          sed -i '2s/"axiodb"/"@${{ secrets.GIT_USER_NAME }}\/axiodb"/' package.json
       - name: Publish to GitHub Package Registry
-        run: npm publish --registry=https://npm.pkg.github.com --scope=@${{ secrets.GITHUB_USER_NAME }} --access public
+        run: npm publish --registry=https://npm.pkg.github.com --scope=@${{ secrets.GIT_USER_NAME }} --access public
 
   send_to_server:
     needs: test
