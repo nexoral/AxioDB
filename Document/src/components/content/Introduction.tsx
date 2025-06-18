@@ -19,11 +19,6 @@ const Introduction: React.FC = () => {
           className="h-6"
         />
         <img
-          src="https://dl.circleci.com/status-badge/img/gh/AnkanSaha/AxioDB/tree/main.svg?style=svg"
-          alt="CircleCI"
-          className="h-6"
-        />
-        <img
           src="https://socket.dev/api/badge/npm/package/axiodb"
           alt="Socket Security"
           className="h-6"
