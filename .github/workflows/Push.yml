@@ -1,0 +1,97 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Run tests
+        run: npm run test
+
+  publish_to_npm:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Check if package.json changed
+        run: |
+          CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^package.json" || true)
+          if [ -z "$CHANGED" ]; then echo "No changes in package.json, skipping Publish_To_NPM."; exit 0; fi
+      - name: Install dependencies
+        run: npm ci
+      - name: Build package
+        run: npm run build
+      - name: Set NPM Auth Token
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" > ~/.npmrc
+      - name: Publish to NPM Registry
+        run: npm publish --access public
+
+  publish_to_github:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Check if package.json changed
+        run: |
+          CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^package.json" || true)
+          if [ -z "$CHANGED" ]; then echo "No changes in package.json, skipping Publish_To_Github."; exit 0; fi
+      - name: Install dependencies
+        run: npm install
+      - name: Build package
+        run: npm run build
+      - name: Set GitHub Auth Token
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GIT_AUTH_TOKEN }}" >> ~/.npmrc
+      - name: Change package name in package.json
+        run: |
+          sudo apt-get update && sudo apt-get install -y sed
+          sed -i '2s/"axiodb"/"@${{ secrets.GIT_USER_NAME }}\/axiodb"/' package.json
+      - name: Publish to GitHub Package Registry
+        run: npm publish --registry=https://npm.pkg.github.com --scope=@${{ secrets.GIT_USER_NAME }} --access public
+
+  send_to_server:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Check if Document directory changed
+        run: |
+          CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^Document/" || true)
+          if [ -z "$CHANGED" ]; then echo "No changes in Document directory, skipping Send_To_Server."; exit 0; fi
+      - name: Setup SSH agent
+        run: |
+          eval "$(ssh-agent -s)"
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add -
+      - name: Install client dependencies
+        run: |
+          cd Document
+          npm install --force
+      - name: Build client project
+        run: |
+          cd Document
+          npm run build
+      - name: Remove existing project on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo rm -rf ${{ secrets.PROJECT_NAME }}"
+      - name: Send client files to server
+        run: |
+          scp -o StrictHostKeyChecking=no -r Document/${{ secrets.PROJECT_NAME }}/ ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }}:/home/${{ secrets.SSH_USER }}/
+      - name: Remove old Nginx static files
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo rm -rf /var/www/html/${{ secrets.PROJECT_NAME }}"
+      - name: Move files to Nginx static folder
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo mv /home/${{ secrets.SSH_USER }}/${{ secrets.PROJECT_NAME }} /var/www/html/"
+      - name: Restart Nginx
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo systemctl restart nginx"
