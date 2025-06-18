@@ -70,10 +70,10 @@ jobs:
         run: |
           CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^Document/" || true)
           if [ -z "$CHANGED" ]; then echo "No changes in Document directory, skipping Send_To_Server."; exit 0; fi
-      - name: Setup SSH agent
-        run: |
-          eval "$(ssh-agent -s)"
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' | ssh-add -
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: Install client dependencies
         run: |
           cd Document
