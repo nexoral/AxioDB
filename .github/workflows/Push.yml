@@ -1,3 +1,5 @@
+name: Push to Registry
+
 on:
   push:
     branches:
