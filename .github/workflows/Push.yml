@@ -11,14 +11,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Skip unless package.json changed
-        run: |
-          CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^package.json" || true)
-          echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
-          if [ -z "$CHANGED" ]; then 
-            echo "No changes in package.json; skipping test."
-            exit 0
-          fi
       - name: Install dependencies
         run: npm ci
       - name: Build
@@ -32,14 +24,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Skip unless package.json changed
+      - name: Check if package.json changed
         run: |
           CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^package.json" || true)
-          echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
-          if [ -z "$CHANGED" ]; then 
-            echo "No changes in package.json; skipping Publish_To_NPM."
-            exit 0
-          fi
+          if [ -z "$CHANGED" ]; then echo "No changes in package.json, skipping Publish_To_NPM."; exit 0; fi
       - name: Install dependencies
         run: npm ci
       - name: Build package
@@ -55,14 +43,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Skip unless package.json changed
+      - name: Check if package.json changed
         run: |
           CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^package.json" || true)
-          echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
-          if [ -z "$CHANGED" ]; then 
-            echo "No changes in package.json; skipping Publish_To_Github."
-            exit 0
-          fi
+          if [ -z "$CHANGED" ]; then echo "No changes in package.json, skipping Publish_To_Github."; exit 0; fi
       - name: Install dependencies
         run: npm install
       - name: Build package
@@ -83,62 +67,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Check if Document directory changed
-        id: check_changes
         run: |
           CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^Document/" || true)
-          echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
-          if [ -z "$CHANGED" ]; then 
-            echo "No changes in Document directory, skipping Send_To_Server."
-            exit 0
-          fi
+          if [ -z "$CHANGED" ]; then echo "No changes in Document directory, skipping Send_To_Server."; exit 0; fi
       - name: Setup SSH
-        if: steps.check_changes.outputs.changed != ''
         uses: webfactory/ssh-agent@v0.5.4
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       - name: Install client dependencies
-        if: steps.check_changes.outputs.changed != ''
         run: |
           cd Document
           npm install --force
       - name: Build client project
-        if: steps.check_changes.outputs.changed != ''
         run: |
           cd Document
           npm run build
       - name: Remove existing project on server
-        if: steps.check_changes.outputs.changed != ''
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo rm -rf ${{ secrets.PROJECT_NAME }}"
       - name: Send client files to server
-        if: steps.check_changes.outputs.changed != ''
         run: |
           scp -o StrictHostKeyChecking=no -r Document/${{ secrets.PROJECT_NAME }}/ ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }}:/home/${{ secrets.SSH_USER }}/
       - name: Remove old Nginx static files
-        if: steps.check_changes.outputs.changed != ''
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo rm -rf /etc/nginx/sites-enabled/default"
-      - name: Upload new Nginx config
-        if: steps.check_changes.outputs.changed != ''
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo rm -rf /var/www/html/${{ secrets.PROJECT_NAME }}"
+      - name: Move files to Nginx static folder
         run: |
-          scp -o StrictHostKeyChecking=no Document/${{ secrets.PROJECT_NAME }}.conf ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }}:/etc/nginx/sites-available/
-      - name: Enable new Nginx site
-        if: steps.check_changes.outputs.changed != ''
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo ln -s /etc/nginx/sites-available/${{ secrets.PROJECT_NAME }}.conf /etc/nginx/sites-enabled/"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo mv /home/${{ secrets.SSH_USER }}/${{ secrets.PROJECT_NAME }} /var/www/html/"
       - name: Restart Nginx
-        if: steps.check_changes.outputs.changed != ''
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo systemctl restart nginx"
-      - name: Upload new Nginx config
-        if: steps.check_changes.outputs.changed != ''
-        run: |
-          scp -o StrictHostKeyChecking=no Document/${{ secrets.PROJECT_NAME }}.conf ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }}:/etc/nginx/sites-available/
-      - name: Enable new Nginx site
-        if: steps.check_changes.outputs.changed != ''
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo ln -s /etc/nginx/sites-available/${{ secrets.PROJECT_NAME }}.conf /etc/nginx/sites-enabled/"
-      - name: Restart Nginx
-        if: steps.check_changes.outputs.changed != ''
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo systemctl restart nginx"
