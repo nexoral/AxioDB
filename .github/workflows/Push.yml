@@ -11,15 +11,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Skip unless only package.json changed
+      - name: Skip unless package.json changed
         run: |
-          FILES=$(git diff HEAD~1 HEAD --name-only)
-          if echo "$FILES" | grep -qv '^package.json'; then
-            echo "Non-package.json changes detected; skipping test."
-            exit 0
-          fi
-          if ! echo "$FILES" | grep -q '^package.json'; then
-            echo "package.json not changed; skipping test."
+          CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^package.json" || true)
+          echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
+          if [ -z "$CHANGED" ]; then 
+            echo "No changes in package.json; skipping test."
             exit 0
           fi
       - name: Install dependencies
@@ -35,15 +32,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Skip unless only package.json changed
+      - name: Skip unless package.json changed
         run: |
-          FILES=$(git diff HEAD~1 HEAD --name-only)
-          if echo "$FILES" | grep -qv '^package.json'; then
-            echo "Non-package.json changes detected; skipping Publish_To_NPM."
-            exit 0
-          fi
-          if ! echo "$FILES" | grep -q '^package.json'; then
-            echo "package.json not changed; skipping Publish_To_NPM."
+          CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^package.json" || true)
+          echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
+          if [ -z "$CHANGED" ]; then 
+            echo "No changes in package.json; skipping Publish_To_NPM."
             exit 0
           fi
       - name: Install dependencies
@@ -61,15 +55,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Skip unless only package.json changed
+      - name: Skip unless package.json changed
         run: |
-          FILES=$(git diff HEAD~1 HEAD --name-only)
-          if echo "$FILES" | grep -qv '^package.json'; then
-            echo "Non-package.json changes detected; skipping Publish_To_Github."
-            exit 0
-          fi
-          if ! echo "$FILES" | grep -q '^package.json'; then
-            echo "package.json not changed; skipping Publish_To_Github."
+          CHANGED=$(git diff HEAD~1 HEAD --name-only | grep "^package.json" || true)
+          echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
+          if [ -z "$CHANGED" ]; then 
+            echo "No changes in package.json; skipping Publish_To_Github."
             exit 0
           fi
       - name: Install dependencies
@@ -127,6 +118,18 @@ jobs:
         if: steps.check_changes.outputs.changed != ''
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo rm -rf /etc/nginx/sites-enabled/default"
+      - name: Upload new Nginx config
+        if: steps.check_changes.outputs.changed != ''
+        run: |
+          scp -o StrictHostKeyChecking=no Document/${{ secrets.PROJECT_NAME }}.conf ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }}:/etc/nginx/sites-available/
+      - name: Enable new Nginx site
+        if: steps.check_changes.outputs.changed != ''
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo ln -s /etc/nginx/sites-available/${{ secrets.PROJECT_NAME }}.conf /etc/nginx/sites-enabled/"
+      - name: Restart Nginx
+        if: steps.check_changes.outputs.changed != ''
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.VM_IP }} "sudo systemctl restart nginx"
       - name: Upload new Nginx config
         if: steps.check_changes.outputs.changed != ''
         run: |
