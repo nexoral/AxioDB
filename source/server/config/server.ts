@@ -3,7 +3,7 @@ import fastifyCors from '@fastify/cors';
 import fastifyStatic from '@fastify/static';
 import path from 'path';
 import fs from 'fs';
-import { ServerKeys } from './keys';
+import { ServerKeys, staticPath } from './keys';
 
 export default async function createAxioDBControlServer() {
     const AxioDBControlServer = Fastify({
@@ -33,7 +33,6 @@ export default async function createAxioDBControlServer() {
     });
 
     // Link React build output
-    const staticPath = path.resolve(__dirname, '../public');
 
     // Serve static files first (JS, CSS, images)
     await AxioDBControlServer.register(fastifyStatic, {
