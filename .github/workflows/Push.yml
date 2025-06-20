@@ -15,6 +15,10 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+      - name: Run GUI Build
+        run: cd GUI && npm install && npm run build && cd ..
+      - name: Move GUI build files
+        run: cd ./GUI && mv AxioControl/ ../lib/server/public && cd ..
       - name: Run tests
         run: npm run test
 
@@ -32,6 +36,10 @@ jobs:
         run: npm ci
       - name: Build package
         run: npm run build
+      - name: Run GUI Build
+        run: cd GUI && npm install && npm run build && cd ..
+      - name: Move GUI build files
+        run: cd ./GUI && mv AxioControl/ ../lib/server/public && cd ..
       - name: Set NPM Auth Token
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" > ~/.npmrc
       - name: Publish to NPM Registry
@@ -51,6 +59,10 @@ jobs:
         run: npm install
       - name: Build package
         run: npm run build
+      - name: Run GUI Build
+        run: cd GUI && npm install && npm run build && cd ..
+      - name: Move GUI build files
+        run: cd ./GUI && mv AxioControl/ ../lib/server/public && cd ..
       - name: Set GitHub Auth Token
         run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GIT_AUTH_TOKEN }}" >> ~/.npmrc
       - name: Change package name in package.json
