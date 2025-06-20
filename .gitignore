@@ -21,3 +21,4 @@ Document/.vite
 GUI/node_modules
 GUI/AxioControl
 GUI/.vite
+GUI/dist

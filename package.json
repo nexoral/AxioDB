@@ -1,6 +1,6 @@
 {
   "name": "axiodb",
-  "version": "2.13.46",
+  "version": "2.13.47",
   "description": "A blazing-fast, lightweight, and scalable nodejs package based DBMS for modern application. Supports schemas, encryption, and advanced query capabilities.",
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
@@ -48,12 +48,14 @@
   },
   "dependencies": {
     "@eslint/js": "^9.11.1",
+    "@fastify/cors": "^11.0.1",
+    "@fastify/static": "^8.2.0",
+    "fastify": "^5.4.0",
     "joi": "^17.13.3",
     "outers": "^8.6.2"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.1",
-    "@types/ejs": "^3.1.5",
     "eslint": "^8.57.1",
     "globals": "^15.9.0",
     "typescript": "^5.6.2",
