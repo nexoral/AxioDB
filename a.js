@@ -1,3 +1,3 @@
-const {AxioDB} = require("./lib/config/DB.js")
+const { AxioDB } = require("./lib/config/DB.js");
 
-const newDB = new AxioDB()
+const newDB = new AxioDB();
