@@ -17,6 +17,6 @@
     "lib": ["ES6", "DOM"], // Include the necessary TypeScript library declarations
     "rootDir": "./source" // Specify the root directory for your source code
   },
-  "include": ["source/**/*.ts", "source/**/*.tsx"], // Include TypeScript and TSX files
+  "include": ["source/**/*.ts", "source/**/*.tsx", "source/**/*.txt"], // Include TypeScript and TSX files
   "exclude": ["node_modules", "Docker/**"]
 }
