@@ -1,4 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { AvailableRoutes } from '../config/keys';
+import buildResponse from '../helper/responseBuilder.helper';
+import { StatusCodes } from 'outers';
 
 /**
  * Main router plugin for the AxioDB server
@@ -18,13 +22,14 @@ export default async function mainRouter(
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
 
+  // Available routes List
+  fastify.get('/routes', async (request, reply) => {
+    return reply.status(200).send(buildResponse(StatusCodes.OK, 'Available routes', AvailableRoutes));
+  });
+
   // Handle 404 Not Found
   fastify.setNotFoundHandler((request, reply) => {
-    reply.status(404).send({
-      error: 'Not Found',
-      message: `Route ${request.method}:${request.url} not found`,
-      statusCode: 404
-    });
+    reply.status(404).send(buildResponse(StatusCodes.NOT_FOUND, `Route ${request.method}:${request.url} not found`));
   });
 
   done();

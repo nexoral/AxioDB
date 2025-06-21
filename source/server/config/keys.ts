@@ -16,3 +16,31 @@ export const CORS_CONFIG = {
 };
 
 export const staticPath = path.resolve(__dirname, "../public/AxioControl");
+
+// Routes
+
+export const AvailableRoutes = [
+  {
+    method: "GET",
+    path: "/health",
+    description: "Health check endpoint to verify server status",
+  },
+  {
+    method: "GET",
+    path: "/routes",
+    description: "List all available API routes",
+  },
+  {
+    method: "GET",
+    path: "/api/databases",
+    description: "Get a list of all databases",
+  },
+  {
+    method: "POST",
+    path: "/api/create-database",
+    description: "Create a new database",
+    payload: {
+      name: "string",
+    }
+  }
+]
