@@ -1,11 +1,13 @@
 import { defineConfig } from "vite"; // vite config
 import react from "@vitejs/plugin-react-swc"; // react-swc plugin
 import { VitePWA } from "vite-plugin-pwa"; // pwa plugin
+import tailwindcss from "@tailwindcss/vite"; // tailwindcss plugin
 
 /* The code is exporting a default configuration object for the Vite build tool. This configuration
 object specifies various settings and options for the build process. */
 export default defineConfig({
   plugins: [
+    tailwindcss(), // Tailwind CSS plugin for Vite
     react(),
     VitePWA({
       registerType: "autoUpdate",
