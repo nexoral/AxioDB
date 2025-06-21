@@ -4,9 +4,9 @@ const key = require('./key.js')
 const main = async () => {
   const DocumentId = []
 
+  const dbInstance = new AxioDB(`MainDB`, `./${key.Data_Dir}`)
   // Create multiple DB instances
   for (let i = 0; i < key.Count_To_Loop_DB; i++) {
-    const dbInstance = new AxioDB(`MainDB${i}`, `./${key.Data_Dir}`)
 
     // Create multiple databases within each instance
     for (let j = 0; j < key.Count_To_Loop_DB; j++) {
