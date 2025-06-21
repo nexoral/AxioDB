@@ -32,8 +32,13 @@ export class AxioDB {
   private folderManager: FolderManager;
   private Converter: Converter;
   private ResponseHelper: ResponseHelper;
+  private static _instance: AxioDB;
 
   constructor(RootName?: string, CustomPath?: string) {
+    if (AxioDB._instance) {
+      throw new Error("Only one instance of AxioDB is allowed.");
+    }
+    AxioDB._instance = this;
     this.RootName = RootName || General.DBMS_Name; // Set the root name
     this.currentPATH = path.resolve(CustomPath || "."); // Set the current path
     this.fileManager = new FileManager(); // Initialize the FileManager class

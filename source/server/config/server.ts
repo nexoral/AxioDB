@@ -4,8 +4,11 @@ import fastifyStatic from "@fastify/static";
 import path from "path";
 import fs from "fs";
 import { ServerKeys, staticPath } from "./keys";
+import checkPortAndDocker from "./PortFreeChecker";
 
 export default async function createAxioDBControlServer() {
+  await checkPortAndDocker(ServerKeys.PORT);
+
   const AxioDBControlServer = Fastify({
     logger: false, // Disable default logging
     trustProxy: true, // Trust the reverse proxy headers
@@ -54,7 +57,7 @@ export default async function createAxioDBControlServer() {
 
   try {
     await AxioDBControlServer.listen({
-      port: ServerKeys.PORT,
+      port: Number(ServerKeys.PORT),
       host: "0.0.0.0",
     });
     console.log(
