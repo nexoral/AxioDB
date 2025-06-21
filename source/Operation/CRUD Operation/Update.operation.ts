@@ -34,11 +34,13 @@ export default class UpdateOperation {
   private updatedAt: string;
   private schema: object | any;
   private readonly Insertion: Insertion;
+  private readonly isSchemaNeeded: boolean;
 
   constructor(
     collectionName: string,
     path: string,
     baseQuery: object | any,
+    isSchemaNeeded: boolean,
     schema: object | any,
     isEncrypted: boolean = false,
     encryptionKey?: string,
@@ -50,7 +52,12 @@ export default class UpdateOperation {
     this.encryptionKey = encryptionKey;
     this.updatedAt = new Date().toISOString();
     this.sort = {};
-    this.schema = schema;
+    if (isSchemaNeeded == true && !schema) {
+      throw new Error("Schema is required when isSchemaNeeded is true");
+    } else {
+      this.isSchemaNeeded = isSchemaNeeded;
+      this.schema = schema;
+    }
     this.Insertion = new Insertion(this.collectionName, this.path);
     this.ResponseHelper = new ResponseHelper();
     this.Converter = new Converter();
@@ -84,26 +91,29 @@ export default class UpdateOperation {
         throw new Error("Data must be an object.");
       }
 
-      // delete the extra fields from the schema if not present in the data
-      for (const key in newData) {
-        if (this.schema[key]) {
-          const newSchema = {
-            [key]: this.schema[key],
-          };
-          this.schema = newSchema;
+      if (this.isSchemaNeeded == true) {
+        // delete the extra fields from the schema if not present in the data
+        for (const key in newData) {
+          if (this.schema[key]) {
+            const newSchema = {
+              [key]: this.schema[key],
+            };
+            this.schema = newSchema;
+          }
         }
-      }
-      // Validate the data
-      const validator = await SchemaValidator(this.schema, newData, true);
 
-      if (validator?.details) {
-        Console.red("Validation Error", validator.details);
-        return this.ResponseHelper.Error(validator.details);
-      }
+        // Validate the data
+        const validator = await SchemaValidator(this.schema, newData, true);
 
-      // Insert the updatedAt field in schema & data
-      this.schema.updatedAt = SchemaTypes.date().required();
-      newData.updatedAt = new Date().toISOString();
+        if (validator?.details) {
+          Console.red("Validation Error", validator.details);
+          return this.ResponseHelper.Error(validator.details);
+        }
+
+        // Insert the updatedAt field in schema & data
+        this.schema.updatedAt = SchemaTypes.date().required();
+        newData.updatedAt = new Date().toISOString();
+      }
 
       // if documentId is provided in the baseQuery then read the file with the documentId
       let ReadResponse; // Read Response Holder
@@ -200,8 +210,6 @@ export default class UpdateOperation {
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      // Insert the updatedAt field in schema & data
-      this.schema.updatedAt = SchemaTypes.date().required();
       newData.updatedAt = new Date().toISOString();
 
       // check if the data is an object or not
@@ -209,21 +217,26 @@ export default class UpdateOperation {
         throw new Error("Data must be an object.");
       }
 
-      // delete the extra fields from the schema if not present in the data
-      for (const key in newData) {
-        if (this.schema[key]) {
-          const newSchema = {
-            [key]: this.schema[key],
-          };
-          this.schema = newSchema;
-        }
-      }
-      // Validate the data
-      const validator = await SchemaValidator(this.schema, newData, true);
+      if (this.isSchemaNeeded == true) {
+        // Insert the updatedAt field in schema & data
+        this.schema.updatedAt = SchemaTypes.date().required();
 
-      if (validator?.details) {
-        Console.red("Validation Error", validator.details);
-        return this.ResponseHelper.Error(validator.details);
+        // delete the extra fields from the schema if not present in the data
+        for (const key in newData) {
+          if (this.schema[key]) {
+            const newSchema = {
+              [key]: this.schema[key],
+            };
+            this.schema = newSchema;
+          }
+        }
+        // Validate the data
+        const validator = await SchemaValidator(this.schema, newData, true);
+
+        if (validator?.details) {
+          Console.red("Validation Error", validator.details);
+          return this.ResponseHelper.Error(validator.details);
+        }
       }
 
       const ReadResponse = await this.LoadAllBufferRawData();
@@ -263,7 +276,7 @@ export default class UpdateOperation {
           for (const key in newData) {
             documentOldData[key] = newData[key];
             // also change the updatedAt field
-            documentOldData.updatedAt = this.updatedAt;
+            documentOldData.updatedAt = newData.updatedAt;
           }
 
           // Delete the file

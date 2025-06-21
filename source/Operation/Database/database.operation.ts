@@ -35,6 +35,7 @@ export default class Database {
   /**
    * Creates a new collection inside the specified database.
    * @param {string} collectionName - Name of the collection.
+   * @param {boolean} isSchemaNeeded - Whether the collection requires a schema.
    * @param {object} schema - Schema of the collection.
    * @param {boolean} crypto - Enable crypto for the collection.
    * @param {string} key - Key for crypto.
@@ -42,6 +43,7 @@ export default class Database {
    */
   public async createCollection(
     collectionName: string,
+    isSchemaNeeded: boolean = false,
     schema: object | any,
     crypto: boolean = false,
     key?: string | undefined,
@@ -64,6 +66,7 @@ export default class Database {
       const collection = new Collection(
         collectionName,
         collectionPath,
+        isSchemaNeeded,
         schema,
         crypto,
         newCryptoInstance,
@@ -71,7 +74,12 @@ export default class Database {
       );
       return collection;
     } else {
-      const collection = new Collection(collectionName, collectionPath, schema);
+      const collection = new Collection(
+        collectionName,
+        collectionPath,
+        isSchemaNeeded,
+        schema,
+      );
       return collection;
     }
   }
