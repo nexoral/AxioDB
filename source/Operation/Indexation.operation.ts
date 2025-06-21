@@ -123,7 +123,10 @@ export class AxioDB {
     // check if all data is returned
     if ("data" in totalDatabases && "data" in totalSize) {
       const FinalDatabaseInfo: FinalDatabaseInfo = {
-        TotalSize: `${totalSize.data / 1024 / 1024} MB`,
+        CurrentPath: this.currentPATH,
+        RootName: this.RootName,
+        MatrixUnits: "MB",
+        TotalSize: parseInt((totalSize.data / 1024 / 1024).toFixed(4)),
         TotalDatabases: `${totalDatabases.data.length} Databases`,
         ListOfDatabases: totalDatabases.data,
         AllDatabasesPaths: totalDatabases.data.map((db: string) =>
