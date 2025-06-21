@@ -159,8 +159,6 @@ export default class Collection {
       }
     }
 
-
-
     // Encrypt the data if crypto is enabled
     if (this.cryptoInstance && this.isEncrypted) {
       data = await this.cryptoInstance.encrypt(this.Converter.ToString(data));

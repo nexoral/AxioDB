@@ -104,7 +104,7 @@ export default class UpdateOperation {
 
         // Validate the data
         const validator = await SchemaValidator(this.schema, newData, true);
-  
+
         if (validator?.details) {
           Console.red("Validation Error", validator.details);
           return this.ResponseHelper.Error(validator.details);
@@ -114,7 +114,6 @@ export default class UpdateOperation {
         this.schema.updatedAt = SchemaTypes.date().required();
         newData.updatedAt = new Date().toISOString();
       }
-
 
       // if documentId is provided in the baseQuery then read the file with the documentId
       let ReadResponse; // Read Response Holder
@@ -212,12 +211,12 @@ export default class UpdateOperation {
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       newData.updatedAt = new Date().toISOString();
-      
+
       // check if the data is an object or not
       if (typeof newData !== "object") {
         throw new Error("Data must be an object.");
       }
-      
+
       if (this.isSchemaNeeded == true) {
         // Insert the updatedAt field in schema & data
         this.schema.updatedAt = SchemaTypes.date().required();
@@ -233,14 +232,12 @@ export default class UpdateOperation {
         }
         // Validate the data
         const validator = await SchemaValidator(this.schema, newData, true);
-  
+
         if (validator?.details) {
           Console.red("Validation Error", validator.details);
           return this.ResponseHelper.Error(validator.details);
         }
-
       }
-
 
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
