@@ -33,11 +33,13 @@ export default class Collection {
   private readonly cryptoInstance?: CryptoHelper;
   private Converter: Converter;
   private Insertion: Insertion;
+  private isSchemaNeeded = false;
   private readonly encryptionKey: string | undefined;
 
   constructor(
     name: string,
     path: string,
+    isSchemaNeeded = false,
     schema?: object | any,
     isEncrypted = false,
     cryptoInstance?: CryptoHelper,
@@ -45,7 +47,12 @@ export default class Collection {
   ) {
     this.name = name;
     this.path = path;
-    this.schema = schema;
+    if (isSchemaNeeded == true && !schema) {
+      throw new Error("Schema is required when isSchemaNeeded is true");
+    } else {
+      this.isSchemaNeeded = isSchemaNeeded;
+      this.schema = schema;
+    }
     this.isEncrypted = isEncrypted;
     this.cryptoInstance = cryptoInstance;
     this.Converter = new Converter();
@@ -139,16 +146,20 @@ export default class Collection {
     // Insert the updatedAt field in schema & data
     data.updatedAt = this.updatedAt;
 
-    this.schema.updatedAt = SchemaTypes.date().required();
-    this.schema.documentId = SchemaTypes.string().required();
+    if (this.isSchemaNeeded == true) {
+      this.schema.updatedAt = SchemaTypes.date().required();
+      this.schema.documentId = SchemaTypes.string().required();
 
-    // Validate the data
-    const validator = await SchemaValidator(this.schema, data, false);
+      // Validate the data
+      const validator = await SchemaValidator(this.schema, data, false);
 
-    if (validator?.details) {
-      Console.red("Validation Error", validator.details);
-      return new ResponseHelper().Error(validator.details);
+      if (validator?.details) {
+        Console.red("Validation Error", validator.details);
+        return new ResponseHelper().Error(validator.details);
+      }
     }
+
+
 
     // Encrypt the data if crypto is enabled
     if (this.cryptoInstance && this.isEncrypted) {
@@ -240,6 +251,7 @@ export default class Collection {
       this.name,
       this.path,
       query,
+      this.isSchemaNeeded,
       this.schema,
       this.isEncrypted,
       this.encryptionKey,
