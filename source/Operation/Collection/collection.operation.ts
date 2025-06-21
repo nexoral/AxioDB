@@ -33,13 +33,13 @@ export default class Collection {
   private readonly cryptoInstance?: CryptoHelper;
   private Converter: Converter;
   private Insertion: Insertion;
-  private isSchemaNeeded = false;
+  private isSchemaNeeded: boolean;
   private readonly encryptionKey: string | undefined;
 
   constructor(
     name: string,
     path: string,
-    isSchemaNeeded = false,
+    isSchemaNeeded: boolean,
     schema?: object | any,
     isEncrypted = false,
     cryptoInstance?: CryptoHelper,

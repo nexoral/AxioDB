@@ -74,7 +74,7 @@ export default class Database {
       );
       return collection;
     } else {
-      const collection = new Collection(collectionName, collectionPath, schema);
+      const collection = new Collection(collectionName, collectionPath, isSchemaNeeded, schema);
       return collection;
     }
   }

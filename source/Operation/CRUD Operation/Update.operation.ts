@@ -40,7 +40,7 @@ export default class UpdateOperation {
     collectionName: string,
     path: string,
     baseQuery: object | any,
-    isSchemaNeeded: boolean = false,
+    isSchemaNeeded: boolean,
     schema: object | any,
     isEncrypted: boolean = false,
     encryptionKey?: string,
