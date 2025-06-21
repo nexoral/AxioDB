@@ -1,6 +1,6 @@
 // filepath: /workspaces/AxioDB/GUI/src/layout/Header.jsx
-import { useState } from 'react';
-import { FiMenu, FiPlus, FiX } from 'react-icons/fi';
+import { useState } from "react";
+import { FiMenu, FiPlus, FiX } from "react-icons/fi";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,21 +17,59 @@ const Header = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <a href="/" className="flex items-center">
-                <svg className="h-8 w-8 text-blue-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7c-2 0-3 1-3 3z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 10h6m-3-3v6" />
+                <svg
+                  className="h-8 w-8 text-blue-200"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7c0-2-1-3-3-3H7c-2 0-3 1-3 3z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 10h6m-3-3v6"
+                  />
                 </svg>
-                <span className="ml-2 text-white font-bold text-xl tracking-tight">AxioControl</span>
+                <span className="ml-2 text-white font-bold text-xl tracking-tight">
+                  AxioControl
+                </span>
               </a>
             </div>
 
             {/* Desktop Navigation */}
             <div className="hidden md:block ml-10">
               <div className="flex space-x-4">
-                <a href="/dashboard" className="text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">Dashboard</a>
-                <a href="/databases" className="text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">Databases</a>
-                <a href="/queries" className="text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">Queries</a>
-                <a href="/settings" className="text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">Settings</a>
+                <a
+                  href="/dashboard"
+                  className="text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Dashboard
+                </a>
+                <a
+                  href="/databases"
+                  className="text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Databases
+                </a>
+                <a
+                  href="/queries"
+                  className="text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Queries
+                </a>
+                <a
+                  href="/settings"
+                  className="text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Settings
+                </a>
               </div>
             </div>
           </div>
@@ -69,10 +107,30 @@ const Header = () => {
       {isMenuOpen && (
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-blue-800">
-            <Link to="/dashboard" className="text-blue-100 hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium">Dashboard</Link>
-            <Link to="/databases" className="text-blue-100 hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium">Databases</Link>
-            <Link to="/queries" className="text-blue-100 hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium">Queries</Link>
-            <Link to="/settings" className="text-blue-100 hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium">Settings</Link>
+            <Link
+              to="/dashboard"
+              className="text-blue-100 hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium"
+            >
+              Dashboard
+            </Link>
+            <Link
+              to="/databases"
+              className="text-blue-100 hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium"
+            >
+              Databases
+            </Link>
+            <Link
+              to="/queries"
+              className="text-blue-100 hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium"
+            >
+              Queries
+            </Link>
+            <Link
+              to="/settings"
+              className="text-blue-100 hover:bg-blue-600 block px-3 py-2 rounded-md text-base font-medium"
+            >
+              Settings
+            </Link>
           </div>
           <div className="pt-4 pb-3 border-t border-blue-700">
             <div className="flex items-center px-5">
@@ -80,8 +138,12 @@ const Header = () => {
                 <span className="text-sm font-medium">AX</span>
               </div>
               <div className="ml-3">
-                <div className="text-base font-medium text-white">Admin User</div>
-                <div className="text-sm font-medium text-blue-200">admin@axiodb.com</div>
+                <div className="text-base font-medium text-white">
+                  Admin User
+                </div>
+                <div className="text-sm font-medium text-blue-200">
+                  admin@axiodb.com
+                </div>
               </div>
               <button className="ml-auto bg-blue-600 hover:bg-blue-500 p-1 rounded-full text-blue-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 <span className="sr-only">New Connection</span>
