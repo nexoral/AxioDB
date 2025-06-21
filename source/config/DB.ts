@@ -9,7 +9,6 @@ import Aggregation from "../Operation/Aggregation/Aggregation.Operation";
 import Collection from "../Operation/Collection/collection.operation";
 import Database from "../Operation/Database/database.operation";
 import { AxioDB } from "../Operation/Indexation.operation";
-import createAxioDBControlServer from "../server/config/server";
 import FileManager from "../Storage/FileManager";
 import FolderManager from "../Storage/FolderManager";
 
@@ -27,8 +26,6 @@ const InstanceTypes = {
 };
 // Export Specific Modules
 export { SchemaTypes, schemaValidate, AxioDB, InstanceTypes };
-
-createAxioDBControlServer();
 
 // Export With All Sub Modules
 export default {

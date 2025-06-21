@@ -19,6 +19,7 @@ import {
   SuccessInterface,
 } from "../config/Interfaces/Helper/response.helper.interface";
 import { FinalDatabaseInfo } from "../config/Interfaces/Operation/Indexation.operation.interface";
+import createAxioDBControlServer from "../server/config/server";
 
 /**
  * Class representing the AxioDB database.
@@ -76,7 +77,7 @@ export class AxioDB {
         console.log(`AxioDB folder created at: ${this.currentPATH}`);
       }
     }
-    // startWebServer(); // Start the web server
+    createAxioDBControlServer(this); // Start the web Control Server with the AxioDB instance
   }
 
   /**
