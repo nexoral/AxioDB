@@ -10,9 +10,6 @@ sudo apt-get install -y nodejs # Install Node.js and npm
 # Install Dependencies for all the section of this project
 npm install --force && npm run build # Install & build dependencies for AxioDB main Codebase
 
-# Install Dependencies for the AxioDB Docker
-cd ./Docker && npm i --force && cd .. # Install & build dependencies for AxioDB Docker
-
 # Install Dependencies for the AxioDB Documentation
 cd ./Document && npm i --force && cd .. # Install & build dependencies for AxioDB Documentation
 
