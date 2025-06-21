@@ -41,6 +41,6 @@ export const AvailableRoutes = [
     description: "Create a new database",
     payload: {
       name: "string",
-    }
-  }
-]
+    },
+  },
+];

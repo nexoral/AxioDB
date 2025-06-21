@@ -9,7 +9,9 @@ import checkPortAndDocker from "./PortFreeChecker";
 import { AxioDB } from "../../Operation/Indexation.operation";
 import router from "../router/Router";
 
-export default async function createAxioDBControlServer(AxioDBInstance: AxioDB): Promise<void> {
+export default async function createAxioDBControlServer(
+  AxioDBInstance: AxioDB,
+): Promise<void> {
   await checkPortAndDocker(ServerKeys.PORT);
 
   const AxioDBControlServer = Fastify({

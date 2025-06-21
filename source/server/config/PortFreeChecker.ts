@@ -5,12 +5,12 @@ import { ServerKeys } from "./keys";
 
 /**
  * Checks whether a specific port is already in use.
- * 
+ *
  * @param port - The port number to check
  * @param host - The host to check the port on, defaults to localhost
  * @returns A Promise that resolves to true if the port is in use, false otherwise
  * @throws {Error} If the port is already in use
- * 
+ *
  * @example
  * // Check if port 3000 is available
  * try {
@@ -46,14 +46,14 @@ export function isPortInUse(port: number, host = ServerKeys.LOCALHOST) {
 
 /**
  * Checks if a specified port is currently mapped to any running Docker container.
- * 
+ *
  * This function executes a Docker command to list all running containers and their port mappings,
  * then filters for containers that are using the specified port.
- * 
+ *
  * @param port - The port number to check for Docker container mappings
  * @throws {Error} If the specified port is already mapped to a Docker container
  * @returns {Promise<void>}
- * 
+ *
  * @example
  * ```typescript
  * try {
@@ -87,7 +87,7 @@ export async function checkDockerPortMapping(port: number): Promise<void> {
 
 /**
  * Checks if a specified port is in use and if there's a Docker port mapping for that port.
- * 
+ *
  * @param port - The port number to check
  * @returns A Promise that resolves when both port usage check and Docker port mapping check are complete
  * @throws May throw an error if the port is already in use or if there's a conflict with Docker port mappings
