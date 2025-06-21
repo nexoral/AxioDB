@@ -1,12 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Fastify from "fastify";
 import fastifyCors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import path from "path";
 import fs from "fs";
-import { ServerKeys, staticPath } from "./keys";
+import { CORS_CONFIG, ServerKeys, staticPath } from "./keys";
 import checkPortAndDocker from "./PortFreeChecker";
+import { AxioDB } from "../../Operation/Indexation.operation";
+import router from "../router/Router";
 
-export default async function createAxioDBControlServer() {
+export default async function createAxioDBControlServer(AxioDBInstance: AxioDB): Promise<void> {
   await checkPortAndDocker(ServerKeys.PORT);
 
   const AxioDBControlServer = Fastify({
@@ -17,12 +20,12 @@ export default async function createAxioDBControlServer() {
 
   // Attach Middlewares
   await AxioDBControlServer.register(fastifyCors, {
-    origin: "*", // Allow all origins
-    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"], // Allow specific methods
-    allowedHeaders: ["Content-Type", "Authorization"], // Allow specific headers
-    credentials: true, // Allow credentials
-    exposedHeaders: ["Content-Length", "X-Requested-With"], // Expose specific headers
-    maxAge: 86400, // Cache preflight response for 24 hours
+    origin: CORS_CONFIG.ORIGIN, // Allow all origins
+    methods: CORS_CONFIG.METHODS, // Allow specific methods
+    allowedHeaders: CORS_CONFIG.ALLOWED_HEADERS, // Allow specific headers
+    credentials: CORS_CONFIG.ALLOW_CREDENTIALS, // Allow credentials
+    exposedHeaders: CORS_CONFIG.EXPOSED_HEADERS, // Expose specific headers
+    maxAge: CORS_CONFIG.MAX_AGE, // Cache preflight response for 24 hours
   });
 
   // Configure JSON parsing
@@ -39,8 +42,6 @@ export default async function createAxioDBControlServer() {
     },
   );
 
-  // Link React build output
-
   // Serve static files first (JS, CSS, images)
   await AxioDBControlServer.register(fastifyStatic, {
     root: staticPath,
@@ -53,6 +54,11 @@ export default async function createAxioDBControlServer() {
     const indexPath = path.join(staticPath, "index.html");
     const stream = fs.createReadStream(indexPath);
     return reply.type("text/html").send(stream);
+  });
+
+  // Register the main router with /api prefix
+  AxioDBControlServer.register(router, {
+    prefix: "/api",
   });
 
   try {
