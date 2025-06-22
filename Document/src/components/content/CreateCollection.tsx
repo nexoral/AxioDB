@@ -54,10 +54,14 @@ console.log("Encrypted collection without schema (custom key) created:", customK
           Collection Creation Parameters
         </h3>
         <p className="text-gray-700 dark:text-gray-300">
-          The <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">createCollection</code> method supports the following format:
+          The{" "}
+          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
+            createCollection
+          </code>{" "}
+          method supports the following format:
         </p>
         <pre className="bg-gray-100 dark:bg-gray-900 p-3 rounded-md mt-2 text-sm overflow-x-auto">
-{`createCollection(
+          {`createCollection(
   name: string,
   isSchemaNeeded: boolean,
   schema?: object,
@@ -68,21 +72,36 @@ console.log("Encrypted collection without schema (custom key) created:", customK
       </div>
 
       <p className="text-gray-700 dark:text-gray-300 mb-4">
-        Below are examples of creating collections with different configurations.
+        Below are examples of creating collections with different
+        configurations.
       </p>
 
       {/* Full API Examples */}
-      <h3 className="text-2xl font-semibold mb-4">Collection with Schema Validation</h3>
+      <h3 className="text-2xl font-semibold mb-4">
+        Collection with Schema Validation
+      </h3>
       <CodeBlock code={codeExamples.withSchema} language="javascript" />
 
-      <h3 className="text-2xl font-semibold mt-8 mb-4">Collection without Schema Validation</h3>
+      <h3 className="text-2xl font-semibold mt-8 mb-4">
+        Collection without Schema Validation
+      </h3>
       <CodeBlock code={codeExamples.withoutSchema} language="javascript" />
 
-      <h3 className="text-2xl font-semibold mt-8 mb-4">Encrypted Collection with Schema Validation</h3>
-      <CodeBlock code={codeExamples.withSchemaEncrypted} language="javascript" />
+      <h3 className="text-2xl font-semibold mt-8 mb-4">
+        Encrypted Collection with Schema Validation
+      </h3>
+      <CodeBlock
+        code={codeExamples.withSchemaEncrypted}
+        language="javascript"
+      />
 
-      <h3 className="text-2xl font-semibold mt-8 mb-4">Encrypted Collection without Schema Validation</h3>
-      <CodeBlock code={codeExamples.withoutSchemaEncrypted} language="javascript" />
+      <h3 className="text-2xl font-semibold mt-8 mb-4">
+        Encrypted Collection without Schema Validation
+      </h3>
+      <CodeBlock
+        code={codeExamples.withoutSchemaEncrypted}
+        language="javascript"
+      />
 
       {/* Notes */}
       <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-r-lg mt-10 mb-4">
@@ -91,9 +110,15 @@ console.log("Encrypted collection without schema (custom key) created:", customK
           Important Notes
         </h3>
         <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
-          <li>If <code>false</code> is passed for schema validation, use <code>{`{}`}</code> for the schema.</li>
+          <li>
+            If <code>false</code> is passed for schema validation, use{" "}
+            <code>{`{}`}</code> for the schema.
+          </li>
           <li>Encryption keys are generated automatically if not provided.</li>
-          <li>Store your custom encryption keys securely—data recovery is impossible without them.</li>
+          <li>
+            Store your custom encryption keys securely—data recovery is
+            impossible without them.
+          </li>
         </ul>
       </div>
     </section>

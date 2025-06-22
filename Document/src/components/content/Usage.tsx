@@ -136,17 +136,22 @@ console.log(paginatedDocuments);`,
           Important Note on Instance Management
         </h3>
         <p className="text-gray-700 dark:text-gray-300">
-          AxioDB uses a single instance architecture. You should initialize only one AxioDB instance
-          with the{" "}
-          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">new</code> keyword,
-          under which you can create unlimited databases, collections, and documents.
-          This design ensures data consistency and security across your application.
+          AxioDB uses a single instance architecture. You should initialize only
+          one AxioDB instance with the{" "}
+          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
+            new
+          </code>{" "}
+          keyword, under which you can create unlimited databases, collections,
+          and documents. This design ensures data consistency and security
+          across your application.
         </p>
         <p className="text-gray-700 dark:text-gray-300 mt-2">
-          When you create an AxioDB instance and run your project, it automatically starts
-          a web-based GUI on{" "}
-          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">localhost:27018</code> for
-          visual database management (currently under development).
+          When you create an AxioDB instance and run your project, it
+          automatically starts a web-based GUI on{" "}
+          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
+            localhost:27018
+          </code>{" "}
+          for visual database management (currently under development).
         </p>
       </div>
 

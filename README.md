@@ -110,16 +110,38 @@ const collection1 = await db1.createCollection("testCollection", true, schema);
 const collection2 = await db1.createCollection("testCollection2", false);
 
 // Create an encrypted collection with schema validation and default encryption key
-const collection3 = await db1.createCollection("testCollection3", true, schema, true);
+const collection3 = await db1.createCollection(
+  "testCollection3",
+  true,
+  schema,
+  true,
+);
 
 // Create an encrypted collection with schema validation and custom encryption key
-const collection4 = await db1.createCollection("testCollection4", true, schema, true, "myCustomKey");
+const collection4 = await db1.createCollection(
+  "testCollection4",
+  true,
+  schema,
+  true,
+  "myCustomKey",
+);
 
 // Create an encrypted collection without schema validation (using empty object for schema)
-const collection5 = await db1.createCollection("testCollection5", false, {}, true);
+const collection5 = await db1.createCollection(
+  "testCollection5",
+  false,
+  {},
+  true,
+);
 
 // Create an encrypted collection without schema and with custom key
-const collection6 = await db1.createCollection("testCollection6", false, {}, true, "myCustomKey");
+const collection6 = await db1.createCollection(
+  "testCollection6",
+  false,
+  {},
+  true,
+  "myCustomKey",
+);
 ```
 
 ### CommonJS Example
@@ -144,9 +166,21 @@ const main = async () => {
   };
 
   // Create collections with and without schema validation
-  const collectionNoSchema = await db1.createCollection("testCollection2", false);
-  const collectionExplicitSchema = await db1.createCollection("testCollection3", true, schema);
-  const collectionWithEncryption = await db1.createCollection("testCollection4", schema, true, "myKey");
+  const collectionNoSchema = await db1.createCollection(
+    "testCollection2",
+    false,
+  );
+  const collectionExplicitSchema = await db1.createCollection(
+    "testCollection3",
+    true,
+    schema,
+  );
+  const collectionWithEncryption = await db1.createCollection(
+    "testCollection4",
+    schema,
+    true,
+    "myKey",
+  );
 
   // Insert data
   const saveStatus = await collection.insert({
@@ -230,9 +264,21 @@ const main = async () => {
   };
 
   // Create collections with and without schema validation
-  const collectionNoSchema = await db1.createCollection("testCollection2", false);
-  const collectionExplicitSchema = await db1.createCollection("testCollection3", true, schema);
-  const collectionWithEncryption = await db1.createCollection("testCollection4", schema, true, "myKey");
+  const collectionNoSchema = await db1.createCollection(
+    "testCollection2",
+    false,
+  );
+  const collectionExplicitSchema = await db1.createCollection(
+    "testCollection3",
+    true,
+    schema,
+  );
+  const collectionWithEncryption = await db1.createCollection(
+    "testCollection4",
+    schema,
+    true,
+    "myKey",
+  );
 
   // Insert data
   const saveStatus = await collection.insert({
@@ -433,6 +479,7 @@ await collection1.delete({ age: { $lt: 25 } }).deleteMany();
 
 - **`createCollection(name: string, schemaOrBoolean: object | boolean, schemaOrEmpty?: object, crypto?: boolean, key?: string): Promise<Collection>`**  
   Creates a collection with optional schema validation and encryption. The parameters are flexible:
+
   - If the second parameter is a schema object, schema validation is enabled
   - If the second parameter is a boolean, it determines whether schema validation is enabled
   - For collections without schema but with encryption, pass `false, {}, true` as parameters

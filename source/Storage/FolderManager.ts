@@ -1,7 +1,7 @@
 import FileSystem from "fs/promises";
 import FileSystemSync from "fs";
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { exec } from "child_process";
+import { promisify } from "util";
 const execAsync = promisify(exec);
 
 // Import Helpers
@@ -144,7 +144,7 @@ export default class FolderManager {
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const { stdout } = await execAsync(`du -sb ${path}`);
-      const size = parseInt(stdout.split('\t')[0], 10);
+      const size = parseInt(stdout.split("\t")[0], 10);
       return this.responseHelper.Success(size);
     } catch (err) {
       return this.responseHelper.Error(`Failed to get directory size: ${err}`);

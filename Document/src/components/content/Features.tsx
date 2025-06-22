@@ -1,8 +1,4 @@
-import {
-  CheckCircle2,
-  FilterX,
-  Layers
-} from "lucide-react";
+import { CheckCircle2, FilterX, Layers } from "lucide-react";
 import React from "react";
 
 const Features: React.FC = () => {
@@ -125,13 +121,13 @@ const Features: React.FC = () => {
             Single Instance Architecture
           </h3>
           <p className="text-gray-700 dark:text-gray-300">
-            For data consistency and security, you can initialize only one AxioDB instance
-            with the{" "}
+            For data consistency and security, you can initialize only one
+            AxioDB instance with the{" "}
             <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
               new
             </code>{" "}
-            keyword. Under this single instance, you can create unlimited databases,
-            collections, and documents.
+            keyword. Under this single instance, you can create unlimited
+            databases, collections, and documents.
           </p>
         </div>
 
@@ -140,8 +136,8 @@ const Features: React.FC = () => {
             Web-Based GUI Dashboard
           </h3>
           <p className="text-gray-700 dark:text-gray-300">
-            When you create an AxioDB instance and run your project, it automatically starts
-            a web-based GUI on{" "}
+            When you create an AxioDB instance and run your project, it
+            automatically starts a web-based GUI on{" "}
             <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
               localhost:27018
             </code>{" "}
