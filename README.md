@@ -33,6 +33,8 @@ AxioDB is a blazing-fast, lightweight, and scalable open-source Database Managem
 - **Plug-and-Play Setup:** No additional database server required—install and start building instantly.
 - **Tree-like Structure:** Store data in a tree-like structure for efficient data retrieval and management.
 - **Auto Indexing on documentId:** Automatically create index on documentId for faster queries.
+- **Single Instance Architecture:** For data consistency and security, you can initialize only one AxioDB instance with the `new` keyword. Under this single instance, you can create unlimited databases, collections, and documents.
+- **Web-Based GUI Dashboard:** When you create an AxioDB instance and run your project, it automatically starts a web-based GUI on `localhost:27018` for visual database management (currently under development).
 
 ---
 
@@ -81,18 +83,20 @@ npm install axiodb@latest --save
 
 ## 🛠️ Usage
 
+> **Important Note:** AxioDB uses a single instance architecture. You should initialize only one AxioDB instance with the `new` keyword, under which you can create unlimited databases, collections, and documents. This design ensures data consistency and security across your application.
+
 ### CommonJS Example
 
 ```javascript
 const { AxioDB, SchemaTypes } = require("axiodb");
 
+// Create a single AxioDB instance for your entire application
+// This will also start the Web GUI on localhost:27018 (currently under development)
+const db = new AxioDB();
+
 const main = async () => {
-  const db = new AxioDB();
-
-  // Create a database with schema validation (default)
+  // Create multiple databases under the single instance
   const db1 = await db.createDB("testDB");
-
-  // Create a database without schema validation
   const db2 = await db.createDB("testDB2", false);
 
   // Define a schema
