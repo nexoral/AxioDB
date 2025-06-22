@@ -85,31 +85,41 @@ npm install axiodb@latest --save
 
 > **Important Note:** AxioDB uses a single instance architecture. You should initialize only one AxioDB instance with the `new` keyword, under which you can create unlimited databases, collections, and documents. This design ensures data consistency and security across your application.
 
-### Schema Validation Options
+### Collection Creation Options
 
-In the current version, schema validation is optional when creating collections:
+When creating collections, you need to specify these parameters in the `createCollection` method:
 
 ```javascript
-// Create collection with schema validation (default behavior)
-const collection1 = await db1.createCollection("testCollection", schema);
+// Signature of createCollection method:
+createCollection(
+  name: string,           // Name of the collection (required)
+  isSchemaNeeded: boolean, // Whether schema validation is needed (required)
+  schema?: object | any,  // Schema definition (required if isSchemaNeeded is true, empty {} if false)
+  isEncrypted?: boolean,  // Whether to encrypt the collection (default: false)
+  encryptionKey?: string  // Custom encryption key (optional, system generates one if not provided)
+)
+```
 
-// Create collection without schema validation by passing false as second parameter
+Examples:
+
+```javascript
+// Create collection with schema validation
+const collection1 = await db1.createCollection("testCollection", true, schema);
+
+// Create collection without schema validation
 const collection2 = await db1.createCollection("testCollection2", false);
 
-// Create collection with schema validation explicitly set to true 
-const collection3 = await db1.createCollection("testCollection3", true, schema);
+// Create an encrypted collection with schema validation and default encryption key
+const collection3 = await db1.createCollection("testCollection3", true, schema, true);
 
-// Create collection with schema validation and encryption (default key)
-const collection4 = await db1.createCollection("testCollection4", schema, true);
+// Create an encrypted collection with schema validation and custom encryption key
+const collection4 = await db1.createCollection("testCollection4", true, schema, true, "myCustomKey");
 
-// Create collection with schema validation and encryption (custom key)
-const collection5 = await db1.createCollection("testCollection5", schema, true, "myKey");
+// Create an encrypted collection without schema validation (using empty object for schema)
+const collection5 = await db1.createCollection("testCollection5", false, {}, true);
 
-// Create collection without schema validation but with encryption (default key)
-const collection6 = await db1.createCollection("testCollection6", false, {}, true);
-
-// Create collection without schema validation but with encryption (custom key)
-const collection7 = await db1.createCollection("testCollection7", false, {}, true, "myKey");
+// Create an encrypted collection without schema and with custom key
+const collection6 = await db1.createCollection("testCollection6", false, {}, true, "myCustomKey");
 ```
 
 ### CommonJS Example
