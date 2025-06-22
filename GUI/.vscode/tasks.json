@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start AxioDB GUI Development Server",
+			"type": "shell",
+			"command": "cd /workspaces/AxioDB/GUI && npm run dev",
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}
