@@ -85,6 +85,33 @@ npm install axiodb@latest --save
 
 > **Important Note:** AxioDB uses a single instance architecture. You should initialize only one AxioDB instance with the `new` keyword, under which you can create unlimited databases, collections, and documents. This design ensures data consistency and security across your application.
 
+### Schema Validation Options
+
+In the current version, schema validation is optional when creating collections:
+
+```javascript
+// Create collection with schema validation (default behavior)
+const collection1 = await db1.createCollection("testCollection", schema);
+
+// Create collection without schema validation by passing false as second parameter
+const collection2 = await db1.createCollection("testCollection2", false);
+
+// Create collection with schema validation explicitly set to true 
+const collection3 = await db1.createCollection("testCollection3", true, schema);
+
+// Create collection with schema validation and encryption (default key)
+const collection4 = await db1.createCollection("testCollection4", schema, true);
+
+// Create collection with schema validation and encryption (custom key)
+const collection5 = await db1.createCollection("testCollection5", schema, true, "myKey");
+
+// Create collection without schema validation but with encryption (default key)
+const collection6 = await db1.createCollection("testCollection6", false, {}, true);
+
+// Create collection without schema validation but with encryption (custom key)
+const collection7 = await db1.createCollection("testCollection7", false, {}, true, "myKey");
+```
+
 ### CommonJS Example
 
 ```javascript
@@ -106,18 +133,10 @@ const main = async () => {
     email: SchemaTypes.string().required().email(),
   };
 
-  // Create collections
-  const collection = await db1.createCollection("testCollection", schema);
-  const collection2 = await db1.createCollection(
-    "testCollection2",
-    schema,
-    true,
-  );
-  const collection3 = await db1.createCollection(
-    "testCollection3",
-    schema,
-    "myKey",
-  );
+  // Create collections with and without schema validation
+  const collectionNoSchema = await db1.createCollection("testCollection2", false);
+  const collectionExplicitSchema = await db1.createCollection("testCollection3", true, schema);
+  const collectionWithEncryption = await db1.createCollection("testCollection4", schema, true, "myKey");
 
   // Insert data
   const saveStatus = await collection.insert({
@@ -200,18 +219,10 @@ const main = async () => {
     email: SchemaTypes.string().required().email(),
   };
 
-  // Create collections
-  const collection = await db1.createCollection("testCollection", schema);
-  const collection2 = await db1.createCollection(
-    "testCollection2",
-    schema,
-    true,
-  );
-  const collection3 = await db1.createCollection(
-    "testCollection3",
-    schema,
-    "myKey",
-  );
+  // Create collections with and without schema validation
+  const collectionNoSchema = await db1.createCollection("testCollection2", false);
+  const collectionExplicitSchema = await db1.createCollection("testCollection3", true, schema);
+  const collectionWithEncryption = await db1.createCollection("testCollection4", schema, true, "myKey");
 
   // Insert data
   const saveStatus = await collection.insert({
@@ -409,6 +420,13 @@ await collection1.delete({ age: { $lt: 25 } }).deleteMany();
   Retrieves information about all collections.
 
 ### Collection
+
+- **`createCollection(name: string, schemaOrBoolean: object | boolean, schemaOrEmpty?: object, crypto?: boolean, key?: string): Promise<Collection>`**  
+  Creates a collection with optional schema validation and encryption. The parameters are flexible:
+  - If the second parameter is a schema object, schema validation is enabled
+  - If the second parameter is a boolean, it determines whether schema validation is enabled
+  - For collections without schema but with encryption, pass `false, {}, true` as parameters
+  - The encryption key parameter is optional - if not provided, a default key will be generated
 
 - **`insert(data: object): Promise<SuccessInterface | ErrorInterface>`**  
   Inserts a document into the collection.

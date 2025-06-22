@@ -222,16 +222,6 @@ const Features: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
             <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
-              Inbuilt Web-Based GUI Dashboard
-            </h3>
-            <p className="text-gray-700 dark:text-gray-300">
-              Provide a user-friendly, web-based interface similar to PhpMyAdmin
-              for managing databases, collections, and data visually.
-            </p>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
               Data Export and Import Mechanisms
             </h3>
             <p className="text-gray-700 dark:text-gray-300">

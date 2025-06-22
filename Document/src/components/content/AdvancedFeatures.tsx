@@ -1,7 +1,7 @@
+import { Code, Database, Lock, RefreshCw, Rocket } from "lucide-react";
 import React, { useState } from "react";
-import { Rocket, Code, Lock, RefreshCw, Database } from "lucide-react";
-import CodeBlock from "../ui/CodeBlock";
 import Button from "../ui/Button";
+import CodeBlock from "../ui/CodeBlock";
 
 const AdvancedFeatures: React.FC = () => {
   const [activeFeature, setActiveFeature] = useState<string>("multi-db");
@@ -20,9 +20,9 @@ const setup = async () => {
   const DB1 = await db.createDB("DB1");
   const collection1 = await DB1.createCollection(
     "collection1",
-    schema,
-    true,
-    "secretKey",
+    schema,      // Schema object
+    true,        // Enable encryption
+    "secretKey"  // Custom encryption key
   );
 
   // Insert data
@@ -55,9 +55,9 @@ setup();`,
 console.log("Aggregation Result:", aggregationResult);`,
     encryption: `const encryptedCollection = await DB1.createCollection(
   "secureCollection",
-  schema,
-  true,
-  "mySecretKey",
+  schema,      // Schema object
+  true,        // Enable encryption
+  "mySecretKey"  // Custom encryption key
 );
 
 // Insert encrypted data

@@ -150,6 +150,30 @@ console.log(paginatedDocuments);`,
         </p>
       </div>
 
+      <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-8">
+        <h3 className="flex items-center text-lg font-semibold text-blue-800 dark:text-blue-400 mb-2">
+          <AlertCircle className="h-5 w-5 mr-2" />
+          Schema Validation is Now Optional
+        </h3>
+        <p className="text-gray-700 dark:text-gray-300">
+          In the current version, you can create collections with or without schema validation:
+        </p>
+        <ul className="list-disc list-inside mt-2 space-y-1 text-gray-700 dark:text-gray-300">
+          <li>
+            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
+              await db1.createCollection("testCollection", false)
+            </code>
+            {" "}- Create collection without schema validation
+          </li>
+          <li>
+            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
+              await db1.createCollection("testCollection", true, schema)
+            </code>
+            {" "}- Create collection with explicit schema validation
+          </li>
+        </ul>
+      </div>
+
       {step === "selectCodeType" && (
         <div className="flex flex-col items-center">
           <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -286,8 +310,9 @@ const main = async () => {
     email: SchemaTypes.string().required().email(),
   };
 
-  // Create collections
-  const collection = await db1.createCollection("testCollection", schema);
+  // Create collections with different schema validation options
+  const collectionNoSchema = await db1.createCollection("testCollection2", false);
+  const collectionExplicitSchema = await db1.createCollection("testCollection3", true, schema);
   
   // Rest of your application code...
 };
@@ -320,8 +345,9 @@ const main = async () => {
     email: SchemaTypes.string().required().email(),
   };
 
-  // Create collections
-  const collection = await db1.createCollection("testCollection", schema);
+  // Create collections with different schema validation options
+  const collectionNoSchema = await db1.createCollection("testCollection2", false);
+  const collectionExplicitSchema = await db1.createCollection("testCollection3", true, schema);
   
   // Rest of your application code...
 };

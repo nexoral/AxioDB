@@ -1,5 +1,5 @@
+import { AlertTriangle, Database, Key, ShieldCheck, Zap } from "lucide-react";
 import React from "react";
-import { ShieldCheck, Key, AlertTriangle, Zap, Database } from "lucide-react";
 
 const Security: React.FC = () => {
   return (
@@ -80,12 +80,21 @@ const Security: React.FC = () => {
 
         <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-md overflow-x-auto mb-4">
           <code className="text-sm font-mono">
-            {`// Create an encrypted collection
-const secureCollection = await db.createCollection(
+            {`// Create an encrypted collection with schema validation
+const secureCollection = await db1.createCollection(
   "users",
-  userSchema,
-  true,    // Enable encryption
-  "your-strong-secret-key"
+  userSchema,  // Schema object
+  true,        // Enable encryption
+  "your-strong-secret-key"  // Custom encryption key
+);
+
+// Create an encrypted collection without schema validation
+const secureCollectionNoSchema = await db1.createCollection(
+  "logs",
+  false,      // Disable schema validation
+  {},         // Empty object placeholder
+  true,       // Enable encryption
+  "your-strong-secret-key"  // Custom encryption key
 );`}
           </code>
         </pre>
