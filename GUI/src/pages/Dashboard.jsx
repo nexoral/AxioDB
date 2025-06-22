@@ -36,7 +36,7 @@ const Dashboard = () => {
             <div
               key={item}
               className="h-32 bg-gray-200 rounded-lg animate-pulse"
-            ></div>
+            />
           ))}
         </div>
       ) : (

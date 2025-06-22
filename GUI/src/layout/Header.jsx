@@ -16,11 +16,7 @@ const Header = () => {
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link to="/" className="flex items-center">
-                <img
-                  src="/AXioDB.png"
-                  alt="AxioDB Logo"
-                  className="h-9 w-9"
-                />
+                <img src="/AXioDB.png" alt="AxioDB Logo" className="h-9 w-9" />
                 <span className="ml-2 text-white font-bold text-xl tracking-tight">
                   AxioControl
                 </span>

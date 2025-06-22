@@ -1,4 +1,3 @@
-
 /**
  * Footer component for the AxioDB GUI
  */
@@ -24,10 +23,18 @@ const Footer = () => {
 
           <div className="text-sm">
             <div className="flex space-x-6">
-              <a href="/docs" className="hover:text-white transition-colors">Documentation</a>
-              <a href="/support" className="hover:text-white transition-colors">Support</a>
-              <a href="/api" className="hover:text-white transition-colors">API</a>
-              <a href="/status" className="hover:text-white transition-colors">Status</a>
+              <a href="/docs" className="hover:text-white transition-colors">
+                Documentation
+              </a>
+              <a href="/support" className="hover:text-white transition-colors">
+                Support
+              </a>
+              <a href="/api" className="hover:text-white transition-colors">
+                API
+              </a>
+              <a href="/status" className="hover:text-white transition-colors">
+                Status
+              </a>
             </div>
             <p className="mt-4 text-xs text-center md:text-right">
               © {currentYear} AxioDB, Inc. All rights reserved.

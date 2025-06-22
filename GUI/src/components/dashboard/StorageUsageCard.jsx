@@ -32,7 +32,7 @@ const StorageUsageCard = () => {
         <div>
           <h3 className="text-lg font-medium text-gray-900">Storage Used</h3>
           {loading ? (
-            <div className="h-8 mt-2 bg-gray-200 rounded animate-pulse w-24"></div>
+            <div className="h-8 mt-2 bg-gray-200 rounded animate-pulse w-24" />
           ) : (
             <p className="text-3xl font-bold text-green-600 mt-2">
               {storageUsage} <span className="text-lg">GB</span>
@@ -52,7 +52,7 @@ const StorageUsageCard = () => {
         <div
           className="bg-green-600 h-2.5 rounded-full"
           style={{ width: `${loading ? 0 : usagePercentage}%` }}
-        ></div>
+        />
       </div>
     </div>
   );

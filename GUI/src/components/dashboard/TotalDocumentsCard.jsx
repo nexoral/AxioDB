@@ -27,7 +27,7 @@ const TotalDocumentsCard = () => {
         <div>
           <h3 className="text-lg font-medium text-gray-900">Total Documents</h3>
           {loading ? (
-            <div className="h-8 mt-2 bg-gray-200 rounded animate-pulse w-20"></div>
+            <div className="h-8 mt-2 bg-gray-200 rounded animate-pulse w-20" />
           ) : (
             <p className="text-3xl font-bold text-purple-600 mt-2">
               {totalDocuments.toLocaleString()}

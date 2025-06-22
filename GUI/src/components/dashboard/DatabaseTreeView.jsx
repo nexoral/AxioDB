@@ -34,23 +34,23 @@ const DatabaseTreeView = () => {
                 name: "accounts",
                 type: "collection",
                 documentCount: 1250,
-                size: "2.3 MB"
+                size: "2.3 MB",
               },
               {
                 id: "db1_col2",
                 name: "profiles",
                 type: "collection",
                 documentCount: 1200,
-                size: "4.1 MB"
+                size: "4.1 MB",
               },
               {
                 id: "db1_col3",
                 name: "sessions",
                 type: "collection",
                 documentCount: 5400,
-                size: "1.8 MB"
-              }
-            ]
+                size: "1.8 MB",
+              },
+            ],
           },
           {
             id: "db2",
@@ -62,23 +62,23 @@ const DatabaseTreeView = () => {
                 name: "inventory",
                 type: "collection",
                 documentCount: 850,
-                size: "3.2 MB"
+                size: "3.2 MB",
               },
               {
                 id: "db2_col2",
                 name: "categories",
                 type: "collection",
                 documentCount: 45,
-                size: "0.3 MB"
+                size: "0.3 MB",
               },
               {
                 id: "db2_col3",
                 name: "suppliers",
                 type: "collection",
                 documentCount: 120,
-                size: "0.7 MB"
-              }
-            ]
+                size: "0.7 MB",
+              },
+            ],
           },
           {
             id: "db3",
@@ -90,24 +90,24 @@ const DatabaseTreeView = () => {
                 name: "events",
                 type: "collection",
                 documentCount: 4250,
-                size: "8.5 MB"
+                size: "8.5 MB",
               },
               {
                 id: "db3_col2",
                 name: "metrics",
                 type: "collection",
                 documentCount: 1850,
-                size: "4.2 MB"
+                size: "4.2 MB",
               },
               {
                 id: "db3_col3",
                 name: "reports",
                 type: "collection",
                 documentCount: 320,
-                size: "1.5 MB"
-              }
-            ]
-          }
+                size: "1.5 MB",
+              },
+            ],
+          },
         ];
 
         // Expand the first database by default
@@ -127,10 +127,11 @@ const DatabaseTreeView = () => {
     return (
       <div key={node.id}>
         <div
-          className={`flex items-center py-2 px-3 ${node.type === "database"
+          className={`flex items-center py-2 px-3 ${
+            node.type === "database"
               ? "bg-blue-50 hover:bg-blue-100 border-b border-blue-100"
               : "hover:bg-gray-50 pl-10"
-            } cursor-pointer transition-colors`}
+          } cursor-pointer transition-colors`}
           onClick={() => node.children && toggleExpand(node.id)}
         >
           {node.children ? (
@@ -175,7 +176,9 @@ const DatabaseTreeView = () => {
   return (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
       <div className="border-b border-gray-200 py-4 px-6">
-        <h3 className="text-lg font-medium text-gray-900">Database Structure</h3>
+        <h3 className="text-lg font-medium text-gray-900">
+          Database Structure
+        </h3>
         <p className="text-sm text-gray-500 mt-1">
           Overview of databases and collections
         </p>
@@ -186,11 +189,11 @@ const DatabaseTreeView = () => {
           <div className="p-6 space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="animate-pulse">
-                <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-6 bg-gray-200 rounded w-3/4 mb-2" />
                 <div className="pl-6 space-y-2">
-                  <div className="h-5 bg-gray-100 rounded w-2/3"></div>
-                  <div className="h-5 bg-gray-100 rounded w-2/3"></div>
-                  <div className="h-5 bg-gray-100 rounded w-2/3"></div>
+                  <div className="h-5 bg-gray-100 rounded w-2/3" />
+                  <div className="h-5 bg-gray-100 rounded w-2/3" />
+                  <div className="h-5 bg-gray-100 rounded w-2/3" />
                 </div>
               </div>
             ))}
