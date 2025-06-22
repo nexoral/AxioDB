@@ -1,5 +1,5 @@
 import React from "react";
-import { Zap, Server, GitCompare } from "lucide-react";
+import { Zap, GitCompare } from "lucide-react";
 
 const Comparison: React.FC = () => {
   return (
@@ -137,78 +137,6 @@ const Comparison: React.FC = () => {
           </tbody>
         </table>
       </div>
-
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-8 mb-12">
-        <div className="flex items-start gap-6 flex-col md:flex-row">
-          <div className="flex-1">
-            <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              <Server className="h-6 w-6 text-blue-500" />
-              Coming Soon: AxioDB Docker
-            </h3>
-
-            <p className="text-gray-700 dark:text-gray-300 mb-4">
-              We're extending AxioDB's power beyond JavaScript with our upcoming
-              Docker image, featuring:
-            </p>
-
-            <ul className="space-y-2 mb-6 list-disc pl-6 text-gray-700 dark:text-gray-300">
-              <li>
-                Multiple connection protocols:
-                <ul className="pl-4 mt-2 space-y-1">
-                  <li>TCP Port</li>
-                  <li>HTTP Port</li>
-                  <li>gRPC Port</li>
-                  <li>WebSocket Port</li>
-                </ul>
-              </li>
-              <li>Multi-user system with authentication</li>
-              <li>Web-based GUI Management Dashboard</li>
-              <li>Cross-language compatibility</li>
-            </ul>
-          </div>
-
-          <div className="flex flex-col gap-4 min-w-[300px]">
-            <a
-              href="https://hub.docker.com/r/theankansaha/axiodb"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-            >
-              <img
-                src="https://images.icon-icons.com/2530/PNG/512/dockerhub_button_icon_151899.png"
-                alt="Docker Hub"
-                className="h-8 w-8 object-contain dark:invert"
-              />
-              <div>
-                <h4 className="font-semibold">Docker Hub</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Official Docker Image
-                </p>
-              </div>
-            </a>
-
-            <a
-              href="https://github.com/AnkanSaha/AxioDB-Docker/pkgs/container/axiodb"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-            >
-              <img
-                src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-                alt="GitHub Packages"
-                className="h-8 w-8 object-contain dark:invert"
-              />
-              <div>
-                <h4 className="font-semibold">GitHub Packages</h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Container Registry
-                </p>
-              </div>
-            </a>
-          </div>
-        </div>
-      </div>
-
       <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
         <h4 className="font-semibold mb-2 flex items-center gap-2">
           <Zap className="h-5 w-5 text-blue-500" />

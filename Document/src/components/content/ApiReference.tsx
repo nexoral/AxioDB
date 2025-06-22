@@ -1,5 +1,5 @@
-import React, { useState } from "react";
 import { BookOpen, ChevronDown, ChevronRight } from "lucide-react";
+import React, { useState } from "react";
 
 interface ApiSection {
   title: string;
@@ -63,11 +63,11 @@ const ApiReference: React.FC = () => {
         {
           name: "createCollection",
           signature:
-            "createCollection(name: string, schema: object, crypto?: boolean, key?: string): Promise<Collection>",
+            "createCollection(name: string, schemaOrBoolean: object | boolean, schemaOrEmpty?: object, crypto?: boolean, key?: string): Promise<Collection>",
           description:
-            "Creates a new collection with an optional schema and encryption.",
+            "Creates a new collection with optional schema validation and encryption. If the second parameter is a boolean, it determines whether schema validation is enabled (and schema should be the third parameter). If the second parameter is an object, it's treated as the schema.",
           example:
-            "const collection = await db1.createCollection('users', userSchema, true, 'secretKey');",
+            "// With schema\nconst collection = await db1.createCollection('users', userSchema);\n\n// Without schema\nconst noSchemaCollection = await db1.createCollection('logs', false);\n\n// With schema and encryption\nconst secureCollection = await db1.createCollection('secure', userSchema, true, 'secretKey');\n\n// Without schema but with encryption\nconst secureNoSchemaCollection = await db1.createCollection('secureNoSchema', false, {}, true, 'secretKey');",
           returns:
             "Promise<Collection>: A promise that resolves to a Collection instance.",
         },

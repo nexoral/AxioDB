@@ -33,6 +33,8 @@ AxioDB is a blazing-fast, lightweight, and scalable open-source Database Managem
 - **Plug-and-Play Setup:** No additional database server required—install and start building instantly.
 - **Tree-like Structure:** Store data in a tree-like structure for efficient data retrieval and management.
 - **Auto Indexing on documentId:** Automatically create index on documentId for faster queries.
+- **Single Instance Architecture:** For data consistency and security, you can initialize only one AxioDB instance with the `new` keyword. Under this single instance, you can create unlimited databases, collections, and documents.
+- **Web-Based GUI Dashboard:** When you create an AxioDB instance and run your project, it automatically starts a web-based GUI on `localhost:27018` for visual database management (currently under development).
 
 ---
 
@@ -81,18 +83,79 @@ npm install axiodb@latest --save
 
 ## 🛠️ Usage
 
+> **Important Note:** AxioDB uses a single instance architecture. You should initialize only one AxioDB instance with the `new` keyword, under which you can create unlimited databases, collections, and documents. This design ensures data consistency and security across your application.
+
+### Collection Creation Options
+
+When creating collections, you need to specify these parameters in the `createCollection` method:
+
+```javascript
+// Signature of createCollection method:
+createCollection(
+  name: string,           // Name of the collection (required)
+  isSchemaNeeded: boolean, // Whether schema validation is needed (required)
+  schema?: object | any,  // Schema definition (required if isSchemaNeeded is true, empty {} if false)
+  isEncrypted?: boolean,  // Whether to encrypt the collection (default: false)
+  encryptionKey?: string  // Custom encryption key (optional, system generates one if not provided)
+)
+```
+
+Examples:
+
+```javascript
+// Create collection with schema validation
+const collection1 = await db1.createCollection("testCollection", true, schema);
+
+// Create collection without schema validation
+const collection2 = await db1.createCollection("testCollection2", false);
+
+// Create an encrypted collection with schema validation and default encryption key
+const collection3 = await db1.createCollection(
+  "testCollection3",
+  true,
+  schema,
+  true,
+);
+
+// Create an encrypted collection with schema validation and custom encryption key
+const collection4 = await db1.createCollection(
+  "testCollection4",
+  true,
+  schema,
+  true,
+  "myCustomKey",
+);
+
+// Create an encrypted collection without schema validation (using empty object for schema)
+const collection5 = await db1.createCollection(
+  "testCollection5",
+  false,
+  {},
+  true,
+);
+
+// Create an encrypted collection without schema and with custom key
+const collection6 = await db1.createCollection(
+  "testCollection6",
+  false,
+  {},
+  true,
+  "myCustomKey",
+);
+```
+
 ### CommonJS Example
 
 ```javascript
 const { AxioDB, SchemaTypes } = require("axiodb");
 
+// Create a single AxioDB instance for your entire application
+// This will also start the Web GUI on localhost:27018 (currently under development)
+const db = new AxioDB();
+
 const main = async () => {
-  const db = new AxioDB();
-
-  // Create a database with schema validation (default)
+  // Create multiple databases under the single instance
   const db1 = await db.createDB("testDB");
-
-  // Create a database without schema validation
   const db2 = await db.createDB("testDB2", false);
 
   // Define a schema
@@ -102,16 +165,20 @@ const main = async () => {
     email: SchemaTypes.string().required().email(),
   };
 
-  // Create collections
-  const collection = await db1.createCollection("testCollection", schema);
-  const collection2 = await db1.createCollection(
+  // Create collections with and without schema validation
+  const collectionNoSchema = await db1.createCollection(
     "testCollection2",
+    false,
+  );
+  const collectionExplicitSchema = await db1.createCollection(
+    "testCollection3",
+    true,
+    schema,
+  );
+  const collectionWithEncryption = await db1.createCollection(
+    "testCollection4",
     schema,
     true,
-  );
-  const collection3 = await db1.createCollection(
-    "testCollection3",
-    schema,
     "myKey",
   );
 
@@ -196,16 +263,20 @@ const main = async () => {
     email: SchemaTypes.string().required().email(),
   };
 
-  // Create collections
-  const collection = await db1.createCollection("testCollection", schema);
-  const collection2 = await db1.createCollection(
+  // Create collections with and without schema validation
+  const collectionNoSchema = await db1.createCollection(
     "testCollection2",
+    false,
+  );
+  const collectionExplicitSchema = await db1.createCollection(
+    "testCollection3",
+    true,
+    schema,
+  );
+  const collectionWithEncryption = await db1.createCollection(
+    "testCollection4",
     schema,
     true,
-  );
-  const collection3 = await db1.createCollection(
-    "testCollection3",
-    schema,
     "myKey",
   );
 
@@ -405,6 +476,14 @@ await collection1.delete({ age: { $lt: 25 } }).deleteMany();
   Retrieves information about all collections.
 
 ### Collection
+
+- **`createCollection(name: string, schemaOrBoolean: object | boolean, schemaOrEmpty?: object, crypto?: boolean, key?: string): Promise<Collection>`**  
+  Creates a collection with optional schema validation and encryption. The parameters are flexible:
+
+  - If the second parameter is a schema object, schema validation is enabled
+  - If the second parameter is a boolean, it determines whether schema validation is enabled
+  - For collections without schema but with encryption, pass `false, {}, true` as parameters
+  - The encryption key parameter is optional - if not provided, a default key will be generated
 
 - **`insert(data: object): Promise<SuccessInterface | ErrorInterface>`**  
   Inserts a document into the collection.

@@ -1,6 +1,9 @@
 export interface FinalCollectionsInfo {
-  TotalSize: string;
-  TotalCollections: string;
+  CurrentPath: string;
+  RootName: string;
+  MatrixUnits: string;
+  TotalSize: number;
+  TotalCollections: number | string;
   ListOfCollections: string[];
   AllCollectionsPaths: string[];
 }

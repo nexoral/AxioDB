@@ -1,7 +1,7 @@
+import { AlertCircle, BookOpen, Code2 } from "lucide-react";
 import React, { useState } from "react";
-import { BookOpen } from "lucide-react";
-import CodeBlock from "../ui/CodeBlock";
 import Button from "../ui/Button";
+import CodeBlock from "../ui/CodeBlock";
 
 const Usage: React.FC = () => {
   const [step, setStep] = useState<
@@ -130,6 +130,31 @@ console.log(paginatedDocuments);`,
         Basic Usage
       </h2>
 
+      <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-r-lg mb-8">
+        <h3 className="flex items-center text-lg font-semibold text-yellow-800 dark:text-yellow-400 mb-2">
+          <AlertCircle className="h-5 w-5 mr-2" />
+          Important Note on Instance Management
+        </h3>
+        <p className="text-gray-700 dark:text-gray-300">
+          AxioDB uses a single instance architecture. You should initialize only
+          one AxioDB instance with the{" "}
+          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
+            new
+          </code>{" "}
+          keyword, under which you can create unlimited databases, collections,
+          and documents. This design ensures data consistency and security
+          across your application.
+        </p>
+        <p className="text-gray-700 dark:text-gray-300 mt-2">
+          When you create an AxioDB instance and run your project, it
+          automatically starts a web-based GUI on{" "}
+          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
+            localhost:27018
+          </code>{" "}
+          for visual database management (currently under development).
+        </p>
+      </div>
+
       {step === "selectCodeType" && (
         <div className="flex flex-col items-center">
           <p className="text-gray-700 dark:text-gray-300 mb-4">
@@ -240,6 +265,92 @@ console.log(paginatedDocuments);`,
           </Button>
         </div>
       )}
+
+      <h3 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+        <Code2 className="h-6 w-6 text-blue-500" />
+        CommonJS Example
+      </h3>
+
+      <CodeBlock
+        language="javascript"
+        code={`const { AxioDB, SchemaTypes } = require("axiodb");
+
+// Create a single AxioDB instance for your entire application
+// This will also start the Web GUI on localhost:27018 (currently under development)
+const db = new AxioDB();
+
+const main = async () => {
+  // Create multiple databases under the single instance
+  const db1 = await db.createDB("testDB");
+  const db2 = await db.createDB("testDB2", false);
+
+  // Define a schema
+  const schema = {
+    name: SchemaTypes.string().required(),
+    age: SchemaTypes.number().required().min(1).max(100),
+    email: SchemaTypes.string().required().email(),
+  };
+
+  // Create collections with different options
+  const collection = await db1.createCollection("collection1", true, schema);
+  const noSchemaCollection = await db1.createCollection("collection2", false);
+  const encryptedCollection = await db1.createCollection(
+    "collection4", 
+    true, 
+    schema, 
+    true, 
+    "mySecretKey"
+  );
+  
+  // Rest of your application code...
+};
+
+main();`}
+      />
+
+      <h3 className="text-2xl font-semibold mb-4 mt-8 flex items-center gap-2">
+        <Code2 className="h-6 w-6 text-blue-500" />
+        ES Module Example
+      </h3>
+
+      <CodeBlock
+        language="javascript"
+        code={`import { AxioDB, SchemaTypes } from "axiodb";
+
+// Create a single AxioDB instance for your entire application
+// This will also start the Web GUI on localhost:27018 (currently under development)
+const db = new AxioDB();
+
+const main = async () => {
+  // Create multiple databases under the single instance
+  const db1 = await db.createDB("testDB");
+  const db2 = await db.createDB("testDB2", false);
+
+  // Define a schema
+  const schema = {
+    name: SchemaTypes.string().required(),
+    age: SchemaTypes.number().required().min(1).max(100),
+    email: SchemaTypes.string().required().email(),
+  };
+
+  // Create collections with different options
+  const collection = await db1.createCollection("collection1", true, schema);
+  const noSchemaCollection = await db1.createCollection("collection2", false);
+  const encryptedCollection = await db1.createCollection(
+    "collection4", 
+    true, 
+    schema, 
+    true, 
+    "mySecretKey"
+  );
+  
+  // Rest of your application code...
+};
+
+main();`}
+      />
+
+      {/* Rest of the usage component would continue here */}
     </section>
   );
 };

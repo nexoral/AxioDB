@@ -1,12 +1,5 @@
+import { CheckCircle2, FilterX, Layers } from "lucide-react";
 import React from "react";
-import {
-  CheckCircle2,
-  Database,
-  Lock,
-  Zap,
-  Layers,
-  FilterX,
-} from "lucide-react";
 
 const Features: React.FC = () => {
   return (
@@ -125,6 +118,35 @@ const Features: React.FC = () => {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
           <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
+            Single Instance Architecture
+          </h3>
+          <p className="text-gray-700 dark:text-gray-300">
+            For data consistency and security, you can initialize only one
+            AxioDB instance with the{" "}
+            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
+              new
+            </code>{" "}
+            keyword. Under this single instance, you can create unlimited
+            databases, collections, and documents.
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
+          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
+            Web-Based GUI Dashboard
+          </h3>
+          <p className="text-gray-700 dark:text-gray-300">
+            When you create an AxioDB instance and run your project, it
+            automatically starts a web-based GUI on{" "}
+            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
+              localhost:27018
+            </code>{" "}
+            for visual database management (currently under development).
+          </p>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
+          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
             Auto Indexing on documentId
           </h3>
           <p className="text-gray-700 dark:text-gray-300">
@@ -196,16 +218,6 @@ const Features: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
             <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
-              Inbuilt Web-Based GUI Dashboard
-            </h3>
-            <p className="text-gray-700 dark:text-gray-300">
-              Provide a user-friendly, web-based interface similar to PhpMyAdmin
-              for managing databases, collections, and data visually.
-            </p>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
               Data Export and Import Mechanisms
             </h3>
             <p className="text-gray-700 dark:text-gray-300">
@@ -252,6 +264,20 @@ const Features: React.FC = () => {
             <p className="text-gray-700 dark:text-gray-300">
               Expand tutorials, examples, and API references for developers of
               all experience levels.
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
+            <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
+              Enhanced Web-Based GUI Dashboard
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300">
+              Continue improving our web-based interface (already available on{" "}
+              <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
+                localhost:27018
+              </code>{" "}
+              when you run AxioDB) with more features for visual data management
+              and analytics.
             </p>
           </div>
         </div>

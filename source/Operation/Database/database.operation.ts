@@ -119,8 +119,11 @@ export default class Database {
     );
     if ("data" in collections && "data" in totalSize) {
       const FinalCollections: FinalCollectionsInfo = {
+        CurrentPath: this.path,
+        RootName: this.name,
+        MatrixUnits: "MB",
         TotalCollections: `${collections.data.length} Collections`,
-        TotalSize: `${(totalSize.data / 1024 / 1024).toFixed(4)} MB`,
+        TotalSize: parseInt((totalSize.data / 1024 / 1024).toFixed(4)),
         ListOfCollections: collections.data,
         AllCollectionsPaths: collections.data.map((collection: string) =>
           path.join(this.path, collection),

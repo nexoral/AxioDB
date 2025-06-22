@@ -26,8 +26,8 @@ const db1 = await db.createDB("testDB");
 console.log("Database 'testDB' created.");
 
 // Create a new database without schema validation
-const db2 = await db.createDB("testDB2", false);
-console.log("Database 'testDB2' created without schema validation.");
+const db2 = await db.createDB("testDB2");
+console.log("Database 'testDB2' created");
 `,
   };
 
