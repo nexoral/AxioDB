@@ -4,13 +4,15 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-import ChildProcess from "../cli/worker_process";
+import WorkerProcess from "../cli/worker_process";
 
 export default class FileManager {
   private readonly responseHelper: ResponseHelper;
+  private readonly WorkerProcess: WorkerProcess;
 
   constructor() {
     this.responseHelper = new ResponseHelper();
+    this.WorkerProcess = new WorkerProcess();
   }
 
   /**
@@ -184,9 +186,15 @@ export default class FileManager {
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const stdout = await new ChildProcess().execCommand(`du -sb ${path}`);
-      const size = parseInt(stdout.split("\t")[0], 10);
-      return this.responseHelper.Success(size);
+        const osType = this.WorkerProcess.getOS();
+        if (osType === "windows") {
+            const stdout = await this.WorkerProcess.execCommand(`powershell -command "(Get-Item '${path}').length"`);
+            const size = parseInt(stdout, 10);
+            return this.responseHelper.Success(size);
+        }
+        const stdout = await this.WorkerProcess.execCommand(`du -sb ${path}`);
+        const size = parseInt(stdout.split("\t")[0], 10);
+        return this.responseHelper.Success(size);
     } catch (err) {
       return this.responseHelper.Error(`Failed to get directory size: ${err}`);
     }
