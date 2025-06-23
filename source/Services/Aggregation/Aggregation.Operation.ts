@@ -5,9 +5,9 @@ import {
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import FolderManager from "../../engine/Filesystem/FolderManager";
-import FileManager from "../../engine/Filesystem/FileManager";
 import Converter from "../../Helper/Converter.helper";
 import { Console } from "outers";
+import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -262,32 +262,14 @@ export default class Aggregation {
             // Store all files in DataFilesList
             const DataFilesList: string[] = ReadResponse.data;
             // Read all files from the directory
-            for (let i = 0; i < DataFilesList.length; i++) {
-              const ReadFileResponse: SuccessInterface | ErrorInterface =
-                await new FileManager().ReadFile(
-                  `${this.path}/${DataFilesList[i]}`,
-                );
-              // Check if the file is read successfully or not
-              if ("data" in ReadFileResponse) {
-                if (this.isEncrypted === true && this.cryptoInstance) {
-                  // Decrypt the data if crypto is enabled
-                  const ContentResponse = await this.cryptoInstance.decrypt(
-                    this.Converter.ToObject(ReadFileResponse.data),
-                  );
-                  // Store all Decrypted Data in AllData
-                  this.AllData.push(this.Converter.ToObject(ContentResponse));
-                } else {
-                  this.AllData.push(
-                    this.Converter.ToObject(ReadFileResponse.data),
-                  );
-                }
-              } else {
-                return this.ResponseHelper.Error(
-                  `Failed to read file: ${DataFilesList[i]}`,
-                );
-              }
-            }
-            return this.ResponseHelper.Success(this.AllData);
+            const resultData: any[] = await ReaderWithWorker(
+              DataFilesList,
+              this.cryptoInstance,
+              this.path,
+              this.isEncrypted,
+            );
+            this.AllData = resultData;
+            return this.ResponseHelper.Success(resultData);
           }
           return this.ResponseHelper.Error("Failed to read directory");
         } else {
@@ -303,40 +285,20 @@ export default class Aggregation {
               // Store all files in DataFilesList
               const DataFilesList: string[] = ReadResponse.data;
               // Read all files from the directory
-              for (let i = 0; i < DataFilesList.length; i++) {
-                const ReadFileResponse: SuccessInterface | ErrorInterface =
-                  await new FileManager().ReadFile(
-                    `${this.path}/${DataFilesList[i]}`,
-                  );
-                // Check if the file is read successfully or not
-                if ("data" in ReadFileResponse) {
-                  if (this.isEncrypted === true && this.cryptoInstance) {
-                    // Decrypt the data if crypto is enabled
-                    const ContaentResponse = await this.cryptoInstance.decrypt(
-                      this.Converter.ToObject(ReadFileResponse.data),
-                    );
-                    // Store all Decrypted Data in AllData
-                    this.AllData.push(
-                      this.Converter.ToObject(ContaentResponse),
-                    );
-                  } else {
-                    this.AllData.push(
-                      this.Converter.ToObject(ReadFileResponse.data),
-                    );
-                  }
-                } else {
-                  return this.ResponseHelper.Error(
-                    `Failed to read file: ${DataFilesList[i]}`,
-                  );
-                }
-              }
+              const resultData: any[] = await ReaderWithWorker(
+                DataFilesList,
+                this.cryptoInstance,
+                this.path,
+                this.isEncrypted,
+              );
+              this.AllData = resultData;
 
               // Lock the directory after reading all files
               const lockResponse = await new FolderManager().LockDirectory(
                 this.path,
               );
               if ("data" in lockResponse) {
-                return this.ResponseHelper.Success(this.AllData);
+                return this.ResponseHelper.Success(resultData);
               } else {
                 return this.ResponseHelper.Error(
                   `Failed to lock directory: ${this.path}`,
