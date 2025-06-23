@@ -1,15 +1,13 @@
 import FileSystem from "fs/promises";
 import FileSystemSync from "fs";
-import { exec } from "child_process";
-import { promisify } from "util";
-const execAsync = promisify(exec);
+import ChildProcess from "../cli/worker_process";
 
 // Import Helpers
-import ResponseHelper from "../Helper/response.helper";
+import ResponseHelper from "../../Helper/response.helper";
 import {
   ErrorInterface,
   SuccessInterface,
-} from "../config/Interfaces/Helper/response.helper.interface";
+} from "../../config/Interfaces/Helper/response.helper.interface";
 
 export default class FolderManager {
   private readonly fileSystem: typeof FileSystem;
@@ -143,7 +141,7 @@ export default class FolderManager {
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const { stdout } = await execAsync(`du -sb ${path}`);
+        const stdout = await new ChildProcess().execCommand(`du -sb ${path}`);
       const size = parseInt(stdout.split("\t")[0], 10);
       return this.responseHelper.Success(size);
     } catch (err) {

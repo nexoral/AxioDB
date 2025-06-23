@@ -9,8 +9,8 @@ import Aggregation from "../Operation/Aggregation/Aggregation.Operation";
 import Collection from "../Operation/Collection/collection.operation";
 import Database from "../Operation/Database/database.operation";
 import { AxioDB } from "../Operation/Indexation.operation";
-import FileManager from "../Storage/FileManager";
-import FolderManager from "../Storage/FolderManager";
+import FileManager from "../engine/Storage/FileManager";
+import FolderManager from "../engine/Storage/FolderManager";
 
 // Export All Required Sub Modules Instance Types to support TypeScript
 const InstanceTypes = {

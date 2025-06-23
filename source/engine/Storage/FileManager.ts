@@ -1,9 +1,10 @@
 import fs from "fs/promises";
-import ResponseHelper from "../Helper/response.helper";
+import ResponseHelper from "../../Helper/response.helper";
 import {
   ErrorInterface,
   SuccessInterface,
-} from "../config/Interfaces/Helper/response.helper.interface";
+} from "../../config/Interfaces/Helper/response.helper.interface";
+import ChildProcess from "../cli/worker_process";
 
 export default class FileManager {
   private readonly responseHelper: ResponseHelper;
@@ -183,10 +184,11 @@ export default class FileManager {
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const stats = await fs.stat(path);
-      return this.responseHelper.Success(stats.size);
-    } catch (error) {
-      return this.responseHelper.Error(error);
-    }
+            const stdout = await new ChildProcess().execCommand(`du -sb ${path}`);
+          const size = parseInt(stdout.split("\t")[0], 10);
+          return this.responseHelper.Success(size);
+        } catch (err) {
+          return this.responseHelper.Error(`Failed to get directory size: ${err}`);
+        }
   }
 }
