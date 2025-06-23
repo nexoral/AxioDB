@@ -18,6 +18,11 @@ const sidebarSections: SidebarSection[] = [
     title: "Getting Started",
     items: [
       { id: "introduction", label: "Introduction", path: "/" },
+      {
+        id: "why-choose-axiodb",
+        label: "Why Choose AxioDB",
+        path: "/why-choose-axiodb",
+      },
       { id: "features", label: "Features", path: "/features" },
       { id: "pain-points", label: "Pain Points", path: "/#pain-points" },
       {
