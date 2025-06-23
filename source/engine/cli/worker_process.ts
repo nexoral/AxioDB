@@ -56,7 +56,7 @@ export default class WorkerProcess {
      * @returns A string representing the OS type: "windows", "macos", or "linux".
      * @throws If the platform is unsupported.
      */
-    public getOS(): string {
+    public static getOS(): string {
         const platform = process.platform;
         if (platform === "win32") {
             return "windows";

@@ -143,7 +143,7 @@ export default class FolderManager {
         path: string,
     ): Promise<SuccessInterface | ErrorInterface> {
         try {
-            const osType = this.WorkerProcess.getOS();
+            const osType = WorkerProcess.getOS();
             if (osType === "windows") {
                 const stdout = await this.WorkerProcess.execCommand(`powershell -command "(Get-Item '${path}').length"`);
                 const size = parseInt(stdout, 10);
