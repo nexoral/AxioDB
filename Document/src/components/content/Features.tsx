@@ -228,17 +228,6 @@ const Features: React.FC = () => {
 
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
             <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
-              Docker Image with ODM Integration
-            </h3>
-            <p className="text-gray-700 dark:text-gray-300">
-              Build a Docker image for this npm package-based DBMS, allowing
-              integration with other programming languages via Object Document
-              Mapping (ODM).
-            </p>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
               Advanced Indexing
             </h3>
             <p className="text-gray-700 dark:text-gray-300">

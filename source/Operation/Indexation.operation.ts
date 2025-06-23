@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Import Libraries
-import FileManager from "../Storage/FileManager";
-import FolderManager from "../Storage/FolderManager";
+import FileManager from "../engine/Storage/FileManager";
+import FolderManager from "../engine/Storage/FolderManager";
 import { General } from "../config/Keys/Keys";
 import path from "path";
 import Database from "./Database/database.operation";

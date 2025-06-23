@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Collection from "../Collection/collection.operation";
-import FileManager from "../../Storage/FileManager";
-import FolderManager from "../../Storage/FolderManager";
+import FileManager from "../../engine/Storage/FileManager";
+import FolderManager from "../../engine/Storage/FolderManager";
 import path from "path";
 
 // Crypto for hashing

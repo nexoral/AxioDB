@@ -19,7 +19,7 @@ import { CryptoHelper } from "../../Helper/Crypto.helper";
 // Converter
 import Converter from "../../Helper/Converter.helper";
 import { SchemaTypes } from "../../Models/DataTypes.models";
-import FolderManager from "../../Storage/FolderManager";
+import FolderManager from "../../engine/Storage/FolderManager";
 
 /**
  * Represents a collection inside a database.

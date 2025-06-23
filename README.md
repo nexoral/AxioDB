@@ -62,7 +62,6 @@ We're committed to continuously enhancing AxioDB with cutting-edge features:
 
 - **Inbuilt Web-Based GUI Dashboard:** Provide a user-friendly, web-based interface similar to PhpMyAdmin for managing databases, collections, and data visually.
 - **Data Export and Import Mechanisms:** Enable seamless export and import of data in various formats like JSON, CSV, and more.
-- **Docker Image with ODM Integration:** Build a Docker image for this npm package-based DBMS, allowing integration with other programming languages via Object Document Mapping (ODM). Once completed, simply run the Docker image and connect with the ODM.
 - **Advanced Indexing:** Implement multi-level indexing for lightning-fast queries.
 - **Replication and Sharding:** Introduce support for distributed data replication and sharding for high availability and scalability.
 - **Improved Query Optimization:** Enhance query performance with advanced optimization techniques.
