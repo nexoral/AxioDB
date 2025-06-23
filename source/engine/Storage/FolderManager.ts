@@ -141,7 +141,7 @@ export default class FolderManager {
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-        const stdout = await new ChildProcess().execCommand(`du -sb ${path}`);
+      const stdout = await new ChildProcess().execCommand(`du -sb ${path}`);
       const size = parseInt(stdout.split("\t")[0], 10);
       return this.responseHelper.Success(size);
     } catch (err) {

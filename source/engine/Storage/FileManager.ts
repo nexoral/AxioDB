@@ -184,11 +184,11 @@ export default class FileManager {
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-            const stdout = await new ChildProcess().execCommand(`du -sb ${path}`);
-          const size = parseInt(stdout.split("\t")[0], 10);
-          return this.responseHelper.Success(size);
-        } catch (err) {
-          return this.responseHelper.Error(`Failed to get directory size: ${err}`);
-        }
+      const stdout = await new ChildProcess().execCommand(`du -sb ${path}`);
+      const size = parseInt(stdout.split("\t")[0], 10);
+      return this.responseHelper.Success(size);
+    } catch (err) {
+      return this.responseHelper.Error(`Failed to get directory size: ${err}`);
+    }
   }
 }
