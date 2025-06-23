@@ -11,10 +11,11 @@ import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 
 // Import All Utility
-import HashmapSearch from "../../utility/HashMapSearch.utils";
+import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
 import InMemoryCache from "../../cache/cache.operation";
 import { General } from "../../config/Keys/Keys";
+import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
 /**
  * The DeleteOperation class is used to delete a document from a collection.
  * This class provides methods to delete a single document that matches the base query.
@@ -87,7 +88,7 @@ export default class DeleteOperation {
     }
 
     if ("data" in ReadResponse) {
-      const SearchedData = await new HashmapSearch(ReadResponse.data).find(
+      const SearchedData = await new Searcher(ReadResponse.data).find(
         this.baseQuery,
         "data",
       );
@@ -145,7 +146,7 @@ export default class DeleteOperation {
   public async deleteMany(): Promise<SuccessInterface | ErrorInterface> {
     const response = await this.LoadAllBufferRawData();
     if ("data" in response) {
-      const SearchedData = await new HashmapSearch(response.data).find(
+      const SearchedData = await new Searcher(response.data).find(
         this.baseQuery,
         "data",
       );
@@ -210,36 +211,14 @@ export default class DeleteOperation {
                 ? documentIdDirectFile
                 : ReadResponse.data;
             // Read all files from the directory
-            for (let i = 0; i < DataFilesList.length; i++) {
-              const ReadFileResponse: SuccessInterface | ErrorInterface =
-                await new FileManager().ReadFile(
-                  `${this.path}/${DataFilesList[i]}`,
-                );
-              // Check if the file is read successfully or not
-              if ("data" in ReadFileResponse) {
-                if (this.isEncrypted === true && this.cryptoInstance) {
-                  // Decrypt the data if crypto is enabled
-                  const ContentResponse = await this.cryptoInstance.decrypt(
-                    this.Converter.ToObject(ReadFileResponse.data),
-                  );
-                  // Store all Decrypted Data in AllData
-                  this.allDataWithFileName.push({
-                    fileName: DataFilesList[i],
-                    data: this.Converter.ToObject(ContentResponse),
-                  });
-                } else {
-                  this.allDataWithFileName.push({
-                    fileName: DataFilesList[i],
-                    data: this.Converter.ToObject(ReadFileResponse.data),
-                  });
-                }
-              } else {
-                return this.ResponseHelper.Error(
-                  `Failed to read file: ${DataFilesList[i]}`,
-                );
-              }
-            }
-            return this.ResponseHelper.Success(this.allDataWithFileName);
+            const resultData: any[] = await ReaderWithWorker(
+              DataFilesList,
+              this.cryptoInstance,
+              this.path,
+              this.isEncrypted,
+              true,
+            );
+            return this.ResponseHelper.Success(resultData);
           }
           return this.ResponseHelper.Error("Failed to read directory");
         } else {
@@ -257,43 +236,22 @@ export default class DeleteOperation {
                 documentIdDirectFile !== undefined
                   ? documentIdDirectFile
                   : ReadResponse.data;
+
               // Read all files from the directory
-              for (let i = 0; i < DataFilesList.length; i++) {
-                const ReadFileResponse: SuccessInterface | ErrorInterface =
-                  await new FileManager().ReadFile(
-                    `${this.path}/${DataFilesList[i]}`,
-                  );
-                // Check if the file is read successfully or not
-                if ("data" in ReadFileResponse) {
-                  if (this.isEncrypted === true && this.cryptoInstance) {
-                    // Decrypt the data if crypto is enabled
-                    const ContaentResponse = await this.cryptoInstance.decrypt(
-                      this.Converter.ToObject(ReadFileResponse.data),
-                    );
-                    // Store all Decrypted Data in AllData
-                    this.allDataWithFileName.push({
-                      fileName: DataFilesList[i],
-                      data: this.Converter.ToObject(ContaentResponse),
-                    });
-                  } else {
-                    this.allDataWithFileName.push({
-                      fileName: DataFilesList[i],
-                      data: this.Converter.ToObject(ReadFileResponse.data),
-                    });
-                  }
-                } else {
-                  return this.ResponseHelper.Error(
-                    `Failed to read file: ${DataFilesList[i]}`,
-                  );
-                }
-              }
+              const resultData: any[] = await ReaderWithWorker(
+                DataFilesList,
+                this.cryptoInstance,
+                this.path,
+                this.isEncrypted,
+                true,
+              );
 
               // Lock the directory after reading all files
               const lockResponse = await new FolderManager().LockDirectory(
                 this.path,
               );
               if ("data" in lockResponse) {
-                return this.ResponseHelper.Success(this.allDataWithFileName);
+                return this.ResponseHelper.Success(resultData);
               } else {
                 return this.ResponseHelper.Error(
                   `Failed to lock directory: ${this.path}`,

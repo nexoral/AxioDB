@@ -10,7 +10,7 @@ import ResponseHelper from "../../Helper/response.helper";
 import { SchemaTypes } from "../../Schema/DataTypes.models";
 import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
-import HashmapSearch from "../../utility/HashMapSearch.utils";
+import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
 import { Console } from "outers";
 // Validator
@@ -18,6 +18,7 @@ import SchemaValidator from "../../Schema/validator.models";
 import Insertion from "./Create.operation";
 import InMemoryCache from "../../cache/cache.operation";
 import { General } from "../../config/Keys/Keys";
+import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
 
 export default class UpdateOperation {
   // Properties
@@ -86,6 +87,11 @@ export default class UpdateOperation {
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
+      // check if the data is an empty object or not
+      if (Object.keys(newData).length === 0 || newData === undefined) {
+        throw new Error("Data cannot be an empty.");
+      }
+
       // check if the data is an object or not
       if (typeof newData !== "object") {
         throw new Error("Data must be an object.");
@@ -127,7 +133,7 @@ export default class UpdateOperation {
       }
 
       if ("data" in ReadResponse) {
-        const SearchedData = await new HashmapSearch(ReadResponse.data).find(
+        const SearchedData = await new Searcher(ReadResponse.data).find(
           this.baseQuery,
           "data",
         );
@@ -188,6 +194,7 @@ export default class UpdateOperation {
         return this.ResponseHelper.Error("Failed to read  raw data");
       }
     } catch (error) {
+      console.log(error);
       return this.ResponseHelper.Error("Failed to update data");
     }
   }
@@ -210,13 +217,17 @@ export default class UpdateOperation {
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      newData.updatedAt = new Date().toISOString();
+      // check if the data is an empty object or not
+      if (Object.keys(newData).length === 0 || newData === undefined) {
+        throw new Error("Data cannot be an empty.");
+      }
 
       // check if the data is an object or not
       if (typeof newData !== "object") {
         throw new Error("Data must be an object.");
       }
 
+      newData.updatedAt = new Date().toISOString();
       if (this.isSchemaNeeded == true) {
         // Insert the updatedAt field in schema & data
         this.schema.updatedAt = SchemaTypes.date().required();
@@ -241,7 +252,7 @@ export default class UpdateOperation {
 
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
-        const SearchedData = await new HashmapSearch(ReadResponse.data).find(
+        const SearchedData = await new Searcher(ReadResponse.data).find(
           this.baseQuery,
           "data",
         );
@@ -354,40 +365,16 @@ export default class UpdateOperation {
               documentIdDirectFile !== undefined
                 ? documentIdDirectFile
                 : ReadResponse.data;
-            // Read all files from the directory
-            for (let i = 0; i < DataFilesList.length; i++) {
-              const ReadFileResponse: SuccessInterface | ErrorInterface =
-                await new FileManager().ReadFile(
-                  `${this.path}/${DataFilesList[i]}`,
-                );
-              // Check if the file is read successfully or not
-              if ("data" in ReadFileResponse) {
-                if (
-                  this.isEncrypted === true &&
-                  this.cryptoInstance !== undefined
-                ) {
-                  // Decrypt the data if crypto is enabled
-                  const ContentResponse = await this.cryptoInstance.decrypt(
-                    this.Converter.ToObject(ReadFileResponse.data),
-                  );
-                  // Store all Decrypted Data in AllData
-                  this.allDataWithFileName.push({
-                    fileName: DataFilesList[i],
-                    data: this.Converter.ToObject(ContentResponse),
-                  });
-                } else {
-                  this.allDataWithFileName.push({
-                    fileName: DataFilesList[i],
-                    data: this.Converter.ToObject(ReadFileResponse.data),
-                  });
-                }
-              } else {
-                return this.ResponseHelper.Error(
-                  `Failed to read file: ${DataFilesList[i]}`,
-                );
-              }
-            }
-            return this.ResponseHelper.Success(this.allDataWithFileName);
+
+            // Read all files from the directoryory
+            const resultData: any[] = await ReaderWithWorker(
+              DataFilesList,
+              this.cryptoInstance,
+              this.path,
+              this.isEncrypted,
+              true,
+            );
+            return this.ResponseHelper.Success(resultData);
           }
           return this.ResponseHelper.Error("Failed to read directory");
         } else {
@@ -406,45 +393,20 @@ export default class UpdateOperation {
                   ? documentIdDirectFile
                   : ReadResponse.data;
               // Read all files from the directory
-              for (let i = 0; i < DataFilesList.length; i++) {
-                const ReadFileResponse: SuccessInterface | ErrorInterface =
-                  await new FileManager().ReadFile(
-                    `${this.path}/${DataFilesList[i]}`,
-                  );
-                // Check if the file is read successfully or not
-                if ("data" in ReadFileResponse) {
-                  if (
-                    this.isEncrypted === true &&
-                    this.cryptoInstance !== undefined
-                  ) {
-                    // Decrypt the data if crypto is enabled
-                    const ContentResponse = await this.cryptoInstance.decrypt(
-                      this.Converter.ToObject(ReadFileResponse.data),
-                    );
-                    // Store all Decrypted Data in AllData
-                    this.allDataWithFileName.push({
-                      fileName: DataFilesList[i],
-                      data: this.Converter.ToObject(ContentResponse),
-                    });
-                  } else {
-                    this.allDataWithFileName.push({
-                      fileName: DataFilesList[i],
-                      data: this.Converter.ToObject(ReadFileResponse.data),
-                    });
-                  }
-                } else {
-                  return this.ResponseHelper.Error(
-                    `Failed to read file: ${DataFilesList[i]}`,
-                  );
-                }
-              }
+              const resultData: any[] = await ReaderWithWorker(
+                DataFilesList,
+                this.cryptoInstance,
+                this.path,
+                this.isEncrypted,
+                true,
+              );
 
               // Lock the directory after reading all files
               const lockResponse = await new FolderManager().LockDirectory(
                 this.path,
               );
               if ("data" in lockResponse) {
-                return this.ResponseHelper.Success(this.allDataWithFileName);
+                return this.ResponseHelper.Success(resultData);
               } else {
                 return this.ResponseHelper.Error(
                   `Failed to lock directory: ${this.path}`,

@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export default class Converter {
+  static ToObject(data: any): string {
+    throw new Error("Method not implemented.");
+  }
   constructor() {} // Empty constructor
 
   /**
