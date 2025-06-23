@@ -6,7 +6,7 @@ import path from "path";
 import fs from "fs";
 import { CORS_CONFIG, ServerKeys, staticPath } from "./keys";
 import checkPortAndDocker from "./PortFreeChecker";
-import { AxioDB } from "../../Operation/Indexation.operation";
+import { AxioDB } from "../../Services/Indexation.operation";
 import router from "../router/Router";
 
 export default async function createAxioDBControlServer(

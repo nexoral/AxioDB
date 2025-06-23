@@ -7,16 +7,16 @@ import {
 import Converter from "../../Helper/Converter.helper";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
-import { SchemaTypes } from "../../Models/DataTypes.models";
-import FileManager from "../../engine/Storage/FileManager";
-import FolderManager from "../../engine/Storage/FolderManager";
-import HashmapSearch from "../../utils/HashMapSearch.utils";
-import Sorting from "../../utils/SortData.utils";
+import { SchemaTypes } from "../../Schema/DataTypes.models";
+import FileManager from "../../engine/Filesystem/FileManager";
+import FolderManager from "../../engine/Filesystem/FolderManager";
+import HashmapSearch from "../../utility/HashMapSearch.utils";
+import Sorting from "../../utility/SortData.utils";
 import { Console } from "outers";
 // Validator
-import SchemaValidator from "../../Models/validator.models";
+import SchemaValidator from "../../Schema/validator.models";
 import Insertion from "./Create.operation";
-import InMemoryCache from "../../Caching/cache.operation";
+import InMemoryCache from "../../cache/cache.operation";
 import { General } from "../../config/Keys/Keys";
 
 export default class UpdateOperation {
@@ -311,11 +311,11 @@ export default class UpdateOperation {
   }
 
   /**
- * to be sorted to the query    this.createdAt = new Date().toISOString();
-    this.updatedAt = this.createdAt; // Initially updatedAt is same as createdAt
- * @param {object} sort - The sort to be set.
- * @returns {DeleteOperation} - An instance of the DeleteOperation class.
- */
+   * to be sorted to the query    this.createdAt = new Date().toISOString();
+      this.updatedAt = this.createdAt; // Initially updatedAt is same as createdAt
+   * @param {object} sort - The sort to be set.
+   * @returns {DeleteOperation} - An instance of the DeleteOperation class.
+   */
   public Sort(sort: object | any): UpdateOperation {
     this.sort = sort;
     return this;

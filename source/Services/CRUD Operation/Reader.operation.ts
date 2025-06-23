@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import FolderManager from "../../engine/Storage/FolderManager";
+import FolderManager from "../../engine/Filesystem/FolderManager";
 import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
 
 // Import All helpers
-import InMemoryCache from "../../Caching/cache.operation";
+import InMemoryCache from "../../cache/cache.operation";
 import Converter from "../../Helper/Converter.helper";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import responseHelper from "../../Helper/response.helper";
-import FileManager from "../../engine/Storage/FileManager";
+import FileManager from "../../engine/Filesystem/FileManager";
 // Import All Utility
 import { General } from "../../config/Keys/Keys";
-import HashmapSearch from "../../utils/HashMapSearch.utils";
-import Sorting from "../../utils/SortData.utils";
+import HashmapSearch from "../../utility/HashMapSearch.utils";
+import Sorting from "../../utility/SortData.utils";
 
 /**
  * Class representing a read operation.

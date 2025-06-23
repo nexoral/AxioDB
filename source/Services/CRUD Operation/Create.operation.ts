@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import FileManager from "../../engine/Storage/FileManager";
-import FolderManager from "../../engine/Storage/FolderManager";
+import FileManager from "../../engine/Filesystem/FileManager";
+import FolderManager from "../../engine/Filesystem/FolderManager";
 
 import { ClassBased } from "outers";
 import responseHelper from "../../Helper/response.helper";

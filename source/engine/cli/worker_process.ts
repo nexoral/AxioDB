@@ -3,9 +3,9 @@ import { promisify } from "util";
 const execAsync = promisify(exec);
 
 /**
- * Provides methods to execute and spawn child processes.
+ * Provides methods to execute and spawn worker processes.
  */
-export default class ChildProcess {
+export default class WorkerProcess {
   /**
    * Executes a shell command and returns its standard output as a string.
    *
@@ -48,5 +48,25 @@ export default class ChildProcess {
     } catch (error) {
       throw new Error(`Failed to spawn command: ${error}`);
     }
+  }
+
+  /**
+   * Returns the operating system type.
+   *
+   * @returns A string representing the OS type: "windows", "macos", or "linux".
+   * @throws If the platform is unsupported.
+   */
+  public static getOS(): string {
+    const platform = process.platform;
+    if (platform === "win32") {
+      return "windows";
+    }
+    if (platform === "darwin") {
+      return "macos";
+    }
+    if (platform === "linux") {
+      return "linux";
+    }
+    throw new Error(`Unsupported platform: ${platform}`);
   }
 }

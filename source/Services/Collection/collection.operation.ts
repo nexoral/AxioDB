@@ -13,13 +13,13 @@ import Aggregation from "../Aggregation/Aggregation.Operation";
 
 import { Console } from "outers";
 // Validator
-import SchemaValidator from "../../Models/validator.models";
+import SchemaValidator from "../../Schema/validator.models";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 
 // Converter
 import Converter from "../../Helper/Converter.helper";
-import { SchemaTypes } from "../../Models/DataTypes.models";
-import FolderManager from "../../engine/Storage/FolderManager";
+import { SchemaTypes } from "../../Schema/DataTypes.models";
+import FolderManager from "../../engine/Filesystem/FolderManager";
 
 /**
  * Represents a collection inside a database.

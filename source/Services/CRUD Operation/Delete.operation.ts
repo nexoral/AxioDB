@@ -7,13 +7,13 @@ import {
 import Converter from "../../Helper/Converter.helper";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
-import FileManager from "../../engine/Storage/FileManager";
-import FolderManager from "../../engine/Storage/FolderManager";
+import FileManager from "../../engine/Filesystem/FileManager";
+import FolderManager from "../../engine/Filesystem/FolderManager";
 
 // Import All Utility
-import HashmapSearch from "../../utils/HashMapSearch.utils";
-import Sorting from "../../utils/SortData.utils";
-import InMemoryCache from "../../Caching/cache.operation";
+import HashmapSearch from "../../utility/HashMapSearch.utils";
+import Sorting from "../../utility/SortData.utils";
+import InMemoryCache from "../../cache/cache.operation";
 import { General } from "../../config/Keys/Keys";
 /**
  * The DeleteOperation class is used to delete a document from a collection.

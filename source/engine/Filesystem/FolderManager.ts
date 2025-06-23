@@ -1,6 +1,6 @@
 import FileSystem from "fs/promises";
 import FileSystemSync from "fs";
-import ChildProcess from "../cli/worker_process";
+import WorkerProcess from "../cli/worker_process";
 
 // Import Helpers
 import ResponseHelper from "../../Helper/response.helper";
@@ -13,11 +13,13 @@ export default class FolderManager {
   private readonly fileSystem: typeof FileSystem;
   private readonly fileSystemSync: typeof FileSystemSync;
   private readonly responseHelper: ResponseHelper;
+  private readonly WorkerProcess: WorkerProcess;
 
   constructor() {
     this.fileSystem = FileSystem;
     this.fileSystemSync = FileSystemSync;
     this.responseHelper = new ResponseHelper();
+    this.WorkerProcess = new WorkerProcess();
   }
 
   /**
@@ -141,7 +143,15 @@ export default class FolderManager {
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const stdout = await new ChildProcess().execCommand(`du -sb ${path}`);
+      const osType = WorkerProcess.getOS();
+      if (osType === "windows") {
+        const stdout = await this.WorkerProcess.execCommand(
+          `powershell -command "(Get-Item '${path}').length"`,
+        );
+        const size = parseInt(stdout, 10);
+        return this.responseHelper.Success(size);
+      }
+      const stdout = await this.WorkerProcess.execCommand(`du -sb ${path}`);
       const size = parseInt(stdout.split("\t")[0], 10);
       return this.responseHelper.Success(size);
     } catch (err) {

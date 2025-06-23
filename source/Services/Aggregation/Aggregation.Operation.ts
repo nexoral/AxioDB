@@ -4,8 +4,8 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-import FolderManager from "../../engine/Storage/FolderManager";
-import FileManager from "../../engine/Storage/FileManager";
+import FolderManager from "../../engine/Filesystem/FolderManager";
+import FileManager from "../../engine/Filesystem/FileManager";
 import Converter from "../../Helper/Converter.helper";
 import { Console } from "outers";
 
