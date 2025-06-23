@@ -218,6 +218,7 @@ export default class DeleteOperation {
               this.isEncrypted,
               true,
             );
+            this.allDataWithFileName = resultData; // Store all data with file name
             return this.ResponseHelper.Success(resultData);
           }
           return this.ResponseHelper.Error("Failed to read directory");
@@ -245,7 +246,7 @@ export default class DeleteOperation {
                 this.isEncrypted,
                 true,
               );
-
+              this.allDataWithFileName = resultData; // Store all data with file name
               // Lock the directory after reading all files
               const lockResponse = await new FolderManager().LockDirectory(
                 this.path,

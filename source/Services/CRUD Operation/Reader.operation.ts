@@ -249,6 +249,7 @@ export default class Reader {
               this.path,
               this.isEncrypted,
             );
+            this.AllData = resultData; // Store all data in AllData
             return this.ResponseHelper.Success(resultData);
           }
           return this.ResponseHelper.Error("Failed to read directory");
@@ -275,14 +276,14 @@ export default class Reader {
                 this.path,
                 this.isEncrypted,
               );
-              return this.ResponseHelper.Success(resultData);
+              this.AllData = resultData; // Store all data in AllData
 
               // Lock the directory after reading all files
               const lockResponse = await new FolderManager().LockDirectory(
                 this.path,
               );
               if ("data" in lockResponse) {
-                return this.ResponseHelper.Success(this.AllData);
+                return this.ResponseHelper.Success(resultData);
               } else {
                 return this.ResponseHelper.Error(
                   `Failed to lock directory: ${this.path}`,
