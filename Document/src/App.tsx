@@ -12,6 +12,7 @@ import Comparison from "./components/content/Comparison";
 import CreateDatabase from "./components/content/CreateDatabase";
 import CreateCollection from "./components/content/CreateCollection";
 import MaintainersZone from "./components/content/MaintainersZone";
+import WhyChooseAxioDBPage from "./pages/WhyChooseAxioDBPage";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/create-database" element={<CreateDatabase />} />
           <Route path="/create-collection" element={<CreateCollection />} />
           <Route path="/maintainers-zone" element={<MaintainersZone />} />
+          <Route path="/why-choose-axiodb" element={<WhyChooseAxioDBPage />} />
         </Routes>
       </Layout>
     </Router>
