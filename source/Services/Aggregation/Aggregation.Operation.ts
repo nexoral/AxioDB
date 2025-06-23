@@ -262,13 +262,13 @@ export default class Aggregation {
             // Store all files in DataFilesList
             const DataFilesList: string[] = ReadResponse.data;
             // Read all files from the directory
-              const resultData: any[] = await ReaderWithWorker(
-                DataFilesList,
-                this.cryptoInstance,
-                this.path,
-                this.isEncrypted,
-              );
-              this.AllData = resultData;
+            const resultData: any[] = await ReaderWithWorker(
+              DataFilesList,
+              this.cryptoInstance,
+              this.path,
+              this.isEncrypted,
+            );
+            this.AllData = resultData;
             return this.ResponseHelper.Success(resultData);
           }
           return this.ResponseHelper.Error("Failed to read directory");

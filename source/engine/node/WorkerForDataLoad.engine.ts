@@ -15,12 +15,12 @@ const { chunk, cryptoInstance, path, isEncrypted, storeFileName } = workerData;
 const result: unknown[] = [];
 
 /*
-* Worker for reading files in parallel.
-* It processes files in pairs from both ends of the chunk array.
-* If cryptoInstance is provided, it decrypts the file content.
-* The results are stored in the result array, either with or without file names based on storeFileName flag.
-* If an error occurs, it sends an error message back to the parent thread.
-*/
+ * Worker for reading files in parallel.
+ * It processes files in pairs from both ends of the chunk array.
+ * If cryptoInstance is provided, it decrypts the file content.
+ * The results are stored in the result array, either with or without file names based on storeFileName flag.
+ * If an error occurs, it sends an error message back to the parent thread.
+ */
 async function processFiles() {
   let left = 0;
   let right = chunk.length - 1;
