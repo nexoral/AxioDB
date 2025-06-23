@@ -14,23 +14,23 @@ import FolderManager from "../engine/Filesystem/FolderManager";
 
 // Export All Required Sub Modules Instance Types to support TypeScript
 const InstanceTypes = {
-    Collection,
-    Database,
-    Aggregation,
-    FileManager,
-    FolderManager,
-    Converter,
-    CryptoHelper,
-    ResponseHelper,
-    InMemoryCache,
+  Collection,
+  Database,
+  Aggregation,
+  FileManager,
+  FolderManager,
+  Converter,
+  CryptoHelper,
+  ResponseHelper,
+  InMemoryCache,
 };
 // Export Specific Modules
 export { SchemaTypes, schemaValidate, AxioDB, InstanceTypes };
 
 // Export With All Sub Modules
 export default {
-    SchemaTypes,
-    schemaValidate,
-    AxioDB,
-    InstanceTypes,
+  SchemaTypes,
+  schemaValidate,
+  AxioDB,
+  InstanceTypes,
 };

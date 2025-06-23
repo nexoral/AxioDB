@@ -186,15 +186,17 @@ export default class FileManager {
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-        const osType = WorkerProcess.getOS();
-        if (osType === "windows") {
-            const stdout = await this.WorkerProcess.execCommand(`powershell -command "(Get-Item '${path}').length"`);
-            const size = parseInt(stdout, 10);
-            return this.responseHelper.Success(size);
-        }
-        const stdout = await this.WorkerProcess.execCommand(`du -sb ${path}`);
-        const size = parseInt(stdout.split("\t")[0], 10);
+      const osType = WorkerProcess.getOS();
+      if (osType === "windows") {
+        const stdout = await this.WorkerProcess.execCommand(
+          `powershell -command "(Get-Item '${path}').length"`,
+        );
+        const size = parseInt(stdout, 10);
         return this.responseHelper.Success(size);
+      }
+      const stdout = await this.WorkerProcess.execCommand(`du -sb ${path}`);
+      const size = parseInt(stdout.split("\t")[0], 10);
+      return this.responseHelper.Success(size);
     } catch (err) {
       return this.responseHelper.Error(`Failed to get directory size: ${err}`);
     }
