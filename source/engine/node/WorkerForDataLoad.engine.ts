@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { parentPort, workerData } from 'worker_threads';
+import { parentPort, workerData } from "worker_threads";
 
-import FileManager from '../Filesystem/FileManager'; // Replace with real imports
-import Converter from '../../Helper/Converter.helper'; // Replace with your actual converter logic
-import { SuccessInterface } from '../../config/Interfaces/Helper/response.helper.interface';
-import ResponseHelper from '../../Helper/response.helper';
+import FileManager from "../Filesystem/FileManager"; // Replace with real imports
+import Converter from "../../Helper/Converter.helper"; // Replace with your actual converter logic
+import { SuccessInterface } from "../../config/Interfaces/Helper/response.helper.interface";
+import ResponseHelper from "../../Helper/response.helper";
 
 interface ErrorInterface {
   error: string;
@@ -23,51 +23,46 @@ async function processFiles() {
       const indices = [];
 
       for (let i = 0; i < 2 && left + i <= right; i++) indices.push(left + i);
-      for (let i = 0; i < 2 && right - i > left + 1; i++) indices.push(right - i);
+      for (let i = 0; i < 2 && right - i > left + 1; i++)
+        indices.push(right - i);
 
       for (const index of indices) {
         const fileName = chunk[index];
         try {
-              const ReadFileResponse: SuccessInterface | ErrorInterface =
-                await new FileManager().ReadFile(
-                  `${path}/${fileName}`,
-                );
-              // Check if the file is read successfully or not
-              if ("data" in ReadFileResponse) {
-                if (isEncrypted === true && cryptoInstance) {
-                  // Decrypt the data if crypto is enabled
-                  const ContentResponse = await cryptoInstance.decrypt(
-                    new Converter().ToObject(ReadFileResponse.data),
-                  );
-                  if (storeFileName == true) {
-                    // Store Decrypted Data with File Name
-                    result.push({
-                      fileName: fileName,
-                      data: new Converter().ToObject(ContentResponse),
-                    });
-                  }
-                  else {
-                  // Store all Decrypted Data in AllData
-                  result.push(new Converter().ToObject(ContentResponse));
-                  }
-                } else {
-                  if (storeFileName == true) {
-                    result.push({
-                      fileName: fileName,
-                      data: new Converter().ToObject(ReadFileResponse.data),
-                    });
-                  }
-                  else {
-                  result.push(
-                    new Converter().ToObject(ReadFileResponse.data),
-                  );
-                }
-                }
+          const ReadFileResponse: SuccessInterface | ErrorInterface =
+            await new FileManager().ReadFile(`${path}/${fileName}`);
+          // Check if the file is read successfully or not
+          if ("data" in ReadFileResponse) {
+            if (isEncrypted === true && cryptoInstance) {
+              // Decrypt the data if crypto is enabled
+              const ContentResponse = await cryptoInstance.decrypt(
+                new Converter().ToObject(ReadFileResponse.data),
+              );
+              if (storeFileName == true) {
+                // Store Decrypted Data with File Name
+                result.push({
+                  fileName: fileName,
+                  data: new Converter().ToObject(ContentResponse),
+                });
               } else {
-                return new ResponseHelper().Error(
-                  `Failed to read file: ${fileName}`,
-                );
+                // Store all Decrypted Data in AllData
+                result.push(new Converter().ToObject(ContentResponse));
               }
+            } else {
+              if (storeFileName == true) {
+                result.push({
+                  fileName: fileName,
+                  data: new Converter().ToObject(ReadFileResponse.data),
+                });
+              } else {
+                result.push(new Converter().ToObject(ReadFileResponse.data));
+              }
+            }
+          } else {
+            return new ResponseHelper().Error(
+              `Failed to read file: ${fileName}`,
+            );
+          }
         } catch (error) {
           console.error(`Error processing file ${fileName}:`, error);
         }
@@ -87,8 +82,8 @@ async function processFiles() {
   }
 }
 
-processFiles().catch(error => {
-  console.error('Worker error:', error);
+processFiles().catch((error) => {
+  console.error("Worker error:", error);
   if (parentPort) {
     parentPort.postMessage({ error: String(error) });
   }

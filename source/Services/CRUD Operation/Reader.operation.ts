@@ -96,8 +96,8 @@ export default class Reader {
           const FilePath =
             Array.isArray(this.baseQuery?.documentId) == true
               ? this.baseQuery.documentId.map(
-                (id: any) => `.${id}${General.DBMS_File_EXT}`,
-              )
+                  (id: any) => `.${id}${General.DBMS_File_EXT}`,
+                )
               : [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
           ReadResponse = await this.LoadAllBufferRawData(FilePath);
           //  Send the data to the client directly
@@ -117,9 +117,7 @@ export default class Reader {
             return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
           }
           // Search the data from the AllData using Searcher
-          const searcher: Searcher = new Searcher(
-            ReadResponse.data,
-          );
+          const searcher: Searcher = new Searcher(ReadResponse.data);
           SearchedData = await searcher.find(this.baseQuery);
 
           await InMemoryCache.setCache(

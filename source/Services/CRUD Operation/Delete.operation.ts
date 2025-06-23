@@ -216,7 +216,7 @@ export default class DeleteOperation {
               this.cryptoInstance,
               this.path,
               this.isEncrypted,
-              true
+              true,
             );
             return this.ResponseHelper.Success(resultData);
           }
@@ -243,7 +243,7 @@ export default class DeleteOperation {
                 this.cryptoInstance,
                 this.path,
                 this.isEncrypted,
-                true
+                true,
               );
 
               // Lock the directory after reading all files

@@ -87,7 +87,6 @@ export default class UpdateOperation {
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-
       // check if the data is an empty object or not
       if (Object.keys(newData).length === 0 || newData === undefined) {
         throw new Error("Data cannot be an empty.");
@@ -195,7 +194,7 @@ export default class UpdateOperation {
         return this.ResponseHelper.Error("Failed to read  raw data");
       }
     } catch (error) {
-      console.log(error)
+      console.log(error);
       return this.ResponseHelper.Error("Failed to update data");
     }
   }
@@ -218,12 +217,10 @@ export default class UpdateOperation {
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-
       // check if the data is an empty object or not
       if (Object.keys(newData).length === 0 || newData === undefined) {
         throw new Error("Data cannot be an empty.");
       }
-
 
       // check if the data is an object or not
       if (typeof newData !== "object") {
@@ -375,7 +372,7 @@ export default class UpdateOperation {
               this.cryptoInstance,
               this.path,
               this.isEncrypted,
-              true
+              true,
             );
             return this.ResponseHelper.Success(resultData);
           }
@@ -401,7 +398,7 @@ export default class UpdateOperation {
                 this.cryptoInstance,
                 this.path,
                 this.isEncrypted,
-                true
+                true,
               );
 
               // Lock the directory after reading all files

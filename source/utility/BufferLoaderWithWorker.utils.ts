@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Worker } from 'worker_threads';
-import os from 'os';
-import paths from 'path';
+import { Worker } from "worker_threads";
+import os from "os";
+import paths from "path";
 
 /**
  * Reads data files using worker threads to parallelize the loading process.
@@ -13,38 +13,48 @@ import paths from 'path';
  * @param isEncrypted - A boolean indicating if the files are encrypted.
  * @returns {Promise<any[]>} - A promise that resolves to an array of loaded data.
  */
-export default async function ReaderWithWorker(DataFilesList: string[], cryptoInstance: any, path: string, isEncrypted: boolean, storeFileName = false): Promise<any[]> {
-    const numWorkers = os.cpus().length;
-    const chunkSize = Math.ceil(DataFilesList.length / numWorkers);
-    const workerPath: string = paths.resolve(__dirname, "../engine/node", 'WorkerForDataLoad.engine.js');
-    const tasks: Promise<any[]>[] = [];
+export default async function ReaderWithWorker(
+  DataFilesList: string[],
+  cryptoInstance: any,
+  path: string,
+  isEncrypted: boolean,
+  storeFileName = false,
+): Promise<any[]> {
+  const numWorkers = os.cpus().length;
+  const chunkSize = Math.ceil(DataFilesList.length / numWorkers);
+  const workerPath: string = paths.resolve(
+    __dirname,
+    "../engine/node",
+    "WorkerForDataLoad.engine.js",
+  );
+  const tasks: Promise<any[]>[] = [];
 
-    for (let i = 0; i < numWorkers; i++) {
-        const start = i * chunkSize;
-        const end = Math.min(start + chunkSize, DataFilesList.length);
-        const dataChunk = DataFilesList.slice(start, end);
+  for (let i = 0; i < numWorkers; i++) {
+    const start = i * chunkSize;
+    const end = Math.min(start + chunkSize, DataFilesList.length);
+    const dataChunk = DataFilesList.slice(start, end);
 
-        tasks.push(
-            new Promise((resolve, reject) => {
-                const worker = new Worker(workerPath, {
-                    workerData: {
-                        chunk: dataChunk,
-                        cryptoInstance: cryptoInstance,
-                        path: path,
-                        isEncrypted: isEncrypted,
-                        storeFileName: storeFileName,
-                    },
-                });
+    tasks.push(
+      new Promise((resolve, reject) => {
+        const worker = new Worker(workerPath, {
+          workerData: {
+            chunk: dataChunk,
+            cryptoInstance: cryptoInstance,
+            path: path,
+            isEncrypted: isEncrypted,
+            storeFileName: storeFileName,
+          },
+        });
 
-                worker.on('message', resolve);
-                worker.on('error', reject);
-                worker.on('exit', (code) => {
-                    if (code !== 0) reject(new Error(`Worker stopped with code ${code}`));
-                });
-            })
-        );
-    }
+        worker.on("message", resolve);
+        worker.on("error", reject);
+        worker.on("exit", (code) => {
+          if (code !== 0) reject(new Error(`Worker stopped with code ${code}`));
+        });
+      }),
+    );
+  }
 
-    const results = await Promise.all(tasks);
-    return results.flat();
+  const results = await Promise.all(tasks);
+  return results.flat();
 }

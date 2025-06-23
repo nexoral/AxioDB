@@ -1,10 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Worker } from 'worker_threads';
-import os from 'os';
-import path from 'path';
+import { Worker } from "worker_threads";
+import os from "os";
+import path from "path";
 
-const workerPath: string = path.resolve(__dirname, "../engine/node", 'WorkerForSearch.engine.js');
+const workerPath: string = path.resolve(
+  __dirname,
+  "../engine/node",
+  "WorkerForSearch.engine.js",
+);
 
 export default class Searcher {
   private data: any[];
@@ -45,12 +49,13 @@ export default class Searcher {
             },
           });
 
-          worker.on('message', resolve);
-          worker.on('error', reject);
-          worker.on('exit', (code) => {
-            if (code !== 0) reject(new Error(`Worker stopped with code ${code}`));
+          worker.on("message", resolve);
+          worker.on("error", reject);
+          worker.on("exit", (code) => {
+            if (code !== 0)
+              reject(new Error(`Worker stopped with code ${code}`));
           });
-        })
+        }),
       );
     }
 
@@ -66,7 +71,10 @@ export default class Searcher {
    * @param query - The query object containing conditions.
    * @returns {boolean} - True if the item matches the query, false otherwise.
    */
-  public static matchesQuery(item: any, query: { [key: string]: any }): boolean {
+  public static matchesQuery(
+    item: any,
+    query: { [key: string]: any },
+  ): boolean {
     // Handle root-level $or
     if ("$or" in query && Array.isArray(query.$or)) {
       const { $or, ...rest } = query;
@@ -102,7 +110,10 @@ export default class Searcher {
       // If queryValue is an object (for operators)
       if (typeof queryValue === "object" && queryValue !== null) {
         // Handle MongoDB-like operators with optimized checks
-        if ("$regex" in queryValue && typeof queryValue["$regex"] === "string") {
+        if (
+          "$regex" in queryValue &&
+          typeof queryValue["$regex"] === "string"
+        ) {
           const regex = new RegExp(
             queryValue["$regex"],
             queryValue["$options"] || "i",
@@ -124,13 +135,17 @@ export default class Searcher {
         }
 
         if ("$gte" in queryValue) {
-          if (!(typeof itemValue === "number" && itemValue >= queryValue["$gte"]))
+          if (
+            !(typeof itemValue === "number" && itemValue >= queryValue["$gte"])
+          )
             return false;
           continue;
         }
 
         if ("$lte" in queryValue) {
-          if (!(typeof itemValue === "number" && itemValue <= queryValue["$lte"]))
+          if (
+            !(typeof itemValue === "number" && itemValue <= queryValue["$lte"])
+          )
             return false;
           continue;
         }
