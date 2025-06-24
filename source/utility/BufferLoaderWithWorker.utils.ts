@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Worker } from "worker_threads";
-import os from "os";
 import paths from "path";
 
 /**
@@ -20,7 +19,7 @@ export default async function ReaderWithWorker(
   isEncrypted: boolean,
   storeFileName = false,
 ): Promise<any[]> {
-  const numWorkers = os.cpus().length;
+    const numWorkers = 1; // Use a single worker for simplicity, can be adjusted based on requirements
   const chunkSize = Math.ceil(DataFilesList.length / numWorkers);
   const workerPath: string = paths.resolve(
     __dirname,
