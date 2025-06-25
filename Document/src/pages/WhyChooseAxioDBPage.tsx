@@ -37,24 +37,39 @@ const WhyChooseAxioDBPage: React.FC = () => {
 
           <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
             <pre className="text-sm font-mono">
-              {`                     Root
-                   /  |  \\
-                  /   |   \\
-             Node A  Node B  Node C
-             /  \\     |     /  |  \\
-           ...  ...   ...  ... ... ...
-           
-           Document Tree Structure
-           - Each node contains indexed properties
-           - Logarithmic search complexity
-           - Balanced for optimal traversal`}
+              {`                         AxioDB
+                            │
+   ┌────────────────────────┼────────────────────────┐
+   │                        │                        │
+database1              database2                database3
+   │                        │                        │
+   │                        │                        │
+ ┌─┴─────────────┐     ┌────┴──────────┐        ┌────┴───────┐
+ │               │     │               │        │            │
+collection1  collection2           users        logs      devices
+   │            │                    │            │            │
+   │            │                    │            │            │
+ ┌─┴────┐     ┌─┴────┐           ┌────┴───┐   ┌───┴────┐   ┌───┴────┐
+ │       │     │      │           │        │   │        │   │        │
+001.axiodb  002.axiodb     a01.axiodb  a02.axiodb   user_123.axiodb  user_456.axiodb
+                                   (1 file = 1 document)`}
             </pre>
           </div>
 
+          <p className="mb-4">
+            This hierarchical tree structure offers several critical advantages:
+          </p>
+
           <ul className="list-disc pl-6 mb-4 space-y-2">
             <li>
+              <strong>Direct document access</strong>: When using a documentId,
+              AxioDB can directly navigate to the specific file without scanning
+              the entire collection, resulting in O(1) lookup time
+            </li>
+            <li>
               <strong>Logarithmic time complexity</strong>: As your data grows,
-              query time increases only logarithmically, not linearly
+              query time increases only logarithmically, not linearly, because
+              the tree structure allows efficient navigation
             </li>
             <li>
               <strong>Efficient indexing</strong>: The tree structure
@@ -66,11 +81,18 @@ const WhyChooseAxioDBPage: React.FC = () => {
               tree structure ensures consistent performance for both data
               retrieval and insertion operations
             </li>
+            <li>
+              <strong>Path-based lookups</strong>: The database → collection →
+              document hierarchy allows for intuitive and efficient data
+              organization and retrieval patterns
+            </li>
           </ul>
           <p className="mb-4">
             For Node.js developers, this means your applications remain
             responsive even as your data scales, without requiring extensive
-            query optimization or complex index management.
+            query optimization or complex index management. When you query by
+            documentId, AxioDB can bypass collection scanning entirely,
+            accessing exactly the document you need in a single operation.
           </p>
         </section>
 
