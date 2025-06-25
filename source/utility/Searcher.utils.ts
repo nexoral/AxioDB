@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Worker } from "worker_threads";
-import os from "os";
 import path from "path";
 
 const workerPath: string = path.resolve(
@@ -29,7 +28,7 @@ export default class Searcher {
     query: { [key: string]: any },
     aditionalFiled?: string | number | undefined,
   ): Promise<any[]> {
-    const numWorkers = os.cpus().length;
+    const numWorkers = 1; // Use a single worker for simplicity, can be adjusted based on requirements
     const chunkSize = Math.ceil(this.data.length / numWorkers);
 
     const tasks: Promise<any[]>[] = [];

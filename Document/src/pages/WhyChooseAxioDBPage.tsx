@@ -34,6 +34,23 @@ const WhyChooseAxioDBPage: React.FC = () => {
             databases that might require full table scans, AxioDB's tree
             architecture ensures:
           </p>
+
+          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
+            <pre className="text-sm font-mono">
+              {`                     Root
+                   /  |  \\
+                  /   |   \\
+             Node A  Node B  Node C
+             /  \\     |     /  |  \\
+           ...  ...   ...  ... ... ...
+           
+           Document Tree Structure
+           - Each node contains indexed properties
+           - Logarithmic search complexity
+           - Balanced for optimal traversal`}
+            </pre>
+          </div>
+
           <ul className="list-disc pl-6 mb-4 space-y-2">
             <li>
               <strong>Logarithmic time complexity</strong>: As your data grows,
@@ -58,40 +75,6 @@ const WhyChooseAxioDBPage: React.FC = () => {
         </section>
 
         <section className="mb-10">
-          <h2 id="single-instance" className="text-2xl font-semibold mb-4">
-            Single Instance Architecture for Data Security & Consistency
-          </h2>
-          <p className="mb-4">
-            AxioDB employs a single instance architecture that provides:
-          </p>
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>ACID compliance</strong>: All operations are Atomic,
-              Consistent, Isolated, and Durable
-            </li>
-            <li>
-              <strong>Simplified deployment</strong>: No cluster configuration
-              or coordination required
-            </li>
-            <li>
-              <strong>Stronger data consistency</strong>: Eliminates eventual
-              consistency issues common in distributed databases
-            </li>
-            <li>
-              <strong>Lower operational overhead</strong>: Reduced complexity
-              means fewer points of failure and easier troubleshooting
-            </li>
-          </ul>
-          <p className="mb-4">
-            This architecture is particularly beneficial for Node.js
-            applications where data integrity and predictable behavior are
-            critical, such as financial applications, user authentication
-            systems, or any scenario where data corruption would be
-            catastrophic.
-          </p>
-        </section>
-
-        <section className="mb-10">
           <h2 id="worker-threads" className="text-2xl font-semibold mb-4">
             Worker Threads for Parallel Processing
           </h2>
@@ -99,6 +82,28 @@ const WhyChooseAxioDBPage: React.FC = () => {
             AxioDB leverages Node.js Worker Threads to parallelize read
             operations, bringing several advantages:
           </p>
+
+          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
+            <pre className="text-sm font-mono">
+              {`                Main Process
+                ─────────────
+                      │
+    ┌─────────────────┼──────────────────┐
+    │                 │                  │
+ Worker 1         Worker 2           Worker N
+ (2.5k files)    (2.5k files)        (2.5k files)
+    │                 │                  │
+   read()           read()             read()
+  file-by-file     file-by-file      file-by-file
+    │                 │                  │
+    └─────────────────┼──────────────────┘
+                      │
+                 Merge Results
+                      │
+                Return to Client`}
+            </pre>
+          </div>
+
           <ul className="list-disc pl-6 mb-4 space-y-2">
             <li>
               <strong>Non-blocking I/O</strong>: Database operations don't block
@@ -125,12 +130,84 @@ const WhyChooseAxioDBPage: React.FC = () => {
         </section>
 
         <section className="mb-10">
+          <h2 id="data-storage" className="text-2xl font-semibold mb-4">
+            Data Storage Architecture
+          </h2>
+          <p className="mb-4">
+            AxioDB employs a file-based storage system with intelligent
+            organization to maintain performance even as collections grow:
+          </p>
+
+          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
+            <pre className="text-sm font-mono">
+              {`   Database Root
+        │
+        ├── Collection A/
+        │   ├── .{document-id-1}.axio  ◄── Individual document files
+        │   ├── .{document-id-2}.axio      with unique IDs as filenames
+        │   └── .{document-id-n}.axio
+        │
+        ├── Collection B/
+        │   ├── .{document-id-1}.axio
+        │   ├── .{document-id-2}.axio
+        │   └── .{document-id-n}.axio
+        │
+        └── metadata.json  ◄── Database configuration and schema information`}
+            </pre>
+          </div>
+
+          <p className="mb-4">
+            This storage architecture provides several advantages:
+          </p>
+          <ul className="list-disc pl-6 mb-4 space-y-2">
+            <li>
+              <strong>Document isolation</strong>: Each document is stored in
+              its own file, preventing write conflicts
+            </li>
+            <li>
+              <strong>Selective loading</strong>: Only the documents you need
+              are loaded into memory
+            </li>
+            <li>
+              <strong>File-level locking</strong>: Prevents concurrent
+              modifications while allowing parallel reads
+            </li>
+            <li>
+              <strong>Easy backup</strong>: Simple to back up individual
+              collections or documents
+            </li>
+          </ul>
+        </section>
+
+        <section className="mb-10">
           <h2 id="two-pointer" className="text-2xl font-semibold mb-4">
             Two-Pointer Searching Algorithm
           </h2>
           <p className="mb-4">
             AxioDB implements an optimized two-pointer searching algorithm that:
           </p>
+
+          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
+            <pre className="text-sm font-mono">
+              {`  Data Array: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
+               ↑                             ↑
+              left                         right
+              
+  Two-Pointer Search (looking for values that sum to 11)
+  
+  Step 1: Check left and right positions: 1 + 10 = 11 ✓
+          Record match, move both pointers
+  
+  Step 2: left++, right--
+          [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
+               ↑                       ↑
+             Check: 2 + 9 = 11 ✓
+  
+  Each step traverses from both ends simultaneously, 
+  allowing efficient checks with fewer iterations.`}
+            </pre>
+          </div>
+
           <ul className="list-disc pl-6 mb-4 space-y-2">
             <li>
               <strong>Minimizes memory usage</strong>: The algorithm traverses
@@ -151,10 +228,129 @@ const WhyChooseAxioDBPage: React.FC = () => {
               times even on large datasets
             </li>
           </ul>
+        </section>
+
+        <section className="mb-10">
+          <h2 id="query-processing" className="text-2xl font-semibold mb-4">
+            Query Processing Pipeline
+          </h2>
           <p className="mb-4">
-            For Node.js developers, this translates to faster query response
-            times and lower resource consumption, allowing your applications to
-            handle more concurrent users and larger datasets.
+            When you execute a query in AxioDB, it goes through an optimized
+            pipeline that maximizes performance:
+          </p>
+
+          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
+            <pre className="text-sm font-mono">
+              {`  Client Query
+      │
+      ▼
+  Parse Query ────────────────────┐
+      │                           │
+      ▼                           ▼
+  Check Cache ──► Cache Hit ──► Return Results
+      │
+      ▼ Cache Miss
+  Distribute to Workers
+      │
+      ├──────────┬──────────┬──────────┐
+      ▼          ▼          ▼          ▼
+  Worker 1    Worker 2    Worker 3    Worker N
+      │          │          │          │
+      ├──────────┴──────────┴──────────┘
+      ▼
+  Aggregate Results
+      │
+      ▼
+  Apply Sorting/Limiting
+      │
+      ▼
+  Cache Results
+      │
+      ▼
+  Return to Client`}
+            </pre>
+          </div>
+
+          <p className="mb-4">
+            This pipeline architecture provides several key benefits:
+          </p>
+          <ul className="list-disc pl-6 mb-4 space-y-2">
+            <li>
+              <strong>Intelligent caching</strong>: Frequently accessed queries
+              are cached for instant retrieval
+            </li>
+            <li>
+              <strong>Parallelized processing</strong>: Work is distributed
+              across multiple threads for maximum throughput
+            </li>
+            <li>
+              <strong>Lazy evaluation</strong>: Results are processed
+              incrementally when possible to reduce memory usage
+            </li>
+            <li>
+              <strong>Just-in-time compilation</strong>: Query patterns are
+              optimized during runtime for faster subsequent execution
+            </li>
+          </ul>
+        </section>
+
+        <section className="mb-10">
+          <h2 id="single-instance" className="text-2xl font-semibold mb-4">
+            Single Instance Architecture for Data Security & Consistency
+          </h2>
+          <p className="mb-4">
+            AxioDB employs a single instance architecture that provides:
+          </p>
+
+          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
+            <pre className="text-sm font-mono">
+              {`                  ┌───────────────────────────┐
+                  │    AxioDB Single Instance  │
+                  │                            │
+  ┌─────────┐     │   ┌─────────────────────┐  │
+  │ Client 1 │◄────►  │                     │  │
+  └─────────┘     │   │                     │  │
+                  │   │   Consistent Data   │  │
+  ┌─────────┐     │   │        Store        │  │
+  │ Client 2 │◄────►  │                     │  │
+  └─────────┘     │   │                     │  │
+                  │   └─────────────────────┘  │
+  ┌─────────┐     │            │ │             │
+  │ Client 3 │◄────►           │ │             │
+  └─────────┘     │    ┌───────┘ └────────┐    │
+                  │    │                  │    │
+                  │ ┌──▼───┐          ┌──▼───┐ │
+                  │ │ Read │          │Write │ │
+                  │ │Queue │          │Queue │ │
+                  │ └──────┘          └──────┘ │
+                  └───────────────────────────┘`}
+            </pre>
+          </div>
+
+          <ul className="list-disc pl-6 mb-4 space-y-2">
+            <li>
+              <strong>ACID compliance</strong>: All operations are Atomic,
+              Consistent, Isolated, and Durable
+            </li>
+            <li>
+              <strong>Simplified deployment</strong>: No cluster configuration
+              or coordination required
+            </li>
+            <li>
+              <strong>Stronger data consistency</strong>: Eliminates eventual
+              consistency issues common in distributed databases
+            </li>
+            <li>
+              <strong>Lower operational overhead</strong>: Reduced complexity
+              means fewer points of failure and easier troubleshooting
+            </li>
+          </ul>
+          <p className="mb-4">
+            This architecture is particularly beneficial for Node.js
+            applications where data integrity and predictable behavior are
+            critical, such as financial applications, user authentication
+            systems, or any scenario where data corruption would be
+            catastrophic.
           </p>
         </section>
 
