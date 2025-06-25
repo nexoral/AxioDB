@@ -19,7 +19,7 @@ export default async function ReaderWithWorker(
   isEncrypted: boolean,
   storeFileName = false,
 ): Promise<any[]> {
-    const numWorkers = 1; // Use a single worker for simplicity, can be adjusted based on requirements
+  const numWorkers = 1; // Use a single worker for simplicity, can be adjusted based on requirements
   const chunkSize = Math.ceil(DataFilesList.length / numWorkers);
   const workerPath: string = paths.resolve(
     __dirname,

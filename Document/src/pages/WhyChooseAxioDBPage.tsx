@@ -134,7 +134,8 @@ const WhyChooseAxioDBPage: React.FC = () => {
             Data Storage Architecture
           </h2>
           <p className="mb-4">
-            AxioDB employs a file-based storage system with intelligent organization to maintain performance even as collections grow:
+            AxioDB employs a file-based storage system with intelligent
+            organization to maintain performance even as collections grow:
           </p>
 
           <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
@@ -160,16 +161,20 @@ const WhyChooseAxioDBPage: React.FC = () => {
           </p>
           <ul className="list-disc pl-6 mb-4 space-y-2">
             <li>
-              <strong>Document isolation</strong>: Each document is stored in its own file, preventing write conflicts
+              <strong>Document isolation</strong>: Each document is stored in
+              its own file, preventing write conflicts
             </li>
             <li>
-              <strong>Selective loading</strong>: Only the documents you need are loaded into memory
+              <strong>Selective loading</strong>: Only the documents you need
+              are loaded into memory
             </li>
             <li>
-              <strong>File-level locking</strong>: Prevents concurrent modifications while allowing parallel reads
+              <strong>File-level locking</strong>: Prevents concurrent
+              modifications while allowing parallel reads
             </li>
             <li>
-              <strong>Easy backup</strong>: Simple to back up individual collections or documents
+              <strong>Easy backup</strong>: Simple to back up individual
+              collections or documents
             </li>
           </ul>
         </section>
@@ -230,7 +235,8 @@ const WhyChooseAxioDBPage: React.FC = () => {
             Query Processing Pipeline
           </h2>
           <p className="mb-4">
-            When you execute a query in AxioDB, it goes through an optimized pipeline that maximizes performance:
+            When you execute a query in AxioDB, it goes through an optimized
+            pipeline that maximizes performance:
           </p>
 
           <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
@@ -270,16 +276,20 @@ const WhyChooseAxioDBPage: React.FC = () => {
           </p>
           <ul className="list-disc pl-6 mb-4 space-y-2">
             <li>
-              <strong>Intelligent caching</strong>: Frequently accessed queries are cached for instant retrieval
+              <strong>Intelligent caching</strong>: Frequently accessed queries
+              are cached for instant retrieval
             </li>
             <li>
-              <strong>Parallelized processing</strong>: Work is distributed across multiple threads for maximum throughput
+              <strong>Parallelized processing</strong>: Work is distributed
+              across multiple threads for maximum throughput
             </li>
             <li>
-              <strong>Lazy evaluation</strong>: Results are processed incrementally when possible to reduce memory usage
+              <strong>Lazy evaluation</strong>: Results are processed
+              incrementally when possible to reduce memory usage
             </li>
             <li>
-              <strong>Just-in-time compilation</strong>: Query patterns are optimized during runtime for faster subsequent execution
+              <strong>Just-in-time compilation</strong>: Query patterns are
+              optimized during runtime for faster subsequent execution
             </li>
           </ul>
         </section>
