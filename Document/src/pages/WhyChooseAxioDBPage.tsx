@@ -62,25 +62,37 @@ collection1  collection2           users        logs      devices
 
           <ul className="list-disc pl-6 mb-4 space-y-2">
             <li>
-              <strong>Direct document access</strong>: When using a documentId, AxioDB can directly navigate to the specific file without scanning the entire collection, resulting in O(1) lookup time
+              <strong>Direct document access</strong>: When using a documentId,
+              AxioDB can directly navigate to the specific file without scanning
+              the entire collection, resulting in O(1) lookup time
             </li>
             <li>
-              <strong>Logarithmic time complexity</strong>: As your data grows, query time increases only logarithmically, not linearly, because the tree structure allows efficient navigation
+              <strong>Logarithmic time complexity</strong>: As your data grows,
+              query time increases only logarithmically, not linearly, because
+              the tree structure allows efficient navigation
             </li>
             <li>
-              <strong>Efficient indexing</strong>: The tree structure automatically serves as an index, reducing the need for separate index maintenance
+              <strong>Efficient indexing</strong>: The tree structure
+              automatically serves as an index, reducing the need for separate
+              index maintenance
             </li>
             <li>
-              <strong>Optimized for both reads and writes</strong>: The balanced tree structure ensures consistent performance for both data retrieval and insertion operations
+              <strong>Optimized for both reads and writes</strong>: The balanced
+              tree structure ensures consistent performance for both data
+              retrieval and insertion operations
             </li>
             <li>
-              <strong>Path-based lookups</strong>: The database → collection → document hierarchy allows for intuitive and efficient data organization and retrieval patterns
+              <strong>Path-based lookups</strong>: The database → collection →
+              document hierarchy allows for intuitive and efficient data
+              organization and retrieval patterns
             </li>
           </ul>
           <p className="mb-4">
             For Node.js developers, this means your applications remain
             responsive even as your data scales, without requiring extensive
-            query optimization or complex index management. When you query by documentId, AxioDB can bypass collection scanning entirely, accessing exactly the document you need in a single operation.
+            query optimization or complex index management. When you query by
+            documentId, AxioDB can bypass collection scanning entirely,
+            accessing exactly the document you need in a single operation.
           </p>
         </section>
 
