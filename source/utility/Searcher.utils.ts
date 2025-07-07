@@ -26,7 +26,7 @@ export default class Searcher {
    */
   public async find(
     query: { [key: string]: any },
-    aditionalFiled?: string | number | undefined,
+    additionalFiled?: string | number | undefined,
   ): Promise<any[]> {
     const numWorkers = 1; // Use a single worker for simplicity, can be adjusted based on requirements
     const chunkSize = Math.ceil(this.data.length / numWorkers);
@@ -44,7 +44,7 @@ export default class Searcher {
             workerData: {
               chunk: dataChunk,
               query,
-              aditionalFiled,
+              additionalFiled,
             },
           });
 
