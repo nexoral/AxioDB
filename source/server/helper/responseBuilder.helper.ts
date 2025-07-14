@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+
+// types
+export type ResponseBuilder = {
+  statusCode: number;
+  message: string;
+  data?: any;
+}
+
 /**
  * Builds a standardized response object with status code, message, and optional data.
  *
@@ -20,7 +28,7 @@ export default function buildResponse(
   statusCode: number,
   message: string,
   data?: any,
-): object {
+): ResponseBuilder {
   return {
     statusCode,
     message,

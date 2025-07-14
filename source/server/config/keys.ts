@@ -22,12 +22,17 @@ export const staticPath = path.resolve(__dirname, "../public/AxioControl");
 export const AvailableRoutes = [
   {
     method: "GET",
-    path: "/health",
+    path: "/api/info",
+    description: "To Get Internal Informations about this DB"
+  },
+  {
+    method: "GET",
+    path: "/api/health",
     description: "Health check endpoint to verify server status",
   },
   {
     method: "GET",
-    path: "/routes",
+    path: "/api/routes",
     description: "List all available API routes",
   },
   {
