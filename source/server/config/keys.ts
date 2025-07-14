@@ -23,7 +23,7 @@ export const AvailableRoutes = [
   {
     method: "GET",
     path: "/api/info",
-    description: "To Get Internal Informations about this DB"
+    description: "To Get Internal Informations about this DB",
   },
   {
     method: "GET",
