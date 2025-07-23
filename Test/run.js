@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { AxioDB } = require("../lib/config/DB.js");
 const key = require("./key.js");
 
