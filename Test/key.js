@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { SchemaTypes } = require('../lib/config/DB.js')
 
 /* eslint-disable no-undef */
