@@ -39,16 +39,17 @@ export default async function mainRouter(
 ): Promise<void> {
   // Now you can access the AxioDB instance
   const { AxioDBInstance } = options;
-  
 
   // Middlewares
 
   // Middleware for /db routes
-  fastify.addHook('preHandler', async (request, reply) => {
+  fastify.addHook("preHandler", async (request, reply) => {
     // Only apply middleware to routes starting with /db
-    if (request.url.includes('/db')) {
+    if (request.url.includes("/db")) {
       const transactionToken = (request.query as any)?.transactiontoken;
-      const status = await new KeyController(process.version).verifyKey(transactionToken)
+      const status = await new KeyController(process.version).verifyKey(
+        transactionToken,
+      );
       if (status.statusCode !== StatusCodes.OK) {
         return reply.status(status.statusCode).send(status);
       }
@@ -96,7 +97,9 @@ export default async function mainRouter(
   });
 
   // Generate a new token for transacting with AxioDB Server
-  fastify.get("/get-token", async (request, reply) => new KeyController(process.version).generateKey())
+  fastify.get("/get-token", async (request, reply) =>
+    new KeyController(process.version).generateKey(),
+  );
 
   // Register the DB router
   fastify.register(dbRouter, {

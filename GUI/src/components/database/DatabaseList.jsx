@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 const DatabaseList = ({ databases, onDeleteClick, loading }) => {
   // State for animation when items are added or removed
@@ -6,9 +6,9 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
 
   // This would be used if we wanted entrance animations for newly added databases
   const handleItemAnimationEnd = (dbName) => {
-    setAnimatingItems(prev => ({
+    setAnimatingItems((prev) => ({
       ...prev,
-      [dbName]: false
+      [dbName]: false,
     }));
   };
 
@@ -25,12 +25,15 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
         // Loading animation for database list
         <div className="p-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="animate-pulse flex items-center justify-between py-4 border-b border-gray-100">
+            <div
+              key={i}
+              className="animate-pulse flex items-center justify-between py-4 border-b border-gray-100"
+            >
               <div>
-                <div className="h-6 bg-gray-200 rounded w-48 mb-2"></div>
-                <div className="h-4 bg-gray-100 rounded w-32"></div>
+                <div className="h-6 bg-gray-200 rounded w-48 mb-2" />
+                <div className="h-4 bg-gray-100 rounded w-32" />
               </div>
-              <div className="h-8 bg-gray-200 rounded w-24"></div>
+              <div className="h-8 bg-gray-200 rounded w-24" />
             </div>
           ))}
         </div>
@@ -40,18 +43,21 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
             databases.ListOfDatabases.map((dbName, index) => (
               <li
                 key={dbName}
-                className={`px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-300 ${animatingItems[dbName] ? 'animate-slideIn' : 'animate-fadeIn'
-                  }`}
+                className={`px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-300 ${
+                  animatingItems[dbName] ? "animate-slideIn" : "animate-fadeIn"
+                }`}
                 onAnimationEnd={() => handleItemAnimationEnd(dbName)}
               >
                 <div>
-                  <h4 className="text-lg font-medium text-gray-900">{dbName}</h4>
-                  <p className="text-sm text-gray-500">Path: {databases.AllDatabasesPaths[index]}</p>
+                  <h4 className="text-lg font-medium text-gray-900">
+                    {dbName}
+                  </h4>
+                  <p className="text-sm text-gray-500">
+                    Path: {databases.AllDatabasesPaths[index]}
+                  </p>
                 </div>
                 <div className="flex space-x-2">
-                  <button
-                    className="text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-400 transition-colors"
-                  >
+                  <button className="text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-400 transition-colors">
                     View
                   </button>
                   <button
