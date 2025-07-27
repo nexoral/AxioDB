@@ -37,15 +37,23 @@ export const AvailableRoutes = [
   },
   {
     method: "GET",
-    path: "/api/databases",
+    path: "/api/db/databases",
     description: "Get a list of all databases",
   },
   {
     method: "POST",
-    path: "/api/create-database",
+    path: "/api/db/create-database",
     description: "Create a new database",
     payload: {
       name: "string",
     },
   },
+  {
+    method: "DELETE",
+    path: "/api/db/delete-database",
+    description: "Delete a database",
+    payload: {
+      name: "string",
+    },
+  }
 ];

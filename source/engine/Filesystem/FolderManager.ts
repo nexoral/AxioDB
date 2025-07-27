@@ -151,10 +151,11 @@ export default class FolderManager {
         const size = parseInt(stdout, 10);
         return this.responseHelper.Success(size);
       }
-      const stdout = await this.WorkerProcess.execCommand(`du -sb ${path}`);
+      const stdout = await this.WorkerProcess.execCommand(`du -sb "${path}"`);
       const size = parseInt(stdout.split("\t")[0], 10);
       return this.responseHelper.Success(size);
     } catch (err) {
+      console.error(`Error getting directory size: ${err}`);
       return this.responseHelper.Error(`Failed to get directory size: ${err}`);
     }
   }

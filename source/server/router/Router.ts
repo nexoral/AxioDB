@@ -6,6 +6,10 @@ import buildResponse, {
 } from "../helper/responseBuilder.helper";
 import { StatusCodes } from "outers";
 import { readFile } from "node:fs/promises";
+import { AxioDB } from "../../Services/Indexation.operation";
+
+// All Sub Routers
+import dbRouter from "./Routers/DB.routes";
 
 // Interfaces
 type PackageInterface = {
@@ -15,18 +19,26 @@ type PackageInterface = {
   license: string;
 };
 
+// Extended options interface to include AxioDB instance
+interface RouterOptions extends FastifyPluginOptions {
+  AxioDBInstance: AxioDB;
+}
+
+
 /**
  * Main router plugin for the AxioDB server
- *
  * @param fastify - Fastify instance
  * @param _options - Plugin options
  * @param done - Callback to signal completion
  */
 export default async function mainRouter(
   fastify: FastifyInstance,
-  _options: FastifyPluginOptions,
+  options: RouterOptions,
   done: () => void,
 ): Promise<void> {
+  // Now you can access the AxioDB instance
+  const { AxioDBInstance } = options;
+  
   fastify.get("/info", async () => {
     const PackageFile: PackageInterface = JSON.parse(
       await readFile("./package.json", "utf-8"),
@@ -65,6 +77,12 @@ export default async function mainRouter(
       AvailableRoutes,
     );
     return reply.status(200).send(Reply);
+  });
+
+  // Register the DB router
+  fastify.register(dbRouter, {
+    prefix: "/db",
+    AxioDBInstance: AxioDBInstance, // Pass the AxioDB instance to the DB router
   });
 
   // Handle 404 Not Found

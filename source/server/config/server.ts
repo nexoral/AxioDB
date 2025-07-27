@@ -61,6 +61,7 @@ export default async function createAxioDBControlServer(
   // Register the main router with /api prefix
   AxioDBControlServer.register(router, {
     prefix: "/api",
+    AxioDBInstance, // Pass the AxioDB instance to the router
   });
 
   try {
