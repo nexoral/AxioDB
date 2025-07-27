@@ -3,6 +3,7 @@
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
 [![CodeQL](https://github.com/AnkanSaha/AxioDB/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/AnkanSaha/AxioDB/actions/workflows/github-code-scanning/codeql)
 [![Socket Security](https://socket.dev/api/badge/npm/package/axiodb)](https://socket.dev/npm/package/axiodb)
+[![Push to Registry](https://github.com/AnkanSaha/AxioDB/actions/workflows/Push.yml/badge.svg?branch=main)](https://github.com/AnkanSaha/AxioDB/actions/workflows/Push.yml)
 
 AxioDB is a blazing-fast, lightweight, and scalable open-source Database Management System (DBMS) tailored for modern applications. It supports `.axiodb` file-based data storage, offers intuitive APIs, and ensures secure data management. AxioDB is the ultimate solution for developers seeking efficient, flexible, and production-ready database solutions.
 
@@ -478,7 +479,6 @@ await collection1.delete({ age: { $lt: 25 } }).deleteMany();
 
 - **`createCollection(name: string, schemaOrBoolean: object | boolean, schemaOrEmpty?: object, crypto?: boolean, key?: string): Promise<Collection>`**  
   Creates a collection with optional schema validation and encryption. The parameters are flexible:
-
   - If the second parameter is a schema object, schema validation is enabled
   - If the second parameter is a boolean, it determines whether schema validation is enabled
   - For collections without schema but with encryption, pass `false, {}, true` as parameters

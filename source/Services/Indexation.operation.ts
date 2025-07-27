@@ -112,14 +112,13 @@ export class AxioDB {
    *
    * @returns {Promise<SuccessInterface | undefined>} A promise that resolves when the database information is successfully retrieved and the response is sent.
    */
-  public async getDatabaseInfo(): Promise<SuccessInterface | undefined> {
+  public async getInstanceInfo(): Promise<SuccessInterface | undefined> {
     const totalDatabases = await this.folderManager.ListDirectory(
       path.resolve(this.currentPATH),
     );
     const totalSize = await this.folderManager.GetDirectorySize(
       path.resolve(this.currentPATH),
     );
-
     // check if all data is returned
     if ("data" in totalDatabases && "data" in totalSize) {
       const FinalDatabaseInfo: FinalDatabaseInfo = {
@@ -137,6 +136,26 @@ export class AxioDB {
     } else {
       return this.ResponseHelper.Error("Failed to get database info");
     }
+  }
+
+  /**
+   * Checks if a database with the given name exists
+   *
+   * @param DBName - The name of the database to check for existence
+   * @returns A Promise that resolves to a boolean indicating whether the database exists
+   *
+   * @example
+   * ```typescript
+   * const exists = await indexation.isDatabaseExists('myDatabase');
+   * if (exists) {
+   *   console.log('Database exists');
+   * }
+   * ```
+   */
+  public async isDatabaseExists(DBName: string): Promise<boolean> {
+    const dbPath = path.join(this.currentPATH, DBName);
+    const exists = await this.folderManager.DirectoryExists(dbPath);
+    return exists.statusCode === StatusCodes.OK;
   }
 
   // Delete Database
