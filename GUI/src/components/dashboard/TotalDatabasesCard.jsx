@@ -13,7 +13,6 @@ const TotalDatabasesCard = ({ totalDatabases }) => {
     setTimeout(() => {
       setLoading(false);
     }, 1000); // Simulate a 1 second delay
-    
   }, []);
 
   return (

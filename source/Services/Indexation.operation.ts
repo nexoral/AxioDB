@@ -140,10 +140,10 @@ export class AxioDB {
 
   /**
    * Checks if a database with the given name exists
-   * 
+   *
    * @param DBName - The name of the database to check for existence
    * @returns A Promise that resolves to a boolean indicating whether the database exists
-   * 
+   *
    * @example
    * ```typescript
    * const exists = await indexation.isDatabaseExists('myDatabase');

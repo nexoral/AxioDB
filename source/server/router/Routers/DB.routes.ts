@@ -11,15 +11,24 @@ interface RouterOptions extends FastifyPluginOptions {
 }
 
 // DB Routers
-export default async function dbRouter(fastify: FastifyInstance, options: RouterOptions): Promise<void> {
+export default async function dbRouter(
+  fastify: FastifyInstance,
+  options: RouterOptions,
+): Promise<void> {
   const { AxioDBInstance } = options; // Access the AxioDB instance passed from the main router
 
   // Get all databases
-  fastify.get("/databases", async () => new DatabaseController(AxioDBInstance).getDatabases());
+  fastify.get("/databases", async () =>
+    new DatabaseController(AxioDBInstance).getDatabases(),
+  );
 
   // Create a new database
-  fastify.post("/create-database", async (request) => new DatabaseController(AxioDBInstance).createDatabase(request));
+  fastify.post("/create-database", async (request) =>
+    new DatabaseController(AxioDBInstance).createDatabase(request),
+  );
 
   // Delete a database
-  fastify.delete("/delete-database", async (request) => new DatabaseController(AxioDBInstance).deleteDatabase(request));
+  fastify.delete("/delete-database", async (request) =>
+    new DatabaseController(AxioDBInstance).deleteDatabase(request),
+  );
 }

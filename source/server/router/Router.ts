@@ -24,7 +24,6 @@ interface RouterOptions extends FastifyPluginOptions {
   AxioDBInstance: AxioDB;
 }
 
-
 /**
  * Main router plugin for the AxioDB server
  * @param fastify - Fastify instance
@@ -38,7 +37,7 @@ export default async function mainRouter(
 ): Promise<void> {
   // Now you can access the AxioDB instance
   const { AxioDBInstance } = options;
-  
+
   fastify.get("/info", async () => {
     const PackageFile: PackageInterface = JSON.parse(
       await readFile("./package.json", "utf-8"),

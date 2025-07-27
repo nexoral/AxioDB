@@ -55,5 +55,5 @@ export const AvailableRoutes = [
     payload: {
       name: "string",
     },
-  }
+  },
 ];

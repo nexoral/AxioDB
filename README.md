@@ -479,7 +479,6 @@ await collection1.delete({ age: { $lt: 25 } }).deleteMany();
 
 - **`createCollection(name: string, schemaOrBoolean: object | boolean, schemaOrEmpty?: object, crypto?: boolean, key?: string): Promise<Collection>`**  
   Creates a collection with optional schema validation and encryption. The parameters are flexible:
-
   - If the second parameter is a schema object, schema validation is enabled
   - If the second parameter is a boolean, it determines whether schema validation is enabled
   - For collections without schema but with encryption, pass `false, {}, true` as parameters
