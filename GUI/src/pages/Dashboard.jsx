@@ -9,15 +9,16 @@ import TotalDocumentsCard from "../components/dashboard/TotalDocumentsCard";
 
 import axios from "axios";
 import { BASE_API_URL } from "../config/key";
-import { DBInfoStore } from "../store/store";
+import { DBInfoStore, ExchangeKeyStore } from "../store/store";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [AllInstanceInfo, setAllInstanceInfo] = useState(null);
   const { setRootname } = DBInfoStore((state) => state);
+  const { TransactionKey } = ExchangeKeyStore((state) => state);
 
   useEffect(() => {
-    axios.get(`${BASE_API_URL}/api/db/databases`).then((response) => {
+    axios.get(`${BASE_API_URL}/api/db/databases?transactiontoken=${TransactionKey}`).then((response) => {
       if (response.status === 200) {
         console.log("All Instance Info:", response.data.data);
         setAllInstanceInfo(response.data.data);

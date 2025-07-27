@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
 import { AvailableRoutes } from "../config/keys";
@@ -10,6 +11,7 @@ import { AxioDB } from "../../Services/Indexation.operation";
 
 // All Sub Routers
 import dbRouter from "./Routers/DB.routes";
+import KeyController from "../controller/Key/key.controller";
 
 // Interfaces
 type PackageInterface = {
@@ -37,6 +39,22 @@ export default async function mainRouter(
 ): Promise<void> {
   // Now you can access the AxioDB instance
   const { AxioDBInstance } = options;
+  
+
+  // Middlewares
+
+  // Middleware for /db routes
+  fastify.addHook('preHandler', async (request, reply) => {
+    console.log("Request URL:", request.url);
+    // Only apply middleware to routes starting with /db
+    if (request.url.includes('/db')) {
+      const transactionToken = (request.query as any)?.transactiontoken;
+      const status = await new KeyController(process.version).verifyKey(transactionToken)
+      if (status.statusCode !== StatusCodes.OK) {
+        return reply.status(status.statusCode).send(status);
+      }
+    }
+  });
 
   fastify.get("/info", async () => {
     const PackageFile: PackageInterface = JSON.parse(
@@ -77,6 +95,9 @@ export default async function mainRouter(
     );
     return reply.status(200).send(Reply);
   });
+
+  // Generate a new token for transacting with AxioDB Server
+  fastify.get("/get-token", async (request, reply) => new KeyController(process.version).generateKey())
 
   // Register the DB router
   fastify.register(dbRouter, {

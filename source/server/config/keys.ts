@@ -3,6 +3,12 @@ import path from "path";
 export enum ServerKeys {
   PORT = 27018,
   LOCALHOST = "127.0.1",
+  DEFAULT_KEY_EXPIRE = "1h",
+  DEFAULT_KEY_ISSUER = "AxioDB Server",
+  DEFAULT_KEY_AUDIENCE = "AxioDB Client",
+  DEFAULT_KEY_REASON = "For Transacting with AxioDB Server",
+  DEFAULT_KEY_TIMESTAMP = Date.now(),
+  DEFAULT_KEY_ROUNDS = 1,
 }
 
 // Config for CORS
@@ -34,6 +40,11 @@ export const AvailableRoutes = [
     method: "GET",
     path: "/api/routes",
     description: "List all available API routes",
+  },
+  {
+    method: "GET",
+    path: "/api/get-token",
+    description: "Get a new token for transacting with AxioDB Server",
   },
   {
     method: "GET",
