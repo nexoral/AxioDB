@@ -6,20 +6,21 @@ import TotalCollectionsCard from "../components/dashboard/TotalCollectionsCard";
 import TotalDatabasesCard from "../components/dashboard/TotalDatabasesCard";
 import TotalDocumentsCard from "../components/dashboard/TotalDocumentsCard";
 
-/**
- * Dashboard page component
- * Displays overview metrics and charts
- */
+import axios from "axios";
+import { BASE_API_URL } from "../config/key";
+
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [AllInstanceInfo, setAllInstanceInfo] = useState(null);
 
   useEffect(() => {
-    // Simulate initial loading
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
+    axios.get(`${BASE_API_URL}/api/db/databases`).then((response) => {
+      if (response.status === 200) {
+        console.log("All Instance Info:", response.data.data);
+        setAllInstanceInfo(response.data.data);
+        setLoading(false);
+      }
+    })
   }, []);
 
   return (
@@ -42,7 +43,7 @@ const Dashboard = () => {
       ) : (
         // Stats cards row
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <TotalDatabasesCard />
+          <TotalDatabasesCard totalDatabases={AllInstanceInfo?.ListOfDatabases.length || 0} />
           <TotalCollectionsCard />
           <TotalDocumentsCard />
           <StorageUsageCard />

@@ -4,21 +4,16 @@ import { useEffect, useState } from "react";
 /**
  * Component to display the total number of databases in the AxioDB system
  */
-const TotalDatabasesCard = () => {
+const TotalDatabasesCard = ({ totalDatabases }) => {
   // In a real application, this would come from an API
-  const [totalDatabases, setTotalDatabases] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call with dummy data
-    const fetchData = () => {
-      setTimeout(() => {
-        setTotalDatabases(12);
-        setLoading(false);
-      }, 500);
-    };
-
-    fetchData();
+    // Simulate fetching total databases count
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000); // Simulate a 1 second delay
+    
   }, []);
 
   return (
