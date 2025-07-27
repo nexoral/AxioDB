@@ -2,6 +2,7 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import Footer from "../layout/Footer";
 import Header from "../layout/Header";
 import Dashboard from "../pages/Dashboard";
+import Databases from "../pages/Databases";
 import { useEffect, useState } from "react";
 
 import { ExchangeKeyStore } from "../store/store";
@@ -13,7 +14,7 @@ import { ExchangeKeyStore } from "../store/store";
 function MainConfig() {
   const { loadKey } = ExchangeKeyStore((state) => state);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -22,10 +23,10 @@ function MainConfig() {
         setIsLoading(false);
       }
     };
-    
+
     loadData();
   }, [loadKey]);
-  
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -38,7 +39,7 @@ function MainConfig() {
       </div>
     );
   }
-  
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -46,6 +47,7 @@ function MainConfig() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/databases" element={<Databases />} />
           </Routes>
         </main>
         <Footer />

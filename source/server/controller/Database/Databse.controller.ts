@@ -96,17 +96,17 @@ export default class DatabaseController {
   public async deleteDatabase(
     request: FastifyRequest,
   ): Promise<ResponseBuilder> {
-    const { name } = request.body as { name: string };
+    const { dbName } = request.query as { dbName: string };
     try {
       // check if the database exists
-      const exists = await this.AxioDBInstance.isDatabaseExists(name);
+      const exists = await this.AxioDBInstance.isDatabaseExists(dbName);
       if (!exists) {
         return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
       }
       // delete the database
-      await this.AxioDBInstance.deleteDatabase(name);
+      await this.AxioDBInstance.deleteDatabase(dbName);
       return buildResponse(StatusCodes.OK, "Database Deleted", {
-        Database_Name: name,
+        Database_Name: dbName,
       });
     } catch (error) {
       console.error("Error deleting database:", error);
