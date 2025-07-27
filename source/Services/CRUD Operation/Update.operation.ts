@@ -16,7 +16,7 @@ import { Console } from "outers";
 // Validator
 import SchemaValidator from "../../Schema/validator.models";
 import Insertion from "./Create.operation";
-import InMemoryCache from "../../cache/cache.operation";
+import InMemoryCache from "../../caching/cache.operation";
 import { General } from "../../config/Keys/Keys";
 import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
 

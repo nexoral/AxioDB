@@ -6,7 +6,7 @@ import {
 } from "../../config/Interfaces/Helper/response.helper.interface";
 
 // Import All helpers
-import InMemoryCache from "../../cache/cache.operation";
+import InMemoryCache from "../../caching/cache.operation";
 import Converter from "../../Helper/Converter.helper";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import responseHelper from "../../Helper/response.helper";
@@ -96,8 +96,8 @@ export default class Reader {
           const FilePath =
             Array.isArray(this.baseQuery?.documentId) == true
               ? this.baseQuery.documentId.map(
-                  (id: any) => `.${id}${General.DBMS_File_EXT}`,
-                )
+                (id: any) => `.${id}${General.DBMS_File_EXT}`,
+              )
               : [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
           ReadResponse = await this.LoadAllBufferRawData(FilePath);
           //  Send the data to the client directly
