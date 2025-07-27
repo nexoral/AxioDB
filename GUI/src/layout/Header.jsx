@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { DBInfoStore } from "../store/store";
 
 const Header = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const { Rootname } = DBInfoStore((state) => state);
 
   // eslint-disable-next-line
   const toggleUserDropdown = () => {
@@ -18,7 +20,7 @@ const Header = () => {
               <Link to="/" className="flex items-center">
                 <img src="/AXioDB.png" alt="AxioDB Logo" className="h-9 w-9" />
                 <span className="ml-2 text-white font-bold text-xl tracking-tight">
-                  AxioControl
+                  {Rootname} Admin Hub
                 </span>
               </Link>
             </div>

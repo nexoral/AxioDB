@@ -6,18 +6,22 @@ import TotalCollectionsCard from "../components/dashboard/TotalCollectionsCard";
 import TotalDatabasesCard from "../components/dashboard/TotalDatabasesCard";
 import TotalDocumentsCard from "../components/dashboard/TotalDocumentsCard";
 
+
 import axios from "axios";
 import { BASE_API_URL } from "../config/key";
+import { DBInfoStore } from "../store/store";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [AllInstanceInfo, setAllInstanceInfo] = useState(null);
+  const { setRootname } = DBInfoStore((state) => state);
 
   useEffect(() => {
     axios.get(`${BASE_API_URL}/api/db/databases`).then((response) => {
       if (response.status === 200) {
         console.log("All Instance Info:", response.data.data);
         setAllInstanceInfo(response.data.data);
+        setRootname(response.data.data.RootName ?? "AxioDB");
         setLoading(false);
       }
     });
