@@ -1,5 +1,5 @@
 // Import All Required Sub Modules
-import { InMemoryCache } from "../cache/cache.operation";
+import { InMemoryCache } from "../caching/cache.operation";
 import Converter from "../Helper/Converter.helper";
 import { CryptoHelper } from "../Helper/Crypto.helper";
 import ResponseHelper from "../Helper/response.helper";

@@ -6,7 +6,7 @@ import {
 } from "../../config/Interfaces/Helper/response.helper.interface";
 
 // Import All helpers
-import InMemoryCache from "../../cache/cache.operation";
+import InMemoryCache from "../../caching/cache.operation";
 import Converter from "../../Helper/Converter.helper";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import responseHelper from "../../Helper/response.helper";
