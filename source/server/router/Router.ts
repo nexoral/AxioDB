@@ -45,7 +45,6 @@ export default async function mainRouter(
 
   // Middleware for /db routes
   fastify.addHook('preHandler', async (request, reply) => {
-    console.log("Request URL:", request.url);
     // Only apply middleware to routes starting with /db
     if (request.url.includes('/db')) {
       const transactionToken = (request.query as any)?.transactiontoken;
