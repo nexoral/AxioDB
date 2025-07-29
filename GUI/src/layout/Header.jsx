@@ -41,12 +41,6 @@ const Header = () => {
                   Databases
                 </Link>
                 <Link
-                  to="/collections"
-                  className="text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  Collections
-                </Link>
-                <Link
                   to="/queries"
                   className="text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >

@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const DatabaseList = ({ databases, onDeleteClick, loading }) => {
+  const navigate = useNavigate();
   // State for animation when items are added or removed
   const [animatingItems, setAnimatingItems] = useState({});
 
@@ -10,6 +12,10 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
       ...prev,
       [dbName]: false,
     }));
+  };
+
+  const handleViewCollections = (dbName) => {
+    navigate(`/collections?database=${encodeURIComponent(dbName)}`);
   };
 
   return (
@@ -43,9 +49,8 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
             databases.ListOfDatabases.map((dbName, index) => (
               <li
                 key={dbName}
-                className={`px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-300 ${
-                  animatingItems[dbName] ? "animate-slideIn" : "animate-fadeIn"
-                }`}
+                className={`px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-300 ${animatingItems[dbName] ? "animate-slideIn" : "animate-fadeIn"
+                  }`}
                 onAnimationEnd={() => handleItemAnimationEnd(dbName)}
               >
                 <div>
@@ -57,8 +62,11 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
                   </p>
                 </div>
                 <div className="flex space-x-2">
-                  <button className="text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-400 transition-colors">
-                    View
+                  <button
+                    onClick={() => handleViewCollections(dbName)}
+                    className="text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-400 transition-colors"
+                  >
+                    View Collections
                   </button>
                   <button
                     onClick={() => onDeleteClick(dbName)}
