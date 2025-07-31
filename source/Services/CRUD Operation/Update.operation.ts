@@ -146,7 +146,7 @@ export default class UpdateOperation {
         let selectedFirstData = SearchedData[0]; // Select the first data
         let fileName: string = selectedFirstData?.fileName; // Get the file name
         const documentOldData = selectedFirstData.data; // Get the old data
-        const dataForRest: object | any = {...documentOldData}; // Get the data for rest of the fields
+        const dataForRest: object | any = { ...documentOldData }; // Get the data for rest of the fields
 
         // Sort the data if sort is provided then select the first data for deletion
         if (Object.keys(this.sort).length === 0) {

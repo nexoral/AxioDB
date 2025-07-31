@@ -49,8 +49,9 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
             databases.ListOfDatabases.map((dbName, index) => (
               <li
                 key={dbName}
-                className={`px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-300 ${animatingItems[dbName] ? "animate-slideIn" : "animate-fadeIn"
-                  }`}
+                className={`px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-all duration-300 ${
+                  animatingItems[dbName] ? "animate-slideIn" : "animate-fadeIn"
+                }`}
                 onAnimationEnd={() => handleItemAnimationEnd(dbName)}
               >
                 <div>

@@ -8,14 +8,14 @@ const Collections = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [collections, setCollections] = useState([]);
-  const databaseName = searchParams.get('database');
+  const databaseName = searchParams.get("database");
   const { TransactionKey } = ExchangeKeyStore((state) => state);
   const { Rootname } = DBInfoStore((state) => state);
 
   useEffect(() => {
     // If no database is specified, redirect to databases page
     if (!databaseName) {
-      navigate('/databases');
+      navigate("/databases");
       return;
     }
 
@@ -26,9 +26,9 @@ const Collections = () => {
         // For now, using placeholder data
         setTimeout(() => {
           setCollections([
-            { name: 'users', documentCount: 1250, size: '2.3 MB' },
-            { name: 'orders', documentCount: 850, size: '1.8 MB' },
-            { name: 'products', documentCount: 420, size: '3.1 MB' }
+            { name: "users", documentCount: 1250, size: "2.3 MB" },
+            { name: "orders", documentCount: 850, size: "1.8 MB" },
+            { name: "products", documentCount: 420, size: "3.1 MB" },
           ]);
           setLoading(false);
         }, 1000);
@@ -56,7 +56,7 @@ const Collections = () => {
   }, [TransactionKey, databaseName, navigate]);
 
   const handleBackToDatabases = () => {
-    navigate('/databases');
+    navigate("/databases");
   };
 
   return (
@@ -73,12 +73,11 @@ const Collections = () => {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Collections</h1>
           <p className="text-gray-600">
-            Collections in database: <span className="font-medium">{databaseName}</span>
+            Collections in database:{" "}
+            <span className="font-medium">{databaseName}</span>
           </p>
         </div>
-        <button
-          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center transition-colors"
-        >
+        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center transition-colors">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5 mr-2"
@@ -97,9 +96,12 @@ const Collections = () => {
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
-          <h3 className="text-lg font-medium text-gray-900">Collections in {databaseName}</h3>
+          <h3 className="text-lg font-medium text-gray-900">
+            Collections in {databaseName}
+          </h3>
           <p className="text-sm text-gray-500">
-            Total: {loading ? "Loading..." : `${collections.length} Collections`}
+            Total:{" "}
+            {loading ? "Loading..." : `${collections.length} Collections`}
           </p>
         </div>
 
@@ -146,7 +148,8 @@ const Collections = () => {
               ))
             ) : (
               <li className="px-6 py-8 text-center text-gray-500">
-                No collections found in this database. Click "Create Collection" to add one.
+                No collections found in this database. Click "Create Collection"
+                to add one.
               </li>
             )}
           </ul>
