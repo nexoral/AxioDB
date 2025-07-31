@@ -11,9 +11,11 @@ const workerPath: string = path.resolve(
 
 export default class Searcher {
   private data: any[];
+  private isUpdated: boolean = false;
 
-  constructor(arr: any[]) {
+  constructor(arr: any[], isUpdated: boolean = false) {
     this.data = arr;
+    this.isUpdated = isUpdated;
   }
 
   /**
@@ -44,6 +46,7 @@ export default class Searcher {
             workerData: {
               chunk: dataChunk,
               query,
+              isUpdated: this.isUpdated,
               additionalFiled,
             },
           });
@@ -73,6 +76,7 @@ export default class Searcher {
   public static matchesQuery(
     item: any,
     query: { [key: string]: any },
+    isUpdated: boolean = false,
   ): boolean {
     // Handle root-level $or
     if ("$or" in query && Array.isArray(query.$or)) {
@@ -104,7 +108,7 @@ export default class Searcher {
     for (let i = 0; i < queryLength; i++) {
       const key = queryKeys[i];
       const queryValue = query[key];
-      const itemValue = item.data[key];
+      const itemValue = isUpdated == true ? item.data[key] : item[key];
 
       // If queryValue is an object (for operators)
       if (typeof queryValue === "object" && queryValue !== null) {
