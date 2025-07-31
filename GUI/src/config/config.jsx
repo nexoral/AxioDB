@@ -3,6 +3,7 @@ import Footer from "../layout/Footer";
 import Header from "../layout/Header";
 import Dashboard from "../pages/Dashboard";
 import Databases from "../pages/Databases";
+import Collections from "../pages/Collections";
 import { useEffect, useState } from "react";
 
 import { ExchangeKeyStore } from "../store/store";
@@ -48,6 +49,7 @@ function MainConfig() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/databases" element={<Databases />} />
+            <Route path="/collections" element={<Collections />} />
           </Routes>
         </main>
         <Footer />

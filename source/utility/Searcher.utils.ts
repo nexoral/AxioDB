@@ -104,7 +104,7 @@ export default class Searcher {
     for (let i = 0; i < queryLength; i++) {
       const key = queryKeys[i];
       const queryValue = query[key];
-      const itemValue = item[key];
+      const itemValue = item.data[key];
 
       // If queryValue is an object (for operators)
       if (typeof queryValue === "object" && queryValue !== null) {
