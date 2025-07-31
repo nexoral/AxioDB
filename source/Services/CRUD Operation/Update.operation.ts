@@ -133,7 +133,7 @@ export default class UpdateOperation {
       }
 
       if ("data" in ReadResponse) {
-        const SearchedData = await new Searcher(ReadResponse.data).find(
+        const SearchedData = await new Searcher(ReadResponse.data, true).find(
           this.baseQuery,
           "data",
         );
@@ -253,7 +253,7 @@ export default class UpdateOperation {
 
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
-        const SearchedData = await new Searcher(ReadResponse.data).find(
+        const SearchedData = await new Searcher(ReadResponse.data, true).find(
           this.baseQuery,
           "data",
         );

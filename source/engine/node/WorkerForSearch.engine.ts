@@ -2,7 +2,7 @@
 import { parentPort, workerData } from "worker_threads";
 import Searcher from "../../utility/Searcher.utils";
 
-const { chunk, query, aditionalFiled } = workerData;
+const { chunk, query, isUpdated, aditionalFiled } = workerData;
 const result: any[] = [];
 
 let left = 0;
@@ -20,7 +20,7 @@ while (left <= right) {
     if (
       item !== undefined &&
       item !== null &&
-      Searcher.matchesQuery(item, query)
+      Searcher.matchesQuery(item, query, isUpdated)
     ) {
       result.push(rawItem);
     }
