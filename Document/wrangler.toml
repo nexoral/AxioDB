@@ -6,8 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 
 [env.preview]
 
-[[pages_build_output_dir]]
-directory = "AxioDB_Docs"
+pages_build_output_dir = "AxioDB_Docs"
 
 [build]
 command = "npm run build"
