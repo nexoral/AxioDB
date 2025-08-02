@@ -19,12 +19,27 @@ jobs:
       - name: Check for GUI or source changes
         id: check_changes
         run: |
-          if git diff --name-only HEAD~1 HEAD | grep -E "^(GUI/|src/)" | head -1; then
-            echo "should_build=true" >> $GITHUB_OUTPUT
-            echo "Changes detected in GUI or source folders"
+          # Check if we have a previous commit to compare against
+          if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+            echo "Changed files: $CHANGED_FILES"
+            
+            if echo "$CHANGED_FILES" | grep -E "^(GUI/|src/)" >/dev/null 2>&1; then
+              echo "should_build=true" >> $GITHUB_OUTPUT
+              echo "Changes detected in GUI or source folders"
+            else
+              echo "should_build=false" >> $GITHUB_OUTPUT
+              echo "No changes detected in GUI or source folders"
+            fi
           else
-            echo "should_build=false" >> $GITHUB_OUTPUT
-            echo "No changes detected in GUI or source folders"
+            # If no previous commit exists (first commit), check if GUI or src folders exist
+            if [ -d "GUI" ] || [ -d "src" ]; then
+              echo "should_build=true" >> $GITHUB_OUTPUT
+              echo "First commit or no previous commit - building"
+            else
+              echo "should_build=false" >> $GITHUB_OUTPUT
+              echo "No GUI or src folders found"
+            fi
           fi
 
   test:
