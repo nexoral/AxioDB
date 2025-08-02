@@ -1,0 +1,53 @@
+name = "axiodb"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+
+[env.preview]
+
+[[pages_build_output_dir]]
+directory = "AxioDB_Docs"
+
+[build]
+command = "npm run build"
+cwd = "."
+
+[build.environment_variables]
+NODE_VERSION = "22"
+
+[pages]
+# Build configuration
+build_command = "npm run build"
+build_output_directory = "AxioDB_Docs"
+root_directory = "."
+
+# Custom headers for better performance
+[[pages.headers]]
+for = "/*"
+[pages.headers.values]
+X-Frame-Options = "DENY"
+X-Content-Type-Options = "nosniff"
+X-XSS-Protection = "1; mode=block"
+Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[pages.headers]]
+for = "/assets/*"
+[pages.headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[pages.headers]]
+for = "*.js"
+[pages.headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+[[pages.headers]]
+for = "*.css"
+[pages.headers.values]
+Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirects for SPA routing
+[[pages.redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
