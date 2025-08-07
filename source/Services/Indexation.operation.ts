@@ -20,6 +20,7 @@ import {
 } from "../config/Interfaces/Helper/response.helper.interface";
 import { FinalDatabaseInfo } from "../config/Interfaces/Operation/Indexation.operation.interface";
 import createAxioDBControlServer from "../server/config/server";
+import { DatabaseMap } from "../config/Interfaces/Operation/database.operation.interface";
 
 /**
  * Class representing the AxioDB database.
@@ -34,6 +35,7 @@ export class AxioDB {
   private Converter: Converter;
   private ResponseHelper: ResponseHelper;
   private static _instance: AxioDB;
+  private DatabaseMap: Map<string, DatabaseMap>;
 
   constructor(RootName?: string, CustomPath?: string) {
     if (AxioDB._instance) {
@@ -47,6 +49,7 @@ export class AxioDB {
     this.Converter = new Converter(); // Initialize the Converter class
     this.ResponseHelper = new ResponseHelper(); // Initialize the ResponseHelper class
     this.initializeRoot(); // Ensure root initialization
+    this.DatabaseMap = new Map<string, DatabaseMap>(); // Initialize the DatabaseMap
   }
 
   /**
@@ -95,6 +98,9 @@ export class AxioDB {
       console.log(`Database Created: ${dbPath}`);
     }
     const newDB = new Database(DBName, dbPath);
+    // Store database metadata in the DatabaseMap
+    // Note: The DatabaseMap is now storing an object instead of a Database instance
+    this.DatabaseMap.set(DBName, { DatabaseName: DBName, path: dbPath });
     return newDB;
   }
 
@@ -116,6 +122,9 @@ export class AxioDB {
     const totalDatabases = await this.folderManager.ListDirectory(
       path.resolve(this.currentPATH),
     );
+
+    // First
+
     const totalSize = await this.folderManager.GetDirectorySize(
       path.resolve(this.currentPATH),
     );
@@ -125,9 +134,10 @@ export class AxioDB {
         CurrentPath: this.currentPATH,
         RootName: this.RootName,
         MatrixUnits: "MB",
-        TotalSize: parseInt((totalSize.data / 1024 / 1024).toFixed(4)),
+        TotalSize: parseFloat((totalSize.data / 1024 / 1024).toFixed(6)),
         TotalDatabases: `${totalDatabases.data.length} Databases`,
         ListOfDatabases: totalDatabases.data,
+        DatabaseMap: this.DatabaseMap,
         AllDatabasesPaths: totalDatabases.data.map((db: string) =>
           path.join(this.currentPATH, db),
         ),
@@ -178,6 +188,7 @@ export class AxioDB {
 
     if (exists.statusCode === StatusCodes.OK) {
       await this.folderManager.DeleteDirectory(dbPath);
+      this.DatabaseMap.delete(DBName); // Remove from DatabaseMap
       return this.ResponseHelper.Success(
         `Database: ${DBName} deleted successfully`,
       );

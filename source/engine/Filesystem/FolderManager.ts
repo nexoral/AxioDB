@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import FileSystem from "fs/promises";
 import FileSystemSync from "fs";
 import WorkerProcess from "../cli/worker_process";
@@ -138,25 +139,194 @@ export default class FolderManager {
 
   /**
    * get the size of a directory at the specified path.
+   * Handles permission issues by temporarily modifying permissions if needed.
    */
   public async GetDirectorySize(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
+    // Store original permissions to restore later
+    const permissionsMap = new Map<string, number>();
+
     try {
-      const osType = WorkerProcess.getOS();
-      if (osType === "windows") {
-        const stdout = await this.WorkerProcess.execCommand(
-          `powershell -command "(Get-Item '${path}').length"`,
+      // Check if directory exists
+      try {
+        await this.fileSystem.access(path);
+      } catch (error) {
+        return this.responseHelper.Error(
+          `Directory does not exist or is inaccessible: ${error}`,
         );
-        const size = parseInt(stdout, 10);
-        return this.responseHelper.Success(size);
       }
-      const stdout = await this.WorkerProcess.execCommand(`du -sb "${path}"`);
-      const size = parseInt(stdout.split("\t")[0], 10);
+
+      // Collect and store original permissions, unlock files/folders as needed
+      await this.prepareDirectoryForSizeCalculation(path, permissionsMap);
+
+      // Now perform the size calculation
+      const osType = WorkerProcess.getOS();
+      let size: number;
+
+      if (osType === "windows") {
+        try {
+          // More comprehensive PowerShell command that handles directories better
+          const stdout = await this.WorkerProcess.execCommand(
+            `powershell -command "(Get-ChildItem '${path}' -Recurse -Force | Measure-Object -Property Length -Sum).Sum"`,
+          );
+          size = parseInt(stdout, 10) || 0;
+        } catch (cmdError) {
+          console.warn(
+            `Windows command failed: ${cmdError}, using fallback method`,
+          );
+          size = await this.calculateDirectorySizeRecursively(path);
+        }
+      } else {
+        try {
+          // Try du with error redirection
+          const stdout = await this.WorkerProcess.execCommand(
+            `du -sb "${path}" 2>/dev/null`,
+          );
+          size = parseInt(stdout.split("\t")[0], 10) || 0;
+        } catch (cmdError) {
+          console.warn(
+            `Unix command failed: ${cmdError}, using fallback method`,
+          );
+          size = await this.calculateDirectorySizeRecursively(path);
+        }
+      }
       return this.responseHelper.Success(size);
     } catch (err) {
       console.error(`Error getting directory size: ${err}`);
       return this.responseHelper.Error(`Failed to get directory size: ${err}`);
+    } finally {
+      // Restore original permissions
+      await this.restoreDirectoryPermissions(permissionsMap);
     }
+  }
+
+  /**
+   * Recursively prepares a directory and its contents for size calculation
+   * by temporarily modifying permissions if needed.
+   */
+  private async prepareDirectoryForSizeCalculation(
+    dirPath: string,
+    permissionsMap: Map<string, number>,
+  ): Promise<void> {
+    try {
+      // Store original directory permissions
+      try {
+        const stats = await this.fileSystem.stat(dirPath);
+        permissionsMap.set(dirPath, stats.mode);
+
+        // If directory isn't readable, make it readable
+        if ((stats.mode & 0o444) !== 0o444) {
+          await this.fileSystem.chmod(dirPath, 0o755);
+        }
+      } catch (error) {
+        console.warn(
+          `Could not check/modify permissions for ${dirPath}: ${error}`,
+        );
+        return;
+      }
+
+      // Process directory contents
+      let items: string[];
+      try {
+        items = await this.fileSystem.readdir(dirPath);
+      } catch (error) {
+        console.warn(`Could not read directory ${dirPath}: ${error}`);
+        return;
+      }
+
+      // Process each item recursively
+      for (const item of items) {
+        const itemPath = `${dirPath}/${item}`;
+
+        try {
+          const stats = await this.fileSystem.stat(itemPath);
+
+          // Store original permissions
+          permissionsMap.set(itemPath, stats.mode);
+
+          if (stats.isDirectory()) {
+            // If subdirectory isn't readable, make it readable
+            if ((stats.mode & 0o444) !== 0o444) {
+              await this.fileSystem.chmod(itemPath, 0o755);
+            }
+
+            // Recursively process subdirectory
+            await this.prepareDirectoryForSizeCalculation(
+              itemPath,
+              permissionsMap,
+            );
+          } else if (stats.isFile()) {
+            // If file isn't readable, make it readable
+            if ((stats.mode & 0o444) !== 0o444) {
+              await this.fileSystem.chmod(itemPath, 0o644);
+            }
+          }
+        } catch (itemError) {
+          // Continue with other items
+        }
+      }
+    } catch (error) {
+      console.warn(`Error preparing directory ${dirPath}: ${error}`);
+    }
+  }
+
+  /**
+   * Restores original permissions for all modified files and directories
+   */
+  private async restoreDirectoryPermissions(
+    permissionsMap: Map<string, number>,
+  ): Promise<void> {
+    // Convert to array and reverse to handle deepest paths first
+    const paths = Array.from(permissionsMap.keys()).reverse();
+
+    for (const path of paths) {
+      const originalMode = permissionsMap.get(path);
+      if (originalMode !== undefined) {
+        try {
+          await this.fileSystem.chmod(path, originalMode);
+        } catch (error) {
+          console.warn(`Failed to restore permissions for ${path}: ${error}`);
+        }
+      }
+    }
+  }
+
+  /**
+   * Calculates directory size recursively using Node.js native functions.
+   * This is a fallback method for when command-line tools fail.
+   */
+  private async calculateDirectorySizeRecursively(
+    dirPath: string,
+  ): Promise<number> {
+    let totalSize = 0;
+
+    try {
+      const items = await this.fileSystem.readdir(dirPath);
+
+      for (const item of items) {
+        const itemPath = `${dirPath}/${item}`;
+
+        try {
+          const stats = await this.fileSystem.stat(itemPath);
+
+          if (stats.isDirectory()) {
+            totalSize += await this.calculateDirectorySizeRecursively(itemPath);
+          } else if (stats.isFile()) {
+            totalSize += stats.size;
+          }
+        } catch (itemError) {
+          console.warn(
+            `Skipping item during size calculation: ${itemPath}: ${itemError}`,
+          );
+        }
+      }
+    } catch (error) {
+      console.warn(
+        `Error reading directory during size calculation: ${dirPath}: ${error}`,
+      );
+    }
+
+    return totalSize;
   }
 }

@@ -15,7 +15,7 @@ const schema = {
 };
 
 // Create a collection with schema validation
-const collection = await db1.createCollection("testCollection", true, schema);
+const collection = await db1.createCollection("testCollection", false, undefined, true, schema);
 console.log("Collection with schema created:", collection);
 `,
     withoutSchema: `
@@ -25,20 +25,20 @@ console.log("Collection without schema created:", collectionNoSchema);
 `,
     withSchemaEncrypted: `
 // Create an encrypted collection with schema validation and default encryption key
-const encryptedCollection = await db1.createCollection("testCollection3", true, schema, true);
+const encryptedCollection = await db1.createCollection("testCollection3", true, undefined, true, schema);
 console.log("Encrypted collection with schema (default key) created:", encryptedCollection);
 
 // Create an encrypted collection with schema validation and custom encryption key
-const customKeyCollection = await db1.createCollection("testCollection4", true, schema, true, "myCustomKey");
+const customKeyCollection = await db1.createCollection("testCollection4", true, "myCustomKey", true, schema);
 console.log("Encrypted collection with schema (custom key) created:", customKeyCollection);
 `,
     withoutSchemaEncrypted: `
 // Create an encrypted collection without schema validation and default encryption key
-const encryptedNoSchema = await db1.createCollection("testCollection5", false, {}, true);
+const encryptedNoSchema = await db1.createCollection("testCollection5", true);
 console.log("Encrypted collection without schema (default key) created:", encryptedNoSchema);
 
 // Create an encrypted collection without schema validation and custom encryption key
-const customKeyNoSchema = await db1.createCollection("testCollection6", false, {}, true, "myCustomKey");
+const customKeyNoSchema = await db1.createCollection("testCollection6", true, "myCustomKey");
 console.log("Encrypted collection without schema (custom key) created:", customKeyNoSchema);
 `,
   };
@@ -63,10 +63,10 @@ console.log("Encrypted collection without schema (custom key) created:", customK
         <pre className="bg-gray-100 dark:bg-gray-900 p-3 rounded-md mt-2 text-sm overflow-x-auto">
           {`createCollection(
   name: string,
-  isSchemaNeeded: boolean,
-  schema?: object,
   isEncrypted?: boolean,
-  encryptionKey?: string
+  encryptionKey?: string,
+  isSchemaNeeded?: boolean,
+  schema?: object
 );`}
         </pre>
       </div>

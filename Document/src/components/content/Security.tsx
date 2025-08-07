@@ -83,18 +83,18 @@ const Security: React.FC = () => {
             {`// Create an encrypted collection with schema validation
 const secureCollection = await db1.createCollection(
   "users",
-  userSchema,  // Schema object
   true,        // Enable encryption
-  "your-strong-secret-key"  // Custom encryption key
+  "your-strong-secret-key",  // Custom encryption key
+  true,        // Enable schema validation
+  userSchema   // Schema object
 );
 
 // Create an encrypted collection without schema validation
 const secureCollectionNoSchema = await db1.createCollection(
   "logs",
-  false,      // Disable schema validation
-  {},         // Empty object placeholder
   true,       // Enable encryption
-  "your-strong-secret-key"  // Custom encryption key
+  "your-strong-secret-key",  // Custom encryption key
+  false       // Disable schema validation
 );`}
           </code>
         </pre>
