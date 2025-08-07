@@ -23,7 +23,7 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
       <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
         <h3 className="text-lg font-medium text-gray-900">Your Databases</h3>
         <p className="text-sm text-gray-500">
-          Total: {loading ? "Loading..." : databases.TotalDatabases}
+          Total: {loading ? "Loading..." : databases?.TotalDatabases}
         </p>
       </div>
 
@@ -45,7 +45,7 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
         </div>
       ) : (
         <ul className="divide-y divide-gray-200">
-          {databases.ListOfDatabases && databases.ListOfDatabases.length > 0 ? (
+          {databases?.ListOfDatabases && databases?.ListOfDatabases.length > 0 ? (
             databases.ListOfDatabases.map((dbName, index) => (
               <li
                 key={dbName}

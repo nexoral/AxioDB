@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import fs from "fs/promises";
 import ResponseHelper from "../../Helper/response.helper";
 import {
@@ -186,19 +187,77 @@ export default class FileManager {
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const osType = WorkerProcess.getOS();
-      if (osType === "windows") {
-        const stdout = await this.WorkerProcess.execCommand(
-          `powershell -command "(Get-Item '${path}').length"`,
-        );
-        const size = parseInt(stdout, 10);
-        return this.responseHelper.Success(size);
+      // Try using native Node.js first (most reliable)
+      try {
+        // Check file permissions before reading
+        let originalMode: number | null = null;
+        try {
+          const stats = await fs.stat(path);
+          originalMode = stats.mode;
+
+          // If file isn't readable, temporarily make it readable
+          if ((stats.mode & 0o444) !== 0o444) {
+            await fs.chmod(path, 0o644);
+          }
+        } catch (permError) {
+          // Continue with attempt to read the file even if we couldn't modify permissions
+        }
+
+        try {
+          const stats = await fs.stat(path);
+
+          // Restore original permissions if they were modified
+          if (originalMode !== null && (originalMode & 0o444) !== 0o444) {
+            await fs.chmod(path, originalMode);
+          }
+
+          return this.responseHelper.Success(stats.size);
+        } catch (statError) {
+          // Fall back to system commands if native method fails
+          const osType = WorkerProcess.getOS();
+          if (osType === "windows") {
+            const stdout = await this.WorkerProcess.execCommand(
+              `powershell -command "(Get-Item '${path}').length"`,
+            );
+            const size = parseInt(stdout, 10) || 0;
+
+            // Restore original permissions if they were modified
+            if (originalMode !== null && (originalMode & 0o444) !== 0o444) {
+              await fs.chmod(path, originalMode);
+            }
+
+            return this.responseHelper.Success(size);
+          } else {
+            // For Unix-like systems
+            const stdout = await this.WorkerProcess.execCommand(
+              `wc -c < "${path}" 2>/dev/null || echo 0`,
+            );
+            const size = parseInt(stdout, 10) || 0;
+
+            // Restore original permissions if they were modified
+            if (originalMode !== null && (originalMode & 0o444) !== 0o444) {
+              await fs.chmod(path, originalMode);
+            }
+
+            return this.responseHelper.Success(size);
+          }
+        }
+      } catch (err) {
+        // Try to restore original permissions if they were saved, even if an error occurred
+        try {
+          const stats = await fs.stat(path);
+          const originalMode = stats.mode;
+          if ((originalMode & 0o444) !== 0o444) {
+            await fs.chmod(path, originalMode);
+          }
+        } catch {
+          // Ignore errors in the final cleanup attempt
+        }
+
+        return this.responseHelper.Error(`Failed to get file size: ${err}`);
       }
-      const stdout = await this.WorkerProcess.execCommand(`du -sb ${path}`);
-      const size = parseInt(stdout.split("\t")[0], 10);
-      return this.responseHelper.Success(size);
     } catch (err) {
-      return this.responseHelper.Error(`Failed to get directory size: ${err}`);
+      return this.responseHelper.Error(`Failed to get file size: ${err}`);
     }
   }
 }

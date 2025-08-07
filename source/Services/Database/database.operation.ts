@@ -12,7 +12,7 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-import { FinalCollectionsInfo } from "../../config/Interfaces/Operation/database.operation.interface";
+import { CollectionMap, FinalCollectionsInfo } from "../../config/Interfaces/Operation/database.operation.interface";
 
 /**
  * Represents a database instance.
@@ -23,6 +23,7 @@ export default class Database {
   private fileManager: FileManager;
   private folderManager: FolderManager;
   private ResponseHelper: ResponseHelper;
+  private collectionMap: Map<string, CollectionMap>;
 
   constructor(name: string, path: string) {
     this.name = name;
@@ -30,6 +31,7 @@ export default class Database {
     this.fileManager = new FileManager();
     this.folderManager = new FolderManager();
     this.ResponseHelper = new ResponseHelper();
+    this.collectionMap = new Map<string, CollectionMap>();
   }
 
   /**
@@ -72,6 +74,15 @@ export default class Database {
         newCryptoInstance,
         key,
       );
+      // Store collection metadata in the collectionMap
+      // Note: The collectionMap is now storing an object instead of a Collection instance
+      this.collectionMap.set(collectionName, {
+        isCryptoEnabled: crypto,
+        cryptoKey: key,
+        path: collectionPath,
+        schema: schema,
+        isSchema: isSchemaNeeded,
+      })
       return collection;
     } else {
       const collection = new Collection(
@@ -80,9 +91,28 @@ export default class Database {
         isSchemaNeeded,
         schema,
       );
+      // Store collection metadata in the collectionMap
+      this.collectionMap.set(collectionName, {
+        isCryptoEnabled: crypto,
+        cryptoKey: key,
+        path: collectionPath,
+        schema: schema,
+        isSchema: isSchemaNeeded,
+      })
       return collection;
     }
   }
+
+  /**
+   * Checks if a collection exists in the database.
+   * @param {string} collectionName - Name of the collection to check.
+   * @returns {Promise<boolean>} - Returns true if the collection exists, false otherwise.
+   **/
+    public async isCollectionExists(collectionName: string): Promise<boolean> {
+      const collectionPath = path.join(this.path, collectionName);
+      const exists = await this.folderManager.DirectoryExists(collectionPath);
+      return exists.statusCode === StatusCodes.OK;
+    }
 
   /**
    * Deletes a collection from the database.
@@ -97,6 +127,7 @@ export default class Database {
     const exists = await this.folderManager.DirectoryExists(collectionPath);
     if (exists.statusCode === StatusCodes.OK) {
       await this.folderManager.DeleteDirectory(collectionPath);
+      this.collectionMap.delete(collectionName); // Remove from collectionMap
       return this.ResponseHelper.Success(
         `Collection: ${collectionName} deleted successfully`,
       );
@@ -125,6 +156,7 @@ export default class Database {
         TotalCollections: `${collections.data.length} Collections`,
         TotalSize: parseInt((totalSize.data / 1024 / 1024).toFixed(4)),
         ListOfCollections: collections.data,
+        CollectionMap: this.collectionMap,
         AllCollectionsPaths: collections.data.map((collection: string) =>
           path.join(this.path, collection),
         ),
