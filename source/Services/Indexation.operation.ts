@@ -123,7 +123,7 @@ export class AxioDB {
       path.resolve(this.currentPATH),
     );
 
-    // First 
+    // First
 
     const totalSize = await this.folderManager.GetDirectorySize(
       path.resolve(this.currentPATH),

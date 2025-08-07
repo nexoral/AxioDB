@@ -220,7 +220,9 @@ export default class FolderManager {
           await this.fileSystem.chmod(dirPath, 0o755);
         }
       } catch (error) {
-        console.warn(`Could not check/modify permissions for ${dirPath}: ${error}`);
+        console.warn(
+          `Could not check/modify permissions for ${dirPath}: ${error}`,
+        );
         return;
       }
 
@@ -250,7 +252,10 @@ export default class FolderManager {
             }
 
             // Recursively process subdirectory
-            await this.prepareDirectoryForSizeCalculation(itemPath, permissionsMap);
+            await this.prepareDirectoryForSizeCalculation(
+              itemPath,
+              permissionsMap,
+            );
           } else if (stats.isFile()) {
             // If file isn't readable, make it readable
             if ((stats.mode & 0o444) !== 0o444) {
@@ -291,7 +296,9 @@ export default class FolderManager {
    * Calculates directory size recursively using Node.js native functions.
    * This is a fallback method for when command-line tools fail.
    */
-  private async calculateDirectorySizeRecursively(dirPath: string): Promise<number> {
+  private async calculateDirectorySizeRecursively(
+    dirPath: string,
+  ): Promise<number> {
     let totalSize = 0;
 
     try {
@@ -309,11 +316,15 @@ export default class FolderManager {
             totalSize += stats.size;
           }
         } catch (itemError) {
-          console.warn(`Skipping item during size calculation: ${itemPath}: ${itemError}`);
+          console.warn(
+            `Skipping item during size calculation: ${itemPath}: ${itemError}`,
+          );
         }
       }
     } catch (error) {
-      console.warn(`Error reading directory during size calculation: ${dirPath}: ${error}`);
+      console.warn(
+        `Error reading directory during size calculation: ${dirPath}: ${error}`,
+      );
     }
 
     return totalSize;

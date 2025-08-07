@@ -12,7 +12,10 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-import { CollectionMap, FinalCollectionsInfo } from "../../config/Interfaces/Operation/database.operation.interface";
+import {
+  CollectionMap,
+  FinalCollectionsInfo,
+} from "../../config/Interfaces/Operation/database.operation.interface";
 
 /**
  * Represents a database instance.
@@ -48,7 +51,7 @@ export default class Database {
     crypto: boolean = false,
     key?: string | undefined,
     isSchemaNeeded: boolean = false,
-    schema?: object | any
+    schema?: object | any,
   ): Promise<Collection> {
     // Check if the collection already exists
     const collectionExists = await this.folderManager.DirectoryExists(
@@ -82,7 +85,7 @@ export default class Database {
         path: collectionPath,
         schema: schema,
         isSchema: isSchemaNeeded,
-      })
+      });
       return collection;
     } else {
       const collection = new Collection(
@@ -98,7 +101,7 @@ export default class Database {
         path: collectionPath,
         schema: schema,
         isSchema: isSchemaNeeded,
-      })
+      });
       return collection;
     }
   }
@@ -108,11 +111,11 @@ export default class Database {
    * @param {string} collectionName - Name of the collection to check.
    * @returns {Promise<boolean>} - Returns true if the collection exists, false otherwise.
    **/
-    public async isCollectionExists(collectionName: string): Promise<boolean> {
-      const collectionPath = path.join(this.path, collectionName);
-      const exists = await this.folderManager.DirectoryExists(collectionPath);
-      return exists.statusCode === StatusCodes.OK;
-    }
+  public async isCollectionExists(collectionName: string): Promise<boolean> {
+    const collectionPath = path.join(this.path, collectionName);
+    const exists = await this.folderManager.DirectoryExists(collectionPath);
+    return exists.statusCode === StatusCodes.OK;
+  }
 
   /**
    * Deletes a collection from the database.

@@ -246,12 +246,13 @@ const ApiReference: React.FC = () => {
                     </button>
 
                     <div
-                      className={`overflow-hidden transition-all duration-300 ${expandedMethods.includes(
-                        `${section.title}-${method.name}`,
-                      )
+                      className={`overflow-hidden transition-all duration-300 ${
+                        expandedMethods.includes(
+                          `${section.title}-${method.name}`,
+                        )
                           ? "max-h-[500px]"
                           : "max-h-0"
-                        }`}
+                      }`}
                     >
                       <div className="pt-2 space-y-3">
                         <div>
