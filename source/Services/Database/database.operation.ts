@@ -35,18 +35,18 @@ export default class Database {
   /**
    * Creates a new collection inside the specified database.
    * @param {string} collectionName - Name of the collection.
-   * @param {boolean} isSchemaNeeded - Whether the collection requires a schema.
-   * @param {object} schema - Schema of the collection.
    * @param {boolean} crypto - Enable crypto for the collection.
    * @param {string} key - Key for crypto.
+   * @param {boolean} isSchemaNeeded - Whether the collection requires a schema.
+   * @param {object} schema - Schema of the collection.
    * @returns {Promise<AxioDB>} - Returns the instance of AxioDB.
    */
   public async createCollection(
     collectionName: string,
-    isSchemaNeeded: boolean = false,
-    schema: object | any,
     crypto: boolean = false,
     key?: string | undefined,
+    isSchemaNeeded: boolean = false,
+    schema?: object | any
   ): Promise<Collection> {
     // Check if the collection already exists
     const collectionExists = await this.folderManager.DirectoryExists(

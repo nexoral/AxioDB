@@ -20,9 +20,10 @@ const setup = async () => {
   const DB1 = await db.createDB("DB1");
   const collection1 = await DB1.createCollection(
     "collection1",
-    schema,      // Schema object
     true,        // Enable encryption
-    "secretKey"  // Custom encryption key
+    "secretKey",  // Custom encryption key
+    true,        // Enable schema validation
+    schema       // Schema object
   );
 
   // Insert data
@@ -55,9 +56,10 @@ setup();`,
 console.log("Aggregation Result:", aggregationResult);`,
     encryption: `const encryptedCollection = await DB1.createCollection(
   "secureCollection",
-  schema,      // Schema object
   true,        // Enable encryption
-  "mySecretKey"  // Custom encryption key
+  "mySecretKey",  // Custom encryption key
+  true,        // Enable schema validation
+  schema       // Schema object
 );
 
 // Insert encrypted data

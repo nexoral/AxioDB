@@ -292,14 +292,14 @@ const main = async () => {
   };
 
   // Create collections with different options
-  const collection = await db1.createCollection("collection1", true, schema);
+  const collection = await db1.createCollection("collection1", false, undefined, true, schema);
   const noSchemaCollection = await db1.createCollection("collection2", false);
   const encryptedCollection = await db1.createCollection(
     "collection4", 
     true, 
-    schema, 
+    "mySecretKey", 
     true, 
-    "mySecretKey"
+    schema
   );
   
   // Rest of your application code...
@@ -334,14 +334,14 @@ const main = async () => {
   };
 
   // Create collections with different options
-  const collection = await db1.createCollection("collection1", true, schema);
+  const collection = await db1.createCollection("collection1", false, undefined, true, schema);
   const noSchemaCollection = await db1.createCollection("collection2", false);
   const encryptedCollection = await db1.createCollection(
     "collection4", 
     true, 
-    schema, 
+    "mySecretKey", 
     true, 
-    "mySecretKey"
+    schema
   );
   
   // Rest of your application code...
