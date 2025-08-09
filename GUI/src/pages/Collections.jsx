@@ -1,13 +1,16 @@
+import axios from "axios";
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import CreateCollectionModal from "../components/collection/CreateCollectionModal";
 import { BASE_API_URL } from "../config/key";
-import { ExchangeKeyStore, DBInfoStore } from "../store/store";
+import { DBInfoStore, ExchangeKeyStore } from "../store/store";
 
 const Collections = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [collections, setCollections] = useState([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const databaseName = searchParams.get("database");
   const { TransactionKey } = ExchangeKeyStore((state) => state);
   const { Rootname } = DBInfoStore((state) => state);
@@ -22,27 +25,26 @@ const Collections = () => {
     // Fetch collections for the specified database
     const fetchCollections = async () => {
       try {
-        // This would be your actual API endpoint for getting collections
-        // For now, using placeholder data
-        setTimeout(() => {
-          setCollections([
-            { name: "users", documentCount: 1250, size: "2.3 MB" },
-            { name: "orders", documentCount: 850, size: "1.8 MB" },
-            { name: "products", documentCount: 420, size: "3.1 MB" },
-          ]);
-          setLoading(false);
-        }, 1000);
-
-        // Uncomment this when you have the actual API endpoint
-        /*
         const response = await axios.get(
-          `${BASE_API_URL}/api/db/collections?transactiontoken=${TransactionKey}&database=${databaseName}`
+          `${BASE_API_URL}/api/collection/all/?databaseName=${databaseName}&transactiontoken=${TransactionKey}`
         );
         if (response.status === 200) {
-          setCollections(response.data.data);
+          const collectionData = response.data.data || {};
+
+          // Transform the collection data to match our component's expected format
+          if (collectionData.ListOfCollections && Array.isArray(collectionData.ListOfCollections)) {
+            const formattedCollections = collectionData.ListOfCollections.map(collectionName => ({
+              name: collectionName,
+              documentCount: 0, // We don't have this info in the response
+              size: "0 B" // We don't have individual size info in the response
+            }));
+
+            setCollections(formattedCollections);
+          } else {
+            setCollections([]);
+          }
           setLoading(false);
         }
-        */
       } catch (error) {
         console.error("Error fetching collections:", error);
         setLoading(false);
@@ -57,6 +59,11 @@ const Collections = () => {
 
   const handleBackToDatabases = () => {
     navigate("/databases");
+  };
+
+  const handleCreateCollection = (newCollection) => {
+    // Update the UI with the new collection
+    setCollections((prevCollections) => [...prevCollections, newCollection]);
   };
 
   return (
@@ -77,7 +84,9 @@ const Collections = () => {
             <span className="font-medium">{databaseName}</span>
           </p>
         </div>
-        <button className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center transition-colors">
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center transition-colors">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5 mr-2"
@@ -101,7 +110,11 @@ const Collections = () => {
           </h3>
           <p className="text-sm text-gray-500">
             Total:{" "}
-            {loading ? "Loading..." : `${collections.length} Collections`}
+            {loading
+              ? "Loading..."
+              : collections.length > 0
+                ? `${collections.length} Collections`
+                : "0 Collections"}
           </p>
         </div>
 
@@ -155,6 +168,14 @@ const Collections = () => {
           </ul>
         )}
       </div>
+
+      {/* Create Collection Modal */}
+      <CreateCollectionModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCollectionCreated={handleCreateCollection}
+        databaseName={databaseName}
+      />
     </div>
   );
 };

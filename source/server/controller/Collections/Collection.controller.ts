@@ -32,6 +32,7 @@ export default class CollectionController {
   public async createCollection(
     request: FastifyRequest,
   ): Promise<ResponseBuilder> {
+    
     // Extracting parameters from the request body
     const { dbName, collectionName, crypto, key } = request.body as {
       dbName: string;
@@ -61,6 +62,10 @@ export default class CollectionController {
       return buildResponse(
         StatusCodes.CREATED,
         "Collection created successfully",
+        {
+          dbName,
+          collectionName
+        }
       );
     } catch (error) {
       console.error("Error creating collection:", error);
@@ -68,6 +73,24 @@ export default class CollectionController {
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Failed to create collection",
       );
+    }
+  }
+
+  public async getCollections(request: FastifyRequest): Promise<ResponseBuilder> {
+    // extract databaseName from url query
+    const { databaseName } = request.query as { databaseName: string };
+
+    if (!databaseName) {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Database name is required");
+    }
+
+    try {
+      const collections = await (await this.AxioDBInstance.createDB(databaseName)).getCollectionInfo();
+      console.log("Collections retrieved:", collections);
+      return buildResponse(StatusCodes.OK, "Collections retrieved successfully", collections?.data);
+    } catch (error) {
+      console.error("Error retrieving collections:", error);
+      return buildResponse(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to retrieve collections");
     }
   }
 }

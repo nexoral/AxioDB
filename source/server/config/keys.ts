@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import path from "path";
 
 export enum ServerKeys {
@@ -23,48 +24,107 @@ export const CORS_CONFIG = {
 
 export const staticPath = path.resolve(__dirname, "../public/AxioControl");
 
-// Routes
+interface MainRoutesInterface {
+  method: string;
+  path: string;
+  description: string;
+  payload?: Record<string, any>;
+}
+interface RouteGroupInterface {
+  groupName?: string;
+  description: string;
+  Paths: MainRoutesInterface[]
+}
 
-export const AvailableRoutes = [
+// Routes
+export const AvailableRoutes: RouteGroupInterface[] = [
   {
-    method: "GET",
-    path: "/api/info",
-    description: "To Get Internal Informations about this DB",
+    groupName: "Information",
+    description: "Information Endpoints",
+    Paths: [
+      {
+        method: "GET",
+        path: "/api/info",
+        description: "To Get Internal Information about this DB",
+      },
+      {
+        method: "GET",
+        path: "/api/health",
+        description: "Health check endpoint to verify server status",
+      },
+      {
+        method: "GET",
+        path: "/api/routes",
+        description: "List all available API routes",
+      },
+    ]
   },
   {
-    method: "GET",
-    path: "/api/health",
-    description: "Health check endpoint to verify server status",
+    groupName: "Key Management",
+    description: "Key Management Endpoints",
+    Paths: [
+      {
+        method: "GET",
+        path: "/api/get-token",
+        description: "Get a new token for transacting with AxioDB Server",
+      },
+    ]
   },
   {
-    method: "GET",
-    path: "/api/routes",
-    description: "List all available API routes",
+    groupName: "Database",
+    description: "Database Management Endpoints",
+    Paths: [
+      {
+        method: "GET",
+        path: "/api/db/databases",
+        description: "Get a list of all databases",
+      },
+      {
+        method: "POST",
+        path: "/api/db/create-database",
+        description: "Create a new database",
+        payload: {
+          name: "string",
+        },
+      },
+      {
+        method: "DELETE",
+        path: "/api/db/delete-database",
+        description: "Delete a database",
+        payload: {
+          name: "string",
+        },
+      },
+    ]
   },
   {
-    method: "GET",
-    path: "/api/get-token",
-    description: "Get a new token for transacting with AxioDB Server",
-  },
-  {
-    method: "GET",
-    path: "/api/db/databases",
-    description: "Get a list of all databases",
-  },
-  {
-    method: "POST",
-    path: "/api/db/create-database",
-    description: "Create a new database",
-    payload: {
-      name: "string",
-    },
-  },
-  {
-    method: "DELETE",
-    path: "/api/db/delete-database",
-    description: "Delete a database",
-    payload: {
-      name: "string",
-    },
-  },
+    groupName: "Collection",
+    description: "Collection Management Endpoints",
+    Paths: [
+      {
+        method: "GET",
+        path: "/api/collection/all/?databaseName",
+        description: "Get a list of all collections",
+      },
+      {
+        method: "POST",
+        path: "/api/collection/create-collection",
+        description: "Create a new collection",
+        payload: {
+          dbName: "string",
+          collectionName: "string",
+          crypto: "boolean",
+          key: "string"
+        },
+      },
+      {
+        method: "DELETE",
+        path: "/api/collection",
+        description: "Delete a collection",
+        payload: {
+          name: "string",
+        },
+      },
+    ]
+  }
 ];
