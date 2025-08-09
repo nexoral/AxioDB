@@ -61,10 +61,11 @@ const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated, databaseN
       );
 
       if (response.data.statusCode === 200 || response.data.statusCode === 201) {
+        // Format the new collection to match the format used in Collections.jsx
         onCollectionCreated({
           name: collectionName,
-          documentCount: 0,
-          size: "0 B"
+          documentCount: 0, // New collections start with 0 documents
+          size: "N/A" // We don't have size info yet
         });
         handleClose();
       } else {

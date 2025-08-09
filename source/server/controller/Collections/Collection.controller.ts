@@ -4,6 +4,7 @@ import buildResponse, {
   ResponseBuilder,
 } from "../../helper/responseBuilder.helper";
 import { FastifyRequest } from "fastify";
+import countFilesRecursive from "../../helper/filesCounterInFolder.helper";
 
 /**
  * Controller class for managing collections in AxioDB.
@@ -76,6 +77,20 @@ export default class CollectionController {
     }
   }
 
+  /**
+   * Retrieves all collections for a specified database.
+   * 
+   * @param request - The Fastify request object containing query parameters
+   * @returns A Promise resolving to a ResponseBuilder object with the response status and data
+   * 
+   * @remarks
+   * This method expects a 'databaseName' query parameter in the request.
+   * It fetches all collections in the specified database and additionally computes
+   * the file count for each collection path.
+   * 
+   * @throws Will return a BAD_REQUEST response if databaseName is not provided
+   * @throws Will return an INTERNAL_SERVER_ERROR response if collection retrieval fails
+   */
   public async getCollections(request: FastifyRequest): Promise<ResponseBuilder> {
     // extract databaseName from url query
     const { databaseName } = request.query as { databaseName: string };
@@ -86,11 +101,75 @@ export default class CollectionController {
 
     try {
       const collections = await (await this.AxioDBInstance.createDB(databaseName)).getCollectionInfo();
-      console.log("Collections retrieved:", collections);
-      return buildResponse(StatusCodes.OK, "Collections retrieved successfully", collections?.data);
+
+      // Read all file count of each Collections
+      const FolderPaths = collections?.data?.AllCollectionsPaths
+      const mainData = collections?.data
+      mainData.CollectionSizeMap = [];
+
+      await Promise.all([
+        ...FolderPaths.map(async (folderPath: string) => {
+          const fileCount = await countFilesRecursive(folderPath);
+          mainData.CollectionSizeMap.push({ folderPath, fileCount });
+        })
+      ]);
+
+      return buildResponse(StatusCodes.OK, "Collections retrieved successfully", mainData);
     } catch (error) {
       console.error("Error retrieving collections:", error);
       return buildResponse(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to retrieve collections");
+    }
+  }
+
+  /**
+   * Deletes a collection from a specified database.
+   * 
+   * @param request - The Fastify request object containing the database and collection names in the body.
+   * @returns A ResponseBuilder object with appropriate status code and message.
+   * 
+   * @throws Returns a BAD_REQUEST response if the database name or collection name is invalid.
+   * @throws Returns a NOT_FOUND response if the collection does not exist.
+   * @throws Returns an INTERNAL_SERVER_ERROR response if the collection deletion fails.
+   * 
+   * @example
+   * // Example request body:
+   * // {
+   * //   "dbName": "myDatabase",
+   * //   "collectionName": "myCollection"
+   * // }
+   */
+  public async deleteCollection(
+    request: FastifyRequest,
+  ): Promise<ResponseBuilder> {
+    const { dbName, collectionName } = request.query as {
+      dbName: string;
+      collectionName: string;
+    };
+
+    if (!dbName || typeof dbName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
+    }
+    if (!collectionName || typeof collectionName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
+    }
+
+    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
+
+    const isCollectionExists =
+      await databaseInstance.isCollectionExists(collectionName);
+    if (!isCollectionExists) {
+      return buildResponse(StatusCodes.NOT_FOUND, "Collection not found");
+    }
+
+    try {
+      await databaseInstance.deleteCollection(collectionName);
+      return buildResponse(StatusCodes.OK, "Collection deleted successfully");
+    } catch (error) {
+      console.error("Error deleting collection:", error);
+      return buildResponse(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Failed to delete collection",
+      );
     }
   }
 }

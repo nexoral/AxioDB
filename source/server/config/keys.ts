@@ -119,11 +119,8 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
       {
         method: "DELETE",
-        path: "/api/collection",
-        description: "Delete a collection",
-        payload: {
-          name: "string",
-        },
+        path: "/api/collection/delete-collection/?dbName&collectionName",
+        description: "Delete a collection"
       },
     ]
   }

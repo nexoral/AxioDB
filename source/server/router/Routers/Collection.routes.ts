@@ -20,4 +20,7 @@ export default async function collectionRouter(fastify: FastifyInstance, options
 
   // Create Collection
   fastify.post("/create-collection", async (request, reply) => new CollectionController(AxioDBInstance).createCollection(request));
+
+  // Delete Collection
+  fastify.delete("/delete-collection/", async (request, reply) => new CollectionController(AxioDBInstance).deleteCollection(request));
 }

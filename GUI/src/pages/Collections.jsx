@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import CreateCollectionModal from "../components/collection/CreateCollectionModal";
+import DeleteCollectionModal from "../components/collection/DeleteCollectionModal";
 import { BASE_API_URL } from "../config/key";
 import { DBInfoStore, ExchangeKeyStore } from "../store/store";
 
@@ -11,6 +12,8 @@ const Collections = () => {
   const [loading, setLoading] = useState(true);
   const [collections, setCollections] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [collectionToDelete, setCollectionToDelete] = useState("");
   const databaseName = searchParams.get("database");
   const { TransactionKey } = ExchangeKeyStore((state) => state);
   const { Rootname } = DBInfoStore((state) => state);
@@ -33,11 +36,21 @@ const Collections = () => {
 
           // Transform the collection data to match our component's expected format
           if (collectionData.ListOfCollections && Array.isArray(collectionData.ListOfCollections)) {
-            const formattedCollections = collectionData.ListOfCollections.map(collectionName => ({
-              name: collectionName,
-              documentCount: 0, // We don't have this info in the response
-              size: "0 B" // We don't have individual size info in the response
-            }));
+            const collectionSizeMap = collectionData.CollectionSizeMap || [];
+
+            const formattedCollections = collectionData.ListOfCollections.map(collectionName => {
+              // Find the corresponding size info in CollectionSizeMap
+              const sizeInfo = collectionSizeMap.find(item => {
+                const pathParts = item.folderPath.split('/');
+                const folderName = pathParts[pathParts.length - 1];
+                return folderName === collectionName;
+              });
+
+              return {
+                name: collectionName,
+                documentCount: sizeInfo ? sizeInfo.fileCount : 0,
+              };
+            });
 
             setCollections(formattedCollections);
           } else {
@@ -64,6 +77,18 @@ const Collections = () => {
   const handleCreateCollection = (newCollection) => {
     // Update the UI with the new collection
     setCollections((prevCollections) => [...prevCollections, newCollection]);
+  };
+
+  const handleDeleteClick = (collectionName) => {
+    setCollectionToDelete(collectionName);
+    setShowDeleteModal(true);
+  };
+
+  const handleCollectionDeleted = (collectionName) => {
+    // Update the UI by removing the deleted collection
+    setCollections((prevCollections) =>
+      prevCollections.filter(collection => collection.name !== collectionName)
+    );
   };
 
   return (
@@ -146,14 +171,16 @@ const Collections = () => {
                       {collection.name}
                     </h4>
                     <p className="text-sm text-gray-500">
-                      {collection.documentCount} documents • {collection.size}
+                      {collection.documentCount} documents
                     </p>
                   </div>
                   <div className="flex space-x-2">
                     <button className="text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-400 transition-colors">
                       View Documents
                     </button>
-                    <button className="text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-200 hover:border-red-400 transition-colors">
+                    <button
+                      onClick={() => handleDeleteClick(collection.name)}
+                      className="text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-200 hover:border-red-400 transition-colors">
                       Delete
                     </button>
                   </div>
@@ -175,6 +202,15 @@ const Collections = () => {
         onClose={() => setShowCreateModal(false)}
         onCollectionCreated={handleCreateCollection}
         databaseName={databaseName}
+      />
+
+      {/* Delete Collection Modal */}
+      <DeleteCollectionModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onCollectionDeleted={handleCollectionDeleted}
+        databaseName={databaseName}
+        collectionName={collectionToDelete}
       />
     </div>
   );
