@@ -18,6 +18,59 @@ const Collections = () => {
   const { TransactionKey } = ExchangeKeyStore((state) => state)
   const { Rootname } = DBInfoStore((state) => state)
 
+  // Extract the fetchCollections function so we can reuse it
+  const fetchCollections = async () => {
+    try {
+      const response = await axios.get(
+        `${BASE_API_URL}/api/collection/all/?databaseName=${databaseName}&transactiontoken=${TransactionKey}`
+      )
+      if (response.status === 200) {
+        const collectionData = response.data.data || {}
+
+        // Transform the collection data to match our component's expected format
+        if (
+          collectionData.ListOfCollections &&
+          Array.isArray(collectionData.ListOfCollections)
+        ) {
+          const collectionSizeMap = collectionData.CollectionSizeMap || []
+          const collectionMetaStatus = collectionData.collectionMetaStatus || []
+
+          const formattedCollections = collectionData.ListOfCollections.map(
+            (collectionName) => {
+              // Find the corresponding size info in CollectionSizeMap
+              const sizeInfo = collectionSizeMap.find((item) => {
+                const pathParts = item.folderPath.split('/')
+                const folderName = pathParts[pathParts.length - 1]
+                return folderName === collectionName
+              })
+
+              // Find metadata for the collection
+              const metadata = collectionMetaStatus.find(
+                meta => meta.name === collectionName
+              )
+
+              return {
+                name: collectionName,
+                documentCount: sizeInfo ? sizeInfo.fileCount : 0,
+                isEncrypted: metadata?.isEncrypted || false,
+                isSchemaNeeded: metadata?.isSchemaNeeded || false
+              }
+            }
+          )
+
+          setCollections(formattedCollections)
+        } else {
+          setCollections([])
+        }
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('Error fetching collections:', error)
+      setLoading(false)
+      setCollections([])
+    }
+  }
+
   useEffect(() => {
     // If no database is specified, redirect to databases page
     if (!databaseName) {
@@ -26,50 +79,6 @@ const Collections = () => {
     }
 
     // Fetch collections for the specified database
-    const fetchCollections = async () => {
-      try {
-        const response = await axios.get(
-          `${BASE_API_URL}/api/collection/all/?databaseName=${databaseName}&transactiontoken=${TransactionKey}`
-        )
-        if (response.status === 200) {
-          const collectionData = response.data.data || {}
-
-          // Transform the collection data to match our component's expected format
-          if (
-            collectionData.ListOfCollections &&
-            Array.isArray(collectionData.ListOfCollections)
-          ) {
-            const collectionSizeMap = collectionData.CollectionSizeMap || []
-
-            const formattedCollections = collectionData.ListOfCollections.map(
-              (collectionName) => {
-                // Find the corresponding size info in CollectionSizeMap
-                const sizeInfo = collectionSizeMap.find((item) => {
-                  const pathParts = item.folderPath.split('/')
-                  const folderName = pathParts[pathParts.length - 1]
-                  return folderName === collectionName
-                })
-
-                return {
-                  name: collectionName,
-                  documentCount: sizeInfo ? sizeInfo.fileCount : 0
-                }
-              }
-            )
-
-            setCollections(formattedCollections)
-          } else {
-            setCollections([])
-          }
-          setLoading(false)
-        }
-      } catch (error) {
-        console.error('Error fetching collections:', error)
-        setLoading(false)
-        setCollections([])
-      }
-    }
-
     if (TransactionKey) {
       fetchCollections()
     }
@@ -79,9 +88,10 @@ const Collections = () => {
     navigate('/databases')
   }
 
-  const handleCreateCollection = (newCollection) => {
-    // Update the UI with the new collection
-    setCollections((prevCollections) => [...prevCollections, newCollection])
+  // Update this handler to re-fetch all collections instead of just adding the new one
+  const handleCreateCollection = () => {
+    // Refetch all collections to get the updated list
+    fetchCollections()
   }
 
   const handleDeleteClick = (collectionName) => {
@@ -89,13 +99,10 @@ const Collections = () => {
     setShowDeleteModal(true)
   }
 
-  const handleCollectionDeleted = (collectionName) => {
-    // Update the UI by removing the deleted collection
-    setCollections((prevCollections) =>
-      prevCollections.filter(
-        (collection) => collection.name !== collectionName
-      )
-    )
+  // Similarly, update the delete handler to re-fetch instead of removing from state
+  const handleCollectionDeleted = () => {
+    // Refetch all collections to get the updated list
+    fetchCollections()
   }
 
   return (
@@ -167,64 +174,98 @@ const Collections = () => {
                 </div>
               ))}
             </div>
-            )
+          )
           : (
             <ul className='divide-y divide-gray-200'>
               {collections.length > 0
                 ? (
-                    collections.map((collection) => (
-                      <li
-                        key={collection.name}
-                        className='px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors'
-                      >
-                        <div>
-                          <h4 className='text-lg font-medium text-gray-900'>
-                            {collection.name}
-                          </h4>
-                          <p className='text-sm text-gray-500'>
-                            {collection.documentCount} documents
-                          </p>
-                        </div>
-                        <div className='flex space-x-2'>
-                          <button className='text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-400 transition-colors'>
-                            View Documents
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClick(collection.name)}
-                            className='text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-200 hover:border-red-400 transition-colors'
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </li>
-                    ))
-                  )
+                  collections.map((collection) => (
+                    <li
+                      key={collection.name}
+                      className='px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors'
+                    >
+                      <div>
+                        <h4 className='text-lg font-medium text-gray-900 flex items-center'>
+                          {collection.name}
+                          {/* Encryption Status Icon */}
+                          {collection.isEncrypted ? (
+                            <span className='ml-2 text-green-600' title='Encrypted Collection'>
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                              </svg>
+                            </span>
+                          ) : (
+                            <span className='ml-2 text-gray-400' title='Unencrypted Collection'>
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
+                              </svg>
+                            </span>
+                          )}
+                          {/* Schema Status Icon */}
+                          {collection.isSchemaNeeded ? (
+                            <span className='ml-2 text-blue-600' title='Schema-based Collection'>
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                              </svg>
+                            </span>
+                          ) : (
+                            <span className='ml-2 text-gray-400' title='Schema-less Collection'>
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                              </svg>
+                            </span>
+                          )}
+                        </h4>
+                        <p className='text-sm text-gray-500'>
+                          {collection.documentCount} documents
+                        </p>
+                      </div>
+                      <div className='flex space-x-2'>
+                        <button
+                          onClick={() => navigate(`/collections/documents?database=${databaseName}&collection=${collection.name}`)}
+                          className='text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-400 transition-colors'>
+                          View Documents
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(collection.name)}
+                          className='text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-200 hover:border-red-400 transition-colors'
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  ))
+                )
                 : (
                   <li className='px-6 py-8 text-center text-gray-500'>
                     No collections found in this database. Click "Create Collection"
                     to add one.
                   </li>
-                  )}
+                )}
             </ul>
-            )}
+          )}
       </div>
 
       {/* Create Collection Modal */}
-      <CreateCollectionModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onCollectionCreated={handleCreateCollection}
-        databaseName={databaseName}
-      />
+      {showCreateModal && (
+        <CreateCollectionModal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onCollectionCreated={handleCreateCollection}
+          databaseName={databaseName}
+        />
+      )}
 
       {/* Delete Collection Modal */}
-      <DeleteCollectionModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        onCollectionDeleted={handleCollectionDeleted}
-        databaseName={databaseName}
-        collectionName={collectionToDelete}
-      />
+      {showDeleteModal && (
+        <DeleteCollectionModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onCollectionDeleted={handleCollectionDeleted}
+          databaseName={databaseName}
+          collectionName={collectionToDelete}
+        />
+      )}
     </div>
   )
 }
