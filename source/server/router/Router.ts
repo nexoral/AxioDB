@@ -12,6 +12,7 @@ import { AxioDB } from "../../Services/Indexation.operation";
 // All Sub Routers
 import dbRouter from "./Routers/DB.routes";
 import KeyController from "../controller/Key/key.controller";
+import collectionRouter from "./Routers/Collection.routes";
 
 // Interfaces
 type PackageInterface = {
@@ -105,6 +106,12 @@ export default async function mainRouter(
   fastify.register(dbRouter, {
     prefix: "/db",
     AxioDBInstance: AxioDBInstance, // Pass the AxioDB instance to the DB router
+  });
+
+  // Register Collection Router
+  fastify.register(collectionRouter, {
+    prefix: "/collection",
+    AxioDBInstance: AxioDBInstance, // Pass the AxioDB instance to the Collection router
   });
 
   // Handle 404 Not Found

@@ -19,6 +19,6 @@ export interface FinalCollectionsInfo {
   TotalSize: number;
   TotalCollections: number | string;
   ListOfCollections: string[];
-  CollectionMap: Map<string, CollectionMap>;
+  collectionMetaStatus: any[];
   AllCollectionsPaths: string[];
 }

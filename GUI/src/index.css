@@ -32,3 +32,19 @@
 .animate-slideIn {
   animation: slideIn 0.3s ease-out;
 }
+
+/* Toggle Switch Styling */
+.toggle-checkbox {
+  right: 0;
+  z-index: 5;
+  transition: all 0.3s;
+}
+
+.toggle-checkbox:checked {
+  right: 0;
+  transform: translateX(100%);
+}
+
+.toggle-label {
+  transition: background-color 0.3s;
+}
