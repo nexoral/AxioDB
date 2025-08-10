@@ -12,9 +12,7 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-import {
-  FinalCollectionsInfo,
-} from "../../config/Interfaces/Operation/database.operation.interface";
+import { FinalCollectionsInfo } from "../../config/Interfaces/Operation/database.operation.interface";
 
 // Types
 type CollectionMetadata = {
@@ -91,7 +89,7 @@ export default class Database {
         isSchemaNeeded: isSchemaNeeded === undefined ? false : isSchemaNeeded,
         schema: schema === undefined ? {} : schema,
         encryptionKey: key === undefined ? "" : key,
-        isEncrypted: crypto === undefined ? false : crypto
+        isEncrypted: crypto === undefined ? false : crypto,
       });
       return collection;
     } else {
@@ -108,7 +106,7 @@ export default class Database {
         isSchemaNeeded: isSchemaNeeded === undefined ? false : isSchemaNeeded,
         schema: schema === undefined ? {} : schema,
         encryptionKey: key === undefined ? "" : key,
-        isEncrypted: crypto === undefined ? false : crypto
+        isEncrypted: crypto === undefined ? false : crypto,
       });
       return collection;
     }
@@ -156,7 +154,9 @@ export default class Database {
   public async getCollectionInfo(): Promise<SuccessInterface | undefined> {
     const collections = await this.folderManager.ListDirectory(this.path);
     // Remove All .meta related things
-    collections.data = collections.data.filter((collection: string) => !collection.endsWith(".meta"));
+    collections.data = collections.data.filter(
+      (collection: string) => !collection.endsWith(".meta"),
+    );
     const totalSize = await this.folderManager.GetDirectorySize(
       path.resolve(this.path),
     );
@@ -165,7 +165,7 @@ export default class Database {
     const CollectionStatus = await Promise.all(
       collections.data.map((collection: string) =>
         this.getCollectionMetaDetails(collection),
-      )
+      ),
     );
 
     if ("data" in collections && "data" in totalSize) {
@@ -187,26 +187,32 @@ export default class Database {
 
   /**
    * Adds metadata for a collection to the collection metadata file.
-   * 
+   *
    * @param collectionData - The metadata of the collection to add
    * @returns A Promise that resolves when the operation is complete, or rejects with an error if the collection metadata format is invalid
    * @private
-   * 
+   *
    * This method performs the following operations:
    * 1. Checks if the collection metadata file exists
    * 2. If the file doesn't exist, creates it with the provided collection metadata
    * 3. If the file exists, reads the existing metadata, adds the new collection metadata (if not already present), and writes back to the file
-   * 
+   *
    * @throws {Error} If the collection metadata format is invalid
    */
   private async AddCollectionMetadata(collectionData: CollectionMetadata) {
     const FileManagement: FileManager = new FileManager();
-    const isFileExist = await FileManagement.FileExists(`${this.path}/collection.meta`);
+    const isFileExist = await FileManagement.FileExists(
+      `${this.path}/collection.meta`,
+    );
     if (isFileExist.status == false) {
-      await FileManagement.WriteFile(`${this.path}/collection.meta`, JSON.stringify([collectionData]));
-    }
-    else {
-      const FullData = JSON.parse((await FileManagement.ReadFile(`${this.path}/collection.meta`)).data);
+      await FileManagement.WriteFile(
+        `${this.path}/collection.meta`,
+        JSON.stringify([collectionData]),
+      );
+    } else {
+      const FullData = JSON.parse(
+        (await FileManagement.ReadFile(`${this.path}/collection.meta`)).data,
+      );
       if (!Array.isArray(FullData)) {
         return new ResponseHelper().Error("Invalid collection metadata format");
       }
@@ -215,35 +221,46 @@ export default class Database {
       );
       if (isSameExist.length == 0) {
         FullData.push(collectionData);
-        await FileManagement.WriteFile(`${this.path}/collection.meta`, JSON.stringify(FullData));
+        await FileManagement.WriteFile(
+          `${this.path}/collection.meta`,
+          JSON.stringify(FullData),
+        );
       }
     }
   }
 
   /**
    * Retrieves metadata details for a specific collection.
-   * 
+   *
    * @param collectionName - The name of the collection to retrieve metadata for
    * @returns A Promise that resolves to the collection's metadata if found, or undefined if not found
    * @private
-   * 
+   *
    * This method:
    * 1. Checks if the collection.meta file exists
    * 2. Reads and parses the metadata file if it exists
    * 3. Validates that the data is an array
    * 4. Finds and returns the metadata for the specified collection
    */
-  private async getCollectionMetaDetails(collectionName: string): Promise<CollectionMetadata | undefined> {
+  private async getCollectionMetaDetails(
+    collectionName: string,
+  ): Promise<CollectionMetadata | undefined> {
     const FileManagement: FileManager = new FileManager();
-    const isFileExist = await FileManagement.FileExists(`${this.path}/collection.meta`);
+    const isFileExist = await FileManagement.FileExists(
+      `${this.path}/collection.meta`,
+    );
     if (isFileExist.status == false) {
       return undefined;
     }
-    const FullData = JSON.parse((await FileManagement.ReadFile(`${this.path}/collection.meta`)).data);
+    const FullData = JSON.parse(
+      (await FileManagement.ReadFile(`${this.path}/collection.meta`)).data,
+    );
     if (!Array.isArray(FullData)) {
       return undefined;
     }
-    const collectionMeta = FullData.find((data: CollectionMetadata) => data.name === collectionName);
+    const collectionMeta = FullData.find(
+      (data: CollectionMetadata) => data.name === collectionName,
+    );
     console.log("Collection metadata:", collectionMeta);
     return collectionMeta;
   }
