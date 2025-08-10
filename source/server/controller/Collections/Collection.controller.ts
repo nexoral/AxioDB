@@ -109,7 +109,9 @@ export default class CollectionController {
       ).getCollectionInfo();
 
       // Read all file count of each Collections
-      const FolderPaths = collections?.data?.AllCollectionsPaths;
+      let FolderPaths = collections?.data?.AllCollectionsPaths;
+      // Remove .meta extenstion paths
+      FolderPaths = FolderPaths.filter((path: string) => !path.endsWith(".meta"));
       const mainData = collections?.data;
       mainData.CollectionSizeMap = [];
 
