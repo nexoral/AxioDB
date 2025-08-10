@@ -33,7 +33,8 @@ const Collections = () => {
           Array.isArray(collectionData.ListOfCollections)
         ) {
           const collectionSizeMap = collectionData.CollectionSizeMap || []
-          const collectionMetaStatus = collectionData.collectionMetaStatus || []
+          const collectionMetaStatus =
+            collectionData.collectionMetaStatus || []
 
           const formattedCollections = collectionData.ListOfCollections.map(
             (collectionName) => {
@@ -46,7 +47,7 @@ const Collections = () => {
 
               // Find metadata for the collection
               const metadata = collectionMetaStatus.find(
-                meta => meta.name === collectionName
+                (meta) => meta.name === collectionName
               )
 
               return {
@@ -158,92 +159,136 @@ const Collections = () => {
           </p>
         </div>
 
-        {loading
-          ? (
-            <div className='p-6'>
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className='animate-pulse flex items-center justify-between py-4 border-b border-gray-100'
+        {loading ? (
+          <div className='p-6'>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className='animate-pulse flex items-center justify-between py-4 border-b border-gray-100'
+              >
+                <div>
+                  <div className='h-6 bg-gray-200 rounded w-48 mb-2' />
+                  <div className='h-4 bg-gray-100 rounded w-32' />
+                </div>
+                <div className='h-8 bg-gray-200 rounded w-24' />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <ul className='divide-y divide-gray-200'>
+            {collections.length > 0 ? (
+              collections.map((collection) => (
+                <li
+                  key={collection.name}
+                  className='px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors'
                 >
                   <div>
-                    <div className='h-6 bg-gray-200 rounded w-48 mb-2' />
-                    <div className='h-4 bg-gray-100 rounded w-32' />
+                    <h4 className='text-lg font-medium text-gray-900 flex items-center'>
+                      {collection.name}
+                      {/* Encryption Status Icon */}
+                      {collection.isEncrypted
+                        ? (
+                          <span
+                            className='ml-2 text-green-600'
+                            title='Encrypted Collection'
+                          >
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              className='h-5 w-5'
+                              viewBox='0 0 20 20'
+                              fill='currentColor'
+                            >
+                              <path
+                                fillRule='evenodd'
+                                d='M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z'
+                                clipRule='evenodd'
+                              />
+                            </svg>
+                          </span>
+                          )
+                        : (
+                          <span
+                            className='ml-2 text-gray-400'
+                            title='Unencrypted Collection'
+                          >
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              className='h-5 w-5'
+                              viewBox='0 0 20 20'
+                              fill='currentColor'
+                            >
+                              <path d='M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z' />
+                            </svg>
+                          </span>
+                          )}
+                      {/* Schema Status Icon */}
+                      {collection.isSchemaNeeded
+                        ? (
+                          <span
+                            className='ml-2 text-blue-600'
+                            title='Schema-based Collection'
+                          >
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              className='h-5 w-5'
+                              viewBox='0 0 20 20'
+                              fill='currentColor'
+                            >
+                              <path
+                                fillRule='evenodd'
+                                d='M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z'
+                                clipRule='evenodd'
+                              />
+                            </svg>
+                          </span>
+                          )
+                        : (
+                          <span
+                            className='ml-2 text-gray-400'
+                            title='Schema-less Collection'
+                          >
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              className='h-5 w-5'
+                              viewBox='0 0 20 20'
+                              fill='currentColor'
+                            >
+                              <path d='M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z' />
+                            </svg>
+                          </span>
+                          )}
+                    </h4>
+                    <p className='text-sm text-gray-500'>
+                      {collection.documentCount} documents
+                    </p>
                   </div>
-                  <div className='h-8 bg-gray-200 rounded w-24' />
-                </div>
-              ))}
-            </div>
-          )
-          : (
-            <ul className='divide-y divide-gray-200'>
-              {collections.length > 0
-                ? (
-                  collections.map((collection) => (
-                    <li
-                      key={collection.name}
-                      className='px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors'
+                  <div className='flex space-x-2'>
+                    <button
+                      onClick={() =>
+                        navigate(
+                          `/collections/documents?database=${databaseName}&collection=${collection.name}`
+                        )}
+                      className='text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-400 transition-colors'
                     >
-                      <div>
-                        <h4 className='text-lg font-medium text-gray-900 flex items-center'>
-                          {collection.name}
-                          {/* Encryption Status Icon */}
-                          {collection.isEncrypted ? (
-                            <span className='ml-2 text-green-600' title='Encrypted Collection'>
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                              </svg>
-                            </span>
-                          ) : (
-                            <span className='ml-2 text-gray-400' title='Unencrypted Collection'>
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z" />
-                              </svg>
-                            </span>
-                          )}
-                          {/* Schema Status Icon */}
-                          {collection.isSchemaNeeded ? (
-                            <span className='ml-2 text-blue-600' title='Schema-based Collection'>
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                              </svg>
-                            </span>
-                          ) : (
-                            <span className='ml-2 text-gray-400' title='Schema-less Collection'>
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                              </svg>
-                            </span>
-                          )}
-                        </h4>
-                        <p className='text-sm text-gray-500'>
-                          {collection.documentCount} documents
-                        </p>
-                      </div>
-                      <div className='flex space-x-2'>
-                        <button
-                          onClick={() => navigate(`/collections/documents?database=${databaseName}&collection=${collection.name}`)}
-                          className='text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-400 transition-colors'>
-                          View Documents
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(collection.name)}
-                          className='text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-200 hover:border-red-400 transition-colors'
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </li>
-                  ))
-                )
-                : (
-                  <li className='px-6 py-8 text-center text-gray-500'>
-                    No collections found in this database. Click "Create Collection"
-                    to add one.
-                  </li>
-                )}
-            </ul>
-          )}
+                      View Documents
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(collection.name)}
+                      className='text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-200 hover:border-red-400 transition-colors'
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              ))
+            ) : (
+              <li className='px-6 py-8 text-center text-gray-500'>
+                No collections found in this database. Click "Create Collection"
+                to add one.
+              </li>
+            )}
+          </ul>
+        )}
       </div>
 
       {/* Create Collection Modal */}
