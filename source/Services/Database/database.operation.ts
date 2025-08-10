@@ -261,7 +261,6 @@ export default class Database {
     const collectionMeta = FullData.find(
       (data: CollectionMetadata) => data.name === collectionName,
     );
-    console.log("Collection metadata:", collectionMeta);
     return collectionMeta;
   }
 }
