@@ -3,7 +3,13 @@ import { useState } from "react";
 import { BASE_API_URL } from "../../config/key";
 import { ExchangeKeyStore } from "../../store/store";
 
-const DeleteCollectionModal = ({ isOpen, onClose, onCollectionDeleted, databaseName, collectionName }) => {
+const DeleteCollectionModal = ({
+  isOpen,
+  onClose,
+  onCollectionDeleted,
+  databaseName,
+  collectionName,
+}) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const { TransactionKey } = ExchangeKeyStore((state) => state);
@@ -22,7 +28,7 @@ const DeleteCollectionModal = ({ isOpen, onClose, onCollectionDeleted, databaseN
     try {
       // Make API call to delete collection
       const response = await axios.delete(
-        `${BASE_API_URL}/api/collection/delete-collection/?dbName=${databaseName}&collectionName=${collectionName}&transactiontoken=${TransactionKey}`
+        `${BASE_API_URL}/api/collection/delete-collection/?dbName=${databaseName}&collectionName=${collectionName}&transactiontoken=${TransactionKey}`,
       );
 
       if (response.data.statusCode === 200) {
@@ -35,7 +41,7 @@ const DeleteCollectionModal = ({ isOpen, onClose, onCollectionDeleted, databaseN
       console.error("Error deleting collection:", error);
       setError(
         error.response?.data?.message ||
-        "Failed to delete collection. Please try again."
+          "Failed to delete collection. Please try again.",
       );
       setIsSubmitting(false);
     }
@@ -51,7 +57,10 @@ const DeleteCollectionModal = ({ isOpen, onClose, onCollectionDeleted, databaseN
         </h3>
 
         <p className="mb-6 text-gray-600">
-          Are you sure you want to delete the collection <span className="font-semibold">{collectionName}</span> from database <span className="font-semibold">{databaseName}</span>? This action cannot be undone.
+          Are you sure you want to delete the collection{" "}
+          <span className="font-semibold">{collectionName}</span> from database{" "}
+          <span className="font-semibold">{databaseName}</span>? This action
+          cannot be undone.
         </p>
 
         {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
@@ -68,8 +77,9 @@ const DeleteCollectionModal = ({ isOpen, onClose, onCollectionDeleted, databaseN
           <button
             type="button"
             onClick={handleDelete}
-            className={`px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors flex items-center ${isSubmitting ? "opacity-75 cursor-not-allowed" : ""
-              }`}
+            className={`px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors flex items-center ${
+              isSubmitting ? "opacity-75 cursor-not-allowed" : ""
+            }`}
             disabled={isSubmitting}
           >
             {isSubmitting ? (

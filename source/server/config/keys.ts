@@ -33,7 +33,7 @@ interface MainRoutesInterface {
 interface RouteGroupInterface {
   groupName?: string;
   description: string;
-  Paths: MainRoutesInterface[]
+  Paths: MainRoutesInterface[];
 }
 
 // Routes
@@ -57,7 +57,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         path: "/api/routes",
         description: "List all available API routes",
       },
-    ]
+    ],
   },
   {
     groupName: "Key Management",
@@ -68,7 +68,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         path: "/api/get-token",
         description: "Get a new token for transacting with AxioDB Server",
       },
-    ]
+    ],
   },
   {
     groupName: "Database",
@@ -95,7 +95,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
           name: "string",
         },
       },
-    ]
+    ],
   },
   {
     groupName: "Collection",
@@ -114,14 +114,14 @@ export const AvailableRoutes: RouteGroupInterface[] = [
           dbName: "string",
           collectionName: "string",
           crypto: "boolean",
-          key: "string"
+          key: "string",
         },
       },
       {
         method: "DELETE",
         path: "/api/collection/delete-collection/?dbName&collectionName",
-        description: "Delete a collection"
+        description: "Delete a collection",
       },
-    ]
-  }
+    ],
+  },
 ];

@@ -3,7 +3,12 @@ import { useState } from "react";
 import { BASE_API_URL } from "../../config/key";
 import { ExchangeKeyStore } from "../../store/store";
 
-const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated, databaseName }) => {
+const CreateCollectionModal = ({
+  isOpen,
+  onClose,
+  onCollectionCreated,
+  databaseName,
+}) => {
   const [collectionName, setCollectionName] = useState("");
   const [enableCrypto, setEnableCrypto] = useState(false);
   const [cryptoKey, setCryptoKey] = useState("");
@@ -33,7 +38,7 @@ const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated, databaseN
     // Alphanumeric validation (plus underscores)
     if (!/^[a-zA-Z0-9_]+$/.test(collectionName)) {
       setError(
-        "Collection name can only contain letters, numbers, and underscores"
+        "Collection name can only contain letters, numbers, and underscores",
       );
       return;
     }
@@ -53,19 +58,22 @@ const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated, databaseN
         `${BASE_API_URL}/api/collection/create-collection`,
         {
           dbName: databaseName,
-          collectionName: collectionName,
+          collectionName,
           crypto: enableCrypto,
-          key: enableCrypto ? cryptoKey : ""
+          key: enableCrypto ? cryptoKey : "",
         },
-        { params: { transactiontoken: TransactionKey } }
+        { params: { transactiontoken: TransactionKey } },
       );
 
-      if (response.data.statusCode === 200 || response.data.statusCode === 201) {
+      if (
+        response.data.statusCode === 200 ||
+        response.data.statusCode === 201
+      ) {
         // Format the new collection to match the format used in Collections.jsx
         onCollectionCreated({
           name: collectionName,
           documentCount: 0, // New collections start with 0 documents
-          size: "N/A" // We don't have size info yet
+          size: "N/A", // We don't have size info yet
         });
         handleClose();
       } else {
@@ -75,7 +83,7 @@ const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated, databaseN
       console.error("Error creating collection:", error);
       setError(
         error.response?.data?.message ||
-        "Failed to create collection. Please try again."
+          "Failed to create collection. Please try again.",
       );
       setIsSubmitting(false);
     }
@@ -144,9 +152,10 @@ const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated, databaseN
                 />
                 <label
                   htmlFor="enableCrypto"
-                  className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${enableCrypto ? "bg-green-500" : "bg-gray-300"
-                    }`}
-                ></label>
+                  className={`toggle-label block overflow-hidden h-6 rounded-full cursor-pointer ${
+                    enableCrypto ? "bg-green-500" : "bg-gray-300"
+                  }`}
+                />
               </div>
             </div>
           </div>
@@ -184,8 +193,9 @@ const CreateCollectionModal = ({ isOpen, onClose, onCollectionCreated, databaseN
             </button>
             <button
               type="submit"
-              className={`px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center ${isSubmitting ? "opacity-75 cursor-not-allowed" : ""
-                }`}
+              className={`px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center ${
+                isSubmitting ? "opacity-75 cursor-not-allowed" : ""
+              }`}
               disabled={isSubmitting}
             >
               {isSubmitting ? (

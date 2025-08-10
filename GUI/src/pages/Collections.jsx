@@ -29,28 +29,33 @@ const Collections = () => {
     const fetchCollections = async () => {
       try {
         const response = await axios.get(
-          `${BASE_API_URL}/api/collection/all/?databaseName=${databaseName}&transactiontoken=${TransactionKey}`
+          `${BASE_API_URL}/api/collection/all/?databaseName=${databaseName}&transactiontoken=${TransactionKey}`,
         );
         if (response.status === 200) {
           const collectionData = response.data.data || {};
 
           // Transform the collection data to match our component's expected format
-          if (collectionData.ListOfCollections && Array.isArray(collectionData.ListOfCollections)) {
+          if (
+            collectionData.ListOfCollections &&
+            Array.isArray(collectionData.ListOfCollections)
+          ) {
             const collectionSizeMap = collectionData.CollectionSizeMap || [];
 
-            const formattedCollections = collectionData.ListOfCollections.map(collectionName => {
-              // Find the corresponding size info in CollectionSizeMap
-              const sizeInfo = collectionSizeMap.find(item => {
-                const pathParts = item.folderPath.split('/');
-                const folderName = pathParts[pathParts.length - 1];
-                return folderName === collectionName;
-              });
+            const formattedCollections = collectionData.ListOfCollections.map(
+              (collectionName) => {
+                // Find the corresponding size info in CollectionSizeMap
+                const sizeInfo = collectionSizeMap.find((item) => {
+                  const pathParts = item.folderPath.split("/");
+                  const folderName = pathParts[pathParts.length - 1];
+                  return folderName === collectionName;
+                });
 
-              return {
-                name: collectionName,
-                documentCount: sizeInfo ? sizeInfo.fileCount : 0,
-              };
-            });
+                return {
+                  name: collectionName,
+                  documentCount: sizeInfo ? sizeInfo.fileCount : 0,
+                };
+              },
+            );
 
             setCollections(formattedCollections);
           } else {
@@ -87,7 +92,9 @@ const Collections = () => {
   const handleCollectionDeleted = (collectionName) => {
     // Update the UI by removing the deleted collection
     setCollections((prevCollections) =>
-      prevCollections.filter(collection => collection.name !== collectionName)
+      prevCollections.filter(
+        (collection) => collection.name !== collectionName,
+      ),
     );
   };
 
@@ -111,7 +118,8 @@ const Collections = () => {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center transition-colors">
+          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center transition-colors"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5 mr-2"
@@ -180,7 +188,8 @@ const Collections = () => {
                     </button>
                     <button
                       onClick={() => handleDeleteClick(collection.name)}
-                      className="text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-200 hover:border-red-400 transition-colors">
+                      className="text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-200 hover:border-red-400 transition-colors"
+                    >
                       Delete
                     </button>
                   </div>

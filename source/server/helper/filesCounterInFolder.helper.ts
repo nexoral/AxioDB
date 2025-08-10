@@ -1,15 +1,15 @@
-import fs from "node:fs/promises"
-  import path from "node:path"
+import fs from "node:fs/promises";
+import path from "node:path";
 
 /**
  * Recursively counts the number of files in a folder and its subfolders.
- * 
+ *
  * This function traverses through the directory structure starting from the provided folder path
  * and counts all files encountered during the traversal. It does not count directories themselves.
- * 
+ *
  * @param folderPath - The path to the folder to count files in
  * @returns A promise that resolves to the total number of files found
- * 
+ *
  * @example
  * ```typescript
  * const count = await countFilesRecursive('/path/to/folder');

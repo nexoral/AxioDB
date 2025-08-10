@@ -33,7 +33,6 @@ export default class CollectionController {
   public async createCollection(
     request: FastifyRequest,
   ): Promise<ResponseBuilder> {
-    
     // Extracting parameters from the request body
     const { dbName, collectionName, crypto, key } = request.body as {
       dbName: string;
@@ -65,8 +64,8 @@ export default class CollectionController {
         "Collection created successfully",
         {
           dbName,
-          collectionName
-        }
+          collectionName,
+        },
       );
     } catch (error) {
       console.error("Error creating collection:", error);
@@ -79,58 +78,72 @@ export default class CollectionController {
 
   /**
    * Retrieves all collections for a specified database.
-   * 
+   *
    * @param request - The Fastify request object containing query parameters
    * @returns A Promise resolving to a ResponseBuilder object with the response status and data
-   * 
+   *
    * @remarks
    * This method expects a 'databaseName' query parameter in the request.
    * It fetches all collections in the specified database and additionally computes
    * the file count for each collection path.
-   * 
+   *
    * @throws Will return a BAD_REQUEST response if databaseName is not provided
    * @throws Will return an INTERNAL_SERVER_ERROR response if collection retrieval fails
    */
-  public async getCollections(request: FastifyRequest): Promise<ResponseBuilder> {
+  public async getCollections(
+    request: FastifyRequest,
+  ): Promise<ResponseBuilder> {
     // extract databaseName from url query
     const { databaseName } = request.query as { databaseName: string };
 
     if (!databaseName) {
-      return buildResponse(StatusCodes.BAD_REQUEST, "Database name is required");
+      return buildResponse(
+        StatusCodes.BAD_REQUEST,
+        "Database name is required",
+      );
     }
 
     try {
-      const collections = await (await this.AxioDBInstance.createDB(databaseName)).getCollectionInfo();
+      const collections = await (
+        await this.AxioDBInstance.createDB(databaseName)
+      ).getCollectionInfo();
 
       // Read all file count of each Collections
-      const FolderPaths = collections?.data?.AllCollectionsPaths
-      const mainData = collections?.data
+      const FolderPaths = collections?.data?.AllCollectionsPaths;
+      const mainData = collections?.data;
       mainData.CollectionSizeMap = [];
 
       await Promise.all([
         ...FolderPaths.map(async (folderPath: string) => {
           const fileCount = await countFilesRecursive(folderPath);
           mainData.CollectionSizeMap.push({ folderPath, fileCount });
-        })
+        }),
       ]);
 
-      return buildResponse(StatusCodes.OK, "Collections retrieved successfully", mainData);
+      return buildResponse(
+        StatusCodes.OK,
+        "Collections retrieved successfully",
+        mainData,
+      );
     } catch (error) {
       console.error("Error retrieving collections:", error);
-      return buildResponse(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to retrieve collections");
+      return buildResponse(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Failed to retrieve collections",
+      );
     }
   }
 
   /**
    * Deletes a collection from a specified database.
-   * 
+   *
    * @param request - The Fastify request object containing the database and collection names in the body.
    * @returns A ResponseBuilder object with appropriate status code and message.
-   * 
+   *
    * @throws Returns a BAD_REQUEST response if the database name or collection name is invalid.
    * @throws Returns a NOT_FOUND response if the collection does not exist.
    * @throws Returns an INTERNAL_SERVER_ERROR response if the collection deletion fails.
-   * 
+   *
    * @example
    * // Example request body:
    * // {

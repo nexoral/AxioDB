@@ -10,17 +10,25 @@ interface RouterOptions extends FastifyPluginOptions {
   AxioDBInstance: AxioDB;
 }
 
-
 // Collection Router
-export default async function collectionRouter(fastify: FastifyInstance, options: RouterOptions) {
+export default async function collectionRouter(
+  fastify: FastifyInstance,
+  options: RouterOptions,
+) {
   const { AxioDBInstance } = options;
 
   // Get All Collection
-  fastify.get("/all/", async (request, reply) => new CollectionController(AxioDBInstance).getCollections(request));
+  fastify.get("/all/", async (request, reply) =>
+    new CollectionController(AxioDBInstance).getCollections(request),
+  );
 
   // Create Collection
-  fastify.post("/create-collection", async (request, reply) => new CollectionController(AxioDBInstance).createCollection(request));
+  fastify.post("/create-collection", async (request, reply) =>
+    new CollectionController(AxioDBInstance).createCollection(request),
+  );
 
   // Delete Collection
-  fastify.delete("/delete-collection/", async (request, reply) => new CollectionController(AxioDBInstance).deleteCollection(request));
+  fastify.delete("/delete-collection/", async (request, reply) =>
+    new CollectionController(AxioDBInstance).deleteCollection(request),
+  );
 }
