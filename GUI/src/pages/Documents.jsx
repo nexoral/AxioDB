@@ -6,6 +6,7 @@ import { DBInfoStore, ExchangeKeyStore } from '../store/store';
 import InsertDocumentModal from '../components/document/InsertDocumentModal';
 import UpdateDocumentModal from '../components/document/UpdateDocumentModal';
 import DeleteDocumentModal from '../components/document/DeleteDocumentModal';
+import AggregateModal from '../components/document/AggregateModal';
 
 const Documents = () => {
   const [searchParams] = useSearchParams();
@@ -23,6 +24,7 @@ const Documents = () => {
   const [showInsertModal, setShowInsertModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAggregateModal, setShowAggregateModal] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
 
   // Fetch documents function
@@ -147,24 +149,44 @@ const Documents = () => {
               <span className="font-medium">{databaseName}</span>
             </div>
           </div>
-          <button
-            onClick={() => setShowInsertModal(true)}
-            className="bg-green-600 hover:bg-green-700 text-white py-2 px-5 rounded-lg flex items-center transition-colors shadow-md"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+          <div className="flex space-x-3">
+            <button
+              onClick={() => setShowAggregateModal(true)}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-5 rounded-lg flex items-center transition-colors shadow-md"
             >
-              <path
-                fillRule="evenodd"
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Insert Document
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Run Aggregate
+            </button>
+            <button
+              onClick={() => setShowInsertModal(true)}
+              className="bg-green-600 hover:bg-green-700 text-white py-2 px-5 rounded-lg flex items-center transition-colors shadow-md"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Insert Document
+            </button>
+          </div>
         </div>
 
         {/* Card-based document view */}
@@ -306,7 +328,19 @@ const Documents = () => {
           collectionName={collectionName}
         />
       )}
+
+      {/* Aggregate Modal */}
+      {showAggregateModal && (
+        <AggregateModal
+          isOpen={showAggregateModal}
+          onClose={() => setShowAggregateModal(false)}
+          databaseName={databaseName}
+          collectionName={collectionName}
+          onSuccess={() => fetchDocuments(1, true)}
+        />
+      )}
     </div>
   );
 };
+
 export default Documents;
