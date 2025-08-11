@@ -64,6 +64,17 @@ export default class Database {
     );
     const collectionPath = path.join(this.path, collectionName);
 
+    const CollectionMeta = await this.getCollectionMetaDetails(collectionName);
+
+    if (CollectionMeta) {
+      isSchemaNeeded = CollectionMeta.isSchemaNeeded;
+      schema = CollectionMeta.schema;
+      crypto = CollectionMeta.isEncrypted
+        ? Boolean(CollectionMeta.isEncrypted)
+        : false;
+      key = CollectionMeta.encryptionKey ? CollectionMeta.encryptionKey : key;
+    }
+
     // If the collection does not exist, create it
     if (collectionExists.statusCode !== StatusCodes.OK) {
       await this.folderManager.CreateDirectory(collectionPath);
@@ -261,7 +272,6 @@ export default class Database {
     const collectionMeta = FullData.find(
       (data: CollectionMetadata) => data.name === collectionName,
     );
-    console.log("Collection metadata:", collectionMeta);
     return collectionMeta;
   }
 }

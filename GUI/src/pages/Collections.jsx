@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import CreateCollectionModal from '../components/collection/CreateCollectionModal'
 import DeleteCollectionModal from '../components/collection/DeleteCollectionModal'
+import SchemaViewModal from '../components/collection/SchemaViewModal'
 import { BASE_API_URL } from '../config/key'
 import { DBInfoStore, ExchangeKeyStore } from '../store/store'
 
@@ -11,8 +12,12 @@ const Collections = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(true)
   const [collections, setCollections] = useState([])
+  const [collectionMetaStatus, setCollectionMetaStatus] = useState([]) // Store full metadata
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showSchemaModal, setShowSchemaModal] = useState(false)
+  const [selectedSchema, setSelectedSchema] = useState(null)
+  const [selectedCollectionName, setSelectedCollectionName] = useState('')
   const [collectionToDelete, setCollectionToDelete] = useState('')
   const databaseName = searchParams.get('database')
   const { TransactionKey } = ExchangeKeyStore((state) => state)
@@ -33,8 +38,10 @@ const Collections = () => {
           Array.isArray(collectionData.ListOfCollections)
         ) {
           const collectionSizeMap = collectionData.CollectionSizeMap || []
-          const collectionMetaStatus =
-            collectionData.collectionMetaStatus || []
+          const metaStatus = collectionData.collectionMetaStatus || []
+
+          // Store the full metadata for later use
+          setCollectionMetaStatus(metaStatus)
 
           const formattedCollections = collectionData.ListOfCollections.map(
             (collectionName) => {
@@ -46,7 +53,7 @@ const Collections = () => {
               })
 
               // Find metadata for the collection
-              const metadata = collectionMetaStatus.find(
+              const metadata = metaStatus.find(
                 (meta) => meta.name === collectionName
               )
 
@@ -54,7 +61,8 @@ const Collections = () => {
                 name: collectionName,
                 documentCount: sizeInfo ? sizeInfo.fileCount : 0,
                 isEncrypted: metadata?.isEncrypted || false,
-                isSchemaNeeded: metadata?.isSchemaNeeded || false
+                isSchemaNeeded: metadata?.isSchemaNeeded || false,
+                schema: metadata?.schema || {} // Include the schema
               }
             }
           )
@@ -104,6 +112,23 @@ const Collections = () => {
   const handleCollectionDeleted = () => {
     // Refetch all collections to get the updated list
     fetchCollections()
+  }
+
+  // Handler for schema icon click
+  const handleSchemaClick = (collectionName) => {
+    // Find the collection with the schema
+    const collection = collections.find((col) => col.name === collectionName)
+    if (collection && collection.isSchemaNeeded) {
+      // Find the full schema from metadata
+      const metadata = collectionMetaStatus.find(
+        (meta) => meta.name === collectionName
+      )
+      if (metadata && metadata.schema) {
+        setSelectedSchema(metadata.schema)
+        setSelectedCollectionName(collectionName)
+        setShowSchemaModal(true)
+      }
+    }
   }
 
   return (
@@ -221,12 +246,13 @@ const Collections = () => {
                             </svg>
                           </span>
                           )}
-                      {/* Schema Status Icon */}
+                      {/* Schema Status Icon - Now Clickable */}
                       {collection.isSchemaNeeded
                         ? (
-                          <span
-                            className='ml-2 text-blue-600'
-                            title='Schema-based Collection'
+                          <button
+                            onClick={() => handleSchemaClick(collection.name)}
+                            className='ml-2 text-blue-600 hover:text-blue-800 focus:outline-none transition-colors cursor-pointer'
+                            title='View Schema'
                           >
                             <svg
                               xmlns='http://www.w3.org/2000/svg'
@@ -240,7 +266,7 @@ const Collections = () => {
                                 clipRule='evenodd'
                               />
                             </svg>
-                          </span>
+                          </button>
                           )
                         : (
                           <span
@@ -309,6 +335,16 @@ const Collections = () => {
           onCollectionDeleted={handleCollectionDeleted}
           databaseName={databaseName}
           collectionName={collectionToDelete}
+        />
+      )}
+
+      {/* Schema View Modal */}
+      {showSchemaModal && (
+        <SchemaViewModal
+          isOpen={showSchemaModal}
+          onClose={() => setShowSchemaModal(false)}
+          schema={selectedSchema}
+          collectionName={selectedCollectionName}
         />
       )}
     </div>
