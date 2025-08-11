@@ -16,7 +16,9 @@ const { chunk, encryptionKey, path, isEncrypted, storeFileName } = workerData;
 const result: unknown[] = [];
 
 // new CryptoHelper instance
-const cryptoInstance = encryptionKey ? new CryptoHelper(encryptionKey) : undefined;
+const cryptoInstance = encryptionKey
+  ? new CryptoHelper(encryptionKey)
+  : undefined;
 
 /*
  * Worker for reading files in parallel.
