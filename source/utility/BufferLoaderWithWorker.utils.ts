@@ -14,7 +14,7 @@ import paths from "path";
  */
 export default async function ReaderWithWorker(
   DataFilesList: string[],
-  cryptoInstance: any,
+  encryptionKey: string | undefined,
   path: string,
   isEncrypted: boolean,
   storeFileName = false,
@@ -38,7 +38,7 @@ export default async function ReaderWithWorker(
         const worker = new Worker(workerPath, {
           workerData: {
             chunk: dataChunk,
-            cryptoInstance: cryptoInstance,
+            encryptionKey: encryptionKey,
             path: path,
             isEncrypted: isEncrypted,
             storeFileName: storeFileName,
