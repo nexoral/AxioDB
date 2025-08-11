@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import axios from 'axios';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -26,6 +27,11 @@ const Documents = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAggregateModal, setShowAggregateModal] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
+
+  // Search functionality states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredDocuments, setFilteredDocuments] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Fetch documents function
   const fetchDocuments = useCallback(async (pageNum = 1, reset = false) => {
@@ -85,6 +91,39 @@ const Documents = () => {
 
     if (node) observer.current.observe(node);
   }, [loading, hasMore, fetchDocuments, page]);
+
+  // Update filtered documents when documents or search query changes
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredDocuments(documents);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+
+    try {
+      // Try to parse as JSON for advanced queries
+      const jsonQuery = JSON.parse(searchQuery);
+      const filtered = documents.filter(doc => {
+        // Check each key-value pair in the query
+        return Object.entries(jsonQuery).every(([key, value]) => {
+          return doc[key] !== undefined &&
+            JSON.stringify(doc[key]).toLowerCase().includes(
+              JSON.stringify(value).toLowerCase()
+            );
+        });
+      });
+      setFilteredDocuments(filtered);
+    } catch (e) {
+      // Simple string search if not valid JSON
+      const lowercaseQuery = searchQuery.toLowerCase();
+      const filtered = documents.filter(doc =>
+        JSON.stringify(doc).toLowerCase().includes(lowercaseQuery)
+      );
+      setFilteredDocuments(filtered);
+    }
+  }, [documents, searchQuery]);
 
   const handleBackToCollections = () => {
     navigate(`/collections?database=${databaseName}`);
@@ -189,6 +228,48 @@ const Documents = () => {
           </div>
         </div>
 
+        {/* Search Box (MongoDB Compass style) */}
+        <div className="border-b border-gray-200 bg-gray-50 px-6 py-3">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={`Search documents... (e.g., "John" or {"name": "John"})`}
+              className="pl-10 py-2 pr-4 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+            />
+            {searchQuery && (
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+          {searchQuery && (
+            <div className="mt-2 flex items-center text-sm text-gray-500">
+              <span className="mr-2">
+                Found {filteredDocuments.length} matching {filteredDocuments.length === 1 ? 'document' : 'documents'}
+              </span>
+              {isSearching && documents.length > 0 && (
+                <span className="text-indigo-600 font-medium">
+                  {Math.round((filteredDocuments.length / documents.length) * 100)}% of total
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Card-based document view */}
         <div className="p-6">
           {loading && documents.length === 0 ? (
@@ -205,12 +286,12 @@ const Documents = () => {
                 </div>
               ))}
             </div>
-          ) : documents.length > 0 ? (
+          ) : (searchQuery ? filteredDocuments : documents).length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {documents.map((doc, index) => (
+              {(searchQuery ? filteredDocuments : documents).map((doc, index) => (
                 <div
                   key={doc.documentId}
-                  ref={index === documents.length - 1 ? lastDocumentElementRef : null}
+                  ref={!searchQuery && index === documents.length - 1 ? lastDocumentElementRef : null}
                   className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
                 >
                   <div className="p-4">
@@ -261,21 +342,38 @@ const Documents = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <p className="text-gray-500 mb-2">No documents found in this collection</p>
-              <button
-                onClick={() => setShowInsertModal(true)}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                Insert Your First Document
-              </button>
+              {searchQuery ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <p className="text-gray-500 mb-2">No documents match your search criteria</p>
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Clear Search
+                  </button>
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="text-gray-500 mb-2">No documents found in this collection</p>
+                  <button
+                    onClick={() => setShowInsertModal(true)}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Insert Your First Document
+                  </button>
+                </>
+              )}
             </div>
           )}
 
-          {/* Loading state for infinite scroll */}
-          {loading && documents.length > 0 && (
+          {/* Loading state for infinite scroll - only show when not searching */}
+          {loading && documents.length > 0 && !searchQuery && (
             <div className="flex justify-center items-center py-4">
               <svg className="animate-spin h-6 w-6 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -284,8 +382,8 @@ const Documents = () => {
             </div>
           )}
 
-          {/* End of results message */}
-          {!loading && !hasMore && documents.length > 0 && (
+          {/* End of results message - only show when not searching */}
+          {!loading && !hasMore && documents.length > 0 && !searchQuery && (
             <div className="text-center py-4 text-gray-500 text-sm border-t border-gray-100 mt-6">
               You've reached the end of the results.
             </div>
