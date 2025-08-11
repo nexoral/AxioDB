@@ -6,6 +6,7 @@ import Databases from "../pages/Databases";
 import Collections from "../pages/Collections";
 import { useEffect, useState } from "react";
 
+import Documents from "../pages/Documents";
 import { ExchangeKeyStore } from "../store/store";
 
 /**
@@ -50,6 +51,8 @@ function MainConfig() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/databases" element={<Databases />} />
             <Route path="/collections" element={<Collections />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="/collections/documents" element={<Documents />} />
           </Routes>
         </main>
         <Footer />
