@@ -26,6 +26,7 @@ type CollectionMetadata = {
 
 /**
  * Represents a database instance.
+ * This class provides methods to create, delete, and manage collections within a database.
  */
 export default class Database {
   private name: string;
