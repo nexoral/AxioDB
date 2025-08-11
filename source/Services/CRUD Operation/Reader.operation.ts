@@ -245,7 +245,7 @@ export default class Reader {
             // Read all files from the directory
             const resultData: any[] = await ReaderWithWorker(
               DataFilesList,
-              this.cryptoInstance,
+              this.encryptionKey,
               this.path,
               this.isEncrypted,
             );
@@ -272,7 +272,7 @@ export default class Reader {
               // Read all files from the directory
               const resultData: any[] = await ReaderWithWorker(
                 DataFilesList,
-                this.cryptoInstance,
+                this.encryptionKey,
                 this.path,
                 this.isEncrypted,
               );

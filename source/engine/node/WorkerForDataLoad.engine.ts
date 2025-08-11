@@ -5,14 +5,18 @@ import FileManager from "../Filesystem/FileManager"; // Replace with real import
 import Converter from "../../Helper/Converter.helper"; // Replace with your actual converter logic
 import { SuccessInterface } from "../../config/Interfaces/Helper/response.helper.interface";
 import ResponseHelper from "../../Helper/response.helper";
+import { CryptoHelper } from "../../Helper/Crypto.helper";
 
 interface ErrorInterface {
   error: string;
   [key: string]: any;
 }
 
-const { chunk, cryptoInstance, path, isEncrypted, storeFileName } = workerData;
+const { chunk, encryptionKey, path, isEncrypted, storeFileName } = workerData;
 const result: unknown[] = [];
+
+// new CryptoHelper instance
+const cryptoInstance = encryptionKey ? new CryptoHelper(encryptionKey) : undefined;
 
 /*
  * Worker for reading files in parallel.

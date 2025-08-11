@@ -213,7 +213,7 @@ export default class DeleteOperation {
             // Read all files from the directory
             const resultData: any[] = await ReaderWithWorker(
               DataFilesList,
-              this.cryptoInstance,
+              this.encryptionKey,
               this.path,
               this.isEncrypted,
               true,
@@ -241,7 +241,7 @@ export default class DeleteOperation {
               // Read all files from the directory
               const resultData: any[] = await ReaderWithWorker(
                 DataFilesList,
-                this.cryptoInstance,
+                this.encryptionKey,
                 this.path,
                 this.isEncrypted,
                 true,
