@@ -27,14 +27,11 @@ const UpdateDocumentModal = ({ isOpen, onClose, onDocumentUpdated, document, dat
       const parsedData = JSON.parse(documentData);
       setLoading(true);
 
-      // Send to the API with transactiontoken in URL
+      // Send to the API using the correct endpoint structure
       const response = await axios.put(
-        `${BASE_API_URL}/api/operation/update?transactiontoken=${TransactionKey}`,
+        `${BASE_API_URL}/api/operation/update/?dbName=${databaseName}&collectionName=${collectionName}&documentId=${document.documentId}&transactiontoken=${TransactionKey}`,
         {
-          dbName: databaseName,
-          collectionName: collectionName,
-          documentId: document.documentId,
-          document: parsedData,
+          ...parsedData
         }
       );
 
@@ -155,5 +152,4 @@ const UpdateDocumentModal = ({ isOpen, onClose, onDocumentUpdated, document, dat
     </div>
   );
 };
-
 export default UpdateDocumentModal;

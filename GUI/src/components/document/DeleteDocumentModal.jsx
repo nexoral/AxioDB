@@ -12,16 +12,9 @@ const DeleteDocumentModal = ({ isOpen, onClose, onDocumentDeleted, documentId, d
     try {
       setLoading(true);
 
-      // Send to the API with transactiontoken in URL
+      // Send to the API using the correct endpoint structure
       const response = await axios.delete(
-        `${BASE_API_URL}/api/operation/delete?transactiontoken=${TransactionKey}`,
-        {
-          data: {
-            dbName: databaseName,
-            collectionName: collectionName,
-            documentId: documentId,
-          }
-        }
+        `${BASE_API_URL}/api/operation/delete/?dbName=${databaseName}&collectionName=${collectionName}&documentId=${documentId}&transactiontoken=${TransactionKey}`
       );
 
       if (response.status === 200) {

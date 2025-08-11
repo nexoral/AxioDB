@@ -26,4 +26,14 @@ export default async function OperationRouter(
   fastify.post("/create/", async (request, reply) =>
     new CRUDController(AxioDBInstance).createNewDocument(request),
   );
+
+  // Update Document
+  fastify.put("/update/", async (request, reply) =>
+    new CRUDController(AxioDBInstance).updateDocument(request),
+  );
+
+  // Delete Document
+  fastify.delete("/delete/", async (request, reply) =>
+    new CRUDController(AxioDBInstance).deleteDocument(request),
+  );
 }

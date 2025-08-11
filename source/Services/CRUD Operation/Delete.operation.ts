@@ -88,7 +88,7 @@ export default class DeleteOperation {
     }
 
     if ("data" in ReadResponse) {
-      const SearchedData = await new Searcher(ReadResponse.data).find(
+      const SearchedData = await new Searcher(ReadResponse.data, true).find(
         this.baseQuery,
         "data",
       );
@@ -146,7 +146,7 @@ export default class DeleteOperation {
   public async deleteMany(): Promise<SuccessInterface | ErrorInterface> {
     const response = await this.LoadAllBufferRawData();
     if ("data" in response) {
-      const SearchedData = await new Searcher(response.data).find(
+      const SearchedData = await new Searcher(response.data, true).find(
         this.baseQuery,
         "data",
       );

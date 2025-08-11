@@ -114,4 +114,95 @@ export default class CRUDController {
 
     return buildResponse(StatusCodes.CREATED, "Document created successfully", insertResult.data);
   }
+
+  /**
+   * Update an existing document in a specified collection within a database.
+   * @param request - The Fastify request object containing query parameters and body data
+   * @param request.query - Query parameters containing database, collection, and document IDs
+   * @param request.query.dbName - The name of the database
+   * @param request.query.collectionName - The name of the collection
+   * @param request.query.documentId - The ID of the document to update
+   * @param request.body - The updated document data
+   */
+  public async updateDocument(request: FastifyRequest) {
+    // Extracting parameters from the request body
+    let { dbName, collectionName, documentId } = request.query as {
+      dbName: string;
+      collectionName: string;
+      documentId: string;
+    };
+    const updatedData = request.body as Record<string, any>;
+
+    // Validating extracted parameters
+    if (!dbName || typeof dbName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
+    }
+    if (!collectionName || typeof collectionName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
+    }
+    if (!documentId || typeof documentId !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid document ID");
+    }
+    if (!updatedData || typeof updatedData !== "object") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid updated data");
+    }
+
+    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
+    const DB_Collection = await databaseInstance.createCollection(collectionName);
+
+    // Update the document
+    const updateResult = await DB_Collection.update({ documentId: documentId }).UpdateOne(updatedData);
+    if (!updateResult || updateResult.statusCode !== StatusCodes.OK) {
+      return buildResponse(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to update document");
+    }
+
+    return buildResponse(StatusCodes.OK, "Document updated successfully", updateResult.data);
+  }
+
+  /**
+   * Deletes a document from a specified collection in a database.
+   * 
+   * @param request - The Fastify request object containing query parameters
+   * @param request.query.dbName - The name of the database
+   * @param request.query.collectionName - The name of the collection
+   * @param request.query.documentId - The ID of the document to delete
+   * 
+   * @returns A response object with appropriate status code and message:
+   *   - 200 (OK) if the document was successfully deleted
+   *   - 400 (BAD REQUEST) if any required parameters are missing or invalid
+   *   - 500 (INTERNAL SERVER ERROR) if the deletion operation fails
+   * 
+   * @throws May throw exceptions during database operations
+   */
+  public async deleteDocument(request: FastifyRequest) {
+    // Extracting parameters from the request body
+    let { dbName, collectionName, documentId } = request.query as {
+      dbName: string;
+      collectionName: string;
+      documentId: string;
+    };
+
+    // Validating extracted parameters
+    if (!dbName || typeof dbName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
+    }
+    if (!collectionName || typeof collectionName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
+    }
+    if (!documentId || typeof documentId !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid document ID");
+    }
+
+    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
+    const DB_Collection = await databaseInstance.createCollection(collectionName);
+
+    // Delete the document
+    const deleteResult = await DB_Collection.delete({ documentId: documentId }).deleteOne();
+    console.log(deleteResult);
+    if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
+      return buildResponse(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to delete document");
+    }
+
+    return buildResponse(StatusCodes.OK, "Document deleted successfully");
+  }
 }

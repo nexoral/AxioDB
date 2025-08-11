@@ -140,6 +140,19 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         payload: {
           document: "object",
         },
+      },
+      {
+        method: "PUT",
+        description: "Update an existing document in a collection",
+        path: "/api/operation/update/?dbName&collectionName&documentId",
+        payload: {
+          document: "object",
+        },
+      },
+      {
+        method: "DELETE",
+        description: "Delete an existing document in a collection",
+        path: "/api/operation/delete/?dbName&collectionName&documentId",
       }
     ]
   }
