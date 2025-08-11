@@ -35,10 +35,10 @@ const Header = () => {
                   Dashboard
                 </Link>
                 <Link
-                  to='/databases'
+                  to='/operations'
                   className='text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors'
                 >
-                  Databases
+                  Operations
                 </Link>
               </div>
             </div>

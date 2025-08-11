@@ -124,4 +124,15 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
     ],
   },
+  {
+    groupName: "CRUD Operations",
+    description: "CRUD Operations Endpoints",
+    Paths: [
+      {
+        method: "GET",
+        description: "Get all documents from a collection",
+        path: "/api/operation/all/?dbName&collectionName&page"
+      }
+    ]
+  }
 ];

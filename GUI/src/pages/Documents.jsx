@@ -167,118 +167,108 @@ const Documents = () => {
           </button>
         </div>
 
-        {/* Documents table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Document ID
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Updated At
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Document Data
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+        {/* Card-based document view */}
+        <div className="p-6">
+          {loading && documents.length === 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="animate-pulse bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
+                  <div className="h-3 bg-gray-100 rounded w-1/2 mb-2"></div>
+                  <div className="h-20 bg-gray-100 rounded mb-3"></div>
+                  <div className="flex justify-end">
+                    <div className="h-8 bg-gray-200 rounded w-16 mr-2"></div>
+                    <div className="h-8 bg-gray-200 rounded w-16"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : documents.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {documents.map((doc, index) => (
-                <tr
+                <div
                   key={doc.documentId}
                   ref={index === documents.length - 1 ? lastDocumentElementRef : null}
-                  className="hover:bg-gray-50 transition-colors"
+                  className="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
                 >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-mono">
-                    <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-yellow-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-indigo-700 font-semibold">{doc.documentId}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(doc.updatedAt)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900">
-                      <div className="bg-gray-50 p-2 rounded border border-gray-100 max-w-lg overflow-x-auto">
-                        {Object.entries(doc)
-                          .filter(([key]) => !['documentId', 'updatedAt'].includes(key))
-                          .map(([key, value]) => (
-                            <div key={key} className="flex items-start mb-1 last:mb-0">
-                              <span className="text-indigo-600 font-medium mr-2">{key}:</span>
-                              <span className="text-gray-800">{typeof value === 'object' ? JSON.stringify(value) : value.toString()}</span>
-                            </div>
-                          ))}
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                        </svg>
+                        <div className="font-mono text-indigo-700 font-semibold" title={doc.documentId}>
+                          <span className="text-sm">ID: {doc.documentId}</span>
+                        </div>
                       </div>
+                      <span className="text-xs text-gray-500" title={doc.updatedAt}>
+                        {formatDate(doc.updatedAt)}
+                      </span>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleUpdateClick(doc)}
-                      className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md mr-2 transition-colors"
-                    >
-                      Update
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(doc)}
-                      className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
 
-              {/* Loading state for infinite scroll */}
-              {loading && (
-                <tr>
-                  <td colSpan={4} className="px-6 py-4">
-                    <div className="flex justify-center items-center space-x-2">
-                      <svg className="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span className="text-indigo-500">Loading documents...</span>
+                    <div className="bg-gray-50 rounded p-3 mb-3 h-48 overflow-y-auto">
+                      <pre className="text-xs font-mono whitespace-pre-wrap break-words text-gray-800">
+                        {JSON.stringify(
+                          Object.fromEntries(
+                            Object.entries(doc).filter(
+                              ([key]) => !['documentId', 'updatedAt'].includes(key)
+                            )
+                          ),
+                          null, 2
+                        )}
+                      </pre>
                     </div>
-                  </td>
-                </tr>
-              )}
 
-              {/* No documents state */}
-              {!loading && documents.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center">
-                    <div className="text-center py-6">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-300 mx-auto mb-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5 4a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H5zm-1 9v-1h5v2H5a1 1 0 01-1-1zm7 1h4a1 1 0 001-1v-1h-5v2zm0-4h5V8h-5v2zM9 8H4v2h5V8z" clipRule="evenodd" />
-                      </svg>
-                      <p className="text-gray-500 mb-2">No documents found in this collection</p>
+                    <div className="flex justify-end space-x-2">
                       <button
-                        onClick={() => setShowInsertModal(true)}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        onClick={() => handleUpdateClick(doc)}
+                        className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md text-sm transition-colors"
                       >
-                        Insert Your First Document
+                        Update
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(doc)}
+                        className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm transition-colors"
+                      >
+                        Delete
                       </button>
                     </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p className="text-gray-500 mb-2">No documents found in this collection</p>
+              <button
+                onClick={() => setShowInsertModal(true)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Insert Your First Document
+              </button>
+            </div>
+          )}
 
-        {/* End of results message */}
-        {!loading && !hasMore && documents.length > 0 && (
-          <div className="text-center py-4 text-gray-500 text-sm border-t border-gray-100">
-            You've reached the end of the results.
-          </div>
-        )}
+          {/* Loading state for infinite scroll */}
+          {loading && documents.length > 0 && (
+            <div className="flex justify-center items-center py-4">
+              <svg className="animate-spin h-6 w-6 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+          )}
+
+          {/* End of results message */}
+          {!loading && !hasMore && documents.length > 0 && (
+            <div className="text-center py-4 text-gray-500 text-sm border-t border-gray-100 mt-6">
+              You've reached the end of the results.
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Insert Document Modal */}
@@ -318,5 +308,4 @@ const Documents = () => {
     </div>
   );
 };
-
 export default Documents;

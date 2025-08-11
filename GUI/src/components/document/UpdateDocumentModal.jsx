@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ExchangeKeyStore } from '../../store/store';
@@ -12,7 +13,7 @@ const UpdateDocumentModal = ({ isOpen, onClose, onDocumentUpdated, document, dat
   useEffect(() => {
     if (document) {
       // Create a copy without the documentId and updatedAt
-      const docCopy = { ...document };
+      const { documentId, updatedAt, ...docCopy } = document;
       setDocumentData(JSON.stringify(docCopy, null, 2));
     }
   }, [document]);

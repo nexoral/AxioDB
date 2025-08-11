@@ -49,7 +49,7 @@ function MainConfig() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/databases" element={<Databases />} />
+            <Route path="/operations" element={<Databases />} />
             <Route path="/collections" element={<Collections />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/collections/documents" element={<Documents />} />
