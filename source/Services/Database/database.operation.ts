@@ -66,10 +66,12 @@ export default class Database {
 
     const CollectionMeta = await this.getCollectionMetaDetails(collectionName);
 
-    if(CollectionMeta){
+    if (CollectionMeta) {
       isSchemaNeeded = CollectionMeta.isSchemaNeeded;
       schema = CollectionMeta.schema;
-      crypto = CollectionMeta.isEncrypted ? Boolean(CollectionMeta.isEncrypted) : false;
+      crypto = CollectionMeta.isEncrypted
+        ? Boolean(CollectionMeta.isEncrypted)
+        : false;
       key = CollectionMeta.encryptionKey ? CollectionMeta.encryptionKey : key;
     }
 

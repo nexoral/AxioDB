@@ -131,7 +131,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       {
         method: "GET",
         description: "Get all documents from a collection",
-        path: "/api/operation/all/?dbName&collectionName&page"
+        path: "/api/operation/all/?dbName&collectionName&page",
       },
       {
         method: "POST",
@@ -153,7 +153,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         method: "DELETE",
         description: "Delete an existing document in a collection",
         path: "/api/operation/delete/?dbName&collectionName&documentId",
-      }
-    ]
-  }
+      },
+    ],
+  },
 ];

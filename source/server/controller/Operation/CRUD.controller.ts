@@ -2,8 +2,7 @@
 /* eslint-disable prefer-const */
 import { StatusCodes } from "outers";
 import { AxioDB } from "../../../Services/Indexation.operation";
-import buildResponse, {
-} from "../../helper/responseBuilder.helper";
+import buildResponse from "../../helper/responseBuilder.helper";
 import { FastifyRequest } from "fastify";
 
 /**
@@ -18,17 +17,17 @@ export default class CRUDController {
 
   /**
    * Retrieves all documents from a specified collection with pagination.
-   * 
+   *
    * @param request - The Fastify request object containing query parameters
    * @param request.query.dbName - The name of the database to query
    * @param request.query.collectionName - The name of the collection to query
    * @param request.query.page - The page number for pagination (starts from 1)
-   * 
+   *
    * @returns A response object with:
    *   - Status code 200 and documents data if successful
    *   - Status code 400 if database name, collection name, or page number is invalid
    *   - Status code 404 if no documents are found
-   * 
+   *
    * @example
    * // GET /documents?dbName=users&collectionName=profiles&page=1
    */
@@ -40,7 +39,7 @@ export default class CRUDController {
       page: number;
     };
 
-    page = parseInt(String(page)) 
+    page = parseInt(String(page));
 
     // Validating extracted parameters
     if (!dbName || typeof dbName !== "string") {
@@ -53,38 +52,47 @@ export default class CRUDController {
     if (typeof page !== "number" || page < 1) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid page number");
     }
-    
+
     const skip = (page - 1) * 10;
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
 
-    const DB_Collection = await databaseInstance.createCollection(collectionName);
+    const DB_Collection =
+      await databaseInstance.createCollection(collectionName);
 
     // Find All Data
-    const allDocuments = await DB_Collection.query({}).Limit(10).Sort({ updatedAt : -1 }).Skip(skip).exec();
+    const allDocuments = await DB_Collection.query({})
+      .Limit(10)
+      .Sort({ updatedAt: -1 })
+      .Skip(skip)
+      .exec();
     if (!allDocuments.data) {
       return buildResponse(StatusCodes.NOT_FOUND, "No documents found");
     }
 
-    return buildResponse(StatusCodes.OK, "Documents retrieved successfully", allDocuments);
+    return buildResponse(
+      StatusCodes.OK,
+      "Documents retrieved successfully",
+      allDocuments,
+    );
   }
 
   /**
    * Creates a new document in a specified collection within a database.
-   * 
+   *
    * @param request - The Fastify request object containing query parameters and body data
    * @param request.query - Query parameters containing database and collection names
    * @param request.query.dbName - The name of the database to store the document in
    * @param request.query.collectionName - The name of the collection to store the document in
    * @param request.body - The document data to be inserted
-   * 
+   *
    * @returns A response object with appropriate status code and message:
    *  - 201 (Created) with the inserted document data on success
    *  - 400 (Bad Request) if any required parameters are invalid
    *  - 500 (Internal Server Error) if document insertion fails
-   * 
+   *
    * @throws May throw exceptions if database or collection operations fail
    */
-  public async createNewDocument(request: FastifyRequest){
+  public async createNewDocument(request: FastifyRequest) {
     // Extracting parameters from the request body
     let { dbName, collectionName } = request.query as {
       dbName: string;
@@ -104,15 +112,23 @@ export default class CRUDController {
     }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-    const DB_Collection = await databaseInstance.createCollection(collectionName);
+    const DB_Collection =
+      await databaseInstance.createCollection(collectionName);
 
     // Insert the new document
     const insertResult = await DB_Collection.insert(documentData);
     if (!insertResult || insertResult.statusCode !== StatusCodes.OK) {
-      return buildResponse(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to insert document");
+      return buildResponse(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Failed to insert document",
+      );
     }
 
-    return buildResponse(StatusCodes.CREATED, "Document created successfully", insertResult.data);
+    return buildResponse(
+      StatusCodes.CREATED,
+      "Document created successfully",
+      insertResult.data,
+    );
   }
 
   /**
@@ -148,30 +164,40 @@ export default class CRUDController {
     }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-    const DB_Collection = await databaseInstance.createCollection(collectionName);
+    const DB_Collection =
+      await databaseInstance.createCollection(collectionName);
 
     // Update the document
-    const updateResult = await DB_Collection.update({ documentId: documentId }).UpdateOne(updatedData);
+    const updateResult = await DB_Collection.update({
+      documentId: documentId,
+    }).UpdateOne(updatedData);
     if (!updateResult || updateResult.statusCode !== StatusCodes.OK) {
-      return buildResponse(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to update document");
+      return buildResponse(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Failed to update document",
+      );
     }
 
-    return buildResponse(StatusCodes.OK, "Document updated successfully", updateResult.data);
+    return buildResponse(
+      StatusCodes.OK,
+      "Document updated successfully",
+      updateResult.data,
+    );
   }
 
   /**
    * Deletes a document from a specified collection in a database.
-   * 
+   *
    * @param request - The Fastify request object containing query parameters
    * @param request.query.dbName - The name of the database
    * @param request.query.collectionName - The name of the collection
    * @param request.query.documentId - The ID of the document to delete
-   * 
+   *
    * @returns A response object with appropriate status code and message:
    *   - 200 (OK) if the document was successfully deleted
    *   - 400 (BAD REQUEST) if any required parameters are missing or invalid
    *   - 500 (INTERNAL SERVER ERROR) if the deletion operation fails
-   * 
+   *
    * @throws May throw exceptions during database operations
    */
   public async deleteDocument(request: FastifyRequest) {
@@ -194,13 +220,19 @@ export default class CRUDController {
     }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-    const DB_Collection = await databaseInstance.createCollection(collectionName);
+    const DB_Collection =
+      await databaseInstance.createCollection(collectionName);
 
     // Delete the document
-    const deleteResult = await DB_Collection.delete({ documentId: documentId }).deleteOne();
+    const deleteResult = await DB_Collection.delete({
+      documentId: documentId,
+    }).deleteOne();
     console.log(deleteResult);
     if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
-      return buildResponse(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to delete document");
+      return buildResponse(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Failed to delete document",
+      );
     }
 
     return buildResponse(StatusCodes.OK, "Document deleted successfully");

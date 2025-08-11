@@ -117,10 +117,12 @@ const Collections = () => {
   // Handler for schema icon click
   const handleSchemaClick = (collectionName) => {
     // Find the collection with the schema
-    const collection = collections.find(col => col.name === collectionName)
+    const collection = collections.find((col) => col.name === collectionName)
     if (collection && collection.isSchemaNeeded) {
       // Find the full schema from metadata
-      const metadata = collectionMetaStatus.find(meta => meta.name === collectionName)
+      const metadata = collectionMetaStatus.find(
+        (meta) => meta.name === collectionName
+      )
       if (metadata && metadata.schema) {
         setSelectedSchema(metadata.schema)
         setSelectedCollectionName(collectionName)
@@ -228,7 +230,7 @@ const Collections = () => {
                               />
                             </svg>
                           </span>
-                        )
+                          )
                         : (
                           <span
                             className='ml-2 text-gray-400'
@@ -243,7 +245,7 @@ const Collections = () => {
                               <path d='M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z' />
                             </svg>
                           </span>
-                        )}
+                          )}
                       {/* Schema Status Icon - Now Clickable */}
                       {collection.isSchemaNeeded
                         ? (
@@ -265,7 +267,7 @@ const Collections = () => {
                               />
                             </svg>
                           </button>
-                        )
+                          )
                         : (
                           <span
                             className='ml-2 text-gray-400'
@@ -280,7 +282,7 @@ const Collections = () => {
                               <path d='M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z' />
                             </svg>
                           </span>
-                        )}
+                          )}
                     </h4>
                     <p className='text-sm text-gray-500'>
                       {collection.documentCount} documents
