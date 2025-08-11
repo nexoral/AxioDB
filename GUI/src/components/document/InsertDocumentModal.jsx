@@ -3,7 +3,7 @@ import axios from 'axios';
 import { ExchangeKeyStore } from '../../store/store';
 import { BASE_API_URL } from '../../config/key';
 
-const InsertDocumentModal = ({ isOpen, onClose, onDocumentInserted, databaseName, collectionName }) => {
+const InsertDocumentModal = ({ isOpen, onClose, onDocumentInserted, databaseName, collectionName, onSuccess }) => {
   const [documentData, setDocumentData] = useState('{\n  \n}');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12,37 +12,41 @@ const InsertDocumentModal = ({ isOpen, onClose, onDocumentInserted, databaseName
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     try {
       // Validate JSON
       const parsedData = JSON.parse(documentData);
       setLoading(true);
-      
-      // Send to the API
+
+      // Send to the API using the correct endpoint structure
       const response = await axios.post(
-        `${BASE_API_URL}/api/operation/insert`,
+        `${BASE_API_URL}/api/operation/create/?dbName=${databaseName}&collectionName=${collectionName}&transactiontoken=${TransactionKey}`,
         {
-          dbName: databaseName,
-          collectionName: collectionName,
-          document: parsedData,
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${TransactionKey}`
-          }
+          ...parsedData
         }
       );
-      
+
       if (response.status === 200 || response.status === 201) {
-        // Get the inserted document data from the response
-        const insertedDocument = response.data.data?.document || {
+        // Extract the documentId from the response
+        const documentId = response.data.data?.documentId;
+
+        // Construct the inserted document with the returned documentId
+        const insertedDocument = {
           ...parsedData,
-          documentId: `doc_${Date.now()}`,
+          documentId: documentId || `doc_${Date.now()}`,
           updatedAt: new Date().toISOString()
         };
-        
+
+        // Call the callback with the inserted document
         onDocumentInserted(insertedDocument);
+
+        // Close the modal
         onClose();
+
+        // Re-fetch documents to ensure the list is up to date
+        if (typeof onSuccess === 'function') {
+          onSuccess();
+        }
       } else {
         throw new Error('Failed to insert document');
       }
@@ -77,7 +81,7 @@ const InsertDocumentModal = ({ isOpen, onClose, onDocumentInserted, databaseName
             </svg>
           </button>
         </div>
-        
+
         <div className="p-6 overflow-y-auto flex-grow">
           <div className="mb-4 flex items-center space-x-2 bg-blue-50 p-3 rounded-md">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
@@ -87,13 +91,13 @@ const InsertDocumentModal = ({ isOpen, onClose, onDocumentInserted, databaseName
               Enter the document data in JSON format to insert into <span className="font-semibold">{collectionName}</span>
             </p>
           </div>
-          
+
           {error && (
             <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
               <p>{error}</p>
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -110,7 +114,7 @@ const InsertDocumentModal = ({ isOpen, onClose, onDocumentInserted, databaseName
                 The documentId and updatedAt fields will be automatically generated.
               </p>
             </div>
-            
+
             <div className="flex justify-end space-x-3 mt-6">
               <button
                 type="button"
@@ -122,9 +126,8 @@ const InsertDocumentModal = ({ isOpen, onClose, onDocumentInserted, databaseName
               <button
                 type="submit"
                 disabled={loading}
-                className={`px-4 py-2 rounded-md text-white flex items-center ${
-                  loading ? 'bg-green-500' : 'bg-green-600 hover:bg-green-700'
-                } transition-colors shadow-md`}
+                className={`px-4 py-2 rounded-md text-white flex items-center ${loading ? 'bg-green-500' : 'bg-green-600 hover:bg-green-700'
+                  } transition-colors shadow-md`}
               >
                 {loading ? (
                   <>

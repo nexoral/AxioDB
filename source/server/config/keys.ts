@@ -132,6 +132,14 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         method: "GET",
         description: "Get all documents from a collection",
         path: "/api/operation/all/?dbName&collectionName&page"
+      },
+      {
+        method: "POST",
+        description: "Create a new document in a collection",
+        path: "/api/operation/create/?dbName&collectionName",
+        payload: {
+          document: "object",
+        },
       }
     ]
   }

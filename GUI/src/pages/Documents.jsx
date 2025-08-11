@@ -279,6 +279,7 @@ const Documents = () => {
           onDocumentInserted={handleInsertDocument}
           databaseName={databaseName}
           collectionName={collectionName}
+          onSuccess={() => fetchDocuments(1, true)} // Re-fetch documents after successful insertion
         />
       )}
 

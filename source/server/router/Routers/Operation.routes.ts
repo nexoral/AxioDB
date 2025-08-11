@@ -21,4 +21,9 @@ export default async function OperationRouter(
   fastify.get("/all/", async (request, reply) =>
     new CRUDController(AxioDBInstance).getAllDocuments(request),
   );
+
+  // Create New Document
+  fastify.post("/create/", async (request, reply) =>
+    new CRUDController(AxioDBInstance).createNewDocument(request),
+  );
 }
