@@ -13,9 +13,7 @@ import { DBInfoStore, ExchangeKeyStore } from "../store/store";
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [AllInstanceInfo, setAllInstanceInfo] = useState(null);
-  const { setRootname } = DBInfoStore((state) => state);
   const { TransactionKey } = ExchangeKeyStore((state) => state);
-  const { Rootname } = DBInfoStore((state) => state);
 
   useEffect(() => {
     axios
@@ -24,9 +22,7 @@ const Dashboard = () => {
       )
       .then((response) => {
         if (response.status === 200) {
-          console.log("All Instance Info:", response.data.data);
           setAllInstanceInfo(response.data.data);
-          setRootname(response.data.data.RootName ?? "AxioDB");
           setLoading(false);
         }
       });
@@ -36,9 +32,6 @@ const Dashboard = () => {
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">
-          Welcome to {Rootname} Management Console
-        </p>
       </div>
 
       {loading ? (
