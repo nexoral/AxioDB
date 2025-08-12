@@ -4,18 +4,13 @@ import { useEffect, useState } from "react";
 /**
  * Component to display the total storage used in the AxioDB system
  */
-const StorageUsageCard = () => {
-  // In a real application, this would come from an API
-  const [storageUsage, setStorageUsage] = useState(0);
-  const [storageLimit, setStorageLimit] = useState(0);
+const StorageUsageCard = ({ storageInfo }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Simulate API call with dummy data
     const fetchData = () => {
       setTimeout(() => {
-        setStorageUsage(2.7); // GB
-        setStorageLimit(10); // GB
         setLoading(false);
       }, 800);
     };
@@ -24,7 +19,7 @@ const StorageUsageCard = () => {
   }, []);
 
   // Calculate percentage of storage used
-  const usagePercentage = (storageUsage / storageLimit) * 100;
+  const usagePercentage = (storageInfo?.total / storageInfo?.machine) * 100;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
@@ -35,11 +30,11 @@ const StorageUsageCard = () => {
             <div className="h-8 mt-2 bg-gray-200 rounded animate-pulse w-24" />
           ) : (
             <p className="text-3xl font-bold text-green-600 mt-2">
-              {storageUsage} <span className="text-lg">GB</span>
+                {storageInfo?.total} <span className="text-lg">{storageInfo?.matrixUnit}</span>
             </p>
           )}
           <p className="text-sm text-gray-500 mt-1">
-            of {storageLimit} GB available
+            of {storageInfo?.machine} {storageInfo?.matrixUnit} available
           </p>
         </div>
         <div className="p-3 bg-green-100 rounded-full">

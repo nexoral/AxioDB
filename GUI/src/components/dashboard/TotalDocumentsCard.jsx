@@ -4,16 +4,12 @@ import { useEffect, useState } from "react";
 /**
  * Component to display the total number of documents in the AxioDB system
  */
-const TotalDocumentsCard = () => {
-  // In a real application, this would come from an API
-  const [totalDocuments, setTotalDocuments] = useState(0);
+const TotalDocumentsCard = ({ totalDocuments }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call with dummy data
     const fetchData = () => {
       setTimeout(() => {
-        setTotalDocuments(14825);
         setLoading(false);
       }, 700);
     };
@@ -30,7 +26,7 @@ const TotalDocumentsCard = () => {
             <div className="h-8 mt-2 bg-gray-200 rounded animate-pulse w-20" />
           ) : (
             <p className="text-3xl font-bold text-purple-600 mt-2">
-              {totalDocuments.toLocaleString()}
+              {totalDocuments}
             </p>
           )}
           <p className="text-sm text-gray-500 mt-1">Across all collections</p>
