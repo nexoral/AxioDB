@@ -86,6 +86,33 @@ export async function checkDockerPortMapping(port: number): Promise<void> {
 }
 
 /**
+ * Checks if Docker is installed on the system.
+ *
+ * @returns A Promise that resolves to true if Docker is installed, false otherwise
+ *
+ * @example
+ * ```typescript
+ * const dockerInstalled = await isDockerInstalled();
+ * if (dockerInstalled) {
+ *   console.log('Docker is available');
+ * } else {
+ *   console.log('Docker is not installed');
+ * }
+ * ```
+ */
+export async function isDockerInstalled(): Promise<boolean> {
+  return new Promise((resolve) => {
+    exec("docker --version", (error, stdout, stderr) => {
+      if (error) {
+        resolve(false); // Docker is not installed or not accessible
+      } else {
+        resolve(true); // Docker is installed
+      }
+    });
+  });
+}
+
+/**
  * Checks if a specified port is in use and if there's a Docker port mapping for that port.
  *
  * @param port - The port number to check
@@ -94,5 +121,8 @@ export async function checkDockerPortMapping(port: number): Promise<void> {
  */
 export default async function checkPortAndDocker(port: number) {
   await isPortInUse(port);
-  await checkDockerPortMapping(port);
+  const status: boolean = await isDockerInstalled();
+  if (status) {
+    await checkDockerPortMapping(port);
+  }
 }
