@@ -59,7 +59,7 @@ const Dashboard = () => {
 
       {/* Database Tree View */}
       <div className="mb-8">
-        <DatabaseTreeView />
+        <DatabaseTreeView treeDB={AllInstanceInfo?.nodeTree || []} />
       </div>
     </div>
   );

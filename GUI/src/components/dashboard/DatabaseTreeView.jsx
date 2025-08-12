@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 /**
  * Component to display a tree view of databases and collections
  */
-const DatabaseTreeView = () => {
+const DatabaseTreeView = ({ treeDB }) => {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState({});
   const [databaseTree, setDatabaseTree] = useState([]);
@@ -19,106 +19,44 @@ const DatabaseTreeView = () => {
   };
 
   useEffect(() => {
-    // Simulate API call with dummy data
-    const fetchData = () => {
-      setTimeout(() => {
-        // Create dummy data structure for database tree
-        const dummyData = [
-          {
-            id: "db1",
-            name: "UsersDB",
-            type: "database",
-            children: [
-              {
-                id: "db1_col1",
-                name: "accounts",
-                type: "collection",
-                documentCount: 1250,
-                size: "2.3 MB",
-              },
-              {
-                id: "db1_col2",
-                name: "profiles",
-                type: "collection",
-                documentCount: 1200,
-                size: "4.1 MB",
-              },
-              {
-                id: "db1_col3",
-                name: "sessions",
-                type: "collection",
-                documentCount: 5400,
-                size: "1.8 MB",
-              },
-            ],
-          },
-          {
-            id: "db2",
-            name: "ProductsDB",
-            type: "database",
-            children: [
-              {
-                id: "db2_col1",
-                name: "inventory",
-                type: "collection",
-                documentCount: 850,
-                size: "3.2 MB",
-              },
-              {
-                id: "db2_col2",
-                name: "categories",
-                type: "collection",
-                documentCount: 45,
-                size: "0.3 MB",
-              },
-              {
-                id: "db2_col3",
-                name: "suppliers",
-                type: "collection",
-                documentCount: 120,
-                size: "0.7 MB",
-              },
-            ],
-          },
-          {
-            id: "db3",
-            name: "AnalyticsDB",
-            type: "database",
-            children: [
-              {
-                id: "db3_col1",
-                name: "events",
-                type: "collection",
-                documentCount: 4250,
-                size: "8.5 MB",
-              },
-              {
-                id: "db3_col2",
-                name: "metrics",
-                type: "collection",
-                documentCount: 1850,
-                size: "4.2 MB",
-              },
-              {
-                id: "db3_col3",
-                name: "reports",
-                type: "collection",
-                documentCount: 320,
-                size: "1.5 MB",
-              },
-            ],
-          },
-        ];
-
-        // Expand the first database by default
-        setExpanded({ db1: true });
-        setDatabaseTree(dummyData);
+    const processTreeData = () => {
+      if (!treeDB || !Array.isArray(treeDB)) {
+        setDatabaseTree([]);
         setLoading(false);
-      }, 1000);
+        return;
+      }
+
+      // Transform treeDB into the expected format
+      const formattedData = treeDB.map((db, dbIndex) => {
+        const dbId = `db${dbIndex + 1}`;
+        return {
+          id: dbId,
+          name: db.name,
+          type: "database",
+          children: Array.isArray(db.collections) ? db.collections.map((collection, colIndex) => ({
+            id: `${dbId}_col${colIndex + 1}`,
+            name: collection.name || collection, // Handle both new (object) and old (string) formats
+            type: "collection",
+            documentCount: collection.documentCount || 0,
+            size: "0 MB",
+          })) : []
+        };
+      });
+
+      // Expand the first database by default if it exists
+      if (formattedData.length > 0) {
+        setExpanded({ [formattedData[0].id]: true });
+      }
+
+      setDatabaseTree(formattedData);
+      setLoading(false);
     };
 
-    fetchData();
-  }, []);
+    // Short timeout to simulate loading (can be removed if not needed)
+    setTimeout(() => {
+      processTreeData();
+    }, 500);
+  }, [treeDB]);
 
   // Render a tree node (database or collection)
   const renderTreeNode = (node) => {
@@ -127,11 +65,10 @@ const DatabaseTreeView = () => {
     return (
       <div key={node.id}>
         <div
-          className={`flex items-center py-2 px-3 ${
-            node.type === "database"
-              ? "bg-blue-50 hover:bg-blue-100 border-b border-blue-100"
-              : "hover:bg-gray-50 pl-10"
-          } cursor-pointer transition-colors`}
+          className={`flex items-center py-2 px-3 ${node.type === "database"
+            ? "bg-blue-50 hover:bg-blue-100 border-b border-blue-100"
+            : "hover:bg-gray-50 pl-10"
+            } cursor-pointer transition-colors`}
           onClick={() => node.children && toggleExpand(node.id)}
         >
           {node.children ? (
@@ -159,7 +96,6 @@ const DatabaseTreeView = () => {
           {node.type === "collection" && (
             <div className="text-xs text-gray-500">
               <span className="mr-2">{node.documentCount} docs</span>
-              <span>{node.size}</span>
             </div>
           )}
         </div>

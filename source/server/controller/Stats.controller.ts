@@ -16,16 +16,43 @@ export default class StatsController {
     this.AxioDBInstance = AxioDBInstance;
   }
 
-  public async getDashBoardStat () {
+  /**
+   * Retrieves dashboard statistics for the AxioDB instance.
+   * 
+   * This method gathers and compiles various statistics about the database system:
+   * - Count of databases, collections, and documents
+   * - Storage information (used storage and total machine storage)
+   * - In-memory cache details
+   * 
+   * All storage metrics are converted to MB for consistency.
+   * 
+   * @returns {Promise<Object>} A formatted response object containing:
+   *   - HTTP status code
+   *   - Status message
+   *   - Data payload with the following statistics:
+   *     - totalDatabases: Number of databases in the instance
+   *     - totalCollections: Total number of collections across all databases
+   *     - totalDocuments: Total number of documents across all collections
+   *     - storageInfo: Object containing storage metrics (total used, machine total, and units)
+   *     - cacheStorage: Object containing cache storage metrics (current usage, maximum, and units)
+   * 
+   * @throws Will return an error response with status 500 if the operation fails
+   */
+  public async getDashBoardStat (): Promise<object> {
     try {
 
       const InstanceInfo = await this.AxioDBInstance.getInstanceInfo();
       let totalCollections = 0;
       let totalDocuments = 0;
+      const treeMap = [];
 
       // Extract Total Stats from the InstanceInfo
       if (InstanceInfo && InstanceInfo.data) {
         for (const db of InstanceInfo.data.ListOfDatabases) {
+          const dbTree = {
+            name: db,
+            collections: [] as object[]
+          }
           const  DB_instance = this.AxioDBInstance.createDB(db);
           const Collection_stats = await (await DB_instance).getCollectionInfo();
           if (Collection_stats) {
@@ -34,8 +61,13 @@ export default class StatsController {
               const Collection_Instance = await (await this.AxioDBInstance.createDB(db)).createCollection(collection);
               const Document_stats = await Collection_Instance.totalDocuments();
               totalDocuments += Document_stats.data?.total || 0;
+              dbTree.collections.push({
+                name: collection,
+                documentCount: Document_stats.data?.total || 0,
+              });
             }
           }
+          treeMap.push(dbTree);
         }
       }
 
@@ -76,7 +108,8 @@ export default class StatsController {
           Storage: totalCacheSize || 0,
           Max: maxCacheSize || 0,
           Unit: "MB"
-        }
+        },
+        nodeTree: treeMap
       };
 
       return buildResponse(StatusCodes.OK, "Dashboard stats fetched successfully", response);
