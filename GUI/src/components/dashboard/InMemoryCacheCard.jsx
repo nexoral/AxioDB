@@ -1,56 +1,60 @@
-import { ChipIcon } from "@heroicons/react/outline";
-import { useEffect, useState } from "react";
+import { ChipIcon } from '@heroicons/react/outline'
+import { useEffect, useState } from 'react'
 
 /**
  * Component to display the total in-memory cache size in the AxioDB system
  */
-const InMemoryCacheCard = ({CacheStorageInfo}) => {
-  const [loading, setLoading] = useState(true);
+const InMemoryCacheCard = ({ CacheStorageInfo }) => {
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Simulate API call with dummy data
     const fetchData = () => {
       setTimeout(() => {
-        setLoading(false);
-      }, 800);
-    };
+        setLoading(false)
+      }, 800)
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   // Calculate percentage of cache used
-  const usagePercentage = (CacheStorageInfo.Storage / CacheStorageInfo.Max) * 100;
+  const usagePercentage =
+    (CacheStorageInfo.Storage / CacheStorageInfo.Max) * 100
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      <div className="flex justify-between mb-3">
+    <div className='bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow'>
+      <div className='flex justify-between mb-3'>
         <div>
-          <h3 className="text-lg font-medium text-gray-900">In-Memory Cache</h3>
-          {loading ? (
-            <div className="h-8 mt-2 bg-gray-200 rounded animate-pulse w-24" />
-          ) : (
-            <p className="text-3xl font-bold text-orange-600 mt-2">
-              {CacheStorageInfo.Storage} <span className="text-lg">{CacheStorageInfo.Unit}</span>
-            </p>
-          )}
-          <p className="text-sm text-gray-500 mt-1">
+          <h3 className='text-lg font-medium text-gray-900'>In-Memory Cache</h3>
+          {loading
+            ? (
+              <div className='h-8 mt-2 bg-gray-200 rounded animate-pulse w-24' />
+              )
+            : (
+              <p className='text-3xl font-bold text-orange-600 mt-2'>
+                {CacheStorageInfo.Storage}{' '}
+                <span className='text-lg'>{CacheStorageInfo.Unit}</span>
+              </p>
+              )}
+          <p className='text-sm text-gray-500 mt-1'>
             of {CacheStorageInfo.Max} {CacheStorageInfo.Unit} allocated
           </p>
         </div>
-        <div className="p-3 bg-orange-100 rounded-full">
-          <ChipIcon className="h-8 w-8 text-orange-600" />
+        <div className='p-3 bg-orange-100 rounded-full'>
+          <ChipIcon className='h-8 w-8 text-orange-600' />
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+      <div className='w-full bg-gray-200 rounded-full h-2.5 mt-2'>
         <div
-          className="bg-orange-600 h-2.5 rounded-full"
+          className='bg-orange-600 h-2.5 rounded-full'
           style={{ width: `${loading ? 0 : usagePercentage}%` }}
         />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default InMemoryCacheCard;
+export default InMemoryCacheCard

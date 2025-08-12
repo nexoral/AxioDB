@@ -48,7 +48,11 @@ export default async function mainRouter(
   // Middleware for /db routes
   fastify.addHook("preHandler", async (request, reply) => {
     // Only apply middleware to routes starting with /db
-    if (request.url.includes("/db") || request.url.includes("/collection") || request.url.includes("/dashboard-stats")) {
+    if (
+      request.url.includes("/db") ||
+      request.url.includes("/collection") ||
+      request.url.includes("/dashboard-stats")
+    ) {
       const transactionToken = (request.query as any)?.transactiontoken;
       const status = await new KeyController(process.version).verifyKey(
         transactionToken,
@@ -105,7 +109,9 @@ export default async function mainRouter(
   );
 
   // Get Dashboard Stats
-  fastify.get("/dashboard-stats", async (request, reply) => new StatsController(AxioDBInstance).getDashBoardStat());
+  fastify.get("/dashboard-stats", async (request, reply) =>
+    new StatsController(AxioDBInstance).getDashBoardStat(),
+  );
 
   // Register the DB router
   fastify.register(dbRouter, {

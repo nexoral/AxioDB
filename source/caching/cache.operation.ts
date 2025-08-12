@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import os from 'os';
+import os from "os";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
@@ -119,62 +119,62 @@ export class InMemoryCache {
 
   /**
    * Retrieves detailed information about the current state of the cache.
-   * 
+   *
    * This method calculates:
    * - Total estimated size of the cache in bytes (including keys, values, and timestamps)
    * - Available system memory (in Node.js environments)
    * - Number of items currently in the cache
    * - Number of temporary search queries stored
-   * 
+   *
    * @returns {Promise<any>} A promise that resolves to an object containing cache details:
    *   - cacheSizeInBytes: Estimated size of the cache in bytes
    *   - availableMemoryInBytes: Available system memory in bytes (or -1 if not in Node.js)
    *   - cacheItemCount: Number of items in the cache
    *   - tempQueryCount: Number of temporary search queries
    *   - Or false if an error occurs during calculation
-   * 
+   *
    * @throws {Error} Logs the error to console but doesn't throw; returns false instead
    */
-  public async getCacheDetails (): Promise<any> {
+  public async getCacheDetails(): Promise<any> {
     try {
       // Calculate the total size of cache
       let totalCacheSize = 0;
-      
+
       // Convert cache map to entries for size calculation
       for (const [key, value] of this.cacheObject.entries()) {
-      // Estimate size of key
-      totalCacheSize += key.length * 2; // String characters in JS use ~2 bytes
-      
-      // Estimate size of value using JSON stringify
-      const valueSize = JSON.stringify(value.value).length * 2;
-      totalCacheSize += valueSize;
-      
-      // Add size of Date object (~8 bytes)
-      totalCacheSize += 8;
+        // Estimate size of key
+        totalCacheSize += key.length * 2; // String characters in JS use ~2 bytes
+
+        // Estimate size of value using JSON stringify
+        const valueSize = JSON.stringify(value.value).length * 2;
+        totalCacheSize += valueSize;
+
+        // Add size of Date object (~8 bytes)
+        totalCacheSize += 8;
       }
-      
+
       // Add size of temp search queries
       totalCacheSize += JSON.stringify(this.tempSearchQuery).length * 2;
-      
+
       // Get total memory of the machine
       let availableMemory = 0;
-      
+
       try {
-      // Only works in Node.js environment
-      availableMemory = os.freemem();
+        // Only works in Node.js environment
+        availableMemory = os.freemem();
       } catch (error) {
-      // If we're in a browser or other environment where os is not available
-      availableMemory = -1;
+        // If we're in a browser or other environment where os is not available
+        availableMemory = -1;
       }
-      
+
       return {
-      cacheSizeInBytes: totalCacheSize,
-      availableMemoryInBytes: availableMemory,
-      cacheItemCount: this.cacheObject.size,
-      tempQueryCount: this.tempSearchQuery.length
+        cacheSizeInBytes: totalCacheSize,
+        availableMemoryInBytes: availableMemory,
+        cacheItemCount: this.cacheObject.size,
+        tempQueryCount: this.tempSearchQuery.length,
       };
     } catch (error) {
-      console.error('Error getting cache details:', error);
+      console.error("Error getting cache details:", error);
       return false;
     }
   }
