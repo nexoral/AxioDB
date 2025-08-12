@@ -4,18 +4,13 @@ import { useEffect, useState } from "react";
 /**
  * Component to display the total in-memory cache size in the AxioDB system
  */
-const InMemoryCacheCard = () => {
-  // In a real application, this would come from an API
-  const [cacheSize, setCacheSize] = useState(0);
-  const [totalSize, setTotalSize] = useState(0);
+const InMemoryCacheCard = ({CacheStorageInfo}) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Simulate API call with dummy data
     const fetchData = () => {
       setTimeout(() => {
-        setCacheSize(512); // MB
-        setTotalSize(1024); // MB
         setLoading(false);
       }, 800);
     };
@@ -24,7 +19,7 @@ const InMemoryCacheCard = () => {
   }, []);
 
   // Calculate percentage of cache used
-  const usagePercentage = (cacheSize / totalSize) * 100;
+  const usagePercentage = (CacheStorageInfo.Storage / CacheStorageInfo.Max) * 100;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
@@ -35,11 +30,11 @@ const InMemoryCacheCard = () => {
             <div className="h-8 mt-2 bg-gray-200 rounded animate-pulse w-24" />
           ) : (
             <p className="text-3xl font-bold text-orange-600 mt-2">
-              {cacheSize} <span className="text-lg">MB</span>
+              {CacheStorageInfo.Storage} <span className="text-lg">{CacheStorageInfo.Unit}</span>
             </p>
           )}
           <p className="text-sm text-gray-500 mt-1">
-            of {totalSize} MB allocated
+            of {CacheStorageInfo.Max} {CacheStorageInfo.Unit} allocated
           </p>
         </div>
         <div className="p-3 bg-orange-100 rounded-full">

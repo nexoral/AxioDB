@@ -6,7 +6,7 @@ import buildResponse, {
 } from "../helper/responseBuilder.helper";
 // import { FastifyRequest } from "fastify";
 // import countFilesRecursive from "../../helper/filesCounterInFolder.helper";
-
+import InMemoryCache from "../../caching/cache.operation";
 import fs from 'fs';
 
 export default class StatsController {
@@ -58,6 +58,10 @@ export default class StatsController {
       const MatrixUnitsForUsedStorage = "MB";
       const MatrixUnitsForMachineStorage = "MB";
 
+      const CacheStorageDetails = await InMemoryCache.getCacheDetails();
+      const totalCacheSize = parseFloat((CacheStorageDetails.cacheSizeInBytes / (1024 * 1024)).toFixed(2));
+      const maxCacheSize = parseFloat((CacheStorageDetails.availableMemoryInBytes / (1024 * 1024)).toFixed(2));
+
       const response = {
         totalDatabases: InstanceInfo?.data?.ListOfDatabases?.length || 0,
         totalCollections: totalCollections || 0,
@@ -68,6 +72,11 @@ export default class StatsController {
           machine: totalMachineStorage || 0,
           machineUnit: MatrixUnitsForMachineStorage || "B",
         },
+        cacheStorage: {
+          Storage: totalCacheSize || 0,
+          Max: maxCacheSize || 0,
+          Unit: "MB"
+        }
       };
 
       return buildResponse(StatusCodes.OK, "Dashboard stats fetched successfully", response);

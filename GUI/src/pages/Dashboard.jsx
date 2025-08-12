@@ -53,7 +53,7 @@ const Dashboard = () => {
           <TotalCollectionsCard totalCollections={AllInstanceInfo?.totalCollections || 0} />
             <TotalDocumentsCard totalDocuments={AllInstanceInfo?.totalDocuments || 0} />
           <StorageUsageCard storageInfo={AllInstanceInfo?.storageInfo || {}} />
-          <InMemoryCacheCard />
+            <InMemoryCacheCard CacheStorageInfo={AllInstanceInfo?.cacheStorage || {}} />
         </div>
       )}
 
