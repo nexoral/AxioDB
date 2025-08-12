@@ -6,45 +6,7 @@ on:
       - main
 
 jobs:
-  check-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      should_build: ${{ steps.check_changes.outputs.should_build }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Check for GUI or source changes
-        id: check_changes
-        run: |
-          # Check if we have a previous commit to compare against
-          if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
-            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
-            echo "Changed files: $CHANGED_FILES"
-            
-            if echo "$CHANGED_FILES" | grep -E "^(GUI/|src/)" >/dev/null 2>&1; then
-              echo "should_build=true" >> $GITHUB_OUTPUT
-              echo "Changes detected in GUI or source folders"
-            else
-              echo "should_build=false" >> $GITHUB_OUTPUT
-              echo "No changes detected in GUI or source folders"
-            fi
-          else
-            # If no previous commit exists (first commit), check if GUI or src folders exist
-            if [ -d "GUI" ] || [ -d "src" ]; then
-              echo "should_build=true" >> $GITHUB_OUTPUT
-              echo "First commit or no previous commit - building"
-            else
-              echo "should_build=false" >> $GITHUB_OUTPUT
-              echo "No GUI or src folders found"
-            fi
-          fi
-
   test:
-    needs: check-changes
-    if: needs.check-changes.outputs.should_build == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -63,8 +25,7 @@ jobs:
         run: npm run test
 
   publish_to_npm:
-    needs: [check-changes, test]
-    if: needs.check-changes.outputs.should_build == 'true'
+    needs: [test]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -85,8 +46,7 @@ jobs:
         run: npm publish --access public
 
   publish_to_github:
-    needs: [check-changes, test]
-    if: needs.check-changes.outputs.should_build == 'true'
+    needs: [test]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -111,10 +71,3 @@ jobs:
       - name: Publish to GitHub Package Registry
         run: npm publish --registry=https://npm.pkg.github.com --scope=@${{ secrets.GIT_USER_NAME }} --access public
 
-  skip-deployment:
-    needs: check-changes
-    if: needs.check-changes.outputs.should_build == 'false'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Skip deployment
-        run: echo "No GUI or source changes detected. Skipping build and deployment."
