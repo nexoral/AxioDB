@@ -133,8 +133,7 @@ export class AxioDB {
       const FinalDatabaseInfo: FinalDatabaseInfo = {
         CurrentPath: this.currentPATH,
         RootName: this.RootName,
-        MatrixUnits: "MB",
-        TotalSize: parseFloat((totalSize.data / 1024 / 1024).toFixed(6)),
+        TotalSize: parseFloat(totalSize.data),
         TotalDatabases: `${totalDatabases.data.length} Databases`,
         ListOfDatabases: totalDatabases.data,
         DatabaseMap: this.DatabaseMap,

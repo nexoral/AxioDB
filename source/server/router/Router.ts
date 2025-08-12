@@ -14,6 +14,7 @@ import dbRouter from "./Routers/DB.routes";
 import KeyController from "../controller/Key/key.controller";
 import collectionRouter from "./Routers/Collection.routes";
 import OperationRouter from "./Routers/Operation.routes";
+import StatsController from "../controller/Stats.controller";
 
 // Interfaces
 type PackageInterface = {
@@ -47,7 +48,11 @@ export default async function mainRouter(
   // Middleware for /db routes
   fastify.addHook("preHandler", async (request, reply) => {
     // Only apply middleware to routes starting with /db
-    if (request.url.includes("/db")) {
+    if (
+      request.url.includes("/db") ||
+      request.url.includes("/collection") ||
+      request.url.includes("/dashboard-stats")
+    ) {
       const transactionToken = (request.query as any)?.transactiontoken;
       const status = await new KeyController(process.version).verifyKey(
         transactionToken,
@@ -101,6 +106,11 @@ export default async function mainRouter(
   // Generate a new token for transacting with AxioDB Server
   fastify.get("/get-token", async (request, reply) =>
     new KeyController(process.version).generateKey(),
+  );
+
+  // Get Dashboard Stats
+  fastify.get("/dashboard-stats", async (request, reply) =>
+    new StatsController(AxioDBInstance).getDashBoardStat(),
   );
 
   // Register the DB router
