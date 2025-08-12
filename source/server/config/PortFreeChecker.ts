@@ -102,7 +102,7 @@ export async function checkDockerPortMapping(port: number): Promise<void> {
  */
 export async function isDockerInstalled(): Promise<boolean> {
   return new Promise((resolve) => {
-    exec('docker --version', (error, stdout, stderr) => {
+    exec("docker --version", (error, stdout, stderr) => {
       if (error) {
         resolve(false); // Docker is not installed or not accessible
       } else {
@@ -122,7 +122,7 @@ export async function isDockerInstalled(): Promise<boolean> {
 export default async function checkPortAndDocker(port: number) {
   await isPortInUse(port);
   const status: boolean = await isDockerInstalled();
-  if(status) {
+  if (status) {
     await checkDockerPortMapping(port);
   }
 }
