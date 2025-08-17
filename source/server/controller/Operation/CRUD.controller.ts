@@ -240,15 +240,15 @@ export default class CRUDController {
 
   /**
    * Executes an aggregation pipeline on a specified collection.
-   * 
+   *
    * @param request - The Fastify request object containing query parameters.
    * @param request.query.dbName - The name of the database to use.
    * @param request.query.collectionName - The name of the collection to perform aggregation on.
    * @param request.query.aggregation - An array of aggregation pipeline stages.
-   * 
+   *
    * @returns A response object with status code, message, and aggregation results if successful.
    * If the aggregation fails, returns an error response with appropriate status code.
-   * 
+   *
    * @example
    * // Example request query:
    * {
@@ -272,11 +272,15 @@ export default class CRUDController {
 
     // validate aggregation pipeline
     if (!Array.isArray(aggregation) || aggregation.length === 0) {
-      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid aggregation pipeline");
+      return buildResponse(
+        StatusCodes.BAD_REQUEST,
+        "Invalid aggregation pipeline",
+      );
     }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-    const DB_Collection = await databaseInstance.createCollection(collectionName);
+    const DB_Collection =
+      await databaseInstance.createCollection(collectionName);
 
     const aggregationResult = await DB_Collection.aggregate(aggregation).exec();
     if (!aggregationResult || aggregationResult.statusCode !== StatusCodes.OK) {
@@ -285,6 +289,10 @@ export default class CRUDController {
         "Failed to run aggregation",
       );
     }
-    return buildResponse(StatusCodes.OK, "Aggregation run successfully", aggregationResult.data);
+    return buildResponse(
+      StatusCodes.OK,
+      "Aggregation run successfully",
+      aggregationResult.data,
+    );
   }
 }

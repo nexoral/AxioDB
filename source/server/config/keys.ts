@@ -161,7 +161,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         payload: {
           aggregation: "array",
         },
-      }
+      },
     ],
   },
 ];

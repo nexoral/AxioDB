@@ -133,13 +133,15 @@ const Documents = () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${TransactionKey}`
+            Authorization: `Bearer ${TransactionKey}`
           }
         }
       )
 
       if (response.data && response.data.data) {
-        setAggregationResults(response.data.data.documents || response.data.data)
+        setAggregationResults(
+          response.data.data.documents || response.data.data
+        )
       }
 
       setLoading(false)
@@ -199,18 +201,20 @@ const Documents = () => {
   const formatPipelineForDisplay = (pipeline) => {
     try {
       if (!Array.isArray(pipeline) || pipeline.length === 0) {
-        return "No conditions"
+        return 'No conditions'
       }
 
       // Extract the most important parts of the pipeline for display
-      const displayParts = pipeline.map((stage, index) => {
-        const stageKey = Object.keys(stage)[0]
-        return `${stageKey.replace('$', '')}: ${JSON.stringify(stage[stageKey]).substring(0, 30)}${JSON.stringify(stage[stageKey]).length > 30 ? '...' : ''}`
-      }).join(', ')
+      const displayParts = pipeline
+        .map((stage, index) => {
+          const stageKey = Object.keys(stage)[0]
+          return `${stageKey.replace('$', '')}: ${JSON.stringify(stage[stageKey]).substring(0, 30)}${JSON.stringify(stage[stageKey]).length > 30 ? '...' : ''}`
+        })
+        .join(', ')
 
       return displayParts
     } catch (error) {
-      return "Invalid pipeline"
+      return 'Invalid pipeline'
     }
   }
 
@@ -304,45 +308,47 @@ const Documents = () => {
 
         {/* Aggregation Banner - Show when in aggregation view */}
         {isAggregationView && (
-          <div className="bg-indigo-50 px-6 py-3 border-b border-indigo-100 flex justify-between items-center">
-            <div className="flex items-center">
+          <div className='bg-indigo-50 px-6 py-3 border-b border-indigo-100 flex justify-between items-center'>
+            <div className='flex items-center'>
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-indigo-600 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+                xmlns='http://www.w3.org/2000/svg'
+                className='h-5 w-5 text-indigo-600 mr-2'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
                   strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
+                  d='M19 9l-7 7-7-7'
                 />
               </svg>
               <div>
-                <span className="text-sm font-medium text-indigo-800">Aggregation Results</span>
-                <p className="text-xs text-indigo-600 mt-0.5">
+                <span className='text-sm font-medium text-indigo-800'>
+                  Aggregation Results
+                </span>
+                <p className='text-xs text-indigo-600 mt-0.5'>
                   Pipeline: {formatPipelineForDisplay(aggregationPipeline)}
                 </p>
               </div>
             </div>
             <button
               onClick={clearAggregation}
-              className="text-indigo-700 hover:text-indigo-900 text-sm font-medium flex items-center"
+              className='text-indigo-700 hover:text-indigo-900 text-sm font-medium flex items-center'
             >
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+                xmlns='http://www.w3.org/2000/svg'
+                className='h-4 w-4 mr-1'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
               >
                 <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
                   strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
+                  d='M6 18L18 6M6 6l12 12'
                 />
               </svg>
               Clear Aggregation
@@ -396,7 +402,9 @@ const Documents = () => {
                           </svg>
                           <div className='font-mono text-indigo-700 font-semibold'>
                             <span className='text-sm'>
-                              {doc.documentId ? `ID: ${doc.documentId}` : `Result #${index + 1}`}
+                              {doc.documentId
+                                ? `ID: ${doc.documentId}`
+                                : `Result #${index + 1}`}
                             </span>
                           </div>
                         </div>
@@ -473,20 +481,18 @@ const Documents = () => {
                 </button>
               </div>
             )
-          ) : (
-            // Normal Document View
-            documents.length > 0 ? (
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                {documents.map(
-                  (doc, index) => (
+          ) // Normal Document View
+            : documents.length > 0
+              ? (
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                  {documents.map((doc, index) => (
                     <div
                       key={doc.documentId}
                       ref={
-                        !isAggregationView &&
-                          index === documents.length - 1
-                          ? lastDocumentElementRef
-                          : null
-                      }
+                    !isAggregationView && index === documents.length - 1
+                      ? lastDocumentElementRef
+                      : null
+                  }
                       className='bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden'
                     >
                       <div className='p-4'>
@@ -499,18 +505,16 @@ const Documents = () => {
                               fill='currentColor'
                             >
                               <path
-                                fillRule='evenodd'
-                                d='M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z'
-                                clipRule='evenodd'
-                              />
+                  fillRule='evenodd'
+                  d='M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z'
+                  clipRule='evenodd'
+                />
                             </svg>
                             <div
                               className='font-mono text-indigo-700 font-semibold'
                               title={doc.documentId}
                             >
-                              <span className='text-sm'>
-                                ID: {doc.documentId}
-                              </span>
+                              <span className='text-sm'>ID: {doc.documentId}</span>
                             </div>
                           </div>
                           <span
@@ -552,37 +556,36 @@ const Documents = () => {
                         </div>
                       </div>
                     </div>
-                  )
+                  ))}
+                </div>
+                )
+              : (
+                <div className='text-center py-12'>
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='h-16 w-16 text-gray-300 mx-auto mb-4'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    stroke='currentColor'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth='2'
+                      d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                    />
+                  </svg>
+                  <p className='text-gray-500 mb-2'>
+                    No documents found in this collection
+                  </p>
+                  <button
+                    onClick={() => setShowInsertModal(true)}
+                    className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                  >
+                    Insert Your First Document
+                  </button>
+                </div>
                 )}
-              </div>
-            ) : (
-              <div className='text-center py-12'>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  className='h-16 w-16 text-gray-300 mx-auto mb-4'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  stroke='currentColor'
-                >
-                  <path
-                    strokeLinecap='round'
-                    strokeLinejoin='round'
-                    strokeWidth='2'
-                    d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
-                  />
-                </svg>
-                <p className='text-gray-500 mb-2'>
-                  No documents found in this collection
-                </p>
-                <button
-                  onClick={() => setShowInsertModal(true)}
-                  className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                >
-                  Insert Your First Document
-                </button>
-              </div>
-            )
-          )}
 
           {/* Loading state for infinite scroll - only show when not in aggregation view */}
           {loading && documents.length > 0 && !isAggregationView && (
@@ -611,10 +614,13 @@ const Documents = () => {
           )}
 
           {/* End of results message - only show when not in aggregation view */}
-          {!loading && !hasMore && documents.length > 0 && !isAggregationView && (
-            <div className='text-center py-4 text-gray-500 text-sm border-t border-gray-100 mt-6'>
-              You've reached the end of the results.
-            </div>
+          {!loading &&
+            !hasMore &&
+            documents.length > 0 &&
+            !isAggregationView && (
+              <div className='text-center py-4 text-gray-500 text-sm border-t border-gray-100 mt-6'>
+                You've reached the end of the results.
+              </div>
           )}
 
           {/* Show count of aggregation results when in aggregation view */}
@@ -675,6 +681,5 @@ const Documents = () => {
     </div>
   )
 }
-
 
 export default Documents
