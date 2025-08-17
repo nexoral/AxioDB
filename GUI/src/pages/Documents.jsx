@@ -28,10 +28,10 @@ const Documents = () => {
   const [showAggregateModal, setShowAggregateModal] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState(null)
 
-  // Search functionality states
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filteredDocuments, setFilteredDocuments] = useState([])
-  const [isSearching, setIsSearching] = useState(false)
+  // Add new state for aggregation
+  const [isAggregationView, setIsAggregationView] = useState(false)
+  const [aggregationPipeline, setAggregationPipeline] = useState([])
+  const [aggregationResults, setAggregationResults] = useState([])
 
   // Fetch documents function
   const fetchDocuments = useCallback(
@@ -74,16 +74,20 @@ const Documents = () => {
       return
     }
 
+    // Reset aggregation view when collection changes
+    setIsAggregationView(false)
+    setAggregationPipeline([])
+
     // Reset and fetch documents when collection changes
     setPage(1)
     setDocuments([])
     fetchDocuments(1, true)
   }, [databaseName, collectionName, navigate, fetchDocuments])
 
-  // Infinite scroll implementation
+  // Infinite scroll implementation - only apply when not in aggregation view
   const lastDocumentElementRef = useCallback(
     (node) => {
-      if (loading) return
+      if (loading || isAggregationView) return // Don't apply infinite scroll in aggregation view
       if (observer.current) observer.current.disconnect()
 
       observer.current = new IntersectionObserver((entries) => {
@@ -95,43 +99,8 @@ const Documents = () => {
 
       if (node) observer.current.observe(node)
     },
-    [loading, hasMore, fetchDocuments, page]
+    [loading, hasMore, fetchDocuments, page, isAggregationView]
   )
-
-  // Update filtered documents when documents or search query changes
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredDocuments(documents)
-      setIsSearching(false)
-      return
-    }
-
-    setIsSearching(true)
-
-    try {
-      // Try to parse as JSON for advanced queries
-      const jsonQuery = JSON.parse(searchQuery)
-      const filtered = documents.filter((doc) => {
-        // Check each key-value pair in the query
-        return Object.entries(jsonQuery).every(([key, value]) => {
-          return (
-            doc[key] !== undefined &&
-            JSON.stringify(doc[key])
-              .toLowerCase()
-              .includes(JSON.stringify(value).toLowerCase())
-          )
-        })
-      })
-      setFilteredDocuments(filtered)
-    } catch (e) {
-      // Simple string search if not valid JSON
-      const lowercaseQuery = searchQuery.toLowerCase()
-      const filtered = documents.filter((doc) =>
-        JSON.stringify(doc).toLowerCase().includes(lowercaseQuery)
-      )
-      setFilteredDocuments(filtered)
-    }
-  }, [documents, searchQuery])
 
   const handleBackToCollections = () => {
     navigate(`/collections?database=${databaseName}`)
@@ -151,24 +120,102 @@ const Documents = () => {
     setShowDeleteModal(true)
   }
 
+  // Add function to re-run aggregation query
+  const rerunAggregation = async () => {
+    try {
+      setLoading(true)
+
+      const response = await axios.post(
+        `${BASE_API_URL}/api/operation/aggregate/?dbName=${databaseName}&collectionName=${collectionName}`,
+        {
+          aggregation: aggregationPipeline
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${TransactionKey}`
+          }
+        }
+      )
+
+      if (response.data && response.data.data) {
+        setAggregationResults(
+          response.data.data.documents || response.data.data
+        )
+      }
+
+      setLoading(false)
+    } catch (error) {
+      console.error('Error re-running aggregation:', error)
+      setLoading(false)
+    }
+  }
+
   const handleUpdateDocument = (updatedDoc) => {
     setDocuments((prev) =>
       prev.map((doc) =>
         doc.documentId === updatedDoc.documentId ? updatedDoc : doc
       )
     )
+
+    // If we're in aggregation view, re-run the aggregation query
+    if (isAggregationView) {
+      rerunAggregation()
+    }
   }
 
   const handleDeleteDocument = (deletedDocId) => {
     setDocuments((prev) =>
       prev.filter((doc) => doc.documentId !== deletedDocId)
     )
+
+    // If we're in aggregation view, re-run the aggregation query
+    if (isAggregationView) {
+      rerunAggregation()
+    }
+  }
+
+  // Add function to handle aggregation results
+  const handleAggregationResults = (results, pipeline) => {
+    setAggregationResults(results)
+    setAggregationPipeline(pipeline)
+    setIsAggregationView(true)
+  }
+
+  // Add function to clear aggregation and return to normal view
+  const clearAggregation = () => {
+    setIsAggregationView(false)
+    setAggregationPipeline([])
+    setAggregationResults([])
+    // Refresh the regular document list
+    fetchDocuments(1, true)
   }
 
   // Format date for better readability
   const formatDate = (dateString) => {
     const date = new Date(dateString)
     return date.toLocaleString()
+  }
+
+  // Format aggregation pipeline for display
+  const formatPipelineForDisplay = (pipeline) => {
+    try {
+      if (!Array.isArray(pipeline) || pipeline.length === 0) {
+        return 'No conditions'
+      }
+
+      // Extract the most important parts of the pipeline for display
+      const displayParts = pipeline
+        .map((stage, index) => {
+          const stageKey = Object.keys(stage)[0]
+          return `${stageKey.replace('$', '')}: ${JSON.stringify(stage[stageKey]).substring(0, 30)}${JSON.stringify(stage[stageKey]).length > 30 ? '...' : ''}`
+        })
+        .join(', ')
+
+      return displayParts
+    } catch (error) {
+      return 'Invalid pipeline'
+    }
   }
 
   return (
@@ -259,13 +306,13 @@ const Documents = () => {
           </div>
         </div>
 
-        {/* Search Box (MongoDB Compass style) */}
-        <div className='border-b border-gray-200 bg-gray-50 px-6 py-3'>
-          <div className='relative'>
-            <div className='absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none'>
+        {/* Aggregation Banner - Show when in aggregation view */}
+        {isAggregationView && (
+          <div className='bg-indigo-50 px-6 py-3 border-b border-indigo-100 flex justify-between items-center'>
+            <div className='flex items-center'>
               <svg
                 xmlns='http://www.w3.org/2000/svg'
-                className='h-5 w-5 text-gray-400'
+                className='h-5 w-5 text-indigo-600 mr-2'
                 fill='none'
                 viewBox='0 0 24 24'
                 stroke='currentColor'
@@ -274,26 +321,249 @@ const Documents = () => {
                   strokeLinecap='round'
                   strokeLinejoin='round'
                   strokeWidth={2}
-                  d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+                  d='M19 9l-7 7-7-7'
                 />
               </svg>
+              <div>
+                <span className='text-sm font-medium text-indigo-800'>
+                  Aggregation Results
+                </span>
+                <p className='text-xs text-indigo-600 mt-0.5'>
+                  Pipeline: {formatPipelineForDisplay(aggregationPipeline)}
+                </p>
+              </div>
             </div>
-            <input
-              type='text'
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder='Search documents... (e.g., "John" or {"name": "John"})'
-              className='pl-10 py-2 pr-4 w-full border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm'
-            />
-            {searchQuery && (
-              <div className='absolute inset-y-0 right-0 flex items-center pr-3'>
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className='text-gray-400 hover:text-gray-600'
+            <button
+              onClick={clearAggregation}
+              className='text-indigo-700 hover:text-indigo-900 text-sm font-medium flex items-center'
+            >
+              <svg
+                xmlns='http://www.w3.org/2000/svg'
+                className='h-4 w-4 mr-1'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M6 18L18 6M6 6l12 12'
+                />
+              </svg>
+              Clear Aggregation
+            </button>
+          </div>
+        )}
+
+        {/* Card-based document view */}
+        <div className='p-6'>
+          {/* When loading and no documents */}
+          {loading && (!isAggregationView ? documents.length === 0 : false) ? (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className='animate-pulse bg-white rounded-lg border border-gray-200 shadow-sm p-4'
                 >
+                  <div className='h-4 bg-gray-200 rounded w-3/4 mb-3' />
+                  <div className='h-3 bg-gray-100 rounded w-1/2 mb-2' />
+                  <div className='h-20 bg-gray-100 rounded mb-3' />
+                  <div className='flex justify-end'>
+                    <div className='h-8 bg-gray-200 rounded w-16 mr-2' />
+                    <div className='h-8 bg-gray-200 rounded w-16' />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : isAggregationView ? (
+            // Aggregation Results View
+            aggregationResults.length > 0 ? (
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                {aggregationResults.map((doc, index) => (
+                  <div
+                    key={index}
+                    className='bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden'
+                  >
+                    <div className='p-4'>
+                      <div className='flex items-center justify-between mb-3'>
+                        <div className='flex items-center'>
+                          <svg
+                            xmlns='http://www.w3.org/2000/svg'
+                            className='h-5 w-5 text-indigo-500 mr-2'
+                            viewBox='0 0 20 20'
+                            fill='currentColor'
+                          >
+                            <path
+                              fillRule='evenodd'
+                              d='M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z'
+                              clipRule='evenodd'
+                            />
+                          </svg>
+                          <div className='font-mono text-indigo-700 font-semibold'>
+                            <span className='text-sm'>
+                              {doc.documentId
+                                ? `ID: ${doc.documentId}`
+                                : `Result #${index + 1}`}
+                            </span>
+                          </div>
+                        </div>
+                        {doc.updatedAt && (
+                          <span
+                            className='text-xs text-gray-500'
+                            title={doc.updatedAt}
+                          >
+                            {formatDate(doc.updatedAt)}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className='bg-gray-50 rounded p-3 mb-3 h-48 overflow-y-auto'>
+                        <pre className='text-xs font-mono whitespace-pre-wrap break-words text-gray-800'>
+                          {JSON.stringify(
+                            Object.fromEntries(
+                              Object.entries(doc).filter(
+                                ([key]) =>
+                                  !['documentId', 'updatedAt'].includes(key)
+                              )
+                            ),
+                            null,
+                            2
+                          )}
+                        </pre>
+                      </div>
+
+                      {/* Add Update and Delete buttons if documentId exists */}
+                      {doc.documentId && (
+                        <div className='flex justify-end space-x-2'>
+                          <button
+                            onClick={() => handleUpdateClick(doc)}
+                            className='text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md text-sm transition-colors'
+                          >
+                            Update
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(doc)}
+                            className='text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm transition-colors'
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className='text-center py-12'>
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='h-16 w-16 text-gray-300 mx-auto mb-4'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  stroke='currentColor'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth='2'
+                    d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
+                  />
+                </svg>
+                <p className='text-gray-500 mb-2'>
+                  No documents match your aggregation pipeline
+                </p>
+                <button
+                  onClick={clearAggregation}
+                  className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                >
+                  Clear Aggregation
+                </button>
+              </div>
+            )
+          ) // Normal Document View
+            : documents.length > 0
+              ? (
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                  {documents.map((doc, index) => (
+                    <div
+                      key={doc.documentId}
+                      ref={
+                    !isAggregationView && index === documents.length - 1
+                      ? lastDocumentElementRef
+                      : null
+                  }
+                      className='bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden'
+                    >
+                      <div className='p-4'>
+                        <div className='flex items-center justify-between mb-3'>
+                          <div className='flex items-center'>
+                            <svg
+                              xmlns='http://www.w3.org/2000/svg'
+                              className='h-5 w-5 text-yellow-500 mr-2'
+                              viewBox='0 0 20 20'
+                              fill='currentColor'
+                            >
+                              <path
+                  fillRule='evenodd'
+                  d='M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z'
+                  clipRule='evenodd'
+                />
+                            </svg>
+                            <div
+                              className='font-mono text-indigo-700 font-semibold'
+                              title={doc.documentId}
+                            >
+                              <span className='text-sm'>ID: {doc.documentId}</span>
+                            </div>
+                          </div>
+                          <span
+                            className='text-xs text-gray-500'
+                            title={doc.updatedAt}
+                          >
+                            {formatDate(doc.updatedAt)}
+                          </span>
+                        </div>
+
+                        <div className='bg-gray-50 rounded p-3 mb-3 h-48 overflow-y-auto'>
+                          <pre className='text-xs font-mono whitespace-pre-wrap break-words text-gray-800'>
+                            {JSON.stringify(
+                              Object.fromEntries(
+                                Object.entries(doc).filter(
+                                  ([key]) =>
+                                    !['documentId', 'updatedAt'].includes(key)
+                                )
+                              ),
+                              null,
+                              2
+                            )}
+                          </pre>
+                        </div>
+
+                        <div className='flex justify-end space-x-2'>
+                          <button
+                            onClick={() => handleUpdateClick(doc)}
+                            className='text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md text-sm transition-colors'
+                          >
+                            Update
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(doc)}
+                            className='text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm transition-colors'
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                )
+              : (
+                <div className='text-center py-12'>
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
-                    className='h-5 w-5'
+                    className='h-16 w-16 text-gray-300 mx-auto mb-4'
                     fill='none'
                     viewBox='0 0 24 24'
                     stroke='currentColor'
@@ -301,196 +571,24 @@ const Documents = () => {
                     <path
                       strokeLinecap='round'
                       strokeLinejoin='round'
-                      strokeWidth={2}
-                      d='M6 18L18 6M6 6l12 12'
+                      strokeWidth='2'
+                      d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
                     />
                   </svg>
-                </button>
-              </div>
-            )}
-          </div>
-          {searchQuery && (
-            <div className='mt-2 flex items-center text-sm text-gray-500'>
-              <span className='mr-2'>
-                Found {filteredDocuments.length} matching{' '}
-                {filteredDocuments.length === 1 ? 'document' : 'documents'}
-              </span>
-              {isSearching && documents.length > 0 && (
-                <span className='text-indigo-600 font-medium'>
-                  {Math.round(
-                    (filteredDocuments.length / documents.length) * 100
-                  )}
-                  % of total
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Card-based document view */}
-        <div className='p-6'>
-          {loading && documents.length === 0
-            ? (
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div
-                    key={i}
-                    className='animate-pulse bg-white rounded-lg border border-gray-200 shadow-sm p-4'
+                  <p className='text-gray-500 mb-2'>
+                    No documents found in this collection
+                  </p>
+                  <button
+                    onClick={() => setShowInsertModal(true)}
+                    className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
                   >
-                    <div className='h-4 bg-gray-200 rounded w-3/4 mb-3' />
-                    <div className='h-3 bg-gray-100 rounded w-1/2 mb-2' />
-                    <div className='h-20 bg-gray-100 rounded mb-3' />
-                    <div className='flex justify-end'>
-                      <div className='h-8 bg-gray-200 rounded w-16 mr-2' />
-                      <div className='h-8 bg-gray-200 rounded w-16' />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              )
-            : (searchQuery ? filteredDocuments : documents).length > 0
-                ? (
-                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-                    {(searchQuery ? filteredDocuments : documents).map(
-                      (doc, index) => (
-                        <div
-                          key={doc.documentId}
-                          ref={
-                      !searchQuery && index === documents.length - 1
-                        ? lastDocumentElementRef
-                        : null
-                    }
-                          className='bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden'
-                        >
-                          <div className='p-4'>
-                            <div className='flex items-center justify-between mb-3'>
-                              <div className='flex items-center'>
-                                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  className='h-5 w-5 text-yellow-500 mr-2'
-                  viewBox='0 0 20 20'
-                  fill='currentColor'
-                >
-                  <path
-                              fillRule='evenodd'
-                              d='M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z'
-                              clipRule='evenodd'
-                            />
-                </svg>
-                                <div
-                  className='font-mono text-indigo-700 font-semibold'
-                  title={doc.documentId}
-                >
-                  <span className='text-sm'>
-                              ID: {doc.documentId}
-                            </span>
+                    Insert Your First Document
+                  </button>
                 </div>
-                              </div>
-                              <span
-                                className='text-xs text-gray-500'
-                                title={doc.updatedAt}
-                              >
-                                {formatDate(doc.updatedAt)}
-                              </span>
-                            </div>
-
-                            <div className='bg-gray-50 rounded p-3 mb-3 h-48 overflow-y-auto'>
-                              <pre className='text-xs font-mono whitespace-pre-wrap break-words text-gray-800'>
-                                {JSON.stringify(
-                  Object.fromEntries(
-                    Object.entries(doc).filter(
-                      ([key]) =>
-                        !['documentId', 'updatedAt'].includes(key)
-                    )
-                  ),
-                  null,
-                  2
                 )}
-                              </pre>
-                            </div>
 
-                            <div className='flex justify-end space-x-2'>
-                              <button
-                                onClick={() => handleUpdateClick(doc)}
-                                className='text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md text-sm transition-colors'
-                              >
-                          Update
-                              </button>
-                              <button
-                                onClick={() => handleDeleteClick(doc)}
-                                className='text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm transition-colors'
-                              >
-                          Delete
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                  )
-                : (
-                  <div className='text-center py-12'>
-                    {searchQuery
-                      ? (
-                        <>
-                          <svg
-                            xmlns='http://www.w3.org/2000/svg'
-                            className='h-16 w-16 text-gray-300 mx-auto mb-4'
-                            fill='none'
-                            viewBox='0 0 24 24'
-                            stroke='currentColor'
-                          >
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              strokeWidth='2'
-                              d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
-                            />
-                          </svg>
-                          <p className='text-gray-500 mb-2'>
-                            No documents match your search criteria
-                          </p>
-                          <button
-                            onClick={() => setSearchQuery('')}
-                            className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                          >
-                            Clear Search
-                          </button>
-                        </>
-                        )
-                      : (
-                        <>
-                          <svg
-                            xmlns='http://www.w3.org/2000/svg'
-                            className='h-16 w-16 text-gray-300 mx-auto mb-4'
-                            fill='none'
-                            viewBox='0 0 24 24'
-                            stroke='currentColor'
-                          >
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              strokeWidth='2'
-                              d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
-                            />
-                          </svg>
-                          <p className='text-gray-500 mb-2'>
-                            No documents found in this collection
-                          </p>
-                          <button
-                            onClick={() => setShowInsertModal(true)}
-                            className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                          >
-                            Insert Your First Document
-                          </button>
-                        </>
-                        )}
-                  </div>
-                  )}
-
-          {/* Loading state for infinite scroll - only show when not searching */}
-          {loading && documents.length > 0 && !searchQuery && (
+          {/* Loading state for infinite scroll - only show when not in aggregation view */}
+          {loading && documents.length > 0 && !isAggregationView && (
             <div className='flex justify-center items-center py-4'>
               <svg
                 className='animate-spin h-6 w-6 text-indigo-500'
@@ -515,10 +613,20 @@ const Documents = () => {
             </div>
           )}
 
-          {/* End of results message - only show when not searching */}
-          {!loading && !hasMore && documents.length > 0 && !searchQuery && (
+          {/* End of results message - only show when not in aggregation view */}
+          {!loading &&
+            !hasMore &&
+            documents.length > 0 &&
+            !isAggregationView && (
+              <div className='text-center py-4 text-gray-500 text-sm border-t border-gray-100 mt-6'>
+                You've reached the end of the results.
+              </div>
+          )}
+
+          {/* Show count of aggregation results when in aggregation view */}
+          {isAggregationView && aggregationResults.length > 0 && (
             <div className='text-center py-4 text-gray-500 text-sm border-t border-gray-100 mt-6'>
-              You've reached the end of the results.
+              Showing all {aggregationResults.length} aggregation results.
             </div>
           )}
         </div>
@@ -560,14 +668,14 @@ const Documents = () => {
         />
       )}
 
-      {/* Aggregate Modal */}
+      {/* Aggregate Modal - Updated to pass results back to parent */}
       {showAggregateModal && (
         <AggregateModal
           isOpen={showAggregateModal}
           onClose={() => setShowAggregateModal(false)}
           databaseName={databaseName}
           collectionName={collectionName}
-          onSuccess={() => fetchDocuments(1, true)}
+          onAggregationResults={handleAggregationResults}
         />
       )}
     </div>

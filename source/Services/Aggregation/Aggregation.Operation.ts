@@ -87,7 +87,9 @@ export default class Aggregation {
     // Load all buffer raw data from the specified directory
     await this.LoadAllBufferRawData().then((response) => {
       if ("data" in response) {
-        Console.green("Data Loaded Successfully for Aggregation");
+        Console.green(
+          `${response?.data?.length} Documents Loaded for Aggregation`,
+        );
       }
     });
 

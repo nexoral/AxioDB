@@ -237,4 +237,62 @@ export default class CRUDController {
 
     return buildResponse(StatusCodes.OK, "Document deleted successfully");
   }
+
+  /**
+   * Executes an aggregation pipeline on a specified collection.
+   *
+   * @param request - The Fastify request object containing query parameters.
+   * @param request.query.dbName - The name of the database to use.
+   * @param request.query.collectionName - The name of the collection to perform aggregation on.
+   * @param request.query.aggregation - An array of aggregation pipeline stages.
+   *
+   * @returns A response object with status code, message, and aggregation results if successful.
+   * If the aggregation fails, returns an error response with appropriate status code.
+   *
+   * @example
+   * // Example request query:
+   * {
+   *   dbName: "myDatabase",
+   *   collectionName: "users",
+   *   aggregation: [
+   *     { $match: { age: { $gt: 21 } } },
+   *     { $group: { _id: "$status", count: { $sum: 1 } } }
+   *   ]
+   * }
+   */
+  public async runAggregation(request: FastifyRequest) {
+    let { dbName, collectionName } = request.query as {
+      dbName: string;
+      collectionName: string;
+    };
+
+    let { aggregation } = request.body as {
+      aggregation: object[];
+    };
+
+    // validate aggregation pipeline
+    if (!Array.isArray(aggregation) || aggregation.length === 0) {
+      return buildResponse(
+        StatusCodes.BAD_REQUEST,
+        "Invalid aggregation pipeline",
+      );
+    }
+
+    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
+    const DB_Collection =
+      await databaseInstance.createCollection(collectionName);
+
+    const aggregationResult = await DB_Collection.aggregate(aggregation).exec();
+    if (!aggregationResult || aggregationResult.statusCode !== StatusCodes.OK) {
+      return buildResponse(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Failed to run aggregation",
+      );
+    }
+    return buildResponse(
+      StatusCodes.OK,
+      "Aggregation run successfully",
+      aggregationResult.data,
+    );
+  }
 }
