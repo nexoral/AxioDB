@@ -25,7 +25,7 @@ export const CORS_CONFIG = {
 export const staticPath = path.resolve(__dirname, "../public/AxioControl");
 
 interface MainRoutesInterface {
-  method: string;
+  method: "GET" | "POST" | "PUT" | "DELETE";
   path: string;
   description: string;
   payload?: Record<string, any>;
@@ -154,6 +154,14 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         description: "Delete an existing document in a collection",
         path: "/api/operation/delete/?dbName&collectionName&documentId",
       },
+      {
+        method: "POST",
+        description: "Perform aggregation on documents in a collection",
+        path: "/api/operation/aggregate/?dbName&collectionName",
+        payload: {
+          aggregation: "array",
+        },
+      }
     ],
   },
 ];
