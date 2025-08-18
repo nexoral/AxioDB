@@ -4,7 +4,7 @@ import { AxioDB } from "../../Services/Indexation.operation";
 import buildResponse from "../helper/responseBuilder.helper"; // ResponseBuilder,
 // import { FastifyRequest } from "fastify";
 // import countFilesRecursive from "../../helper/filesCounterInFolder.helper";
-import InMemoryCache from "../../caching/cache.operation";
+import InMemoryCache from "../../Memory/memory.operation";
 import fs from "fs";
 
 export default class StatsController {

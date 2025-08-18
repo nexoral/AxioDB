@@ -13,7 +13,7 @@ import FolderManager from "../../engine/Filesystem/FolderManager";
 // Import All Utility
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
-import InMemoryCache from "../../caching/cache.operation";
+import InMemoryCache from "../../Memory/memory.operation";
 import { General } from "../../config/Keys/Keys";
 import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
 /**
