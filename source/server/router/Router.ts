@@ -109,9 +109,12 @@ export default async function mainRouter(
   );
 
   // Get Dashboard Stats
-  fastify.get("/dashboard-stats", async (request, reply) =>
-    new StatsController(AxioDBInstance).getDashBoardStat(),
-  );
+  fastify.get("/dashboard-stats", async (request, reply) => {
+    const transactionToken = (request.query as any)?.transactiontoken;
+    return new StatsController(AxioDBInstance).getDashBoardStat(
+      transactionToken,
+    );
+  });
 
   // Register the DB router
   fastify.register(dbRouter, {
