@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
 import buildResponse from "../../helper/responseBuilder.helper";
@@ -18,9 +19,12 @@ export default async function dbRouter(
   const { AxioDBInstance } = options; // Access the AxioDB instance passed from the main router
 
   // Get all databases
-  fastify.get("/databases", async () =>
-    new DatabaseController(AxioDBInstance).getDatabases(),
-  );
+  fastify.get("/databases", async (request) => {
+    const transactionToken = (request.query as any)?.transactiontoken;
+    return new DatabaseController(AxioDBInstance).getDatabases(
+      transactionToken,
+    );
+  });
 
   // Create a new database
   fastify.post("/create-database", async (request) =>

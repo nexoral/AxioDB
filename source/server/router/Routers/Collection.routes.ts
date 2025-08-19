@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
 import buildResponse from "../../helper/responseBuilder.helper";
@@ -18,9 +19,13 @@ export default async function collectionRouter(
   const { AxioDBInstance } = options;
 
   // Get All Collection
-  fastify.get("/all/", async (request, reply) =>
-    new CollectionController(AxioDBInstance).getCollections(request),
-  );
+  fastify.get("/all/", async (request, reply) => {
+    const transactionToken = (request.query as any)?.transactiontoken;
+    return new CollectionController(AxioDBInstance).getCollections(
+      request,
+      transactionToken,
+    );
+  });
 
   // Create Collection
   fastify.post("/create-collection", async (request, reply) =>

@@ -4,6 +4,7 @@ import buildResponse, {
   ResponseBuilder,
 } from "../../helper/responseBuilder.helper";
 import { FastifyRequest } from "fastify";
+import GlobalStorageConfig from "../../config/GlobalStorage.config";
 
 /**
  * Controller class for managing databases in AxioDB.
@@ -29,8 +30,29 @@ export default class DatabaseController {
    * const response = await databaseController.getDatabases();
    * // Returns a ResponseBuilder with status 200 and database list
    */
-  public async getDatabases(): Promise<ResponseBuilder> {
+  public async getDatabases(
+    transactionToken: string,
+  ): Promise<ResponseBuilder> {
+    // check cache
+    if (
+      transactionToken &&
+      GlobalStorageConfig.get(`database_${transactionToken}`) != undefined
+    ) {
+      return buildResponse(
+        StatusCodes.OK,
+        "List of Databases",
+        GlobalStorageConfig.get(`database_${transactionToken}`),
+      );
+    }
+
     const databases = await this.AxioDBInstance.getInstanceInfo();
+    // Cache the response
+    if (
+      transactionToken &&
+      GlobalStorageConfig.get(`database_${transactionToken}`) == undefined
+    ) {
+      GlobalStorageConfig.set(`database_${transactionToken}`, databases?.data);
+    }
     return buildResponse(StatusCodes.OK, "List of Databases", databases?.data);
   }
 
