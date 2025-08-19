@@ -30,27 +30,29 @@ export default class DatabaseController {
    * const response = await databaseController.getDatabases();
    * // Returns a ResponseBuilder with status 200 and database list
    */
-  public async getDatabases(transactionToken: string): Promise<ResponseBuilder> {
-      // check cache
-      if (
-        transactionToken &&
-        GlobalStorageConfig.get(`database_${transactionToken}`) != undefined
-      ) {
-        return buildResponse(
-          StatusCodes.OK,
-          "List of Databases",
-          GlobalStorageConfig.get(`database_${transactionToken}`),
-        );
-      }
+  public async getDatabases(
+    transactionToken: string,
+  ): Promise<ResponseBuilder> {
+    // check cache
+    if (
+      transactionToken &&
+      GlobalStorageConfig.get(`database_${transactionToken}`) != undefined
+    ) {
+      return buildResponse(
+        StatusCodes.OK,
+        "List of Databases",
+        GlobalStorageConfig.get(`database_${transactionToken}`),
+      );
+    }
 
     const databases = await this.AxioDBInstance.getInstanceInfo();
-          // Cache the response
-          if (
-            transactionToken &&
-            GlobalStorageConfig.get(`database_${transactionToken}`) == undefined
-          ) {
-            GlobalStorageConfig.set(`database_${transactionToken}`, databases?.data);
-          }
+    // Cache the response
+    if (
+      transactionToken &&
+      GlobalStorageConfig.get(`database_${transactionToken}`) == undefined
+    ) {
+      GlobalStorageConfig.set(`database_${transactionToken}`, databases?.data);
+    }
     return buildResponse(StatusCodes.OK, "List of Databases", databases?.data);
   }
 

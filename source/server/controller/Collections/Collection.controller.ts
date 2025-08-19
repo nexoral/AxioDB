@@ -93,22 +93,22 @@ export default class CollectionController {
    */
   public async getCollections(
     request: FastifyRequest,
-    transactionToken: string
+    transactionToken: string,
   ): Promise<ResponseBuilder> {
     // extract databaseName from url query
     const { databaseName } = request.query as { databaseName: string };
 
-          // check cache
-          if (
-            transactionToken &&
-            GlobalStorageConfig.get(`${databaseName}${transactionToken}`) != undefined
-          ) {
-            return buildResponse(
-              StatusCodes.OK,
-              "Dashboard stats fetched successfully",
-              GlobalStorageConfig.get(`${databaseName}${transactionToken}`),
-            );
-          }
+    // check cache
+    if (
+      transactionToken &&
+      GlobalStorageConfig.get(`${databaseName}${transactionToken}`) != undefined
+    ) {
+      return buildResponse(
+        StatusCodes.OK,
+        "Dashboard stats fetched successfully",
+        GlobalStorageConfig.get(`${databaseName}${transactionToken}`),
+      );
+    }
 
     if (!databaseName) {
       return buildResponse(
@@ -141,9 +141,13 @@ export default class CollectionController {
       // Cache the response
       if (
         transactionToken &&
-        GlobalStorageConfig.get(`dashboard_stats_${transactionToken}`) == undefined
+        GlobalStorageConfig.get(`dashboard_stats_${transactionToken}`) ==
+          undefined
       ) {
-        GlobalStorageConfig.set(`dashboard_stats_${transactionToken}`, mainData);
+        GlobalStorageConfig.set(
+          `dashboard_stats_${transactionToken}`,
+          mainData,
+        );
       }
 
       return buildResponse(
