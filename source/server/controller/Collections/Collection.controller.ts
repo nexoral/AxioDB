@@ -142,9 +142,12 @@ export default class CollectionController {
       if (
         transactionToken &&
         GlobalStorageConfig.get(`${databaseName}${transactionToken}`) ==
-          undefined
+        undefined
       ) {
-        GlobalStorageConfig.set(`${databaseName}${transactionToken}`, mainData);
+        GlobalStorageConfig.set(
+          `${databaseName}${transactionToken}`,
+          mainData,
+        );
       }
 
       return buildResponse(
