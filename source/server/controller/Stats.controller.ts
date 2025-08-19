@@ -42,12 +42,12 @@ export default class StatsController {
       // check cache
       if (
         transactionToken &&
-        GlobalStorageConfig.get(`dashboard_stats`) != undefined
+        GlobalStorageConfig.get(`dashboard_stats_${transactionToken}`) != undefined
       ) {
         return buildResponse(
           StatusCodes.OK,
           "Dashboard stats fetched successfully",
-          GlobalStorageConfig.get(`dashboard_stats`),
+          GlobalStorageConfig.get(`dashboard_stats_${transactionToken}`),
         );
       }
 
@@ -138,9 +138,9 @@ export default class StatsController {
       // Cache the response
       if (
         transactionToken &&
-        GlobalStorageConfig.get(`dashboard_stats`) == undefined
+        GlobalStorageConfig.get(`dashboard_stats_${transactionToken}`) == undefined
       ) {
-        GlobalStorageConfig.set(`dashboard_stats`, response);
+        GlobalStorageConfig.set(`dashboard_stats_${transactionToken}`, response);
       }
       return buildResponse(
         StatusCodes.OK,
