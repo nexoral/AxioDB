@@ -141,13 +141,10 @@ export default class CollectionController {
       // Cache the response
       if (
         transactionToken &&
-        GlobalStorageConfig.get(`${ databaseName }${transactionToken}`) ==
+        GlobalStorageConfig.get(`${databaseName}${transactionToken}`) ==
           undefined
       ) {
-        GlobalStorageConfig.set(
-          `${ databaseName }${transactionToken}`,
-          mainData,
-        );
+        GlobalStorageConfig.set(`${databaseName}${transactionToken}`, mainData);
       }
 
       return buildResponse(
