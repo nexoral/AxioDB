@@ -51,7 +51,7 @@ export default class KeyController {
     return buildResponse(StatusCodes.OK, "Key Generated Successfully", {
       originSessionKey,
       expiresIn: ServerKeys.DEFAULT_KEY_TIMESTAMP,
-      expiryTime: ServerKeys.DEFAULT_KEY_EXPIRE
+      expiryTime: ServerKeys.DEFAULT_KEY_EXPIRE,
     });
   }
 

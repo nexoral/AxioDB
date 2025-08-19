@@ -96,8 +96,8 @@ export default class Reader {
           const FilePath =
             Array.isArray(this.baseQuery?.documentId) == true
               ? this.baseQuery.documentId.map(
-                (id: any) => `.${id}${General.DBMS_File_EXT}`,
-              )
+                  (id: any) => `.${id}${General.DBMS_File_EXT}`,
+                )
               : [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
           ReadResponse = await this.LoadAllBufferRawData(FilePath);
           //  Send the data to the client directly

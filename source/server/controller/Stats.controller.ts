@@ -40,7 +40,10 @@ export default class StatsController {
   public async getDashBoardStat(transactionToken: string): Promise<object> {
     try {
       // check cache
-      if (transactionToken && GlobalStorageConfig.get(`dashboard_stats`) != undefined) {
+      if (
+        transactionToken &&
+        GlobalStorageConfig.get(`dashboard_stats`) != undefined
+      ) {
         return buildResponse(
           StatusCodes.OK,
           "Dashboard stats fetched successfully",
@@ -133,7 +136,10 @@ export default class StatsController {
       };
 
       // Cache the response
-      if (transactionToken && GlobalStorageConfig.get(`dashboard_stats`) == undefined) {
+      if (
+        transactionToken &&
+        GlobalStorageConfig.get(`dashboard_stats`) == undefined
+      ) {
         GlobalStorageConfig.set(`dashboard_stats`, response);
       }
       return buildResponse(

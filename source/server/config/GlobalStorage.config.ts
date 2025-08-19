@@ -10,7 +10,6 @@ class GlobalStorage<T = any> {
     this.storageMap = new Map<string, T>();
   }
 
-
   /**
    * Store a value with the specified key
    * @param key The unique identifier for the value
