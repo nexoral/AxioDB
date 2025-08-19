@@ -37,7 +37,7 @@ export default class KeyController {
   public async generateKey(): Promise<string | any> {
     const originSessionKey = new ClassBased.JWT_Manager(
       this.Generationkey,
-    ).generateLoginToken(
+    ).generate(
       {
         issuer: ServerKeys.DEFAULT_KEY_ISSUER,
         Reason: ServerKeys.DEFAULT_KEY_REASON,
@@ -45,12 +45,13 @@ export default class KeyController {
         expiringIn: ServerKeys.DEFAULT_KEY_EXPIRE,
         Timestamp: ServerKeys.DEFAULT_KEY_TIMESTAMP,
       },
-      ServerKeys.DEFAULT_KEY_ROUNDS,
       ServerKeys.DEFAULT_KEY_EXPIRE,
     ).toKen;
 
     return buildResponse(StatusCodes.OK, "Key Generated Successfully", {
       originSessionKey,
+      expiresIn: ServerKeys.DEFAULT_KEY_TIMESTAMP,
+      expiryTime: ServerKeys.DEFAULT_KEY_EXPIRE
     });
   }
 

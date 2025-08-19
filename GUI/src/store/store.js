@@ -12,10 +12,15 @@ const ExchangeKeyStore = create((set) => ({
   TransactionKey: "",
   setTransactionKey: (key) => set({ TransactionKey: key }),
   loadKey: async () => {
+    if (sessionStorage.getItem("transactionToken")) {
+      set({ TransactionKey: sessionStorage.getItem("transactionToken") });
+      return;
+    }
     await axios
       .get(`${BASE_API_URL}/api/get-token`)
       .then((response) => {
         if (response.status === 200) {
+          sessionStorage.setItem("transactionToken", response.data?.data?.originSessionKey);
           set({ TransactionKey: response.data?.data?.originSessionKey });
         }
       })
