@@ -71,3 +71,43 @@ jobs:
       - name: Publish to GitHub Package Registry
         run: npm publish --registry=https://npm.pkg.github.com --scope=@${{ secrets.GIT_USER_NAME }} --access public
 
+  publish_to_dockerhub:
+    needs: [publish_to_npm]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build package
+      run: npm run build
+
+    - name: Run GUI Build
+      run: cd GUI && npm install && npm run build && cd ..
+
+    - name: Move GUI build files
+      run: cd ./GUI && mv AxioControl/ ../lib/server/public && cd ..
+
+    - name: Move the lib folder to Docker context
+      run: mv lib/ Docker/
+
+    - name: Copy package.json files
+      run: cp package*.json Docker/
+
+    # 🔑 Login to Docker Hub
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build Docker image
+      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/axiodb:latest Docker/
+
+    - name: Push Docker image
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/axiodb:latest
