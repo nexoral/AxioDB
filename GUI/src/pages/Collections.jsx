@@ -1,9 +1,9 @@
+/* eslint-disable no-unused-vars */
 import axios from 'axios'
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import CreateCollectionModal from '../components/collection/CreateCollectionModal'
 import DeleteCollectionModal from '../components/collection/DeleteCollectionModal'
-import SchemaViewModal from '../components/collection/SchemaViewModal'
 import { BASE_API_URL } from '../config/key'
 import { DBInfoStore, ExchangeKeyStore } from '../store/store'
 
@@ -15,9 +15,6 @@ const Collections = () => {
   const [collectionMetaStatus, setCollectionMetaStatus] = useState([]) // Store full metadata
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [showSchemaModal, setShowSchemaModal] = useState(false)
-  const [selectedSchema, setSelectedSchema] = useState(null)
-  const [selectedCollectionName, setSelectedCollectionName] = useState('')
   const [collectionToDelete, setCollectionToDelete] = useState('')
   const databaseName = searchParams.get('database')
   const { TransactionKey } = ExchangeKeyStore((state) => state)
@@ -112,23 +109,6 @@ const Collections = () => {
   const handleCollectionDeleted = () => {
     // Refetch all collections to get the updated list
     fetchCollections()
-  }
-
-  // Handler for schema icon click
-  const handleSchemaClick = (collectionName) => {
-    // Find the collection with the schema
-    const collection = collections.find((col) => col.name === collectionName)
-    if (collection && collection.isSchemaNeeded) {
-      // Find the full schema from metadata
-      const metadata = collectionMetaStatus.find(
-        (meta) => meta.name === collectionName
-      )
-      if (metadata && metadata.schema) {
-        setSelectedSchema(metadata.schema)
-        setSelectedCollectionName(collectionName)
-        setShowSchemaModal(true)
-      }
-    }
   }
 
   return (
@@ -230,7 +210,7 @@ const Collections = () => {
                               />
                             </svg>
                           </span>
-                          )
+                        )
                         : (
                           <span
                             className='ml-2 text-gray-400'
@@ -245,44 +225,7 @@ const Collections = () => {
                               <path d='M10 2a5 5 0 00-5 5v2a2 2 0 00-2 2v5a2 2 0 002 2h10a2 2 0 002-2v-5a2 2 0 00-2-2H7V7a3 3 0 015.905-.75 1 1 0 001.937-.5A5.002 5.002 0 0010 2z' />
                             </svg>
                           </span>
-                          )}
-                      {/* Schema Status Icon - Now Clickable */}
-                      {collection.isSchemaNeeded
-                        ? (
-                          <button
-                            onClick={() => handleSchemaClick(collection.name)}
-                            className='ml-2 text-blue-600 hover:text-blue-800 focus:outline-none transition-colors cursor-pointer'
-                            title='View Schema'
-                          >
-                            <svg
-                              xmlns='http://www.w3.org/2000/svg'
-                              className='h-5 w-5'
-                              viewBox='0 0 20 20'
-                              fill='currentColor'
-                            >
-                              <path
-                                fillRule='evenodd'
-                                d='M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z'
-                                clipRule='evenodd'
-                              />
-                            </svg>
-                          </button>
-                          )
-                        : (
-                          <span
-                            className='ml-2 text-gray-400'
-                            title='Schema-less Collection'
-                          >
-                            <svg
-                              xmlns='http://www.w3.org/2000/svg'
-                              className='h-5 w-5'
-                              viewBox='0 0 20 20'
-                              fill='currentColor'
-                            >
-                              <path d='M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z' />
-                            </svg>
-                          </span>
-                          )}
+                        )}
                     </h4>
                     <p className='text-sm text-gray-500'>
                       {collection.documentCount} documents
@@ -335,16 +278,6 @@ const Collections = () => {
           onCollectionDeleted={handleCollectionDeleted}
           databaseName={databaseName}
           collectionName={collectionToDelete}
-        />
-      )}
-
-      {/* Schema View Modal */}
-      {showSchemaModal && (
-        <SchemaViewModal
-          isOpen={showSchemaModal}
-          onClose={() => setShowSchemaModal(false)}
-          schema={selectedSchema}
-          collectionName={selectedCollectionName}
         />
       )}
     </div>

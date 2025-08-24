@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react'
 
 import Documents from '../pages/Documents'
 import { ExchangeKeyStore } from '../store/store'
+import ApiReference from '../pages/ApiReference'
 
 /**
  * Main application configuration component
@@ -52,6 +53,7 @@ function MainConfig () {
             <Route path='/operations' element={<Databases />} />
             <Route path='/collections' element={<Collections />} />
             <Route path='/documents' element={<Documents />} />
+            <Route path='/api' element={<ApiReference />} />
             <Route path='/collections/documents' element={<Documents />} />
           </Routes>
         </main>
