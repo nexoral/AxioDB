@@ -1,6 +1,6 @@
 {
   "name": "axiodb",
-  "version": "2.28.80",
+  "version": "2.28.81",
   "description": "A blazing-fast, lightweight, and scalable nodejs package based DBMS for modern application. Supports schemas, encryption, and advanced query capabilities.",
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
@@ -62,7 +62,7 @@
     "typescript-eslint": "^8.8.0"
   },
   "engines": {
-    "node": ">=18.0.0",
+    "node": ">=20.0.0",
     "npm": ">=6.0.0",
     "yarn": ">=1.0.0"
   }
