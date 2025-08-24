@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from "outers";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse, {
@@ -70,6 +71,8 @@ export default class DatabaseController {
     request: FastifyRequest,
   ): Promise<ResponseBuilder> {
     const { name } = request.body as { name: string };
+    const transactionToken = (request.query as any)?.transactiontoken;
+
     try {
       // check if the database already exists
       const exists = await this.AxioDBInstance.isDatabaseExists(name);
@@ -88,6 +91,7 @@ export default class DatabaseController {
         return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
       }
       await this.AxioDBInstance.createDB(name);
+      GlobalStorageConfig.delete(`database_${transactionToken}`);
       return buildResponse(StatusCodes.CREATED, "Database Created", {
         Database_Name: name,
       });
@@ -119,6 +123,7 @@ export default class DatabaseController {
     request: FastifyRequest,
   ): Promise<ResponseBuilder> {
     const { dbName } = request.query as { dbName: string };
+    const transactionToken = (request.query as any)?.transactiontoken;
     try {
       // check if the database exists
       const exists = await this.AxioDBInstance.isDatabaseExists(dbName);
@@ -127,6 +132,7 @@ export default class DatabaseController {
       }
       // delete the database
       await this.AxioDBInstance.deleteDatabase(dbName);
+      GlobalStorageConfig.delete(`database_${transactionToken}`);
       return buildResponse(StatusCodes.OK, "Database Deleted", {
         Database_Name: dbName,
       });
