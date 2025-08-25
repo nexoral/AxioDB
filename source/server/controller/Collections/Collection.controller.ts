@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from "outers";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse, {
@@ -60,7 +61,7 @@ export default class CollectionController {
     // Creating the collection
     try {
       await databaseInstance.createCollection(collectionName, crypto, key);
-      GlobalStorageConfig.delete(`${dbName}${collectionName}`);
+      GlobalStorageConfig.clear();
       return buildResponse(
         StatusCodes.CREATED,
         "Collection created successfully",
@@ -204,7 +205,7 @@ export default class CollectionController {
 
     try {
       await databaseInstance.deleteCollection(collectionName);
-      GlobalStorageConfig.delete(`${dbName}${collectionName}`);
+      GlobalStorageConfig.clear();
       return buildResponse(StatusCodes.OK, "Collection deleted successfully");
     } catch (error) {
       console.error("Error deleting collection:", error);
