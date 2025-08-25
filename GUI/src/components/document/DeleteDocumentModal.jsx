@@ -21,7 +21,7 @@ const DeleteDocumentModal = ({
 
       // Send to the API using the correct endpoint structure
       const response = await axios.delete(
-        `${BASE_API_URL}/api/operation/delete/?dbName=${databaseName}&collectionName=${collectionName}&documentId=${documentId}&transactiontoken=${TransactionKey}`
+        `${BASE_API_URL}/api/operation/delete/by-id/?dbName=${databaseName}&collectionName=${collectionName}&documentId=${documentId}&transactiontoken=${TransactionKey}`
       )
 
       if (response.status === 200) {
