@@ -144,15 +144,32 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       {
         method: "PUT",
         description: "Update an existing document in a collection",
-        path: "/api/operation/update/?dbName&collectionName&documentId&transactiontoken",
+        path: "/api/operation/update/by-id/?dbName&collectionName&documentId&transactiontoken",
         payload: {
           document: "object",
         },
       },
       {
+        method: "PUT",
+        description: "Update an existing document in a collection",
+        path: "/api/operation/update/by-query/?dbName&isMany&collectionName&transactiontoken",
+        payload: {
+          query: "object",
+          update: "object",
+        },
+      },
+      {
         method: "DELETE",
         description: "Delete an existing document in a collection",
-        path: "/api/operation/delete/?dbName&collectionName&documentId&transactiontoken",
+        path: "/api/operation/delete/by-id/?dbName&collectionName&documentId&transactiontoken",
+      },
+      {
+        method: "DELETE",
+        description: "Delete an existing document in a collection",
+        path: "/api/operation/delete/by-query/?dbName&collectionName&isMany&documentId&transactiontoken",
+        payload: {
+          query: "object",
+        },
       },
       {
         method: "POST",
