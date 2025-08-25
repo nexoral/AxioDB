@@ -4,6 +4,7 @@ import { StatusCodes } from "outers";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse from "../../helper/responseBuilder.helper";
 import { FastifyRequest } from "fastify";
+import GlobalStorageConfig from "../../config/GlobalStorage.config";
 
 /**
  * CRUD Controller class for handling database operations
@@ -123,7 +124,7 @@ export default class CRUDController {
         "Failed to insert document",
       );
     }
-
+    GlobalStorageConfig.clear();
     return buildResponse(
       StatusCodes.CREATED,
       "Document created successfully",
@@ -177,7 +178,7 @@ export default class CRUDController {
         "Failed to update document",
       );
     }
-
+    GlobalStorageConfig.clear();
     return buildResponse(
       StatusCodes.OK,
       "Document updated successfully",
@@ -235,6 +236,7 @@ export default class CRUDController {
       );
     }
 
+    GlobalStorageConfig.clear();
     return buildResponse(StatusCodes.OK, "Document deleted successfully");
   }
 
@@ -289,6 +291,8 @@ export default class CRUDController {
         "Failed to run aggregation",
       );
     }
+
+    GlobalStorageConfig.clear();
     return buildResponse(
       StatusCodes.OK,
       "Aggregation run successfully",

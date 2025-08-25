@@ -91,7 +91,7 @@ const Collections = () => {
   }, [TransactionKey, databaseName, navigate]);
 
   const handleBackToDatabases = () => {
-    navigate("/databases");
+    navigate("/operations");
   };
 
   // Update this handler to re-fetch all collections instead of just adding the new one
