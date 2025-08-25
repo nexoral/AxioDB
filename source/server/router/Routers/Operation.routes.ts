@@ -32,7 +32,7 @@ export default async function OperationRouter(
     new CRUDController(AxioDBInstance).updateDocumentById(request),
   );
 
-// Update Document by Query
+  // Update Document by Query
   fastify.put("/update/by-query/", async (request, reply) =>
     new CRUDController(AxioDBInstance).updateDocumentByQuery(request),
   );

@@ -205,9 +205,9 @@ export default class CRUDController {
       collectionName: string;
       isMany: boolean;
     };
-    const { query, update: updatedData } = request.body as { 
-      query: Record<string, any>; 
-      update: Record<string, any> 
+    const { query, update: updatedData } = request.body as {
+      query: Record<string, any>;
+      update: Record<string, any>;
     };
 
     // Validating extracted parameters
@@ -228,18 +228,19 @@ export default class CRUDController {
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
-    if (isMany){
-      const updateResult = await DB_Collection.update(query).UpdateMany(updatedData);
+    if (isMany) {
+      const updateResult =
+        await DB_Collection.update(query).UpdateMany(updatedData);
       if (!updateResult || updateResult.statusCode !== StatusCodes.OK) {
         return buildResponse(
           StatusCodes.INTERNAL_SERVER_ERROR,
           "Failed to update document",
         );
       }
-    }
-    else {
+    } else {
       // Update the single document
-      const updateResult = await DB_Collection.update(query).UpdateOne(updatedData);
+      const updateResult =
+        await DB_Collection.update(query).UpdateOne(updatedData);
       if (!updateResult || updateResult.statusCode !== StatusCodes.OK) {
         return buildResponse(
           StatusCodes.INTERNAL_SERVER_ERROR,
@@ -248,10 +249,7 @@ export default class CRUDController {
       }
     }
     GlobalStorageConfig.clear();
-    return buildResponse(
-      StatusCodes.OK,
-      "Document updated successfully"
-    );
+    return buildResponse(StatusCodes.OK, "Document updated successfully");
   }
 
   /**
@@ -310,18 +308,18 @@ export default class CRUDController {
 
   /**
    * Deletes one or more documents from a collection based on a query
-   * 
+   *
    * @param request - The Fastify request object containing the query parameters
    * @param request.query.dbName - The name of the database
    * @param request.query.collectionName - The name of the collection
    * @param request.query.query - The query object to match documents for deletion
    * @param request.query.isMany - Boolean flag indicating whether to delete multiple documents (true) or a single document (false)
-   * 
+   *
    * @returns A response object with status code and message
    * - 200 OK if the document(s) were successfully deleted
    * - 400 BAD_REQUEST if any of the required parameters are invalid
    * - 500 INTERNAL_SERVER_ERROR if the deletion operation failed
-   * 
+   *
    * @throws May throw exceptions from database operations
    */
   public async deleteDocumentByQuery(request: FastifyRequest) {
@@ -360,8 +358,7 @@ export default class CRUDController {
           StatusCodes.INTERNAL_SERVER_ERROR,
           "Failed to delete document",
         );
-      }
-      else {
+      } else {
         const deleteResult = await DB_Collection.delete(query).deleteOne();
         GlobalStorageConfig.clear();
         if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
