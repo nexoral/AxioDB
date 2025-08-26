@@ -22,6 +22,12 @@ export default async function OperationRouter(
     new CRUDController(AxioDBInstance).getAllDocuments(request),
   );
 
+  // Get Document by Query
+    fastify.post("/all/by-query/", async (request, reply) => new CRUDController(AxioDBInstance).getDocumentsByQuery(request));
+
+    // Get Document by id
+    fastify.get("/all/by-id/", async (request, reply) => new CRUDController(AxioDBInstance).getDocumentsById(request));
+
   // Create New Document
   fastify.post("/create/", async (request, reply) =>
     new CRUDController(AxioDBInstance).createNewDocument(request),

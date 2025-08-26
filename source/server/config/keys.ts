@@ -22,7 +22,7 @@ export const CORS_CONFIG = {
   ALLOW_CREDENTIALS: true,
 };
 
-export const staticPath = path.resolve(__dirname, "../public/AxioControl");
+export const staticPath: string = path.resolve(__dirname, "../public/AxioControl");
 
 interface MainRoutesInterface {
   method: "GET" | "POST" | "PUT" | "DELETE";
@@ -133,6 +133,19 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         description: "Get all documents from a collection",
         path: "/api/operation/all/?dbName&collectionName&page&transactiontoken",
       },
+        {
+            method: "POST",
+            description: "Get all documents from a collection",
+            path: "/api/operation/all/by-query/?dbName&collectionName&page&transactiontoken",
+            payload: {
+                query: "object",
+            }
+        },
+        {
+            method: "GET",
+            description: "Get all documents from a collection",
+            path: "/api/operation/all/by-id/?dbName&collectionName&documentId&transactiontoken",
+        },
       {
         method: "POST",
         description: "Create a new document in a collection",
@@ -146,7 +159,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         description: "Update an existing document in a collection",
         path: "/api/operation/update/by-id/?dbName&collectionName&documentId&transactiontoken",
         payload: {
-          document: "object",
+          document: "full object with no key in body",
         },
       },
       {
