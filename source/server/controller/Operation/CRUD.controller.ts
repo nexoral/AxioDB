@@ -78,149 +78,150 @@ export default class CRUDController {
     );
   }
 
-    /**
-     * Retrieves documents from a specified collection based on a query with pagination.
-     *
-     * @param request - The Fastify request object containing query parameters and body data.
-     * @param request.query - Query parameters for the database and collection.
-     * @param request.query.dbName - The name of the database to query.
-     * @param request.query.collectionName - The name of the collection to query.
-     * @param request.query.page - The page number for pagination (starts from 1).
-     * @param request.body - The request body containing the query object.
-     * @param request.body.query - The query object to filter documents.
-     *
-     * @returns A response object with:
-     *   - Status code 200 and the retrieved documents if successful.
-     *   - Status code 400 if any required parameters are invalid.
-     *   - Status code 404 if no documents are found.
-     *
-     * @example
-     * // Example request:
-     * {
-     *   query: {
-     *     dbName: "users",
-     *     collectionName: "profiles",
-     *     page: 1
-     *   },
-     *   body: {
-     *     query: { age: { $gte: 18 } }
-     *   }
-     * }
-     */
-  public  async  getDocumentsByQuery(request: FastifyRequest) {
-      // Extracting parameters from the request body
-      let { dbName, collectionName, page } = request.query as {
-          dbName: string;
-          collectionName: string;
-          page: number;
-      };
-      let { query } = request.body as {
-          query: object;
-      };
+  /**
+   * Retrieves documents from a specified collection based on a query with pagination.
+   *
+   * @param request - The Fastify request object containing query parameters and body data.
+   * @param request.query - Query parameters for the database and collection.
+   * @param request.query.dbName - The name of the database to query.
+   * @param request.query.collectionName - The name of the collection to query.
+   * @param request.query.page - The page number for pagination (starts from 1).
+   * @param request.body - The request body containing the query object.
+   * @param request.body.query - The query object to filter documents.
+   *
+   * @returns A response object with:
+   *   - Status code 200 and the retrieved documents if successful.
+   *   - Status code 400 if any required parameters are invalid.
+   *   - Status code 404 if no documents are found.
+   *
+   * @example
+   * // Example request:
+   * {
+   *   query: {
+   *     dbName: "users",
+   *     collectionName: "profiles",
+   *     page: 1
+   *   },
+   *   body: {
+   *     query: { age: { $gte: 18 } }
+   *   }
+   * }
+   */
+  public async getDocumentsByQuery(request: FastifyRequest) {
+    // Extracting parameters from the request body
+    let { dbName, collectionName, page } = request.query as {
+      dbName: string;
+      collectionName: string;
+      page: number;
+    };
+    let { query } = request.body as {
+      query: object;
+    };
 
-      let PageNumber = parseInt(String(page));
+    let PageNumber = parseInt(String(page));
 
-      // Validating extracted parameters
-      if (!dbName || typeof dbName !== "string") {
-          return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
-      }
-      if (!collectionName || typeof collectionName !== "string") {
-          return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
-      }
-
-      if (typeof PageNumber !== "number" || PageNumber < 1) {
-          return buildResponse(StatusCodes.BAD_REQUEST, "Invalid page number");
-      }
-
-      if (!query || typeof query !== "object") {
-          return buildResponse(StatusCodes.BAD_REQUEST, "Invalid query");
-      }
-
-      const skip: number = (PageNumber - 1) * 10;
-      const databaseInstance: Database = await this.AxioDBInstance.createDB(dbName);
-
-      const DB_Collection =
-          await databaseInstance.createCollection(collectionName);
-
-      // Find All Data
-      const allDocuments = await DB_Collection.query({...query})
-          .Limit(10)
-          .Sort({ updatedAt: -1 })
-          .Skip(skip)
-          .exec();
-      if (!allDocuments.data) {
-          return buildResponse(StatusCodes.NOT_FOUND, "No documents found");
-      }
-
-      return buildResponse(
-          StatusCodes.OK,
-          "Documents retrieved successfully",
-          allDocuments,
-      );
-  }
-
-    /**
-     * Retrieves a document from a specified collection in a database by its ID.
-     *
-     * @param request - The Fastify request object containing query parameters.
-     * @param request.query - Query parameters for the database and collection.
-     * @param request.query.dbName - The name of the database to query.
-     * @param request.query.collectionName - The name of the collection to query.
-     * @param request.query.documentId - The ID of the document to retrieve.
-     *
-     * @returns A response object with:
-     *   - Status code 200 and the retrieved document if successful.
-     *   - Status code 400 if any required parameters are invalid.
-     *   - Status code 404 if no document is found.
-     *
-     * @example
-     * // Example request:
-     * {
-     *   query: {
-     *     dbName: "users",
-     *     collectionName: "profiles",
-     *     documentId: "12345"
-     *   }
-     * }
-     */
-    public  async  getDocumentsById(request: FastifyRequest) {
-        // Extracting parameters from the request body
-        let { dbName, collectionName, documentId } = request.query as {
-            dbName: string;
-            collectionName: string;
-            documentId: string;
-        };
-
-        // Validating extracted parameters
-        if (!dbName || typeof dbName !== "string") {
-            return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
-        }
-        if (!collectionName || typeof collectionName !== "string") {
-            return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
-        }
-
-        const databaseInstance: Database = await this.AxioDBInstance.createDB(dbName);
-
-        const DB_Collection =
-            await databaseInstance.createCollection(collectionName);
-
-        // Find All Data
-        const allDocuments = await DB_Collection.query({documentId: documentId})
-            .findOne(true)
-            .exec();
-        if (!allDocuments.data) {
-            return buildResponse(StatusCodes.NOT_FOUND, "No documents found");
-        }
-
-        return buildResponse(
-            StatusCodes.OK,
-            "Documents retrieved successfully",
-            allDocuments,
-        );
+    // Validating extracted parameters
+    if (!dbName || typeof dbName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
+    }
+    if (!collectionName || typeof collectionName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
     }
 
+    if (typeof PageNumber !== "number" || PageNumber < 1) {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid page number");
+    }
 
-    /**
+    if (!query || typeof query !== "object") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid query");
+    }
+
+    const skip: number = (PageNumber - 1) * 10;
+    const databaseInstance: Database =
+      await this.AxioDBInstance.createDB(dbName);
+
+    const DB_Collection =
+      await databaseInstance.createCollection(collectionName);
+
+    // Find All Data
+    const allDocuments = await DB_Collection.query({ ...query })
+      .Limit(10)
+      .Sort({ updatedAt: -1 })
+      .Skip(skip)
+      .exec();
+    if (!allDocuments.data) {
+      return buildResponse(StatusCodes.NOT_FOUND, "No documents found");
+    }
+
+    return buildResponse(
+      StatusCodes.OK,
+      "Documents retrieved successfully",
+      allDocuments,
+    );
+  }
+
+  /**
+   * Retrieves a document from a specified collection in a database by its ID.
+   *
+   * @param request - The Fastify request object containing query parameters.
+   * @param request.query - Query parameters for the database and collection.
+   * @param request.query.dbName - The name of the database to query.
+   * @param request.query.collectionName - The name of the collection to query.
+   * @param request.query.documentId - The ID of the document to retrieve.
+   *
+   * @returns A response object with:
+   *   - Status code 200 and the retrieved document if successful.
+   *   - Status code 400 if any required parameters are invalid.
+   *   - Status code 404 if no document is found.
+   *
+   * @example
+   * // Example request:
+   * {
+   *   query: {
+   *     dbName: "users",
+   *     collectionName: "profiles",
+   *     documentId: "12345"
+   *   }
+   * }
+   */
+  public async getDocumentsById(request: FastifyRequest) {
+    // Extracting parameters from the request body
+    let { dbName, collectionName, documentId } = request.query as {
+      dbName: string;
+      collectionName: string;
+      documentId: string;
+    };
+
+    // Validating extracted parameters
+    if (!dbName || typeof dbName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
+    }
+    if (!collectionName || typeof collectionName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
+    }
+
+    const databaseInstance: Database =
+      await this.AxioDBInstance.createDB(dbName);
+
+    const DB_Collection =
+      await databaseInstance.createCollection(collectionName);
+
+    // Find All Data
+    const allDocuments = await DB_Collection.query({ documentId: documentId })
+      .findOne(true)
+      .exec();
+    if (!allDocuments.data) {
+      return buildResponse(StatusCodes.NOT_FOUND, "No documents found");
+    }
+
+    return buildResponse(
+      StatusCodes.OK,
+      "Documents retrieved successfully",
+      allDocuments,
+    );
+  }
+
+  /**
    * Creates a new document in a specified collection within a database.
    *
    * @param request - The Fastify request object containing query parameters and body data
