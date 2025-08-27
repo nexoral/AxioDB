@@ -37,6 +37,10 @@ export default async function OperationRouter(
     new CRUDController(AxioDBInstance).createNewDocument(request),
   );
 
+  fastify.post("/create-many/", async (request, reply) =>
+    new CRUDController(AxioDBInstance).createManyNewDocument(request),
+  );
+
   // Update Document by Id
   fastify.put("/update/by-id/", async (request, reply) =>
     new CRUDController(AxioDBInstance).updateDocumentById(request),

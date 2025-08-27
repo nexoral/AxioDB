@@ -154,7 +154,15 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         description: "Create a new document in a collection",
         path: "/api/operation/create/?dbName&collectionName&transactiontoken",
         payload: {
-          document: "object",
+          document: "full object with no key in body",
+        },
+      },
+      {
+        method: "POST",
+        description: "Create a new document in a collection",
+        path: "/api/operation/create-many/?dbName&collectionName&transactiontoken",
+        payload: {
+          documents: "full array of object with no key in body",
         },
       },
       {
