@@ -197,7 +197,8 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
       {
         method: "POST",
-        description: "Perform aggregation on documents in a collection using an aggregation pipeline",
+        description:
+          "Perform aggregation on documents in a collection using an aggregation pipeline",
         path: "/api/operation/aggregate/?dbName&collectionName&transactiontoken",
         payload: {
           aggregation: "array",
