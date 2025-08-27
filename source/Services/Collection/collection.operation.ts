@@ -175,7 +175,9 @@ export default class Collection {
    * @returns A promise that resolves to a `SuccessInterface` containing the total number of documents inserted and their IDs,
    *          or an `ErrorInterface` if the operation fails.
    */
-  public async insertMany(data: object[] | object): Promise<SuccessInterface | ErrorInterface> {
+  public async insertMany(
+    data: object[] | object,
+  ): Promise<SuccessInterface | ErrorInterface> {
     let totalDocumentsInserted: number = 0;
     const documentIds: string[] = [];
 

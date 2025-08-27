@@ -31,7 +31,9 @@ const main = async () => {
           }
 
           // Insert Document Array
-          const arrayStatus = await collection.insertMany(key.DataTOArrayInsert);
+          const arrayStatus = await collection.insertMany(
+            key.DataTOArrayInsert,
+          );
           arrayStatus.data.id.forEach((id) => DocumentId.push(id));
 
           // -- existing: query by documentId
