@@ -138,7 +138,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
       {
         method: "POST",
-        description: "Get all documents from a collection",
+        description: "Get all documents from a collection by query",
         path: "/api/operation/all/by-query/?dbName&collectionName&page&transactiontoken",
         payload: {
           query: "object",
@@ -146,7 +146,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
       {
         method: "GET",
-        description: "Get all documents from a collection",
+        description: "Get specific documents from a collection by ID",
         path: "/api/operation/all/by-id/?dbName&collectionName&documentId&transactiontoken",
       },
       {
@@ -159,7 +159,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
       {
         method: "PUT",
-        description: "Update an existing document in a collection",
+        description: "Update an existing document in a collection by ID",
         path: "/api/operation/update/by-id/?dbName&collectionName&documentId&transactiontoken",
         payload: {
           document: "full object with no key in body",
@@ -167,7 +167,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
       {
         method: "PUT",
-        description: "Update an existing document in a collection",
+        description: "Update an existing document in a collection by query",
         path: "/api/operation/update/by-query/?dbName&isMany&collectionName&transactiontoken",
         payload: {
           query: "object",
@@ -176,12 +176,12 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
       {
         method: "DELETE",
-        description: "Delete an existing document in a collection",
+        description: "Delete an existing document in a collection by ID",
         path: "/api/operation/delete/by-id/?dbName&collectionName&documentId&transactiontoken",
       },
       {
         method: "DELETE",
-        description: "Delete an existing document in a collection",
+        description: "Delete an existing document in a collection by query",
         path: "/api/operation/delete/by-query/?dbName&collectionName&isMany&documentId&transactiontoken",
         payload: {
           query: "object",
@@ -189,7 +189,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
       {
         method: "POST",
-        description: "Perform aggregation on documents in a collection",
+        description: "Perform aggregation on documents in a collection using an aggregation pipeline",
         path: "/api/operation/aggregate/?dbName&collectionName&transactiontoken",
         payload: {
           aggregation: "array",
