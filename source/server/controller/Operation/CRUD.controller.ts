@@ -277,6 +277,61 @@ export default class CRUDController {
   }
 
   /**
+   * Creates multiple new documents in a specified collection within a database.
+   *
+   * @param request - The Fastify request object containing query parameters and body data
+   * @param request.query - Query parameters containing database and collection names
+   * @param request.query.dbName - The name of the database to store the documents in
+   * @param request.query.collectionName - The name of the collection to store the documents in
+   * @param request.body - An array of document data to be inserted
+   *
+   * @returns A response object with appropriate status code and message:
+   *  - 201 (Created) with the inserted document data on success
+   *  - 400 (Bad Request) if any required parameters are invalid
+   *  - 500 (Internal Server Error) if document insertion fails
+   *
+   * @throws May throw exceptions if database or collection operations fail
+   */
+  public async createManyNewDocument (request: FastifyRequest) {
+    // Extracting parameters from the request body
+    let { dbName, collectionName } = request.query as {
+      dbName: string;
+      collectionName: string;
+    };
+    const documentData = request.body as Record<string, any>;
+
+    // Validating extracted parameters
+    if (!dbName || typeof dbName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
+    }
+    if (!collectionName || typeof collectionName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
+    }
+    if (!documentData || typeof documentData !== "object") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid document data");
+    }
+
+    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
+    const DB_Collection =
+      await databaseInstance.createCollection(collectionName);
+
+    // Insert the new document Array Document
+    const insertResult = await DB_Collection.insertMany(documentData);
+    if (!insertResult || insertResult.statusCode !== StatusCodes.OK) {
+      return buildResponse(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Failed to insert document",
+      );
+    }
+    GlobalStorageConfig.clear();
+    return buildResponse(
+      StatusCodes.CREATED,
+      "Document created successfully",
+      insertResult.data,
+    );
+  }
+
+  /**
    * Update an existing document in a specified collection within a database.
    * @param request - The Fastify request object containing query parameters and body data
    * @param request.query - Query parameters containing database, collection, and document IDs

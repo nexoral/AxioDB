@@ -11,7 +11,7 @@ import DeleteOperation from "../CRUD Operation/Delete.operation";
 import UpdateOperation from "../CRUD Operation/Update.operation";
 import Aggregation from "../Aggregation/Aggregation.Operation";
 
-import { Console } from "outers";
+import { Console, StatusCodes } from "outers";
 // Validator
 import SchemaValidator from "../../Schema/validator.models";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
@@ -166,6 +166,40 @@ export default class Collection {
 
     // Save the data
     return await this.Insertion.Save(data, documentId);
+  }
+
+  /**
+   * Inserts one or multiple documents into the collection.
+   *
+   * @param data - A single document object or an array of document objects to be inserted.
+   * @returns A promise that resolves to a `SuccessInterface` containing the total number of documents inserted and their IDs,
+   *          or an `ErrorInterface` if the operation fails.
+   */
+  public async insertMany(data: object[] | object): Promise<SuccessInterface | ErrorInterface> {
+    let totalDocumentsInserted: number = 0;
+    const documentIds: string[] = [];
+
+    if (typeof data === "object" && !Array.isArray(data)) {
+      const result = await this.insert(data);
+      if (result?.statusCode == StatusCodes.OK) {
+        documentIds.push(result.data.documentId);
+        totalDocumentsInserted++;
+      }
+    } else if (Array.isArray(data)) {
+      for (const doc of data) {
+        const result = await this.insert(doc);
+        if (result?.statusCode == StatusCodes.OK) {
+          documentIds.push(result.data.documentId);
+          totalDocumentsInserted++;
+        }
+      }
+    }
+
+    return new ResponseHelper().Success({
+      message: "Total Documents Inserted",
+      total: totalDocumentsInserted,
+      id: documentIds,
+    });
   }
 
   /**
