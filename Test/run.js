@@ -30,6 +30,10 @@ const main = async () => {
             DocumentId.push(Status.data.documentId);
           }
 
+          // Insert Document Array
+          const arrayStatus = await collection.insertMany(key.DataTOArrayInsert);
+          arrayStatus.data.id.forEach((id) => DocumentId.push(id));
+
           // -- existing: query by documentId
           const randomIndex = DocumentId.length - 1;
           const randomId = DocumentId[randomIndex];
