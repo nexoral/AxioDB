@@ -1,273 +1,484 @@
-import { CheckCircle2, FilterX, Layers } from "lucide-react";
+import { CheckCircle2, FilterX, Layers, Zap, Shield, Database, Code2, Cpu, Clock, Lock, Search, Settings, BarChart3, Download } from "lucide-react";
 import React from "react";
 
 const Features: React.FC = () => {
   return (
     <section id="features" className="pt-12 scroll-mt-20">
-      <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
-        <CheckCircle2 className="h-8 w-8 text-green-500" />
-        Current Featured Features
-      </h2>
-
-      <div className="space-y-4 mb-12">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
-            Advanced Schema Validation
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            Define robust schemas to ensure data consistency and integrity
-            across your collections.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
-            Chainable Query Methods
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            Leverage powerful methods like{" "}
-            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
-              .query()
-            </code>
-            ,{" "}
-            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
-              .Sort()
-            </code>
-            ,{" "}
-            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
-              .Limit()
-            </code>
-            , and{" "}
-            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
-              .Skip()
-            </code>{" "}
-            for seamless data filtering.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
-            Optimized Node.js Streams
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            Handle massive datasets effortlessly with high-performance
-            read/write operations using optimized streams.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
-            Encryption-First Design
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            Protect sensitive data with optional AES-256 encryption for
-            collections, ensuring data security at rest.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
-            Aggregation Pipelines
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            Perform advanced data operations like{" "}
-            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
-              $match
-            </code>
-            ,{" "}
-            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
-              $sort
-            </code>
-            ,{" "}
-            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
-              $group
-            </code>
-            , and more with MongoDB-like syntax.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
-            InMemoryCache Mechanism
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            Accelerate query execution by caching frequently accessed data,
-            reducing query response time significantly.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
-            Plug-and-Play Setup
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            No additional database server required—install and start building
-            instantly with minimal configuration.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
-            Tree-like Structure
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            Store data in a tree-like structure for efficient data retrieval and
-            management.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
-            Single Instance Architecture
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            For data consistency and security, you can initialize only one
-            AxioDB instance with the{" "}
-            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
-              new
-            </code>{" "}
-            keyword. Under this single instance, you can create unlimited
-            databases, collections, and documents.
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
-            Web-Based GUI Dashboard
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            When you create an AxioDB instance and run your project, it
-            automatically starts a web-based GUI on{" "}
-            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
-              localhost:27018
-            </code>{" "}
-            for visual database management (currently under development).
-          </p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-          <h3 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400">
-            Auto Indexing on documentId
-          </h3>
-          <p className="text-gray-700 dark:text-gray-300">
-            Automatically create index on documentId for faster queries without
-            manual configuration.
+      {/* Hero Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-green-50 dark:from-emerald-900/20 dark:via-slate-800 dark:to-green-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-emerald-200 dark:border-emerald-800 shadow-xl">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-400/10 to-green-400/10 rounded-full blur-3xl"></div>
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="p-3 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl shadow-lg">
+              <CheckCircle2 className="h-10 w-10 text-white" />
+            </div>
+            <div>
+              <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-emerald-800 via-green-700 to-teal-700 dark:from-emerald-200 dark:via-green-300 dark:to-teal-200 bg-clip-text text-transparent">
+                Production Caching Features
+              </h2>
+              <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
+                Advanced caching capabilities for modern production environments
+              </p>
+            </div>
+          </div>
+          <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+            AxioDB delivers a complete suite of caching features engineered specifically for production environments, 
+            from high-traffic web applications to enterprise-scale APIs. Experience lightning-fast data retrieval, 
+            intelligent memory management, and seamless integration with your existing technology stack.
           </p>
         </div>
       </div>
 
-      <section id="limitations" className="pt-8 scroll-mt-20">
-        <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
-          <FilterX className="h-8 w-8 text-orange-500" />
-          Current Limitations
-        </h2>
+      {/* Core Features Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Shield className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Intelligent Cache Management</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+              Automated cache lifecycle management with smart eviction policies, TTL support, and memory optimization 
+              ensuring optimal performance in production environments.
+            </p>
+          </div>
+        </div>
 
-        <div className="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded-r-lg mb-8">
-          <p className="text-gray-700 dark:text-gray-300 mb-4">
-            While AxioDB offers many powerful features, there are some
-            limitations to consider:
-          </p>
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/10 dark:to-pink-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Code2 className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Chainable Query Methods</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
+              Execute sophisticated cache queries with fluent API methods designed for real-time data retrieval and filtering.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">.query()</code>
+              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">.Sort()</code>
+              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">.Limit()</code>
+              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">.Skip()</code>
+            </div>
+          </div>
+        </div>
 
-          <ul className="space-y-3 list-disc pl-6 text-gray-700 dark:text-gray-300">
-            <li>
-              <strong>No Built-in Relation Tools:</strong> Unlike ODMs such as
-              Mongoose, AxioDB doesn't provide built-in tools for managing
-              document relations. While MongoDB-like NoSQL databases naturally
-              don't enforce relations at the database level, AxioDB currently
-              requires manual handling of references between collections.
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Zap className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">High-Performance Data Layer</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+              Purpose-built for production caching with optimized I/O operations, intelligent buffering, 
+              and sub-millisecond response times for frequently accessed data.
+            </p>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-green-300 dark:hover:border-green-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Lock className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Secure Cache Storage</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+              Enterprise-grade encryption for sensitive cached data including user sessions, API responses, 
+              and confidential application state with automatic key rotation.
+            </p>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-cyan-300 dark:hover:border-cyan-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/10 dark:to-blue-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <BarChart3 className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Advanced Aggregation Pipelines</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
+              Execute sophisticated data processing workflows with MongoDB-compatible aggregation operations for comprehensive business intelligence and analytics.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">$match</code>
+              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">$group</code>
+              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">$sort</code>
+              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">$project</code>
+            </div>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-yellow-300 dark:hover:border-yellow-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/10 dark:to-amber-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Cpu className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Intelligent Memory Caching</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+              Dramatically accelerate query performance with our intelligent in-memory caching system, delivering sub-millisecond response times for frequently accessed data and optimized resource utilization.
+            </p>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Zap className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Zero-Configuration Setup</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+              Get started instantly with our serverless architecture—no complex installations, database servers, or lengthy configurations required. Simply install and begin building your application immediately.
+            </p>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-teal-300 dark:hover:border-teal-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/10 dark:to-cyan-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Layers className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Tree-like Structure</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+              Store data in a hierarchical tree-like structure that enables efficient data retrieval, 
+              organization, and management with intuitive parent-child relationships.
+            </p>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/10 dark:to-blue-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Database className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Single Instance Architecture</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
+              Ensures data consistency and security through a single instance pattern. Initialize one AxioDB instance 
+              and create unlimited databases, collections, and documents under unified management.
+            </p>
+            <code className="bg-gradient-to-r from-indigo-100 to-blue-100 dark:from-indigo-900/50 dark:to-blue-900/50 px-3 py-2 rounded-lg text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800">
+              new AxioDB()
+            </code>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/10 dark:to-purple-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Settings className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Web-Based GUI Dashboard</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
+              Automatically launches a comprehensive web-based management interface for visual database administration, 
+              query execution, and real-time monitoring.
+            </p>
+            <code className="bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/50 dark:to-purple-900/50 px-3 py-2 rounded-lg text-violet-700 dark:text-violet-300 font-semibold border border-violet-200 dark:border-violet-800">
+              localhost:27018
+            </code>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-900/10 dark:to-pink-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Search className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Auto Indexing on documentId</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+              Automatically creates optimized indexes on document IDs for lightning-fast queries and retrieval operations 
+              without requiring manual configuration or maintenance.
+            </p>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/10 dark:to-orange-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Settings className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Flexible Collection Configuration</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+              Create collections with versatile configurations: basic collections, encrypted collections with auto-generated 
+              or custom keys, schema-only collections, or collections with both encryption and comprehensive schema validation.
+            </p>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/10 dark:to-green-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Zap className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Bulk Operations Support</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
+              Handle massive datasets efficiently with high-performance bulk operations that significantly reduce overhead 
+              and improve throughput for large-scale data operations.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <code className="bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 px-3 py-1 rounded-lg text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800 text-sm">insertMany()</code>
+              <code className="bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 px-3 py-1 rounded-lg text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800 text-sm">UpdateMany()</code>
+              <code className="bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 px-3 py-1 rounded-lg text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800 text-sm">DeleteMany()</code>
+            </div>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-50 to-blue-50 dark:from-sky-900/10 dark:to-blue-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-sky-500 to-blue-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Code2 className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Advanced Query Operators</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
+              Comprehensive MongoDB-compatible query operators for sophisticated data filtering, matching, 
+              and retrieval operations with familiar syntax and powerful capabilities.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">$gt</code>
+              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">$lt</code>
+              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">$in</code>
+              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">$regex</code>
+            </div>
+          </div>
+        </div>
+
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-lime-300 dark:hover:border-lime-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-lime-50 to-green-50 dark:from-lime-900/10 dark:to-green-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-lime-500 to-green-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <Database className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Custom Database Path</h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
+              Define custom storage locations for your databases with flexible path configuration, 
+              enabling better project organization and deployment flexibility across different environments.
+            </p>
+            <code className="bg-gradient-to-r from-lime-100 to-green-100 dark:from-lime-900/50 dark:to-green-900/50 px-3 py-2 rounded-lg text-lime-700 dark:text-lime-300 font-semibold border border-lime-200 dark:border-lime-800">
+              new AxioDB("DatabaseName", "./custom/path")
+            </code>
+          </div>
+        </div>
+      </div>
+
+      <section id="limitations" className="pt-12 scroll-mt-20">
+        <div className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-red-50 dark:from-orange-900/20 dark:via-slate-800 dark:to-red-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-orange-200 dark:border-orange-800 shadow-xl">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-orange-400/10 to-red-400/10 rounded-full blur-3xl"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-lg">
+                <FilterX className="h-10 w-10 text-white" />
+              </div>
+              <div>
+                <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-800 via-red-700 to-pink-700 dark:from-orange-200 dark:via-red-300 dark:to-pink-200 bg-clip-text text-transparent">
+                  Current Considerations
+                </h2>
+                <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
+                  Understanding AxioDB's current scope and limitations
+                </p>
+              </div>
+            </div>
+            <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+              While AxioDB excels in many areas, we believe in transparent communication about current limitations 
+              and areas where alternative solutions might be better suited for specific use cases.
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-l-4 border-orange-500 p-6 rounded-r-xl shadow-sm mb-8">
+          <h3 className="text-xl font-semibold text-orange-800 dark:text-orange-200 mb-4">Important Considerations for Implementation</h3>
+
+          <ul className="space-y-4 text-slate-700 dark:text-slate-300">
+            <li className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
+              <div>
+                <strong className="text-slate-800 dark:text-slate-200">Relationship Management:</strong> Currently requires manual handling of document relationships, as AxioDB focuses on pure NoSQL architecture without built-in ODM relationship tools like Mongoose.
+              </div>
             </li>
-            <li>
-              <strong>Not Optimized for Heavy Workloads:</strong> The database
-              may not perform optimally with rapid data input/output scenarios
-              or extremely large datasets (10M+ documents).
+            <li className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
+              <div>
+                <strong className="text-slate-800 dark:text-slate-200">Workload Optimization:</strong> Best suited for moderate to high-traffic applications; extremely high-throughput scenarios (10M+ documents with rapid I/O) may benefit from specialized database solutions.
+              </div>
             </li>
-            <li>
-              <strong>Single-Thread Operations:</strong> Operations are
-              performed on the main thread which can impact application
-              performance during complex queries.
+            <li className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
+              <div>
+                <strong className="text-slate-800 dark:text-slate-200">Processing Architecture:</strong> Currently operates on the main thread, which ensures data consistency but may require optimization for CPU-intensive query operations.
+              </div>
             </li>
-            <li>
-              <strong>Limited Query Complexity:</strong> Some advanced query
-              patterns found in mature databases are not yet implemented.
+            <li className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
+              <div>
+                <strong className="text-slate-800 dark:text-slate-200">Query Complexity:</strong> Supports comprehensive MongoDB-like operations; some specialized query patterns from mature enterprise databases are in active development.
+              </div>
             </li>
-            <li>
-              <strong>No Built-in Replication:</strong> Currently lacks
-              distributed data replication capabilities for high availability
-              setups.
+            <li className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
+              <div>
+                <strong className="text-slate-800 dark:text-slate-200">Distribution Features:</strong> Single-node architecture by design; distributed replication and clustering capabilities are planned for future enterprise releases.
+              </div>
             </li>
           </ul>
 
-          <p className="mt-4 text-gray-700 dark:text-gray-300 italic">
-            We're actively working to address these limitations in future
-            releases.
-          </p>
+          <div className="mt-6 p-4 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+            <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+              <strong className="text-orange-800 dark:text-orange-200">Our Commitment:</strong> These considerations represent opportunities for enhancement rather than permanent limitations. Our development roadmap actively addresses these areas with planned updates and new features.
+            </p>
+          </div>
         </div>
       </section>
 
-      <section id="future-plans" className="pt-8 scroll-mt-20">
-        <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
-          <Layers className="h-8 w-8 text-purple-500" />
-          Future Plans
-        </h2>
-
-        <p className="text-gray-700 dark:text-gray-300 mb-6">
-          We're committed to continuously enhancing AxioDB with cutting-edge
-          features:
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
-              Data Export and Import Mechanisms
-            </h3>
-            <p className="text-gray-700 dark:text-gray-300">
-              Enable seamless export and import of data in various formats like
-              JSON, CSV, and more.
+      <section id="future-plans" className="pt-12 scroll-mt-20">
+        <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-indigo-50 dark:from-purple-900/20 dark:via-slate-800 dark:to-indigo-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-purple-200 dark:border-purple-800 shadow-xl">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-purple-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
+          
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl shadow-lg">
+                <Layers className="h-10 w-10 text-white" />
+              </div>
+              <div>
+                <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-800 via-indigo-700 to-blue-700 dark:from-purple-200 dark:via-indigo-300 dark:to-blue-200 bg-clip-text text-transparent">
+                  Innovation Roadmap
+                </h2>
+                <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
+                  Pioneering the future of database technology
+                </p>
+              </div>
+            </div>
+            <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+              Our development roadmap focuses on cutting-edge innovations that will position AxioDB as the premier 
+              choice for next-generation applications. We're committed to continuous enhancement and staying ahead 
+              of industry trends while maintaining our core principles of simplicity and performance.
             </p>
           </div>
+        </div>
 
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
-              Advanced Indexing
-            </h3>
-            <p className="text-gray-700 dark:text-gray-300">
-              Implement multi-level indexing for lightning-fast queries on any
-              field or combination of fields.
-            </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transform hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                  <Download className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Data Export & Import</h3>
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+                Seamless data migration capabilities with support for multiple formats including JSON, CSV, 
+                and native AxioDB formats for comprehensive data portability.
+              </p>
+            </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
-              Replication and Sharding
-            </h3>
-            <p className="text-gray-700 dark:text-gray-300">
-              Introduce support for distributed data replication and sharding
-              for high availability and scalability.
-            </p>
+          <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transform hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/10 dark:to-cyan-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                  <Search className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Advanced Indexing</h3>
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+                Multi-level indexing system for lightning-fast queries on any field combination, 
+                with automatic index optimization and intelligent query planning.
+              </p>
+            </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
-              Comprehensive Documentation
-            </h3>
-            <p className="text-gray-700 dark:text-gray-300">
-              Expand tutorials, examples, and API references for developers of
-              all experience levels.
-            </p>
+          <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-green-300 dark:hover:border-green-600 transform hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                  <Layers className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Replication & Sharding</h3>
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+                Distributed architecture with automated data replication and intelligent sharding 
+                for enterprise-grade high availability and horizontal scalability.
+              </p>
+            </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <h3 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400">
-              Enhanced Web-Based GUI Dashboard
-            </h3>
-            <p className="text-gray-700 dark:text-gray-300">
-              Continue improving our web-based interface (already available on{" "}
-              <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
-                localhost:27018
-              </code>{" "}
-              when you run AxioDB) with more features for visual data management
-              and analytics.
-            </p>
+          <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-600 transform hover:-translate-y-1">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                  <Code2 className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Comprehensive Documentation</h3>
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+                Extensive tutorials, interactive examples, and complete API references 
+                designed for developers at every skill level and experience.
+              </p>
+            </div>
+          </div>
+
+          <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-600 transform hover:-translate-y-1 md:col-span-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/10 dark:to-purple-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                  <Settings className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Enhanced Web-Based GUI Dashboard</h3>
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
+                Advanced web-based interface with real-time analytics, visual query builder, 
+                performance monitoring, and comprehensive database management tools. Already available at{" "}
+                <code className="bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/50 dark:to-purple-900/50 px-3 py-1 rounded-lg text-violet-700 dark:text-violet-300 font-semibold border border-violet-200 dark:border-violet-800">
+                  localhost:27018
+                </code>{" "}
+                when you run AxioDB.
+              </p>
+            </div>
           </div>
         </div>
       </section>

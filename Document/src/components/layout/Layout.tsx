@@ -64,7 +64,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
         <Header
           toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           isSidebarOpen={isSidebarOpen}
@@ -78,7 +78,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           />
 
           <main className="flex-1 pt-16 pb-16 transition-all duration-300 md:ml-64">
-            <div className="container mx-auto px-4 py-8 max-w-4xl">
+            <div className="container mx-auto px-6 py-12 max-w-6xl">
               {children}
             </div>
           </main>
