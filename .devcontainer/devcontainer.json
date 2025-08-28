@@ -1,83 +1,97 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-	"name": "Node.js & TypeScript",
+	"name": "AxioDB Development",
 	"hostRequirements": {
-		"cpus": 2, // 2 CPUs are required for the universal image
-		"gpu": true, // GPU is required for the universal image
-		"storage": "20gb", // 20gb is the minimum requirement for the universal image
-		"memory": "4gb" // 4gb is the minimum requirement for the universal image
+		"cpus": 2,
+		"gpu": false,
+		"storage": "16gb",
+		"memory": "4gb"
 	},
-	// // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	// "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			"NODE_VERSION": "23"
+		}
+	},
 	
-		// Use 'features' to add new features.
-	// "features": {},
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers-contrib/features/mongodb-tools:1": {
+			"version": "latest"
+		}
+	},
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	"forwardPorts": [27018, 27019, 27020, 27021, 27022, 27023, 5173],
 
-	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand":"./.devcontainer/postCreateCommand.sh",
 
-	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"streetsidesoftware.code-spell-checker",
-				"ms-vscode-remote.remote-containers",
 				"dbaeumer.vscode-eslint",
-				"GitHub.codespaces",
+				"esbenp.prettier-vscode",
 				"GitHub.copilot",
 				"GitHub.copilot-chat",
-				"GitHub.remotehub",
 				"eamodio.gitlens",
-				"PKief.material-icon-theme",
 				"mongodb.mongodb-vscode",
-				"christian-kohler.npm-intellisense",
-				"esbenp.prettier-vscode",
-				"ms-vscode-remote.remote-ssh",
-				"ms-vscode-remote.remote-ssh-edit",
-				"ms-vscode.remote-server",
-				"ms-vscode.remote-explorer",
-				"ms-vscode.remote-repositories",
-				"bradlc.vscode-tailwindcss",
-				"pnp.polacode",
-				"Anan.jetbrains-darcula-theme",
-				"foxundermoon.shell-format",
+				"ms-azuretools.vscode-docker",
+				"cweijan.vscode-database-client2",
+				"ms-vscode.vscode-typescript-next",
+				"wix.vscode-import-cost",
+				"sburg.vscode-javascript-booster",
+				"visualstudioexptteam.vscodeintellicode",
+				"Orta.vscode-jest",
+				"firsttris.vscode-jest-runner",
+				"DavidAnson.vscode-markdownlint",
 				"rangav.vscode-thunder-client",
-				"DeepSourceCorp.deepsource-vscode"
+				"redhat.vscode-yaml",
+				"formulahendry.code-runner",
+				"ms-vscode-remote.remote-containers",
+				"christian-kohler.path-intellisense",
+				"christian-kohler.npm-intellisense",
+				"streetsidesoftware.code-spell-checker"
 			],
-			"settings" :{
+			"settings": {
 				"editor.formatOnSave": true,
 				"editor.tabSize": 2,
 				"files.autoSave": "afterDelay",
 				"files.autoSaveDelay": 1000,
 				"editor.codeActionsOnSave": {
-					"source.fixAll.eslint": true,
-					"source.organizeImports": true
+					"source.fixAll.eslint": "explicit",
+					"source.organizeImports": "explicit"
 				},
 				"editor.defaultFormatter": "esbenp.prettier-vscode",
-				"editor.suggestSelection": "first",
-				"editor.suggest.insertMode": "replace",
-				"editor.suggest.snippetsPreventQuickSuggestions": false,
-				"editor.suggest.showKeywords": true,
-				"editor.suggest.showStatusBar": true,
-				"editor.suggest.showIcons": true,
-				"editor.suggest.showMethods": true,
-				"editor.suggest.showSnippets": true,
-				"editor.suggest.showWords": true,
-				"editor.suggest.showColors": true,
-				"editor.suggest.showFiles": true,
-				"editor.suggest.showReferences": true,
-				"editor.suggest.showUserSnippets": true,
-				"editor.suggest.showText": true,
-				"editor.suggest.showTypeParameters": true
+				"editor.bracketPairColorization.enabled": true,
+				"editor.guides.bracketPairs": "active",
+				"typescript.tsdk": "node_modules/typescript/lib",
+				"typescript.preferences.importModuleSpecifier": "relative",
+				"javascript.updateImportsOnFileMove.enabled": "always",
+				"typescript.updateImportsOnFileMove.enabled": "always",
+				"explorer.compactFolders": false,
+				"editor.inlineSuggest.enabled": true,
+				"terminal.integrated.gpuAcceleration": "auto",
+				"workbench.editor.closeOnFileDelete": true,
+				"files.watcherExclude": {
+					"**/node_modules/**": true,
+					"**/dist/**": true,
+					"**/build/**": true
+				},
+				"search.exclude": {
+					"**/node_modules": true,
+					"**/bower_components": true,
+					"**/dist": true,
+					"**/build": true
+				}
 			}
 		}
 	},
 
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	"remoteUser": "root",
 	"otherPortsAttributes": {
 		"onAutoForward": "notify"
