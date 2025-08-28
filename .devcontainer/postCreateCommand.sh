@@ -15,3 +15,6 @@ cd ./Document && npm i --force && cd .. # Install & build dependencies for AxioD
 
 # Install Dependencies for the AxioDB GUI
 cd ./GUI && npm i --force && cd .. # Install & build dependencies for AxioDB GUI
+
+# Install Claude Code CLI
+npm install -g @anthropic-ai/claude-code

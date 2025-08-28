@@ -27,7 +27,7 @@
 		}
 	},
 
-	"forwardPorts": [27018, 27019, 27020, 27021, 27022, 27023, 5173],
+	"forwardPorts": [27018],
 
 	"postCreateCommand":"./.devcontainer/postCreateCommand.sh",
 

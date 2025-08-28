@@ -8,21 +8,34 @@
 # VS Code Conf Codes
 vscode:
   extensions:
-    - streetsidesoftware.code-spell-checker
-    - eamodio.gitlens
-    - PKief.material-icon-theme
-    - mongodb.mongodb-vscode
-    - christian-kohler.npm-intellisense
+    - dbaeumer.vscode-eslint
     - esbenp.prettier-vscode
-    - bradlc.vscode-tailwindcss
-    - formulahendry.code-runner
-    - MoBalic.jetbrains-dark-theme
-    - adpyke.codesnap
-    - foxundermoon.shell-format
+    - eamodio.gitlens
+    - mongodb.mongodb-vscode
+    - ms-azuretools.vscode-docker
+    - cweijan.vscode-database-client2
+    - ms-vscode.vscode-typescript-next
+    - wix.vscode-import-cost
+    - Orta.vscode-jest
+    - firsttris.vscode-jest-runner
+    - DavidAnson.vscode-markdownlint
     - rangav.vscode-thunder-client
-    - DeepSourceCorp.deepsource-vscode
+    - redhat.vscode-yaml
+    - formulahendry.code-runner
+    - mikestead.dotenv
+    - christian-kohler.path-intellisense
+    - christian-kohler.npm-intellisense
+    - streetsidesoftware.code-spell-checker
+
+# MongoDB ports that need to be exposed
+ports:
+  - port: 27018
+    onOpen: ignore
 
 # Run Some Commands
 tasks:
-  - name: First Time Setup
-  - command: bash ./.devcontainer/postCreateCommand.sh
+  - name: Development Setup
+    init: |
+      echo "Installing dependencies..."
+      npm install
+    command: bash ./.devcontainer/postCreateCommand.sh
