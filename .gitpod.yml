@@ -16,8 +16,6 @@ vscode:
     - cweijan.vscode-database-client2
     - ms-vscode.vscode-typescript-next
     - wix.vscode-import-cost
-    - sburg.vscode-javascript-booster
-    - visualstudioexptteam.vscodeintellicode
     - Orta.vscode-jest
     - firsttris.vscode-jest-runner
     - DavidAnson.vscode-markdownlint
@@ -31,10 +29,8 @@ vscode:
 
 # MongoDB ports that need to be exposed
 ports:
-  - port: 27018-27023
+  - port: 27018
     onOpen: ignore
-  - port: 5173
-    onOpen: open-browser
 
 # Run Some Commands
 tasks:
