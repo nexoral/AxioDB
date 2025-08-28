@@ -1,5 +1,12 @@
 import React from "react";
-import { Users, GitPullRequest, Scale, Heart, Github, ExternalLink } from "lucide-react";
+import {
+  Users,
+  GitPullRequest,
+  Scale,
+  Heart,
+  Github,
+  ExternalLink,
+} from "lucide-react";
 
 const Community: React.FC = () => {
   return (
@@ -8,7 +15,7 @@ const Community: React.FC = () => {
         {/* Contributing Hero Header */}
         <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-blue-900/20 dark:via-slate-800 dark:to-indigo-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-blue-200 dark:border-blue-800 shadow-xl">
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
-          
+
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-lg animate-glow">
@@ -24,9 +31,11 @@ const Community: React.FC = () => {
               </div>
             </div>
             <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-              Be part of a passionate community building the next generation of NoSQL databases. 
-              Whether you're contributing code, improving documentation, reporting bugs, or suggesting features, 
-              every contribution makes AxioDB stronger and more valuable for developers worldwide.
+              Be part of a passionate community building the next generation of
+              NoSQL databases. Whether you're contributing code, improving
+              documentation, reporting bugs, or suggesting features, every
+              contribution makes AxioDB stronger and more valuable for
+              developers worldwide.
             </p>
           </div>
         </div>
@@ -40,69 +49,103 @@ const Community: React.FC = () => {
                 <GitPullRequest className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Contribution Workflow</h3>
-                <p className="text-slate-600 dark:text-slate-300">Step-by-step guide to contributing</p>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  Contribution Workflow
+                </h3>
+                <p className="text-slate-600 dark:text-slate-300">
+                  Step-by-step guide to contributing
+                </p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="relative bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 p-6 rounded-xl border border-blue-200 dark:border-blue-700 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">1</div>
-                  <h4 className="font-bold text-blue-900 dark:text-blue-100">Fork Repository</h4>
+                  <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                    1
+                  </div>
+                  <h4 className="font-bold text-blue-900 dark:text-blue-100">
+                    Fork Repository
+                  </h4>
                 </div>
                 <p className="text-blue-800 dark:text-blue-200 leading-relaxed">
-                  Create your own copy of the AxioDB repository on GitHub to start contributing safely.
+                  Create your own copy of the AxioDB repository on GitHub to
+                  start contributing safely.
                 </p>
               </div>
 
               <div className="relative bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl border border-green-200 dark:border-green-700 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">2</div>
-                  <h4 className="font-bold text-green-900 dark:text-green-100">Feature Branch</h4>
+                  <div className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                    2
+                  </div>
+                  <h4 className="font-bold text-green-900 dark:text-green-100">
+                    Feature Branch
+                  </h4>
                 </div>
                 <p className="text-green-800 dark:text-green-200 leading-relaxed">
-                  Create a descriptive branch name that clearly indicates your feature or bug fix.
+                  Create a descriptive branch name that clearly indicates your
+                  feature or bug fix.
                 </p>
               </div>
 
               <div className="relative bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-700 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">3</div>
-                  <h4 className="font-bold text-purple-900 dark:text-purple-100">Code Changes</h4>
+                  <div className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                    3
+                  </div>
+                  <h4 className="font-bold text-purple-900 dark:text-purple-100">
+                    Code Changes
+                  </h4>
                 </div>
                 <p className="text-purple-800 dark:text-purple-200 leading-relaxed">
-                  Follow coding standards and maintain consistency with existing architecture patterns.
+                  Follow coding standards and maintain consistency with existing
+                  architecture patterns.
                 </p>
               </div>
 
               <div className="relative bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 p-6 rounded-xl border border-yellow-200 dark:border-yellow-700 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">4</div>
-                  <h4 className="font-bold text-yellow-900 dark:text-yellow-100">Write Tests</h4>
+                  <div className="bg-yellow-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                    4
+                  </div>
+                  <h4 className="font-bold text-yellow-900 dark:text-yellow-100">
+                    Write Tests
+                  </h4>
                 </div>
                 <p className="text-yellow-800 dark:text-yellow-200 leading-relaxed">
-                  Add comprehensive unit tests for new functionality and ensure all existing tests pass.
+                  Add comprehensive unit tests for new functionality and ensure
+                  all existing tests pass.
                 </p>
               </div>
 
               <div className="relative bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 p-6 rounded-xl border border-indigo-200 dark:border-indigo-700 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-indigo-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">5</div>
-                  <h4 className="font-bold text-indigo-900 dark:text-indigo-100">Pull Request</h4>
+                  <div className="bg-indigo-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                    5
+                  </div>
+                  <h4 className="font-bold text-indigo-900 dark:text-indigo-100">
+                    Pull Request
+                  </h4>
                 </div>
                 <p className="text-indigo-800 dark:text-indigo-200 leading-relaxed">
-                  Submit detailed PR with clear description, linked issues, and testing instructions.
+                  Submit detailed PR with clear description, linked issues, and
+                  testing instructions.
                 </p>
               </div>
 
               <div className="relative bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 p-6 rounded-xl border border-rose-200 dark:border-rose-700 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-rose-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">6</div>
-                  <h4 className="font-bold text-rose-900 dark:text-rose-100">Review & Merge</h4>
+                  <div className="bg-rose-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                    6
+                  </div>
+                  <h4 className="font-bold text-rose-900 dark:text-rose-100">
+                    Review & Merge
+                  </h4>
                 </div>
                 <p className="text-rose-800 dark:text-rose-200 leading-relaxed">
-                  Collaborate with maintainers during review process and see your contribution merged.
+                  Collaborate with maintainers during review process and see
+                  your contribution merged.
                 </p>
               </div>
             </div>
@@ -111,7 +154,7 @@ const Community: React.FC = () => {
 
         <div className="relative overflow-hidden bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-8 lg:p-10 border-l-4 border-blue-500 shadow-xl mb-12">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-2xl"></div>
-          
+
           <div className="relative z-10 flex items-start gap-4">
             <div className="flex-shrink-0">
               <div className="p-3 bg-blue-500 rounded-xl shadow-lg">
@@ -119,10 +162,13 @@ const Community: React.FC = () => {
               </div>
             </div>
             <div className="flex-1">
-              <h4 className="text-2xl font-bold text-blue-900 dark:text-blue-100 mb-3">Contributing Guidelines</h4>
+              <h4 className="text-2xl font-bold text-blue-900 dark:text-blue-100 mb-3">
+                Contributing Guidelines
+              </h4>
               <p className="text-lg text-blue-800 dark:text-blue-200 leading-relaxed mb-4">
-                Detailed contribution guidelines, coding standards, and project architecture documentation 
-                are available in our comprehensive CONTRIBUTING.md file.
+                Detailed contribution guidelines, coding standards, and project
+                architecture documentation are available in our comprehensive
+                CONTRIBUTING.md file.
               </p>
               <a
                 href="https://github.com/AnkanSaha/AxioDB/blob/main/CONTRIBUTING.md"
@@ -143,7 +189,7 @@ const Community: React.FC = () => {
         {/* License Hero Header */}
         <div className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-green-900/20 dark:via-slate-800 dark:to-emerald-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-green-200 dark:border-green-800 shadow-xl">
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-green-400/10 to-emerald-400/10 rounded-full blur-3xl"></div>
-          
+
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg animate-glow">
@@ -159,8 +205,9 @@ const Community: React.FC = () => {
               </div>
             </div>
             <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-              AxioDB is proudly released under the MIT License, ensuring maximum flexibility for developers 
-              and organizations. Use it in commercial projects, modify it to fit your needs, and distribute it freely.
+              AxioDB is proudly released under the MIT License, ensuring maximum
+              flexibility for developers and organizations. Use it in commercial
+              projects, modify it to fit your needs, and distribute it freely.
             </p>
           </div>
         </div>
@@ -173,10 +220,14 @@ const Community: React.FC = () => {
                 <Scale className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">MIT License Overview</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+                  MIT License Overview
+                </h3>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-                  AxioDB is released under the MIT License, one of the most permissive and widely-adopted open source licenses.
-                  This provides extensive freedom for commercial and non-commercial use, modification, and distribution.
+                  AxioDB is released under the MIT License, one of the most
+                  permissive and widely-adopted open source licenses. This
+                  provides extensive freedom for commercial and non-commercial
+                  use, modification, and distribution.
                 </p>
               </div>
             </div>
@@ -227,7 +278,7 @@ SOFTWARE.`}
         {/* Acknowledgments Hero Header */}
         <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-violet-50 dark:from-purple-900/20 dark:via-slate-800 dark:to-violet-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-purple-200 dark:border-purple-800 shadow-xl">
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-purple-400/10 to-violet-400/10 rounded-full blur-3xl"></div>
-          
+
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-gradient-to-br from-purple-500 to-violet-500 rounded-xl shadow-lg animate-glow">
@@ -243,9 +294,10 @@ SOFTWARE.`}
               </div>
             </div>
             <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-              AxioDB thrives thanks to our vibrant community of contributors, supporters, and users. 
-              Every bug report, feature suggestion, code contribution, and piece of feedback helps make 
-              AxioDB better for developers around the world.
+              AxioDB thrives thanks to our vibrant community of contributors,
+              supporters, and users. Every bug report, feature suggestion, code
+              contribution, and piece of feedback helps make AxioDB better for
+              developers around the world.
             </p>
           </div>
         </div>
@@ -258,8 +310,12 @@ SOFTWARE.`}
                 <Users className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Project Contributors</h3>
-                <p className="text-slate-600 dark:text-slate-300">Meet the people behind AxioDB</p>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  Project Contributors
+                </h3>
+                <p className="text-slate-600 dark:text-slate-300">
+                  Meet the people behind AxioDB
+                </p>
               </div>
             </div>
 
@@ -316,7 +372,7 @@ SOFTWARE.`}
 
         <div className="relative overflow-hidden bg-gradient-to-r from-purple-50 via-violet-50 to-pink-50 dark:from-purple-900/20 dark:via-violet-900/20 dark:to-pink-900/20 rounded-2xl p-8 lg:p-10 border-l-4 border-purple-500 shadow-xl">
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-violet-400/20 rounded-full blur-2xl"></div>
-          
+
           <div className="relative z-10 flex items-start gap-4">
             <div className="flex-shrink-0">
               <div className="p-3 bg-purple-500 rounded-xl shadow-lg">
@@ -324,12 +380,16 @@ SOFTWARE.`}
               </div>
             </div>
             <div className="flex-1">
-              <h4 className="text-2xl font-bold text-purple-900 dark:text-purple-100 mb-3">Special Recognition</h4>
+              <h4 className="text-2xl font-bold text-purple-900 dark:text-purple-100 mb-3">
+                Special Recognition
+              </h4>
               <p className="text-lg text-purple-800 dark:text-purple-200 leading-relaxed">
-                AxioDB is inspired by the best practices and patterns from popular databases like MongoDB, 
-                while bringing its own unique approach to the NoSQL database space. We're grateful to the broader 
-                open-source community for paving the way for innovative projects like this, and to every developer 
-                who chooses AxioDB for their applications.
+                AxioDB is inspired by the best practices and patterns from
+                popular databases like MongoDB, while bringing its own unique
+                approach to the NoSQL database space. We're grateful to the
+                broader open-source community for paving the way for innovative
+                projects like this, and to every developer who chooses AxioDB
+                for their applications.
               </p>
             </div>
           </div>

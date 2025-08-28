@@ -1,4 +1,19 @@
-import { CheckCircle2, FilterX, Layers, Zap, Shield, Database, Code2, Cpu, Clock, Lock, Search, Settings, BarChart3, Download } from "lucide-react";
+import {
+  CheckCircle2,
+  FilterX,
+  Layers,
+  Zap,
+  Shield,
+  Database,
+  Code2,
+  Cpu,
+  Clock,
+  Lock,
+  Search,
+  Settings,
+  BarChart3,
+  Download,
+} from "lucide-react";
 import React from "react";
 
 const Features: React.FC = () => {
@@ -7,7 +22,7 @@ const Features: React.FC = () => {
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-green-50 dark:from-emerald-900/20 dark:via-slate-800 dark:to-green-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-emerald-200 dark:border-emerald-800 shadow-xl">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-400/10 to-green-400/10 rounded-full blur-3xl"></div>
-        
+
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
             <div className="p-3 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl shadow-lg">
@@ -23,9 +38,11 @@ const Features: React.FC = () => {
             </div>
           </div>
           <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-            AxioDB delivers a complete suite of caching features engineered specifically for production environments, 
-            from high-traffic web applications to enterprise-scale APIs. Experience lightning-fast data retrieval, 
-            intelligent memory management, and seamless integration with your existing technology stack.
+            AxioDB delivers a complete suite of caching features engineered
+            specifically for production environments, from high-traffic web
+            applications to enterprise-scale APIs. Experience lightning-fast
+            data retrieval, intelligent memory management, and seamless
+            integration with your existing technology stack.
           </p>
         </div>
       </div>
@@ -39,11 +56,14 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Shield className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Intelligent Cache Management</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Intelligent Cache Management
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-              Automated cache lifecycle management with smart eviction policies, TTL support, and memory optimization 
-              ensuring optimal performance in production environments.
+              Automated cache lifecycle management with smart eviction policies,
+              TTL support, and memory optimization ensuring optimal performance
+              in production environments.
             </p>
           </div>
         </div>
@@ -55,16 +75,27 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Code2 className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Chainable Query Methods</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Chainable Query Methods
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
-              Execute sophisticated cache queries with fluent API methods designed for real-time data retrieval and filtering.
+              Execute sophisticated cache queries with fluent API methods
+              designed for real-time data retrieval and filtering.
             </p>
             <div className="flex flex-wrap gap-2">
-              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">.query()</code>
-              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">.Sort()</code>
-              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">.Limit()</code>
-              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">.Skip()</code>
+              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">
+                .query()
+              </code>
+              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">
+                .Sort()
+              </code>
+              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">
+                .Limit()
+              </code>
+              <code className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 px-3 py-1 rounded-lg text-purple-700 dark:text-purple-300 font-semibold border border-purple-200 dark:border-purple-800 text-sm">
+                .Skip()
+              </code>
             </div>
           </div>
         </div>
@@ -76,11 +107,14 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Zap className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">High-Performance Data Layer</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                High-Performance Data Layer
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-              Purpose-built for production caching with optimized I/O operations, intelligent buffering, 
-              and sub-millisecond response times for frequently accessed data.
+              Purpose-built for production caching with optimized I/O
+              operations, intelligent buffering, and sub-millisecond response
+              times for frequently accessed data.
             </p>
           </div>
         </div>
@@ -92,11 +126,14 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Lock className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Secure Cache Storage</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Secure Cache Storage
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-              Enterprise-grade encryption for sensitive cached data including user sessions, API responses, 
-              and confidential application state with automatic key rotation.
+              Enterprise-grade encryption for sensitive cached data including
+              user sessions, API responses, and confidential application state
+              with automatic key rotation.
             </p>
           </div>
         </div>
@@ -108,16 +145,28 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <BarChart3 className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Advanced Aggregation Pipelines</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Advanced Aggregation Pipelines
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
-              Execute sophisticated data processing workflows with MongoDB-compatible aggregation operations for comprehensive business intelligence and analytics.
+              Execute sophisticated data processing workflows with
+              MongoDB-compatible aggregation operations for comprehensive
+              business intelligence and analytics.
             </p>
             <div className="flex flex-wrap gap-2">
-              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">$match</code>
-              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">$group</code>
-              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">$sort</code>
-              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">$project</code>
+              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">
+                $match
+              </code>
+              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">
+                $group
+              </code>
+              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">
+                $sort
+              </code>
+              <code className="bg-gradient-to-r from-cyan-100 to-blue-100 dark:from-cyan-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200 dark:border-cyan-800 text-sm">
+                $project
+              </code>
             </div>
           </div>
         </div>
@@ -129,10 +178,15 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Cpu className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Intelligent Memory Caching</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Intelligent Memory Caching
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-              Dramatically accelerate query performance with our intelligent in-memory caching system, delivering sub-millisecond response times for frequently accessed data and optimized resource utilization.
+              Dramatically accelerate query performance with our intelligent
+              in-memory caching system, delivering sub-millisecond response
+              times for frequently accessed data and optimized resource
+              utilization.
             </p>
           </div>
         </div>
@@ -144,10 +198,15 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Zap className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Zero-Configuration Setup</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Zero-Configuration Setup
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-              Get started instantly with our serverless architecture—no complex installations, database servers, or lengthy configurations required. Simply install and begin building your application immediately.
+              Get started instantly with our serverless architecture—no complex
+              installations, database servers, or lengthy configurations
+              required. Simply install and begin building your application
+              immediately.
             </p>
           </div>
         </div>
@@ -159,11 +218,14 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Layers className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Tree-like Structure</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Tree-like Structure
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-              Store data in a hierarchical tree-like structure that enables efficient data retrieval, 
-              organization, and management with intuitive parent-child relationships.
+              Store data in a hierarchical tree-like structure that enables
+              efficient data retrieval, organization, and management with
+              intuitive parent-child relationships.
             </p>
           </div>
         </div>
@@ -175,11 +237,14 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Database className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Single Instance Architecture</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Single Instance Architecture
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
-              Ensures data consistency and security through a single instance pattern. Initialize one AxioDB instance 
-              and create unlimited databases, collections, and documents under unified management.
+              Ensures data consistency and security through a single instance
+              pattern. Initialize one AxioDB instance and create unlimited
+              databases, collections, and documents under unified management.
             </p>
             <code className="bg-gradient-to-r from-indigo-100 to-blue-100 dark:from-indigo-900/50 dark:to-blue-900/50 px-3 py-2 rounded-lg text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800">
               new AxioDB()
@@ -194,11 +259,14 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Settings className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Web-Based GUI Dashboard</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Web-Based GUI Dashboard
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
-              Automatically launches a comprehensive web-based management interface for visual database administration, 
-              query execution, and real-time monitoring.
+              Automatically launches a comprehensive web-based management
+              interface for visual database administration, query execution, and
+              real-time monitoring.
             </p>
             <code className="bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/50 dark:to-purple-900/50 px-3 py-2 rounded-lg text-violet-700 dark:text-violet-300 font-semibold border border-violet-200 dark:border-violet-800">
               localhost:27018
@@ -213,11 +281,14 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Search className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Auto Indexing on documentId</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Auto Indexing on documentId
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-              Automatically creates optimized indexes on document IDs for lightning-fast queries and retrieval operations 
-              without requiring manual configuration or maintenance.
+              Automatically creates optimized indexes on document IDs for
+              lightning-fast queries and retrieval operations without requiring
+              manual configuration or maintenance.
             </p>
           </div>
         </div>
@@ -229,11 +300,15 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Settings className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Flexible Collection Configuration</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Flexible Collection Configuration
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-              Create collections with versatile configurations: basic collections, encrypted collections with auto-generated 
-              or custom keys, schema-only collections, or collections with both encryption and comprehensive schema validation.
+              Create collections with versatile configurations: basic
+              collections, encrypted collections with auto-generated or custom
+              keys, schema-only collections, or collections with both encryption
+              and comprehensive schema validation.
             </p>
           </div>
         </div>
@@ -245,16 +320,25 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Zap className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Bulk Operations Support</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Bulk Operations Support
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
-              Handle massive datasets efficiently with high-performance bulk operations that significantly reduce overhead 
-              and improve throughput for large-scale data operations.
+              Handle massive datasets efficiently with high-performance bulk
+              operations that significantly reduce overhead and improve
+              throughput for large-scale data operations.
             </p>
             <div className="flex flex-wrap gap-2">
-              <code className="bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 px-3 py-1 rounded-lg text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800 text-sm">insertMany()</code>
-              <code className="bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 px-3 py-1 rounded-lg text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800 text-sm">UpdateMany()</code>
-              <code className="bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 px-3 py-1 rounded-lg text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800 text-sm">DeleteMany()</code>
+              <code className="bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 px-3 py-1 rounded-lg text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800 text-sm">
+                insertMany()
+              </code>
+              <code className="bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 px-3 py-1 rounded-lg text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800 text-sm">
+                UpdateMany()
+              </code>
+              <code className="bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/50 dark:to-green-900/50 px-3 py-1 rounded-lg text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-200 dark:border-emerald-800 text-sm">
+                DeleteMany()
+              </code>
             </div>
           </div>
         </div>
@@ -266,17 +350,28 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-sky-500 to-blue-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Code2 className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Advanced Query Operators</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Advanced Query Operators
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
-              Comprehensive MongoDB-compatible query operators for sophisticated data filtering, matching, 
-              and retrieval operations with familiar syntax and powerful capabilities.
+              Comprehensive MongoDB-compatible query operators for sophisticated
+              data filtering, matching, and retrieval operations with familiar
+              syntax and powerful capabilities.
             </p>
             <div className="flex flex-wrap gap-2">
-              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">$gt</code>
-              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">$lt</code>
-              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">$in</code>
-              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">$regex</code>
+              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">
+                $gt
+              </code>
+              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">
+                $lt
+              </code>
+              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">
+                $in
+              </code>
+              <code className="bg-gradient-to-r from-sky-100 to-blue-100 dark:from-sky-900/50 dark:to-blue-900/50 px-3 py-1 rounded-lg text-sky-700 dark:text-sky-300 font-semibold border border-sky-200 dark:border-sky-800 text-sm">
+                $regex
+              </code>
             </div>
           </div>
         </div>
@@ -288,11 +383,14 @@ const Features: React.FC = () => {
               <div className="p-3 bg-gradient-to-br from-lime-500 to-green-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                 <Database className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Custom Database Path</h3>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Custom Database Path
+              </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
-              Define custom storage locations for your databases with flexible path configuration, 
-              enabling better project organization and deployment flexibility across different environments.
+              Define custom storage locations for your databases with flexible
+              path configuration, enabling better project organization and
+              deployment flexibility across different environments.
             </p>
             <code className="bg-gradient-to-r from-lime-100 to-green-100 dark:from-lime-900/50 dark:to-green-900/50 px-3 py-2 rounded-lg text-lime-700 dark:text-lime-300 font-semibold border border-lime-200 dark:border-lime-800">
               new AxioDB("DatabaseName", "./custom/path")
@@ -304,7 +402,7 @@ const Features: React.FC = () => {
       <section id="limitations" className="pt-12 scroll-mt-20">
         <div className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-red-50 dark:from-orange-900/20 dark:via-slate-800 dark:to-red-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-orange-200 dark:border-orange-800 shadow-xl">
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-orange-400/10 to-red-400/10 rounded-full blur-3xl"></div>
-          
+
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-lg">
@@ -320,51 +418,86 @@ const Features: React.FC = () => {
               </div>
             </div>
             <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-              While AxioDB excels in many areas, we believe in transparent communication about current limitations 
-              and areas where alternative solutions might be better suited for specific use cases.
+              While AxioDB excels in many areas, we believe in transparent
+              communication about current limitations and areas where
+              alternative solutions might be better suited for specific use
+              cases.
             </p>
           </div>
         </div>
 
         <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-l-4 border-orange-500 p-6 rounded-r-xl shadow-sm mb-8">
-          <h3 className="text-xl font-semibold text-orange-800 dark:text-orange-200 mb-4">Important Considerations for Implementation</h3>
+          <h3 className="text-xl font-semibold text-orange-800 dark:text-orange-200 mb-4">
+            Important Considerations for Implementation
+          </h3>
 
           <ul className="space-y-4 text-slate-700 dark:text-slate-300">
             <li className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
               <div>
-                <strong className="text-slate-800 dark:text-slate-200">Relationship Management:</strong> Currently requires manual handling of document relationships, as AxioDB focuses on pure NoSQL architecture without built-in ODM relationship tools like Mongoose.
+                <strong className="text-slate-800 dark:text-slate-200">
+                  Relationship Management:
+                </strong>{" "}
+                Currently requires manual handling of document relationships, as
+                AxioDB focuses on pure NoSQL architecture without built-in ODM
+                relationship tools like Mongoose.
               </div>
             </li>
             <li className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
               <div>
-                <strong className="text-slate-800 dark:text-slate-200">Workload Optimization:</strong> Best suited for moderate to high-traffic applications; extremely high-throughput scenarios (10M+ documents with rapid I/O) may benefit from specialized database solutions.
+                <strong className="text-slate-800 dark:text-slate-200">
+                  Workload Optimization:
+                </strong>{" "}
+                Best suited for moderate to high-traffic applications; extremely
+                high-throughput scenarios (10M+ documents with rapid I/O) may
+                benefit from specialized database solutions.
               </div>
             </li>
             <li className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
               <div>
-                <strong className="text-slate-800 dark:text-slate-200">Processing Architecture:</strong> Currently operates on the main thread, which ensures data consistency but may require optimization for CPU-intensive query operations.
+                <strong className="text-slate-800 dark:text-slate-200">
+                  Processing Architecture:
+                </strong>{" "}
+                Currently operates on the main thread, which ensures data
+                consistency but may require optimization for CPU-intensive query
+                operations.
               </div>
             </li>
             <li className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
               <div>
-                <strong className="text-slate-800 dark:text-slate-200">Query Complexity:</strong> Supports comprehensive MongoDB-like operations; some specialized query patterns from mature enterprise databases are in active development.
+                <strong className="text-slate-800 dark:text-slate-200">
+                  Query Complexity:
+                </strong>{" "}
+                Supports comprehensive MongoDB-like operations; some specialized
+                query patterns from mature enterprise databases are in active
+                development.
               </div>
             </li>
             <li className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
               <div>
-                <strong className="text-slate-800 dark:text-slate-200">Distribution Features:</strong> Single-node architecture by design; distributed replication and clustering capabilities are planned for future enterprise releases.
+                <strong className="text-slate-800 dark:text-slate-200">
+                  Distribution Features:
+                </strong>{" "}
+                Single-node architecture by design; distributed replication and
+                clustering capabilities are planned for future enterprise
+                releases.
               </div>
             </li>
           </ul>
 
           <div className="mt-6 p-4 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
             <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-              <strong className="text-orange-800 dark:text-orange-200">Our Commitment:</strong> These considerations represent opportunities for enhancement rather than permanent limitations. Our development roadmap actively addresses these areas with planned updates and new features.
+              <strong className="text-orange-800 dark:text-orange-200">
+                Our Commitment:
+              </strong>{" "}
+              These considerations represent opportunities for enhancement
+              rather than permanent limitations. Our development roadmap
+              actively addresses these areas with planned updates and new
+              features.
             </p>
           </div>
         </div>
@@ -373,7 +506,7 @@ const Features: React.FC = () => {
       <section id="future-plans" className="pt-12 scroll-mt-20">
         <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-indigo-50 dark:from-purple-900/20 dark:via-slate-800 dark:to-indigo-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-purple-200 dark:border-purple-800 shadow-xl">
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-purple-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
-          
+
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl shadow-lg">
@@ -389,9 +522,11 @@ const Features: React.FC = () => {
               </div>
             </div>
             <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-              Our development roadmap focuses on cutting-edge innovations that will position AxioDB as the premier 
-              choice for next-generation applications. We're committed to continuous enhancement and staying ahead 
-              of industry trends while maintaining our core principles of simplicity and performance.
+              Our development roadmap focuses on cutting-edge innovations that
+              will position AxioDB as the premier choice for next-generation
+              applications. We're committed to continuous enhancement and
+              staying ahead of industry trends while maintaining our core
+              principles of simplicity and performance.
             </p>
           </div>
         </div>
@@ -404,11 +539,14 @@ const Features: React.FC = () => {
                 <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                   <Download className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Data Export & Import</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  Data Export & Import
+                </h3>
               </div>
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-                Seamless data migration capabilities with support for multiple formats including JSON, CSV, 
-                and native AxioDB formats for comprehensive data portability.
+                Seamless data migration capabilities with support for multiple
+                formats including JSON, CSV, and native AxioDB formats for
+                comprehensive data portability.
               </p>
             </div>
           </div>
@@ -420,11 +558,14 @@ const Features: React.FC = () => {
                 <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                   <Search className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Advanced Indexing</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  Advanced Indexing
+                </h3>
               </div>
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-                Multi-level indexing system for lightning-fast queries on any field combination, 
-                with automatic index optimization and intelligent query planning.
+                Multi-level indexing system for lightning-fast queries on any
+                field combination, with automatic index optimization and
+                intelligent query planning.
               </p>
             </div>
           </div>
@@ -436,11 +577,14 @@ const Features: React.FC = () => {
                 <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                   <Layers className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Replication & Sharding</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  Replication & Sharding
+                </h3>
               </div>
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-                Distributed architecture with automated data replication and intelligent sharding 
-                for enterprise-grade high availability and horizontal scalability.
+                Distributed architecture with automated data replication and
+                intelligent sharding for enterprise-grade high availability and
+                horizontal scalability.
               </p>
             </div>
           </div>
@@ -452,11 +596,14 @@ const Features: React.FC = () => {
                 <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                   <Code2 className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Comprehensive Documentation</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  Comprehensive Documentation
+                </h3>
               </div>
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-                Extensive tutorials, interactive examples, and complete API references 
-                designed for developers at every skill level and experience.
+                Extensive tutorials, interactive examples, and complete API
+                references designed for developers at every skill level and
+                experience.
               </p>
             </div>
           </div>
@@ -468,11 +615,14 @@ const Features: React.FC = () => {
                 <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
                   <Settings className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Enhanced Web-Based GUI Dashboard</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  Enhanced Web-Based GUI Dashboard
+                </h3>
               </div>
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
-                Advanced web-based interface with real-time analytics, visual query builder, 
-                performance monitoring, and comprehensive database management tools. Already available at{" "}
+                Advanced web-based interface with real-time analytics, visual
+                query builder, performance monitoring, and comprehensive
+                database management tools. Already available at{" "}
                 <code className="bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/50 dark:to-purple-900/50 px-3 py-1 rounded-lg text-violet-700 dark:text-violet-300 font-semibold border border-violet-200 dark:border-violet-800">
                   localhost:27018
                 </code>{" "}

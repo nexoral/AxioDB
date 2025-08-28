@@ -1,4 +1,13 @@
-import { AlertCircle, BookOpen, Code2, Zap, Database, Search, Play, Sparkles } from "lucide-react";
+import {
+  AlertCircle,
+  BookOpen,
+  Code2,
+  Zap,
+  Database,
+  Search,
+  Play,
+  Sparkles,
+} from "lucide-react";
 import React, { useState } from "react";
 import Button from "../ui/Button";
 import CodeBlock from "../ui/CodeBlock";
@@ -128,7 +137,7 @@ console.log(paginatedDocuments);`,
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-green-900/20 dark:via-slate-800 dark:to-emerald-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-green-200 dark:border-green-800 shadow-xl">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-green-400/10 to-emerald-400/10 rounded-full blur-3xl"></div>
-        
+
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
             <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg animate-glow">
@@ -144,9 +153,10 @@ console.log(paginatedDocuments);`,
             </div>
           </div>
           <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-            Explore AxioDB's powerful features through interactive examples. From basic CRUD operations 
-            to advanced aggregation pipelines, master every aspect of modern NoSQL database operations 
-            with our comprehensive, production-ready code samples.
+            Explore AxioDB's powerful features through interactive examples.
+            From basic CRUD operations to advanced aggregation pipelines, master
+            every aspect of modern NoSQL database operations with our
+            comprehensive, production-ready code samples.
           </p>
         </div>
       </div>
@@ -154,7 +164,7 @@ console.log(paginatedDocuments);`,
       {/* Important Note Banner */}
       <div className="relative overflow-hidden bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-900/20 dark:via-yellow-900/20 dark:to-orange-900/20 rounded-2xl p-8 lg:p-10 border-l-4 border-yellow-500 shadow-xl mb-12">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/20 to-amber-400/20 rounded-full blur-2xl"></div>
-        
+
         <div className="relative z-10 flex items-start gap-4">
           <div className="flex-shrink-0">
             <div className="p-3 bg-yellow-500 rounded-xl shadow-lg">
@@ -167,15 +177,18 @@ console.log(paginatedDocuments);`,
             </h3>
             <div className="space-y-4 text-lg text-yellow-800 dark:text-yellow-200 leading-relaxed">
               <p>
-                AxioDB employs a <strong>single instance architecture</strong> for optimal data consistency and security. 
-                Initialize one AxioDB instance with the{" "}
+                AxioDB employs a <strong>single instance architecture</strong>{" "}
+                for optimal data consistency and security. Initialize one AxioDB
+                instance with the{" "}
                 <code className="bg-white dark:bg-slate-800 px-3 py-1 rounded-lg text-yellow-700 dark:text-yellow-300 font-semibold border border-yellow-200 dark:border-yellow-800">
                   new
                 </code>{" "}
-                keyword, enabling unlimited databases, collections, and documents under unified management.
+                keyword, enabling unlimited databases, collections, and
+                documents under unified management.
               </p>
               <p>
-                Upon instance creation, AxioDB automatically launches a comprehensive web-based management interface at{" "}
+                Upon instance creation, AxioDB automatically launches a
+                comprehensive web-based management interface at{" "}
                 <code className="bg-white dark:bg-slate-800 px-3 py-1 rounded-lg text-yellow-700 dark:text-yellow-300 font-semibold border border-yellow-200 dark:border-yellow-800">
                   localhost:27018
                 </code>{" "}
@@ -195,8 +208,12 @@ console.log(paginatedDocuments);`,
               <Play className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Interactive Code Examples</h3>
-              <p className="text-slate-600 dark:text-slate-300">Explore different operations with live code samples</p>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Interactive Code Examples
+              </h3>
+              <p className="text-slate-600 dark:text-slate-300">
+                Explore different operations with live code samples
+              </p>
             </div>
           </div>
 
@@ -241,12 +258,42 @@ console.log(paginatedDocuments);`,
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
-                  { key: "read", label: "Read Operations", icon: Search, color: "from-green-500 to-emerald-500" },
-                  { key: "write", label: "Write Operations", icon: Database, color: "from-blue-500 to-cyan-500" },
-                  { key: "update", label: "Update Operations", icon: Code2, color: "from-orange-500 to-amber-500" },
-                  { key: "delete", label: "Delete Operations", icon: AlertCircle, color: "from-red-500 to-rose-500" },
-                  { key: "aggregate", label: "Aggregations", icon: BookOpen, color: "from-purple-500 to-violet-500" },
-                  { key: "fastRetrieval", label: "Fast Retrieval", icon: Zap, color: "from-indigo-500 to-blue-500" }
+                  {
+                    key: "read",
+                    label: "Read Operations",
+                    icon: Search,
+                    color: "from-green-500 to-emerald-500",
+                  },
+                  {
+                    key: "write",
+                    label: "Write Operations",
+                    icon: Database,
+                    color: "from-blue-500 to-cyan-500",
+                  },
+                  {
+                    key: "update",
+                    label: "Update Operations",
+                    icon: Code2,
+                    color: "from-orange-500 to-amber-500",
+                  },
+                  {
+                    key: "delete",
+                    label: "Delete Operations",
+                    icon: AlertCircle,
+                    color: "from-red-500 to-rose-500",
+                  },
+                  {
+                    key: "aggregate",
+                    label: "Aggregations",
+                    icon: BookOpen,
+                    color: "from-purple-500 to-violet-500",
+                  },
+                  {
+                    key: "fastRetrieval",
+                    label: "Fast Retrieval",
+                    icon: Zap,
+                    color: "from-indigo-500 to-blue-500",
+                  },
                 ].map((example) => {
                   const Icon = example.icon;
                   return (
@@ -273,7 +320,9 @@ console.log(paginatedDocuments);`,
             <div className="space-y-6">
               <div className="text-center">
                 <h4 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-                  {exampleType.charAt(0).toUpperCase() + exampleType.slice(1)} Example ({codeType === "commonjs" ? "CommonJS" : "ES6 Modules"})
+                  {exampleType.charAt(0).toUpperCase() + exampleType.slice(1)}{" "}
+                  Example (
+                  {codeType === "commonjs" ? "CommonJS" : "ES6 Modules"})
                 </h4>
                 <p className="text-slate-600 dark:text-slate-300">
                   Production-ready code example for {exampleType} operations
@@ -309,8 +358,12 @@ console.log(paginatedDocuments);`,
                 <Code2 className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Complete CommonJS Implementation</h3>
-                <p className="text-slate-600 dark:text-slate-300">Production-ready example with all major features</p>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  Complete CommonJS Implementation
+                </h3>
+                <p className="text-slate-600 dark:text-slate-300">
+                  Production-ready example with all major features
+                </p>
               </div>
             </div>
             <div className="bg-gradient-to-r from-slate-900 to-blue-900 rounded-xl p-6 shadow-inner">
@@ -423,8 +476,12 @@ main();`}
                 <Sparkles className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Complete ES6 Module Implementation</h3>
-                <p className="text-slate-600 dark:text-slate-300">Modern JavaScript with import/export syntax</p>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  Complete ES6 Module Implementation
+                </h3>
+                <p className="text-slate-600 dark:text-slate-300">
+                  Modern JavaScript with import/export syntax
+                </p>
               </div>
             </div>
             <div className="bg-gradient-to-r from-slate-900 to-purple-900 rounded-xl p-6 shadow-inner">
