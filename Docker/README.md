@@ -53,15 +53,17 @@ docker run -d \
 Once the container is running:
 
 ### Web GUI Dashboard
+
 - **URL**: `http://localhost:27018`
 - **Description**: Interactive web interface for managing databases, collections, and documents
-- **Features**: 
+- **Features**:
   - Database creation and management
   - Collection operations with schema validation
   - Document CRUD operations
   - Real-time statistics and monitoring
 
 ### API Documentation
+
 - **URL**: `http://localhost:27018/api`
 - **Description**: Complete REST API reference with examples
 - **Features**:
@@ -71,6 +73,7 @@ Once the container is running:
   - Endpoint documentation
 
 ### REST API Endpoints
+
 - **Base URL**: `http://localhost:27018/api`
 - **Content-Type**: `application/json`
 - **Available Operations**:
@@ -90,6 +93,7 @@ npm install axiodb@latest --save
 ```
 
 **Benefits of the NPM package over Docker API:**
+
 - **Better Performance**: Direct in-process database operations
 - **No Network Overhead**: Eliminate HTTP request latency
 - **Type Safety**: Full TypeScript support with IntelliSense
@@ -110,16 +114,16 @@ const main = async () => {
   const collection = await database.createCollection("users", true, {
     name: SchemaTypes.string().required(),
     email: SchemaTypes.string().required().email(),
-    age: SchemaTypes.number().min(0).max(120)
+    age: SchemaTypes.number().min(0).max(120),
   });
 
   // Insert document
   const result = await collection.insert({
     name: "John Doe",
     email: "john@example.com",
-    age: 30
+    age: 30,
   });
-  
+
   console.log(result);
 };
 
@@ -128,13 +132,13 @@ main();
 
 ### When to Use Docker vs NPM Package
 
-| Use Case | Docker API | NPM Package |
-|----------|------------|-------------|
-| **Node.js Applications** | L Not recommended |  **Recommended** |
-| **Microservices Architecture** |  Good choice | � Consider service boundaries |
-| **Non-Node.js Applications** |  **Recommended** | L Not available |
-| **Development/Prototyping** |  Quick setup |  Better performance |
-| **Production Deployment** | � Network overhead |  **Recommended** |
+| Use Case                       | Docker API         | NPM Package                   |
+| ------------------------------ | ------------------ | ----------------------------- |
+| **Node.js Applications**       | L Not recommended  |  **Recommended**              |
+| **Microservices Architecture** |  Good choice       | � Consider service boundaries |
+| **Non-Node.js Applications**   |  **Recommended**   | L Not available               |
+| **Development/Prototyping**    |  Quick setup       |  Better performance           |
+| **Production Deployment**      | � Network overhead |  **Recommended**              |
 
 ## =' Configuration
 
@@ -152,7 +156,7 @@ docker run -d \
 ### Docker Compose
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   axiodb:
@@ -238,9 +242,11 @@ docker run -d --name axiodb-server -p 27018:27018 axiodb:latest
 ```
 
 ## =
- Troubleshooting
+
+Troubleshooting
 
 ### Container Won't Start
+
 ```bash
 # Check container logs
 docker logs axiodb-server
@@ -250,12 +256,14 @@ netstat -tulpn | grep :27018
 ```
 
 ### Port Already in Use
+
 ```bash
 # Use a different port
 docker run -d --name axiodb-server -p 8080:27018 <your-docker-image-name>
 ```
 
 ### Data Persistence Issues
+
 ```bash
 # Ensure proper volume mounting
 docker run -d \
@@ -275,6 +283,7 @@ docker run -d \
 ## > Support
 
 For support and questions:
+
 - Open an issue on [GitHub](https://github.com/AnkanSaha/AxioDB/issues)
 - Check the [documentation](https://axiodb.site/)
 - Visit the API reference at `http://localhost:27018/api`
