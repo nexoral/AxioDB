@@ -60,15 +60,14 @@ rm "$TEMP_FILE"
 
 # Compare versions using sort (this handles semantic versioning correctly)
 if [ "$(printf '%s\n' "$LOCAL_VERSION" "$REMOTE_VERSION" | sort -V | head -n1)" == "$REMOTE_VERSION" ]; then
-  # Local version is higher or equal to remote (remote is listed first in the sort)
+  # Local version is higher than remote (remote is listed first in the sort)
   if [ "$LOCAL_VERSION" == "$REMOTE_VERSION" ]; then
     echo -e "${RED}ERROR: Your version ($LOCAL_VERSION) is the same as the remote version.${NC}"
     echo -e "${YELLOW}You must update the package version before committing.${NC}"
     exit 1
   else
-    echo -e "${RED}ERROR: Your version ($LOCAL_VERSION) is ahead of the remote version ($REMOTE_VERSION).${NC}"
-    echo -e "${YELLOW}Please check your version or update the remote repository first.${NC}"
-    exit 1
+    echo -e "${GREEN}SUCCESS: Your version ($LOCAL_VERSION) is ahead of the remote version ($REMOTE_VERSION).${NC}"
+    exit 0
   fi
 else
   # Local version is lower than remote
