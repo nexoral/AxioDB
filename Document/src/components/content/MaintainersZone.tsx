@@ -93,16 +93,33 @@ const MaintainersZone = () => {
           Hi, I'm Ankan!
         </h1>
         <p className="text-lg leading-relaxed mb-4 text-center max-w-2xl animate-fade-in-up">
-          From a small town in Ranaghat to building AxioDB, my journey is about resilience, curiosity, and the power of self-learning. I believe in turning challenges into opportunities and inspiring others to do the same.
+          From a small town in Ranaghat to building AxioDB, my journey is about
+          resilience, curiosity, and the power of self-learning. I believe in
+          turning challenges into opportunities and inspiring others to do the
+          same.
         </p>
         <div className="flex gap-4 mt-2">
-          <a href="mailto:ankansahaofficial@gmail.com" className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold shadow hover:bg-blue-50 transition-colors">Contact Me</a>
-          <a href="https://github.com/AnkanSaha" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:from-blue-700 hover:to-purple-700 transition-colors">GitHub</a>
+          <a
+            href="mailto:ankansahaofficial@gmail.com"
+            className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold shadow hover:bg-blue-50 transition-colors"
+          >
+            Contact Me
+          </a>
+          <a
+            href="https://github.com/AnkanSaha"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:from-blue-700 hover:to-purple-700 transition-colors"
+          >
+            GitHub
+          </a>
         </div>
       </div>
 
       {/* Timeline Section */}
-      <h2 className="text-3xl font-bold mt-8 mb-6 text-center bg-gradient-to-r from-blue-700 via-purple-600 to-pink-500 bg-clip-text text-transparent">My Journey</h2>
+      <h2 className="text-3xl font-bold mt-8 mb-6 text-center bg-gradient-to-r from-blue-700 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+        My Journey
+      </h2>
       <div className="relative max-w-3xl mx-auto">
         <div className="border-l-4 border-blue-500 dark:border-purple-500 absolute h-full left-6 top-0"></div>
         <ul className="space-y-10">
@@ -112,8 +129,12 @@ const MaintainersZone = () => {
                 {milestone.icon}
               </div>
               <div className="ml-8 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-2 animate-fade-in-up">
-                <h3 className="text-xl font-bold text-blue-700 dark:text-purple-400 mb-2">{milestone.title}</h3>
-                <p className="text-gray-700 dark:text-gray-300">{milestone.description}</p>
+                <h3 className="text-xl font-bold text-blue-700 dark:text-purple-400 mb-2">
+                  {milestone.title}
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {milestone.description}
+                </p>
               </div>
             </li>
           ))}
@@ -121,7 +142,9 @@ const MaintainersZone = () => {
       </div>
 
       {/* Social Section */}
-      <h2 className="text-3xl font-bold mt-12 mb-6 text-center bg-gradient-to-r from-blue-700 via-purple-600 to-pink-500 bg-clip-text text-transparent">Connect with Me</h2>
+      <h2 className="text-3xl font-bold mt-12 mb-6 text-center bg-gradient-to-r from-blue-700 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+        Connect with Me
+      </h2>
       <ul className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
         {socialLinks.map((link) => (
           <li key={link.name} className="group">
@@ -131,7 +154,9 @@ const MaintainersZone = () => {
               rel="noopener noreferrer"
               className="flex flex-col items-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-2 border border-blue-100 dark:border-purple-700"
             >
-              <span className="text-5xl mb-2 text-blue-500 group-hover:text-purple-500 transition-colors">{link.icon}</span>
+              <span className="text-5xl mb-2 text-blue-500 group-hover:text-purple-500 transition-colors">
+                {link.icon}
+              </span>
               <span className="text-base font-semibold text-gray-700 dark:text-gray-300 group-hover:text-blue-600 transition-colors">
                 {link.name}
               </span>

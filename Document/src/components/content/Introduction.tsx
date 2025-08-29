@@ -275,9 +275,16 @@ const Introduction: React.FC = () => {
       <div className="relative animate-fade-in-up">
         <div className="mt-8 flex flex-col items-center">
           <div className="max-w-2xl text-center mb-6 animate-slide-in-right">
-            <h3 className="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-2">Why AxioDB Was Born</h3>
+            <h3 className="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-2">
+              Why AxioDB Was Born
+            </h3>
             <p className="text-lg text-slate-700 dark:text-slate-300 mb-4">
-              As a Node.js backend engineer, I constantly faced the hassle of setting up Redis for small prototypes, struggled with manual file I/O, and found global object storage unreliable for caching. AxioDB was created to solve these pain points—providing a simple, fast, and reliable caching solution for projects of any size, with proper algorithms and memory management.
+              As a Node.js backend engineer, I constantly faced the hassle of
+              setting up Redis for small prototypes, struggled with manual file
+              I/O, and found global object storage unreliable for caching.
+              AxioDB was created to solve these pain points—providing a simple,
+              fast, and reliable caching solution for projects of any size, with
+              proper algorithms and memory management.
             </p>
             <div className="flex justify-center gap-4 animate-glow">
               <a href="/installation" className="inline-block">

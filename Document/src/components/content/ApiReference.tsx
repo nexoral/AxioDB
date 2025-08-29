@@ -26,12 +26,11 @@ const ApiReference: React.FC = () => {
     );
   };
 
-
   const toggleMethod = (method: string) => {
     setExpandedMethods((prev) =>
       prev.includes(method)
         ? prev.filter((m) => m !== method)
-        : [...prev, method]
+        : [...prev, method],
     );
   };
 
@@ -42,10 +41,13 @@ const ApiReference: React.FC = () => {
       methods: [
         {
           name: "insert",
-          signature: "insert(document: object): Promise<SuccessInterface | ErrorInterface>",
+          signature:
+            "insert(document: object): Promise<SuccessInterface | ErrorInterface>",
           description: "Inserts a new document into the collection.",
-          example: "const result = await collection.insert({ name: 'John', age: 30 });",
-          returns: "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
+          example:
+            "const result = await collection.insert({ name: 'John', age: 30 });",
+          returns:
+            "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
         },
         {
           name: "query",
@@ -59,21 +61,25 @@ const ApiReference: React.FC = () => {
           signature: "update(query: object): Updater",
           description: "Initiates an update operation on the collection.",
           example: "const updater = collection.update({ name: 'John' });",
-          returns: "Updater: An Updater instance for chaining update operations.",
+          returns:
+            "Updater: An Updater instance for chaining update operations.",
         },
         {
           name: "delete",
           signature: "delete(query: object): Deleter",
           description: "Initiates a delete operation on the collection.",
           example: "const deleter = collection.delete({ age: { $lt: 18 } });",
-          returns: "Deleter: A Deleter instance for chaining delete operations.",
+          returns:
+            "Deleter: A Deleter instance for chaining delete operations.",
         },
         {
           name: "aggregate",
           signature: "aggregate(pipeline: object[]): Aggregation",
           description: "Initiates an aggregation operation on the collection.",
-          example: "const agg = collection.aggregate([{ $match: { age: { $gt: 25 } } }]);",
-          returns: "Aggregation: An Aggregation instance for chaining aggregation operations.",
+          example:
+            "const agg = collection.aggregate([{ $match: { age: { $gt: 25 } } }]);",
+          returns:
+            "Aggregation: An Aggregation instance for chaining aggregation operations.",
         },
       ],
     },
@@ -112,7 +118,8 @@ const ApiReference: React.FC = () => {
           name: "setProject",
           signature: "setProject(project: object): Reader",
           description: "Sets the projection for the query results.",
-          example: "const query = collection.query({}).setProject({ name: 1, age: 1 });",
+          example:
+            "const query = collection.query({}).setProject({ name: 1, age: 1 });",
           returns: "Reader: The Reader instance for chaining.",
         },
         {
@@ -120,7 +127,8 @@ const ApiReference: React.FC = () => {
           signature: "exec(): Promise<SuccessInterface | ErrorInterface>",
           description: "Executes the query and returns the results.",
           example: "const results = await collection.query({}).exec();",
-          returns: "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
+          returns:
+            "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
         },
       ],
     },
@@ -183,12 +191,13 @@ const ApiReference: React.FC = () => {
                     </button>
 
                     <div
-                      className={`overflow-hidden transition-all duration-300 ${expandedMethods.includes(
-                        `${section.title}-${method.name}`,
-                      )
-                        ? "max-h-[500px]"
-                        : "max-h-0"
-                        }`}
+                      className={`overflow-hidden transition-all duration-300 ${
+                        expandedMethods.includes(
+                          `${section.title}-${method.name}`,
+                        )
+                          ? "max-h-[500px]"
+                          : "max-h-0"
+                      }`}
                     >
                       <div className="pt-2 space-y-3">
                         <div>
