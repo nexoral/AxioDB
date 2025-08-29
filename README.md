@@ -1,43 +1,240 @@
-# AxioDB: A NoSQL DBMS
+# AxioDB: The Next-Generation Caching Database for Node.js
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
 [![CodeQL](https://github.com/AnkanSaha/AxioDB/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/AnkanSaha/AxioDB/actions/workflows/github-code-scanning/codeql)
 [![Socket Security](https://socket.dev/api/badge/npm/package/axiodb)](https://socket.dev/npm/package/axiodb)
 [![Push to Registry](https://github.com/AnkanSaha/AxioDB/actions/workflows/Push.yml/badge.svg?branch=main)](https://github.com/AnkanSaha/AxioDB/actions/workflows/Push.yml)
 
-AxioDB is a blazing-fast, lightweight, and scalable open-source Database Management System (DBMS) tailored for modern applications. It supports `.axiodb` file-based data storage, offers intuitive APIs, and ensures secure data management. AxioDB is the ultimate solution for developers seeking efficient, flexible, and production-ready database solutions.
+> **AxioDB** is a blazing-fast, production-ready caching database designed for modern Node.js applications, APIs, and frontend frameworks. It combines intelligent memory management, secure file-based storage, and seamless integration with a developer-friendly API. AxioDB was created to solve the pain points of traditional cache management, manual file I/O, and unreliable global object storage—delivering a simple, fast, and reliable solution for projects of any size.
 
-👉 **[Official Documentation](https://axiodb.site/)**: Access the full power of AxioDB with detailed guides, examples, and API references.
-
-## 🌐 Table of Contents
-
-- [🚀 Features](#-features)
-- [⚠️ Current Limitations](#-current-limitations)
-- [🔮 Future Plans](#-future-plans)
-- [📦 Installation](#-installation)
-- [🛠️ Usage](#-usage)
-- [🌟 Advanced Features](#-advanced-features)
-- [📖 API Reference](#-api-reference)
-- [🔒 Security](#-security)
-- [🤝 Contributing](#-contributing)
-- [📜 License](#-license)
-- [🙌 Acknowledgments](#-acknowledgments)
-
-## 🚀 Current Featured Features
-
-- **Advanced Schema Validation:** Define robust schemas to ensure data consistency and integrity, with the flexibility to disable validation when needed.
-- **Chainable Query Methods:** Leverage powerful methods like `.query()`, `.Sort()`, `.Limit()`, and `.Skip()` for seamless data filtering.
-- **Optimized Node.js Streams:** Handle massive datasets effortlessly with high-performance read/write operations.
-- **Encryption-First Design:** Protect sensitive data with optional AES-256 encryption for collections.
-- **Aggregation Pipelines:** Perform advanced data operations like `$match`, `$sort`, `$group`, and more with MongoDB-like syntax.
-- **InMemoryCache Mechanism:** Accelerate query execution by caching frequently accessed data, reducing query response time significantly.
-- **Plug-and-Play Setup:** No additional database server required—install and start building instantly.
-- **Tree-like Structure:** Store data in a tree-like structure for efficient data retrieval and management.
-- **Auto Indexing on documentId:** Automatically create index on documentId for faster queries.
-- **Single Instance Architecture:** For data consistency and security, you can initialize only one AxioDB instance with the `new` keyword. Under this single instance, you can create unlimited databases, collections, and documents.
-- **Web-Based GUI Dashboard:** When you create an AxioDB instance and run your project, it automatically starts a web-based GUI on `localhost:27018` for visual database management (currently under development).
+👉 **[Official Documentation](https://axiodb.site/)**: Access full guides, examples, and API references.
 
 ---
+
+## � Why AxioDB Exists
+
+As a Node.js backend engineer, setting up Redis for small prototypes, struggling with manual file I/O, and relying on global object storage for caching was inefficient and unreliable. AxioDB was born to:
+
+- Provide a simple, fast, and reliable caching solution for any project size
+- Offer proper algorithms and memory management for production environments
+- Deliver sub-millisecond response times with intelligent architecture
+- Eliminate the complexity of traditional cache management systems
+
+---
+
+## 🚀 Key Features
+
+- **Intelligent Caching:** Advanced `InMemoryCache` system with automatic eviction policies and smart data persistence
+- **Production Security:** Enterprise-grade AES-256 encryption for sensitive cached data and secure access controls
+- **Frontend Integration:** Seamless integration with React, Vue, Angular, and all modern frontend frameworks
+- **Chainable Query Methods:** Fluent API for real-time data retrieval and filtering (`.query()`, `.Sort()`, `.Limit()`, `.Skip()`)
+- **Aggregation Pipelines:** MongoDB-compatible aggregation operations (`$match`, `$group`, `$sort`, `$project`, etc.)
+- **Bulk Operations:** High-performance bulk insert, update, and delete operations (`insertMany`, `UpdateMany`, `DeleteMany`)
+- **Tree-like Structure:** Hierarchical data storage for efficient retrieval and organization
+- **Auto Indexing:** Optimized indexes on document IDs for lightning-fast queries
+- **Single Instance Architecture:** Unified management for unlimited databases, collections, and documents
+- **Web-Based GUI Dashboard:** Visual database administration, query execution, and real-time monitoring at `localhost:27018`
+- **Zero-Configuration Setup:** Serverless architecture—install and start building instantly
+- **Custom Database Path:** Flexible storage locations for better project organization
+
+---
+
+## 🏆 Performance Comparison
+
+| Feature     | Traditional JSON DBMS | AxioDB                 |
+| ----------- | --------------------- | ---------------------- |
+| Storage     | Single JSON file      | Tree-structured files  |
+| Caching     | None                  | InMemoryCache          |
+| Indexing    | None                  | Auto documentId        |
+| Query Speed | Linear                | Sub-millisecond (O(1)) |
+| Scalability | Poor                  | Excellent              |
+
+**Benchmark:** AxioDB's documentId search is up to **10x faster** than traditional JSON DBMSs (tested with 1M+ documents).
+
+---
+
+## 🛡️ Security
+
+- **AES-256 Encryption:** Optional for collections, with auto-generated or custom keys
+- **Secure Storage:** Data stored in `.axiodb` files with file-level isolation and locking
+- **InMemoryCache:** Minimizes disk reads and exposure of sensitive data
+- **Configurable Access Controls:** Protects against unauthorized access
+- **Automatic Cache Invalidation:** Ensures stale data is never served
+
+**Best Practices:**
+
+- Use strong, unique encryption keys
+- Never hardcode keys—use environment variables or secure key management
+- Implement proper access controls and regular backups
+
+For vulnerabilities, see [SECURITY.md](SECURITY.md).
+
+---
+
+## ⚙️ Architecture & Internal Mechanisms
+
+### Tree Structure for Fast Data Retrieval
+
+Hierarchical storage enables O(1) document lookups, logarithmic query time, and efficient indexing. Each document is isolated in its own file, supporting selective loading and easy backup.
+
+### Worker Threads for Parallel Processing
+
+Leverages Node.js Worker Threads for non-blocking I/O, multi-core utilization, and scalable performance—especially for read operations.
+
+### Two-Pointer Searching Algorithm
+
+Optimized for range queries and filtered searches, minimizing memory usage and computational overhead.
+
+### Query Processing Pipeline
+
+Intelligent caching, parallelized processing, lazy evaluation, and just-in-time query optimization for maximum throughput.
+
+### Single Instance Architecture
+
+Ensures ACID compliance, strong data consistency, and simplified deployment. One AxioDB instance manages all databases and collections.
+
+### Designed for Node.js Developers
+
+Native JavaScript API, promise-based interface, lightweight dependency, and simple learning curve.
+
+---
+
+## 📦 Installation
+
+```bash
+npm install axiodb@latest --save
+```
+
+---
+
+## 🛠️ Usage
+
+> **Note:** Only one AxioDB instance should be initialized per application for consistency and security.
+
+### Collection Creation Options
+
+```javascript
+createCollection(
+  name: string,           // Name of the collection (required)
+  isSchemaNeeded: boolean, // Whether schema validation is needed (required)
+  schema?: object | any,  // Schema definition (required if isSchemaNeeded is true, empty {} if false)
+  isEncrypted?: boolean,  // Whether to encrypt the collection (default: false)
+  encryptionKey?: string  // Custom encryption key (optional)
+)
+```
+
+### Example
+
+```javascript
+const { AxioDB, SchemaTypes } = require("axiodb");
+const db = new AxioDB();
+const schema = {
+  name: SchemaTypes.string().required(),
+  age: SchemaTypes.number().min(0).required(),
+  email: SchemaTypes.string().email().required(),
+};
+const userDB = await db.createDB("MyDB");
+const userCollection = await userDB.createCollection(
+  "Users",
+  true,
+  schema,
+  true,
+  "mySecretKey",
+);
+await userCollection.insert({
+  name: "John Doe",
+  email: "john.doe@example.com",
+  age: 30,
+});
+const results = await userCollection
+  .query({ age: { $gt: 25 } })
+  .Limit(10)
+  .Sort({ age: 1 })
+  .exec();
+console.log(results);
+```
+
+---
+
+## 🌟 Advanced Features
+
+- **Multiple Databases:** Architect scalable apps with multiple databases and collections, each with specific schemas and security
+- **Aggregation Pipelines:** Complex data processing with MongoDB-like syntax
+- **Encryption:** Military-grade AES-256 encryption for collections
+- **Bulk Operations:** Efficient batch insert, update, and delete
+- **Flexible Collection Types:** Basic, encrypted, schema-only, or both
+- **Custom Query Operators:** `$gt`, `$lt`, `$in`, `$regex`, etc.
+- **Schema Validation:** Type, field requirements, and value constraints
+- **Performance Optimization:** Fast lookups, pagination, and intelligent caching
+- **Enterprise Data Management:** Bulk operations, conditional updates, atomic transactions
+
+---
+
+## 📖 API Reference
+
+### AxioDB
+
+- `createDB(dbName: string, schemaValidation: boolean = true): Promise<Database>`
+- `deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>`
+
+### Database
+
+- `createCollection(name: string, schema: object, crypto?: boolean, key?: string): Promise<Collection>`
+- `deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>`
+- `getCollectionInfo(): Promise<SuccessInterface>`
+
+### Collection
+
+- `insert(document: object): Promise<SuccessInterface | ErrorInterface>`
+- `query(query: object): Reader`
+- `update(query: object): Updater`
+- `delete(query: object): Deleter`
+- `aggregate(pipeline: object[]): Aggregation`
+
+### Reader
+
+- `Limit(limit: number): Reader`
+- `Skip(skip: number): Reader`
+- `Sort(sort: object): Reader`
+- `setCount(count: boolean): Reader`
+- `setProject(project: object): Reader`
+- `exec(): Promise<SuccessInterface | ErrorInterface>`
+
+---
+
+## ⚠️ Current Limitations
+
+- **Manual Relationship Management:** No built-in ODM relationship tools; references between collections must be handled manually
+- **Workload Optimization:** Best for moderate to high-traffic apps; extremely high-throughput scenarios may require specialized solutions
+- **Main Thread Processing:** Ensures consistency but may need optimization for CPU-intensive queries
+- **Query Complexity:** Comprehensive MongoDB-like operations; some advanced patterns are in development
+- **Single-Node Architecture:** Distributed replication and clustering planned for future releases
+
+---
+
+## 🔮 Future Roadmap
+
+- **Data Export & Import:** JSON, CSV, and native formats
+- **Enhanced Web GUI:** Real-time analytics, visual query builder, performance monitoring
+- **Comprehensive Documentation:** Tutorials, interactive examples, and API references
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
+## 📜 License
+
+MIT License. See [LICENSE](LICENSE).
+
+---
+
+## 🙌 Acknowledgments
+
+Special thanks to all contributors and supporters of AxioDB. Your feedback and contributions make this project better!
 
 ## ⚠️ Current Limitations
 

@@ -1,18 +1,17 @@
 import {
+  BarChart3,
   CheckCircle2,
-  FilterX,
-  Layers,
-  Zap,
-  Shield,
-  Database,
   Code2,
   Cpu,
-  Clock,
+  Database,
+  Download,
+  FilterX,
+  Layers,
   Lock,
   Search,
   Settings,
-  BarChart3,
-  Download,
+  Shield,
+  Zap,
 } from "lucide-react";
 import React from "react";
 
@@ -482,9 +481,8 @@ const Features: React.FC = () => {
                 <strong className="text-slate-800 dark:text-slate-200">
                   Distribution Features:
                 </strong>{" "}
-                Single-node architecture by design; distributed replication and
-                clustering capabilities are planned for future enterprise
-                releases.
+                Single-node architecture by design; distributed clustering
+                capabilities are not planned for AxioDB.
               </div>
             </li>
           </ul>
@@ -547,44 +545,6 @@ const Features: React.FC = () => {
                 Seamless data migration capabilities with support for multiple
                 formats including JSON, CSV, and native AxioDB formats for
                 comprehensive data portability.
-              </p>
-            </div>
-          </div>
-
-          <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transform hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/10 dark:to-cyan-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
-                  <Search className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                  Advanced Indexing
-                </h3>
-              </div>
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-                Multi-level indexing system for lightning-fast queries on any
-                field combination, with automatic index optimization and
-                intelligent query planning.
-              </p>
-            </div>
-          </div>
-
-          <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-green-300 dark:hover:border-green-600 transform hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
-                  <Layers className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                  Replication & Sharding
-                </h3>
-              </div>
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-                Distributed architecture with automated data replication and
-                intelligent sharding for enterprise-grade high availability and
-                horizontal scalability.
               </p>
             </div>
           </div>
