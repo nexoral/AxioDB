@@ -260,8 +260,6 @@ We're committed to continuously enhancing AxioDB with cutting-edge features:
 
 - **Inbuilt Web-Based GUI Dashboard:** Provide a user-friendly, web-based interface similar to PhpMyAdmin for managing databases, collections, and data visually.
 - **Data Export and Import Mechanisms:** Enable seamless export and import of data in various formats like JSON, CSV, and more.
-- **Advanced Indexing:** Implement multi-level indexing for lightning-fast queries.
-- **Replication and Sharding:** Introduce support for distributed data replication and sharding for high availability and scalability.
 - **Improved Query Optimization:** Enhance query performance with advanced optimization techniques.
 - **Data Backup and Restore:** Implement robust backup and restore mechanisms for data safety.
 - **Comprehensive Documentation:** Expand tutorials, examples, and API references for developers.
