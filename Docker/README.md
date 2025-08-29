@@ -5,7 +5,7 @@
 
 This Docker image provides a REST API server for AxioDB, allowing you to interact with the AxioDB database management system through HTTP requests. The container includes a web-based GUI dashboard for visual database management and comprehensive API endpoints for programmatic access.
 
-## =€ What's Included
+## =ï¿½ What's Included
 
 - **REST API Server**: Full HTTP API for database operations
 - **Web GUI Dashboard**: Browser-based interface at `http://localhost:27018`
@@ -13,7 +13,7 @@ This Docker image provides a REST API server for AxioDB, allowing you to interac
 - **AxioDB Core**: Complete database management system
 - **Auto-start Configuration**: Ready-to-use setup with minimal configuration
 
-## =æ Quick Start
+## =ï¿½ Quick Start
 
 ### Running the Container
 
@@ -22,7 +22,7 @@ This Docker image provides a REST API server for AxioDB, allowing you to interac
 docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
-  <your-docker-image-name>
+  theankansaha/axiodb
 ```
 
 ### Custom Port Mapping
@@ -32,7 +32,7 @@ docker run -d \
 docker run -d \
   --name axiodb-server \
   -p 8080:27018 \
-  <your-docker-image-name>
+  theankansaha/axiodb
 
 # Access via http://localhost:8080
 ```
@@ -45,10 +45,10 @@ docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -v axiodb-data:/app/AxioDB \
-  <your-docker-image-name>
+  theankansaha/axiodb
 ```
 
-## < Accessing the Services
+## =ï¿½ Accessing the Services
 
 Once the container is running:
 
@@ -79,7 +79,7 @@ Once the container is running:
   - Document CRUD (`/api/operation/*`)
   - Statistics and monitoring (`/api/stats/*`)
 
-## =» For Node.js Developers
+## =ï¿½ For Node.js Developers
 
 ### Recommended: Use AxioDB NPM Package
 
@@ -131,10 +131,10 @@ main();
 | Use Case | Docker API | NPM Package |
 |----------|------------|-------------|
 | **Node.js Applications** | L Not recommended |  **Recommended** |
-| **Microservices Architecture** |  Good choice |   Consider service boundaries |
+| **Microservices Architecture** |  Good choice | ï¿½ Consider service boundaries |
 | **Non-Node.js Applications** |  **Recommended** | L Not available |
 | **Development/Prototyping** |  Quick setup |  Better performance |
-| **Production Deployment** |   Network overhead |  **Recommended** |
+| **Production Deployment** | ï¿½ Network overhead |  **Recommended** |
 
 ## =' Configuration
 
@@ -168,7 +168,7 @@ volumes:
   axiodb-data:
 ```
 
-## =Ý API Examples
+## =ï¿½ API Examples
 
 ### Create Database
 
@@ -237,7 +237,8 @@ docker build -t axiodb:latest .
 docker run -d --name axiodb-server -p 27018:27018 axiodb:latest
 ```
 
-## = Troubleshooting
+## =
+ Troubleshooting
 
 ### Container Won't Start
 ```bash
@@ -264,7 +265,7 @@ docker run -d \
   <your-docker-image-name>
 ```
 
-## =Ú Additional Resources
+## =ï¿½ Additional Resources
 
 - **Official Documentation**: [https://axiodb.site/](https://axiodb.site/)
 - **NPM Package**: [https://www.npmjs.com/package/axiodb](https://www.npmjs.com/package/axiodb)
