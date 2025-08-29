@@ -1,16 +1,15 @@
-import React from "react";
 import {
-  FaFacebook,
-  FaInstagram,
-  FaTwitter,
-  FaGithub,
-  FaYoutube,
   FaDev,
   FaEnvelope,
+  FaFacebook,
+  FaGithub,
+  FaInstagram,
+  FaTwitter,
+  FaYoutube,
 } from "react-icons/fa";
-import { TbBrandThreads } from "react-icons/tb";
-import { GiJourney, GiAchievement, GiSkills } from "react-icons/gi";
+import { GiAchievement, GiJourney, GiSkills } from "react-icons/gi";
 import { MdSchool, MdWork } from "react-icons/md";
+import { TbBrandThreads } from "react-icons/tb";
 
 const MaintainersZone = () => {
   const socialLinks = [
@@ -83,52 +82,57 @@ const MaintainersZone = () => {
 
   return (
     <div className="p-6 animate-fade-in">
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-4xl font-bold mb-4 text-center">Hi, I'm Ankan!</h1>
-        <p className="text-lg leading-relaxed mb-6 text-center">
-          From a small town in Ranaghat to becoming a Software Engineer, my
-          journey is a story of resilience, determination, and the power of
-          self-learning. Here's how I turned challenges into opportunities and
-          built a life I'm proud of.
+      {/* Hero Section with Avatar */}
+      <div className="relative bg-gradient-to-r from-blue-500 to-purple-600 text-white p-10 rounded-2xl shadow-2xl mb-10 flex flex-col items-center">
+        <img
+          src="https://avatars.githubusercontent.com/u/56942638?v=4"
+          alt="Ankan Saha Avatar"
+          className="w-28 h-28 rounded-full border-4 border-white shadow-lg mb-4 animate-float"
+        />
+        <h1 className="text-5xl font-extrabold mb-2 bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent text-center animate-slide-in-right">
+          Hi, I'm Ankan!
+        </h1>
+        <p className="text-lg leading-relaxed mb-4 text-center max-w-2xl animate-fade-in-up">
+          From a small town in Ranaghat to building AxioDB, my journey is about resilience, curiosity, and the power of self-learning. I believe in turning challenges into opportunities and inspiring others to do the same.
         </p>
+        <div className="flex gap-4 mt-2">
+          <a href="mailto:ankansahaofficial@gmail.com" className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold shadow hover:bg-blue-50 transition-colors">Contact Me</a>
+          <a href="https://github.com/AnkanSaha" target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:from-blue-700 hover:to-purple-700 transition-colors">GitHub</a>
+        </div>
       </div>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-4 text-center">
-        My Journey
-      </h2>
-      <ul className="space-y-6">
-        {milestones.map((milestone, index) => (
-          <li
-            key={index}
-            className="flex items-start gap-4 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-2"
-          >
-            <div>{milestone.icon}</div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {milestone.title}
-              </h3>
-              <p className="text-gray-700 dark:text-gray-300">
-                {milestone.description}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
+      {/* Timeline Section */}
+      <h2 className="text-3xl font-bold mt-8 mb-6 text-center bg-gradient-to-r from-blue-700 via-purple-600 to-pink-500 bg-clip-text text-transparent">My Journey</h2>
+      <div className="relative max-w-3xl mx-auto">
+        <div className="border-l-4 border-blue-500 dark:border-purple-500 absolute h-full left-6 top-0"></div>
+        <ul className="space-y-10">
+          {milestones.map((milestone, index) => (
+            <li key={index} className="relative flex items-center gap-6">
+              <div className="z-10 bg-white dark:bg-gray-900 p-3 rounded-full shadow-lg border-2 border-blue-500 dark:border-purple-500 animate-float">
+                {milestone.icon}
+              </div>
+              <div className="ml-8 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-2 animate-fade-in-up">
+                <h3 className="text-xl font-bold text-blue-700 dark:text-purple-400 mb-2">{milestone.title}</h3>
+                <p className="text-gray-700 dark:text-gray-300">{milestone.description}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-4 text-center">
-        Social Handles
-      </h2>
-      <ul className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Social Section */}
+      <h2 className="text-3xl font-bold mt-12 mb-6 text-center bg-gradient-to-r from-blue-700 via-purple-600 to-pink-500 bg-clip-text text-transparent">Connect with Me</h2>
+      <ul className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
         {socialLinks.map((link) => (
           <li key={link.name} className="group">
             <a
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-2"
+              className="flex flex-col items-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-2 border border-blue-100 dark:border-purple-700"
             >
-              <span className="text-4xl mb-2 text-blue-500">{link.icon}</span>
-              <span className="text-gray-700 dark:text-gray-300 group-hover:text-blue-500">
+              <span className="text-5xl mb-2 text-blue-500 group-hover:text-purple-500 transition-colors">{link.icon}</span>
+              <span className="text-base font-semibold text-gray-700 dark:text-gray-300 group-hover:text-blue-600 transition-colors">
                 {link.name}
               </span>
             </a>

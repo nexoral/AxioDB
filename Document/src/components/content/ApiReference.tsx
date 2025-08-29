@@ -26,83 +26,26 @@ const ApiReference: React.FC = () => {
     );
   };
 
+
   const toggleMethod = (method: string) => {
     setExpandedMethods((prev) =>
       prev.includes(method)
         ? prev.filter((m) => m !== method)
-        : [...prev, method],
+        : [...prev, method]
     );
   };
 
+  // API Sections definition
   const apiSections: ApiSection[] = [
-    {
-      title: "AxioDB",
-      methods: [
-        {
-          name: "createDB",
-          signature: "createDB(dbName: string): Promise<Database>",
-          description: "Creates a new database with the specified name.",
-          example: "const db1 = await db.createDB('myDatabase');",
-          returns:
-            "Promise<Database>: A promise that resolves to a Database instance.",
-        },
-        {
-          name: "deleteDatabase",
-          signature:
-            "deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>",
-          description: "Deletes an existing database by name.",
-          example: "const result = await db.deleteDatabase('myDatabase');",
-          returns:
-            "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
-        },
-      ],
-    },
-    {
-      title: "Database",
-      methods: [
-        {
-          name: "createCollection",
-          signature:
-            "createCollection(name: string, crypto?: boolean, key?: string, isSchemaNeeded?: boolean, schema?: object): Promise<Collection>",
-          description:
-            "Creates a new collection with optional schema validation and encryption. The method accepts parameters for the collection name, encryption settings, and schema validation.",
-          example:
-            "// With schema\nconst collection = await db1.createCollection('users', false, undefined, true, userSchema);\n\n// Without schema\nconst noSchemaCollection = await db1.createCollection('logs', false);\n\n// With schema and encryption\nconst secureCollection = await db1.createCollection('secure', true, 'secretKey', true, userSchema);\n\n// Without schema but with encryption\nconst secureNoSchemaCollection = await db1.createCollection('secureNoSchema', true, 'secretKey');",
-          returns:
-            "Promise<Collection>: A promise that resolves to a Collection instance.",
-        },
-        {
-          name: "deleteCollection",
-          signature:
-            "deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>",
-          description: "Deletes an existing collection by name.",
-          example: "const result = await db1.deleteCollection('users');",
-          returns:
-            "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
-        },
-        {
-          name: "getCollectionInfo",
-          signature: "getCollectionInfo(): Promise<SuccessInterface>",
-          description:
-            "Retrieves information about all collections in the database.",
-          example: "const info = await db1.getCollectionInfo();",
-          returns:
-            "Promise<SuccessInterface>: A promise that resolves to a success object with collection information.",
-        },
-      ],
-    },
     {
       title: "Collection",
       methods: [
         {
           name: "insert",
-          signature:
-            "insert(data: object): Promise<SuccessInterface | ErrorInterface>",
-          description: "Inserts a document into the collection.",
-          example:
-            "const result = await collection.insert({ name: 'John', age: 30 });",
-          returns:
-            "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
+          signature: "insert(document: object): Promise<SuccessInterface | ErrorInterface>",
+          description: "Inserts a new document into the collection.",
+          example: "const result = await collection.insert({ name: 'John', age: 30 });",
+          returns: "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
         },
         {
           name: "query",
@@ -116,25 +59,21 @@ const ApiReference: React.FC = () => {
           signature: "update(query: object): Updater",
           description: "Initiates an update operation on the collection.",
           example: "const updater = collection.update({ name: 'John' });",
-          returns:
-            "Updater: An Updater instance for chaining update operations.",
+          returns: "Updater: An Updater instance for chaining update operations.",
         },
         {
           name: "delete",
           signature: "delete(query: object): Deleter",
           description: "Initiates a delete operation on the collection.",
           example: "const deleter = collection.delete({ age: { $lt: 18 } });",
-          returns:
-            "Deleter: A Deleter instance for chaining delete operations.",
+          returns: "Deleter: A Deleter instance for chaining delete operations.",
         },
         {
           name: "aggregate",
           signature: "aggregate(pipeline: object[]): Aggregation",
           description: "Initiates an aggregation operation on the collection.",
-          example:
-            "const agg = collection.aggregate([{ $match: { age: { $gt: 25 } } }]);",
-          returns:
-            "Aggregation: An Aggregation instance for chaining aggregation operations.",
+          example: "const agg = collection.aggregate([{ $match: { age: { $gt: 25 } } }]);",
+          returns: "Aggregation: An Aggregation instance for chaining aggregation operations.",
         },
       ],
     },
@@ -173,8 +112,7 @@ const ApiReference: React.FC = () => {
           name: "setProject",
           signature: "setProject(project: object): Reader",
           description: "Sets the projection for the query results.",
-          example:
-            "const query = collection.query({}).setProject({ name: 1, age: 1 });",
+          example: "const query = collection.query({}).setProject({ name: 1, age: 1 });",
           returns: "Reader: The Reader instance for chaining.",
         },
         {
@@ -182,8 +120,7 @@ const ApiReference: React.FC = () => {
           signature: "exec(): Promise<SuccessInterface | ErrorInterface>",
           description: "Executes the query and returns the results.",
           example: "const results = await collection.query({}).exec();",
-          returns:
-            "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
+          returns: "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
         },
       ],
     },
@@ -246,13 +183,12 @@ const ApiReference: React.FC = () => {
                     </button>
 
                     <div
-                      className={`overflow-hidden transition-all duration-300 ${
-                        expandedMethods.includes(
-                          `${section.title}-${method.name}`,
-                        )
-                          ? "max-h-[500px]"
-                          : "max-h-0"
-                      }`}
+                      className={`overflow-hidden transition-all duration-300 ${expandedMethods.includes(
+                        `${section.title}-${method.name}`,
+                      )
+                        ? "max-h-[500px]"
+                        : "max-h-0"
+                        }`}
                     >
                       <div className="pt-2 space-y-3">
                         <div>
