@@ -1,99 +1,77 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-	"name": "AxioDB Development",
-	"hostRequirements": {
-		"cpus": 2,
-		"gpu": false,
-		"storage": "16gb",
-		"memory": "4gb"
-	},
-	"build": {
-		"dockerfile": "Dockerfile",
-		"args": {
-			"NODE_VERSION": "23"
-		}
-	},
-	
-	"features": {
-		"ghcr.io/devcontainers/features/node:1": {
-			"version": "latest"
-		},
-		"ghcr.io/devcontainers/features/docker-in-docker:2": {
-			"version": "latest"
-		},
-		"ghcr.io/devcontainers-contrib/features/mongodb-tools:1": {
-			"version": "latest"
-		}
-	},
-
-	"forwardPorts": [27018],
-
-	"postCreateCommand":"./.devcontainer/postCreateCommand.sh",
-
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"dbaeumer.vscode-eslint",
-				"esbenp.prettier-vscode",
-				"GitHub.copilot",
-				"GitHub.copilot-chat",
-				"eamodio.gitlens",
-				"mongodb.mongodb-vscode",
-				"ms-azuretools.vscode-docker",
-				"cweijan.vscode-database-client2",
-				"ms-vscode.vscode-typescript-next",
-				"wix.vscode-import-cost",
-				"sburg.vscode-javascript-booster",
-				"visualstudioexptteam.vscodeintellicode",
-				"Orta.vscode-jest",
-				"firsttris.vscode-jest-runner",
-				"DavidAnson.vscode-markdownlint",
-				"rangav.vscode-thunder-client",
-				"redhat.vscode-yaml",
-				"formulahendry.code-runner",
-				"ms-vscode-remote.remote-containers",
-				"christian-kohler.path-intellisense",
-				"christian-kohler.npm-intellisense",
-				"streetsidesoftware.code-spell-checker"
-			],
-			"settings": {
-				"editor.formatOnSave": true,
-				"editor.tabSize": 2,
-				"files.autoSave": "afterDelay",
-				"files.autoSaveDelay": 1000,
-				"editor.codeActionsOnSave": {
-					"source.fixAll.eslint": "explicit",
-					"source.organizeImports": "explicit"
-				},
-				"editor.defaultFormatter": "esbenp.prettier-vscode",
-				"editor.bracketPairColorization.enabled": true,
-				"editor.guides.bracketPairs": "active",
-				"typescript.tsdk": "node_modules/typescript/lib",
-				"typescript.preferences.importModuleSpecifier": "relative",
-				"javascript.updateImportsOnFileMove.enabled": "always",
-				"typescript.updateImportsOnFileMove.enabled": "always",
-				"explorer.compactFolders": false,
-				"editor.inlineSuggest.enabled": true,
-				"terminal.integrated.gpuAcceleration": "auto",
-				"workbench.editor.closeOnFileDelete": true,
-				"files.watcherExclude": {
-					"**/node_modules/**": true,
-					"**/dist/**": true,
-					"**/build/**": true
-				},
-				"search.exclude": {
-					"**/node_modules": true,
-					"**/bower_components": true,
-					"**/dist": true,
-					"**/build": true
-				}
-			}
-		}
-	},
-
-	"remoteUser": "root",
-	"otherPortsAttributes": {
-		"onAutoForward": "notify"
-	}
+  "name": "Node.js & TypeScript",
+  "hostRequirements": {
+    "cpus": 2, // 2 CPUs are required for the universal image
+    "gpu": true, // GPU is required for the universal image
+    "storage": "20gb", // 20gb is the minimum requirement for the universal image
+    "memory": "4gb" // 4gb is the minimum requirement for the universal image
+  },
+  // // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  // "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
+  // Use 'features' to add new features.
+  // "features": {},
+  "forwardPorts": [
+    27018
+  ],
+  "postCreateCommand": "./.devcontainer/postCreateCommand.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "eamodio.gitlens",
+        "mongodb.mongodb-vscode",
+        "ms-azuretools.vscode-docker",
+        "cweijan.vscode-database-client2",
+        "ms-vscode.vscode-typescript-next",
+        "wix.vscode-import-cost",
+        "sburg.vscode-javascript-booster",
+        "visualstudioexptteam.vscodeintellicode",
+        "Orta.vscode-jest",
+        "firsttris.vscode-jest-runner",
+        "DavidAnson.vscode-markdownlint",
+        "rangav.vscode-thunder-client",
+        "redhat.vscode-yaml",
+        "formulahendry.code-runner",
+        "ms-vscode-remote.remote-containers",
+        "christian-kohler.path-intellisense",
+        "christian-kohler.npm-intellisense",
+        "streetsidesoftware.code-spell-checker"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+        "files.autoSave": "afterDelay",
+        "files.autoSaveDelay": 1000,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": true,
+          "source.organizeImports": true
+        },
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.suggestSelection": "first",
+        "editor.suggest.insertMode": "replace",
+        "editor.suggest.snippetsPreventQuickSuggestions": false,
+        "editor.suggest.showKeywords": true,
+        "editor.suggest.showStatusBar": true,
+        "editor.suggest.showIcons": true,
+        "editor.suggest.showMethods": true,
+        "editor.suggest.showSnippets": true,
+        "editor.suggest.showWords": true,
+        "editor.suggest.showColors": true,
+        "editor.suggest.showFiles": true,
+        "editor.suggest.showReferences": true,
+        "editor.suggest.showUserSnippets": true,
+        "editor.suggest.showText": true,
+        "editor.suggest.showTypeParameters": true
+      }
+    }
+  },
+  "remoteUser": "root",
+  "otherPortsAttributes": {
+    "onAutoForward": "notify"
+  }
 }
