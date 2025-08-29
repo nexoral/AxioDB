@@ -1,4 +1,3 @@
-
 # AxioDB: The Next-Generation Caching Database for Node.js
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
@@ -15,6 +14,7 @@
 ## � Why AxioDB Exists
 
 As a Node.js backend engineer, setting up Redis for small prototypes, struggling with manual file I/O, and relying on global object storage for caching was inefficient and unreliable. AxioDB was born to:
+
 - Provide a simple, fast, and reliable caching solution for any project size
 - Offer proper algorithms and memory management for production environments
 - Deliver sub-millisecond response times with intelligent architecture
@@ -41,13 +41,13 @@ As a Node.js backend engineer, setting up Redis for small prototypes, struggling
 
 ## 🏆 Performance Comparison
 
-| Feature                | Traditional JSON DBMS | AxioDB                |
-|------------------------|----------------------|-----------------------|
-| Storage                | Single JSON file     | Tree-structured files |
-| Caching                | None                 | InMemoryCache         |
-| Indexing               | None                 | Auto documentId       |
-| Query Speed            | Linear               | Sub-millisecond (O(1))|
-| Scalability            | Poor                 | Excellent             |
+| Feature     | Traditional JSON DBMS | AxioDB                 |
+| ----------- | --------------------- | ---------------------- |
+| Storage     | Single JSON file      | Tree-structured files  |
+| Caching     | None                  | InMemoryCache          |
+| Indexing    | None                  | Auto documentId        |
+| Query Speed | Linear                | Sub-millisecond (O(1)) |
+| Scalability | Poor                  | Excellent              |
 
 **Benchmark:** AxioDB's documentId search is up to **10x faster** than traditional JSON DBMSs (tested with 1M+ documents).
 
@@ -62,6 +62,7 @@ As a Node.js backend engineer, setting up Redis for small prototypes, struggling
 - **Automatic Cache Invalidation:** Ensures stale data is never served
 
 **Best Practices:**
+
 - Use strong, unique encryption keys
 - Never hardcode keys—use environment variables or secure key management
 - Implement proper access controls and regular backups
@@ -73,21 +74,27 @@ For vulnerabilities, see [SECURITY.md](SECURITY.md).
 ## ⚙️ Architecture & Internal Mechanisms
 
 ### Tree Structure for Fast Data Retrieval
+
 Hierarchical storage enables O(1) document lookups, logarithmic query time, and efficient indexing. Each document is isolated in its own file, supporting selective loading and easy backup.
 
 ### Worker Threads for Parallel Processing
+
 Leverages Node.js Worker Threads for non-blocking I/O, multi-core utilization, and scalable performance—especially for read operations.
 
 ### Two-Pointer Searching Algorithm
+
 Optimized for range queries and filtered searches, minimizing memory usage and computational overhead.
 
 ### Query Processing Pipeline
+
 Intelligent caching, parallelized processing, lazy evaluation, and just-in-time query optimization for maximum throughput.
 
 ### Single Instance Architecture
+
 Ensures ACID compliance, strong data consistency, and simplified deployment. One AxioDB instance manages all databases and collections.
 
 ### Designed for Node.js Developers
+
 Native JavaScript API, promise-based interface, lightweight dependency, and simple learning curve.
 
 ---
@@ -124,12 +131,26 @@ const db = new AxioDB();
 const schema = {
   name: SchemaTypes.string().required(),
   age: SchemaTypes.number().min(0).required(),
-  email: SchemaTypes.string().email().required()
+  email: SchemaTypes.string().email().required(),
 };
 const userDB = await db.createDB("MyDB");
-const userCollection = await userDB.createCollection("Users", true, schema, true, "mySecretKey");
-await userCollection.insert({ name: "John Doe", email: "john.doe@example.com", age: 30 });
-const results = await userCollection.query({ age: { $gt: 25 } }).Limit(10).Sort({ age: 1 }).exec();
+const userCollection = await userDB.createCollection(
+  "Users",
+  true,
+  schema,
+  true,
+  "mySecretKey",
+);
+await userCollection.insert({
+  name: "John Doe",
+  email: "john.doe@example.com",
+  age: 30,
+});
+const results = await userCollection
+  .query({ age: { $gt: 25 } })
+  .Limit(10)
+  .Sort({ age: 1 })
+  .exec();
 console.log(results);
 ```
 
@@ -152,15 +173,18 @@ console.log(results);
 ## 📖 API Reference
 
 ### AxioDB
+
 - `createDB(dbName: string, schemaValidation: boolean = true): Promise<Database>`
 - `deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>`
 
 ### Database
+
 - `createCollection(name: string, schema: object, crypto?: boolean, key?: string): Promise<Collection>`
 - `deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>`
 - `getCollectionInfo(): Promise<SuccessInterface>`
 
 ### Collection
+
 - `insert(document: object): Promise<SuccessInterface | ErrorInterface>`
 - `query(query: object): Reader`
 - `update(query: object): Updater`
@@ -168,6 +192,7 @@ console.log(results);
 - `aggregate(pipeline: object[]): Aggregation`
 
 ### Reader
+
 - `Limit(limit: number): Reader`
 - `Skip(skip: number): Reader`
 - `Sort(sort: object): Reader`

@@ -481,7 +481,8 @@ const Features: React.FC = () => {
                 <strong className="text-slate-800 dark:text-slate-200">
                   Distribution Features:
                 </strong>{" "}
-                Single-node architecture by design; distributed clustering capabilities are not planned for AxioDB.
+                Single-node architecture by design; distributed clustering
+                capabilities are not planned for AxioDB.
               </div>
             </li>
           </ul>
@@ -547,8 +548,6 @@ const Features: React.FC = () => {
               </p>
             </div>
           </div>
-
-
 
           <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-600 transform hover:-translate-y-1">
             <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
