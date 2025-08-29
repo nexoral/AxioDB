@@ -34,71 +34,16 @@ const ApiReference: React.FC = () => {
     );
   };
 
+  // API Sections definition
   const apiSections: ApiSection[] = [
-    {
-      title: "AxioDB",
-      methods: [
-        {
-          name: "createDB",
-          signature: "createDB(dbName: string): Promise<Database>",
-          description: "Creates a new database with the specified name.",
-          example: "const db1 = await db.createDB('myDatabase');",
-          returns:
-            "Promise<Database>: A promise that resolves to a Database instance.",
-        },
-        {
-          name: "deleteDatabase",
-          signature:
-            "deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>",
-          description: "Deletes an existing database by name.",
-          example: "const result = await db.deleteDatabase('myDatabase');",
-          returns:
-            "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
-        },
-      ],
-    },
-    {
-      title: "Database",
-      methods: [
-        {
-          name: "createCollection",
-          signature:
-            "createCollection(name: string, crypto?: boolean, key?: string, isSchemaNeeded?: boolean, schema?: object): Promise<Collection>",
-          description:
-            "Creates a new collection with optional schema validation and encryption. The method accepts parameters for the collection name, encryption settings, and schema validation.",
-          example:
-            "// With schema\nconst collection = await db1.createCollection('users', false, undefined, true, userSchema);\n\n// Without schema\nconst noSchemaCollection = await db1.createCollection('logs', false);\n\n// With schema and encryption\nconst secureCollection = await db1.createCollection('secure', true, 'secretKey', true, userSchema);\n\n// Without schema but with encryption\nconst secureNoSchemaCollection = await db1.createCollection('secureNoSchema', true, 'secretKey');",
-          returns:
-            "Promise<Collection>: A promise that resolves to a Collection instance.",
-        },
-        {
-          name: "deleteCollection",
-          signature:
-            "deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>",
-          description: "Deletes an existing collection by name.",
-          example: "const result = await db1.deleteCollection('users');",
-          returns:
-            "Promise<SuccessInterface | ErrorInterface>: A promise that resolves to a success or error object.",
-        },
-        {
-          name: "getCollectionInfo",
-          signature: "getCollectionInfo(): Promise<SuccessInterface>",
-          description:
-            "Retrieves information about all collections in the database.",
-          example: "const info = await db1.getCollectionInfo();",
-          returns:
-            "Promise<SuccessInterface>: A promise that resolves to a success object with collection information.",
-        },
-      ],
-    },
     {
       title: "Collection",
       methods: [
         {
           name: "insert",
           signature:
-            "insert(data: object): Promise<SuccessInterface | ErrorInterface>",
-          description: "Inserts a document into the collection.",
+            "insert(document: object): Promise<SuccessInterface | ErrorInterface>",
+          description: "Inserts a new document into the collection.",
           example:
             "const result = await collection.insert({ name: 'John', age: 30 });",
           returns:

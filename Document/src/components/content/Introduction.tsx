@@ -1,16 +1,15 @@
-import React from "react";
 import {
-  Database,
-  Zap,
-  Shield,
-  Code,
-  Sparkles,
   ArrowRight,
+  Code,
+  Database,
+  Download,
+  Shield,
+  Sparkles,
   Star,
   Users,
-  Download,
+  Zap,
 } from "lucide-react";
-import PainPoints from "./PainPoints";
+import React from "react";
 
 const Introduction: React.FC = () => {
   return (
@@ -272,7 +271,36 @@ const Introduction: React.FC = () => {
         </div>
       </div>
 
-      <PainPoints />
+      {/* Enhanced Pain Points Section */}
+      <div className="relative animate-fade-in-up">
+        <div className="mt-8 flex flex-col items-center">
+          <div className="max-w-2xl text-center mb-6 animate-slide-in-right">
+            <h3 className="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-2">
+              Why AxioDB Was Born
+            </h3>
+            <p className="text-lg text-slate-700 dark:text-slate-300 mb-4">
+              As a Node.js backend engineer, I constantly faced the hassle of
+              setting up Redis for small prototypes, struggled with manual file
+              I/O, and found global object storage unreliable for caching.
+              AxioDB was created to solve these pain points—providing a simple,
+              fast, and reliable caching solution for projects of any size, with
+              proper algorithms and memory management.
+            </p>
+            <div className="flex justify-center gap-4 animate-glow">
+              <a href="/installation" className="inline-block">
+                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-blue-700 transition-colors animate-bounce">
+                  Get Started Instantly
+                </button>
+              </a>
+              <a href="/features" className="inline-block">
+                <button className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:from-green-600 hover:to-blue-600 transition-colors animate-bounce">
+                  Explore Features
+                </button>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 };

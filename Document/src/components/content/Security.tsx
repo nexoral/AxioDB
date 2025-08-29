@@ -4,68 +4,88 @@ import React from "react";
 const Security: React.FC = () => {
   return (
     <section id="security" className="pt-12 scroll-mt-20">
-      <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
-        <ShieldCheck className="h-8 w-8 text-green-500" />
-        Security
-      </h2>
-
-      <p className="text-gray-700 dark:text-gray-300 mb-8">
-        AxioDB prioritizes data security with several built-in features designed
-        to protect your data. Whether you're storing sensitive user information
-        or critical business data, AxioDB provides the tools you need to keep it
-        secure.
-      </p>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md border border-gray-100 dark:border-gray-700">
-          <div className="flex items-center gap-2 mb-4">
-            <Key className="h-6 w-6 text-blue-500" />
-            <h3 className="text-lg font-semibold">Encryption</h3>
-          </div>
-
-          <p className="text-gray-700 dark:text-gray-300">
-            AxioDB offers optional AES-256 encryption for collections. When
-            enabled, all data is encrypted before being written to disk and
-            decrypted when read, ensuring that sensitive data remains protected
-            at rest.
+      <div className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-green-900/20 dark:via-slate-800 dark:to-blue-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-green-200 dark:border-green-800 shadow-xl animate-fade-in">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-green-400/10 to-blue-400/10 rounded-full blur-3xl animate-float"></div>
+        <div className="relative z-10">
+          <h2 className="text-4xl font-extrabold mb-6 flex items-center gap-2 bg-gradient-to-r from-green-700 via-blue-600 to-purple-700 bg-clip-text text-transparent">
+            <ShieldCheck className="h-10 w-10 text-green-500" /> Security
+          </h2>
+          <p className="text-xl text-slate-700 dark:text-slate-300 font-light mb-8">
+            AxioDB prioritizes data security with built-in features to protect
+            your data—whether it's sensitive user info or critical business
+            data.
           </p>
         </div>
+      </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md border border-gray-100 dark:border-gray-700">
+      {/* Animated Security Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <div className="group relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-green-200 dark:border-green-800 hover:border-blue-300 dark:hover:border-blue-600 transform hover:-translate-y-1 animate-fade-in-up">
           <div className="flex items-center gap-2 mb-4">
-            <Database className="h-6 w-6 text-purple-500" />
-            <h3 className="text-lg font-semibold">Secure Storage</h3>
+            <Key className="h-8 w-8 text-blue-500" />
+            <h3 className="text-lg font-bold text-blue-700 dark:text-blue-300">
+              Encryption
+            </h3>
           </div>
-
+          <p className="text-gray-700 dark:text-gray-300">
+            Optional AES-256 encryption for collections. Data is encrypted
+            before being written to disk and decrypted when read, keeping
+            sensitive data protected at rest.
+          </p>
+        </div>
+        <div className="group relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-green-200 dark:border-green-800 hover:border-blue-300 dark:hover:border-blue-600 transform hover:-translate-y-1 animate-fade-in-up">
+          <div className="flex items-center gap-2 mb-4">
+            <Database className="h-8 w-8 text-purple-500" />
+            <h3 className="text-lg font-bold text-purple-700 dark:text-purple-300">
+              Secure Storage
+            </h3>
+          </div>
           <p className="text-gray-700 dark:text-gray-300">
             Data is stored in secure{" "}
             <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
               .axiodb
             </code>{" "}
-            files, which use a structured format to maintain data integrity and
-            prevent unauthorized access or corruption.
+            files, using a structured format to maintain integrity and prevent
+            unauthorized access or corruption.
           </p>
         </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md border border-gray-100 dark:border-gray-700">
+        <div className="group relative bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-green-200 dark:border-green-800 hover:border-blue-300 dark:hover:border-blue-600 transform hover:-translate-y-1 animate-fade-in-up">
           <div className="flex items-center gap-2 mb-4">
-            <Zap className="h-6 w-6 text-orange-500" />
-            <h3 className="text-lg font-semibold">InMemoryCache</h3>
+            <Zap className="h-8 w-8 text-orange-500" />
+            <h3 className="text-lg font-bold text-orange-700 dark:text-orange-300">
+              InMemoryCache
+            </h3>
           </div>
-
           <p className="text-gray-700 dark:text-gray-300">
-            The InMemoryCache mechanism not only improves performance but also
-            adds a layer of security by reducing the frequency of disk reads,
-            minimizing the exposure of sensitive data.
+            InMemoryCache improves performance and adds security by reducing
+            disk reads, minimizing exposure of sensitive data.
           </p>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-md border border-gray-100 dark:border-gray-700 mb-8">
-        <h3 className="text-xl font-semibold mb-4">
+      {/* Security Diagram */}
+      <div className="bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl p-8 shadow-lg mb-12 flex flex-col items-center">
+        <h3 className="text-2xl font-bold mb-4 text-green-700 dark:text-green-300">
+          How AxioDB Secures Your Data
+        </h3>
+        <img
+          src="https://raw.githubusercontent.com/AnkanSaha/AxioDB/main/Document/public/AXioDB.png"
+          alt="AxioDB Security Diagram"
+          className="w-64 h-64 object-contain mb-4"
+        />
+        <ul className="list-disc pl-6 text-lg text-slate-700 dark:text-slate-300 space-y-2">
+          <li>Encrypted at rest and in transit</li>
+          <li>File-level isolation and locking</li>
+          <li>Configurable access controls</li>
+          <li>Automatic cache invalidation for stale data</li>
+        </ul>
+      </div>
+
+      {/* Secure Collections Example */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-green-200 dark:border-green-800 mb-8 animate-fade-in-up">
+        <h3 className="text-xl font-bold mb-4 text-green-700 dark:text-green-300">
           Implementing Secure Collections
         </h3>
-
         <p className="text-gray-700 dark:text-gray-300 mb-4">
           To create a secure, encrypted collection, simply pass the{" "}
           <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
@@ -77,7 +97,6 @@ const Security: React.FC = () => {
           </code>{" "}
           and provide a secret key when creating the collection:
         </p>
-
         <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-md overflow-x-auto mb-4">
           <code className="text-sm font-mono">
             {`// Create an encrypted collection with schema validation

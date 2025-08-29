@@ -24,7 +24,6 @@ const sidebarSections: SidebarSection[] = [
         path: "/why-choose-axiodb",
       },
       { id: "features", label: "Features", path: "/features" },
-      { id: "pain-points", label: "Pain Points", path: "/#pain-points" },
       {
         id: "comparison",
         label: "Performance Comparison",
