@@ -223,5 +223,5 @@ export const AuthorInfo: AuthorInfoType = {
   Country: "India",
   Email: "ankansahaofficial@gmail.com",
   LinkedIn: "https://www.linkedin.com/in/theankansaha/",
-  github: "https://github.com/AnkanSaha"
-}
+  github: "https://github.com/AnkanSaha",
+};
