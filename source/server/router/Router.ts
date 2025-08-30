@@ -43,34 +43,6 @@ export default async function mainRouter(
   // Now you can access the AxioDB instance
   const { AxioDBInstance } = options;
 
-  // Middlewares
-
-  // Middleware for /db routes
-  fastify.addHook("preHandler", async (request, reply) => {
-    // Only apply middleware to routes starting with /db
-    if (
-      request.url.includes("/db") ||
-      request.url.includes("/collection") ||
-      request.url.includes("/dashboard-stats")
-    ) {
-      const transactionToken = (request.query as any)?.transactiontoken;
-      const status = await new KeyController(process.version).verifyKey(
-        transactionToken,
-      );
-      if (status.statusCode !== StatusCodes.OK) {
-        return reply.status(status.statusCode).send(status);
-      }
-    }
-    else {
-      return reply.status(StatusCodes.FORBIDDEN).send(
-        buildResponse(
-          StatusCodes.FORBIDDEN,
-          "Access Denied",
-        ),
-      );
-    }
-  });
-
   fastify.get("/info", async () => {
     const PackageFile: PackageInterface = JSON.parse(
       await readFile("./package.json", "utf-8"),
@@ -116,6 +88,24 @@ export default async function mainRouter(
   fastify.get("/get-token", async (request, reply) =>
     new KeyController(process.version).generateKey(),
   );
+
+  // Middleware for /db routes
+  fastify.addHook("preHandler", async (request, reply) => {
+    // Only apply middleware to routes starting with /db
+    if (
+      request.url.includes("/db") ||
+      request.url.includes("/collection") ||
+      request.url.includes("/dashboard-stats")
+    ) {
+      const transactionToken = (request.query as any)?.transactiontoken;
+      const status = await new KeyController(process.version).verifyKey(
+        transactionToken,
+      );
+      if (status.statusCode !== StatusCodes.OK) {
+        return reply.status(status.statusCode).send(status);
+      }
+    }
+  });
 
   // Get Dashboard Stats
   fastify.get("/dashboard-stats", async (request, reply) => {
