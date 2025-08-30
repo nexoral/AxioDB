@@ -6,8 +6,6 @@ import buildResponse, {
 } from "../../helper/responseBuilder.helper";
 import { FastifyReply, FastifyRequest } from "fastify";
 import GlobalStorageConfig from "../../config/GlobalStorage.config";
-import fsSync from "fs/promises";
-import fs from "fs";
 import { tarGzFolder } from "../../../utility/ZipUnzip.utils";
 
 /**
@@ -160,42 +158,86 @@ export default class DatabaseController {
    * streams it to the client as a downloadable file, and then deletes the temporary
    * file once the stream is closed.
    */
-  public async exportDatabase(request: FastifyRequest, reply: FastifyReply){
-    const {dbName} = request.query as {dbName: string};
-    try {
+  public async exportDatabase(request: FastifyRequest, reply: FastifyReply) {
+    const { dbName } = request.query as { dbName: string };
 
+    try {
       // check if name is provided
       if (!dbName) {
-        return buildResponse(StatusCodes.BAD_REQUEST, "Database name is required");
+        return reply.status(400).send({
+          success: false,
+          message: "Database name is required"
+        });
       }
 
       // check if the database exists
       const exists = await this.AxioDBInstance.isDatabaseExists(dbName);
       if (!exists) {
-        return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
+        return reply.status(404).send({
+          success: false,
+          message: "Database not found"
+        });
       }
 
       // Get the current database path
       const currDatabasePathData = `${this.AxioDBInstance.GetPath}/${dbName}`;
+
+      console.log('Exporting database from path:', currDatabasePathData);
+
       const responseZipTar = await tarGzFolder(currDatabasePathData, `./${dbName}.tar.gz`);
 
-      // Send as a downloadable file
+      console.log('Created tar file:', responseZipTar);
+
+      // Check if file was created and get its size
+      const fs = await import('fs');
+      const stats = await fs.promises.stat(responseZipTar);
+
+      console.log('File size:', stats.size);
+
+      if (stats.size === 0) {
+        await fs.promises.unlink(responseZipTar);
+        return reply.status(500).send({
+          success: false,
+          message: "Generated export file is empty"
+        });
+      }
+
+      // Set headers
       reply.header("Content-Type", "application/gzip");
       reply.header("Content-Disposition", `attachment; filename="${dbName}.tar.gz"`);
-      const stream = fs.createReadStream(responseZipTar);
-      reply.send(stream);
+      reply.header("Content-Length", stats.size.toString());
 
-      stream.on("close", async () => {
-        // delete the temporary file
-        await fsSync.unlink(responseZipTar);
-        return;
+      const stream = fs.createReadStream(responseZipTar);
+
+      // Handle stream errors
+      stream.on("error", async (error) => {
+        console.error("Stream error:", error);
+        try {
+          await fs.promises.unlink(responseZipTar);
+        } catch (unlinkError) {
+          console.error("Error cleaning up temp file:", unlinkError);
+        }
       });
-    } catch (error) {
+
+      // Clean up after stream ends
+      stream.on("end", async () => {
+        console.log("Stream ended, cleaning up temp file");
+        try {
+          await fs.promises.unlink(responseZipTar);
+        } catch (unlinkError) {
+          console.error("Error cleaning up temp file:", unlinkError);
+        }
+      });
+
+      return reply.send(stream);
+
+    } catch (error: unknown) {
       console.error("Error exporting database:", error);
-      return buildResponse(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Error exporting database",
-      );
+      return reply.status(500).send({
+        success: false,
+        message: "Error exporting database",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   }
 }
