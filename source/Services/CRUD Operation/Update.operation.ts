@@ -380,7 +380,6 @@ export default class UpdateOperation {
     }
   }
 
-
   /**
    * Deletes a file from the specified path.
    *

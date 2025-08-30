@@ -224,7 +224,6 @@ export default class DeleteOperation {
     }
   }
 
-
   /**
    * Deletes a file from the specified path.
    *

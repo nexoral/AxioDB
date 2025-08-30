@@ -275,5 +275,4 @@ export default class Aggregation {
       return this.ResponseHelper.Error(error);
     }
   }
-
 }

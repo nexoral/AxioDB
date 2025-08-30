@@ -110,7 +110,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         payload: {
           file: "file",
         },
-      }
+      },
     ],
   },
   {

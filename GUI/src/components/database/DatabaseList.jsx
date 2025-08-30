@@ -26,40 +26,46 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
     try {
       console.log('Starting export for database:', dbName)
       console.log('Transaction Key:', TransactionKey)
-      console.log('API URL:', `${BASE_API_URL}/api/db/export-database/?transactiontoken=${TransactionKey}&dbName=${encodeURIComponent(dbName)}`)
-      
+      console.log(
+        'API URL:',
+        `${BASE_API_URL}/api/db/export-database/?transactiontoken=${TransactionKey}&dbName=${encodeURIComponent(dbName)}`
+      )
+
       const response = await axios.get(
         `${BASE_API_URL}/api/db/export-database/?transactiontoken=${TransactionKey}&dbName=${encodeURIComponent(dbName)}`,
         {
           responseType: 'blob'
         }
       )
-      
+
       console.log('Response status:', response.status)
       console.log('Response headers:', response.headers)
       console.log('Response data type:', typeof response.data)
       console.log('Response data size:', response.data?.size)
-      
+
       // Check if the response is actually JSON (error response) disguised as blob
-      if (response.data instanceof Blob && response.data.type === 'application/json') {
+      if (
+        response.data instanceof Blob &&
+        response.data.type === 'application/json'
+      ) {
         const text = await response.data.text()
         console.error('Received JSON error response:', text)
         alert(`Export failed: ${text}`)
         return
       }
-      
+
       // Check if response data exists and has size
       if (!response.data || response.data.size === 0) {
         console.error('Empty response received')
         alert('Export failed: Empty file received')
         return
       }
-      
+
       // Create blob link to download
       const url = window.URL.createObjectURL(response.data)
       const link = document.createElement('a')
       link.href = url
-      
+
       // Get filename from content-disposition header or use default
       const contentDisposition = response.headers['content-disposition']
       let filename = `${dbName}.tar.gz`
@@ -69,15 +75,15 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
           filename = filenameMatch[1]
         }
       }
-      
+
       console.log('Downloading file as:', filename)
-      
+
       link.setAttribute('download', filename)
       document.body.appendChild(link)
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
-      
+
       console.log('Download initiated successfully')
     } catch (error) {
       console.error('Error exporting database:', error)
@@ -85,7 +91,7 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
         console.error('Error response data:', error.response.data)
         console.error('Error response status:', error.response.status)
         console.error('Error response headers:', error.response.headers)
-        
+
         // Try to read the error response if it's a blob
         if (error.response.data instanceof Blob) {
           try {
@@ -97,7 +103,9 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
             alert('Failed to export database. Please try again.')
           }
         } else {
-          alert(`Export failed: ${error.response.data?.message || error.message}`)
+          alert(
+            `Export failed: ${error.response.data?.message || error.message}`
+          )
         }
       } else {
         alert('Failed to export database. Please try again.')
