@@ -6,7 +6,9 @@ import buildResponse, {
 } from "../../helper/responseBuilder.helper";
 import { FastifyReply, FastifyRequest } from "fastify";
 import GlobalStorageConfig from "../../config/GlobalStorage.config";
-import { tarGzFolder } from "../../../utility/ZipUnzip.utils";
+import { tarGzFolder, unzipFile } from "../../../utility/ZipUnzip.utils";
+import fs from "fs";
+import path from "path";
 
 /**
  * Controller class for managing databases in AxioDB.
@@ -237,5 +239,54 @@ export default class DatabaseController {
         error: error instanceof Error ? error.message : String(error)
       });
     }
+  }
+
+  /**
+   * Imports a database from an uploaded zip file.
+   * 
+   * This method handles the upload of a database file, saves it temporarily,
+   * unzips it to the AxioDB instance path, and cleans up temporary files.
+   * 
+   * @param request - The Fastify request object containing the uploaded file
+   * @param reply - The Fastify reply object for sending responses
+   * @returns A response object indicating success or failure of the import operation
+   * @throws Will handle errors related to file operations and return appropriate HTTP responses
+   */
+  public async importDatabase(request: FastifyRequest, reply: FastifyReply) {
+
+    const data = await request.file(); // single file
+    
+    if (!data) {
+      return reply.status(400).send({
+        success: false,
+        message: "No file uploaded"
+      });
+    }
+
+    // Create a Temporary Directory for Uploads
+    const tempDir = path.join(__dirname, "uploads");
+
+    await fs.promises.mkdir(tempDir, { recursive: true });
+
+    const savePath = path.join(tempDir, data.filename);
+
+    await fs.promises.writeFile(savePath, await data.toBuffer());
+
+    const unzipped = await unzipFile(savePath, this.AxioDBInstance.GetPath);
+
+    // Check if unzipping was successful
+    if (!unzipped) {
+      return reply.status(500).send({
+        success: false,
+        message: "Error unzipping file"
+      });
+    }
+
+    // Remove the temporary directory
+    await fs.promises.rmdir(tempDir, { recursive: true });
+
+    return { message: "File uploaded successfully", file: data.filename };
+
+
   }
 }

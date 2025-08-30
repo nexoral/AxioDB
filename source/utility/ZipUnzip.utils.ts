@@ -36,3 +36,37 @@ export async function tarGzFolder(sourceFolder: string, outPath: string): Promis
       .on("error", reject);
   });
 }
+
+/**
+ * Unzips a .tar.gz file to a specified destination folder
+ * 
+ * @param zipFilePath - The path to the compressed file to be unzipped
+ * @param destFolder - The destination folder where the contents will be extracted
+ * @returns A promise that resolves with the destination folder path when unzipping is complete
+ * @throws Will reject the promise with an error if unzipping fails
+ * 
+ * @example
+ * ```typescript
+ * try {
+ *   const extractedPath = await unzipFile('/path/to/archive.tar.gz', '/path/to/destination');
+ *   console.log(`Files extracted to ${extractedPath}`);
+ * } catch (error) {
+ *   console.error('Failed to unzip file:', error);
+ * }
+ * ```
+ */
+export async function unzipFile(zipFilePath: string, destFolder: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const unzip = zlib.createUnzip();
+    const source = fs.createReadStream(zipFilePath);
+
+    source
+      .pipe(unzip)
+      .pipe(tar.x({ C: destFolder }))
+      .on("finish", () => {
+        console.log(`✅ Unzipped to: ${destFolder}`);
+        resolve(destFolder);
+      })
+      .on("error", reject);
+  });
+}
