@@ -182,8 +182,6 @@ export default class DatabaseController {
       // Get the current database path
       const currDatabasePathData = `${this.AxioDBInstance.GetPath}/${dbName}`;
 
-      console.log('Exporting database from path:', currDatabasePathData);
-
       const responseZipTar = await tarGzFolder(currDatabasePathData, `./${dbName}.tar.gz`);
 
       console.log('Created tar file:', responseZipTar);
