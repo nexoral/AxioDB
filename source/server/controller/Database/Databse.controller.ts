@@ -186,13 +186,9 @@ export default class DatabaseController {
 
       const responseZipTar = await tarGzFolder(currDatabasePathData, `./${dbName}.tar.gz`);
 
-      console.log('Created tar file:', responseZipTar);
-
       // Check if file was created and get its size
       const fs = await import('fs');
       const stats = await fs.promises.stat(responseZipTar);
-
-      console.log('File size:', stats.size);
 
       if (stats.size === 0) {
         await fs.promises.unlink(responseZipTar);
@@ -221,7 +217,6 @@ export default class DatabaseController {
 
       // Clean up after stream ends
       stream.on("end", async () => {
-        console.log("Stream ended, cleaning up temp file");
         try {
           await fs.promises.unlink(responseZipTar);
         } catch (unlinkError) {

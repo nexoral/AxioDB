@@ -30,7 +30,6 @@ export async function tarGzFolder(sourceFolder: string, outPath: string): Promis
       .pipe(gzip)
       .pipe(dest)
       .on("finish", () => {
-        console.log(`✅ Compressed to: ${outPath}`);
         resolve(outPath);
       })
       .on("error", reject);
@@ -64,7 +63,6 @@ export async function unzipFile(zipFilePath: string, destFolder: string): Promis
       .pipe(unzip)
       .pipe(tar.x({ C: destFolder }))
       .on("finish", () => {
-        console.log(`✅ Unzipped to: ${destFolder}`);
         resolve(destFolder);
       })
       .on("error", reject);

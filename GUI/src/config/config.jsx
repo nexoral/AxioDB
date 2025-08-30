@@ -11,6 +11,7 @@ import { ExchangeKeyStore } from '../store/store'
 import ApiReference from '../pages/ApiReference'
 import Support from '../pages/Support'
 import Status from '../pages/Status'
+import Import from '../pages/Import'
 
 /**
  * Main application configuration component
@@ -58,6 +59,7 @@ function MainConfig () {
             <Route path='/api' element={<ApiReference />} />
             <Route path='/support' element={<Support />} />
             <Route path='/status' element={<Status />} />
+            <Route path='/import' element={<Import />} />
             <Route path='/collections/documents' element={<Documents />} />
           </Routes>
         </main>
