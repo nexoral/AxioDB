@@ -98,6 +98,11 @@ export const AvailableRoutes: RouteGroupInterface[] = [
           name: "string",
         },
       },
+      {
+        method: "GET",
+        path: "/api/db/export-database/?transactiontoken&dbName",
+        description: "Export a database as a compressed file",
+      }
     ],
   },
   {

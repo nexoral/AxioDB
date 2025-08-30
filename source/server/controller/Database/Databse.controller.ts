@@ -163,6 +163,19 @@ export default class DatabaseController {
   public async exportDatabase(request: FastifyRequest, reply: FastifyReply){
     const {dbName} = request.query as {dbName: string};
     try {
+
+      // check if name is provided
+      if (!dbName) {
+        return buildResponse(StatusCodes.BAD_REQUEST, "Database name is required");
+      }
+
+      // check if the database exists
+      const exists = await this.AxioDBInstance.isDatabaseExists(dbName);
+      if (!exists) {
+        return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
+      }
+
+      // Get the current database path
       const currDatabasePathData = `${this.AxioDBInstance.GetPath}/${dbName}`;
       const responseZipTar = await tarGzFolder(currDatabasePathData, `./${dbName}.tar.gz`);
 

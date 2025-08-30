@@ -5,7 +5,7 @@ import { AuthorInfo, AvailableRoutes } from "../config/keys";
 import buildResponse, {
   ResponseBuilder,
 } from "../helper/responseBuilder.helper";
-import { StatusCodes } from "outers";
+import { Retry, StatusCodes } from "outers";
 import { readFile } from "node:fs/promises";
 import { AxioDB } from "../../Services/Indexation.operation";
 
@@ -60,6 +60,14 @@ export default async function mainRouter(
       if (status.statusCode !== StatusCodes.OK) {
         return reply.status(status.statusCode).send(status);
       }
+    }
+    else {
+      return reply.status(StatusCodes.FORBIDDEN).send(
+        buildResponse(
+          StatusCodes.FORBIDDEN,
+          "Access Denied",
+        ),
+      );
     }
   });
 
