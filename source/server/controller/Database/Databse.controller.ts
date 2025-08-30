@@ -4,8 +4,11 @@ import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse, {
   ResponseBuilder,
 } from "../../helper/responseBuilder.helper";
-import { FastifyRequest } from "fastify";
+import { FastifyReply, FastifyRequest } from "fastify";
 import GlobalStorageConfig from "../../config/GlobalStorage.config";
+import fsSync from "fs/promises";
+import fs from "fs";
+import { tarGzFolder } from "../../../utility/ZipUnzip.utils";
 
 /**
  * Controller class for managing databases in AxioDB.
@@ -139,6 +142,46 @@ export default class DatabaseController {
       return buildResponse(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Error deleting database",
+      );
+    }
+  }
+
+  /**
+   * Exports a database as a compressed tar.gz file and sends it as a downloadable attachment.
+   * 
+   * @param request - The Fastify request object containing the query parameter 'dbName'
+   * @param reply - The Fastify reply object used to send the response
+   * @returns A stream of the compressed database file or an error response
+   * 
+   * @throws Will return an error response if the export process fails
+   * 
+   * @remarks
+   * The method creates a temporary tar.gz file of the specified database directory,
+   * streams it to the client as a downloadable file, and then deletes the temporary
+   * file once the stream is closed.
+   */
+  public async exportDatabase(request: FastifyRequest, reply: FastifyReply){
+    const {dbName} = request.query as {dbName: string};
+    try {
+      const currDatabasePathData = `${this.AxioDBInstance.GetPath}/${dbName}`;
+      const responseZipTar = await tarGzFolder(currDatabasePathData, `./${dbName}.tar.gz`);
+
+      // Send as a downloadable file
+      reply.header("Content-Type", "application/gzip");
+      reply.header("Content-Disposition", `attachment; filename="${dbName}.tar.gz"`);
+      const stream = fs.createReadStream(responseZipTar);
+      reply.send(stream);
+
+      stream.on("close", async () => {
+        // delete the temporary file
+        await fsSync.unlink(responseZipTar);
+        return;
+      });
+    } catch (error) {
+      console.error("Error exporting database:", error);
+      return buildResponse(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Error exporting database",
       );
     }
   }

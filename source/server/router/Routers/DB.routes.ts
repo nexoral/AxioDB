@@ -35,4 +35,9 @@ export default async function dbRouter(
   fastify.delete("/delete-database", async (request) =>
     new DatabaseController(AxioDBInstance).deleteDatabase(request),
   );
+
+  // Export Database
+  fastify.get("/export-database/", async (request, reply) =>
+    new DatabaseController(AxioDBInstance).exportDatabase(request, reply),
+  );
 }
