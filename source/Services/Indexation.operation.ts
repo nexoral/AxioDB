@@ -84,6 +84,14 @@ export class AxioDB {
   }
 
   /**
+   * Gets the current path of the indexation operation.
+   * @returns {string} The current path.
+   */
+  public get GetPath(): string {
+    return this.currentPATH;
+  }
+
+  /**
    * Creates a new database folder and updates the metadata file.
    * @param DBName - The name of the database to create.
    * @returns The newly created database object.

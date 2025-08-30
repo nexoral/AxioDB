@@ -57,6 +57,12 @@ const Header = () => {
                   Operations
                 </Link>
                 <Link
+                  to='/import'
+                  className='text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors'
+                >
+                  Import DB
+                </Link>
+                <Link
                   to='/support'
                   className='text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors'
                 >

@@ -251,74 +251,26 @@ export default class Aggregation {
     SuccessInterface | ErrorInterface
   > {
     try {
-      // Check if Directory Locked or not
-      const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
-      if ("data" in isLocked) {
-        // If Directory is not locked
-        if (isLocked.data === false) {
-          // Read List the data from the file
-          const ReadResponse = await new FolderManager().ListDirectory(
-            this.path,
-          );
-          if ("data" in ReadResponse) {
-            // Store all files in DataFilesList
-            const DataFilesList: string[] = ReadResponse.data;
-            // Read all files from the directory
-            const resultData: any[] = await ReaderWithWorker(
-              DataFilesList,
-              this.encryptionKey,
-              this.path,
-              this.isEncrypted,
-            );
-            this.AllData = resultData;
-            return this.ResponseHelper.Success(resultData);
-          }
-          return this.ResponseHelper.Error("Failed to read directory");
-        } else {
-          // if Directory is locked then unlock it
-          const unlockResponse = await new FolderManager().UnlockDirectory(
-            this.path,
-          );
-          if ("data" in unlockResponse) {
-            // Read List the data from the file
-            const ReadResponse: SuccessInterface | ErrorInterface =
-              await new FolderManager().ListDirectory(this.path);
-            if ("data" in ReadResponse) {
-              // Store all files in DataFilesList
-              const DataFilesList: string[] = ReadResponse.data;
-              // Read all files from the directory
-              const resultData: any[] = await ReaderWithWorker(
-                DataFilesList,
-                this.encryptionKey,
-                this.path,
-                this.isEncrypted,
-              );
-              this.AllData = resultData;
+      // Directly read list of files in directory (no lock/unlock system)
+      const ReadResponse = await new FolderManager().ListDirectory(this.path);
 
-              // Lock the directory after reading all files
-              const lockResponse = await new FolderManager().LockDirectory(
-                this.path,
-              );
-              if ("data" in lockResponse) {
-                return this.ResponseHelper.Success(resultData);
-              } else {
-                return this.ResponseHelper.Error(
-                  `Failed to lock directory: ${this.path}`,
-                );
-              }
-            }
-            return this.ResponseHelper.Error(
-              `Failed to read directory: ${this.path}`,
-            );
-          } else {
-            return this.ResponseHelper.Error(
-              `Failed to unlock directory: ${this.path}`,
-            );
-          }
-        }
-      } else {
-        return this.ResponseHelper.Error(isLocked);
+      if ("data" in ReadResponse) {
+        // Store all files in DataFilesList
+        const DataFilesList: string[] = ReadResponse.data;
+
+        // Read all files from the directory
+        const resultData: any[] = await ReaderWithWorker(
+          DataFilesList,
+          this.encryptionKey,
+          this.path,
+          this.isEncrypted,
+        );
+
+        this.AllData = resultData;
+        return this.ResponseHelper.Success(resultData);
       }
+
+      return this.ResponseHelper.Error("Failed to read directory");
     } catch (error) {
       return this.ResponseHelper.Error(error);
     }

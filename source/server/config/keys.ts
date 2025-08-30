@@ -98,6 +98,19 @@ export const AvailableRoutes: RouteGroupInterface[] = [
           name: "string",
         },
       },
+      {
+        method: "GET",
+        path: "/api/db/export-database/?transactiontoken&dbName",
+        description: "Export a database as a compressed file",
+      },
+      {
+        method: "POST",
+        path: "/api/db/import-database/?transactiontoken",
+        description: "Import a database from a compressed file",
+        payload: {
+          file: "file",
+        },
+      },
     ],
   },
   {
@@ -223,5 +236,5 @@ export const AuthorInfo: AuthorInfoType = {
   Country: "India",
   Email: "ankansahaofficial@gmail.com",
   LinkedIn: "https://www.linkedin.com/in/theankansaha/",
-  github: "https://github.com/AnkanSaha"
-}
+  github: "https://github.com/AnkanSaha",
+};

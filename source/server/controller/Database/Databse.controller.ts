@@ -4,8 +4,11 @@ import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse, {
   ResponseBuilder,
 } from "../../helper/responseBuilder.helper";
-import { FastifyRequest } from "fastify";
+import { FastifyReply, FastifyRequest } from "fastify";
 import GlobalStorageConfig from "../../config/GlobalStorage.config";
+import { tarGzFolder, unzipFile } from "../../../utility/ZipUnzip.utils";
+import fs from "fs";
+import path from "path";
 
 /**
  * Controller class for managing databases in AxioDB.
@@ -141,5 +144,146 @@ export default class DatabaseController {
         "Error deleting database",
       );
     }
+  }
+
+  /**
+   * Exports a database as a compressed tar.gz file and sends it as a downloadable attachment.
+   *
+   * @param request - The Fastify request object containing the query parameter 'dbName'
+   * @param reply - The Fastify reply object used to send the response
+   * @returns A stream of the compressed database file or an error response
+   *
+   * @throws Will return an error response if the export process fails
+   *
+   * @remarks
+   * The method creates a temporary tar.gz file of the specified database directory,
+   * streams it to the client as a downloadable file, and then deletes the temporary
+   * file once the stream is closed.
+   */
+  public async exportDatabase(request: FastifyRequest, reply: FastifyReply) {
+    const { dbName } = request.query as { dbName: string };
+
+    try {
+      // check if name is provided
+      if (!dbName) {
+        return reply.status(400).send({
+          success: false,
+          message: "Database name is required",
+        });
+      }
+
+      // check if the database exists
+      const exists = await this.AxioDBInstance.isDatabaseExists(dbName);
+      if (!exists) {
+        return reply.status(404).send({
+          success: false,
+          message: "Database not found",
+        });
+      }
+
+      // Get the current database path
+      const currDatabasePathData = `${this.AxioDBInstance.GetPath}/${dbName}`;
+
+      const responseZipTar = await tarGzFolder(
+        currDatabasePathData,
+        `./${dbName}.tar.gz`,
+      );
+
+      // Check if file was created and get its size
+      const fs = await import("fs");
+      const stats = await fs.promises.stat(responseZipTar);
+
+      if (stats.size === 0) {
+        await fs.promises.unlink(responseZipTar);
+        return reply.status(500).send({
+          success: false,
+          message: "Generated export file is empty",
+        });
+      }
+
+      // Set headers
+      reply.header("Content-Type", "application/gzip");
+      reply.header(
+        "Content-Disposition",
+        `attachment; filename="${dbName}.tar.gz"`,
+      );
+      reply.header("Content-Length", stats.size.toString());
+
+      const stream = fs.createReadStream(responseZipTar);
+
+      // Handle stream errors
+      stream.on("error", async (error) => {
+        console.error("Stream error:", error);
+        try {
+          await fs.promises.unlink(responseZipTar);
+        } catch (unlinkError) {
+          console.error("Error cleaning up temp file:", unlinkError);
+        }
+      });
+
+      // Clean up after stream ends
+      stream.on("end", async () => {
+        try {
+          await fs.promises.unlink(responseZipTar);
+        } catch (unlinkError) {
+          console.error("Error cleaning up temp file:", unlinkError);
+        }
+      });
+
+      return reply.send(stream);
+    } catch (error: unknown) {
+      console.error("Error exporting database:", error);
+      return reply.status(500).send({
+        success: false,
+        message: "Error exporting database",
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  /**
+   * Imports a database from an uploaded zip file.
+   *
+   * This method handles the upload of a database file, saves it temporarily,
+   * unzips it to the AxioDB instance path, and cleans up temporary files.
+   *
+   * @param request - The Fastify request object containing the uploaded file
+   * @param reply - The Fastify reply object for sending responses
+   * @returns A response object indicating success or failure of the import operation
+   * @throws Will handle errors related to file operations and return appropriate HTTP responses
+   */
+  public async importDatabase(request: FastifyRequest, reply: FastifyReply) {
+    const data = await request.file(); // single file
+
+    if (!data) {
+      return reply.status(400).send({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
+
+    // Create a Temporary Directory for Uploads
+    const tempDir = path.join(__dirname, "uploads");
+
+    await fs.promises.mkdir(tempDir, { recursive: true });
+
+    const savePath = path.join(tempDir, data.filename);
+
+    await fs.promises.writeFile(savePath, await data.toBuffer());
+
+    const unzipped = await unzipFile(savePath, this.AxioDBInstance.GetPath);
+
+    // Check if unzipping was successful
+    if (!unzipped) {
+      return reply.status(500).send({
+        success: false,
+        message: "Error unzipping file",
+      });
+    }
+
+    // Remove the temporary directory
+    await fs.promises.rmdir(tempDir, { recursive: true });
+
+    return { message: "File uploaded successfully", file: data.filename };
   }
 }

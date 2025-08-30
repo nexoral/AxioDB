@@ -5,6 +5,7 @@ import buildResponse from "../../helper/responseBuilder.helper";
 import { StatusCodes } from "outers";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import DatabaseController from "../../controller/Database/Databse.controller";
+import fastifyMultipart from "@fastify/multipart";
 
 // Extended options interface to include AxioDB instance
 interface RouterOptions extends FastifyPluginOptions {
@@ -17,6 +18,7 @@ export default async function dbRouter(
   options: RouterOptions,
 ): Promise<void> {
   const { AxioDBInstance } = options; // Access the AxioDB instance passed from the main router
+  fastify.register(fastifyMultipart);
 
   // Get all databases
   fastify.get("/databases", async (request) => {
@@ -34,5 +36,15 @@ export default async function dbRouter(
   // Delete a database
   fastify.delete("/delete-database", async (request) =>
     new DatabaseController(AxioDBInstance).deleteDatabase(request),
+  );
+
+  // Export Database
+  fastify.get("/export-database/", async (request, reply) =>
+    new DatabaseController(AxioDBInstance).exportDatabase(request, reply),
+  );
+
+  // Import Database
+  fastify.post("/import-database/", async (request, reply) =>
+    new DatabaseController(AxioDBInstance).importDatabase(request, reply),
   );
 }
