@@ -56,6 +56,18 @@ const Header = () => {
                 >
                   Operations
                 </Link>
+                <Link
+                  to='/support'
+                  className='text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors'
+                >
+                  Support
+                </Link>
+                <Link
+                  to='/status'
+                  className='text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors'
+                >
+                  Status
+                </Link>
               </div>
             </div>
           </div>

@@ -207,3 +207,21 @@ export const AvailableRoutes: RouteGroupInterface[] = [
     ],
   },
 ];
+
+type AuthorInfoType = {
+  name: string;
+  Designation: string;
+  Country: string;
+  Email: string;
+  LinkedIn: string;
+  github: string;
+};
+
+export const AuthorInfo: AuthorInfoType = {
+  name: "Ankan Saha",
+  Designation: "Software Engineer",
+  Country: "India",
+  Email: "ankansahaofficial@gmail.com",
+  LinkedIn: "https://www.linkedin.com/in/theankansaha/",
+  github: "https://github.com/AnkanSaha"
+}
