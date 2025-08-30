@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
-import { AvailableRoutes } from "../config/keys";
+import { AuthorInfo, AvailableRoutes } from "../config/keys";
 import buildResponse, {
   ResponseBuilder,
 } from "../helper/responseBuilder.helper";
@@ -75,6 +75,7 @@ export default async function mainRouter(
         AxioDB_Version: PackageFile.version,
         Author_Name: PackageFile.author,
         License: PackageFile.license,
+        AuthorDetails: AuthorInfo,
       },
     );
     return Reply;

@@ -23,9 +23,6 @@ const Footer = () => {
 
           <div className="text-sm">
             <div className="flex space-x-6">
-              <a href="/docs" className="hover:text-white transition-colors">
-                Documentation
-              </a>
               <a href="/support" className="hover:text-white transition-colors">
                 Support
               </a>
