@@ -83,7 +83,7 @@ const Documents = () => {
         const response = await axios.post(
           `${BASE_API_URL}/api/operation/all/by-query/?dbName=${databaseName}&collectionName=${collectionName}&page=${pageNum}`,
           {
-            query: query
+            query
           },
           {
             headers: {
@@ -130,7 +130,7 @@ const Documents = () => {
     setSearchQuery('')
     setSearchInput('')
     setDocumentIdInput('')
-    
+
     // Clear any pending timeouts
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current)
@@ -165,7 +165,16 @@ const Documents = () => {
 
       if (node) observer.current.observe(node)
     },
-    [loading, hasMore, fetchDocuments, fetchDocumentsByQuery, page, isAggregationView, isSearchMode, searchQuery]
+    [
+      loading,
+      hasMore,
+      fetchDocuments,
+      fetchDocumentsByQuery,
+      page,
+      isAggregationView,
+      isSearchMode,
+      searchQuery
+    ]
   )
 
   // Cleanup timeouts on unmount
@@ -275,7 +284,7 @@ const Documents = () => {
   // Debounced search functionality
   const handleSearchInputChange = (value) => {
     setSearchInput(value)
-    
+
     // Clear existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current)
@@ -290,7 +299,7 @@ const Documents = () => {
   // Debounced document ID search
   const handleDocumentIdInputChange = (value) => {
     setDocumentIdInput(value)
-    
+
     // Clear existing timeout
     if (documentIdTimeoutRef.current) {
       clearTimeout(documentIdTimeoutRef.current)
@@ -489,7 +498,10 @@ const Documents = () => {
             <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
               {/* JSON Query Search */}
               <div className='lg:col-span-2'>
-                <label htmlFor='search-query' className='block text-sm font-medium text-gray-700 mb-2'>
+                <label
+                  htmlFor='search-query'
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
                   <span className='flex items-center'>
                     <svg
                       xmlns='http://www.w3.org/2000/svg'
@@ -517,13 +529,17 @@ const Documents = () => {
                   className='w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-mono transition-colors'
                 />
                 <div className='mt-1 text-xs text-gray-500'>
-                  Auto-searches as you type • MongoDB-style syntax • Leave empty to show all
+                  Auto-searches as you type • MongoDB-style syntax • Leave empty
+                  to show all
                 </div>
               </div>
 
               {/* Document ID Search */}
               <div>
-                <label htmlFor='document-id-search' className='block text-sm font-medium text-gray-700 mb-2'>
+                <label
+                  htmlFor='document-id-search'
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
                   <span className='flex items-center'>
                     <svg
                       xmlns='http://www.w3.org/2000/svg'
@@ -862,30 +878,32 @@ const Documents = () => {
                     />
                   </svg>
                   <p className='text-gray-500 mb-4'>
-                    {isSearchMode 
-                      ? 'No documents match your search query' 
+                    {isSearchMode
+                      ? 'No documents match your search query'
                       : 'No documents found in this collection'}
                   </p>
-                  {isSearchMode ? (
-                    <div className='space-y-2'>
+                  {isSearchMode
+                    ? (
+                      <div className='space-y-2'>
+                        <button
+                          onClick={clearAllSearch}
+                          className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                        >
+                          Clear Search & Show All Documents
+                        </button>
+                        <p className='text-xs text-gray-400'>
+                          Try adjusting your query or use {} to show all documents
+                        </p>
+                      </div>
+                      )
+                    : (
                       <button
-                        onClick={clearAllSearch}
-                        className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                        onClick={() => setShowInsertModal(true)}
+                        className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
                       >
-                        Clear Search & Show All Documents
+                        Insert Your First Document
                       </button>
-                      <p className='text-xs text-gray-400'>
-                        Try adjusting your query or use {} to show all documents
-                      </p>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setShowInsertModal(true)}
-                      className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                    >
-                      Insert Your First Document
-                    </button>
-                  )}
+                      )}
                 </div>
                 )}
 

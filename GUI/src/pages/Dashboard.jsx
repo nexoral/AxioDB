@@ -15,14 +15,12 @@ const Dashboard = () => {
   const [AllInstanceInfo, setAllInstanceInfo] = useState(null)
 
   useEffect(() => {
-    axios
-      .get(`${BASE_API_URL}/api/dashboard-stats`)
-      .then((response) => {
-        if (response.status === 200) {
-          setAllInstanceInfo(response.data.data)
-          setLoading(false)
-        }
-      })
+    axios.get(`${BASE_API_URL}/api/dashboard-stats`).then((response) => {
+      if (response.status === 200) {
+        setAllInstanceInfo(response.data.data)
+        setLoading(false)
+      }
+    })
   }, [])
 
   return (

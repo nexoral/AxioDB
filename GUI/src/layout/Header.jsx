@@ -10,13 +10,11 @@ const Header = () => {
   const { setRootname } = DBInfoStore((state) => state)
 
   useEffect(() => {
-    axios
-      .get(`${BASE_API_URL}/api/db/databases`)
-      .then((response) => {
-        if (response.status === 200) {
-          setRootname(response.data.data.RootName ?? 'AxioDB')
-        }
-      })
+    axios.get(`${BASE_API_URL}/api/db/databases`).then((response) => {
+      if (response.status === 200) {
+        setRootname(response.data.data.RootName ?? 'AxioDB')
+      }
+    })
   }, [])
 
   // eslint-disable-next-line

@@ -59,7 +59,7 @@ const CreateCollectionModal = ({
           collectionName,
           crypto: enableCrypto,
           key: enableCrypto ? cryptoKey : ''
-        },
+        }
       )
 
       if (
