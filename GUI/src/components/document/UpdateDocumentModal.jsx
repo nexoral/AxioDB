@@ -34,7 +34,7 @@ const UpdateDocumentModal = ({
 
       // Send to the API using the correct endpoint structure
       const response = await axios.put(
-        `${BASE_API_URL}/api/operation/update/?dbName=${databaseName}&collectionName=${collectionName}&documentId=${document.documentId}`,
+        `${BASE_API_URL}/api/operation/update/by-id/?dbName=${databaseName}&collectionName=${collectionName}&documentId=${document.documentId}`,
         {
           ...parsedData
         }
