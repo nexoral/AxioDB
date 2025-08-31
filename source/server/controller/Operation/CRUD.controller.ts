@@ -290,7 +290,7 @@ export default class CRUDController {
    *
    * @throws May throw exceptions if database or collection operations fail
    */
-  public async createManyNewDocument (request: FastifyRequest) {
+  public async createManyNewDocument(request: FastifyRequest) {
     // Extracting parameters from the request body
     let { dbName, collectionName } = request.query as {
       dbName: string;

@@ -38,7 +38,6 @@ export default class StatsController {
    */
   public async getDashBoardStat(): Promise<object> {
     try {
-
       const InstanceInfo = await this.AxioDBInstance.getInstanceInfo();
       let totalCollections = 0;
       let totalDocuments = 0;

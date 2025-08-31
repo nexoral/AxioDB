@@ -33,9 +33,7 @@ export default class DatabaseController {
    * const response = await databaseController.getDatabases();
    * // Returns a ResponseBuilder with status 200 and database list
    */
-  public async getDatabases(
-  ): Promise<ResponseBuilder> {
-
+  public async getDatabases(): Promise<ResponseBuilder> {
     const databases = await this.AxioDBInstance.getInstanceInfo();
     return buildResponse(StatusCodes.OK, "List of Databases", databases?.data);
   }
