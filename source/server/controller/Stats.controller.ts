@@ -6,7 +6,6 @@ import buildResponse from "../helper/responseBuilder.helper"; // ResponseBuilder
 // import countFilesRecursive from "../../helper/filesCounterInFolder.helper";
 import InMemoryCache from "../../Memory/memory.operation";
 import fs from "fs";
-import GlobalStorageConfig from "../config/GlobalStorage.config";
 
 export default class StatsController {
   private AxioDBInstance: AxioDB;
@@ -37,20 +36,8 @@ export default class StatsController {
    *
    * @throws Will return an error response with status 500 if the operation fails
    */
-  public async getDashBoardStat(transactionToken: string): Promise<object> {
+  public async getDashBoardStat(): Promise<object> {
     try {
-      // check cache
-      if (
-        transactionToken &&
-        GlobalStorageConfig.get(`dashboard_stats_${transactionToken}`) !=
-          undefined
-      ) {
-        return buildResponse(
-          StatusCodes.OK,
-          "Dashboard stats fetched successfully",
-          GlobalStorageConfig.get(`dashboard_stats_${transactionToken}`),
-        );
-      }
 
       const InstanceInfo = await this.AxioDBInstance.getInstanceInfo();
       let totalCollections = 0;
@@ -136,17 +123,6 @@ export default class StatsController {
         nodeTree: treeMap,
       };
 
-      // Cache the response
-      if (
-        transactionToken &&
-        GlobalStorageConfig.get(`dashboard_stats_${transactionToken}`) ==
-          undefined
-      ) {
-        GlobalStorageConfig.set(
-          `dashboard_stats_${transactionToken}`,
-          response,
-        );
-      }
       return buildResponse(
         StatusCodes.OK,
         "Dashboard stats fetched successfully",

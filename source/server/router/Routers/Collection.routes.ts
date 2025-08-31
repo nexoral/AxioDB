@@ -20,11 +20,7 @@ export default async function collectionRouter(
 
   // Get All Collection
   fastify.get("/all/", async (request, reply) => {
-    const transactionToken = (request.query as any)?.transactiontoken;
-    return new CollectionController(AxioDBInstance).getCollections(
-      request,
-      transactionToken,
-    );
+    return new CollectionController(AxioDBInstance).getCollections(request);
   });
 
   // Create Collection

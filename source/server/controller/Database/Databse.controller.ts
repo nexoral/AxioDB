@@ -5,7 +5,6 @@ import buildResponse, {
   ResponseBuilder,
 } from "../../helper/responseBuilder.helper";
 import { FastifyReply, FastifyRequest } from "fastify";
-import GlobalStorageConfig from "../../config/GlobalStorage.config";
 import { tarGzFolder, unzipFile } from "../../../utility/ZipUnzip.utils";
 import fs from "fs";
 import path from "path";
@@ -35,28 +34,9 @@ export default class DatabaseController {
    * // Returns a ResponseBuilder with status 200 and database list
    */
   public async getDatabases(
-    transactionToken: string,
   ): Promise<ResponseBuilder> {
-    // check cache
-    if (
-      transactionToken &&
-      GlobalStorageConfig.get(`database_${transactionToken}`) != undefined
-    ) {
-      return buildResponse(
-        StatusCodes.OK,
-        "List of Databases",
-        GlobalStorageConfig.get(`database_${transactionToken}`),
-      );
-    }
 
     const databases = await this.AxioDBInstance.getInstanceInfo();
-    // Cache the response
-    if (
-      transactionToken &&
-      GlobalStorageConfig.get(`database_${transactionToken}`) == undefined
-    ) {
-      GlobalStorageConfig.set(`database_${transactionToken}`, databases?.data);
-    }
     return buildResponse(StatusCodes.OK, "List of Databases", databases?.data);
   }
 
@@ -93,7 +73,6 @@ export default class DatabaseController {
         return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
       }
       await this.AxioDBInstance.createDB(name);
-      GlobalStorageConfig.clear();
       return buildResponse(StatusCodes.CREATED, "Database Created", {
         Database_Name: name,
       });
@@ -133,7 +112,6 @@ export default class DatabaseController {
       }
       // delete the database
       await this.AxioDBInstance.deleteDatabase(dbName);
-      GlobalStorageConfig.clear();
       return buildResponse(StatusCodes.OK, "Database Deleted", {
         Database_Name: dbName,
       });

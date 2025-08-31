@@ -63,28 +63,17 @@ export const AvailableRoutes: RouteGroupInterface[] = [
     ],
   },
   {
-    groupName: "Key Management",
-    description: "Key Management Endpoints",
-    Paths: [
-      {
-        method: "GET",
-        path: "/api/get-token",
-        description: "Get a new token for transacting with AxioDB Server",
-      },
-    ],
-  },
-  {
     groupName: "Database",
     description: "Database Management Endpoints",
     Paths: [
       {
         method: "GET",
-        path: "/api/db/databases/?transactiontoken",
+        path: "/api/db/databases/",
         description: "Get a list of all databases",
       },
       {
         method: "POST",
-        path: "/api/db/create-database/?transactiontoken",
+        path: "/api/db/create-database/",
         description: "Create a new database",
         payload: {
           name: "string",
@@ -92,7 +81,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
       {
         method: "DELETE",
-        path: "/api/db/delete-database/?transactiontoken",
+        path: "/api/db/delete-database/",
         description: "Delete a database",
         payload: {
           name: "string",
@@ -100,12 +89,12 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
       {
         method: "GET",
-        path: "/api/db/export-database/?transactiontoken&dbName",
+        path: "/api/db/export-database/?dbName",
         description: "Export a database as a compressed file",
       },
       {
         method: "POST",
-        path: "/api/db/import-database/?transactiontoken",
+        path: "/api/db/import-database/",
         description: "Import a database from a compressed file",
         payload: {
           file: "file",
@@ -119,12 +108,12 @@ export const AvailableRoutes: RouteGroupInterface[] = [
     Paths: [
       {
         method: "GET",
-        path: "/api/collection/all/?databaseName&transactiontoken",
+        path: "/api/collection/all/?databaseName",
         description: "Get a list of all collections",
       },
       {
         method: "POST",
-        path: "/api/collection/create-collection/?transactiontoken",
+        path: "/api/collection/create-collection/",
         description: "Create a new collection",
         payload: {
           dbName: "string",
@@ -135,7 +124,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
       {
         method: "DELETE",
-        path: "/api/collection/delete-collection/?dbName&collectionName&transactiontoken",
+        path: "/api/collection/delete-collection/?dbName&collectionName",
         description: "Delete a collection",
       },
     ],
@@ -147,12 +136,12 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       {
         method: "GET",
         description: "Get all documents from a collection",
-        path: "/api/operation/all/?dbName&collectionName&page&transactiontoken",
+        path: "/api/operation/all/?dbName&collectionName&page",
       },
       {
         method: "POST",
         description: "Get all documents from a collection by query",
-        path: "/api/operation/all/by-query/?dbName&collectionName&page&transactiontoken",
+        path: "/api/operation/all/by-query/?dbName&collectionName&page",
         payload: {
           query: "object",
         },
@@ -160,12 +149,12 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       {
         method: "GET",
         description: "Get specific documents from a collection by ID",
-        path: "/api/operation/all/by-id/?dbName&collectionName&documentId&transactiontoken",
+        path: "/api/operation/all/by-id/?dbName&collectionName&documentId",
       },
       {
         method: "POST",
         description: "Create a new document in a collection",
-        path: "/api/operation/create/?dbName&collectionName&transactiontoken",
+        path: "/api/operation/create/?dbName&collectionName",
         payload: {
           document: "full object with no key in body",
         },
@@ -173,7 +162,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       {
         method: "POST",
         description: "Create a new document in a collection",
-        path: "/api/operation/create-many/?dbName&collectionName&transactiontoken",
+        path: "/api/operation/create-many/?dbName&collectionName",
         payload: {
           documents: "full array of object with no key in body",
         },
@@ -181,7 +170,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       {
         method: "PUT",
         description: "Update an existing document in a collection by ID",
-        path: "/api/operation/update/by-id/?dbName&collectionName&documentId&transactiontoken",
+        path: "/api/operation/update/by-id/?dbName&collectionName&documentId",
         payload: {
           document: "full object with no key in body",
         },
@@ -189,7 +178,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       {
         method: "PUT",
         description: "Update an existing document in a collection by query",
-        path: "/api/operation/update/by-query/?dbName&isMany&collectionName&transactiontoken",
+        path: "/api/operation/update/by-query/?dbName&isMany&collectionName",
         payload: {
           query: "object",
           update: "object",
@@ -198,12 +187,12 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       {
         method: "DELETE",
         description: "Delete an existing document in a collection by ID",
-        path: "/api/operation/delete/by-id/?dbName&collectionName&documentId&transactiontoken",
+        path: "/api/operation/delete/by-id/?dbName&collectionName&documentId",
       },
       {
         method: "DELETE",
         description: "Delete an existing document in a collection by query",
-        path: "/api/operation/delete/by-query/?dbName&collectionName&isMany&documentId&transactiontoken",
+        path: "/api/operation/delete/by-query/?dbName&collectionName&isMany&documentId",
         payload: {
           query: "object",
         },
@@ -212,7 +201,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         method: "POST",
         description:
           "Perform aggregation on documents in a collection using an aggregation pipeline",
-        path: "/api/operation/aggregate/?dbName&collectionName&transactiontoken",
+        path: "/api/operation/aggregate/?dbName&collectionName",
         payload: {
           aggregation: "array",
         },
