@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { BASE_API_URL } from '../config/key'
-import { DBInfoStore, ExchangeKeyStore } from '../store/store'
+import { DBInfoStore } from '../store/store'
 import InsertDocumentModal from '../components/document/InsertDocumentModal'
 import UpdateDocumentModal from '../components/document/UpdateDocumentModal'
 import DeleteDocumentModal from '../components/document/DeleteDocumentModal'
@@ -19,7 +19,6 @@ const Documents = () => {
   const observer = useRef()
   const databaseName = searchParams.get('database')
   const collectionName = searchParams.get('collection')
-  const { TransactionKey } = ExchangeKeyStore((state) => state)
 
   // Modal states
   const [showInsertModal, setShowInsertModal] = useState(false)
@@ -33,14 +32,22 @@ const Documents = () => {
   const [aggregationPipeline, setAggregationPipeline] = useState([])
   const [aggregationResults, setAggregationResults] = useState([])
 
-  // Fetch documents function
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearchMode, setIsSearchMode] = useState(false)
+  const [searchInput, setSearchInput] = useState('')
+  const [documentIdInput, setDocumentIdInput] = useState('')
+  const searchTimeoutRef = useRef(null)
+  const documentIdTimeoutRef = useRef(null)
+
+  // Fetch documents function - regular API
   const fetchDocuments = useCallback(
     async (pageNum = 1, reset = false) => {
       try {
         setLoading(true)
 
         const response = await axios.get(
-          `${BASE_API_URL}/api/operation/all/?dbName=${databaseName}&collectionName=${collectionName}&page=${pageNum}&transactiontoken=${TransactionKey}`
+          `${BASE_API_URL}/api/operation/all/?dbName=${databaseName}&collectionName=${collectionName}&page=${pageNum}`
         )
 
         if (response.status === 200) {
@@ -64,7 +71,49 @@ const Documents = () => {
         setLoading(false)
       }
     },
-    [databaseName, collectionName, TransactionKey]
+    [databaseName, collectionName]
+  )
+
+  // Fetch documents with query - query-based API
+  const fetchDocumentsByQuery = useCallback(
+    async (query, pageNum = 1, reset = false) => {
+      try {
+        setLoading(true)
+
+        const response = await axios.post(
+          `${BASE_API_URL}/api/operation/all/by-query/?dbName=${databaseName}&collectionName=${collectionName}&page=${pageNum}`,
+          {
+            query
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+
+        if (response.status === 200) {
+          // Extract the documents from the nested response structure
+          const fetchedDocuments = response.data.data.data.documents || []
+
+          // Update documents state
+          if (reset) {
+            setDocuments(fetchedDocuments)
+          } else {
+            setDocuments((prev) => [...prev, ...fetchedDocuments])
+          }
+
+          // If we received fewer than 10 documents, we've reached the end
+          setHasMore(fetchedDocuments.length === 10)
+        }
+
+        setLoading(false)
+      } catch (error) {
+        console.error('Error fetching documents by query:', error)
+        setLoading(false)
+      }
+    },
+    [databaseName, collectionName]
   )
 
   // Initialize document list
@@ -77,6 +126,18 @@ const Documents = () => {
     // Reset aggregation view when collection changes
     setIsAggregationView(false)
     setAggregationPipeline([])
+    setIsSearchMode(false)
+    setSearchQuery('')
+    setSearchInput('')
+    setDocumentIdInput('')
+
+    // Clear any pending timeouts
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    if (documentIdTimeoutRef.current) {
+      clearTimeout(documentIdTimeoutRef.current)
+    }
 
     // Reset and fetch documents when collection changes
     setPage(1)
@@ -93,14 +154,40 @@ const Documents = () => {
       observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting && hasMore) {
           setPage((prevPage) => prevPage + 1)
-          fetchDocuments(page + 1)
+          // Use appropriate fetch function based on search mode
+          if (isSearchMode && searchQuery) {
+            fetchDocumentsByQuery(searchQuery, page + 1)
+          } else {
+            fetchDocuments(page + 1)
+          }
         }
       })
 
       if (node) observer.current.observe(node)
     },
-    [loading, hasMore, fetchDocuments, page, isAggregationView]
+    [
+      loading,
+      hasMore,
+      fetchDocuments,
+      fetchDocumentsByQuery,
+      page,
+      isAggregationView,
+      isSearchMode,
+      searchQuery
+    ]
   )
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+      if (documentIdTimeoutRef.current) {
+        clearTimeout(documentIdTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const handleBackToCollections = () => {
     navigate(`/collections?database=${databaseName}`)
@@ -132,8 +219,7 @@ const Documents = () => {
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${TransactionKey}`
+            'Content-Type': 'application/json'
           }
         }
       )
@@ -187,7 +273,107 @@ const Documents = () => {
     setIsAggregationView(false)
     setAggregationPipeline([])
     setAggregationResults([])
-    // Refresh the regular document list
+    // Refresh the document list based on current search state
+    if (isSearchMode && searchQuery) {
+      fetchDocumentsByQuery(searchQuery, 1, true)
+    } else {
+      fetchDocuments(1, true)
+    }
+  }
+
+  // Debounced search functionality
+  const handleSearchInputChange = (value) => {
+    setSearchInput(value)
+
+    // Clear existing timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+
+    // Set new timeout for debounced search
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(value)
+    }, 500) // 500ms debounce
+  }
+
+  // Debounced document ID search
+  const handleDocumentIdInputChange = (value) => {
+    setDocumentIdInput(value)
+
+    // Clear existing timeout
+    if (documentIdTimeoutRef.current) {
+      clearTimeout(documentIdTimeoutRef.current)
+    }
+
+    // Set new timeout for debounced search
+    documentIdTimeoutRef.current = setTimeout(() => {
+      performDocumentIdSearch(value)
+    }, 300) // 300ms debounce for ID search
+  }
+
+  // Perform search based on query input
+  const performSearch = (input) => {
+    try {
+      if (!input.trim()) {
+        // If search input is empty, switch to regular mode
+        setIsSearchMode(false)
+        setSearchQuery('')
+        setIsAggregationView(false)
+        setPage(1)
+        setDocuments([])
+        fetchDocuments(1, true)
+        return
+      }
+
+      // Parse search input as JSON query
+      const parsedQuery = JSON.parse(input)
+      setSearchQuery(parsedQuery)
+      setIsSearchMode(true)
+      setIsAggregationView(false) // Clear aggregation view when searching
+      setPage(1)
+      setDocuments([])
+      fetchDocumentsByQuery(parsedQuery, 1, true)
+    } catch (error) {
+      // If JSON parsing fails, treat as regular text and search in all fields
+      console.warn('Invalid JSON query, treating as text search:', error)
+      // You could implement a text search fallback here if needed
+    }
+  }
+
+  // Perform document ID search
+  const performDocumentIdSearch = (documentId) => {
+    if (!documentId.trim()) {
+      // If document ID is empty and no regular search, switch to regular mode
+      if (!searchInput.trim()) {
+        setIsSearchMode(false)
+        setSearchQuery('')
+        setIsAggregationView(false)
+        setPage(1)
+        setDocuments([])
+        fetchDocuments(1, true)
+      }
+      return
+    }
+
+    // Create query for document ID search
+    const documentIdQuery = { documentId: documentId.trim() }
+    setSearchQuery(documentIdQuery)
+    setIsSearchMode(true)
+    setIsAggregationView(false)
+    setPage(1)
+    setDocuments([])
+    fetchDocumentsByQuery(documentIdQuery, 1, true)
+  }
+
+  // Clear all search inputs and return to regular view
+  const clearAllSearch = () => {
+    setSearchInput('')
+    setDocumentIdInput('')
+    setSearchQuery('')
+    setIsSearchMode(false)
+    setIsAggregationView(false)
+    setPage(1)
+    setDocuments([])
     fetchDocuments(1, true)
   }
 
@@ -306,6 +492,122 @@ const Documents = () => {
           </div>
         </div>
 
+        {/* Advanced Search Bar */}
+        <div className='px-6 py-4 border-b border-gray-200 bg-gray-50'>
+          <div className='max-w-6xl'>
+            <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
+              {/* JSON Query Search */}
+              <div className='lg:col-span-2'>
+                <label
+                  htmlFor='search-query'
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
+                  <span className='flex items-center'>
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      className='h-4 w-4 mr-1 text-gray-500'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+                      />
+                    </svg>
+                    JSON Query Search
+                  </span>
+                </label>
+                <input
+                  type='text'
+                  id='search-query'
+                  value={searchInput}
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
+                  placeholder='e.g., {"name": "John"}, {"age": {"$gte": 18}}, or {} for all'
+                  className='w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-mono transition-colors'
+                />
+                <div className='mt-1 text-xs text-gray-500'>
+                  Auto-searches as you type • MongoDB-style syntax • Leave empty
+                  to show all
+                </div>
+              </div>
+
+              {/* Document ID Search */}
+              <div>
+                <label
+                  htmlFor='document-id-search'
+                  className='block text-sm font-medium text-gray-700 mb-2'
+                >
+                  <span className='flex items-center'>
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      className='h-4 w-4 mr-1 text-gray-500'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M7 20l4-16m2 16l4-16M6 9h14M4 15h14'
+                      />
+                    </svg>
+                    Document ID
+                  </span>
+                </label>
+                <input
+                  type='text'
+                  id='document-id-search'
+                  value={documentIdInput}
+                  onChange={(e) => handleDocumentIdInputChange(e.target.value)}
+                  placeholder='Enter document ID'
+                  className='w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-mono transition-colors'
+                />
+                <div className='mt-1 text-xs text-gray-500'>
+                  Find by specific ID
+                </div>
+              </div>
+            </div>
+
+            {/* Active Search Indicator */}
+            {isSearchMode && (
+              <div className='mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md'>
+                <div className='flex items-center justify-between'>
+                  <div className='text-sm text-blue-800'>
+                    <span className='font-medium'>Active Search:</span>{' '}
+                    <code className='bg-blue-100 px-2 py-1 rounded text-xs ml-1'>
+                      {JSON.stringify(searchQuery)}
+                    </code>
+                  </div>
+                  <button
+                    onClick={clearAllSearch}
+                    className='text-blue-600 hover:text-blue-800 text-sm flex items-center transition-colors'
+                  >
+                    <svg
+                      xmlns='http://www.w3.org/2000/svg'
+                      className='h-4 w-4 mr-1'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                    >
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M6 18L18 6M6 6l12 12'
+                      />
+                    </svg>
+                    Clear All
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Aggregation Banner - Show when in aggregation view */}
         {isAggregationView && (
           <div className='bg-indigo-50 px-6 py-3 border-b border-indigo-100 flex justify-between items-center'>
@@ -359,7 +661,7 @@ const Documents = () => {
         {/* Card-based document view */}
         <div className='p-6'>
           {/* When loading and no documents */}
-          {loading && (!isAggregationView ? documents.length === 0 : false) ? (
+          {loading && documents.length === 0 && !isAggregationView ? (
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div
@@ -575,15 +877,33 @@ const Documents = () => {
                       d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
                     />
                   </svg>
-                  <p className='text-gray-500 mb-2'>
-                    No documents found in this collection
+                  <p className='text-gray-500 mb-4'>
+                    {isSearchMode
+                      ? 'No documents match your search query'
+                      : 'No documents found in this collection'}
                   </p>
-                  <button
-                    onClick={() => setShowInsertModal(true)}
-                    className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                  >
-                    Insert Your First Document
-                  </button>
+                  {isSearchMode
+                    ? (
+                      <div className='space-y-2'>
+                        <button
+                          onClick={clearAllSearch}
+                          className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                        >
+                          Clear Search & Show All Documents
+                        </button>
+                        <p className='text-xs text-gray-400'>
+                          Try adjusting your query or use {} to show all documents
+                        </p>
+                      </div>
+                      )
+                    : (
+                      <button
+                        onClick={() => setShowInsertModal(true)}
+                        className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+                      >
+                        Insert Your First Document
+                      </button>
+                      )}
                 </div>
                 )}
 

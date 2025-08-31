@@ -2,11 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { BASE_API_URL } from '../../config/key'
-import { ExchangeKeyStore } from '../../store/store'
 
 const DatabaseList = ({ databases, onDeleteClick, loading }) => {
   const navigate = useNavigate()
-  const { TransactionKey } = ExchangeKeyStore((state) => state)
   // State for animation when items are added or removed
   const [animatingItems, setAnimatingItems] = useState({})
 
@@ -25,14 +23,13 @@ const DatabaseList = ({ databases, onDeleteClick, loading }) => {
   const handleExportDatabase = async (dbName) => {
     try {
       console.log('Starting export for database:', dbName)
-      console.log('Transaction Key:', TransactionKey)
       console.log(
         'API URL:',
-        `${BASE_API_URL}/api/db/export-database/?transactiontoken=${TransactionKey}&dbName=${encodeURIComponent(dbName)}`
+        `${BASE_API_URL}/api/db/export-database/?dbName=${encodeURIComponent(dbName)}`
       )
 
       const response = await axios.get(
-        `${BASE_API_URL}/api/db/export-database/?transactiontoken=${TransactionKey}&dbName=${encodeURIComponent(dbName)}`,
+        `${BASE_API_URL}/api/db/export-database/?dbName=${encodeURIComponent(dbName)}`,
         {
           responseType: 'blob'
         }

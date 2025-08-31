@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { useState } from 'react'
 import { BASE_API_URL } from '../../config/key'
-import { ExchangeKeyStore } from '../../store/store'
 
 const DeleteCollectionModal = ({
   isOpen,
@@ -12,7 +11,6 @@ const DeleteCollectionModal = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const { TransactionKey } = ExchangeKeyStore((state) => state)
 
   // Reset form state when modal is opened/closed
   const handleClose = () => {
@@ -28,7 +26,7 @@ const DeleteCollectionModal = ({
     try {
       // Make API call to delete collection
       const response = await axios.delete(
-        `${BASE_API_URL}/api/collection/delete-collection/?dbName=${databaseName}&collectionName=${collectionName}&transactiontoken=${TransactionKey}`
+        `${BASE_API_URL}/api/collection/delete-collection/?dbName=${databaseName}&collectionName=${collectionName}`
       )
 
       if (response.data.statusCode === 200) {

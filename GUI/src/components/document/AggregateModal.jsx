@@ -2,7 +2,6 @@
 import { useState } from 'react'
 import axios from 'axios'
 import { BASE_API_URL } from '../../config/key'
-import { ExchangeKeyStore } from '../../store/store'
 
 const AggregateModal = ({
   isOpen,
@@ -15,7 +14,6 @@ const AggregateModal = ({
     useState('[{ "$match": {} }]')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const { TransactionKey } = ExchangeKeyStore((state) => state)
 
   // Run the aggregation pipeline
   const handleRunAggregation = async () => {
@@ -34,8 +32,7 @@ const AggregateModal = ({
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${TransactionKey}`
+            'Content-Type': 'application/json'
           }
         }
       )
