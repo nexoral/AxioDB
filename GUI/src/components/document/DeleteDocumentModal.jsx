@@ -1,6 +1,5 @@
 import { useState } from "react";
 import axios from "axios";
-import { ExchangeKeyStore } from "../../store/store";
 import { BASE_API_URL } from "../../config/key";
 
 const DeleteDocumentModal = ({
@@ -13,7 +12,6 @@ const DeleteDocumentModal = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { TransactionKey } = ExchangeKeyStore((state) => state);
 
   const handleDelete = async () => {
     try {
@@ -21,7 +19,7 @@ const DeleteDocumentModal = ({
 
       // Send to the API using the correct endpoint structure
       const response = await axios.delete(
-        `${BASE_API_URL}/api/operation/delete/by-id/?dbName=${databaseName}&collectionName=${collectionName}&documentId=${documentId}&transactiontoken=${TransactionKey}`,
+        `${BASE_API_URL}/api/operation/delete/by-id/?dbName=${databaseName}&collectionName=${collectionName}&documentId=${documentId}`,
       );
 
       if (response.status === 200) {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { BASE_API_URL } from "../config/key";
-import { ExchangeKeyStore, DBInfoStore } from "../store/store";
+import { DBInfoStore } from "../store/store";
 
 // Import our components
 import CreateDatabaseModal from "../components/database/CreateDatabaseModal";
@@ -14,7 +14,6 @@ const Databases = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [dbToDelete, setDbToDelete] = useState("");
-  const { TransactionKey } = ExchangeKeyStore((state) => state);
   const { Rootname } = DBInfoStore((state) => state);
 
   useEffect(() => {
@@ -22,7 +21,7 @@ const Databases = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get(
-          `${BASE_API_URL}/api/db/databases?transactiontoken=${TransactionKey}`,
+          `${BASE_API_URL}/api/db/databases`,
         );
         if (response.status === 200) {
           setDatabases(response.data.data);
@@ -35,10 +34,8 @@ const Databases = () => {
       }
     };
 
-    if (TransactionKey) {
-      fetchData();
-    }
-  }, [TransactionKey]);
+    fetchData();
+  }, []);
 
   const handleDeleteClick = (dbName) => {
     setDbToDelete(dbName);

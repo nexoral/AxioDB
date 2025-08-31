@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { BASE_API_URL } from '../config/key'
-import { ExchangeKeyStore } from '../store/store'
 
 const Support = () => {
   const [authorInfo, setAuthorInfo] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const { TransactionKey } = ExchangeKeyStore((state) => state)
 
   useEffect(() => {
     const fetchAuthorInfo = async () => {

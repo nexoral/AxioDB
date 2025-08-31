@@ -1,13 +1,11 @@
 import { useState } from "react";
 import axios from "axios";
 import { BASE_API_URL } from "../../config/key";
-import { ExchangeKeyStore } from "../../store/store";
 
 const CreateDatabaseModal = ({ isOpen, onClose, onDatabaseCreated }) => {
   const [databaseName, setDatabaseName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const { TransactionKey } = ExchangeKeyStore((state) => state);
 
   // Reset form state when modal is opened/closed
   const handleClose = () => {
@@ -41,8 +39,7 @@ const CreateDatabaseModal = ({ isOpen, onClose, onDatabaseCreated }) => {
       // Make actual API call to create database
       const response = await axios.post(
         `${BASE_API_URL}/api/db/create-database`,
-        { name: databaseName },
-        { params: { transactiontoken: TransactionKey } },
+        { name: databaseName }
       );
 
       if (

@@ -1,21 +1,19 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { BASE_API_URL } from "../config/key";
-import { ExchangeKeyStore } from "../store/store";
 
 const ApiReference = () => {
   const [apiRoutes, setApiRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedGroups, setExpandedGroups] = useState({});
-  const { TransactionKey } = ExchangeKeyStore((state) => state);
 
   useEffect(() => {
     const fetchApiRoutes = async () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `${BASE_API_URL}/api/routes?transactiontoken=${TransactionKey}`,
+          `${BASE_API_URL}/api/routes`,
         );
 
         // Extract the data from the response structure
@@ -44,10 +42,8 @@ const ApiReference = () => {
       }
     };
 
-    if (TransactionKey) {
-      fetchApiRoutes();
-    }
-  }, [TransactionKey]);
+    fetchApiRoutes();
+  }, []);
 
   const toggleGroup = (groupName) => {
     setExpandedGroups((prev) => ({

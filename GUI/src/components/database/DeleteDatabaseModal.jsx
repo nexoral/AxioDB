@@ -1,10 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { BASE_API_URL } from "../../config/key";
-import { ExchangeKeyStore } from "../../store/store";
 
 const DeleteDatabaseModal = ({ isOpen, dbName, onClose, onConfirmDelete }) => {
-  const { TransactionKey } = ExchangeKeyStore((state) => state);
   const [isDeleting, setIsDeleting] = useState(false);
 
   if (!isOpen) return null;
@@ -18,7 +16,6 @@ const DeleteDatabaseModal = ({ isOpen, dbName, onClose, onConfirmDelete }) => {
         `${BASE_API_URL}/api/db/delete-database`,
         {
           params: {
-            transactiontoken: TransactionKey,
             dbName,
           },
         },

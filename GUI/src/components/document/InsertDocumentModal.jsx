@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import axios from 'axios'
-import { ExchangeKeyStore } from '../../store/store'
 import { BASE_API_URL } from '../../config/key'
 
 const InsertDocumentModal = ({
@@ -14,7 +13,6 @@ const InsertDocumentModal = ({
   const [documentData, setDocumentData] = useState('{\n  \n}')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { TransactionKey } = ExchangeKeyStore((state) => state)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -27,7 +25,7 @@ const InsertDocumentModal = ({
 
       // Send to the API using the correct endpoint structure
       const response = await axios.post(
-        `${BASE_API_URL}/api/operation/create/?dbName=${databaseName}&collectionName=${collectionName}&transactiontoken=${TransactionKey}`,
+        `${BASE_API_URL}/api/operation/create/?dbName=${databaseName}&collectionName=${collectionName}`,
         {
           ...parsedData
         }

@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-import { ExchangeKeyStore } from '../../store/store'
 import { BASE_API_URL } from '../../config/key'
 
 const UpdateDocumentModal = ({
@@ -15,7 +14,6 @@ const UpdateDocumentModal = ({
   const [documentData, setDocumentData] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { TransactionKey } = ExchangeKeyStore((state) => state)
 
   useEffect(() => {
     if (document) {
@@ -36,7 +34,7 @@ const UpdateDocumentModal = ({
 
       // Send to the API using the correct endpoint structure
       const response = await axios.put(
-        `${BASE_API_URL}/api/operation/update/?dbName=${databaseName}&collectionName=${collectionName}&documentId=${document.documentId}&transactiontoken=${TransactionKey}`,
+        `${BASE_API_URL}/api/operation/update/?dbName=${databaseName}&collectionName=${collectionName}&documentId=${document.documentId}`,
         {
           ...parsedData
         }

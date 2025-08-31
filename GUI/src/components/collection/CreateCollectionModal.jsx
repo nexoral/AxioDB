@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { useState } from 'react'
 import { BASE_API_URL } from '../../config/key'
-import { ExchangeKeyStore } from '../../store/store'
 
 const CreateCollectionModal = ({
   isOpen,
@@ -14,7 +13,6 @@ const CreateCollectionModal = ({
   const [cryptoKey, setCryptoKey] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const { TransactionKey } = ExchangeKeyStore((state) => state)
 
   // Reset form state when modal is opened/closed
   const handleClose = () => {
@@ -62,7 +60,6 @@ const CreateCollectionModal = ({
           crypto: enableCrypto,
           key: enableCrypto ? cryptoKey : ''
         },
-        { params: { transactiontoken: TransactionKey } }
       )
 
       if (

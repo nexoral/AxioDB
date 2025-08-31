@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import CreateCollectionModal from "../components/collection/CreateCollectionModal";
 import DeleteCollectionModal from "../components/collection/DeleteCollectionModal";
 import { BASE_API_URL } from "../config/key";
-import { DBInfoStore, ExchangeKeyStore } from "../store/store";
+import { DBInfoStore } from "../store/store";
 
 const Collections = () => {
   const [searchParams] = useSearchParams();
@@ -17,14 +17,13 @@ const Collections = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [collectionToDelete, setCollectionToDelete] = useState("");
   const databaseName = searchParams.get("database");
-  const { TransactionKey } = ExchangeKeyStore((state) => state);
   const { Rootname } = DBInfoStore((state) => state);
 
   // Extract the fetchCollections function so we can reuse it
   const fetchCollections = async () => {
     try {
       const response = await axios.get(
-        `${BASE_API_URL}/api/collection/all/?databaseName=${databaseName}&transactiontoken=${TransactionKey}`,
+        `${BASE_API_URL}/api/collection/all/?databaseName=${databaseName}`,
       );
       if (response.status === 200) {
         const collectionData = response.data.data || {};
@@ -85,10 +84,8 @@ const Collections = () => {
     }
 
     // Fetch collections for the specified database
-    if (TransactionKey) {
-      fetchCollections();
-    }
-  }, [TransactionKey, databaseName, navigate]);
+    fetchCollections();
+  }, [databaseName, navigate]);
 
   const handleBackToDatabases = () => {
     navigate("/operations");

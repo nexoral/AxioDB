@@ -3,7 +3,6 @@ import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import { BASE_API_URL } from '../config/key'
-import { ExchangeKeyStore } from '../store/store'
 
 const Import = () => {
   const [file, setFile] = useState(null)
@@ -12,7 +11,6 @@ const Import = () => {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadStatus, setUploadStatus] = useState(null) // 'success' | 'error' | null
   const [errorMessage, setErrorMessage] = useState('')
-  const { TransactionKey } = ExchangeKeyStore((state) => state)
 
   const handleDrag = useCallback((e) => {
     e.preventDefault()
@@ -81,8 +79,8 @@ const Import = () => {
   }
 
   const handleUpload = async () => {
-    if (!file || !TransactionKey) {
-      setErrorMessage("Please select a file and ensure you're authenticated")
+    if (!file) {
+      setErrorMessage('Please select a file')
       setUploadStatus('error')
       return
     }
@@ -97,7 +95,7 @@ const Import = () => {
 
     try {
       const response = await axios.post(
-        `${BASE_API_URL}/api/db/import-database/?transactiontoken=${TransactionKey}`,
+        `${BASE_API_URL}/api/db/import-database/`,
         formData,
         {
           headers: {
@@ -418,9 +416,9 @@ const Import = () => {
         >
           <button
             onClick={handleUpload}
-            disabled={!file || uploading || !TransactionKey}
+            disabled={!file || uploading}
             className={`w-full py-4 px-6 rounded-lg font-medium transition-all duration-300 ${
-              !file || uploading || !TransactionKey
+              !file || uploading
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-lg transform hover:scale-105'
             }`}

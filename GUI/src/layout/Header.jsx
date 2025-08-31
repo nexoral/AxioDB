@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { DBInfoStore, ExchangeKeyStore } from '../store/store'
+import { DBInfoStore } from '../store/store'
 import axios from 'axios'
 import { BASE_API_URL } from '../config/key'
 
@@ -8,13 +8,10 @@ const Header = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const { Rootname } = DBInfoStore((state) => state)
   const { setRootname } = DBInfoStore((state) => state)
-  const { TransactionKey } = ExchangeKeyStore((state) => state)
 
   useEffect(() => {
     axios
-      .get(
-        `${BASE_API_URL}/api/db/databases?transactiontoken=${TransactionKey}`
-      )
+      .get(`${BASE_API_URL}/api/db/databases`)
       .then((response) => {
         if (response.status === 200) {
           setRootname(response.data.data.RootName ?? 'AxioDB')

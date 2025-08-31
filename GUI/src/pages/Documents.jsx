@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { BASE_API_URL } from '../config/key'
-import { DBInfoStore, ExchangeKeyStore } from '../store/store'
+import { DBInfoStore } from '../store/store'
 import InsertDocumentModal from '../components/document/InsertDocumentModal'
 import UpdateDocumentModal from '../components/document/UpdateDocumentModal'
 import DeleteDocumentModal from '../components/document/DeleteDocumentModal'
@@ -19,7 +19,6 @@ const Documents = () => {
   const observer = useRef()
   const databaseName = searchParams.get('database')
   const collectionName = searchParams.get('collection')
-  const { TransactionKey } = ExchangeKeyStore((state) => state)
 
   // Modal states
   const [showInsertModal, setShowInsertModal] = useState(false)
@@ -40,7 +39,7 @@ const Documents = () => {
         setLoading(true)
 
         const response = await axios.get(
-          `${BASE_API_URL}/api/operation/all/?dbName=${databaseName}&collectionName=${collectionName}&page=${pageNum}&transactiontoken=${TransactionKey}`
+          `${BASE_API_URL}/api/operation/all/?dbName=${databaseName}&collectionName=${collectionName}&page=${pageNum}`
         )
 
         if (response.status === 200) {
@@ -64,7 +63,7 @@ const Documents = () => {
         setLoading(false)
       }
     },
-    [databaseName, collectionName, TransactionKey]
+    [databaseName, collectionName]
   )
 
   // Initialize document list
@@ -132,8 +131,7 @@ const Documents = () => {
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${TransactionKey}`
+            'Content-Type': 'application/json'
           }
         }
       )
