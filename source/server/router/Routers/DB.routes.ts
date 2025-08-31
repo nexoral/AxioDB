@@ -22,10 +22,7 @@ export default async function dbRouter(
 
   // Get all databases
   fastify.get("/databases", async (request) => {
-    const transactionToken = (request.query as any)?.transactiontoken;
-    return new DatabaseController(AxioDBInstance).getDatabases(
-      transactionToken,
-    );
+    return new DatabaseController(AxioDBInstance).getDatabases();
   });
 
   // Create a new database

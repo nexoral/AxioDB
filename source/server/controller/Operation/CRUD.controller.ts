@@ -4,7 +4,6 @@ import { StatusCodes } from "outers";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse from "../../helper/responseBuilder.helper";
 import { FastifyRequest } from "fastify";
-import GlobalStorageConfig from "../../config/GlobalStorage.config";
 import Database from "../../../Services/Database/database.operation";
 
 /**
@@ -268,7 +267,6 @@ export default class CRUDController {
         "Failed to insert document",
       );
     }
-    GlobalStorageConfig.clear();
     return buildResponse(
       StatusCodes.CREATED,
       "Document created successfully",
@@ -292,7 +290,7 @@ export default class CRUDController {
    *
    * @throws May throw exceptions if database or collection operations fail
    */
-  public async createManyNewDocument (request: FastifyRequest) {
+  public async createManyNewDocument(request: FastifyRequest) {
     // Extracting parameters from the request body
     let { dbName, collectionName } = request.query as {
       dbName: string;
@@ -323,7 +321,6 @@ export default class CRUDController {
         "Failed to insert document",
       );
     }
-    GlobalStorageConfig.clear();
     return buildResponse(
       StatusCodes.CREATED,
       "Document created successfully",
@@ -377,7 +374,6 @@ export default class CRUDController {
         "Failed to update document",
       );
     }
-    GlobalStorageConfig.clear();
     return buildResponse(
       StatusCodes.OK,
       "Document updated successfully",
@@ -447,7 +443,6 @@ export default class CRUDController {
         );
       }
     }
-    GlobalStorageConfig.clear();
     return buildResponse(StatusCodes.OK, "Document updated successfully");
   }
 
@@ -501,7 +496,6 @@ export default class CRUDController {
       );
     }
 
-    GlobalStorageConfig.clear();
     return buildResponse(StatusCodes.OK, "Document deleted successfully");
   }
 
@@ -559,7 +553,6 @@ export default class CRUDController {
         );
       } else {
         const deleteResult = await DB_Collection.delete(query).deleteOne();
-        GlobalStorageConfig.clear();
         if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
           return buildResponse(
             StatusCodes.INTERNAL_SERVER_ERROR,
@@ -569,7 +562,6 @@ export default class CRUDController {
       }
     }
 
-    GlobalStorageConfig.clear();
     return buildResponse(StatusCodes.OK, "Document deleted successfully");
   }
 
@@ -625,7 +617,6 @@ export default class CRUDController {
       );
     }
 
-    GlobalStorageConfig.clear();
     return buildResponse(
       StatusCodes.OK,
       "Aggregation run successfully",

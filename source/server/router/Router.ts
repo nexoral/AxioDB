@@ -84,35 +84,9 @@ export default async function mainRouter(
     return reply.status(200).send(Reply);
   });
 
-  // Generate a new token for transacting with AxioDB Server
-  fastify.get("/get-token", async (request, reply) =>
-    new KeyController(process.version).generateKey(),
-  );
-
-  // Middleware for /db routes
-  fastify.addHook("preHandler", async (request, reply) => {
-    // Only apply middleware to routes starting with /db
-    if (
-      request.url.includes("/db") ||
-      request.url.includes("/collection") ||
-      request.url.includes("/dashboard-stats")
-    ) {
-      const transactionToken = (request.query as any)?.transactiontoken;
-      const status = await new KeyController(process.version).verifyKey(
-        transactionToken,
-      );
-      if (status.statusCode !== StatusCodes.OK) {
-        return reply.status(status.statusCode).send(status);
-      }
-    }
-  });
-
   // Get Dashboard Stats
   fastify.get("/dashboard-stats", async (request, reply) => {
-    const transactionToken = (request.query as any)?.transactiontoken;
-    return new StatsController(AxioDBInstance).getDashBoardStat(
-      transactionToken,
-    );
+    return new StatsController(AxioDBInstance).getDashBoardStat();
   });
 
   // Register the DB router
