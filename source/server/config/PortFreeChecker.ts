@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import net from "net";
-import { exec } from "child_process";
 import { ServerKeys } from "./keys";
 
 /**
