@@ -1,9 +1,9 @@
 # AxioDB: The Next-Generation Caching Database for Node.js
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
-[![CodeQL](https://github.com/AnkanSaha/AxioDB/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/AnkanSaha/AxioDB/actions/workflows/github-code-scanning/codeql)
+[![CodeQL](https://github.com/Nexoral/AxioDB/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/Nexoral/AxioDB/actions/workflows/github-code-scanning/codeql)
 [![Socket Security](https://socket.dev/api/badge/npm/package/axiodb)](https://socket.dev/npm/package/axiodb)
-[![Push to Registry](https://github.com/AnkanSaha/AxioDB/actions/workflows/Push.yml/badge.svg?branch=main)](https://github.com/AnkanSaha/AxioDB/actions/workflows/Push.yml)
+[![Push to Registry](https://github.com/Nexoral/AxioDB/actions/workflows/Push.yml/badge.svg?branch=main)](https://github.com/Nexoral/AxioDB/actions/workflows/Push.yml)
 
 > **AxioDB** is a blazing-fast, production-ready caching database designed for modern Node.js applications, APIs, and frontend frameworks. It combines intelligent memory management, secure file-based storage, and seamless integration with a developer-friendly API. AxioDB was created to solve the pain points of traditional cache management, manual file I/O, and unreliable global object storage—delivering a simple, fast, and reliable solution for projects of any size.
 
