@@ -13,7 +13,7 @@
     "@headlessui/react": "^2.2.7",
     "@heroicons/react": "^1.0.6",
     "@tailwindcss/vite": "^4.1.10",
-    "axios": "^1.11.0",
+    "axios": "^1.12.0",
     "framer-motion": "^12.23.12",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -33,6 +33,6 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "vite": "^6.3.5"
+    "vite": "^6.3.6"
   }
 }
