@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 LOCAL_PACKAGE_JSON="package.json"
 
 # Remote package.json URL
-REMOTE_URL="https://raw.githubusercontent.com/Nexoral/AxioDB/main/package.json"
+REMOTE_URL="https://raw.githubusercontent.com/nexoral/AxioDB/main/package.json"
 
 echo "AxioDB Version Controller"
 echo "========================="
@@ -78,7 +78,7 @@ else
   read -p "Would you like to open the GitHub repository? (y/n): " -n 1 -r
   echo
   if [[ $REPLY =~ ^[Yy]$ ]]; then
-    "$BROWSER" "https://github.com/Nexoral/AxioDB"
+    "$BROWSER" "https://github.com/nexoral/AxioDB"
   fi
   exit 1
 fi
