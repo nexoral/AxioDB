@@ -231,7 +231,7 @@ If you want to build the Docker image yourself:
 
 ```bash
 # Clone the repository
-git clone https://github.com/Nexoral/AxioDB.git
+git clone https://github.com/nexoral/AxioDB.git
 cd AxioDB/Docker
 
 # Build the Docker image
@@ -277,14 +277,14 @@ docker run -d \
 
 - **Official Documentation**: [https://axiodb.site/](https://axiodb.site/)
 - **NPM Package**: [https://www.npmjs.com/package/axiodb](https://www.npmjs.com/package/axiodb)
-- **GitHub Repository**: [https://github.com/Nexoral/AxioDB](https://github.com/Nexoral/AxioDB)
+- **GitHub Repository**: [https://github.com/nexoral/AxioDB](https://github.com/nexoral/AxioDB)
 - **API Reference**: Access via `http://localhost:27018/api` when container is running
 
 ## > Support
 
 For support and questions:
 
-- Open an issue on [GitHub](https://github.com/Nexoral/AxioDB/issues)
+- Open an issue on [GitHub](https://github.com/nexoral/AxioDB/issues)
 - Check the [documentation](https://axiodb.site/)
 - Visit the API reference at `http://localhost:27018/api`
 

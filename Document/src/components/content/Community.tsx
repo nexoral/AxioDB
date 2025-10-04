@@ -171,7 +171,7 @@ const Community: React.FC = () => {
                 CONTRIBUTING.md file.
               </p>
               <a
-                href="https://github.com/Nexoral/AxioDB/blob/main/CONTRIBUTING.md"
+                href="https://github.com/nexoral/AxioDB/blob/main/CONTRIBUTING.md"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300"
