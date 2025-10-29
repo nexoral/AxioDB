@@ -45,10 +45,15 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
 
             <Link
               to="/"
-              className="flex items-center gap-2 text-gray-900 dark:text-white"
+              className="flex items-center gap-2 text-gray-900 dark:text-white group"
             >
-              <img src="/AXioDB.png" alt="AxioDB Logo" className="h-8 w-8" />
-              <span className="text-xl font-bold">AxioDB Docs</span>
+              <img src="/AXioDB.png" alt="AxioDB Logo" className="h-8 w-8 group-hover:scale-110 transition-transform" />
+              <div className="flex flex-col">
+                <span className="text-xl font-bold">AxioDB Docs</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 hidden md:block">
+                  Built for developers ⚡
+                </span>
+              </div>
             </Link>
           </div>
 

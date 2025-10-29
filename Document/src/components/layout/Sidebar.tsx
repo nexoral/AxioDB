@@ -142,6 +142,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
           <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Documentation
           </div>
+          <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg p-3 mb-4 border border-blue-200 dark:border-blue-700/50">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">👋</span>
+              <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                Hey there, Dev!
+              </span>
+            </div>
+            <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
+              Start with <span className="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">Hello World</span> or jump to any section you need!
+            </p>
+          </div>
           <div className="border-b border-gray-200 dark:border-gray-700 mb-4"></div>
         </div>
 
