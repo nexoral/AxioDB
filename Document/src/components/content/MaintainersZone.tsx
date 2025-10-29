@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect } from "react";
 import {
   FaDev,
   FaEnvelope,
@@ -6,12 +8,34 @@ import {
   FaInstagram,
   FaTwitter,
   FaYoutube,
+  FaCode,
+  FaTerminal,
+  FaRocket,
+  FaSpinner,
 } from "react-icons/fa";
-import { GiAchievement, GiJourney, GiSkills } from "react-icons/gi";
-import { MdSchool, MdWork } from "react-icons/md";
 import { TbBrandThreads } from "react-icons/tb";
+// import GitHubProfileSection from "./GitHubProfileSection";
+import { githubApi } from "../../services/githubApi";
+
 
 const MaintainersZone = () => {
+  const [githubUser, setGithubUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGithubUser = async () => {
+      try {
+        const user = await githubApi.getUser();
+        setGithubUser(user);
+      } catch (error) {
+        console.error('Failed to fetch GitHub user:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGithubUser();
+  }, []);
   const socialLinks = [
     {
       name: "Facebook",
@@ -47,123 +71,155 @@ const MaintainersZone = () => {
     },
   ];
 
-  const milestones = [
-    {
-      icon: <MdSchool className="text-blue-500 text-4xl" />,
-      title: "Humble Beginnings",
-      description:
-        "Hi, I'm Ankan! I was born in Ranaghat, a small town where I started my journey with limited resources but an unquenchable curiosity for technology.",
-    },
-    {
-      icon: <GiJourney className="text-green-500 text-4xl" />,
-      title: "Overcoming Challenges",
-      description:
-        "Life threw many challenges my way, from academic setbacks to personal struggles. But I turned every failure into a stepping stone for growth.",
-    },
-    {
-      icon: <MdWork className="text-orange-500 text-4xl" />,
-      title: "Professional Growth",
-      description:
-        "I began my career as a Software Engineer, working tirelessly to learn, build, and contribute to impactful projects.",
-    },
-    {
-      icon: <GiSkills className="text-purple-500 text-4xl" />,
-      title: "Technical Expertise",
-      description:
-        "Over the years, I have mastered JavaScript, Node.js, React, and more. I'm always eager to learn new technologies and push my boundaries.",
-    },
-    {
-      icon: <GiAchievement className="text-red-500 text-4xl" />,
-      title: "Future Aspirations",
-      description:
-        "My journey is far from over. I aim to inspire others through my story and continue growing both personally and professionally.",
-    },
-  ];
 
   return (
     <div className="p-6 animate-fade-in">
-      {/* Hero Section with Avatar */}
-      <div className="relative bg-gradient-to-r from-blue-500 to-purple-600 text-white p-10 rounded-2xl shadow-2xl mb-10 flex flex-col items-center">
-        <img
-          src="https://avatars.githubusercontent.com/u/56942638?v=4"
-          alt="Ankan Saha Avatar"
-          className="w-28 h-28 rounded-full border-4 border-white shadow-lg mb-4 animate-float"
-        />
-        <h1 className="text-5xl font-extrabold mb-2 bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent text-center animate-slide-in-right">
-          Hi, I'm Ankan!
-        </h1>
-        <p className="text-lg leading-relaxed mb-4 text-center max-w-2xl animate-fade-in-up">
-          From a small town in Ranaghat to building AxioDB, my journey is about
-          resilience, curiosity, and the power of self-learning. I believe in
-          turning challenges into opportunities and inspiring others to do the
-          same.
-        </p>
-        <div className="flex gap-4 mt-2">
-          <a
-            href="mailto:ankansahaofficial@gmail.com"
-            className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold shadow hover:bg-blue-50 transition-colors"
-          >
-            Contact Me
-          </a>
-          <a
-            href="https://github.com/AnkanSaha"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:from-blue-700 hover:to-purple-700 transition-colors"
-          >
-            GitHub
-          </a>
+      {/* Terminal-style Welcome */}
+      <div className="relative bg-gray-900 dark:bg-gray-800 rounded-xl p-6 mb-8 shadow-lg border border-gray-700 overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-4 bg-gray-800 dark:bg-gray-700 flex items-center justify-start px-4 gap-2">
+          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+          <span className="text-xs text-gray-400 ml-2">maintainer@axiodb:~</span>
+        </div>
+        <div className="pt-6 font-mono text-sm">
+          <div className="text-green-400 mb-2">$ whoami</div>
+          <div className="text-white mb-2">ankan-saha # AxioDB Creator & Maintainer 🚀</div>
+          <div className="text-green-400 mb-2">$ cat about.txt</div>
+          <div className="text-blue-400 mb-2">Full-Stack Developer | Open Source Enthusiast | Problem Solver</div>
+          <div className="text-green-400 mb-2">$ git log --oneline --decorate</div>
+          <div className="text-yellow-400 mb-4">✨ Building AxioDB - Making Node.js data management simple</div>
+          <div className="flex items-center">
+            <span className="text-green-400">$</span>
+            <span className="text-white ml-2 animate-pulse">Ready to collaborate...</span>
+            <span className="text-white ml-1 animate-ping">|</span>
+          </div>
         </div>
       </div>
 
-      {/* Timeline Section */}
-      <h2 className="text-3xl font-bold mt-8 mb-6 text-center bg-gradient-to-r from-blue-700 via-purple-600 to-pink-500 bg-clip-text text-transparent">
-        My Journey
-      </h2>
-      <div className="relative max-w-3xl mx-auto">
-        <div className="border-l-4 border-blue-500 dark:border-purple-500 absolute h-full left-6 top-0"></div>
-        <ul className="space-y-10">
-          {milestones.map((milestone, index) => (
-            <li key={index} className="relative flex items-center gap-6">
-              <div className="z-10 bg-white dark:bg-gray-900 p-3 rounded-full shadow-lg border-2 border-blue-500 dark:border-purple-500 animate-float">
-                {milestone.icon}
+      {/* Developer Card */}
+      <div className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white rounded-2xl shadow-2xl mb-10 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
+        <div className="absolute top-4 right-4 text-6xl text-blue-400/20">
+          <FaCode />
+        </div>
+        
+        <div className="relative z-10 p-8 lg:p-12">
+          <div className="flex flex-col lg:flex-row items-center gap-8">
+            <div className="relative">
+              {loading ? (
+                <div className="w-32 h-32 rounded-xl border-4 border-blue-400/50 shadow-xl bg-gray-300 dark:bg-gray-600 animate-pulse flex items-center justify-center">
+                  <FaSpinner className="animate-spin text-gray-500" />
+                </div>
+              ) : (
+                <img
+                  src={githubUser?.avatar_url || "https://avatars.githubusercontent.com/u/56942638?v=4"}
+                  alt="Ankan Saha Avatar"
+                  className="w-32 h-32 rounded-xl border-4 border-blue-400/50 shadow-xl"
+                />
+              )}
+              <div className="absolute -bottom-2 -right-2 bg-green-500 w-8 h-8 rounded-full border-4 border-gray-900 flex items-center justify-center">
+                <span className="text-xs">🟢</span>
               </div>
-              <div className="ml-8 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-2 animate-fade-in-up">
-                <h3 className="text-xl font-bold text-blue-700 dark:text-purple-400 mb-2">
-                  {milestone.title}
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300">
-                  {milestone.description}
-                </p>
+            </div>
+            
+            <div className="flex-1 text-center lg:text-left">
+              <div className="flex items-center gap-3 mb-4 justify-center lg:justify-start">
+                <FaTerminal className="text-2xl text-green-400" />
+                <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                  Ankan Saha
+                </h1>
               </div>
-            </li>
-          ))}
-        </ul>
+              
+              <p className="text-xl text-gray-300 mb-4">@AnkanSaha</p>
+              
+              <p className="text-lg text-gray-300 leading-relaxed mb-6 max-w-2xl">
+                🚀 Software Engineer 🚀 | Obsessed with Networking 🌐 | Computer Enthusiast 💻 | Building robust, scalable systems & exploring the depths of computer internals
+              </p>
+              
+              <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+                <a
+                  href="https://github.com/AnkanSaha"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-105"
+                >
+                  <FaGithub /> View GitHub
+                </a>
+                <a
+                  href="mailto:ankansahaofficial@gmail.com"
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
+                >
+                  <FaEnvelope /> Let's Chat
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Social Section */}
-      <h2 className="text-3xl font-bold mt-12 mb-6 text-center bg-gradient-to-r from-blue-700 via-purple-600 to-pink-500 bg-clip-text text-transparent">
-        Connect with Me
-      </h2>
-      <ul className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-        {socialLinks.map((link) => (
-          <li key={link.name} className="group">
+
+      {/* Connect Section */}
+      <div className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 rounded-2xl p-8 shadow-2xl">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-4 text-white flex items-center justify-center gap-3">
+            <FaRocket className="text-blue-400" />
+            Let's Connect & Build Together
+          </h2>
+          <p className="text-gray-300 text-lg">
+            Always open to collaborate on exciting projects and meet fellow developers! 🤝
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {socialLinks.map((link) => {
+            const getHoverColor = (name: string) => {
+              switch(name) {
+                case 'GitHub': return 'hover:bg-gray-800';
+                case 'Dev.to': return 'hover:bg-gray-800';
+                case 'YouTube': return 'hover:bg-red-600';
+                case 'X (Twitter)': return 'hover:bg-black';
+                case 'Gmail': return 'hover:bg-red-600';
+                default: return 'hover:bg-blue-600';
+              }
+            };
+
+            return (
+              <a
+                key={link.name}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`group flex flex-col items-center p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 transition-all duration-300 transform hover:scale-105 ${getHoverColor(link.name)}`}
+              >
+                <span className="text-3xl mb-2 text-white group-hover:scale-110 transition-transform">
+                  {link.icon}
+                </span>
+                <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors text-center">
+                  {link.name}
+                </span>
+              </a>
+            );
+          })}
+        </div>
+
+        {/* Call to Action */}
+        <div className="text-center">
+          <div className="inline-flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <div className="text-4xl">💬</div>
+            <div className="text-left">
+              <h3 className="text-xl font-bold text-white mb-1">Got an Idea?</h3>
+              <p className="text-gray-300 text-sm">Let's discuss your next project or contribution to AxioDB!</p>
+            </div>
             <a
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-transform transform hover:-translate-y-2 border border-blue-100 dark:border-purple-700"
+              href="mailto:ankansahaofficial@gmail.com"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
-              <span className="text-5xl mb-2 text-blue-500 group-hover:text-purple-500 transition-colors">
-                {link.icon}
-              </span>
-              <span className="text-base font-semibold text-gray-700 dark:text-gray-300 group-hover:text-blue-600 transition-colors">
-                {link.name}
-              </span>
+              Say Hi! 👋
             </a>
-          </li>
-        ))}
-      </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
