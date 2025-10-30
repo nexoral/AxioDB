@@ -1,45 +1,79 @@
-# AxioDB Code of Conduct
+# Contributor Covenant Code of Conduct
 
-Welcome to AxioDB, a JSON-based Database Management System (DBMS) designed for efficient data management. Built using Node.js streams for optimized read and write operations, AxioDB allows developers to easily manage, store, and retrieve data with customizable schema support. To ensure a safe, collaborative, and inclusive environment, we have established this Code of Conduct for all users and contributors in our community.
+## Our Pledge
 
-## 1. Inclusivity and Respect
+We as members, contributors, and leaders pledge to make participation in the AxioDB community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
-We value diversity and inclusion, and we expect all users to treat one another with respect. Any form of discrimination, harassment, or offensive behavior is strictly prohibited and will not be tolerated under any circumstances.
+We pledge to act and interact in ways that contribute to an open, welcoming, diverse, inclusive, and healthy community.
 
-## 2. Professionalism
+## Our Standards
 
-Uphold a professional demeanor at all times while engaging with the AxioDB community. Avoid behavior that could harm the reputation of AxioDB, its users, or contributors. Be considerate of your language and actions during interactions, ensuring that they reflect positively on the platform.
+Examples of behavior that contributes to a positive environment for our community include:
 
-## 3. Privacy and Data Protection
+* Demonstrating empathy and kindness toward other people
+* Being respectful of differing opinions, viewpoints, and experiences
+* Giving and gracefully accepting constructive feedback
+* Accepting responsibility and apologizing to those affected by our mistakes, and learning from the experience
+* Focusing on what is best not just for us as individuals, but for the overall community
 
-Respect the privacy of fellow users and safeguard their personal information. Sharing or disclosing confidential data without proper consent is prohibited. Ensure that any data shared or used complies with privacy standards and regulations.
+Examples of unacceptable behavior include:
 
-## 4. Security
+* The use of sexualized language or imagery, and sexual attention or advances of any kind
+* Trolling, insulting or derogatory comments, and personal or political attacks
+* Public or private harassment
+* Publishing others' private information, such as a physical or email address, without their explicit permission
+* Other conduct which could reasonably be considered inappropriate in a professional setting
 
-Prioritize the security of AxioDB and its users. Do not attempt to bypass or exploit security measures or platform vulnerabilities. If you discover a security issue, report it immediately to the appropriate team to ensure it can be resolved swiftly.
+## Enforcement Responsibilities
 
-## 5. Compliance with Laws and Regulations
+Project maintainers are responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate and fair corrective action in response to any behavior that they deem inappropriate, threatening, offensive, or harmful.
 
-Ensure that your use of AxioDB complies with all applicable local, national, and international laws. Engaging in illegal activities or activities that violate AxioDB’s terms and policies is strictly forbidden.
+Project maintainers have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code of Conduct, and will communicate reasons for moderation decisions when appropriate.
 
-## 6. Intellectual Property
+## Scope
 
-Respect the intellectual property rights of others. Do not use or distribute copyrighted material, proprietary software, or other protected content without permission. Ensure that all contributions to AxioDB, whether code or documentation, follow appropriate licensing agreements and permissions.
+This Code of Conduct applies within all community spaces, and also applies when an individual is officially representing the community in public spaces. Examples of representing our community include using an official e-mail address, posting via an official social media account, or acting as an appointed representative at an online or offline event.
 
-## 7. Communication and Collaboration
+## Enforcement
 
-Foster a collaborative and positive environment. Communicate respectfully, embrace constructive feedback, and remain open to diverse perspectives. Avoid offensive language, personal attacks, or any conduct that may hinder constructive collaboration.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainers responsible for enforcement at [ankansahadevelopment@gmail.com](mailto:ankansahadevelopment@gmail.com). All complaints will be reviewed and investigated promptly and fairly.
 
-## 8. Reporting Violations
+All project maintainers are obligated to respect the privacy and security of the reporter of any incident.
 
-If you become aware of any breaches of this Code of Conduct, report them promptly to the AxioDB team. Provide relevant details to assist in the resolution of any issues. Reports will be handled with confidentiality and seriousness.
+## Enforcement Guidelines
 
-## 9. Consequences of Violations
+Project maintainers will follow these Community Impact Guidelines in determining the consequences for any action they deem in violation of this Code of Conduct:
 
-Violations of this Code of Conduct may result in appropriate actions, including warnings, temporary or permanent suspension of access, or legal consequences. Failure to follow this Code of Conduct can result in actions that range from a warning to temporary or permanent suspension of access, depending on the nature and severity of the violation. Legal action may be taken in cases of serious breaches.
+### 1. Correction
 
-## 10. Code Updates
+**Community Impact**: Use of inappropriate language or other behavior deemed unprofessional or unwelcome in the community.
 
-This Code of Conduct may be updated periodically. Users are responsible for reviewing the latest version to stay informed about any changes. Significant updates will be communicated to the AxioDB community.
+**Consequence**: A private, written warning from project maintainers, providing clarity around the nature of the violation and an explanation of why the behavior was inappropriate. A public apology may be requested.
 
-By engaging with AxioDB, you agree to abide by these guidelines and contribute to a safe, professional, and welcoming environment for all.
+### 2. Warning
+
+**Community Impact**: A violation through a single incident or series of actions.
+
+**Consequence**: A warning with consequences for continued behavior. No interaction with the people involved, including unsolicited interaction with those enforcing the Code of Conduct, for a specified period of time. This includes avoiding interactions in community spaces as well as external channels like social media. Violating these terms may lead to a temporary or permanent ban.
+
+### 3. Temporary Ban
+
+**Community Impact**: A serious violation of community standards, including sustained inappropriate behavior.
+
+**Consequence**: A temporary ban from any sort of interaction or public communication with the community for a specified period of time. No public or private interaction with the people involved, including unsolicited interaction with those enforcing the Code of Conduct, is allowed during this period. Violating these terms may lead to a permanent ban.
+
+### 4. Permanent Ban
+
+**Community Impact**: Demonstrating a pattern of violation of community standards, including sustained inappropriate behavior, harassment of an individual, or aggression toward or disparagement of classes of individuals.
+
+**Consequence**: A permanent ban from any sort of public interaction within the community.
+
+## Attribution
+
+This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 2.0, available at https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
+
+Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcement ladder](https://github.com/mozilla/diversity).
+
+[homepage]: https://www.contributor-covenant.org
+
+For answers to common questions about this code of conduct, see the FAQ at https://www.contributor-covenant.org/faq. Translations are available at https://www.contributor-covenant.org/translations.
