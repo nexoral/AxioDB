@@ -1,24 +1,38 @@
-# AxioDB: The Next-Generation Caching Database for Node.js
+# AxioDB: The Pure JavaScript Alternative to SQLite
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
 [![CodeQL](https://github.com/nexoral/AxioDB/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/nexoral/AxioDB/actions/workflows/github-code-scanning/codeql)
 [![Socket Security](https://socket.dev/api/badge/npm/package/axiodb)](https://socket.dev/npm/package/axiodb)
 [![Push to Registry](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml/badge.svg?branch=main)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
 
-> **AxioDB** is a blazing-fast, production-ready caching database designed for modern Node.js applications, APIs, and frontend frameworks. It combines intelligent memory management, secure file-based storage, and seamless integration with a developer-friendly API. AxioDB was created to solve the pain points of traditional cache management, manual file I/O, and unreliable global object storage—delivering a simple, fast, and reliable solution for projects of any size.
+> **AxioDB** is an embedded NoSQL database for Node.js with MongoDB-style queries. Zero native dependencies, no compilation, no platform issues. Pure JavaScript from npm install to production. Think SQLite, but NoSQL with JavaScript queries—perfect for desktop apps, CLI tools, and embedded systems.
 
 👉 **[Official Documentation](https://axiodb.site/)**: Access full guides, examples, and API references.
 
 ---
 
-## � Why AxioDB Exists
+## 🎯 Why AxioDB?
 
-As a Node.js backend engineer, setting up Redis for small prototypes, struggling with manual file I/O, and relying on global object storage for caching was inefficient and unreliable. AxioDB was born to:
+**SQLite requires native C bindings that cause deployment headaches. JSON files have no querying or caching. MongoDB needs a separate server. AxioDB combines the best of all: embedded like SQLite, NoSQL queries like MongoDB, intelligent caching built-in.**
 
-- Provide a simple, fast, and reliable caching solution for any project size
-- Offer proper algorithms and memory management for production environments
-- Deliver sub-millisecond response times with intelligent architecture
-- Eliminate the complexity of traditional cache management systems
+### The Problem with SQLite
+
+SQLite is great, but it requires native bindings that break in Electron and cross-platform deployments:
+
+- ❌ `electron-rebuild` on every Electron update
+- ❌ Platform-specific builds (Windows .node files ≠ Mac .node files)
+- ❌ SQL strings instead of JavaScript objects
+- ❌ Schema migrations when your data model changes
+- ❌ `node-gyp` compilation headaches
+
+### AxioDB Solution
+
+- ✅ Works everywhere Node.js runs—no rebuild, no native dependencies
+- ✅ MongoDB-style queries: `{age: {$gt: 25}}`
+- ✅ Schema-less JSON documents—no migrations
+- ✅ Built-in InMemoryCache with automatic invalidation
+- ✅ Multi-core parallelism with Worker Threads
+- ✅ Built-in web GUI at `localhost:27018`
 
 ---
 
@@ -41,15 +55,30 @@ As a Node.js backend engineer, setting up Redis for small prototypes, struggling
 
 ## 🏆 Performance Comparison
 
-| Feature     | Traditional JSON DBMS | AxioDB                 |
-| ----------- | --------------------- | ---------------------- |
-| Storage     | Single JSON file      | Tree-structured files  |
-| Caching     | None                  | InMemoryCache          |
-| Indexing    | None                  | Auto documentId        |
-| Query Speed | Linear                | Sub-millisecond (O(1)) |
-| Scalability | Poor                  | Excellent              |
+### AxioDB vs SQLite
 
-**Benchmark:** AxioDB's documentId search is up to **10x faster** than traditional JSON DBMSs (tested with 1M+ documents).
+| Feature | SQLite | AxioDB |
+| ------- | ------ | ------ |
+| **Native Dependencies** | ❌ Yes (C bindings) | ✅ Pure JavaScript |
+| **Query Language** | SQL Strings | JavaScript Objects |
+| **Schema Migrations** | ❌ Required (ALTER TABLE) | ✅ Schema-less (optional) |
+| **Built-in Caching** | ⚠️ Manual | ✅ InMemoryCache |
+| **Multi-core Processing** | ❌ Single-threaded | ✅ Worker Threads |
+| **Built-in GUI** | ❌ External tools only | ✅ Web interface included |
+| **Best For** | 10M+ records, relational data | 10K-500K documents, embedded apps |
+
+### AxioDB vs Traditional JSON Files
+
+| Feature | Traditional JSON Files | AxioDB |
+| ------- | --------------------- | ------ |
+| **Storage** | Single JSON file | File-per-document |
+| **Caching** | None | InMemoryCache |
+| **Indexing** | None | Auto documentId |
+| **Query Speed** | Linear O(n) | Sub-millisecond O(1) |
+| **Scalability** | Poor | Excellent |
+| **Built-in Query Operators** | None | $gt, $lt, $regex, $in |
+
+**Benchmark:** AxioDB's documentId search with InMemoryCache provides **instant retrieval** compared to traditional JSON files that require full-file parsing (tested with 1M+ documents).
 
 ---
 
@@ -71,6 +100,32 @@ For vulnerabilities, see [SECURITY.md](SECURITY.md).
 
 ---
 
+## 🎨 Built-in Web GUI
+
+AxioDB includes a built-in web-based GUI for database visualization and management—perfect for Electron apps and development environments.
+
+### Enabling the GUI
+
+```javascript
+// Enable GUI when creating AxioDB instance
+const db = new AxioDB(true); // GUI available at localhost:27018
+
+// With custom database path
+const db = new AxioDB(true, "MyDB", "./custom/path");
+```
+
+### GUI Features
+
+- 📊 Visual database and collection browser
+- 🔍 Real-time data inspection
+- 📝 Query execution interface
+- 📈 Performance monitoring
+- 🎯 No external dependencies required
+
+Access the GUI at `http://localhost:27018` when enabled.
+
+---
+
 ## ⚙️ Architecture & Internal Mechanisms
 
 ### Tree Structure for Fast Data Retrieval
@@ -84,6 +139,10 @@ Leverages Node.js Worker Threads for non-blocking I/O, multi-core utilization, a
 ### Two-Pointer Searching Algorithm
 
 Optimized for range queries and filtered searches, minimizing memory usage and computational overhead.
+
+### InMemoryCache System
+
+Built-in intelligent caching with automatic eviction policies, TTL support, and memory optimization. Delivers sub-millisecond response times for frequently accessed data.
 
 ### Query Processing Pipeline
 
@@ -107,9 +166,34 @@ npm install axiodb@latest --save
 
 ---
 
-## 🛠️ Usage
+## 🛠️ Quick Start
 
-> **Note:** Only one AxioDB instance should be initialized per application for consistency and security.
+### Hello World in 30 Seconds
+
+```javascript
+// npm install axiodb
+const { AxioDB } = require('axiodb');
+
+// Create AxioDB instance with built-in GUI
+const db = new AxioDB(true); // Enable GUI at localhost:27018
+
+// Create database and collection
+const myDB = await db.createDB('HelloWorldDB');
+const collection = await myDB.createCollection('greetings', false);
+
+// Insert and retrieve data - Hello World! 👋
+await collection.insert({ message: 'Hello, Developer! 👋' });
+const result = await collection.findAll();
+console.log(result[0].message); // Hello, Developer! 👋
+```
+
+**Node.js Required:** AxioDB runs on Node.js servers (v20.0.0+), not in browsers.
+
+---
+
+## 🛠️ Detailed Usage
+
+> **Important:** Only one AxioDB instance should be initialized per application for consistency and security.
 
 ### Collection Creation Options
 
@@ -202,21 +286,50 @@ console.log(results);
 
 ---
 
-## ⚠️ Current Limitations
+## 🎯 When to Use AxioDB
 
-- **Manual Relationship Management:** No built-in ODM relationship tools; references between collections must be handled manually
-- **Workload Optimization:** Best for moderate to high-traffic apps; extremely high-throughput scenarios may require specialized solutions
-- **Main Thread Processing:** Ensures consistency but may need optimization for CPU-intensive queries
-- **Query Complexity:** Comprehensive MongoDB-like operations; some advanced patterns are in development
-- **Single-Node Architecture:** Distributed replication and clustering planned for future releases
+**Perfect For:**
+- 🖥️ Desktop apps (Electron, Tauri)
+- 🛠️ CLI tools
+- 📦 Embedded systems
+- 🚀 Rapid prototyping
+- 🏠 Local-first applications
+- 💻 Node.js apps requiring local storage
+
+**Sweet Spot:** 10K-500K documents with intelligent caching
+
+---
+
+## 💭 Honest Positioning
+
+**AxioDB is not competing with PostgreSQL or MongoDB.** It's for when you need a database embedded in your app—no server setup, no native dependencies. Think SQLite-scale with MongoDB-style queries and built-in caching.
+
+When you outgrow AxioDB (1M+ documents, distributed systems), migrate to PostgreSQL or MongoDB. That's the right choice, and we support it.
+
+---
+
+## ⚠️ Limitations & Scale Considerations
+
+### Scale & Performance Boundaries
+
+- **Dataset Size:** Optimized for 10K-500K documents. For 10M+ documents, use PostgreSQL, MongoDB, or SQLite which are designed for massive scale.
+
+- **Concurrency:** Single-instance architecture. For multi-user web applications with hundreds of concurrent connections, use traditional client-server databases.
+
+- **Relational Data:** Document-based NoSQL architecture. No JOIN operations. For complex relational data with foreign keys and constraints, use SQL databases.
+
+- **Distributed Systems:** Single-node only. No replication, no sharding, no clustering. For distributed systems, use MongoDB or CouchDB.
+
+- **Transactions:** No ACID transactions across multiple collections. For transaction requirements, use PostgreSQL or MongoDB with transactions enabled.
 
 ---
 
 ## 🔮 Future Roadmap
 
-- **Data Export & Import:** JSON, CSV, and native formats
-- **Enhanced Web GUI:** Real-time analytics, visual query builder, performance monitoring
-- **Comprehensive Documentation:** Tutorials, interactive examples, and API references
+- **Data Export & Import:** Seamless data migration with support for JSON, CSV, and native AxioDB formats
+- **Enhanced Web GUI:** Advanced web interface with real-time analytics, visual query builder, and performance monitoring
+- **Comprehensive Documentation:** Extensive tutorials, interactive examples, and complete API references for all skill levels
+- **Performance Optimizations:** Continued improvements to query performance and caching strategies
 
 ---
 
@@ -236,482 +349,50 @@ MIT License. See [LICENSE](LICENSE).
 
 Special thanks to all contributors and supporters of AxioDB. Your feedback and contributions make this project better!
 
-## ⚠️ Current Limitations
+---
 
-While AxioDB offers many powerful features, there are some limitations to consider:
+## 📋 Requirements
 
-- **No Built-in Relation Tools:** Unlike ODMs such as Mongoose, AxioDB doesn't provide built-in tools for managing document relations. While MongoDB-like NoSQL databases naturally don't enforce relations at the database level, AxioDB currently requires manual handling of references between collections.
-
-- **Not Optimized for Heavy Workloads:** The database may not perform optimally with rapid data input/output scenarios or extremely large datasets (10M+ documents).
-
-- **Single-Thread Operations:** Operations are performed on the main thread which can impact application performance during complex queries.
-
-- **Limited Query Complexity:** Some advanced query patterns found in mature databases are not yet implemented.
-
-- **No Built-in Replication:** Currently lacks distributed data replication capabilities for high availability setups.
-
-We're actively working to address these limitations in future releases.
+- **Node.js:** >=20.0.0
+- **npm:** >=6.0.0
+- **yarn:** >=1.0.0 (optional)
 
 ---
 
-## 🔮 Future Plans
+## 🌐 Documentation Website
 
-We're committed to continuously enhancing AxioDB with cutting-edge features:
+The AxioDB documentation is built with:
+- **React 18** with TypeScript
+- **Vite** for fast development and building
+- **TailwindCSS** for styling
+- **Lucide React** for icons
 
-- **Inbuilt Web-Based GUI Dashboard:** Provide a user-friendly, web-based interface similar to PhpMyAdmin for managing databases, collections, and data visually.
-- **Data Export and Import Mechanisms:** Enable seamless export and import of data in various formats like JSON, CSV, and more.
-- **Improved Query Optimization:** Enhance query performance with advanced optimization techniques.
-- **Data Backup and Restore:** Implement robust backup and restore mechanisms for data safety.
-- **Comprehensive Documentation:** Expand tutorials, examples, and API references for developers.
-
----
-
-## 📦 Installation
-
-Install AxioDB via npm:
+To run the documentation locally:
 
 ```bash
-npm install axiodb@latest --save
+cd Document
+npm install
+npm run dev
 ```
+
+The documentation site will be available at `http://localhost:5173`
 
 ---
 
-## 🛠️ Usage
+## 📝 Author
 
-> **Important Note:** AxioDB uses a single instance architecture. You should initialize only one AxioDB instance with the `new` keyword, under which you can create unlimited databases, collections, and documents. This design ensures data consistency and security across your application.
-
-### Collection Creation Options
-
-When creating collections, you need to specify these parameters in the `createCollection` method:
-
-```javascript
-// Signature of createCollection method:
-createCollection(
-  name: string,           // Name of the collection (required)
-  isSchemaNeeded: boolean, // Whether schema validation is needed (required)
-  schema?: object | any,  // Schema definition (required if isSchemaNeeded is true, empty {} if false)
-  isEncrypted?: boolean,  // Whether to encrypt the collection (default: false)
-  encryptionKey?: string  // Custom encryption key (optional, system generates one if not provided)
-)
-```
-
-Examples:
-
-```javascript
-// Create collection with schema validation
-const collection1 = await db1.createCollection("testCollection", true, schema);
-
-// Create collection without schema validation
-const collection2 = await db1.createCollection("testCollection2", false);
-
-// Create an encrypted collection with schema validation and default encryption key
-const collection3 = await db1.createCollection(
-  "testCollection3",
-  true,
-  schema,
-  true,
-);
-
-// Create an encrypted collection with schema validation and custom encryption key
-const collection4 = await db1.createCollection(
-  "testCollection4",
-  true,
-  schema,
-  true,
-  "myCustomKey",
-);
-
-// Create an encrypted collection without schema validation (using empty object for schema)
-const collection5 = await db1.createCollection(
-  "testCollection5",
-  false,
-  {},
-  true,
-);
-
-// Create an encrypted collection without schema and with custom key
-const collection6 = await db1.createCollection(
-  "testCollection6",
-  false,
-  {},
-  true,
-  "myCustomKey",
-);
-```
-
-### CommonJS Example
-
-```javascript
-const { AxioDB, SchemaTypes } = require("axiodb");
-
-// Create a single AxioDB instance for your entire application
-// This will also start the Web GUI on localhost:27018 (currently under development)
-const db = new AxioDB();
-
-const main = async () => {
-  // Create multiple databases under the single instance
-  const db1 = await db.createDB("testDB");
-  const db2 = await db.createDB("testDB2", false);
-
-  // Define a schema
-  const schema = {
-    name: SchemaTypes.string().required(),
-    age: SchemaTypes.number().required().min(1).max(100),
-    email: SchemaTypes.string().required().email(),
-  };
-
-  // Create collections with and without schema validation
-  const collectionNoSchema = await db1.createCollection(
-    "testCollection2",
-    false,
-  );
-  const collectionExplicitSchema = await db1.createCollection(
-    "testCollection3",
-    true,
-    schema,
-  );
-  const collectionWithEncryption = await db1.createCollection(
-    "testCollection4",
-    schema,
-    true,
-    "myKey",
-  );
-
-  // Insert data
-  const saveStatus = await collection.insert({
-    name: "Ankan",
-    age: 21,
-    email: "ankan@example.com",
-  });
-  console.log(saveStatus);
-
-  // Query data
-  const totalDocuments = await collection
-    .query({})
-    .Limit(1)
-    .Skip(0)
-    .Sort({ name: 1 })
-    .setCount(true)
-    .setProject({ name: 1, age: 1 })
-    .exec();
-  console.log(totalDocuments);
-
-  const FastDocument = await collection
-    .query({ documentId: "S4ACDVS6SZ4S6VS" })
-    .exec(); // By using documentId you can get the document in Lightning Fast Speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
-  console.log(FastDocument);
-
-  const ArrayFirstDocument = await collection
-    .query({ documentId: ["S4ACDVS6SZ4S6VS", "VESV61Z6VS16VSE6V1S"] })
-    .exec(); // query using an array of documentId to get multiple documents in lightning fast speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
-  console.log(ArrayFirstDocument);
-
-  // Update data
-  const updatedDocuments = await collection
-    .update({ name: { $regex: "Ankan" } })
-    .UpdateOne({ name: "Ankan Saha", age: 22 });
-  console.log(updatedDocuments);
-
-  // Delete data
-  const deletedDocuments = await collection
-    .delete({ name: { $regex: "Ankan" } })
-    .deleteOne();
-  console.log(deletedDocuments);
-
-  // Aggregation
-  const response = await collection
-    .aggregate([
-      { $match: { age: { $gt: 20 }, name: { $regex: "Ankan" } } },
-      { $group: { _id: "$age", count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $project: { _id: 0, age: "$_id", count: 1 } },
-      { $limit: 10 },
-      { $skip: 0 },
-    ])
-    .exec();
-  console.log(response);
-};
-
-main();
-```
+**Ankan Saha**
 
 ---
 
-### ES6 Example
-
-```javascript
-import { AxioDB, SchemaTypes } from "axiodb";
-
-const main = async () => {
-  const db = new AxioDB();
-
-  // Create a database with schema validation (default)
-  const db1 = await db.createDB("testDB");
-
-  // Create a database without schema validation
-  const db2 = await db.createDB("testDB2", false);
-
-  // Define a schema
-  const schema = {
-    name: SchemaTypes.string().required(),
-    age: SchemaTypes.number().required().min(1).max(100),
-    email: SchemaTypes.string().required().email(),
-  };
-
-  // Create collections with and without schema validation
-  const collectionNoSchema = await db1.createCollection(
-    "testCollection2",
-    false,
-  );
-  const collectionExplicitSchema = await db1.createCollection(
-    "testCollection3",
-    true,
-    schema,
-  );
-  const collectionWithEncryption = await db1.createCollection(
-    "testCollection4",
-    schema,
-    true,
-    "myKey",
-  );
-
-  // Insert data
-  const saveStatus = await collection.insert({
-    name: "Ankan",
-    age: 21,
-    email: "ankan@example.com",
-  });
-  console.log(saveStatus);
-
-  // Query data
-  const totalDocuments = await collection
-    .query({})
-    .Limit(1)
-    .Skip(0)
-    .Sort({ name: 1 })
-    .setCount(true)
-    .setProject({ name: 1, age: 1 })
-    .exec();
-  console.log(totalDocuments);
-
-  const FastDocument = await collection
-    .query({ documentId: "S4ACDVS6SZ4S6VS" })
-    .exec(); // By using documentId you can get the document in Lightning Fast Speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
-  console.log(FastDocument);
-
-  const ArrayFirstDocument = await collection
-    .query({ documentId: ["S4ACDVS6SZ4S6VS", "VESV61Z6VS16VSE6V1S"] })
-    .exec(); // query using an array of documentId to get multiple documents in lightning fast speed, no matter how many documents are in the collection (Tested with 1000000+ documents)
-  console.log(ArrayFirstDocument);
-
-  // Update data
-  const updatedDocuments = await collection
-    .update({ name: { $regex: "Ankan" } })
-    .UpdateOne({ name: "Ankan Saha", age: 22 });
-  console.log(updatedDocuments);
-
-  // Delete data
-  const deletedDocuments = await collection
-    .delete({ name: { $regex: "Ankan" } })
-    .deleteOne();
-  console.log(deletedDocuments);
-
-  // Aggregation
-  const response = await collection
-    .aggregate([
-      { $match: { age: { $gt: 20 }, name: { $regex: "Ankan" } } },
-      { $group: { _id: "$age", count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $project: { _id: 0, age: "$_id", count: 1 } },
-      { $limit: 10 },
-      { $skip: 0 },
-    ])
-    .exec();
-  console.log(response);
-};
-
-main();
-```
-
----
-
-## 🌟 Advanced Features
-
-### 1. **Creating Multiple Databases and Collections**
-
-```javascript
-const { AxioDB, SchemaTypes } = require("axiodb");
-
-const db = new AxioDB();
-
-const setup = async () => {
-  const schema = {
-    name: SchemaTypes.string().required().max(15),
-    age: SchemaTypes.number().required().min(18),
-  };
-
-  const DB1 = await db.createDB("DB1");
-  const collection1 = await DB1.createCollection(
-    "collection1",
-    schema,
-    true,
-    "secretKey",
-  );
-
-  // Insert data
-  for (let i = 0; i < 300; i++) {
-    await collection1.insert({ name: `User${i}`, age: i + 18 });
-  }
-
-  // Query data
-  const results = await collection1
-    .query({})
-    .Sort({ age: -1 })
-    .Limit(10)
-    .exec();
-  console.log("Query Results:", results);
-
-  // Delete collection
-  await DB1.deleteCollection("collection1");
-};
-
-setup();
-```
-
----
-
-### 2. **Aggregation Pipelines**
-
-Perform advanced operations like filtering, sorting, grouping, and projecting data.
-
-```javascript
-const aggregationResult = await collection1
-  .aggregate([
-    { $match: { name: { $regex: "User" } } },
-    { $project: { name: 1, age: 1 } },
-    { $sort: { age: -1 } },
-    { $limit: 10 },
-  ])
-  .exec();
-
-console.log("Aggregation Result:", aggregationResult);
-```
-
----
-
-### 3. **Encryption**
-
-Enable encryption for sensitive data by providing a secret key during collection creation.
-
-```javascript
-const encryptedCollection = await DB1.createCollection(
-  "secureCollection",
-  schema,
-  true,
-  "mySecretKey",
-);
-
-// Insert encrypted data
-await encryptedCollection.insert({ name: "Encrypted User", age: 25 });
-
-// Query encrypted data
-const encryptedResult = await encryptedCollection.query({ age: 25 }).exec();
-console.log("Encrypted Query Result:", encryptedResult);
-```
-
----
-
-### 4. **Update and Delete Operations**
-
-#### Update Documents
-
-```javascript
-// Update a single document
-await collection1
-  .update({ age: 20 })
-  .UpdateOne({ name: "Updated User", gender: "Male" });
-
-// Update multiple documents
-await collection1
-  .update({ name: { $regex: "User" } })
-  .UpdateMany({ isActive: true });
-```
-
-#### Delete Documents
-
-```javascript
-// Delete a single document
-await collection1.delete({ name: "User1" }).deleteOne();
-
-// Delete multiple documents
-await collection1.delete({ age: { $lt: 25 } }).deleteMany();
-```
-
----
-
-## 📖 API Reference
-
-### AxioDB
-
-- **`createDB(dbName: string, schemaValidation: boolean = true): Promise<Database>`**  
-  Creates a new database. The optional `schemaValidation` parameter (default: true) determines whether schema validation will be enforced for collections in this database.
-
-- **`deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>`**  
-  Deletes a database.
-
-### Database
-
-- **`createCollection(name: string, schema: object, crypto?: boolean, key?: string): Promise<Collection>`**  
-  Creates a collection with an optional schema and encryption.
-
-- **`deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>`**  
-  Deletes a collection.
-
-- **`getCollectionInfo(): Promise<SuccessInterface>`**  
-  Retrieves information about all collections.
-
-### Collection
-
-- **`createCollection(name: string, schemaOrBoolean: object | boolean, schemaOrEmpty?: object, crypto?: boolean, key?: string): Promise<Collection>`**  
-  Creates a collection with optional schema validation and encryption. The parameters are flexible:
-  - If the second parameter is a schema object, schema validation is enabled
-  - If the second parameter is a boolean, it determines whether schema validation is enabled
-  - For collections without schema but with encryption, pass `false, {}, true` as parameters
-  - The encryption key parameter is optional - if not provided, a default key will be generated
-
-- **`insert(data: object): Promise<SuccessInterface | ErrorInterface>`**  
-  Inserts a document into the collection.
-
-- **`query(query: object): Reader`**  
-  Queries documents in the collection.
-
-- **`aggregate(pipeline: object[]): Aggregation`**  
-  Performs aggregation operations.
-
-### Reader
-
-- **`Limit(limit: number): Reader`**  
-  Sets a limit on the number of documents.
-
-- **`Skip(skip: number): Reader`**  
-  Skips a number of documents.
-
-- **`Sort(sort: object): Reader`**  
-  Sorts the query results.
-
-- **`exec(): Promise<SuccessInterface | ErrorInterface>`**  
-  Executes the query.
-
----
-
-## 🔒 Security
-
-AxioDB prioritizes data security with features like:
-
-- Optional encryption for collections.
-- Secure `.axiodb` file-based storage.
-- InMemoryCache for faster and more secure query handling.
-  For vulnerabilities, please refer to the [SECURITY.md](SECURITY.md) file.
+## 💖 Support
+
+If you find AxioDB helpful, consider:
+- ⭐ Starring the repository
+- 🐛 Reporting issues
+- 💡 Suggesting features
+- 🤝 Contributing code
+- 💰 [Sponsoring the project](https://github.com/sponsors/AnkanSaha)
 
 ---
 
