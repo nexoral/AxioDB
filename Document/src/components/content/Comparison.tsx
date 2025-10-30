@@ -113,7 +113,7 @@ const Comparison: React.FC = () => {
           <div className="flex items-end gap-6 h-48">
             {/* AxioDB Bar */}
             <div className="flex flex-col items-center w-1/3">
-              <div className="bg-blue-500 h-44 w-20 rounded-t-lg shadow-lg flex items-end justify-center">
+              <div className="bg-blue-500 h-[9rem] w-20 rounded-t-lg shadow-lg flex items-end justify-center">
                 <span className="text-white font-bold text-lg mb-2">Fast</span>
               </div>
               <span className="mt-2 text-blue-700 dark:text-blue-400 font-semibold">AxioDB</span>
