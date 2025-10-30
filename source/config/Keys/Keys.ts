@@ -1,6 +1,7 @@
-export enum General {
-  DBMS_Name = "AxioDB",
-  DBMS_File_EXT = ".axiodb",
+export const General = {
+  DBMS_Name : "AxioDB",
+  DBMS_GUI_Enable : false,
+  DBMS_File_EXT : ".axiodb",
 }
 
 // Web Server Configuration

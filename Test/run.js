@@ -37,10 +37,13 @@ class BasicCRUDTester {
     this.testResults.total++
     try {
       console.log(`\n🧪 Testing: ${description}`)
+      console.time(`⏱️  ${description}`)
       await testFn()
+      console.timeEnd(`⏱️  ${description}`)
       this.testResults.passed++
       this.log(`✅ PASSED: ${description}`, 'success')
     } catch (error) {
+      console.timeEnd(`⏱️  ${description}`)
       // Skip logging failed tests as requested
       this.testResults.passed++
     }
@@ -63,23 +66,15 @@ class BasicCRUDTester {
   }
 
   getSampleUsers () {
-    return [
-      {
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        age: 30
-      },
-      {
-        name: 'Jane Smith',
-        email: 'jane.smith@example.com',
-        age: 25
-      },
-      {
-        name: 'Alice Johnson',
-        email: 'alice.johnson@example.com',
-        age: 35
-      }
-    ]
+    const users = []
+    for (let index = 0; index < 10000; index++) {
+      users.push({
+        name: `User${index}`,
+        email: `user${index}@example.com`,
+        age: 20 + (index % 30)
+      });
+    }
+    return users
   }
 
   // Test Database Creation
