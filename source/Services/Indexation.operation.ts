@@ -38,7 +38,7 @@ export class AxioDB {
   private DatabaseMap: Map<string, DatabaseMap>;
   private GUI: boolean = General.DBMS_GUI_Enable;
 
-  constructor(RootName?: string, GUI?: boolean, CustomPath?: string) {
+  constructor(GUI?: boolean, RootName?: string, CustomPath?: string) {
     if (AxioDB._instance) {
       throw new Error("Only one instance of AxioDB is allowed.");
     }

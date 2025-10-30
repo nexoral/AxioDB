@@ -9,8 +9,8 @@ const AdvancedFeatures: React.FC = () => {
   const featuresCode = {
     "multi-db": `const { AxioDB, SchemaTypes } = require("axiodb");
 
-const Instance = new AxioDB();
-const CustomPathInstance = new AxioDB("NewDB", "./DB");
+const Instance = new AxioDB(true); // Enable GUI
+const CustomPathInstance = new AxioDB(true, "NewDB", "./DB");
 
 const setup = async () => {
   const userSchema = {
@@ -117,7 +117,7 @@ console.log("Updated documents:", updateResult);`,
     "collection-types": `// Comprehensive guide to different collection types
 const { AxioDB, SchemaTypes } = require("axiodb");
 
-const Instance = new AxioDB();
+const Instance = new AxioDB(true); // Enable GUI
 
 const setup = async () => {
   const userSchema = {
