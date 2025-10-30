@@ -372,9 +372,13 @@ console.log(paginatedDocuments);`,
                 code={`const { AxioDB, SchemaTypes } = require("axiodb");
 
 // Create a single AxioDB instance for your entire application
-// This will also start the Web GUI on localhost:27018 (currently under development)
-const Instance = new AxioDB();
-const CustomPathInstance = new AxioDB("NewDB", "./DB");
+// Enable GUI (most common): localhost:27018
+const Instance = new AxioDB(true);
+
+// Other constructor options:
+const NoGUIInstance = new AxioDB(false); // Disable GUI
+const CustomNameInstance = new AxioDB(true, "MyCustomDB"); // Custom database name
+const CustomPathInstance = new AxioDB(true, "MyDB", "./data"); // Custom path
 
 const main = async () => {
   // Define a schema for user data
@@ -490,9 +494,13 @@ main();`}
                 code={`import { AxioDB, SchemaTypes } from "axiodb";
 
 // Create a single AxioDB instance for your entire application
-// This will also start the Web GUI on localhost:27018 (currently under development)
-const Instance = new AxioDB();
-const CustomPathInstance = new AxioDB("NewDB", "./DB");
+// Enable GUI (most common): localhost:27018
+const Instance = new AxioDB(true);
+
+// Other constructor options:
+const NoGUIInstance = new AxioDB(false); // Disable GUI
+const CustomNameInstance = new AxioDB(true, "MyCustomDB"); // Custom database name
+const CustomPathInstance = new AxioDB(true, "MyDB", "./data"); // Custom path
 
 const main = async () => {
   // Define a schema for user data

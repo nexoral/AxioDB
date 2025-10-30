@@ -375,6 +375,28 @@ const Features: React.FC = () => {
           </div>
         </div>
 
+        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/10 dark:to-purple-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+                <BarChart3 className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                Built-in Web GUI
+              </h3>
+            </div>
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
+              Enable the built-in web interface to visualize and inspect your databases.
+              Perfect for Electron apps—give your users a database inspector without
+              extra dependencies. Runs on localhost:27018.
+            </p>
+            <code className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 px-3 py-2 rounded-lg text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800">
+              new AxioDB(true) // Enable GUI
+            </code>
+          </div>
+        </div>
+
         <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-lime-300 dark:hover:border-lime-600 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-gradient-to-br from-lime-50 to-green-50 dark:from-lime-900/10 dark:to-green-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
@@ -392,7 +414,7 @@ const Features: React.FC = () => {
               deployment flexibility across different environments.
             </p>
             <code className="bg-gradient-to-r from-lime-100 to-green-100 dark:from-lime-900/50 dark:to-green-900/50 px-3 py-2 rounded-lg text-lime-700 dark:text-lime-300 font-semibold border border-lime-200 dark:border-lime-800">
-              new AxioDB("DatabaseName", "./custom/path")
+              new AxioDB(true, "MyDB", "./custom/path")
             </code>
           </div>
         </div>
@@ -409,25 +431,23 @@ const Features: React.FC = () => {
               </div>
               <div>
                 <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-800 via-red-700 to-pink-700 dark:from-orange-200 dark:via-red-300 dark:to-pink-200 bg-clip-text text-transparent">
-                  Current Considerations
+                  Limitations & Scale Considerations
                 </h2>
                 <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
-                  Understanding AxioDB's current scope and limitations
+                  Understanding AxioDB's design scope
                 </p>
               </div>
             </div>
             <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-              While AxioDB excels in many areas, we believe in transparent
-              communication about current limitations and areas where
-              alternative solutions might be better suited for specific use
-              cases.
+              AxioDB is designed for embedded applications with 10K-500K documents.
+              For different requirements, consider these alternatives.
             </p>
           </div>
         </div>
 
         <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-l-4 border-orange-500 p-6 rounded-r-xl shadow-sm mb-8">
           <h3 className="text-xl font-semibold text-orange-800 dark:text-orange-200 mb-4">
-            Important Considerations for Implementation
+            Scale & Performance Boundaries
           </h3>
 
           <ul className="space-y-4 text-slate-700 dark:text-slate-300">
@@ -435,67 +455,62 @@ const Features: React.FC = () => {
               <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
               <div>
                 <strong className="text-slate-800 dark:text-slate-200">
-                  Relationship Management:
+                  Dataset Size:
                 </strong>{" "}
-                Currently requires manual handling of document relationships, as
-                AxioDB focuses on pure NoSQL architecture without built-in ODM
-                relationship tools like Mongoose.
+                Optimized for 10K-500K documents. For 10M+ documents, use PostgreSQL,
+                MongoDB, or SQLite which are designed for massive scale.
               </div>
             </li>
             <li className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
               <div>
                 <strong className="text-slate-800 dark:text-slate-200">
-                  Workload Optimization:
+                  Concurrency:
                 </strong>{" "}
-                Best suited for moderate to high-traffic applications; extremely
-                high-throughput scenarios (10M+ documents with rapid I/O) may
-                benefit from specialized database solutions.
+                Single-instance architecture. For multi-user web applications with
+                hundreds of concurrent connections, use traditional client-server databases.
               </div>
             </li>
             <li className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
               <div>
                 <strong className="text-slate-800 dark:text-slate-200">
-                  Processing Architecture:
+                  Relational Data:
                 </strong>{" "}
-                Currently operates on the main thread, which ensures data
-                consistency but may require optimization for CPU-intensive query
-                operations.
+                Document-based NoSQL architecture. No JOIN operations. For complex
+                relational data with foreign keys and constraints, use SQL databases.
               </div>
             </li>
             <li className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
               <div>
                 <strong className="text-slate-800 dark:text-slate-200">
-                  Query Complexity:
+                  Distributed Systems:
                 </strong>{" "}
-                Supports comprehensive MongoDB-like operations; some specialized
-                query patterns from mature enterprise databases are in active
-                development.
+                Single-node only. No replication, no sharding, no clustering. For
+                distributed systems, use MongoDB or CouchDB.
               </div>
             </li>
             <li className="flex items-start gap-3">
               <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
               <div>
                 <strong className="text-slate-800 dark:text-slate-200">
-                  Distribution Features:
+                  Transactions:
                 </strong>{" "}
-                Single-node architecture by design; distributed clustering
-                capabilities are not planned for AxioDB.
+                No ACID transactions across multiple collections. For transaction
+                requirements, use PostgreSQL or MongoDB with transactions enabled.
               </div>
             </li>
           </ul>
 
-          <div className="mt-6 p-4 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
             <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-              <strong className="text-orange-800 dark:text-orange-200">
-                Our Commitment:
+              <strong className="text-blue-800 dark:text-blue-200">
+                When to Use AxioDB:
               </strong>{" "}
-              These considerations represent opportunities for enhancement
-              rather than permanent limitations. Our development roadmap
-              actively addresses these areas with planned updates and new
-              features.
+              Desktop apps, CLI tools, embedded systems, prototyping, and local-first
+              applications with moderate data needs. Think SQLite-scale with MongoDB-style
+              queries and built-in caching.
             </p>
           </div>
         </div>

@@ -3,31 +3,23 @@ import { parentPort, workerData } from "worker_threads";
 import Searcher from "../../utility/Searcher.utils";
 
 const { chunk, query, isUpdated, aditionalFiled } = workerData;
+
+// Optimized for maximum performance
 const result: any[] = [];
+const chunkLength = chunk.length;
 
-let left = 0;
-let right = chunk.length - 1;
+// Simple linear loop is fastest for this use case
+// Modern JS engines optimize simple loops very well
+for (let i = 0; i < chunkLength; i++) {
+  const rawItem = chunk[i];
+  const item = aditionalFiled ? rawItem[aditionalFiled] : rawItem;
 
-while (left <= right) {
-  const indices = [];
+  // Skip null/undefined checks with early continue
+  if (item === undefined || item === null) continue;
 
-  for (let i = 0; i < 2 && left + i <= right; i++) indices.push(left + i);
-  for (let i = 0; i < 2 && right - i > left + 1; i++) indices.push(right - i);
-
-  for (const index of indices) {
-    const rawItem = chunk[index];
-    const item = aditionalFiled ? rawItem[aditionalFiled] : rawItem;
-    if (
-      item !== undefined &&
-      item !== null &&
-      Searcher.matchesQuery(item, query, isUpdated)
-    ) {
-      result.push(rawItem);
-    }
+  if (Searcher.matchesQuery(item, query, isUpdated)) {
+    result.push(rawItem);
   }
-
-  left += 2;
-  right -= 2;
 }
 
 if (parentPort) {

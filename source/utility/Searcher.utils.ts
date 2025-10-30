@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Worker } from "worker_threads";
 import path from "path";
+import os from "os";
 
 const workerPath: string = path.resolve(
   __dirname,
@@ -20,17 +21,39 @@ export default class Searcher {
 
   /**
    * Finds items in the data array that match the given query.
-   * Uses worker threads to parallelize the search across multiple CPU cores.
+   * Uses optimized search strategies based on data size.
+   * Note: InMemoryCache at the Reader layer already handles query result caching.
    *
    * @param query - The query object containing conditions to match against items.
    * @param aditionalFiled - Optional field to extract from each item for matching.
+   * @param findOne - If true, stops after finding the first match (early exit)
    * @returns {Promise<any[]>} - A promise that resolves to an array of matching items.
    */
   public async find(
     query: { [key: string]: any },
     additionalFiled?: string | number | undefined,
+    findOne: boolean = false,
   ): Promise<any[]> {
-    const numWorkers = 1; // Use a single worker for simplicity, can be adjusted based on requirements
+    // For small datasets or findOne, linear search is faster (avoid worker overhead)
+    if (this.data.length < 1000 || findOne) {
+      const result: any[] = [];
+      for (let i = 0; i < this.data.length; i++) {
+        const rawItem = this.data[i];
+        const item = additionalFiled ? rawItem[additionalFiled] : rawItem;
+        if (
+          item !== undefined &&
+          item !== null &&
+          Searcher.matchesQuery(item, query, this.isUpdated)
+        ) {
+          result.push(rawItem);
+          if (findOne) return result; // Early exit for findOne
+        }
+      }
+      return result;
+    }
+
+    // Parallel search for large datasets with complex queries
+    const numWorkers = Math.min(os.cpus().length, Math.max(1, Math.ceil(this.data.length / 1000)));
     const chunkSize = Math.ceil(this.data.length / numWorkers);
 
     const tasks: Promise<any[]>[] = [];

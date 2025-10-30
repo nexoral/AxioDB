@@ -8,406 +8,325 @@ const WhyChooseAxioDBPage: React.FC = () => {
         <title>Why Choose AxioDB - AxioDB Documentation</title>
         <meta
           name="description"
-          content="Learn about the internal working mechanisms of AxioDB and its advantages for Node.js developers"
+          content="Learn why AxioDB is the perfect embedded database for Node.js applications"
         />
       </Helmet>
 
       <div className="max-w-4xl mx-auto">
-        <h1 id="why-choose-axiodb" className="text-3xl font-bold mb-6">
-          Why Choose AxioDB
-        </h1>
+        {/* Hero Section */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-8 mb-8 border border-blue-200 dark:border-blue-800">
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Why Choose AxioDB?
+          </h1>
+          <p className="text-xl text-slate-700 dark:text-slate-300">
+            A robust embedded database for Node.js applications requiring local storage with
+            intelligent caching. <span className="font-semibold">Pure JavaScript. MongoDB-style queries. Built-in caching.</span>
+          </p>
+        </div>
 
-        <p className="mb-6">
-          AxioDB offers several unique advantages for Node.js developers looking
-          for an efficient, secure, and performance-oriented database solution.
-          This page explains the internal mechanisms that make AxioDB stand out
-          from other database options.
-        </p>
-
-        <section className="mb-10">
-          <h2 id="tree-structure" className="text-2xl font-semibold mb-4">
-            Tree Structure for Fast Data Retrieval
+        {/* The Problem Section */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+            <span className="text-4xl">🎯</span> The Need for Embedded Databases
           </h2>
-          <p className="mb-4">
-            At the core of AxioDB is an optimized tree-based data structure that
-            enables lightning-fast data lookups and queries. Unlike traditional
-            databases that might require full table scans, AxioDB's tree
-            architecture ensures:
-          </p>
 
-          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
-            <pre className="text-sm font-mono">
-              {`                         AxioDB
-                            │
-   ┌────────────────────────┼────────────────────────┐
-   │                        │                        │
-database1              database2                database3
-   │                        │                        │
-   │                        │                        │
- ┌─┴─────────────┐     ┌────┴──────────┐        ┌────┴───────┐
- │               │     │               │        │            │
-collection1  collection2           users        logs      devices
-   │            │                    │            │            │
-   │            │                    │            │            │
- ┌─┴────┐     ┌─┴────┐           ┌────┴───┐   ┌───┴────┐   ┌───┴────┐
- │       │     │      │           │        │   │        │   │        │
-001.axiodb  002.axiodb     a01.axiodb  a02.axiodb   user_123.axiodb  user_456.axiodb
-                                   (1 file = 1 document)`}
-            </pre>
+          <div className="space-y-6">
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+              <p className="text-lg text-slate-700 dark:text-slate-300 mb-4">
+                Modern applications need local data storage that's:
+              </p>
+              <ul className="space-y-2 text-slate-600 dark:text-slate-400 pl-6">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-500 font-bold mt-1">✓</span>
+                  <span>Fast and efficient for frequent read/write operations</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-500 font-bold mt-1">✓</span>
+                  <span>Easy to deploy without external dependencies</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-500 font-bold mt-1">✓</span>
+                  <span>Simple to query without learning SQL</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-500 font-bold mt-1">✓</span>
+                  <span>Capable of handling medium-scale datasets efficiently</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-6 rounded-r-xl">
+              <h3 className="text-xl font-semibold mb-3">Traditional Approaches Fall Short</h3>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">SQLite:</h4>
+                  <ul className="space-y-1 text-slate-600 dark:text-slate-400 pl-6 text-sm">
+                    <li>• Requires native C bindings (better-sqlite3, node-sqlite3)</li>
+                    <li>• Platform-specific compilation issues</li>
+                    <li>• SQL strings instead of JavaScript objects</li>
+                    <li>• Schema migrations required for data model changes</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">JSON Files:</h4>
+                  <ul className="space-y-1 text-slate-600 dark:text-slate-400 pl-6 text-sm">
+                    <li>• Full file read/write for every operation</li>
+                    <li>• No built-in querying or indexing</li>
+                    <li>• Linear search performance</li>
+                    <li>• Manual caching implementation needed</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">MongoDB (Server):</h4>
+                  <ul className="space-y-1 text-slate-600 dark:text-slate-400 pl-6 text-sm">
+                    <li>• Requires separate server installation</li>
+                    <li>• Overkill for small-to-medium datasets</li>
+                    <li>• Complex deployment for simple apps</li>
+                    <li>• Not suitable for embedded scenarios</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
-
-          <p className="mb-4">
-            This hierarchical tree structure offers several critical advantages:
-          </p>
-
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>Direct document access</strong>: When using a documentId,
-              AxioDB can directly navigate to the specific file without scanning
-              the entire collection, resulting in O(1) lookup time
-            </li>
-            <li>
-              <strong>Logarithmic time complexity</strong>: As your data grows,
-              query time increases only logarithmically, not linearly, because
-              the tree structure allows efficient navigation
-            </li>
-            <li>
-              <strong>Efficient indexing</strong>: The tree structure
-              automatically serves as an index, reducing the need for separate
-              index maintenance
-            </li>
-            <li>
-              <strong>Optimized for both reads and writes</strong>: The balanced
-              tree structure ensures consistent performance for both data
-              retrieval and insertion operations
-            </li>
-            <li>
-              <strong>Path-based lookups</strong>: The database → collection →
-              document hierarchy allows for intuitive and efficient data
-              organization and retrieval patterns
-            </li>
-          </ul>
-          <p className="mb-4">
-            For Node.js developers, this means your applications remain
-            responsive even as your data scales, without requiring extensive
-            query optimization or complex index management. When you query by
-            documentId, AxioDB can bypass collection scanning entirely,
-            accessing exactly the document you need in a single operation.
-          </p>
         </section>
 
-        <section className="mb-10">
-          <h2 id="worker-threads" className="text-2xl font-semibold mb-4">
-            Worker Threads for Parallel Processing
+        {/* The Solution */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+            <span className="text-4xl">✨</span> AxioDB: The Complete Solution
           </h2>
-          <p className="mb-4">
-            AxioDB leverages Node.js Worker Threads to parallelize read
-            operations, bringing several advantages:
-          </p>
 
-          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
-            <pre className="text-sm font-mono">
-              {`                Main Process
-                ─────────────
-                      │
-    ┌─────────────────┼──────────────────┐
-    │                 │                  │
- Worker 1         Worker 2           Worker N
- (2.5k files)    (2.5k files)        (2.5k files)
-    │                 │                  │
-   read()           read()             read()
-  file-by-file     file-by-file      file-by-file
-    │                 │                  │
-    └─────────────────┼──────────────────┘
-                      │
-                 Merge Results
-                      │
-                Return to Client`}
-            </pre>
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-2 border-green-400 dark:border-green-700 p-8 rounded-2xl mb-6">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-xl font-bold text-green-800 dark:text-green-300 mb-4">Core Advantages</h3>
+                <ul className="space-y-3 text-slate-700 dark:text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 font-bold">✓</span>
+                    <div>
+                      <strong>Pure JavaScript:</strong> Zero native dependencies
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 font-bold">✓</span>
+                    <div>
+                      <strong>MongoDB-style Queries:</strong> JavaScript objects, not SQL
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 font-bold">✓</span>
+                    <div>
+                      <strong>Intelligent Caching:</strong> InMemoryCache for instant queries
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 font-bold">✓</span>
+                    <div>
+                      <strong>Multi-core Performance:</strong> Worker Threads for parallelism
+                    </div>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 font-bold">✓</span>
+                    <div>
+                      <strong>Built-in GUI:</strong> Web interface for data inspection
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold text-green-800 dark:text-green-300 mb-4">Perfect For</h3>
+                <ul className="space-y-3 text-slate-700 dark:text-slate-300">
+                  <li className="flex items-start gap-2">
+                    <span>📱</span>
+                    <span>Electron & desktop applications</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span>⚙️</span>
+                    <span>CLI tools with persistent storage</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span>🚀</span>
+                    <span>Rapid prototyping & MVPs</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span>💾</span>
+                    <span>10K-500K document applications</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span>🏠</span>
+                    <span>Local-first & embedded systems</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
-
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>Non-blocking I/O</strong>: Database operations don't block
-              your application's event loop
-            </li>
-            <li>
-              <strong>Multi-core utilization</strong>: Takes advantage of all
-              available CPU cores for data processing tasks
-            </li>
-            <li>
-              <strong>Scalable performance</strong>: Read operations scale with
-              available system resources
-            </li>
-            <li>
-              <strong>Responsive applications</strong>: Prevents long-running
-              queries from causing application-wide slowdowns
-            </li>
-          </ul>
-          <p className="mb-4">
-            This multi-threaded approach is especially valuable in Node.js
-            environments, where efficiently handling CPU-intensive tasks
-            alongside I/O operations has traditionally been challenging.
-          </p>
         </section>
 
-        <section className="mb-10">
-          <h2 id="data-storage" className="text-2xl font-semibold mb-4">
-            Data Storage Architecture
-          </h2>
-          <p className="mb-4">
-            AxioDB employs a file-based storage system with intelligent
-            organization to maintain performance even as collections grow:
-          </p>
+        {/* Comparison Table */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-6">📊 Feature Comparison</h2>
 
-          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
-            <pre className="text-sm font-mono">
-              {`   Database Root
-        │
-        ├── Collection A/
-        │   ├── .{document-id-1}.axio  ◄── Individual document files
-        │   ├── .{document-id-2}.axio      with unique IDs as filenames
-        │   └── .{document-id-n}.axio
-        │
-        ├── Collection B/
-        │   ├── .{document-id-1}.axio
-        │   ├── .{document-id-2}.axio
-        │   └── .{document-id-n}.axio
-        │
-        └── metadata.json  ◄── Database configuration and schema information`}
-            </pre>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-lg">
+              <thead>
+                <tr className="bg-slate-100 dark:bg-slate-700">
+                  <th className="px-6 py-4 text-left font-semibold">Feature</th>
+                  <th className="px-6 py-4 text-center font-semibold">SQLite</th>
+                  <th className="px-6 py-4 text-center font-semibold">JSON Files</th>
+                  <th className="px-6 py-4 text-center font-semibold bg-green-100 dark:bg-green-900/40">AxioDB</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                <tr>
+                  <td className="px-6 py-4 font-medium">Native Dependencies</td>
+                  <td className="px-6 py-4 text-center text-red-600">❌ Yes</td>
+                  <td className="px-6 py-4 text-center text-green-600">✅ No</td>
+                  <td className="px-6 py-4 text-center text-green-600 bg-green-50 dark:bg-green-900/20">✅ No</td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 font-medium">Query Language</td>
+                  <td className="px-6 py-4 text-center">SQL Strings</td>
+                  <td className="px-6 py-4 text-center text-red-600">❌ Manual</td>
+                  <td className="px-6 py-4 text-center text-green-600 bg-green-50 dark:bg-green-900/20">JS Objects</td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 font-medium">Built-in Caching</td>
+                  <td className="px-6 py-4 text-center text-yellow-600">⚠️ Page cache only</td>
+                  <td className="px-6 py-4 text-center text-red-600">❌ None</td>
+                  <td className="px-6 py-4 text-center text-green-600 bg-green-50 dark:bg-green-900/20">✅ InMemoryCache</td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 font-medium">Schema Flexibility</td>
+                  <td className="px-6 py-4 text-center text-red-600">❌ Rigid (migrations)</td>
+                  <td className="px-6 py-4 text-center text-green-600">✅ Schema-less</td>
+                  <td className="px-6 py-4 text-center text-green-600 bg-green-50 dark:bg-green-900/20">✅ Optional schemas</td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 font-medium">Multi-core Processing</td>
+                  <td className="px-6 py-4 text-center text-red-600">❌ Single-threaded</td>
+                  <td className="px-6 py-4 text-center text-red-600">❌ No</td>
+                  <td className="px-6 py-4 text-center text-green-600 bg-green-50 dark:bg-green-900/20">✅ Worker Threads</td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 font-medium">Built-in GUI</td>
+                  <td className="px-6 py-4 text-center text-red-600">❌ External tools</td>
+                  <td className="px-6 py-4 text-center text-red-600">❌ None</td>
+                  <td className="px-6 py-4 text-center text-green-600 bg-green-50 dark:bg-green-900/20">✅ Included</td>
+                </tr>
+                <tr>
+                  <td className="px-6 py-4 font-medium">Deployment Complexity</td>
+                  <td className="px-6 py-4 text-center text-yellow-600">⚠️ Platform-specific</td>
+                  <td className="px-6 py-4 text-center text-green-600">✅ Simple</td>
+                  <td className="px-6 py-4 text-center text-green-600 bg-green-50 dark:bg-green-900/20">✅ npm install</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-
-          <p className="mb-4">
-            This storage architecture provides several advantages:
-          </p>
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>Document isolation</strong>: Each document is stored in
-              its own file, preventing write conflicts
-            </li>
-            <li>
-              <strong>Selective loading</strong>: Only the documents you need
-              are loaded into memory
-            </li>
-            <li>
-              <strong>File-level locking</strong>: Prevents concurrent
-              modifications while allowing parallel reads
-            </li>
-            <li>
-              <strong>Easy backup</strong>: Simple to back up individual
-              collections or documents
-            </li>
-          </ul>
         </section>
 
-        <section className="mb-10">
-          <h2 id="two-pointer" className="text-2xl font-semibold mb-4">
-            Two-Pointer Searching Algorithm
+        {/* Use Cases */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+            <span className="text-4xl">💡</span> Real-World Use Cases
           </h2>
-          <p className="mb-4">
-            AxioDB implements an optimized two-pointer searching algorithm that:
-          </p>
 
-          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
-            <pre className="text-sm font-mono">
-              {`  Data Array: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
-               ↑                             ↑
-              left                         right
-              
-  Two-Pointer Search (looking for values that sum to 11)
-  
-  Step 1: Check left and right positions: 1 + 10 = 11 ✓
-          Record match, move both pointers
-  
-  Step 2: left++, right--
-          [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
-               ↑                       ↑
-             Check: 2 + 9 = 11 ✓
-  
-  Each step traverses from both ends simultaneously, 
-  allowing efficient checks with fewer iterations.`}
-            </pre>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+              <h3 className="text-xl font-semibold mb-3">Desktop Applications</h3>
+              <p className="text-slate-600 dark:text-slate-400 mb-3">
+                Store user preferences, application state, and local data without requiring users to install database servers.
+              </p>
+              <code className="text-sm bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
+                new AxioDB(true)
+              </code>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+              <h3 className="text-xl font-semibold mb-3">CLI Tools</h3>
+              <p className="text-slate-600 dark:text-slate-400 mb-3">
+                Persist configuration, cache API responses, and manage local data for command-line applications.
+              </p>
+              <code className="text-sm bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
+                new AxioDB(false, "MyCliTool")
+              </code>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+              <h3 className="text-xl font-semibold mb-3">Rapid Prototyping</h3>
+              <p className="text-slate-600 dark:text-slate-400 mb-3">
+                Build and iterate quickly without setting up external databases. Scale to proper DBMS when needed.
+              </p>
+              <code className="text-sm bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
+                MongoDB-style queries
+              </code>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
+              <h3 className="text-xl font-semibold mb-3">Embedded Systems</h3>
+              <p className="text-slate-600 dark:text-slate-400 mb-3">
+                Single-user applications, IoT devices, and edge computing scenarios requiring local data persistence.
+              </p>
+              <code className="text-sm bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
+                Pure JavaScript
+              </code>
+            </div>
           </div>
-
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>Minimizes memory usage</strong>: The algorithm traverses
-              data structures efficiently without loading entire datasets into
-              memory
-            </li>
-            <li>
-              <strong>Reduces computational overhead</strong>: Eliminates
-              redundant comparisons and optimizes the search path
-            </li>
-            <li>
-              <strong>Enables range queries</strong>: Naturally supports
-              efficient range-based searches and filtered queries
-            </li>
-            <li>
-              <strong>Works seamlessly with the tree structure</strong>:
-              Combined with the tree architecture, delivers sub-linear search
-              times even on large datasets
-            </li>
-          </ul>
         </section>
 
-        <section className="mb-10">
-          <h2 id="query-processing" className="text-2xl font-semibold mb-4">
-            Query Processing Pipeline
+        {/* When NOT to Use */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+            <span className="text-4xl">⚠️</span> When to Use Traditional Databases
           </h2>
-          <p className="mb-4">
-            When you execute a query in AxioDB, it goes through an optimized
-            pipeline that maximizes performance:
-          </p>
 
-          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
-            <pre className="text-sm font-mono">
-              {`  Client Query
-      │
-      ▼
-  Parse Query ────────────────────┐
-      │                           │
-      ▼                           ▼
-  Check Cache ──► Cache Hit ──► Return Results
-      │
-      ▼ Cache Miss
-  Distribute to Workers
-      │
-      ├──────────┬──────────┬──────────┐
-      ▼          ▼          ▼          ▼
-  Worker 1    Worker 2    Worker 3    Worker N
-      │          │          │          │
-      ├──────────┴──────────┴──────────┘
-      ▼
-  Aggregate Results
-      │
-      ▼
-  Apply Sorting/Limiting
-      │
-      ▼
-  Cache Results
-      │
-      ▼
-  Return to Client`}
-            </pre>
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-6 rounded-r-xl">
+            <p className="text-lg text-slate-700 dark:text-slate-300 mb-4 font-semibold">
+              Choose PostgreSQL, MongoDB, or SQLite instead for:
+            </p>
+            <ul className="space-y-3 text-slate-600 dark:text-slate-400">
+              <li className="flex items-start gap-3">
+                <span className="text-yellow-600 text-xl">→</span>
+                <span><strong>10M+ documents:</strong> Traditional databases scale better with massive datasets</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-yellow-600 text-xl">→</span>
+                <span><strong>Multi-user web applications:</strong> Server databases handle concurrency better</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-yellow-600 text-xl">→</span>
+                <span><strong>Complex relational data:</strong> SQL databases with JOIN operations are designed for this</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-yellow-600 text-xl">→</span>
+                <span><strong>Distributed systems:</strong> AxioDB is single-instance, no clustering/replication</span>
+              </li>
+            </ul>
           </div>
-
-          <p className="mb-4">
-            This pipeline architecture provides several key benefits:
-          </p>
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>Intelligent caching</strong>: Frequently accessed queries
-              are cached for instant retrieval
-            </li>
-            <li>
-              <strong>Parallelized processing</strong>: Work is distributed
-              across multiple threads for maximum throughput
-            </li>
-            <li>
-              <strong>Lazy evaluation</strong>: Results are processed
-              incrementally when possible to reduce memory usage
-            </li>
-            <li>
-              <strong>Just-in-time compilation</strong>: Query patterns are
-              optimized during runtime for faster subsequent execution
-            </li>
-          </ul>
         </section>
 
-        <section className="mb-10">
-          <h2 id="single-instance" className="text-2xl font-semibold mb-4">
-            Single Instance Architecture for Data Security & Consistency
-          </h2>
-          <p className="mb-4">
-            AxioDB employs a single instance architecture that provides:
-          </p>
-
-          <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md mb-6 overflow-auto">
-            <pre className="text-sm font-mono">
-              {`                  ┌───────────────────────────┐
-                  │    AxioDB Single Instance  │
-                  │                            │
-  ┌─────────┐     │   ┌─────────────────────┐  │
-  │ Client 1 │◄────►  │                     │  │
-  └─────────┘     │   │                     │  │
-                  │   │   Consistent Data   │  │
-  ┌─────────┐     │   │        Store        │  │
-  │ Client 2 │◄────►  │                     │  │
-  └─────────┘     │   │                     │  │
-                  │   └─────────────────────┘  │
-  ┌─────────┐     │            │ │             │
-  │ Client 3 │◄────►           │ │             │
-  └─────────┘     │    ┌───────┘ └────────┐    │
-                  │    │                  │    │
-                  │ ┌──▼───┐          ┌──▼───┐ │
-                  │ │ Read │          │Write │ │
-                  │ │Queue │          │Queue │ │
-                  │ └──────┘          └──────┘ │
-                  └───────────────────────────┘`}
-            </pre>
+        {/* Bottom CTA */}
+        <section className="mb-12">
+          <div className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-2xl p-8 text-center">
+            <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
+            <p className="text-xl mb-6 text-blue-100">
+              Pure JavaScript. MongoDB-style queries. Built-in caching. Zero dependencies.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="/installation"
+                className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors shadow-lg"
+              >
+                📦 Install AxioDB
+              </a>
+              <a
+                href="/usage"
+                className="inline-block bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-800 transition-colors"
+              >
+                📖 View Documentation
+              </a>
+            </div>
           </div>
-
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>ACID compliance</strong>: All operations are Atomic,
-              Consistent, Isolated, and Durable
-            </li>
-            <li>
-              <strong>Simplified deployment</strong>: No cluster configuration
-              or coordination required
-            </li>
-            <li>
-              <strong>Stronger data consistency</strong>: Eliminates eventual
-              consistency issues common in distributed databases
-            </li>
-            <li>
-              <strong>Lower operational overhead</strong>: Reduced complexity
-              means fewer points of failure and easier troubleshooting
-            </li>
-          </ul>
-          <p className="mb-4">
-            This architecture is particularly beneficial for Node.js
-            applications where data integrity and predictable behavior are
-            critical, such as financial applications, user authentication
-            systems, or any scenario where data corruption would be
-            catastrophic.
-          </p>
-        </section>
-
-        <section className="mb-10">
-          <h2 id="developer-experience" className="text-2xl font-semibold mb-4">
-            Designed for Node.js Developers
-          </h2>
-          <p className="mb-4">
-            Beyond its technical advantages, AxioDB was built specifically for
-            Node.js developers:
-          </p>
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>Native JavaScript API</strong>: Work with familiar syntax
-              and data structures
-            </li>
-            <li>
-              <strong>Promise-based interface</strong>: Integrates smoothly with
-              async/await patterns
-            </li>
-            <li>
-              <strong>Lightweight dependency</strong>: Minimal impact on your
-              application's bundle size
-            </li>
-            <li>
-              <strong>Simple learning curve</strong>: If you know JavaScript
-              objects, you already understand much of how to work with AxioDB
-            </li>
-          </ul>
-          <p>
-            Whether you're building a small personal project or a large-scale
-            production application, AxioDB offers the performance, reliability,
-            and developer experience needed to make your Node.js applications
-            succeed.
-          </p>
         </section>
       </div>
     </>

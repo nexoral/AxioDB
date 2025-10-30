@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Worker } from "worker_threads";
 import paths from "path";
+import os from "os";
 
 /**
  * Reads data files using worker threads to parallelize the loading process.
@@ -19,7 +20,7 @@ export default async function ReaderWithWorker(
   isEncrypted: boolean,
   storeFileName = false,
 ): Promise<any[]> {
-  const numWorkers = 1; // Use a single worker for simplicity, can be adjusted based on requirements
+  const numWorkers = Math.min(os.cpus().length, DataFilesList.length); // Use all CPU cores or file count, whichever is smaller
   const chunkSize = Math.ceil(DataFilesList.length / numWorkers);
   const workerPath: string = paths.resolve(
     __dirname,

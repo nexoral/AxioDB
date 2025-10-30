@@ -10,7 +10,7 @@ import Database from "./Database/database.operation";
 
 // Helper Classes
 import Converter from "../Helper/Converter.helper";
-import { StatusCodes } from "outers";
+import { Console, StatusCodes } from "outers";
 import ResponseHelper from "../Helper/response.helper";
 
 // Interfaces
@@ -36,8 +36,9 @@ export class AxioDB {
   private ResponseHelper: ResponseHelper;
   private static _instance: AxioDB;
   private DatabaseMap: Map<string, DatabaseMap>;
+  private GUI: boolean = General.DBMS_GUI_Enable;
 
-  constructor(RootName?: string, CustomPath?: string) {
+  constructor(GUI?: boolean, RootName?: string, CustomPath?: string) {
     if (AxioDB._instance) {
       throw new Error("Only one instance of AxioDB is allowed.");
     }
@@ -50,6 +51,7 @@ export class AxioDB {
     this.ResponseHelper = new ResponseHelper(); // Initialize the ResponseHelper class
     this.initializeRoot(); // Ensure root initialization
     this.DatabaseMap = new Map<string, DatabaseMap>(); // Initialize the DatabaseMap
+    this.GUI = GUI !== undefined ? GUI : General.DBMS_GUI_Enable; // Set GUI option
   }
 
   /**
@@ -80,7 +82,10 @@ export class AxioDB {
         console.log(`AxioDB folder created at: ${this.currentPATH}`);
       }
     }
-    createAxioDBControlServer(this); // Start the web Control Server with the AxioDB instance
+    if (this.GUI){
+      Console.green("Starting AxioDB Control Server...");
+      createAxioDBControlServer(this); // Start the web Control Server with the AxioDB instance
+    }
   }
 
   /**

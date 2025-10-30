@@ -4,7 +4,6 @@ import { parentPort, workerData } from "worker_threads";
 import FileManager from "../Filesystem/FileManager"; // Replace with real imports
 import Converter from "../../Helper/Converter.helper"; // Replace with your actual converter logic
 import { SuccessInterface } from "../../config/Interfaces/Helper/response.helper.interface";
-import ResponseHelper from "../../Helper/response.helper";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 
 interface ErrorInterface {
@@ -22,68 +21,62 @@ const cryptoInstance = encryptionKey
 
 /*
  * Worker for reading files in parallel.
- * It processes files in pairs from both ends of the chunk array.
+ * It processes all files concurrently using Promise.all for maximum performance.
  * If cryptoInstance is provided, it decrypts the file content.
  * The results are stored in the result array, either with or without file names based on storeFileName flag.
  * If an error occurs, it sends an error message back to the parent thread.
  */
 async function processFiles() {
-  let left = 0;
-  let right = chunk.length - 1;
-
   try {
-    while (left <= right) {
-      const indices = [];
+    // Process all files in parallel for maximum performance
+    const filePromises = chunk.map(async (fileName: string) => {
+      try {
+        const ReadFileResponse: SuccessInterface | ErrorInterface =
+          await new FileManager().ReadFile(`${path}/${fileName}`);
 
-      for (let i = 0; i < 2 && left + i <= right; i++) indices.push(left + i);
-      for (let i = 0; i < 2 && right - i > left + 1; i++)
-        indices.push(right - i);
-
-      for (const index of indices) {
-        const fileName = chunk[index];
-        try {
-          const ReadFileResponse: SuccessInterface | ErrorInterface =
-            await new FileManager().ReadFile(`${path}/${fileName}`);
-          // Check if the file is read successfully or not
-          if ("data" in ReadFileResponse) {
-            if (isEncrypted === true && cryptoInstance) {
-              // Decrypt the data if crypto is enabled
-              const ContentResponse = await cryptoInstance.decrypt(
-                new Converter().ToObject(ReadFileResponse.data),
-              );
-              if (storeFileName == true) {
-                // Store Decrypted Data with File Name
-                result.push({
-                  fileName: fileName,
-                  data: new Converter().ToObject(ContentResponse),
-                });
-              } else {
-                // Store all Decrypted Data in AllData
-                result.push(new Converter().ToObject(ContentResponse));
-              }
+        // Check if the file is read successfully or not
+        if ("data" in ReadFileResponse) {
+          if (isEncrypted === true && cryptoInstance) {
+            // Decrypt the data if crypto is enabled
+            const ContentResponse = await cryptoInstance.decrypt(
+              new Converter().ToObject(ReadFileResponse.data),
+            );
+            if (storeFileName == true) {
+              // Store Decrypted Data with File Name
+              return {
+                fileName: fileName,
+                data: new Converter().ToObject(ContentResponse),
+              };
             } else {
-              if (storeFileName == true) {
-                result.push({
-                  fileName: fileName,
-                  data: new Converter().ToObject(ReadFileResponse.data),
-                });
-              } else {
-                result.push(new Converter().ToObject(ReadFileResponse.data));
-              }
+              // Store all Decrypted Data in AllData
+              return new Converter().ToObject(ContentResponse);
             }
           } else {
-            return new ResponseHelper().Error(
-              `Failed to read file: ${fileName}`,
-            );
+            if (storeFileName == true) {
+              return {
+                fileName: fileName,
+                data: new Converter().ToObject(ReadFileResponse.data),
+              };
+            } else {
+              return new Converter().ToObject(ReadFileResponse.data);
+            }
           }
-        } catch (error) {
-          console.error(`Error processing file ${fileName}:`, error);
+        } else {
+          console.error(`Failed to read file: ${fileName}`);
+          return null;
         }
+      } catch (error) {
+        console.error(`Error processing file ${fileName}:`, error);
+        return null;
       }
+    });
 
-      left += 2;
-      right -= 2;
-    }
+    // Wait for all file operations to complete
+    const results = await Promise.all(filePromises);
+
+    // Filter out null results (failed reads) and add to result array
+    const validResults = results.filter((r) => r !== null);
+    result.push(...validResults);
 
     if (parentPort) {
       parentPort.postMessage(result);
