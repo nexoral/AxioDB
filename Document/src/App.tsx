@@ -6,6 +6,7 @@ import Installation from "./components/content/Installation";
 import Usage from "./components/content/Usage";
 import AdvancedFeatures from "./components/content/AdvancedFeatures";
 import ApiReference from "./components/content/ApiReference";
+import ServerApiReference from "./components/content/ServerApiReference";
 import Security from "./components/content/Security";
 import Community from "./components/content/Community";
 import Comparison from "./components/content/Comparison";
@@ -25,6 +26,7 @@ function App() {
           <Route path="/usage" element={<Usage />} />
           <Route path="/advanced-features" element={<AdvancedFeatures />} />
           <Route path="/api-reference" element={<ApiReference />} />
+          <Route path="/server-api" element={<ServerApiReference />} />
           <Route path="/security" element={<Security />} />
           <Route path="/community" element={<Community />} />
           <Route path="/comparison" element={<Comparison />} />
