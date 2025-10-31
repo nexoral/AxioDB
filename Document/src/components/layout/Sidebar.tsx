@@ -70,6 +70,7 @@ const sidebarSections: SidebarSection[] = [
         path: "/advanced-features",
       },
       { id: "api-reference", label: "API Reference", path: "/api-reference" },
+      { id: "server-api", label: "Server API (HTTP)", path: "/server-api" },
       { id: "security", label: "Security", path: "/security" },
     ],
   },
@@ -131,11 +132,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
 
   return (
     <aside
-      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900 shadow-lg transition-all duration-300 overflow-y-auto z-40 ${
-        isOpen
-          ? "w-64 translate-x-0"
-          : "w-64 -translate-x-full md:translate-x-0 md:w-64"
-      }`}
+      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900 shadow-lg transition-all duration-300 overflow-y-auto z-40 scrollbar-hide ${isOpen
+        ? "w-64 translate-x-0"
+        : "w-64 -translate-x-full md:translate-x-0 md:w-64"
+        }`}
+      style={{
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}
     >
       <nav className="p-4">
         <div className="mb-6">
@@ -176,12 +180,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
                   <li key={item.id}>
                     <Link
                       to={item.path}
-                      className={`block py-1 text-sm ${
-                        location.pathname === item.path ||
+                      className={`block py-1 text-sm ${location.pathname === item.path ||
                         (location.hash && item.path.includes(location.hash))
-                          ? "text-blue-500 font-medium"
-                          : "text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
-                      }`}
+                        ? "text-blue-500 font-medium"
+                        : "text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
+                        }`}
                       onClick={() => handleNavClick(item.path, item.id)}
                     >
                       {item.label}

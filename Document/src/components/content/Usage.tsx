@@ -11,8 +11,12 @@ import {
 import React, { useState } from "react";
 import Button from "../ui/Button";
 import CodeBlock from "../ui/CodeBlock";
+import { React as Service } from "react-caches";
 
 const Usage: React.FC = () => {
+  React.useEffect(() => {
+    Service.UpdateDocumentTitle("AxioDB Basic Usage - CRUD Operations & Query Guide");
+  }, []);
   const [step, setStep] = useState<
     "selectCodeType" | "selectExampleType" | "showExample"
   >("selectCodeType");

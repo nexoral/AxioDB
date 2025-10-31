@@ -1,31 +1,147 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="src/Assets/AXioDB.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="AxioDB is a NoSQL-based DBMS offering high performance, scalability, and flexibility for modern applications."
-    />
-    <meta
-      name="keywords"
-      content="AxioDB, NoSQL, DBMS, Database Management System, High Performance, Scalable Database"
-    />
-    <meta name="author" content="AxioDB Team" />
-    <meta property="og:title" content="AxioDB: A NoSQL Based DBMS" />
-    <meta
-      property="og:description"
-      content="Discover AxioDB, a NoSQL-based DBMS designed for modern applications with high performance and scalability."
-    />
-    <meta property="og:image" content="src/Assets/AXioDB.png" />
-    <meta property="og:url" content="https://axiodb.site" />
-    <meta property="og:type" content="website" />
-    <title>AxioDB: High-Performance NoSQL Database Management System</title>
-  </head>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="src/Assets/AXioDB.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary Meta Tags -->
+  <title>AxioDB - Pure JavaScript Alternative to SQLite | Embedded NoSQL Database</title>
+  <meta name="title" content="AxioDB - Pure JavaScript Alternative to SQLite | Embedded NoSQL Database" />
+  <meta name="description"
+    content="AxioDB is an embedded NoSQL database for Node.js with MongoDB-style queries. Zero native dependencies, no compilation, no platform issues. Perfect for desktop apps, CLI tools, and embedded systems. Built-in InMemoryCache, encryption, and web GUI at localhost:27018." />
+  <meta name="keywords"
+    content="AxioDB, SQLite alternative, embedded database, NoSQL, Node.js database, JavaScript database, MongoDB queries, file-based database, zero dependencies, no native bindings, Electron database, desktop app database, CLI database, TypeScript database, encryption, AES-256, in-memory cache, aggregation pipeline, worker threads, web GUI, localhost database, JSON database, portable database, cross-platform database, schema validation, bulk operations, database management system, DBMS, fast database, lightweight database, developer-friendly, open-source database" />
+  <meta name="author" content="Ankan Saha" />
+  <meta name="robots" content="index, follow" />
+  <meta name="language" content="English" />
+  <meta name="revisit-after" content="7 days" />
+  <meta name="rating" content="general" />
+  <meta name="distribution" content="global" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://axiodb.site" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://axiodb.site" />
+  <meta property="og:title" content="AxioDB - Pure JavaScript Alternative to SQLite | Embedded NoSQL Database" />
+  <meta property="og:description"
+    content="Embedded NoSQL database for Node.js with MongoDB-style queries. Zero native dependencies, built-in caching, encryption, and web GUI. Perfect for desktop apps and CLI tools." />
+  <meta property="og:image" content="https://axiodb.site/src/Assets/AXioDB.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="AxioDB" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://axiodb.site" />
+  <meta property="twitter:title" content="AxioDB - Pure JavaScript Alternative to SQLite" />
+  <meta property="twitter:description"
+    content="Embedded NoSQL database for Node.js with zero native dependencies. MongoDB-style queries, built-in caching, encryption, and web GUI." />
+  <meta property="twitter:image" content="https://axiodb.site/src/Assets/AXioDB.png" />
+  <meta property="twitter:creator" content="@AnkanSaha" />
+
+  <!-- Additional Meta Tags for Better SEO -->
+  <meta name="theme-color" content="#3B82F6" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="AxioDB" />
+
+  <!-- Schema.org Structured Data -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AxioDB",
+      "alternateName": "AxioDB DBMS",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Cross-platform (Node.js)",
+      "description": "AxioDB is an embedded NoSQL database for Node.js with MongoDB-style queries, zero native dependencies, built-in caching, and optional encryption. Perfect alternative to SQLite for desktop apps and CLI tools.",
+      "url": "https://axiodb.site",
+      "downloadUrl": "https://www.npmjs.com/package/axiodb",
+      "softwareVersion": "3.31.105",
+      "datePublished": "2023-01-01",
+      "dateModified": "2025-10-31",
+      "license": "https://opensource.org/licenses/MIT",
+      "author": {
+        "@type": "Person",
+        "name": "Ankan Saha",
+        "url": "https://github.com/AnkanSaha"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "nexoral",
+        "url": "https://github.com/nexoral"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5",
+        "ratingCount": "1",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "screenshot": "https://axiodb.site/src/Assets/AXioDB.png",
+      "featureList": [
+        "Zero native dependencies",
+        "MongoDB-style queries",
+        "Built-in InMemoryCache",
+        "AES-256 encryption",
+        "Aggregation pipelines",
+        "Bulk operations",
+        "Worker threads support",
+        "Web-based GUI dashboard",
+        "Schema validation",
+        "Cross-platform compatibility",
+        "TypeScript support"
+      ],
+      "programmingLanguage": {
+        "@type": "ComputerLanguage",
+        "name": "JavaScript",
+        "alternateName": "TypeScript"
+      },
+      "codeRepository": "https://github.com/nexoral/AxioDB",
+      "keywords": "embedded database, NoSQL, Node.js, SQLite alternative, JavaScript database, MongoDB queries, zero dependencies, Electron database, desktop app database"
+    }
+    </script>
+
+  <!-- Additional Structured Data for Documentation -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "AxioDB Documentation - Complete Guide to Embedded NoSQL Database",
+      "description": "Comprehensive documentation for AxioDB, covering installation, usage, API reference, and advanced features for embedded NoSQL database operations.",
+      "url": "https://axiodb.site",
+      "datePublished": "2023-01-01",
+      "dateModified": "2025-10-31",
+      "author": {
+        "@type": "Person",
+        "name": "Ankan Saha"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "nexoral"
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://axiodb.site"
+      }
+    }
+    </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

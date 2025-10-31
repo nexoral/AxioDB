@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import CodeBlock from "../ui/CodeBlock";
+import { React as Service } from "react-caches";
 
 const CreateDatabase: React.FC = () => {
+  useEffect(() => {
+    Service.UpdateDocumentTitle("Create Database in AxioDB - Quick Start Guide");
+  }, []);
   const codeExamples = {
     defaultInstance: `
 const { AxioDB } = require("axiodb");

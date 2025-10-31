@@ -1,8 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { AlertCircle } from "lucide-react";
 import CodeBlock from "../ui/CodeBlock";
+import { React as Service } from "react-caches";
 
 const CreateCollection: React.FC = () => {
+  useEffect(() => {
+    Service.UpdateDocumentTitle("Create Collection in AxioDB - Schema & Encryption Guide");
+  }, []);
   const codeExamples = {
     withSchema: `
 const { AxioDB, SchemaTypes } = require("axiodb");

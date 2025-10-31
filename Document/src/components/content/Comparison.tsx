@@ -1,7 +1,11 @@
 import { GitCompare, Zap } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
+import { React as Service } from "react-caches";
 
 const Comparison: React.FC = () => {
+  useEffect(() => {
+    Service.UpdateDocumentTitle("AxioDB vs SQLite, MongoDB, LowDB - Performance Comparison");
+  }, []);
   return (
     <section id="comparison" className="pt-12 scroll-mt-20">
       <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-purple-900/20 dark:via-slate-800 dark:to-blue-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-purple-200 dark:border-purple-800 shadow-xl animate-fade-in">

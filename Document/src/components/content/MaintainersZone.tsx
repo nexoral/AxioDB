@@ -13,6 +13,7 @@ import {
   FaRocket,
   FaSpinner,
 } from "react-icons/fa";
+import { React as Service } from "react-caches";
 import { TbBrandThreads } from "react-icons/tb";
 // import GitHubProfileSection from "./GitHubProfileSection";
 import { githubApi } from "../../services/githubApi";
@@ -23,6 +24,8 @@ const MaintainersZone = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    Service.UpdateDocumentTitle("AxioDB Maintainer's Zone - Resources for Core Team");
+
     const fetchGithubUser = async () => {
       try {
         const user = await githubApi.getUser();
@@ -103,7 +106,7 @@ const MaintainersZone = () => {
         <div className="absolute top-4 right-4 text-6xl text-blue-400/20">
           <FaCode />
         </div>
-        
+
         <div className="relative z-10 p-8 lg:p-12">
           <div className="flex flex-col lg:flex-row items-center gap-8">
             <div className="relative">
@@ -122,7 +125,7 @@ const MaintainersZone = () => {
                 <span className="text-xs">🟢</span>
               </div>
             </div>
-            
+
             <div className="flex-1 text-center lg:text-left">
               <div className="flex items-center gap-3 mb-4 justify-center lg:justify-start">
                 <FaTerminal className="text-2xl text-green-400" />
@@ -130,13 +133,13 @@ const MaintainersZone = () => {
                   Ankan Saha
                 </h1>
               </div>
-              
+
               <p className="text-xl text-gray-300 mb-4">@AnkanSaha</p>
-              
+
               <p className="text-lg text-gray-300 leading-relaxed mb-6 max-w-2xl">
                 🚀 Software Engineer 🚀 | Obsessed with Networking 🌐 | Computer Enthusiast 💻 | Building robust, scalable systems & exploring the depths of computer internals
               </p>
-              
+
               <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
                 <a
                   href="https://github.com/AnkanSaha"
@@ -174,7 +177,7 @@ const MaintainersZone = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {socialLinks.map((link) => {
             const getHoverColor = (name: string) => {
-              switch(name) {
+              switch (name) {
                 case 'GitHub': return 'hover:bg-gray-800';
                 case 'Dev.to': return 'hover:bg-gray-800';
                 case 'YouTube': return 'hover:bg-red-600';

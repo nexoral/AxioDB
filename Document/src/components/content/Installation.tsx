@@ -2,14 +2,17 @@ import React from "react";
 import {
   PackageOpen,
   Terminal,
-  Download,
   Zap,
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
 import CodeBlock from "../ui/CodeBlock";
+import { React as Service } from "react-caches";
 
 const Installation: React.FC = () => {
+  React.useEffect(() => {
+    Service.UpdateDocumentTitle("Install AxioDB - NPM Package Installation Guide");
+  }, []);
   const installationCode = `npm install axiodb@latest --save`;
 
   return (
