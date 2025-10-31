@@ -132,10 +132,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
 
   return (
     <aside
-      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900 shadow-lg transition-all duration-300 overflow-y-auto z-40 ${isOpen
-          ? "w-64 translate-x-0"
-          : "w-64 -translate-x-full md:translate-x-0 md:w-64"
+      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900 shadow-lg transition-all duration-300 overflow-y-auto z-40 scrollbar-hide ${isOpen
+        ? "w-64 translate-x-0"
+        : "w-64 -translate-x-full md:translate-x-0 md:w-64"
         }`}
+      style={{
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none',
+      }}
     >
       <nav className="p-4">
         <div className="mb-6">
@@ -177,9 +181,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
                     <Link
                       to={item.path}
                       className={`block py-1 text-sm ${location.pathname === item.path ||
-                          (location.hash && item.path.includes(location.hash))
-                          ? "text-blue-500 font-medium"
-                          : "text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
+                        (location.hash && item.path.includes(location.hash))
+                        ? "text-blue-500 font-medium"
+                        : "text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
                         }`}
                       onClick={() => handleNavClick(item.path, item.id)}
                     >
