@@ -1,5 +1,6 @@
 import { Globe, Server, ChevronDown, ChevronRight } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { React as Service } from "react-caches";
 
 interface ApiEndpoint {
   method: "GET" | "POST" | "PUT" | "DELETE";
@@ -29,6 +30,10 @@ interface ApiCategory {
 const ServerApiReference: React.FC = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [expandedEndpoints, setExpandedEndpoints] = useState<string[]>([]);
+
+  useEffect(() => {
+    Service.UpdateDocumentTitle("AxioDB Server API Reference - Comprehensive Guide to RESTful Endpoints");
+  }, []);
 
   const toggleCategory = (category: string) => {
     setExpandedCategories((prev) =>
@@ -1125,10 +1130,10 @@ file: [database.tar.gz file]`,
                                 >
                                   <span
                                     className={`px-2 py-1 rounded font-mono font-semibold ${status.code >= 200 && status.code < 300
-                                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                        : status.code >= 400 && status.code < 500
-                                          ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
-                                          : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                      : status.code >= 400 && status.code < 500
+                                        ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                                        : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
                                       }`}
                                   >
                                     {status.code}

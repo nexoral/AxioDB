@@ -1,5 +1,6 @@
 import { BookOpen, ChevronDown, ChevronRight } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { React as Service } from "react-caches";
 
 interface ApiSection {
   title: string;
@@ -17,6 +18,10 @@ interface ApiMethod {
 const ApiReference: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [expandedMethods, setExpandedMethods] = useState<string[]>([]);
+
+  useEffect(() => {
+    Service.UpdateDocumentTitle("AxioDB API Reference - Complete JavaScript/TypeScript Documentation");
+  }, []);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>

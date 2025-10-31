@@ -2,8 +2,12 @@ import { Code, Database, Lock, RefreshCw, Rocket } from "lucide-react";
 import React, { useState } from "react";
 import Button from "../ui/Button";
 import CodeBlock from "../ui/CodeBlock";
+import { React as Service } from "react-caches";
 
 const AdvancedFeatures: React.FC = () => {
+  React.useEffect(() => {
+    Service.UpdateDocumentTitle("AxioDB Advanced Features - Aggregation, Multi-DB & Optimization");
+  }, []);
   const [activeFeature, setActiveFeature] = useState<string>("multi-db");
 
   const featuresCode = {

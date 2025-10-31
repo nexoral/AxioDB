@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Users,
   GitPullRequest,
@@ -7,8 +7,12 @@ import {
   Github,
   ExternalLink,
 } from "lucide-react";
+import { React as Service } from "react-caches";
 
 const Community: React.FC = () => {
+  useEffect(() => {
+    Service.UpdateDocumentTitle("AxioDB Community - Join, Contribute & Get Support");
+  }, []);
   return (
     <div>
       <section id="contributing" className="pt-12 scroll-mt-20">

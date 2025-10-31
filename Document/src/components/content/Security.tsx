@@ -1,7 +1,11 @@
 import { AlertTriangle, Database, Key, ShieldCheck, Zap } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
+import { React as Service } from "react-caches";
 
 const Security: React.FC = () => {
+  useEffect(() => {
+    Service.UpdateDocumentTitle("AxioDB Security - AES-256 Encryption & Data Protection");
+  }, []);
   return (
     <section id="security" className="pt-12 scroll-mt-20">
       <div className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-green-900/20 dark:via-slate-800 dark:to-blue-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-green-200 dark:border-green-800 shadow-xl animate-fade-in">

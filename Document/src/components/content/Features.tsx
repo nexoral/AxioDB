@@ -13,9 +13,13 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
+import { React as Service } from "react-caches";
 
 const Features: React.FC = () => {
+  useEffect(() => {
+    Service.UpdateDocumentTitle("AxioDB Features - Production-Ready NoSQL Database for Node.js");
+  }, []);
   return (
     <section id="features" className="pt-12 scroll-mt-20">
       {/* Hero Header */}

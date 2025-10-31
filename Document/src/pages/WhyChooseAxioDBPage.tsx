@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Helmet } from "react-helmet";
+import { React as Service } from "react-caches";
 
 const WhyChooseAxioDBPage: React.FC = () => {
+  useEffect(() => {
+    Service.UpdateDocumentTitle("Why Choose AxioDB - Perfect Embedded Database for Node.js");
+  }, []);
   return (
     <>
       <Helmet>
