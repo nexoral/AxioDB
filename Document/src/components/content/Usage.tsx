@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   AlertCircle,
   BookOpen,
@@ -9,7 +10,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import React, { useState } from "react";
-import Button from "../ui/Button";
 import CodeBlock from "../ui/CodeBlock";
 import { React as Service } from "react-caches";
 
