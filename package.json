@@ -1,6 +1,6 @@
 {
   "name": "axiodb",
-  "version": "3.31.110",
+  "version": "3.31.111",
   "description": "The Pure JavaScript Alternative to SQLite. Embedded NoSQL database for Node.js with MongoDB-style queries, zero native dependencies, built-in InMemoryCache, and web GUI. Perfect for desktop apps, CLI tools, and embedded systems. No compilation, no platform issues—pure JavaScript from npm install to production.",
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
@@ -53,6 +53,10 @@
   "funding": {
     "type": "git",
     "url": "https://github.com/sponsors/AnkanSaha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nexoral/AxioDB"
   },
   "dependencies": {
     "@eslint/js": "^9.11.1",
