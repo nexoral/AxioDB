@@ -45,6 +45,8 @@ jobs:
         run: cd GUI && npm install && npm run build && cd ..
       - name: Move GUI build files
         run: cd ./GUI && mv AxioControl/ ../lib/server/public && cd ..
+      - name: Set NPM Auth Token
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}" > ~/.npmrc
       - name: Publish to NPM Registry
         run: npm publish --access public
 
