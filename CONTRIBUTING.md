@@ -18,7 +18,7 @@ First off, thank you for considering contributing to AxioDB! 🎉 It's people li
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [AxioDB Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [ankansahadevelopment@gmail.com](mailto:ankansahadevelopment@gmail.com).
+This project and everyone participating in it is governed by the [AxioDB Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [ankansahaofficial@gmail.com](mailto:ankansahaofficial@gmail.com).
 
 ## How Can I Contribute?
 
@@ -298,8 +298,8 @@ const testInsert = async () => {
 
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/nexoral/AxioDB/discussions)
 - 🐛 **Issues**: [GitHub Issues](https://github.com/nexoral/AxioDB/issues)
-- 📧 **Email**: ankansahadevelopment@gmail.com
-- 📖 **Documentation**: [https://axiodb.site/](https://axiodb.site/)
+- 📧 **Email**: ankansahaofficial@gmail.com
+- 📖 **Documentation**: [https://axiodb.in/](https://axiodb.in/)
 
 ## Recognition
 
