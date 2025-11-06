@@ -456,7 +456,7 @@ const user = await users
 
 ## Next Steps
 
-- 📖 **[Full Documentation](https://axiodb.site/)**: Comprehensive guides
+- 📖 **[Full Documentation](https://axiodb.in/)**: Comprehensive guides
 - 🐛 **[GitHub Issues](https://github.com/nexoral/AxioDB/issues)**: Report bugs
 - 💬 **[Discussions](https://github.com/nexoral/AxioDB/discussions)**: Ask questions
 - 🤝 **[Contributing](CONTRIBUTING.md)**: Contribute to AxioDB

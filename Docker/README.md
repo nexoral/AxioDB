@@ -275,7 +275,7 @@ docker run -d \
 
 ## =� Additional Resources
 
-- **Official Documentation**: [https://axiodb.site/](https://axiodb.site/)
+- **Official Documentation**: [https://axiodb.in/](https://axiodb.in/)
 - **NPM Package**: [https://www.npmjs.com/package/axiodb](https://www.npmjs.com/package/axiodb)
 - **GitHub Repository**: [https://github.com/nexoral/AxioDB](https://github.com/nexoral/AxioDB)
 - **API Reference**: Access via `http://localhost:27018/api` when container is running
@@ -285,7 +285,7 @@ docker run -d \
 For support and questions:
 
 - Open an issue on [GitHub](https://github.com/nexoral/AxioDB/issues)
-- Check the [documentation](https://axiodb.site/)
+- Check the [documentation](https://axiodb.in/)
 - Visit the API reference at `http://localhost:27018/api`
 
 ---

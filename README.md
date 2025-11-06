@@ -7,7 +7,7 @@
 
 > **AxioDB** is an embedded NoSQL database for Node.js with MongoDB-style queries. Zero native dependencies, no compilation, no platform issues. Pure JavaScript from npm install to production. Think SQLite, but NoSQL with JavaScript queries—perfect for desktop apps, CLI tools, and embedded systems.
 
-👉 **[Official Documentation](https://axiodb.site/)**: Access full guides, examples, and API references.
+👉 **[Official Documentation](https://axiodb.in/)**: Access full guides, examples, and API references.
 
 ---
 

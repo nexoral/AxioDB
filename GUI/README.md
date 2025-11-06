@@ -275,7 +275,7 @@ The GUI is part of AxioDB and is licensed under the [MIT License](../LICENSE).
 ## Related Documentation
 
 - **[Main Documentation](../README.md)**: AxioDB main documentation
-- **[API Reference](https://axiodb.site/)**: Complete API reference
+- **[API Reference](https://axiodb.in/)**: Complete API reference
 - **[Security Guidelines](../SECURITY.md)**: Security best practices
 - **[Contributing Guide](../CONTRIBUTING.md)**: How to contribute
 
