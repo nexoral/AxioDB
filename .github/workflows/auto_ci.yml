@@ -41,13 +41,13 @@ jobs:
       # Version comparison: Ensure new version > main branch version
       - name: Get version from current PR
         id: pr_version
-        run: echo "version_pr=$(node -p \"require('./package.json').version\")" >> $GITHUB_OUTPUT
+        run: echo "version_pr=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Get version from main branch
         id: main_version
         run: |
           git fetch origin main
-          echo "version_main=$(git show origin/main:package.json | node -p \"JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version\")" >> $GITHUB_OUTPUT
+          echo "version_main=$(git show origin/main:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version")" >> $GITHUB_OUTPUT
 
       - name: Compare Versions
         id: version_check
