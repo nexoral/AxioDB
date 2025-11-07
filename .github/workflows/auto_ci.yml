@@ -1,4 +1,4 @@
-name: CI + Auto Merge with Version Check
+name: CI Checks and Auto Merge
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  test-build-and-auto-merge:
+  auto-merge:
     runs-on: ubuntu-latest
 
     steps:
