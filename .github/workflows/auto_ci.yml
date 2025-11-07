@@ -1,0 +1,73 @@
+name: CI + Auto Merge with Version Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  test-build-and-auto-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Run GUI Build
+        run: cd GUI && npm install && npm run build && cd ..
+
+      - name: Move GUI build files
+        run: cd GUI && mv AxioControl/ ../lib/server/public && cd ..
+
+      - name: Run Tests
+        run: npm run test
+
+      # Version comparison: Ensure new version > main branch version
+      - name: Get version from current PR
+        id: pr_version
+        run: echo "version_pr=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Get version from main branch
+        id: main_version
+        run: |
+          git fetch origin main
+          echo "version_main=$(git show origin/main:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version")" >> $GITHUB_OUTPUT
+
+      - name: Compare Versions
+        id: version_check
+        run: |
+          echo "PR Version: ${{ steps.pr_version.outputs.version_pr }}"
+          echo "Main Version: ${{ steps.main_version.outputs.version_main }}"
+          if [ "$(printf '%s\n' "${{ steps.pr_version.outputs.version_pr }}" "${{ steps.main_version.outputs.version_main }}" | sort -V | tail -n 1)" = "${{ steps.pr_version.outputs.version_pr }}" ] && [ "${{ steps.pr_version.outputs.version_pr }}" != "${{ steps.main_version.outputs.version_main }}" ]; then
+            echo "version_ok=true" >> $GITHUB_OUTPUT
+          else
+            echo "error: Version in PR (${{ steps.pr_version.outputs.version_pr }}) must be higher than main branch (${{ steps.main_version.outputs.version_main }})."
+            exit 1
+          fi
+
+      - name: Enable Auto Merge
+        if: success() && steps.version_check.outputs.version_ok == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
+        run: |
+          if [[ "${{ github.head_ref }}" != "maintainer/ankan" ]]; then
+            gh pr merge ${{ github.event.pull_request.number }} --auto --merge --delete-branch
+          else
+            gh pr merge ${{ github.event.pull_request.number }} --auto --merge
+          fi
