@@ -98,7 +98,7 @@ export default class Reader {
               ? this.baseQuery.documentId.map(
                 (id: any) => `${id}${General.DBMS_File_EXT}`,
               )
-              : [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
+              : [`${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
           ReadResponse = await this.LoadAllBufferRawData(FilePath);
           //  Send the data to the client directly
           return this.ApplySkipAndLimit(ReadResponse.data);

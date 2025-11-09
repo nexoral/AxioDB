@@ -195,28 +195,33 @@ export default class DeleteOperation {
     documentIdDirectFile?: string[] | undefined,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      // Directly read list of files in directory (no lock/unlock system)
-      const ReadResponse = await new FolderManager().ListDirectory(this.path);
-
-      if ("data" in ReadResponse) {
-        // Store all files in DataFilesList
-        const DataFilesList: string[] =
-          documentIdDirectFile !== undefined
-            ? documentIdDirectFile
-            : ReadResponse.data;
-
-        // Read all files from the directory
-        const resultData: any[] = await ReaderWithWorker(
-          DataFilesList,
-          this.encryptionKey,
-          this.path,
-          this.isEncrypted,
-          true, // preserve last arg
-        );
-
-        this.allDataWithFileName = resultData; // Store all data with file name
-        return this.ResponseHelper.Success(resultData);
+      const DataFilesList: string[] = []
+      if (documentIdDirectFile !== undefined) {
+        documentIdDirectFile.push(...documentIdDirectFile)
       }
+      else {
+        // Directly read list of files in directory (no lock/unlock system)
+        const ReadResponse = await new FolderManager().ListDirectory(this.path);
+
+        if ("data" in ReadResponse) {
+          // filter with .axiodb files only
+          ReadResponse.data = ReadResponse.data.filter((file: string) => file.endsWith(".axiodb"));
+          DataFilesList.push(...ReadResponse.data);
+        }
+      }
+
+
+      // Read all files from the directory
+      const resultData: any[] = await ReaderWithWorker(
+        DataFilesList,
+        this.encryptionKey,
+        this.path,
+        this.isEncrypted,
+        true, // preserve last arg
+      );
+
+      this.allDataWithFileName = resultData; // Store all data with file name
+      return this.ResponseHelper.Success(resultData);
 
       return this.ResponseHelper.Error("Failed to read directory");
     } catch (error) {
