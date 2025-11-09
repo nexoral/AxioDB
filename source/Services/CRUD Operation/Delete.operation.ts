@@ -16,6 +16,7 @@ import Sorting from "../../utility/SortData.utils";
 import InMemoryCache from "../../Memory/memory.operation";
 import { General } from "../../config/Keys/Keys";
 import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
+import { ReadIndex } from "../Index/ReadIndex.service";
 /**
  * The DeleteOperation class is used to delete a document from a collection.
  * This class provides methods to delete a single document that matches the base query.
@@ -84,6 +85,11 @@ export default class DeleteOperation {
       ];
       ReadResponse = await this.LoadAllBufferRawData(FilePath);
     } else {
+      const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery)
+      if (fileNames.length > 0) {
+        // Load File Names from Index
+        ReadResponse = await this.LoadAllBufferRawData(fileNames);
+      }
       ReadResponse = await this.LoadAllBufferRawData();
     }
 
@@ -144,7 +150,14 @@ export default class DeleteOperation {
    *     - The initial buffer data loading fails
    */
   public async deleteMany(): Promise<SuccessInterface | ErrorInterface> {
-    const response = await this.LoadAllBufferRawData();
+          let response;
+          const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery)
+          if (fileNames.length > 0) {
+            // Load File Names from Index
+            response = await this.LoadAllBufferRawData(fileNames);
+          }
+          response = await this.LoadAllBufferRawData();
+
     if ("data" in response) {
       const SearchedData = await new Searcher(response.data, true).find(
         this.baseQuery,

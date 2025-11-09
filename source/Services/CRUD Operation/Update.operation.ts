@@ -17,6 +17,7 @@ import Insertion from "./Create.operation";
 import InMemoryCache from "../../Memory/memory.operation";
 import { General } from "../../config/Keys/Keys";
 import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
+import { ReadIndex } from "../Index/ReadIndex.service";
 
 export default class UpdateOperation {
   // Properties
@@ -93,6 +94,11 @@ export default class UpdateOperation {
         ];
         ReadResponse = await this.LoadAllBufferRawData(FilePath);
       } else {
+        const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery)
+        if (fileNames && fileNames.length > 0) {
+          // Load File Names from Index
+          ReadResponse = await this.LoadAllBufferRawData(fileNames);
+        }
         ReadResponse = await this.LoadAllBufferRawData();
       }
 
@@ -192,7 +198,13 @@ export default class UpdateOperation {
 
       newData.updatedAt = new Date().toISOString();
 
-      const ReadResponse = await this.LoadAllBufferRawData();
+      let ReadResponse;
+      const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery)
+      if (fileNames.length > 0) {
+        // Load File Names from Index
+        ReadResponse = await this.LoadAllBufferRawData(fileNames);
+      }
+      ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
         const SearchedData = await new Searcher(ReadResponse.data, true).find(
           this.baseQuery,
