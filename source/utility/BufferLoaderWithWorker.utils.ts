@@ -20,8 +20,6 @@ export default async function ReaderWithWorker(
   isEncrypted: boolean,
   storeFileName = false,
 ): Promise<any[]> {
-  const numWorkers = Math.min(os.cpus().length, DataFilesList.length); // Use all CPU cores or file count, whichever is smaller
-  const chunkSize = Math.ceil(DataFilesList.length / numWorkers);
   const workerPath: string = paths.resolve(
     __dirname,
     "../engine/node",
@@ -29,16 +27,13 @@ export default async function ReaderWithWorker(
   );
   const tasks: Promise<any[]>[] = [];
 
-  for (let i = 0; i < numWorkers; i++) {
-    const start = i * chunkSize;
-    const end = Math.min(start + chunkSize, DataFilesList.length);
-    const dataChunk = DataFilesList.slice(start, end);
-
+  // Only spawn one worker if fewer than 5000 files
+  if (DataFilesList.length < 5000) {
     tasks.push(
       new Promise((resolve, reject) => {
         const worker = new Worker(workerPath, {
           workerData: {
-            chunk: dataChunk,
+            chunk: DataFilesList,
             encryptionKey: encryptionKey,
             path: path,
             isEncrypted: isEncrypted,
@@ -53,6 +48,33 @@ export default async function ReaderWithWorker(
         });
       }),
     );
+  } else {
+    // For 5000+ files, divide work among multiple workers
+    for (let i = 0; i < Math.min(os.cpus().length, DataFilesList.length); i++) {
+      const start = i * Math.ceil(DataFilesList.length / Math.min(os.cpus().length, DataFilesList.length));
+      const end = Math.min(start + Math.ceil(DataFilesList.length / Math.min(os.cpus().length, DataFilesList.length)), DataFilesList.length);
+      const dataChunk = DataFilesList.slice(start, end);
+
+      tasks.push(
+        new Promise((resolve, reject) => {
+          const worker = new Worker(workerPath, {
+            workerData: {
+              chunk: dataChunk,
+              encryptionKey: encryptionKey,
+              path: path,
+              isEncrypted: isEncrypted,
+              storeFileName: storeFileName,
+            },
+          });
+
+          worker.on("message", resolve);
+          worker.on("error", reject);
+          worker.on("exit", (code) => {
+            if (code !== 0) reject(new Error(`Worker stopped with code ${code}`));
+          });
+        }),
+      );
+    }
   }
 
   const results = await Promise.all(tasks);

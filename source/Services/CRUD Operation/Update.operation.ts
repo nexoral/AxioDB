@@ -7,14 +7,12 @@ import {
 import Converter from "../../Helper/Converter.helper";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
-import { SchemaTypes } from "../../Schema/DataTypes.models";
 import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
-import { Console } from "outers";
+
 // Validator
-import SchemaValidator from "../../Schema/validator.models";
 import Insertion from "./Create.operation";
 import InMemoryCache from "../../Memory/memory.operation";
 import { General } from "../../config/Keys/Keys";
@@ -33,16 +31,12 @@ export default class UpdateOperation {
   private allDataWithFileName: any[] = [];
   private sort: object | any;
   private updatedAt: string;
-  private schema: object | any;
   private readonly Insertion: Insertion;
-  private readonly isSchemaNeeded: boolean;
 
   constructor(
     collectionName: string,
     path: string,
     baseQuery: object | any,
-    isSchemaNeeded: boolean,
-    schema: object | any,
     isEncrypted: boolean = false,
     encryptionKey?: string,
   ) {
@@ -53,12 +47,6 @@ export default class UpdateOperation {
     this.encryptionKey = encryptionKey;
     this.updatedAt = new Date().toISOString();
     this.sort = {};
-    if (isSchemaNeeded == true && !schema) {
-      throw new Error("Schema is required when isSchemaNeeded is true");
-    } else {
-      this.isSchemaNeeded = isSchemaNeeded;
-      this.schema = schema;
-    }
     this.Insertion = new Insertion(this.collectionName, this.path);
     this.ResponseHelper = new ResponseHelper();
     this.Converter = new Converter();
@@ -95,30 +83,6 @@ export default class UpdateOperation {
       // check if the data is an object or not
       if (typeof newData !== "object") {
         throw new Error("Data must be an object.");
-      }
-
-      if (this.isSchemaNeeded == true) {
-        // delete the extra fields from the schema if not present in the data
-        for (const key in newData) {
-          if (this.schema[key]) {
-            const newSchema = {
-              [key]: this.schema[key],
-            };
-            this.schema = newSchema;
-          }
-        }
-
-        // Validate the data
-        const validator = await SchemaValidator(this.schema, newData, true);
-
-        if (validator?.details) {
-          Console.red("Validation Error", validator.details);
-          return this.ResponseHelper.Error(validator.details);
-        }
-
-        // Insert the updatedAt field in schema & data
-        this.schema.updatedAt = SchemaTypes.date().required();
-        newData.updatedAt = new Date().toISOString();
       }
 
       // if documentId is provided in the baseQuery then read the file with the documentId
@@ -229,27 +193,6 @@ export default class UpdateOperation {
       }
 
       newData.updatedAt = new Date().toISOString();
-      if (this.isSchemaNeeded == true) {
-        // Insert the updatedAt field in schema & data
-        this.schema.updatedAt = SchemaTypes.date().required();
-
-        // delete the extra fields from the schema if not present in the data
-        for (const key in newData) {
-          if (this.schema[key]) {
-            const newSchema = {
-              [key]: this.schema[key],
-            };
-            this.schema = newSchema;
-          }
-        }
-        // Validate the data
-        const validator = await SchemaValidator(this.schema, newData, true);
-
-        if (validator?.details) {
-          Console.red("Validation Error", validator.details);
-          return this.ResponseHelper.Error(validator.details);
-        }
-      }
 
       const ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {

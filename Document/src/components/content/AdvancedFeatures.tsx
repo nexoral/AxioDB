@@ -11,29 +11,21 @@ const AdvancedFeatures: React.FC = () => {
   const [activeFeature, setActiveFeature] = useState<string>("multi-db");
 
   const featuresCode = {
-    "multi-db": `const { AxioDB, SchemaTypes } = require("axiodb");
+    "multi-db": `const { AxioDB } = require("axiodb");
 
 const Instance = new AxioDB(true); // Enable GUI
 const CustomPathInstance = new AxioDB(true, "NewDB", "./DB");
 
 const setup = async () => {
-  const userSchema = {
-    name: SchemaTypes.string().required(),
-    email: SchemaTypes.string().email().required(),
-    age: SchemaTypes.number().min(0).required()
-  };
-
   // Create database
   const UserDB = await Instance.createDB("MyDB");
 
   // Create different types of collections
   const UserCollection = await UserDB.createCollection("Users");
   const CollectionWithCrypto = await UserDB.createCollection("UsersWithCrypto", true);
-  const CollectionWithCryptoKey = await UserDB.createCollection("UsersWithCryptoKey", true, "new");
-  const CollectionWithSchema = await UserDB.createCollection("UsersWithSchema", false, "new", true, userSchema);
-  const CollectionWithSchemaAndCrypto = await UserDB.createCollection("UsersWithSchemaAndCrypto", true, "new", true, userSchema);
+  const CollectionWithCryptoKey = await UserDB.createCollection("UsersWithCryptoKey", true, "secretKey123");
 
-  // Insert data with insertMany
+  // Insert data with insertMany - no schema required
   await UserCollection.insertMany([
     { name: "John Doe", email: "john.doe@example.com", age: 30 },
     { name: "Jane Doe", email: "jane.doe@example.com", age: 25 },
@@ -119,20 +111,14 @@ const updateResult = await UserCollection.update({ age: { $gte: 18 } }).UpdateMa
 });
 console.log("Updated documents:", updateResult);`,
     "collection-types": `// Comprehensive guide to different collection types
-const { AxioDB, SchemaTypes } = require("axiodb");
+const { AxioDB } = require("axiodb");
 
 const Instance = new AxioDB(true); // Enable GUI
 
 const setup = async () => {
-  const userSchema = {
-    name: SchemaTypes.string().required(),
-    email: SchemaTypes.string().email().required(),
-    age: SchemaTypes.number().min(0).required()
-  };
-
   const UserDB = await Instance.createDB("MyDB");
 
-  // 1. Basic Collection (no crypto, no schema)
+  // 1. Basic Collection (no encryption)
   const BasicCollection = await UserDB.createCollection("Users");
 
   // 2. Collection with Auto-Generated Encryption Key
@@ -141,13 +127,7 @@ const setup = async () => {
   // 3. Collection with Custom Encryption Key
   const CustomCryptoCollection = await UserDB.createCollection("UsersWithCryptoKey", true, "myCustomKey");
 
-  // 4. Collection with Schema Only (no encryption)
-  const SchemaCollection = await UserDB.createCollection("UsersWithSchema", false, "new", true, userSchema);
-
-  // 5. Collection with Both Schema and Encryption
-  const FullFeaturedCollection = await UserDB.createCollection("UsersWithSchemaAndCrypto", true, "secureKey", true, userSchema);
-
-  // Insert data to different collection types
+  // Insert data to different collection types - no schema required
   const userData = {
     name: "John Doe",
     email: "john.doe@example.com",
@@ -156,10 +136,8 @@ const setup = async () => {
 
   // All collections support the same operations
   await BasicCollection.insert(userData);
-  await CryptoCollection.insert(userData);
-  await CustomCryptoCollection.insert(userData);
-  await SchemaCollection.insert(userData); // Schema validation applies
-  await FullFeaturedCollection.insert(userData); // Both schema validation and encryption
+  await CryptoCollection.insert(userData); // Auto-encrypted
+  await CustomCryptoCollection.insert(userData); // Encrypted with custom key
 
   console.log("All collection types created and populated successfully!");
 };

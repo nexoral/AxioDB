@@ -11,14 +11,11 @@ import DeleteOperation from "../CRUD Operation/Delete.operation";
 import UpdateOperation from "../CRUD Operation/Update.operation";
 import Aggregation from "../Aggregation/Aggregation.Operation";
 
-import { Console, StatusCodes } from "outers";
-// Validator
-import SchemaValidator from "../../Schema/validator.models";
+import { StatusCodes } from "outers";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 
 // Converter
 import Converter from "../../Helper/Converter.helper";
-import { SchemaTypes } from "../../Schema/DataTypes.models";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 
 /**
@@ -28,31 +25,21 @@ export default class Collection {
   private readonly name: string;
   private readonly path: string;
   private readonly updatedAt: string;
-  private schema: object | any;
   private readonly isEncrypted: boolean;
   private readonly cryptoInstance?: CryptoHelper;
   private Converter: Converter;
   private Insertion: Insertion;
-  private isSchemaNeeded: boolean;
   private readonly encryptionKey: string | undefined;
 
   constructor(
     name: string,
     path: string,
-    isSchemaNeeded: boolean,
-    schema?: object | any,
     isEncrypted = false,
     cryptoInstance?: CryptoHelper,
     encryptionKey?: string,
   ) {
     this.name = name;
     this.path = path;
-    if (isSchemaNeeded == true && !schema) {
-      throw new Error("Schema is required when isSchemaNeeded is true");
-    } else {
-      this.isSchemaNeeded = isSchemaNeeded;
-      this.schema = schema;
-    }
     this.isEncrypted = isEncrypted;
     this.cryptoInstance = cryptoInstance;
     this.Converter = new Converter();
@@ -145,19 +132,6 @@ export default class Collection {
 
     // Insert the updatedAt field in schema & data
     data.updatedAt = this.updatedAt;
-
-    if (this.isSchemaNeeded == true) {
-      this.schema.updatedAt = SchemaTypes.date().required();
-      this.schema.documentId = SchemaTypes.string().required();
-
-      // Validate the data
-      const validator = await SchemaValidator(this.schema, data, false);
-
-      if (validator?.details) {
-        Console.red("Validation Error", validator.details);
-        return new ResponseHelper().Error(validator.details);
-      }
-    }
 
     // Encrypt the data if crypto is enabled
     if (this.cryptoInstance && this.isEncrypted) {
@@ -283,8 +257,6 @@ export default class Collection {
       this.name,
       this.path,
       query,
-      this.isSchemaNeeded,
-      this.schema,
       this.isEncrypted,
       this.encryptionKey,
     );

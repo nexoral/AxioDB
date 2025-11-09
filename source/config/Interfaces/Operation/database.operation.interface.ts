@@ -5,8 +5,6 @@ export interface CollectionMap {
   isCryptoEnabled: boolean;
   cryptoKey?: string;
   path: string;
-  schema?: any;
-  isSchema: boolean;
 }
 export interface DatabaseMap {
   DatabaseName: string;

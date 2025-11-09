@@ -18,8 +18,6 @@ import { FinalCollectionsInfo } from "../../config/Interfaces/Operation/database
 type CollectionMetadata = {
   name: string;
   path: string;
-  isSchemaNeeded: boolean;
-  schema: any;
   isEncrypted?: boolean;
   encryptionKey?: string;
 };
@@ -48,16 +46,12 @@ export default class Database {
    * @param {string} collectionName - Name of the collection.
    * @param {boolean} crypto - Enable crypto for the collection.
    * @param {string} key - Key for crypto.
-   * @param {boolean} isSchemaNeeded - Whether the collection requires a schema.
-   * @param {object} schema - Schema of the collection.
    * @returns {Promise<AxioDB>} - Returns the instance of AxioDB.
    */
   public async createCollection(
     collectionName: string,
     crypto: boolean = false,
     key?: string | undefined,
-    isSchemaNeeded: boolean = false,
-    schema?: object | any,
   ): Promise<Collection> {
     // Check if the collection already exists
     const collectionExists = await this.folderManager.DirectoryExists(
@@ -68,8 +62,6 @@ export default class Database {
     const CollectionMeta = await this.getCollectionMetaDetails(collectionName);
 
     if (CollectionMeta) {
-      isSchemaNeeded = CollectionMeta.isSchemaNeeded;
-      schema = CollectionMeta.schema;
       crypto = CollectionMeta.isEncrypted
         ? Boolean(CollectionMeta.isEncrypted)
         : false;
@@ -88,8 +80,6 @@ export default class Database {
       const collection = new Collection(
         collectionName,
         collectionPath,
-        isSchemaNeeded,
-        schema,
         crypto,
         newCryptoInstance,
         key,
@@ -98,8 +88,6 @@ export default class Database {
       await this.AddCollectionMetadata({
         name: collectionName,
         path: collectionPath,
-        isSchemaNeeded: isSchemaNeeded === undefined ? false : isSchemaNeeded,
-        schema: schema === undefined ? {} : schema,
         encryptionKey: key === undefined ? "" : key,
         isEncrypted: crypto === undefined ? false : crypto,
       });
@@ -108,15 +96,11 @@ export default class Database {
       const collection = new Collection(
         collectionName,
         collectionPath,
-        isSchemaNeeded,
-        schema,
       );
       // Store collection metadata in the collectionMap
       await this.AddCollectionMetadata({
         name: collectionName,
         path: collectionPath,
-        isSchemaNeeded: isSchemaNeeded === undefined ? false : isSchemaNeeded,
-        schema: schema === undefined ? {} : schema,
         encryptionKey: key === undefined ? "" : key,
         isEncrypted: crypto === undefined ? false : crypto,
       });

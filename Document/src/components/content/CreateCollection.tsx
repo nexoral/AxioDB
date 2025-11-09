@@ -8,42 +8,25 @@ const CreateCollection: React.FC = () => {
     Service.UpdateDocumentTitle("Create Collection in AxioDB - Schema & Encryption Guide");
   }, []);
   const codeExamples = {
-    withSchema: `
-const { AxioDB, SchemaTypes } = require("axiodb");
+    basic: `
+const { AxioDB } = require("axiodb");
 
-// Define a schema
-const schema = {
-  name: SchemaTypes.string().required(),
-  age: SchemaTypes.number().required().min(1).max(100),
-  email: SchemaTypes.string().required().email(),
-};
+const db = new AxioDB();
+const myDB = await db.createDB("MyDatabase");
 
-// Create a collection with schema validation
-const collection = await db1.createCollection("testCollection", false, undefined, true, schema);
-console.log("Collection with schema created:", collection);
+// Create a basic collection (no encryption)
+const collection = await myDB.createCollection("users");
+console.log("Basic collection created:", collection);
 `,
-    withoutSchema: `
-// Create a collection without schema validation
-const collectionNoSchema = await db1.createCollection("testCollection2", false);
-console.log("Collection without schema created:", collectionNoSchema);
+    encrypted: `
+// Create an encrypted collection with auto-generated key
+const encryptedCollection = await myDB.createCollection("secureUsers", true);
+console.log("Encrypted collection created (auto-generated key):", encryptedCollection);
 `,
-    withSchemaEncrypted: `
-// Create an encrypted collection with schema validation and default encryption key
-const encryptedCollection = await db1.createCollection("testCollection3", true, undefined, true, schema);
-console.log("Encrypted collection with schema (default key) created:", encryptedCollection);
-
-// Create an encrypted collection with schema validation and custom encryption key
-const customKeyCollection = await db1.createCollection("testCollection4", true, "myCustomKey", true, schema);
-console.log("Encrypted collection with schema (custom key) created:", customKeyCollection);
-`,
-    withoutSchemaEncrypted: `
-// Create an encrypted collection without schema validation and default encryption key
-const encryptedNoSchema = await db1.createCollection("testCollection5", true);
-console.log("Encrypted collection without schema (default key) created:", encryptedNoSchema);
-
-// Create an encrypted collection without schema validation and custom encryption key
-const customKeyNoSchema = await db1.createCollection("testCollection6", true, "myCustomKey");
-console.log("Encrypted collection without schema (custom key) created:", customKeyNoSchema);
+    customKey: `
+// Create an encrypted collection with custom encryption key
+const customKeyCollection = await myDB.createCollection("vaultUsers", true, "mySecretKey123");
+console.log("Encrypted collection created (custom key):", customKeyCollection);
 `,
   };
 
@@ -68,9 +51,7 @@ console.log("Encrypted collection without schema (custom key) created:", customK
           {`createCollection(
   name: string,
   isEncrypted?: boolean,
-  encryptionKey?: string,
-  isSchemaNeeded?: boolean,
-  schema?: object
+  encryptionKey?: string
 );`}
         </pre>
       </div>
@@ -82,28 +63,20 @@ console.log("Encrypted collection without schema (custom key) created:", customK
 
       {/* Full API Examples */}
       <h3 className="text-2xl font-semibold mb-4">
-        Collection with Schema Validation
+        Basic Collection (No Encryption)
       </h3>
-      <CodeBlock code={codeExamples.withSchema} language="javascript" />
+      <CodeBlock code={codeExamples.basic} language="javascript" />
 
       <h3 className="text-2xl font-semibold mt-8 mb-4">
-        Collection without Schema Validation
+        Encrypted Collection (Auto-Generated Key)
       </h3>
-      <CodeBlock code={codeExamples.withoutSchema} language="javascript" />
+      <CodeBlock code={codeExamples.encrypted} language="javascript" />
 
       <h3 className="text-2xl font-semibold mt-8 mb-4">
-        Encrypted Collection with Schema Validation
+        Encrypted Collection (Custom Key)
       </h3>
       <CodeBlock
-        code={codeExamples.withSchemaEncrypted}
-        language="javascript"
-      />
-
-      <h3 className="text-2xl font-semibold mt-8 mb-4">
-        Encrypted Collection without Schema Validation
-      </h3>
-      <CodeBlock
-        code={codeExamples.withoutSchemaEncrypted}
+        code={codeExamples.customKey}
         language="javascript"
       />
 

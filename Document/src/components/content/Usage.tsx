@@ -373,7 +373,7 @@ console.log(paginatedDocuments);`,
             <div className="bg-gradient-to-r from-slate-900 to-blue-900 rounded-xl p-6 shadow-inner">
               <CodeBlock
                 language="javascript"
-                code={`const { AxioDB, SchemaTypes } = require("axiodb");
+                code={`const { AxioDB } = require("axiodb");
 
 // Create a single AxioDB instance for your entire application
 // Enable GUI (most common): localhost:27018
@@ -385,24 +385,15 @@ const CustomNameInstance = new AxioDB(true, "MyCustomDB"); // Custom database na
 const CustomPathInstance = new AxioDB(true, "MyDB", "./data"); // Custom path
 
 const main = async () => {
-  // Define a schema for user data
-  const userSchema = {
-    name: SchemaTypes.string().required(),
-    email: SchemaTypes.string().email().required(),
-    age: SchemaTypes.number().min(0).required()
-  };
-
   // Create database
   const UserDB = await Instance.createDB("MyDB");
 
   // Create different types of collections
   const UserCollection = await UserDB.createCollection("Users"); // Basic collection
   const CollectionWithCrypto = await UserDB.createCollection("UsersWithCrypto", true); // With auto-generated key
-  const CollectionWithCryptoKey = await UserDB.createCollection("UsersWithCryptoKey", true, "new"); // With custom key
-  const CollectionWithSchema = await UserDB.createCollection("UsersWithSchema", false, "new", true, userSchema); // With schema
-  const CollectionWithSchemaAndCrypto = await UserDB.createCollection("UsersWithSchemaAndCrypto", true, "new", true, userSchema); // With both
+  const CollectionWithCryptoKey = await UserDB.createCollection("UsersWithCryptoKey", true, "secretKey123"); // With custom key
 
-  // Insert single document
+  // Insert single document - no schema required, store any JSON
   await UserCollection.insert({
     name: "John Doe",
     email: "john.doe@example.com",
@@ -443,7 +434,7 @@ const main = async () => {
   }).exec();
 
   // Fast retrieval by documentId
-  const fastRes = await UserCollection.query({ documentId: "JOHTAOIJNHUJOBD"}).exec();
+  const fastRes = await UserCollection.query({ documentId: "JOHTAOIJNHUJOBD" }).exec();
 
   // Aggregation pipeline
   const aggData = await UserCollection.aggregate([
@@ -461,12 +452,12 @@ const main = async () => {
   ]);
 
   // Update operations
-  await UserCollection.update({name: "John Doe"}).UpdateOne({name: "Ankan"});
-  await UserCollection.update({name: "John Doe"}).UpdateMany({name: "Ankan"});
+  await UserCollection.update({ name: "John Doe" }).UpdateOne({ name: "Ankan" });
+  await UserCollection.update({ name: "John Doe" }).UpdateMany({ name: "Ankan" });
 
   // Delete operations
-  await UserCollection.delete({name: "John Doe"}).DeleteOne();
-  await UserCollection.delete({name: "John Doe"}).DeleteMany();
+  await UserCollection.delete({ name: "John Doe" }).DeleteOne();
+  await UserCollection.delete({ name: "John Doe" }).DeleteMany();
 };
 
 main();`}
@@ -495,7 +486,7 @@ main();`}
             <div className="bg-gradient-to-r from-slate-900 to-purple-900 rounded-xl p-6 shadow-inner">
               <CodeBlock
                 language="javascript"
-                code={`import { AxioDB, SchemaTypes } from "axiodb";
+                code={`import { AxioDB } from "axiodb";
 
 // Create a single AxioDB instance for your entire application
 // Enable GUI (most common): localhost:27018
@@ -507,24 +498,15 @@ const CustomNameInstance = new AxioDB(true, "MyCustomDB"); // Custom database na
 const CustomPathInstance = new AxioDB(true, "MyDB", "./data"); // Custom path
 
 const main = async () => {
-  // Define a schema for user data
-  const userSchema = {
-    name: SchemaTypes.string().required(),
-    email: SchemaTypes.string().email().required(),
-    age: SchemaTypes.number().min(0).required()
-  };
-
   // Create database
   const UserDB = await Instance.createDB("MyDB");
 
   // Create different types of collections
   const UserCollection = await UserDB.createCollection("Users"); // Basic collection
   const CollectionWithCrypto = await UserDB.createCollection("UsersWithCrypto", true); // With auto-generated key
-  const CollectionWithCryptoKey = await UserDB.createCollection("UsersWithCryptoKey", true, "new"); // With custom key
-  const CollectionWithSchema = await UserDB.createCollection("UsersWithSchema", false, "new", true, userSchema); // With schema
-  const CollectionWithSchemaAndCrypto = await UserDB.createCollection("UsersWithSchemaAndCrypto", true, "new", true, userSchema); // With both
+  const CollectionWithCryptoKey = await UserDB.createCollection("UsersWithCryptoKey", true, "secretKey123"); // With custom key
 
-  // Insert single document
+  // Insert single document - no schema required, store any JSON
   await UserCollection.insert({
     name: "John Doe",
     email: "john.doe@example.com",

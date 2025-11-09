@@ -35,7 +35,7 @@ export default class Searcher {
     findOne: boolean = false,
   ): Promise<any[]> {
     // For small datasets or findOne, linear search is faster (avoid worker overhead)
-    if (this.data.length < 1000 || findOne) {
+    if (this.data.length < 5000 || findOne) {
       const result: any[] = [];
       for (let i = 0; i < this.data.length; i++) {
         const rawItem = this.data[i];

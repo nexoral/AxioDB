@@ -200,36 +200,35 @@ console.log(result[0].message); // Hello, Developer! 👋
 ```javascript
 createCollection(
   name: string,           // Name of the collection (required)
-  isSchemaNeeded: boolean, // Whether schema validation is needed (required)
-  schema?: object | any,  // Schema definition (required if isSchemaNeeded is true, empty {} if false)
   isEncrypted?: boolean,  // Whether to encrypt the collection (default: false)
-  encryptionKey?: string  // Custom encryption key (optional)
+  encryptionKey?: string  // Custom encryption key (optional, auto-generated if not provided)
 )
 ```
 
 ### Example
 
 ```javascript
-const { AxioDB, SchemaTypes } = require("axiodb");
+const { AxioDB } = require("axiodb");
 const db = new AxioDB();
-const schema = {
-  name: SchemaTypes.string().required(),
-  age: SchemaTypes.number().min(0).required(),
-  email: SchemaTypes.string().email().required(),
-};
+
 const userDB = await db.createDB("MyDB");
-const userCollection = await userDB.createCollection(
-  "Users",
-  true,
-  schema,
+
+// Create basic collection
+const userCollection = await userDB.createCollection("Users");
+
+// Create encrypted collection with custom key
+const secureCollection = await userDB.createCollection(
+  "SecureUsers",
   true,
   "mySecretKey",
 );
+
 await userCollection.insert({
   name: "John Doe",
   email: "john.doe@example.com",
   age: 30,
 });
+
 const results = await userCollection
   .query({ age: { $gt: 25 } })
   .Limit(10)
@@ -242,13 +241,13 @@ console.log(results);
 
 ## 🌟 Advanced Features
 
-- **Multiple Databases:** Architect scalable apps with multiple databases and collections, each with specific schemas and security
+- **Multiple Databases:** Architect scalable apps with multiple databases and collections with flexible security
 - **Aggregation Pipelines:** Complex data processing with MongoDB-like syntax
 - **Encryption:** Military-grade AES-256 encryption for collections
 - **Bulk Operations:** Efficient batch insert, update, and delete
-- **Flexible Collection Types:** Basic, encrypted, schema-only, or both
+- **Flexible Collection Types:** Basic or encrypted
 - **Custom Query Operators:** `$gt`, `$lt`, `$in`, `$regex`, etc.
-- **Schema Validation:** Type, field requirements, and value constraints
+- **Schema-less Design:** Store any JSON structure without predefined schemas
 - **Performance Optimization:** Fast lookups, pagination, and intelligent caching
 - **Enterprise Data Management:** Bulk operations, conditional updates, atomic transactions
 
@@ -263,7 +262,7 @@ console.log(results);
 
 ### Database
 
-- `createCollection(name: string, schema: object, crypto?: boolean, key?: string): Promise<Collection>`
+- `createCollection(name: string, isEncrypted?: boolean, encryptionKey?: string): Promise<Collection>`
 - `deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>`
 - `getCollectionInfo(): Promise<SuccessInterface>`
 
