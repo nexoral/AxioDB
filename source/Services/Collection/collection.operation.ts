@@ -112,6 +112,33 @@ export default class Collection {
   }
 
   /**
+   * Creates a new index on the specified fields by delegating to the IndexManager.
+   *
+   * @remarks
+   * This method accepts one or more field names and forwards them to IndexManager.createIndex.
+   * Index creation behavior (such as uniqueness, ordering, or persistence) is determined by the IndexManager implementation.
+   *
+   * @param fieldNames - One or more field names that should be included in the new index.
+   * @returns A promise that resolves with the result returned by IndexManager.createIndex.
+   * @throws Any errors thrown by IndexManager.createIndex (for example, validation or persistence errors) are propagated.
+   */
+  public async newIndex (...fieldNames: string[]) {
+    return await this.IndexManager.createIndex(...fieldNames);
+  }
+
+  /**
+   * Drops an index by name from the collection.
+   *
+   * @param indexName - The name of the index to drop.
+   * @returns A promise that resolves with the result returned by IndexManager.dropIndex.
+   * @throws Will throw an error if the drop operation fails (for example, if the index does not exist
+   *         or if the caller lacks necessary permissions).
+   */
+  public async dropIndex(indexName: string){
+    return await this.IndexManager.dropIndex(indexName)
+  }
+
+  /**
    * Inserts a document into the collection.
    * @param {object} data - The data to be inserted.
    * @returns {Promise<any>} - A promise that resolves with the response of the insertion operation.
