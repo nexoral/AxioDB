@@ -95,7 +95,7 @@ export default class UpdateOperation {
         ReadResponse = await this.LoadAllBufferRawData(FilePath);
       } else {
         const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery)
-        if (fileNames.length > 0) {
+        if (fileNames && fileNames.length > 0) {
           // Load File Names from Index
           ReadResponse = await this.LoadAllBufferRawData(fileNames);
         }
