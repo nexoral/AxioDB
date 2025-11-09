@@ -46,7 +46,7 @@ const db = new AxioDB(true); // GUI at localhost:27018
 
 // Create database and collection
 const myDB = await db.createDB('HelloWorldDB');
-const collection = await myDB.createCollection('greetings', false);
+const collection = await myDB.createCollection('greetings');
 
 // Insert and retrieve data
 await collection.insert({ message: 'Hello, Developer! 👋' });
@@ -81,23 +81,17 @@ const logsDB = await db.createDB('LogsDatabase', false);
 
 ### 3. Collections
 
-Collections store documents (like tables in SQL, but schema-less by default).
+Collections store documents (like tables in SQL, but schema-less).
 
 ```javascript
-const { SchemaTypes } = require('axiodb');
+// Create basic collection
+const users = await mainDB.createCollection('users');
 
-// Define schema
-const userSchema = {
-  name: SchemaTypes.string().required(),
-  email: SchemaTypes.string().required().email(),
-  age: SchemaTypes.number().min(0).max(150),
-};
+// Create encrypted collection with auto-generated key
+const secureUsers = await mainDB.createCollection('secureUsers', true);
 
-// Create collection with schema
-const users = await mainDB.createCollection('users', true, userSchema);
-
-// Create collection without schema
-const logs = await logsDB.createCollection('logs', false);
+// Create encrypted collection with custom key
+const vaultUsers = await mainDB.createCollection('vaultUsers', true, 'mySecretKey123');
 ```
 
 ### 4. Documents
