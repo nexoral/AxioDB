@@ -59,7 +59,7 @@ class BasicCRUDTester {
     }
 
     // Create single instance
-    this.dbInstance = new AxioDB('CRUDTestDB', testDir)
+    this.dbInstance = new AxioDB(false, 'CRUDTestDB', testDir)
     this.testDB = await this.dbInstance.createDB('TestDatabase')
 
     this.log('✅ Test environment set up successfully', 'success')
