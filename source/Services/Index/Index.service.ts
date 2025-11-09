@@ -8,13 +8,13 @@ import ResponseHelper from "../../Helper/response.helper";
 
 export class IndexManager {
   // Properties
-  private readonly path: string;
-  private readonly indexFolderPath: string;
-  private readonly indexMetaPath: string;
-  private readonly fileManager: FileManager;
-  private readonly folderManager: FolderManager;
-  private readonly converter: Converter;
-  private readonly ResponseHelper: ResponseHelper;
+  public readonly path: string;
+  public readonly indexFolderPath: string;
+  public readonly indexMetaPath: string;
+  public readonly fileManager: FileManager;
+  public readonly folderManager: FolderManager;
+  public readonly converter: Converter;
+  public readonly ResponseHelper: ResponseHelper;
 
   constructor(path: string) {
     this.path = path;
@@ -66,7 +66,7 @@ export class IndexManager {
    * // Create multiple indexes
    * await service.createIndex('email', 'username', 'createdAt');
    */
-  public async createIndex(...fieldNames: string[]): Promise<SuccessInterface | ErrorInterface> {
+  public async createIndex(...fieldNames: string[]): Promise<SuccessInterface | undefined> {
     const EffectedIndexes: string[] = [];
     const FailedIndexes: string[] = [];
     for (const fieldName of fieldNames) {
@@ -74,7 +74,7 @@ export class IndexManager {
       const indexFilePath = `${this.indexFolderPath}/${indexName}${General.DBMS_File_EXT}`;
       const DemoIndexHash = {
         fieldName: indexName,
-        indexEntries: [],
+        indexEntries: {},
       }
       const exists = await this.fileManager.FileExists(indexFilePath);
       if (!exists.status) {
@@ -94,20 +94,14 @@ export class IndexManager {
             });
             await this.fileManager.WriteFile(this.indexMetaPath, this.converter.ToString(indexMeta));
             EffectedIndexes.push(indexName);
+            return this.ResponseHelper.Success(`Indexes: ${EffectedIndexes.join(", ")} created Indexes: ${FailedIndexes.join(", ")}`);
           }
           else {
             FailedIndexes.push(indexName);
           }
         }
-        else {
-          FailedIndexes.push(indexName);
-        }
-      }
-      else {
-        FailedIndexes.push(indexName);
       }
     }
-    return this.ResponseHelper.Success(`Indexes: ${EffectedIndexes.join(", ")} created & Existing Indexes: ${FailedIndexes.join(", ")}`);
   }
 
   /**
@@ -208,64 +202,27 @@ export class IndexManager {
 
 
   /**
-   * Inserts a document identifier into one or more index files as defined by the global index meta.
+   * Finds index metadata entries that correspond to properties present on the provided document.
    *
-   * The method:
-   * 1. Reads the global index meta from `this.indexMetaPath` and converts it to an object using `this.converter`.
-   * 2. Calls `this.findMatchingIndexMeta(document)` to determine which index files should be updated for the provided document.
-   * 3. For each matched index entry:
-   *    - Reads the index file at `index.path`,
-   *    - Converts its contents to an object,
-   *    - Appends `${document.documentId}${General.DBMS_File_EXT}` to `indexMeta.indexEntries`,
-   *    - Writes the updated index back to disk.
+   * Reads the index metadata file at `this.indexMetaPath`, converts its content into an object,
+   * and returns the subset of metadata entries whose `indexFieldName` is an own property of `doc`.
    *
-   * @param document - Object representing the document to index. Must contain a `documentId` property (string | number).
-   * @returns A Promise that resolves to:
-   *  - `true` if the last index file write operation returned a success status,
-   *  - `false` if the global index meta could not be read, no matching index meta entries were found, or the final write returned a falsy status.
+   * @param doc - The document to check for matching index fields. The function tests own properties
+   *              (via `Object.prototype.hasOwnProperty.call`) rather than inherited properties.
+   * @returns A Promise that resolves to an array of matching index metadata entries, or `undefined`
+   *          if the index metadata file could not be successfully read. The array may be empty if
+   *          no metadata entries match.
    *
-   * @throws Propagates any exceptions thrown by file reads/writes or conversion (e.g., IO or parse/serialize errors).
-   *
-   * @remarks
-   * - The method appends the document entry and does not deduplicate existing entries.
-   * - When multiple index files are updated, the returned boolean reflects the status of the final write operation only.
-   * - The operation is not atomic across multiple index files; concurrent invocations may produce race conditions.
-   *
-   * @example
-   * // document must include documentId:
-   * // { documentId: "abc123", ... }
-   * const success = await indexService.InsertToIndex({ documentId: "abc123" });
+   * @throws May propagate errors from `fileManager.ReadFile` or `converter.ToObject` if those
+   *         operations throw or reject.
    */
-  public async InsertToIndex(document: any): Promise<boolean> {
+  protected async findMatchingIndexMeta (doc: any): Promise<any[] | undefined> {
     const indexMetaContent = await this.fileManager.ReadFile(this.indexMetaPath);
     if (indexMetaContent.status) {
       const indexMeta = this.converter.ToObject(indexMetaContent.data);
-      const matchedIndex = await this.findMatchingIndexMeta(document, indexMeta)
-
-      if (matchedIndex.length == 0){
-        return false
-      }
-      
-      let status: boolean = false;
-      for (const indexes of matchedIndex) {
-        const path: string = indexes.path;
-        const indexContent = await this.fileManager.ReadFile(path);
-        const indexMeta = this.converter.ToObject(indexContent.data);
-        indexMeta.indexEntries.push(`${document.documentId}${General.DBMS_File_EXT}`)
-        
-        // Write it back
-       const staus =  await this.fileManager.WriteFile(path, this.converter.ToString(indexMeta));
-       status = staus.status;
-      }
-      return status;
-
+      return indexMeta.filter((meta: { indexFieldName: any; }) =>
+        Object.prototype.hasOwnProperty.call(doc, meta.indexFieldName)
+      );
     }
-    return false;
-  }
-
-  private async findMatchingIndexMeta (doc: any, indexMetaList: any[]) {
-    return indexMetaList.filter((meta: { indexFieldName: any; }) =>
-      Object.prototype.hasOwnProperty.call(doc, meta.indexFieldName)
-    );
   }
 }

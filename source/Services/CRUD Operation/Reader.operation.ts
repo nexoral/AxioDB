@@ -15,6 +15,7 @@ import { General } from "../../config/Keys/Keys";
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
 import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
+import { ReadIndex } from "../Index/ReadIndex.service";
 
 /**
  * Class representing a read operation.
@@ -103,6 +104,11 @@ export default class Reader {
           //  Send the data to the client directly
           return this.ApplySkipAndLimit(ReadResponse.data);
         } else {
+          const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery)
+          if (fileNames.length > 0){
+            // Load File Names from Index
+            ReadResponse = await this.LoadAllBufferRawData(fileNames);
+          }
           ReadResponse = await this.LoadAllBufferRawData();
         }
         if ("data" in ReadResponse) {

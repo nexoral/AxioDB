@@ -17,7 +17,7 @@ import { CryptoHelper } from "../../Helper/Crypto.helper";
 // Converter
 import Converter from "../../Helper/Converter.helper";
 import FolderManager from "../../engine/Filesystem/FolderManager";
-import { IndexManager } from "../Index/Index.service";
+import InsertIndex from "../Index/InsertIndex.service";
 
 /**
  * Represents a collection inside a database.
@@ -31,7 +31,7 @@ export default class Collection {
   private Converter: Converter;
   private Insertion: Insertion;
   private readonly encryptionKey: string | undefined;
-  private readonly IndexManager: IndexManager;
+  private readonly IndexManager: InsertIndex;
 
   constructor(
     name: string,
@@ -49,7 +49,7 @@ export default class Collection {
     this.encryptionKey = encryptionKey;
     // Initialize the Insertion class
     this.Insertion = new Insertion(this.name, this.path);
-    this.IndexManager = new IndexManager(this.path)
+    this.IndexManager = new InsertIndex(this.path)
   }
 
   /**
