@@ -8,6 +8,7 @@ import FolderManager from "../../engine/Filesystem/FolderManager";
 import Converter from "../../Helper/Converter.helper";
 import { Console } from "outers";
 import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
+import { ReadIndex } from "../Index/ReadIndex.service";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -84,14 +85,28 @@ export default class Aggregation {
     if (!Array.isArray(this.Pipeline)) {
       throw new Error("Pipeline must be an array of aggregation stages.");
     }
-    // Load all buffer raw data from the specified directory
-    await this.LoadAllBufferRawData().then((response) => {
-      if ("data" in response) {
-        Console.green(
-          `${response?.data?.length} Documents Loaded for Aggregation`,
-        );
+    if (!this.Pipeline.$match) {
+      throw new Error("Pipeline must have a $match operator at top")
+    }
+
+    if (this.Pipeline.$match) {
+      const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.Pipeline.$match)
+      if (fileNames.length > 0) {
+        // Load File Names from Index
+        await this.LoadAllBufferRawData(fileNames);
       }
-    });
+    }
+    else {
+      // Load all buffer raw data from the specified directory
+      await this.LoadAllBufferRawData().then((response) => {
+        if ("data" in response) {
+          Console.green(
+            `${response?.data?.length} Documents Loaded for Aggregation`,
+          );
+        }
+      });
+    }
+
 
     let result = [...this.AllData];
 
@@ -247,30 +262,32 @@ export default class Aggregation {
    *
    * @throws {Error} Throws an error if any operation fails.
    */
-  private async LoadAllBufferRawData(): Promise<
+  private async LoadAllBufferRawData(documentIdDirectFile?: string[] | undefined): Promise<
     SuccessInterface | ErrorInterface
   > {
     try {
-      // Directly read list of files in directory (no lock/unlock system)
-      const ReadResponse = await new FolderManager().ListDirectory(this.path);
-
-      if ("data" in ReadResponse) {
-        // Store all files in DataFilesList
-        const DataFilesList: string[] = ReadResponse.data;
-
-        // Read all files from the directory
-        const resultData: any[] = await ReaderWithWorker(
-          DataFilesList,
-          this.encryptionKey,
-          this.path,
-          this.isEncrypted,
-        );
-
-        this.AllData = resultData;
-        return this.ResponseHelper.Success(resultData);
+      let ReadResponse: string[] = [];
+      if (documentIdDirectFile !== undefined) {
+        ReadResponse.push(...documentIdDirectFile);
+      } else {
+        // Directly read list of files in directory (no lock/unlock system)
+        ReadResponse = (await new FolderManager().ListDirectory(this.path)).data;
       }
 
-      return this.ResponseHelper.Error("Failed to read directory");
+      // Store all files in DataFilesList
+      const DataFilesList: string[] = ReadResponse;
+
+      // Read all files from the directory
+      const resultData: any[] = await ReaderWithWorker(
+        DataFilesList,
+        this.encryptionKey,
+        this.path,
+        this.isEncrypted,
+      );
+
+      this.AllData = resultData;
+      return this.ResponseHelper.Success(resultData);
+
     } catch (error) {
       return this.ResponseHelper.Error(error);
     }

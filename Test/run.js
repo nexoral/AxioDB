@@ -91,6 +91,8 @@ class BasicCRUDTester {
   async testCollectionCreation () {
     await this.test('Collection creation', async () => {
       this.basicCollection = await this.testDB.createCollection('Users')
+      // Index Create 
+      this.basicCollection.newIndex("name", "email", "age")
       if (
         !this.basicCollection ||
         typeof this.basicCollection.insert !== 'function'
