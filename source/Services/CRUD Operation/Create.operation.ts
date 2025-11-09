@@ -43,7 +43,7 @@ export default class Insertion {
           ? await this.generateUniqueDocumentId()
           : ExistingdocumentId;
 
-      const filePath = `${this.path}/.${documentId}${General.DBMS_File_EXT}`;
+      const filePath = `${this.path}/${documentId}${General.DBMS_File_EXT}`;
 
       // Directly write data to file (no lock/unlock system)
       const WriteResponse = await new FileManager().WriteFile(

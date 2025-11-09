@@ -13,6 +13,7 @@ import {
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import { FinalCollectionsInfo } from "../../config/Interfaces/Operation/database.operation.interface";
+import { IndexManager } from "../Index/Index.service";
 
 // Types
 type CollectionMetadata = {
@@ -74,6 +75,10 @@ export default class Database {
       console.log(`Collection Created: ${collectionPath}`);
     }
 
+    // Create AutoIndex meta for the collection
+    const Index = new IndexManager(collectionPath);
+    await Index.generateIndexMeta();
+
     // if crypto is enabled, hash the collection name
     if (crypto === true) {
       const newCryptoInstance = new CryptoHelper(key);
@@ -131,6 +136,11 @@ export default class Database {
     const collectionPath = path.join(this.path, collectionName);
     const exists = await this.folderManager.DirectoryExists(collectionPath);
     if (exists.statusCode === StatusCodes.OK) {
+      // Remove collection metadata
+      const status = await this.dropCollectionMetadata(collectionName);
+      if (status && "statusCode" in status && status.statusCode !== 200) {
+        return status;
+      }
       await this.folderManager.DeleteDirectory(collectionPath);
       return this.ResponseHelper.Success(
         `Collection: ${collectionName} deleted successfully`,
@@ -178,6 +188,60 @@ export default class Database {
         ),
       };
       return this.ResponseHelper.Success(FinalCollections);
+    }
+  }
+
+  /**
+   * Removes the metadata entry for a collection from the collection metadata file.
+   *
+   * Reads the JSON file located at `${this.path}/collection.meta`, validates that the
+   * file exists and contains an array of collection metadata objects, removes any entry
+   * whose `name` matches the provided `collectionName`, and writes the updated array
+   * back to the same file.
+   *
+   * The method returns a SuccessInterface on successful removal (even if no matching
+   * collection was found) or an ErrorInterface describing the failure.
+   *
+   * @param collectionName - The name of the collection whose metadata should be removed.
+   * @returns A promise that resolves to SuccessInterface on success or ErrorInterface on failure.
+   *
+   * @remarks
+   * - If the metadata file does not exist, an ErrorInterface is returned.
+   * - If the metadata file cannot be parsed as a JSON array, an ErrorInterface is returned.
+   * - This method performs I/O using a FileManager instance and uses this.ResponseHelper
+   *   to construct success/error responses. It does not throw; failures are reported via
+   *   the returned ErrorInterface.
+   *
+   * @example
+   * // Remove the "users" collection metadata
+   * await db.dropCollectionMetadata("users");
+   */
+  public async dropCollectionMetadata(
+    collectionName: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    const FileManagement: FileManager = new FileManager();
+    const isFileExist = await FileManagement.FileExists(
+      `${this.path}/collection.meta`,
+    );
+    if (isFileExist.status == false) {
+      return this.ResponseHelper.Error("Collection metadata file does not exist");
+    } else {
+      const FullData = JSON.parse(
+        (await FileManagement.ReadFile(`${this.path}/collection.meta`)).data,
+      );
+      if (!Array.isArray(FullData)) {
+        return this.ResponseHelper.Error("Invalid collection metadata format");
+      }
+      const UpdatedData = FullData.filter(
+        (data: CollectionMetadata) => data.name !== collectionName,
+      );
+      await FileManagement.WriteFile(
+        `${this.path}/collection.meta`,
+        JSON.stringify(UpdatedData),
+      );
+      return this.ResponseHelper.Success(
+        `Collection metadata for ${collectionName} dropped successfully`,
+      );
     }
   }
 

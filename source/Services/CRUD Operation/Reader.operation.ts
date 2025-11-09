@@ -96,7 +96,7 @@ export default class Reader {
           const FilePath =
             Array.isArray(this.baseQuery?.documentId) == true
               ? this.baseQuery.documentId.map(
-                (id: any) => `.${id}${General.DBMS_File_EXT}`,
+                (id: any) => `${id}${General.DBMS_File_EXT}`,
               )
               : [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
           ReadResponse = await this.LoadAllBufferRawData(FilePath);
@@ -233,6 +233,8 @@ export default class Reader {
         // Directly read list of files in directory (no lock/unlock system)
         const ReadResponse = await new FolderManager().ListDirectory(this.path);
         if ("data" in ReadResponse) {
+          // filter with .axiodb files only
+          ReadResponse.data = ReadResponse.data.filter((file: string) => file.endsWith(".axiodb"));
           DataFilesList.push(...ReadResponse.data);
         } else {
           return this.ResponseHelper.Error("Failed to read directory");

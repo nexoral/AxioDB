@@ -80,7 +80,7 @@ export default class DeleteOperation {
     let ReadResponse; // Read Response Holder
     if (this.baseQuery?.documentId !== undefined) {
       const FilePath = [
-        `.${this.baseQuery.documentId}${General.DBMS_File_EXT}`,
+        `${this.baseQuery.documentId}${General.DBMS_File_EXT}`,
       ];
       ReadResponse = await this.LoadAllBufferRawData(FilePath);
     } else {
