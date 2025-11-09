@@ -96,8 +96,8 @@ export default class Reader {
           const FilePath =
             Array.isArray(this.baseQuery?.documentId) == true
               ? this.baseQuery.documentId.map(
-                  (id: any) => `.${id}${General.DBMS_File_EXT}`,
-                )
+                (id: any) => `.${id}${General.DBMS_File_EXT}`,
+              )
               : [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
           ReadResponse = await this.LoadAllBufferRawData(FilePath);
           //  Send the data to the client directly
@@ -226,29 +226,28 @@ export default class Reader {
     documentIdDirectFile?: string[] | undefined,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      // Directly read list of files in directory (no lock/unlock system)
-      const ReadResponse = await new FolderManager().ListDirectory(this.path);
-
-      if ("data" in ReadResponse) {
-        // Store all files in DataFilesList
-        const DataFilesList: string[] =
-          documentIdDirectFile !== undefined
-            ? documentIdDirectFile
-            : ReadResponse.data;
-
-        // Read all files from the directory
-        const resultData: any[] = await ReaderWithWorker(
-          DataFilesList,
-          this.encryptionKey,
-          this.path,
-          this.isEncrypted,
-        );
-
-        this.AllData = resultData; // Store all data in AllData
-        return this.ResponseHelper.Success(resultData);
+      const DataFilesList: string[] = [];
+      if (documentIdDirectFile !== undefined) {
+        DataFilesList.push(...documentIdDirectFile);
+      } else {
+        // Directly read list of files in directory (no lock/unlock system)
+        const ReadResponse = await new FolderManager().ListDirectory(this.path);
+        if ("data" in ReadResponse) {
+          DataFilesList.push(...ReadResponse.data);
+        } else {
+          return this.ResponseHelper.Error("Failed to read directory");
+        }
       }
+      // Read all files from the directory
+      const resultData: any[] = await ReaderWithWorker(
+        DataFilesList,
+        this.encryptionKey,
+        this.path,
+        this.isEncrypted,
+      );
 
-      return this.ResponseHelper.Error("Failed to read directory");
+      this.AllData = resultData; // Store all data in AllData
+      return this.ResponseHelper.Success(resultData);
     } catch (error) {
       return this.ResponseHelper.Error(error);
     }
