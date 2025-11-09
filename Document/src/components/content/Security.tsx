@@ -91,10 +91,7 @@ const Security: React.FC = () => {
           Implementing Secure Collections
         </h3>
         <p className="text-gray-700 dark:text-gray-300 mb-4">
-          To create a secure, encrypted collection, simply pass the{" "}
-          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
-            crypto
-          </code>{" "}
+          To create a secure, encrypted collection, simply pass the encryption
           parameter as{" "}
           <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
             true
@@ -103,21 +100,17 @@ const Security: React.FC = () => {
         </p>
         <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-md overflow-x-auto mb-4">
           <code className="text-sm font-mono">
-            {`// Create an encrypted collection with schema validation
+            {`// Create an encrypted collection with auto-generated key
 const secureCollection = await db1.createCollection(
   "users",
-  true,        // Enable encryption
-  "your-strong-secret-key",  // Custom encryption key
-  true,        // Enable schema validation
-  userSchema   // Schema object
+  true        // Enable encryption (key auto-generated)
 );
 
-// Create an encrypted collection without schema validation
-const secureCollectionNoSchema = await db1.createCollection(
-  "logs",
+// Create an encrypted collection with custom key
+const customKeyCollection = await db1.createCollection(
+  "sensitiveData",
   true,       // Enable encryption
-  "your-strong-secret-key",  // Custom encryption key
-  false       // Disable schema validation
+  "your-strong-secret-key"  // Custom encryption key
 );`}
           </code>
         </pre>

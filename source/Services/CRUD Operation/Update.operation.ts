@@ -89,7 +89,7 @@ export default class UpdateOperation {
       let ReadResponse; // Read Response Holder
       if (this.baseQuery?.documentId !== undefined) {
         const FilePath = [
-          `.${this.baseQuery.documentId}${General.DBMS_File_EXT}`,
+          `${this.baseQuery.documentId}${General.DBMS_File_EXT}`,
         ];
         ReadResponse = await this.LoadAllBufferRawData(FilePath);
       } else {
@@ -122,9 +122,7 @@ export default class UpdateOperation {
           selectedFirstData = SortedData[0]; // Select the first data
           fileName = selectedFirstData?.fileName; // Get the file name
         }
-        const documentId: string = fileName.startsWith(".")
-          ? fileName.slice(1).split(".")[0]
-          : fileName.split(".")[0];
+        const documentId: string = fileName.split(".")[0];
 
         // Update All new Fields in the old data
         for (const key in newData) {
@@ -222,9 +220,7 @@ export default class UpdateOperation {
             selectedData = SortedData[i]; // Select the first data
             fileName = selectedData?.fileName; // Get the file name
           }
-          const documentId: string = fileName.startsWith(".")
-            ? fileName.slice(1).split(".")[0]
-            : fileName.split(".")[0];
+          const documentId: string = fileName.split(".")[0];
           documentIds.push(documentId);
 
           // Update All new Fields in the old data
@@ -294,28 +290,32 @@ export default class UpdateOperation {
     documentIdDirectFile?: string[] | undefined,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      // Directly read list of files in directory (no lock/unlock system)
-      const ReadResponse = await new FolderManager().ListDirectory(this.path);
-
-      if ("data" in ReadResponse) {
-        // Store all files in DataFilesList
-        const DataFilesList: string[] =
-          documentIdDirectFile !== undefined
-            ? documentIdDirectFile
-            : ReadResponse.data;
-
-        // Read all files from the directory
-        const resultData: any[] = await ReaderWithWorker(
-          DataFilesList,
-          this.encryptionKey,
-          this.path,
-          this.isEncrypted,
-          true, // keep extra param
-        );
-
-        this.allDataWithFileName = resultData; // Store all data with file name
-        return this.ResponseHelper.Success(resultData);
+      const DataFilesList: string[] = []
+      if (documentIdDirectFile !== undefined) {
+        documentIdDirectFile.push(...documentIdDirectFile)
       }
+      else {
+        // Directly read list of files in directory (no lock/unlock system)
+        const ReadResponse = await new FolderManager().ListDirectory(this.path);
+
+        if ("data" in ReadResponse) {
+          // filter with .axiodb files only
+          ReadResponse.data = ReadResponse.data.filter((file: string) => file.endsWith(".axiodb"));
+          DataFilesList.push(...ReadResponse.data);
+        }
+      }
+
+      // Read all files from the directory
+      const resultData: any[] = await ReaderWithWorker(
+        DataFilesList,
+        this.encryptionKey,
+        this.path,
+        this.isEncrypted,
+        true, // keep extra param
+      );
+
+      this.allDataWithFileName = resultData; // Store all data with file name
+      return this.ResponseHelper.Success(resultData);
 
       return this.ResponseHelper.Error("Failed to read directory");
     } catch (error) {

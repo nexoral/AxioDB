@@ -15,6 +15,7 @@ import { General } from "../../config/Keys/Keys";
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
 import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
+import { ReadIndex } from "../Index/ReadIndex.service";
 
 /**
  * Class representing a read operation.
@@ -96,13 +97,18 @@ export default class Reader {
           const FilePath =
             Array.isArray(this.baseQuery?.documentId) == true
               ? this.baseQuery.documentId.map(
-                (id: any) => `.${id}${General.DBMS_File_EXT}`,
+                (id: any) => `${id}${General.DBMS_File_EXT}`,
               )
-              : [`.${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
+              : [`${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
           ReadResponse = await this.LoadAllBufferRawData(FilePath);
           //  Send the data to the client directly
           return this.ApplySkipAndLimit(ReadResponse.data);
         } else {
+          const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery)
+          if (fileNames.length > 0){
+            // Load File Names from Index
+            ReadResponse = await this.LoadAllBufferRawData(fileNames);
+          }
           ReadResponse = await this.LoadAllBufferRawData();
         }
         if ("data" in ReadResponse) {
@@ -233,6 +239,8 @@ export default class Reader {
         // Directly read list of files in directory (no lock/unlock system)
         const ReadResponse = await new FolderManager().ListDirectory(this.path);
         if ("data" in ReadResponse) {
+          // filter with .axiodb files only
+          ReadResponse.data = ReadResponse.data.filter((file: string) => file.endsWith(".axiodb"));
           DataFilesList.push(...ReadResponse.data);
         } else {
           return this.ResponseHelper.Error("Failed to read directory");

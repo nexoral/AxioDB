@@ -17,6 +17,7 @@ import { CryptoHelper } from "../../Helper/Crypto.helper";
 // Converter
 import Converter from "../../Helper/Converter.helper";
 import FolderManager from "../../engine/Filesystem/FolderManager";
+import InsertIndex from "../Index/InsertIndex.service";
 
 /**
  * Represents a collection inside a database.
@@ -30,6 +31,7 @@ export default class Collection {
   private Converter: Converter;
   private Insertion: Insertion;
   private readonly encryptionKey: string | undefined;
+  private readonly IndexManager: InsertIndex;
 
   constructor(
     name: string,
@@ -47,6 +49,7 @@ export default class Collection {
     this.encryptionKey = encryptionKey;
     // Initialize the Insertion class
     this.Insertion = new Insertion(this.name, this.path);
+    this.IndexManager = new InsertIndex(this.path)
   }
 
   /**
@@ -109,6 +112,33 @@ export default class Collection {
   }
 
   /**
+   * Creates a new index on the specified fields by delegating to the IndexManager.
+   *
+   * @remarks
+   * This method accepts one or more field names and forwards them to IndexManager.createIndex.
+   * Index creation behavior (such as uniqueness, ordering, or persistence) is determined by the IndexManager implementation.
+   *
+   * @param fieldNames - One or more field names that should be included in the new index.
+   * @returns A promise that resolves with the result returned by IndexManager.createIndex.
+   * @throws Any errors thrown by IndexManager.createIndex (for example, validation or persistence errors) are propagated.
+   */
+  public async newIndex (...fieldNames: string[]) {
+    return await this.IndexManager.createIndex(...fieldNames);
+  }
+
+  /**
+   * Drops an index by name from the collection.
+   *
+   * @param indexName - The name of the index to drop.
+   * @returns A promise that resolves with the result returned by IndexManager.dropIndex.
+   * @throws Will throw an error if the drop operation fails (for example, if the index does not exist
+   *         or if the caller lacks necessary permissions).
+   */
+  public async dropIndex(indexName: string){
+    return await this.IndexManager.dropIndex(indexName)
+  }
+
+  /**
    * Inserts a document into the collection.
    * @param {object} data - The data to be inserted.
    * @returns {Promise<any>} - A promise that resolves with the response of the insertion operation.
@@ -129,6 +159,8 @@ export default class Collection {
     // Add the documentId to the data
     const documentId: string = await this.Insertion.generateUniqueDocumentId();
     data.documentId = documentId;
+
+    await this.IndexManager.InsertToIndex(data)
 
     // Insert the updatedAt field in schema & data
     data.updatedAt = this.updatedAt;
