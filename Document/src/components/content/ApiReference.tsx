@@ -199,6 +199,28 @@ const pageSize = 10;
 const totalPages = Math.ceil(result.data.total / pageSize);`,
           returns: "Promise<SuccessInterface>: Object containing the total document count.",
         },
+        {
+          name: "newIndex",
+          signature: "newIndex(...fields: string[]): void",
+          description: "Creates indexes on specified field(s) to dramatically improve query performance. Indexes optimize lookups, range queries, sorting, and filtering operations on the indexed fields. Essential for collections with large datasets or frequent queries. Multiple fields can be indexed simultaneously for compound queries.",
+          example: `// Create single field index
+collection.newIndex('email');
+
+// Create multiple field indexes
+collection.newIndex('name', 'age', 'email');
+
+// Indexes improve performance for:
+// - Exact matches: query({ email: 'user@example.com' })
+// - Range queries: query({ age: { $gte: 25, $lte: 35 } })
+// - Sorting: query({}).Sort({ age: 1, name: 1 })
+// - Regex searches: query({ email: { $regex: /@example.com$/ } })
+// - Multi-field queries: query({ name: 'John', age: 30 })
+
+// Best practice: Create indexes after collection creation
+const users = await db.createCollection('users');
+users.newIndex('email', 'age', 'createdAt');`,
+          returns: "void: No return value. Indexes are created synchronously.",
+        },
       ],
     },
     {

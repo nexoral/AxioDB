@@ -285,14 +285,17 @@ const Features: React.FC = () => {
                 <Search className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                Auto Indexing on documentId
+                Custom Field Indexing
               </h3>
             </div>
-            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-              Automatically creates optimized indexes on document IDs for
-              lightning-fast queries and retrieval operations without requiring
-              manual configuration or maintenance.
+            <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
+              Create custom indexes on any field(s) using <code className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-rose-600 dark:text-rose-400 font-semibold">newIndex()</code> to dramatically boost query performance. Supports single and multi-field indexes for optimized lookups, range queries, sorting, and filtering operations.
             </p>
+            <div className="bg-rose-50 dark:bg-rose-900/20 rounded-lg p-4 border border-rose-200 dark:border-rose-800">
+              <code className="text-sm text-slate-700 dark:text-slate-300">
+                collection.newIndex('email', 'age', 'name');
+              </code>
+            </div>
           </div>
         </div>
 

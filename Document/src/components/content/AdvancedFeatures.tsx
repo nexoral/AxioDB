@@ -143,6 +143,63 @@ const setup = async () => {
 };
 
 setup();`,
+    indexing: `// Create indexes to dramatically improve query performance
+const { AxioDB } = require("axiodb");
+
+const Instance = new AxioDB(true);
+const UserDB = await Instance.createDB("MyDB");
+const UserCollection = await UserDB.createCollection("Users");
+
+// Create indexes on frequently queried fields
+UserCollection.newIndex('email', 'age', 'name');
+
+// Insert test data
+await UserCollection.insertMany([
+  { name: "John Doe", email: "john@example.com", age: 30 },
+  { name: "Jane Smith", email: "jane@example.com", age: 25 },
+  { name: "Bob Wilson", email: "bob@example.com", age: 35 }
+]);
+
+// These queries now benefit from indexes (faster performance):
+
+// 1. Exact match on indexed field
+const userByEmail = await UserCollection
+  .query({ email: "john@example.com" })
+  .exec();
+
+// 2. Range query on indexed field
+const adultUsers = await UserCollection
+  .query({ age: { $gte: 25, $lte: 40 } })
+  .exec();
+
+// 3. Sorting on indexed field
+const sortedUsers = await UserCollection
+  .query({})
+  .Sort({ age: 1, name: 1 })
+  .exec();
+
+// 4. Multi-field query using multiple indexes
+const specificUsers = await UserCollection
+  .query({
+    age: { $gt: 25 },
+    email: { $regex: /@example\\.com$/ }
+  })
+  .Sort({ age: -1 })
+  .Limit(10)
+  .exec();
+
+// 5. Complex queries benefit from compound indexes
+const complexQuery = await UserCollection
+  .query({
+    name: { $regex: /^J/ },
+    age: { $gte: 20, $lte: 35 },
+    email: { $regex: /example\\.com$/ }
+  })
+  .Sort({ age: 1, name: 1 })
+  .Limit(100)
+  .exec();
+
+console.log("All indexed queries executed efficiently!");`,
   };
 
   return (
@@ -216,6 +273,14 @@ setup();`,
           <Database className="h-4 w-4 mr-2" />
           Collection Types
         </Button>
+        <Button
+          variant={activeFeature === "indexing" ? "primary" : "outline"}
+          onClick={() => setActiveFeature("indexing")}
+          className="group transition-all duration-200 hover:scale-105"
+        >
+          <Rocket className="h-4 w-4 mr-2" />
+          Performance Indexing
+        </Button>
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 lg:p-10 shadow-xl border border-slate-200 dark:border-slate-700 mb-12 transition-all duration-300 hover:shadow-2xl">
@@ -228,6 +293,8 @@ setup();`,
           {activeFeature === "operations" && "Sophisticated CRUD Operations"}
           {activeFeature === "collection-types" &&
             "Flexible Collection Configurations"}
+          {activeFeature === "indexing" &&
+            "High-Performance Field Indexing"}
         </h3>
 
         <p className="text-lg text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
@@ -241,6 +308,8 @@ setup();`,
             "Implement robust data manipulation strategies with advanced update and delete operations, supporting complex queries, batch processing, and atomic transactions for data consistency."}
           {activeFeature === "collection-types" &&
             "Choose from five specialized collection configurations designed for different use cases, from basic storage to fully encrypted collections with comprehensive schema validation for enterprise applications."}
+          {activeFeature === "indexing" &&
+            "Dramatically boost query performance by creating custom indexes on frequently queried fields. Supports single and multi-field indexes for optimized lookups, range queries, sorting, and complex filtering operations—essential for large datasets and high-traffic applications."}
         </p>
 
         <CodeBlock
