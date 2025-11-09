@@ -66,8 +66,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
         run: |
-          if [[ "${{ github.head_ref }}" != "maintainer/ankan" ]]; then
-            gh pr merge ${{ github.event.pull_request.number }} --auto --merge --delete-branch
-          else
-            gh pr merge ${{ github.event.pull_request.number }} --auto --merge
-          fi
+          gh pr merge ${{ github.event.pull_request.number }} --auto --merge
