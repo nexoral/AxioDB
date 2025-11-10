@@ -1,0 +1,305 @@
+{
+  "repo_notes": [
+    {
+      "content": ""
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "purpose": "Introduce AxioDB - an embedded NoSQL database for Node.js with MongoDB-style queries, explaining its purpose, target use cases (desktop apps, CLI tools, prototypes), and positioning as a SQLite alternative",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Key Features and Capabilities",
+      "purpose": "Detail AxioDB's core features: intelligent caching, MongoDB-style queries, encryption, schema validation, worker thread processing, and the 10K-500K document scale optimization",
+      "parent": "Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Architecture Overview",
+      "purpose": "High-level overview of AxioDB's architecture: single instance pattern, hierarchical data model (AxioDB → Databases → Collections → Documents), and the major subsystems (storage, caching, API, GUI)",
+      "parent": "Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Installation and Quick Start",
+      "purpose": "Guide users through installing AxioDB from npm, basic instantiation, creating databases and collections, and performing first CRUD operations",
+      "parent": "Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Core Database System",
+      "purpose": "Comprehensive documentation of the embedded NoSQL database engine, covering the data model, operations, and internal architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Database Instance and Hierarchy",
+      "purpose": "Explain the AxioDB instance (single instance pattern), database creation via createDB(), and the three-tier hierarchy: AxioDB → Databases → Collections → Documents",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Collections and Documents",
+      "purpose": "Document collection creation with createCollection(), collection configuration options (encryption, schema validation), document structure including auto-generated documentId, and the file-per-document storage model",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "CRUD Operations",
+      "purpose": "Comprehensive guide to Create, Read, Update, and Delete operations on documents, covering both single and bulk operations",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Creating Documents",
+      "purpose": "Detail insert() and insertMany() methods, schema validation during insertion, auto-generation of documentId and timestamps, and encryption of document data",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Reading and Querying",
+      "purpose": "Explain query() method, chainable Reader API (Limit, Skip, Sort, findOne, setCount, setProject), MongoDB-style query operators ($gt, $lt, $in, $regex), and fast documentId lookup",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Updating Documents",
+      "purpose": "Document update() method and chainable Updater API, UpdateOne vs UpdateMany operations, query-based updates, and schema validation during updates",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Deleting Documents",
+      "purpose": "Cover delete() method and chainable Deleter API, deleteOne vs deleteMany operations, and query-based deletion",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Aggregation Pipeline",
+      "purpose": "Explain aggregate() method, MongoDB-compatible pipeline stages ($match, $group, $sort, $project, $limit, $skip, $unwind, $addFields), and use cases for data processing",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Schema Validation",
+      "purpose": "Document SchemaTypes system, available validators (string, number, required, min, max, email), schema definition and enforcement, and validation during insert/update operations",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Encryption and Security",
+      "purpose": "Cover AES-257 encryption at collection level, auto-generated vs custom encryption keys, encryption key management best practices, and secure storage implementation",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "File System Storage",
+      "purpose": "Explain file-per-document storage model, .axiodb file format, directory structure (AxioDB/Database/Collection/), and file system operations (FileManager, FolderManager)",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Performance Optimization",
+      "purpose": "Overview of AxioDB's performance optimization strategies: InMemoryCache, Worker Threads for parallel processing, auto-indexing, and the Two-Pointer search algorithm",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "InMemory Cache System",
+      "purpose": "Detail the intelligent caching system, cache hit/miss flow, TTL and eviction policies, sub-millisecond response times, and cache invalidation strategies",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Worker Threads and Parallel Processing",
+      "purpose": "Explain how AxioDB uses Node.js worker threads for multi-core processing, parallel file loading (WorkerForDataLoad), parallel search operations (WorkerForSearch), and performance benefits",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Indexing and Query Optimization",
+      "purpose": "Cover auto-indexing on documentId for O(1) lookups, Two-Pointer search algorithm for range queries, and query optimization strategies",
+      "parent": "Core Database System",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "API Server",
+      "purpose": "Document the Fastify-based REST API server that provides HTTP access to AxioDB functionality, including architecture, routes, and integration with the core database",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Server Architecture and Configuration",
+      "purpose": "Explain createAxioDBControlServer(), Fastify setup, middleware stack (CORS, JSON parser, multipart, static), port configuration (27018), and dependency injection of AxioDBInstance",
+      "parent": "API Server",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Database Management API",
+      "purpose": "Document /api/db/* routes: listing databases, creating/deleting databases, and export/import functionality using tar.gz compression",
+      "parent": "API Server",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Collection Management API",
+      "purpose": "Cover /api/collection/* routes: listing collections, creating collections with encryption/schema options, and deleting collections",
+      "parent": "API Server",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Document Operations API",
+      "purpose": "Detail /api/operation/* routes for CRUD operations: creating documents (single/bulk), querying with filters and pagination, updating (by ID or query), deleting (by ID or query), and running aggregation pipelines",
+      "parent": "API Server",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Response Handling and Error Patterns",
+      "purpose": "Explain standardized API responses using ResponseBuilder, SuccessInterface and ErrorInterface structures, HTTP status codes, and error handling patterns across controllers",
+      "parent": "API Server",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Web GUI",
+      "purpose": "Document the React-based graphical user interface for visual database management, running on localhost:27018",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "GUI Architecture and Technology Stack",
+      "purpose": "Explain the GUI's React 18 + TypeScript foundation, Vite build tool, TailwindCSS styling, Zustand state management, and integration with the API server",
+      "parent": "Web GUI",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Components and Routing",
+      "purpose": "Document the GUI's component structure (Layout, Pages, Modals), React Router configuration, and navigation between database, collection, and document views",
+      "parent": "Web GUI",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "State Management with Zustand",
+      "purpose": "Explain Zustand stores (DBInfoStore, CollectionStore, DocumentStore), state synchronization with API, and data flow between components",
+      "parent": "Web GUI",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
