@@ -13,6 +13,12 @@ COPY lib/ ./lib/
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
+# Copy Scripts folder for postinstall script
+COPY Scripts/ ./Scripts/
+
+# Install bash (required for postinstall script)
+RUN apk add --no-cache bash
+
 # Install dependencies
 RUN npm install --force
 
