@@ -8,15 +8,47 @@ import {
   Star,
   Users,
   Zap,
+  TrendingUp,
 } from "lucide-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { React as Service } from "react-caches";
 import { githubApi } from "../../services/githubApi";
+import { npmApi } from "../../services/npmApi";
 
 const Introduction: React.FC = () => {
+  const [totalDownloads, setTotalDownloads] = useState<number | null>(null);
+  const [weeklyDownloads, setWeeklyDownloads] = useState<number | null>(null);
+  const [monthlyDownloads, setMonthlyDownloads] = useState<number | null>(null);
+  const [isLoadingDownloads, setIsLoadingDownloads] = useState(true);
+
   useEffect(() => {
     Service.UpdateDocumentTitle("AxioDB - Pure JavaScript Alternative to SQLite | Introduction");
+
+    // Fetch npm download statistics
+    const fetchDownloads = async () => {
+      try {
+        setIsLoadingDownloads(true);
+        const [total, weekly, monthly] = await Promise.all([
+          npmApi.getTotalDownloads(),
+          npmApi.getDownloadsLastWeek(),
+          npmApi.getDownloadsLastMonth()
+        ]);
+        setTotalDownloads(total);
+        setWeeklyDownloads(weekly.downloads);
+        setMonthlyDownloads(monthly.downloads);
+      } catch (error) {
+        console.error('Failed to fetch npm downloads:', error);
+        setTotalDownloads(null);
+        setWeeklyDownloads(null);
+        setMonthlyDownloads(null);
+      } finally {
+        setIsLoadingDownloads(false);
+      }
+    };
+
+    fetchDownloads();
   }, []);
+
   const badgeUrls = {
     npm: githubApi.getBadgeUrl('npm'),
     codeql: githubApi.getBadgeUrl('github-actions'),
@@ -88,6 +120,96 @@ const Introduction: React.FC = () => {
               alt="Socket Security"
               className="h-7 rounded shadow-sm hover:shadow-md transition-shadow"
             />
+          </div>
+
+          {/* NPM Download Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            {/* Total Downloads */}
+            <a
+              href={npmApi.getNpmPackageUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 px-5 py-3 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+            >
+              <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                <Download className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
+                    {isLoadingDownloads ? (
+                      <span className="inline-block animate-pulse">...</span>
+                    ) : totalDownloads !== null ? (
+                      npmApi.formatDownloadCount(totalDownloads)
+                    ) : (
+                      '---'
+                    )}
+                  </span>
+                  <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                </div>
+                <span className="text-xs text-purple-700 dark:text-purple-300 font-medium">
+                  Total Downloads
+                </span>
+              </div>
+            </a>
+
+            {/* Weekly Downloads */}
+            <a
+              href={npmApi.getNpmPackageUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 px-5 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+            >
+              <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                <Download className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-blue-700 to-cyan-600 dark:from-blue-300 dark:to-cyan-300 bg-clip-text text-transparent">
+                    {isLoadingDownloads ? (
+                      <span className="inline-block animate-pulse">...</span>
+                    ) : weeklyDownloads !== null ? (
+                      npmApi.formatDownloadCount(weeklyDownloads)
+                    ) : (
+                      '---'
+                    )}
+                  </span>
+                  <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">
+                  Last Week
+                </span>
+              </div>
+            </a>
+
+            {/* Monthly Downloads */}
+            <a
+              href={npmApi.getNpmPackageUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 px-5 py-3 rounded-xl border border-green-200 dark:border-green-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+            >
+              <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                <Download className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-green-700 to-emerald-600 dark:from-green-300 dark:to-emerald-300 bg-clip-text text-transparent">
+                    {isLoadingDownloads ? (
+                      <span className="inline-block animate-pulse">...</span>
+                    ) : monthlyDownloads !== null ? (
+                      npmApi.formatDownloadCount(monthlyDownloads)
+                    ) : (
+                      '---'
+                    )}
+                  </span>
+                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
+                <span className="text-xs text-green-700 dark:text-green-300 font-medium">
+                  Last Month
+                </span>
+              </div>
+            </a>
           </div>
 
           {/* Terminal Welcome Section */}
