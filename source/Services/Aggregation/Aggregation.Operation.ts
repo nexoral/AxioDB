@@ -85,7 +85,7 @@ export default class Aggregation {
     if (!Array.isArray(this.Pipeline)) {
       throw new Error("Pipeline must be an array of aggregation stages.");
     }
-    if (!this.Pipeline.$match) {
+    if (!this.Pipeline[0] || !this.Pipeline[0].$match) {
       throw new Error("Pipeline must have a $match operator at top")
     }
 
@@ -94,6 +94,16 @@ export default class Aggregation {
       if (fileNames.length > 0) {
         // Load File Names from Index
         await this.LoadAllBufferRawData(fileNames);
+      }
+      else {
+        // Load all buffer raw data from the specified directory
+        await this.LoadAllBufferRawData().then((response) => {
+          if ("data" in response) {
+            Console.green(
+              `${response?.data?.length} Documents Loaded for Aggregation`,
+            );
+          }
+        });
       }
     }
     else {
@@ -142,6 +152,28 @@ export default class Aggregation {
                   );
                   return false;
                 }
+              }
+              // Comparison operators
+              if ("$gte" in value) {
+                return itemValue >= (value as any).$gte;
+              }
+              if ("$gt" in value) {
+                return itemValue > (value as any).$gt;
+              }
+              if ("$lte" in value) {
+                return itemValue <= (value as any).$lte;
+              }
+              if ("$lt" in value) {
+                return itemValue < (value as any).$lt;
+              }
+              if ("$ne" in value) {
+                return itemValue !== (value as any).$ne;
+              }
+              if ("$in" in value) {
+                return Array.isArray((value as any).$in) && (value as any).$in.includes(itemValue);
+              }
+              if ("$nin" in value) {
+                return Array.isArray((value as any).$nin) && !(value as any).$nin.includes(itemValue);
               }
             }
             return false;

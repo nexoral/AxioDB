@@ -31,3 +31,7 @@ Document/
 GUI/
 Docker/
 Scripts/
+.devin
+LICENSE
+README.md
+eslint.config.mjs
