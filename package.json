@@ -7,8 +7,7 @@
   "scripts": {
     "test": "node ./Test/run.js",
     "build": "tsc",
-    "lint": "eslint .",
-    "postinstall": "bash Scripts/setup.sh"
+    "lint": "eslint ."
   },
   "keywords": [
     "axiodb",
