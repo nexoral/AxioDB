@@ -65,7 +65,7 @@
     "@types/tar": "^6.1.13",
     "fastify": "^5.4.0",
     "outers": "^8.6.2",
-    "tar": "^7.4.3"
+    "tar": "^7.5.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
