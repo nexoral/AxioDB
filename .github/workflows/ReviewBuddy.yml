@@ -1,0 +1,17 @@
+name: Review Buddy
+on:
+  pull_request:
+    types: [opened, synchronize]
+  issue_comment:
+    types: [created]
+permissions:
+    pull-requests: write
+    contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nexoral/ReviewBuddy@main
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
