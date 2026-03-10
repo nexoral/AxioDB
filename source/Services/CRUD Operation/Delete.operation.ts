@@ -89,8 +89,9 @@ export default class DeleteOperation {
       if (fileNames.length > 0) {
         // Load File Names from Index
         ReadResponse = await this.LoadAllBufferRawData(fileNames);
+      } else {
+        ReadResponse = await this.LoadAllBufferRawData();
       }
-      ReadResponse = await this.LoadAllBufferRawData();
     }
 
     if ("data" in ReadResponse) {
@@ -155,8 +156,9 @@ export default class DeleteOperation {
           if (fileNames.length > 0) {
             // Load File Names from Index
             response = await this.LoadAllBufferRawData(fileNames);
+          } else {
+            response = await this.LoadAllBufferRawData();
           }
-          response = await this.LoadAllBufferRawData();
 
     if ("data" in response) {
       const SearchedData = await new Searcher(response.data, true).find(
@@ -210,7 +212,7 @@ export default class DeleteOperation {
     try {
       const DataFilesList: string[] = []
       if (documentIdDirectFile !== undefined) {
-        documentIdDirectFile.push(...documentIdDirectFile)
+        DataFilesList.push(...documentIdDirectFile)
       }
       else {
         // Directly read list of files in directory (no lock/unlock system)

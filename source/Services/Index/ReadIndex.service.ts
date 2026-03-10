@@ -34,8 +34,16 @@ export class ReadIndex extends IndexManager {
     const matchedIndexFile = await this.findMatchingIndexMeta(query)
     if(matchedIndexFile !== undefined) {
       const metaContent = this.converter.ToObject((await this.fileManager.ReadFile(matchedIndexFile.path)).data);
-      const finalValueFiles = metaContent.indexEntries[query[metaContent.fieldName]]
-      return finalValueFiles;
+      const queryValue = query[metaContent.fieldName];
+      
+      // Skip index lookup for complex query operators ($regex, $in, $gt, etc.)
+      // These require full scan - index can't help
+      if (typeof queryValue === 'object' && queryValue !== null) {
+        return [];
+      }
+      
+      const finalValueFiles = metaContent.indexEntries[queryValue];
+      return finalValueFiles || [];
     }
     else {
       return [];

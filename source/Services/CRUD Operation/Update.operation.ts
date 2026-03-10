@@ -98,8 +98,9 @@ export default class UpdateOperation {
         if (fileNames && fileNames.length > 0) {
           // Load File Names from Index
           ReadResponse = await this.LoadAllBufferRawData(fileNames);
+        } else {
+          ReadResponse = await this.LoadAllBufferRawData();
         }
-        ReadResponse = await this.LoadAllBufferRawData();
       }
 
       if ("data" in ReadResponse) {
@@ -203,8 +204,9 @@ export default class UpdateOperation {
       if (fileNames.length > 0) {
         // Load File Names from Index
         ReadResponse = await this.LoadAllBufferRawData(fileNames);
+      } else {
+        ReadResponse = await this.LoadAllBufferRawData();
       }
-      ReadResponse = await this.LoadAllBufferRawData();
       if ("data" in ReadResponse) {
         const SearchedData = await new Searcher(ReadResponse.data, true).find(
           this.baseQuery,
@@ -304,7 +306,7 @@ export default class UpdateOperation {
     try {
       const DataFilesList: string[] = []
       if (documentIdDirectFile !== undefined) {
-        documentIdDirectFile.push(...documentIdDirectFile)
+        DataFilesList.push(...documentIdDirectFile)
       }
       else {
         // Directly read list of files in directory (no lock/unlock system)

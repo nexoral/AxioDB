@@ -38,12 +38,12 @@ export default class Sorting {
 
         // Fast path for numbers
         if (typeof aVal === "number" && typeof bVal === "number") {
-          return (aVal - bVal) * -order;
+          return (aVal - bVal) * order;
         }
 
         // Fast path for strings
         if (typeof aVal === "string" && typeof bVal === "string") {
-          return aVal.localeCompare(bVal) * -order;
+          return aVal.localeCompare(bVal) * order;
         }
 
         // Fallback for other types
@@ -59,12 +59,12 @@ export default class Sorting {
 
         // Fast path for numbers
         if (typeof aVal === "number" && typeof bVal === "number") {
-          return (aVal - bVal) * -order;
+          return (aVal - bVal) * order;
         }
 
         // Fast path for strings
         if (typeof aVal === "string" && typeof bVal === "string") {
-          return aVal.localeCompare(bVal) * -order;
+          return aVal.localeCompare(bVal) * order;
         }
 
         // Fallback for other types

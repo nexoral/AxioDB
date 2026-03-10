@@ -3,6 +3,7 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
+import { SessionOptions } from "../../config/Interfaces/Transaction/transaction.interface";
 import ResponseHelper from "../../Helper/response.helper";
 // Operations
 import Insertion from "../CRUD Operation/Create.operation";
@@ -10,6 +11,8 @@ import Reader from "../CRUD Operation/Reader.operation";
 import DeleteOperation from "../CRUD Operation/Delete.operation";
 import UpdateOperation from "../CRUD Operation/Update.operation";
 import Aggregation from "../Aggregation/Aggregation.Operation";
+import Transaction from "../Transaction/Transaction.service";
+import Session from "../Transaction/Session.service";
 
 import { StatusCodes } from "outers";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
@@ -49,7 +52,12 @@ export default class Collection {
     this.encryptionKey = encryptionKey;
     // Initialize the Insertion class
     this.Insertion = new Insertion(this.name, this.path);
-    this.IndexManager = new InsertIndex(this.path)
+    this.IndexManager = new InsertIndex(this.path);
+
+    // Recover any pending transactions on initialization
+    Transaction.recoverTransactions(this.path).catch(() => {
+      // Silent recovery - log errors but don't fail collection initialization
+    });
   }
 
   /**
@@ -291,6 +299,56 @@ export default class Collection {
       query,
       this.isEncrypted,
       this.encryptionKey,
+    );
+  }
+
+  public beginTransaction(): Transaction {
+    if (!this.name) {
+      throw new Error("Collection name cannot be empty");
+    }
+
+    if (!this.path) {
+      throw new Error("Collection path cannot be empty");
+    }
+
+    return new Transaction(
+      this.path,
+      this.isEncrypted,
+      this.encryptionKey
+    );
+  }
+
+  /**
+   * Starts a new session for MongoDB-like transaction management.
+   * Sessions support automatic retry, timeouts, and the withTransaction pattern.
+   * 
+   * @param options - Optional session configuration
+   * @returns A new Session instance
+   * 
+   * @example
+   * ```typescript
+   * const session = collection.startSession();
+   * await session.withTransaction(async (txn) => {
+   *   txn.insert({ name: 'Alice' });
+   *   txn.update({ name: 'Bob' }, { age: 30 });
+   * });
+   * await session.endSession();
+   * ```
+   */
+  public startSession(options?: SessionOptions): Session {
+    if (!this.name) {
+      throw new Error("Collection name cannot be empty");
+    }
+
+    if (!this.path) {
+      throw new Error("Collection path cannot be empty");
+    }
+
+    return new Session(
+      this.path,
+      this.isEncrypted,
+      this.encryptionKey,
+      options
     );
   }
 }

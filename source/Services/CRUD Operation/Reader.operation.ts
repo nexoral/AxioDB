@@ -78,72 +78,96 @@ export default class Reader {
   public async exec(): Promise<SuccessInterface | ErrorInterface> {
     try {
       let SearchedData: any[] = [];
-      // At first check if the data is in cache or not
-      const responseFromCache = await InMemoryCache.getCache(
-        this.Converter.ToString(this.baseQuery),
-      );
+      
+      // Generate cache key based on full query context
+      const cacheKey = this.Converter.ToString(this.baseQuery);
+      
+      // Check if result is in cache
+      const responseFromCache = await InMemoryCache.getCache(cacheKey);
       if (responseFromCache !== false) {
-        SearchedData = responseFromCache; // if the data is in cache then use it instead of searching
-        // Check if any sort is passed or not
-        if (Object.keys(this.sort).length === 0) {
-          return await this.ApplySkipAndLimit(SearchedData); // if no sort is passed then return searched data
-        }
-        const Sorter: Sorting = new Sorting(SearchedData, this.sort);
-        const SortedData: any[] = await Sorter.sort(); // Sort the data
-        return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
-      } else {
-        let ReadResponse; // Read Response Holder
-        if (this.baseQuery?.documentId !== undefined) {
-          const FilePath =
-            Array.isArray(this.baseQuery?.documentId) == true
-              ? this.baseQuery.documentId.map(
-                (id: any) => `${id}${General.DBMS_File_EXT}`,
-              )
-              : [`${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
-          ReadResponse = await this.LoadAllBufferRawData(FilePath);
-          //  Send the data to the client directly
-          return this.ApplySkipAndLimit(ReadResponse.data);
-        } else {
-          const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery)
-          if (fileNames.length > 0){
-            // Load File Names from Index
-            ReadResponse = await this.LoadAllBufferRawData(fileNames);
-          }
-          ReadResponse = await this.LoadAllBufferRawData();
-        }
-        if ("data" in ReadResponse) {
-          // Check if any query is passed or not
-          if (Object.keys(this.baseQuery).length === 0) {
-            // Check if any sort is passed or not
-            if (Object.keys(this.sort).length === 0) {
-              return await this.ApplySkipAndLimit(ReadResponse.data); // Apply Skip and Limit & return the data
-            }
-            const Sorter: Sorting = new Sorting(ReadResponse.data, this.sort);
-            const SortedData: any[] = await Sorter.sort(); // Sort the data
-            return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
-          }
-          // Search the data from the AllData using Searcher
-          const searcher: Searcher = new Searcher(ReadResponse.data);
-          SearchedData = await searcher.find(this.baseQuery);
-
-          await InMemoryCache.setCache(
-            this.Converter.ToString(this.baseQuery),
-            SearchedData,
-          );
-
-          // Check if any sort is passed or not
-          if (Object.keys(this.sort).length === 0) {
-            return await this.ApplySkipAndLimit(SearchedData); // if no sort is passed then return searched data
-          }
-          const Sorter: Sorting = new Sorting(SearchedData, this.sort);
-          const SortedData: any[] = await Sorter.sort(); // Sort the data
-          return await this.ApplySkipAndLimit(SortedData); // Apply Skip and Limit & return the data
-        }
+        SearchedData = responseFromCache;
+        return this.applySortAndReturn(SearchedData);
       }
-      return this.ResponseHelper.Error("Failed to read data");
+
+      // Direct documentId lookup - fastest path
+      if (this.baseQuery?.documentId !== undefined) {
+        const FilePath = Array.isArray(this.baseQuery.documentId)
+          ? this.baseQuery.documentId.map((id: any) => `${id}${General.DBMS_File_EXT}`)
+          : [`${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
+        const ReadResponse = await this.LoadAllBufferRawData(FilePath);
+        if ("data" in ReadResponse) {
+          await InMemoryCache.setCache(cacheKey, ReadResponse.data);
+          return this.ApplySkipAndLimit(ReadResponse.data);
+        }
+        return this.ResponseHelper.Error("Failed to read document by ID");
+      }
+
+      // Try index-based lookup first
+      const indexReader = new ReadIndex(this.path);
+      const indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
+      
+      let ReadResponse;
+      let usedIndex = false;
+      
+      if (indexedFileNames && indexedFileNames.length > 0) {
+        // Index hit - load only indexed files (much faster)
+        ReadResponse = await this.LoadAllBufferRawData(indexedFileNames);
+        usedIndex = true;
+      } else {
+        // No index match - full collection scan required
+        ReadResponse = await this.LoadAllBufferRawData();
+      }
+
+      if (!("data" in ReadResponse)) {
+        return this.ResponseHelper.Error("Failed to read data");
+      }
+
+      // If no query filters, return all data
+      if (Object.keys(this.baseQuery).length === 0) {
+        await InMemoryCache.setCache(cacheKey, ReadResponse.data);
+        return this.applySortAndReturn(ReadResponse.data);
+      }
+
+      // If we used index for exact match (single field, no operators), data is already filtered
+      if (usedIndex && this.isExactIndexMatch()) {
+        SearchedData = ReadResponse.data;
+      } else {
+        // Apply searcher for complex queries or partial index matches
+        const searcher: Searcher = new Searcher(ReadResponse.data);
+        SearchedData = await searcher.find(this.baseQuery);
+      }
+
+      // Cache the search results
+      await InMemoryCache.setCache(cacheKey, SearchedData);
+      
+      return this.applySortAndReturn(SearchedData);
     } catch (error) {
       return this.ResponseHelper.Error(error);
     }
+  }
+
+  /**
+   * Checks if the query is an exact match on a single indexed field (no operators)
+   */
+  private isExactIndexMatch(): boolean {
+    const queryKeys = Object.keys(this.baseQuery);
+    if (queryKeys.length !== 1) return false;
+    
+    const value = this.baseQuery[queryKeys[0]];
+    // Exact match if value is primitive (not an operator object)
+    return typeof value !== 'object' || value === null;
+  }
+
+  /**
+   * Applies sorting if needed and returns data with skip/limit
+   */
+  private async applySortAndReturn(data: any[]): Promise<SuccessInterface | ErrorInterface> {
+    if (Object.keys(this.sort).length === 0) {
+      return this.ApplySkipAndLimit(data);
+    }
+    const Sorter: Sorting = new Sorting(data, this.sort);
+    const SortedData: any[] = await Sorter.sort();
+    return this.ApplySkipAndLimit(SortedData);
   }
 
   /**

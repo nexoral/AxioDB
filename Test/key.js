@@ -12,11 +12,7 @@ const Data_To_Insert = {
   age: 21,
 };
 
-const DataTOArrayInsert = [
-  { name: "Ankan Saha", age: 21 },
-  { name: "John Doe", age: 30 },
-  { name: "Jane Smith", age: 25 },
-];
+
 
 const schema = {
   name: SchemaTypes.string().required(),
