@@ -10,13 +10,128 @@ const workerPath: string = path.resolve(
   "WorkerForSearch.engine.js",
 );
 
+// Compiled query cache for reusable regex and Set objects
+interface CompiledQuery {
+  key: string;
+  type: 'regex' | 'in_set' | 'range' | 'eq' | 'direct';
+  regex?: RegExp;
+  inSet?: Set<any>;
+  rangeOps?: { $gt?: number; $lt?: number; $gte?: number; $lte?: number };
+  eqValue?: any;
+  directValue?: any;
+}
+
 export default class Searcher {
   private data: any[];
   private isUpdated: boolean = false;
+  private compiledQueries: CompiledQuery[] | null = null;
 
   constructor(arr: any[], isUpdated: boolean = false) {
     this.data = arr;
     this.isUpdated = isUpdated;
+  }
+
+  /**
+   * Pre-compiles query operators for faster matching (regex, $in sets, etc.)
+   */
+  private compileQuery(query: { [key: string]: any }): CompiledQuery[] {
+    const compiled: CompiledQuery[] = [];
+    
+    for (const key of Object.keys(query)) {
+      if (key === '$or' || key === '$and') continue;
+      
+      const queryValue = query[key];
+      
+      if (typeof queryValue === "object" && queryValue !== null) {
+        // Handle $regex - pre-compile RegExp
+        if ("$regex" in queryValue) {
+          const pattern = queryValue["$regex"];
+          const flags = queryValue["$options"] || "i";
+          compiled.push({
+            key,
+            type: 'regex',
+            regex: pattern instanceof RegExp ? pattern : new RegExp(pattern, flags)
+          });
+        }
+        // Handle $in - convert to Set for O(1) lookup
+        else if ("$in" in queryValue && Array.isArray(queryValue["$in"])) {
+          compiled.push({
+            key,
+            type: 'in_set',
+            inSet: new Set(queryValue["$in"])
+          });
+        }
+        // Handle range operators
+        else if ("$gt" in queryValue || "$lt" in queryValue || "$gte" in queryValue || "$lte" in queryValue) {
+          compiled.push({
+            key,
+            type: 'range',
+            rangeOps: {
+              $gt: queryValue["$gt"],
+              $lt: queryValue["$lt"],
+              $gte: queryValue["$gte"],
+              $lte: queryValue["$lte"]
+            }
+          });
+        }
+        // Handle $eq
+        else if ("$eq" in queryValue) {
+          compiled.push({
+            key,
+            type: 'eq',
+            eqValue: queryValue["$eq"]
+          });
+        }
+      } else {
+        // Direct value comparison
+        compiled.push({
+          key,
+          type: 'direct',
+          directValue: queryValue
+        });
+      }
+    }
+    
+    return compiled;
+  }
+
+  /**
+   * Fast matching using pre-compiled query.
+   * Note: The item passed here should already be the actual data object to compare against.
+   * The caller (find method) handles extracting via additionalFiled if needed.
+   */
+  private matchWithCompiled(item: any, compiled: CompiledQuery[]): boolean {
+    if (!item) return false;
+    
+    for (const cq of compiled) {
+      const itemValue = item[cq.key];
+      
+      switch (cq.type) {
+        case 'regex':
+          if (itemValue === undefined || itemValue === null) return false;
+          if (!cq.regex!.test(String(itemValue))) return false;
+          break;
+        case 'in_set':
+          if (!cq.inSet!.has(itemValue)) return false;
+          break;
+        case 'range': {
+          if (typeof itemValue !== 'number') return false;
+          const ops = cq.rangeOps!;
+          if (ops.$gt !== undefined && !(itemValue > ops.$gt)) return false;
+          if (ops.$lt !== undefined && !(itemValue < ops.$lt)) return false;
+          if (ops.$gte !== undefined && !(itemValue >= ops.$gte)) return false;
+          if (ops.$lte !== undefined && !(itemValue <= ops.$lte)) return false;
+          break;
+        }
+        case 'eq':
+          if (itemValue !== cq.eqValue) return false;
+          break;
+        case 'direct':
+          if (itemValue !== cq.directValue) return false;
+          break;
+      }
+    }
+    return true;
   }
 
   /**
@@ -25,28 +140,42 @@ export default class Searcher {
    * Note: InMemoryCache at the Reader layer already handles query result caching.
    *
    * @param query - The query object containing conditions to match against items.
-   * @param aditionalFiled - Optional field to extract from each item for matching.
+   * @param additionalFiled - Optional field to extract from each item for matching.
    * @param findOne - If true, stops after finding the first match (early exit)
+   * @param limit - Optional limit for early termination (returns when limit reached)
    * @returns {Promise<any[]>} - A promise that resolves to an array of matching items.
    */
   public async find(
     query: { [key: string]: any },
     additionalFiled?: string | number | undefined,
     findOne: boolean = false,
+    limit?: number,
   ): Promise<any[]> {
-    // For small datasets or findOne, linear search is faster (avoid worker overhead)
-    if (this.data.length < 5000 || findOne) {
+    // Pre-compile query for faster matching
+    const hasLogicalOps = '$or' in query || '$and' in query;
+    const compiled = hasLogicalOps ? null : this.compileQuery(query);
+    const effectiveLimit = findOne ? 1 : limit;
+    
+    // For small datasets, findOne, or when limit is small - use optimized linear search
+    if (this.data.length < 5000 || findOne || (effectiveLimit && effectiveLimit < 100)) {
       const result: any[] = [];
       for (let i = 0; i < this.data.length; i++) {
         const rawItem = this.data[i];
         const item = additionalFiled ? rawItem[additionalFiled] : rawItem;
-        if (
-          item !== undefined &&
-          item !== null &&
-          Searcher.matchesQuery(item, query, this.isUpdated)
-        ) {
+        
+        if (item === undefined || item === null) continue;
+        
+        // Use compiled query for faster matching when no logical operators
+        const matches = compiled 
+          ? this.matchWithCompiled(item, compiled)
+          : Searcher.matchesQuery(item, query, this.isUpdated);
+          
+        if (matches) {
           result.push(rawItem);
-          if (findOne) return result; // Early exit for findOne
+          // Early termination when limit reached
+          if (effectiveLimit && result.length >= effectiveLimit) {
+            return result;
+          }
         }
       }
       return result;
@@ -136,14 +265,12 @@ export default class Searcher {
       // If queryValue is an object (for operators)
       if (typeof queryValue === "object" && queryValue !== null) {
         // Handle MongoDB-like operators with optimized checks
-        if (
-          "$regex" in queryValue &&
-          typeof queryValue["$regex"] === "string"
-        ) {
-          const regex = new RegExp(
-            queryValue["$regex"],
-            queryValue["$options"] || "i",
-          );
+        if ("$regex" in queryValue) {
+          // Support both pre-compiled RegExp and string patterns
+          const pattern = queryValue["$regex"];
+          const regex = pattern instanceof RegExp 
+            ? pattern 
+            : new RegExp(pattern, queryValue["$options"] || "i");
           if (!regex.test(itemValue)) return false;
           continue;
         }
@@ -177,7 +304,14 @@ export default class Searcher {
         }
 
         if ("$in" in queryValue && Array.isArray(queryValue["$in"])) {
-          if (!queryValue["$in"].includes(itemValue)) return false;
+          // Use Set for O(1) lookup on large arrays
+          const inArray = queryValue["$in"];
+          if (inArray.length > 10) {
+            const inSet = new Set(inArray);
+            if (!inSet.has(itemValue)) return false;
+          } else {
+            if (!inArray.includes(itemValue)) return false;
+          }
           continue;
         }
 
