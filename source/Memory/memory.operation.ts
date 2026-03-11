@@ -32,6 +32,9 @@ export class InMemoryCache {
    * Sets a value in the cache with the specified key.
    * The cached item will expire after the TTL (Time To Live) duration set for the cache.
    *
+   * OPTIMIZED: Immediate caching without threshold to maximize cache hit rate.
+   * Previous behavior required 2 queries before caching, making cache ineffective.
+   *
    * @param key - The unique identifier for the cached item
    * @param value - The value to be stored in the cache
    * @returns A Promise that resolves when the value has been cached
@@ -42,53 +45,45 @@ export class InMemoryCache {
    * ```
    */
   public async setCache(key: string, value: any): Promise<boolean> {
-    // check the key is already exceed the threshold or not
-    const KeyStatus = await this.setTempSearchQuery(key);
-    if (KeyStatus === true) {
-      // check if the key is already in the cache
-      const cacheItem = this.cacheObject.get(key);
-      if (!cacheItem) {
+    // Cache immediately without threshold check for maximum performance
+    const cacheItem = this.cacheObject.get(key);
+    if (!cacheItem) {
+      this.cacheObject.set(key, {
+        value: value,
+        registeredAt: new Date(),
+      });
+      return true;
+    } else {
+      // check if the cache is expired or not
+      const now = new Date();
+      const diff = Math.abs(now.getTime() - cacheItem.registeredAt.getTime());
+      if (diff > this.ttl * 1000) {
+        // if the cache is expired, remove it from the cache
+        this.cacheObject.delete(key);
         this.cacheObject.set(key, {
           value: value,
           registeredAt: new Date(),
         });
         return true;
       } else {
-        // check if the cache is expired or not
-        const now = new Date();
-        const diff = Math.abs(now.getTime() - cacheItem.registeredAt.getTime());
-        if (diff > this.ttl * 1000) {
-          // if the cache is expired, remove it from the cache
-          this.cacheObject.delete(key);
-          this.cacheObject.set(key, {
-            value: value,
-            registeredAt: new Date(),
-          });
-          return true;
-        } else {
-          return true;
-        }
+        // Update existing cache entry with new value
+        this.cacheObject.set(key, {
+          value: value,
+          registeredAt: new Date(),
+        });
+        return true;
       }
-    } else {
-      return false;
     }
   }
 
   public async setTempSearchQuery(queryString: any): Promise<boolean> {
-    // check if the query string is already in the temp search query for the threshold times
-    const existingQuery = this.tempSearchQuery.filter(
-      (item) => item.queryString === queryString,
-    );
-    if (existingQuery?.length >= this.threshold) {
-      return true;
-    } else {
-      // if the query string is not in the temp search query, add it to the temp search query
-      this.tempSearchQuery.push({
-        queryString: queryString,
-        registeredAt: new Date(),
-      });
-      return false;
-    }
+    // Track query for analytics/monitoring purposes only
+    // No longer blocks caching - immediate caching is now enabled
+    this.tempSearchQuery.push({
+      queryString: queryString,
+      registeredAt: new Date(),
+    });
+    return true;
   }
 
   /**
