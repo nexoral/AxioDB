@@ -224,7 +224,8 @@ export default class Transaction {
 
       await this.LockManager.releaseAllLocks(this.lockedDocuments);
 
-      await InMemoryCache.clearAllCache();
+      // Selective cache invalidation: only clear cache for this collection
+      await InMemoryCache.invalidateByCollection(this.collectionPath);
 
       await this.WAL.deleteWAL();
       await this.Registry.removeTransaction(this.transactionId);

@@ -147,7 +147,8 @@ export default class UpdateOperation {
             documentId,
           );
           if ("data" in InsertResponse) {
-            await InMemoryCache.clearAllCache(); // clear the cache
+            // Selective cache invalidation: only clear this collection's cache
+            await InMemoryCache.invalidateByDocument(this.path, documentId);
             return this.ResponseHelper.Success({
               message: "Data updated successfully",
               newData: documentOldData,
@@ -261,7 +262,8 @@ export default class UpdateOperation {
             return this.ResponseHelper.Error("Failed to delete file");
           }
         }
-        await InMemoryCache.clearAllCache(); // clear the cache
+        // Selective cache invalidation: only clear this collection's cache
+        await InMemoryCache.invalidateByDocuments(this.path, documentIds);
         return this.ResponseHelper.Success({
           message: "Data updated successfully",
           effectedData: SearchedData.length,

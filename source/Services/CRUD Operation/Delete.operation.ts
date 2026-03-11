@@ -122,7 +122,9 @@ export default class DeleteOperation {
       // Delete the file
       const deleteResponse = await this.deleteFile(fileName);
       if ("data" in deleteResponse) {
-        await InMemoryCache.clearAllCache(); // clear the cache
+        // Selective cache invalidation: extract documentId and clear only this collection
+        const documentId = fileName.split('.')[0];
+        await InMemoryCache.invalidateByDocument(this.path, documentId);
         return this.ResponseHelper.Success({
           message: "Data deleted successfully",
           deleteData: selectedFirstData?.data,
@@ -181,7 +183,9 @@ export default class DeleteOperation {
         }
       }
 
-      await InMemoryCache.clearAllCache(); // clear the cache
+      // Selective cache invalidation: extract all documentIds and clear only this collection
+      const documentIds = SearchedData.map((data) => data.fileName.split('.')[0]);
+      await InMemoryCache.invalidateByDocuments(this.path, documentIds);
 
       return this.ResponseHelper.Success({
         message: "Data deleted successfully",

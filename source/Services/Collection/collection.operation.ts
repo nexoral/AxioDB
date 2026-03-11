@@ -21,6 +21,7 @@ import { CryptoHelper } from "../../Helper/Crypto.helper";
 import Converter from "../../Helper/Converter.helper";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import InsertIndex from "../Index/InsertIndex.service";
+import { IndexCache } from "../Index/IndexCache.service";
 
 /**
  * Represents a collection inside a database.
@@ -35,6 +36,7 @@ export default class Collection {
   private Insertion: Insertion;
   private readonly encryptionKey: string | undefined;
   private readonly IndexManager: InsertIndex;
+  private readonly indexCache: IndexCache;
 
   constructor(
     name: string,
@@ -53,6 +55,12 @@ export default class Collection {
     // Initialize the Insertion class
     this.Insertion = new Insertion(this.name, this.path);
     this.IndexManager = new InsertIndex(this.path);
+
+    // Initialize and eagerly load index cache for maximum query performance
+    this.indexCache = new IndexCache(this.path);
+    this.indexCache.loadAllIndexes().catch(() => {
+      // Silent failure - indexes will load on demand from disk (cold start recovery)
+    });
 
     // Recover any pending transactions on initialization
     Transaction.recoverTransactions(this.path).catch(() => {
