@@ -1,14 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IndexManager } from "./Index.service";
+import { IndexCache } from "./IndexCache.service";
 
 export class ReadIndex extends IndexManager {
+  private indexCache: IndexCache;
 
   constructor (path: string){
-    super(path)
+    super(path);
+    this.indexCache = new IndexCache(path);
   }
 
   /**
    * Retrieve file path(s) from an index that match the provided query.
+   *
+   * OPTIMIZED: Uses in-memory index cache for O(1) lookups instead of disk I/O.
+   * Falls back to disk on cache miss (cold start recovery).
    *
    * @param query - An object containing the value to look up. The concrete lookup key is determined
    *                by the matched index metadata's `fieldName` (i.e. the method will use
@@ -20,28 +26,41 @@ export class ReadIndex extends IndexManager {
    *          value may be undefined at runtime (callers should guard against a missing entry).
    *
    * @remarks
-   * - This method calls `findMatchingIndexMeta(query)` to locate the appropriate index metadata.
-   * - When a match is found, it reads the index file via `fileManager.ReadFile(...)` and converts the
-   *   file content to an object using `converter.ToObject(...)`.
-   * - The resolved object is expected to have `indexEntries` and `fieldName` properties. The method
-   *   uses `indexEntries[query[fieldName]]` to obtain the associated file list.
-   * - The index object is logged to the console for debugging purposes.
+   * - Tries memory cache first for maximum performance (no disk I/O)
+   * - Falls back to disk on cache miss (cold start recovery)
+   * - Skips index for complex operators ($regex, $in, $gt, etc.) - full scan required
    *
    * @throws The returned promise will reject if reading or parsing the index file fails (for example,
    *         due to I/O errors or converter failures).
    */
   public async getFileFromIndex (query: any) : Promise <string[]>{
-    const matchedIndexFile = await this.findMatchingIndexMeta(query)
+    const matchedIndexFile = await this.findMatchingIndexMeta(query);
     if(matchedIndexFile !== undefined) {
+      // FAST PATH: Try to get from memory cache first (O(1), no disk I/O)
+      const indexData = await this.indexCache.getIndex(matchedIndexFile.indexFieldName);
+
+      if (indexData) {
+        // Memory cache hit - use cached index data
+        const queryValue = query[indexData.fieldName];
+
+        // Skip index lookup for complex query operators
+        if (typeof queryValue === 'object' && queryValue !== null) {
+          return [];
+        }
+
+        const finalValueFiles = indexData.indexEntries[queryValue];
+        return finalValueFiles || [];
+      }
+
+      // Cache miss - fall back to disk read (cold start recovery)
       const metaContent = this.converter.ToObject((await this.fileManager.ReadFile(matchedIndexFile.path)).data);
       const queryValue = query[metaContent.fieldName];
-      
-      // Skip index lookup for complex query operators ($regex, $in, $gt, etc.)
-      // These require full scan - index can't help
+
+      // Skip index lookup for complex query operators
       if (typeof queryValue === 'object' && queryValue !== null) {
         return [];
       }
-      
+
       const finalValueFiles = metaContent.indexEntries[queryValue];
       return finalValueFiles || [];
     }

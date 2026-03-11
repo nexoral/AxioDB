@@ -2,20 +2,35 @@
 import os from "os";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
 /**
- * @description This class is responsible for caching data in memory
+ * Cache entry with random TTL for improved performance
+ */
+interface CacheEntry {
+  value: any;
+  registeredAt: Date;
+  ttl: number;        // Random TTL in milliseconds (5-15 min)
+  expiresAt: Date;    // Pre-computed expiration timestamp
+}
+
+/**
+ * @description This class is responsible for caching data in memory with smart TTL management
  * @class InMemoryCache
  * @export InMemoryCache
- * @version 1.0.1
+ * @version 2.0.0
  * @since 23 April 2025
+ *
+ * Features:
+ * - Random TTL per entry (5-15 minutes) to prevent cache stampede
+ * - Selective cache invalidation by collection/document
+ * - Auto-cleanup of expired entries
  **/
 export class InMemoryCache {
   // Properties
-  private readonly ttl: number;
-  private cacheObject: Map<string, { value: any; registeredAt: Date }>;
+  private readonly ttl: number;  // Kept for backward compatibility
+  private cacheObject: Map<string, CacheEntry>;
   private tempSearchQuery: Array<{ queryString: any; registeredAt: Date }> = [];
   private readonly autoResetCacheInterval: number = 86400; // 24 hours
-  private readonly threshold: number = 2; // 2 times
   /**
    * Creates a new instance of the cache operation class
    * @param TTL - Time to live in seconds for cache entries. Defaults to 86400 seconds (24 hours)
@@ -29,8 +44,26 @@ export class InMemoryCache {
   }
 
   /**
+   * Generates a random TTL between 5-15 minutes
+   * This prevents cache stampede (thundering herd problem)
+   *
+   * @returns Random TTL in milliseconds
+   * @private
+   */
+  private generateRandomTTL(): number {
+    const MIN_TTL = 5 * 60 * 1000;   // 5 minutes in milliseconds
+    const MAX_TTL = 15 * 60 * 1000;  // 15 minutes in milliseconds
+    return Math.floor(Math.random() * (MAX_TTL - MIN_TTL + 1)) + MIN_TTL;
+  }
+
+  /**
    * Sets a value in the cache with the specified key.
-   * The cached item will expire after the TTL (Time To Live) duration set for the cache.
+   * Each cache entry gets a random TTL (5-15 minutes) to prevent cache stampede.
+   *
+   * OPTIMIZED:
+   * - Immediate caching without threshold
+   * - Random TTL per entry prevents synchronized expiration
+   * - Pre-computed expiration time for O(1) validation
    *
    * @param key - The unique identifier for the cached item
    * @param value - The value to be stored in the cache
@@ -42,65 +75,51 @@ export class InMemoryCache {
    * ```
    */
   public async setCache(key: string, value: any): Promise<boolean> {
-    // check the key is already exceed the threshold or not
-    const KeyStatus = await this.setTempSearchQuery(key);
-    if (KeyStatus === true) {
-      // check if the key is already in the cache
-      const cacheItem = this.cacheObject.get(key);
-      if (!cacheItem) {
-        this.cacheObject.set(key, {
-          value: value,
-          registeredAt: new Date(),
-        });
-        return true;
-      } else {
-        // check if the cache is expired or not
-        const now = new Date();
-        const diff = Math.abs(now.getTime() - cacheItem.registeredAt.getTime());
-        if (diff > this.ttl * 1000) {
-          // if the cache is expired, remove it from the cache
-          this.cacheObject.delete(key);
-          this.cacheObject.set(key, {
-            value: value,
-            registeredAt: new Date(),
-          });
-          return true;
-        } else {
-          return true;
-        }
-      }
-    } else {
-      return false;
-    }
+    const ttl = this.generateRandomTTL();
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + ttl);
+
+    this.cacheObject.set(key, {
+      value: value,
+      registeredAt: now,
+      ttl: ttl,
+      expiresAt: expiresAt,
+    });
+
+    return true;
   }
 
   public async setTempSearchQuery(queryString: any): Promise<boolean> {
-    // check if the query string is already in the temp search query for the threshold times
-    const existingQuery = this.tempSearchQuery.filter(
-      (item) => item.queryString === queryString,
-    );
-    if (existingQuery?.length >= this.threshold) {
-      return true;
-    } else {
-      // if the query string is not in the temp search query, add it to the temp search query
-      this.tempSearchQuery.push({
-        queryString: queryString,
-        registeredAt: new Date(),
-      });
-      return false;
-    }
+    // Track query for analytics/monitoring purposes only
+    // No longer blocks caching - immediate caching is now enabled
+    this.tempSearchQuery.push({
+      queryString: queryString,
+      registeredAt: new Date(),
+    });
+    return true;
   }
 
   /**
    * Retrieves a value from the cache using the specified key
+   * Validates TTL expiration and auto-deletes expired entries
+   *
    * @param key - The unique identifier to lookup in the cache
-   * @returns A Promise that resolves to the cached value if found and not expired, null otherwise
+   * @returns A Promise that resolves to the cached value if found and not expired, false otherwise
    */
   public async getCache(key: string): Promise<any | boolean> {
     const cacheItem = this.cacheObject.get(key);
     if (!cacheItem) {
       return false;
     }
+
+    // Check if expired using pre-computed expiresAt
+    const now = new Date();
+    if (now >= cacheItem.expiresAt) {
+      // Lazy cleanup: Remove expired entry
+      this.cacheObject.delete(key);
+      return false;
+    }
+
     return cacheItem.value;
   }
 
@@ -115,6 +134,75 @@ export class InMemoryCache {
     this.cacheObject.clear();
     this.tempSearchQuery = [];
     return true;
+  }
+
+  /**
+   * Invalidates all cache entries for a specific collection
+   * Used for selective cache invalidation to preserve unrelated caches
+   *
+   * @param collectionPath - The filesystem path to the collection (e.g., "/db/users")
+   * @returns A Promise that resolves to true when invalidation is complete
+   *
+   * @example
+   * ```typescript
+   * await cache.invalidateByCollection('/db/users');
+   * // Only /db/users cache cleared, /db/orders cache remains
+   * ```
+   */
+  public async invalidateByCollection(collectionPath: string): Promise<boolean> {
+    const keysToDelete: string[] = [];
+
+    // Find all cache keys belonging to this collection
+    for (const [key] of this.cacheObject.entries()) {
+      // Cache keys format: {collectionPath}::{query}::{limit}::{skip}::{sort}
+      if (key.startsWith(`${collectionPath}::`)) {
+        keysToDelete.push(key);
+      }
+    }
+
+    // Batch delete for performance
+    keysToDelete.forEach(key => this.cacheObject.delete(key));
+
+    return true;
+  }
+
+  /**
+   * Invalidates cache entries that could be affected by a single document update/delete
+   *
+   * Strategy: Conservative - invalidates entire collection cache because we can't
+   * determine which queries matched this specific document without re-executing them.
+   *
+   * @param collectionPath - The filesystem path to the collection
+   * @param documentId - The ID of the document that was modified (used for logging/future optimization)
+   * @returns A Promise that resolves to true when invalidation is complete
+   *
+   * @example
+   * ```typescript
+   * await cache.invalidateByDocument('/db/users', 'user123');
+   * ```
+   */
+  public async invalidateByDocument(collectionPath: string, documentId: string): Promise<boolean> {
+    // Conservative approach: invalidate entire collection
+    // Reason: Can't determine which queries matched this document without re-executing
+    // Alternative (complex): Maintain reverse index of documentId -> cache keys
+    return this.invalidateByCollection(collectionPath);
+  }
+
+  /**
+   * Invalidates cache entries affected by multiple document updates/deletes
+   *
+   * @param collectionPath - The filesystem path to the collection
+   * @param documentIds - Array of document IDs that were modified
+   * @returns A Promise that resolves to true when invalidation is complete
+   *
+   * @example
+   * ```typescript
+   * await cache.invalidateByDocuments('/db/users', ['user1', 'user2', 'user3']);
+   * ```
+   */
+  public async invalidateByDocuments(collectionPath: string, documentIds: string[]): Promise<boolean> {
+    // Same conservative strategy as single document
+    return this.invalidateByCollection(collectionPath);
   }
 
   /**
@@ -181,14 +269,10 @@ export class InMemoryCache {
 
   /**
    * Sets up an automatic cache reset mechanism.
-   * This method creates an interval timer that periodically checks and removes expired items from the cache.
+   * Periodically cleans up expired cache entries and old search query tracking.
    *
-   * The method performs the following operations:
-   * 1. Checks if the cache is empty, and returns early if it is.
-   * 2. Iterates through all cache items and removes those that have expired based on the `autoResetCacheInterval`.
-   * 3. Filters out expired temporary search queries based on the same interval.
-   *
-   * The interval for this automatic reset is determined by the `ttl` (time-to-live) property.
+   * OPTIMIZED: Uses pre-computed expiresAt for O(1) expiration checks
+   * instead of computing time differences.
    *
    * @private
    * @returns {Promise<void>} A promise that resolves when the interval is set up.
@@ -196,25 +280,25 @@ export class InMemoryCache {
   private async autoResetCache(): Promise<void> {
     setInterval(
       () => {
-        // check if the cache is empty or not
-        if (Object.keys(this.cacheObject).length === 0) {
+        // Check if cache is empty
+        if (this.cacheObject.size === 0) {
           return;
         }
-        // check if the cache is expired or not
-        // if the cache is expired, remove it from the cache
+
         const now = new Date();
-        for (const key in this.cacheObject) {
-          const cacheItem = this.cacheObject.get(key);
-          if (cacheItem) {
-            const diff = Math.abs(
-              now.getTime() - cacheItem.registeredAt.getTime(),
-            );
-            if (diff > this.autoResetCacheInterval * 1000) {
-              this.cacheObject.delete(key);
-            }
+        const keysToDelete: string[] = [];
+
+        // Collect expired entries using pre-computed expiresAt
+        for (const [key, cacheItem] of this.cacheObject.entries()) {
+          if (now >= cacheItem.expiresAt) {
+            keysToDelete.push(key);
           }
         }
-        // also remove the expired temp search queries
+
+        // Batch delete for performance
+        keysToDelete.forEach(key => this.cacheObject.delete(key));
+
+        // Clean up old temp search queries (24-hour retention)
         this.tempSearchQuery = this.tempSearchQuery.filter((item) => {
           const diff = Math.abs(now.getTime() - item.registeredAt.getTime());
           return diff < this.autoResetCacheInterval * 1000;

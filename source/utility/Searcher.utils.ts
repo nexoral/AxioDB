@@ -275,31 +275,14 @@ export default class Searcher {
           continue;
         }
 
-        if ("$gt" in queryValue) {
-          if (!(typeof itemValue === "number" && itemValue > queryValue["$gt"]))
-            return false;
-          continue;
-        }
-
-        if ("$lt" in queryValue) {
-          if (!(typeof itemValue === "number" && itemValue < queryValue["$lt"]))
-            return false;
-          continue;
-        }
-
-        if ("$gte" in queryValue) {
-          if (
-            !(typeof itemValue === "number" && itemValue >= queryValue["$gte"])
-          )
-            return false;
-          continue;
-        }
-
-        if ("$lte" in queryValue) {
-          if (
-            !(typeof itemValue === "number" && itemValue <= queryValue["$lte"])
-          )
-            return false;
+        // Handle range operators - check all that are present (don't use continue to allow combined $gte + $lte)
+        const hasRangeOp = "$gt" in queryValue || "$lt" in queryValue || "$gte" in queryValue || "$lte" in queryValue;
+        if (hasRangeOp) {
+          if (typeof itemValue !== "number") return false;
+          if ("$gt" in queryValue && !(itemValue > queryValue["$gt"])) return false;
+          if ("$lt" in queryValue && !(itemValue < queryValue["$lt"])) return false;
+          if ("$gte" in queryValue && !(itemValue >= queryValue["$gte"])) return false;
+          if ("$lte" in queryValue && !(itemValue <= queryValue["$lte"])) return false;
           continue;
         }
 

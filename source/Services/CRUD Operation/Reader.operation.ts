@@ -72,15 +72,35 @@ export default class Reader {
   }
 
   /**
+   * Generates a comprehensive cache key including collection context
+   * Prevents cache collisions between different collections with same query
+   *
+   * Format: {collectionPath}::{query}::{limit}::{skip}::{sort}
+   *
+   * @returns Cache key string
+   * @private
+   */
+  private generateCacheKey(): string {
+    const components = [
+      this.path,  // Collection path prevents cross-collection collisions
+      this.Converter.ToString(this.baseQuery),
+      this.limit?.toString() ?? 'all',
+      this.skip?.toString() ?? '0',
+      Object.keys(this.sort).length > 0 ? this.Converter.ToString(this.sort) : 'nosort'
+    ];
+    return components.join('::');
+  }
+
+  /**
    * Reads the data from a file.
    * @returns {Promise<any>} A promise that resolves with the response of the read operation.
    */
   public async exec(): Promise<SuccessInterface | ErrorInterface> {
     try {
       let SearchedData: any[] = [];
-      
-      // Generate cache key based on full query context
-      const cacheKey = this.Converter.ToString(this.baseQuery);
+
+      // Generate cache key with collection context (fixes cache collision bug)
+      const cacheKey = this.generateCacheKey();
       
       // Check if result is in cache
       const responseFromCache = await InMemoryCache.getCache(cacheKey);
@@ -96,7 +116,8 @@ export default class Reader {
           : [`${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
         const ReadResponse = await this.LoadAllBufferRawData(FilePath);
         if ("data" in ReadResponse) {
-          await InMemoryCache.setCache(cacheKey, ReadResponse.data);
+          // Fire-and-forget: Cache asynchronously
+          InMemoryCache.setCache(cacheKey, ReadResponse.data).catch(() => {});
           return this.ApplySkipAndLimit(ReadResponse.data);
         }
         return this.ResponseHelper.Error("Failed to read document by ID");
@@ -124,7 +145,8 @@ export default class Reader {
 
       // If no query filters, return all data
       if (Object.keys(this.baseQuery).length === 0) {
-        await InMemoryCache.setCache(cacheKey, ReadResponse.data);
+        // Fire-and-forget: Cache asynchronously
+        InMemoryCache.setCache(cacheKey, ReadResponse.data).catch(() => {});
         return this.applySortAndReturn(ReadResponse.data);
       }
 
@@ -137,8 +159,8 @@ export default class Reader {
         SearchedData = await searcher.find(this.baseQuery);
       }
 
-      // Cache the search results
-      await InMemoryCache.setCache(cacheKey, SearchedData);
+      // Fire-and-forget: Cache asynchronously
+      InMemoryCache.setCache(cacheKey, SearchedData).catch(() => {});
       
       return this.applySortAndReturn(SearchedData);
     } catch (error) {

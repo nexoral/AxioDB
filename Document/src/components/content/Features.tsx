@@ -64,9 +64,9 @@ const Features: React.FC = () => {
               </h3>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-              Automated cache lifecycle management with smart eviction policies,
-              TTL support, and memory optimization ensuring optimal performance
-              in production environments.
+              Lazy caching with random TTL (5-15 min) to prevent cache stampede,
+              selective cache invalidation per collection, and automatic index
+              cache cleanup for memory optimization in production environments.
             </p>
           </div>
         </div>

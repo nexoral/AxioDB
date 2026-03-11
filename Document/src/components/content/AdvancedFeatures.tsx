@@ -1,4 +1,4 @@
-import { Code, Database, Lock, RefreshCw, Rocket } from "lucide-react";
+import { Code, Database, GitBranch, Lock, RefreshCw, Rocket } from "lucide-react";
 import React, { useState } from "react";
 import Button from "../ui/Button";
 import CodeBlock from "../ui/CodeBlock";
@@ -200,6 +200,44 @@ const complexQuery = await UserCollection
   .exec();
 
 console.log("All indexed queries executed efficiently!");`,
+    transactions: `// ACID-compliant transactions with savepoints and rollback
+const { AxioDB } = require("axiodb");
+
+const Instance = new AxioDB(true);
+const UserDB = await Instance.createDB("MyDB");
+const UserCollection = await UserDB.createCollection("Users");
+
+// Method 1: Using withTransaction (auto-commit/rollback)
+const session = UserCollection.startSession();
+await session.withTransaction(async (tx) => {
+  await tx.insert({ name: "Alice", balance: 1000 });
+  await tx.insert({ name: "Bob", balance: 500 });
+  await tx.update({ name: "Alice" }, { balance: 900 });
+  await tx.update({ name: "Bob" }, { balance: 600 });
+  // Auto-commits on success, auto-rollbacks on error
+});
+
+// Method 2: Manual transaction control with savepoints
+const transaction = UserCollection.startSession().startTransaction();
+
+// Insert initial data
+await transaction.insert({ name: "Charlie", balance: 1000 });
+transaction.savepoint("after_charlie");
+
+// Make more changes
+await transaction.insert({ name: "David", balance: 500 });
+await transaction.update({ name: "Charlie" }, { balance: 800 });
+
+// Oops! Rollback to savepoint
+transaction.rollbackToSavepoint("after_charlie");
+
+// Continue with different changes
+await transaction.insert({ name: "Eve", balance: 750 });
+
+// Commit all changes
+await transaction.commit();
+
+console.log("Transaction completed successfully!");`,
   };
 
   return (
@@ -281,6 +319,14 @@ console.log("All indexed queries executed efficiently!");`,
           <Rocket className="h-4 w-4 mr-2" />
           Performance Indexing
         </Button>
+        <Button
+          variant={activeFeature === "transactions" ? "primary" : "outline"}
+          onClick={() => setActiveFeature("transactions")}
+          className="group transition-all duration-200 hover:scale-105"
+        >
+          <GitBranch className="h-4 w-4 mr-2" />
+          Transactions
+        </Button>
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 lg:p-10 shadow-xl border border-slate-200 dark:border-slate-700 mb-12 transition-all duration-300 hover:shadow-2xl">
@@ -295,6 +341,8 @@ console.log("All indexed queries executed efficiently!");`,
             "Flexible Collection Configurations"}
           {activeFeature === "indexing" &&
             "High-Performance Field Indexing"}
+          {activeFeature === "transactions" &&
+            "ACID-Compliant Transactions"}
         </h3>
 
         <p className="text-lg text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
@@ -307,9 +355,11 @@ console.log("All indexed queries executed efficiently!");`,
           {activeFeature === "operations" &&
             "Implement robust data manipulation strategies with advanced update and delete operations, supporting complex queries, batch processing, and atomic transactions for data consistency."}
           {activeFeature === "collection-types" &&
-            "Choose from five specialized collection configurations designed for different use cases, from basic storage to fully encrypted collections with comprehensive schema validation for enterprise applications."}
+            "Choose from specialized collection configurations designed for different use cases, from basic storage to fully encrypted collections for enterprise applications."}
           {activeFeature === "indexing" &&
             "Dramatically boost query performance by creating custom indexes on frequently queried fields. Supports single and multi-field indexes for optimized lookups, range queries, sorting, and complex filtering operations—essential for large datasets and high-traffic applications."}
+          {activeFeature === "transactions" &&
+            "Ensure data integrity with ACID-compliant transactions featuring savepoints, rollback capabilities, and Write-Ahead Logging (WAL) for crash recovery. Perfect for financial operations, inventory management, and any use case requiring atomic operations."}
         </p>
 
         <CodeBlock
@@ -394,17 +444,17 @@ console.log("All indexed queries executed efficiently!");`,
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
-                <Lock className="h-8 w-8 text-white" />
+                <GitBranch className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                Advanced Schema Validation
+                ACID Transactions
               </h3>
             </div>
 
             <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed text-lg">
-              Implement robust data integrity with comprehensive schema
-              validation rules, ensuring data quality and consistency across
-              your entire application.
+              Full ACID compliance with atomic operations, commit/rollback
+              support, and Write-Ahead Logging for crash recovery and data
+              integrity.
             </p>
 
             <div className="space-y-3">
@@ -412,14 +462,14 @@ console.log("All indexed queries executed efficiently!");`,
                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                 <div>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    Type Validation:
+                    Transaction Control:
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
                     <code className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 px-2 py-1 rounded text-green-700 dark:text-green-300 font-semibold border border-green-200 dark:border-green-800 text-sm">
-                      string()
+                      startTransaction()
                     </code>
                     <code className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 px-2 py-1 rounded text-green-700 dark:text-green-300 font-semibold border border-green-200 dark:border-green-800 text-sm">
-                      number()
+                      commit()
                     </code>
                   </div>
                 </div>
@@ -428,10 +478,10 @@ console.log("All indexed queries executed efficiently!");`,
                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                 <div>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    Field Requirements:
+                    Rollback Support:
                   </span>
                   <code className="ml-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 px-2 py-1 rounded text-green-700 dark:text-green-300 font-semibold border border-green-200 dark:border-green-800 text-sm">
-                    .required()
+                    rollback()
                   </code>
                 </div>
               </div>
@@ -439,19 +489,11 @@ console.log("All indexed queries executed efficiently!");`,
                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                 <div>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
-                    Value Constraints:
+                    Crash Recovery:
                   </span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    <code className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 px-2 py-1 rounded text-green-700 dark:text-green-300 font-semibold border border-green-200 dark:border-green-800 text-sm">
-                      .min()
-                    </code>
-                    <code className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 px-2 py-1 rounded text-green-700 dark:text-green-300 font-semibold border border-green-200 dark:border-green-800 text-sm">
-                      .max()
-                    </code>
-                    <code className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 px-2 py-1 rounded text-green-700 dark:text-green-300 font-semibold border border-green-200 dark:border-green-800 text-sm">
-                      .email()
-                    </code>
-                  </div>
+                  <code className="ml-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 px-2 py-1 rounded text-green-700 dark:text-green-300 font-semibold border border-green-200 dark:border-green-800 text-sm">
+                    Write-Ahead Logging
+                  </code>
                 </div>
               </div>
             </div>

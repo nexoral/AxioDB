@@ -32,8 +32,8 @@ class ReadOptimizationTests extends TestRunner {
     // Create indexes before inserting data
     await this.collection.newIndex('name', 'email', 'age', 'category');
 
-    // Generate and insert large dataset (1000 docs for manageable test time)
-    this.largeDataset = fixtures.generateUsers(1000);
+    // Generate and insert large dataset (10000 docs for realistic benchmark)
+    this.largeDataset = fixtures.generateUsers(10000);
     await this.collection.insertMany(this.largeDataset);
 
     this.log(`Test environment ready with ${this.largeDataset.length} documents`, 'success');
@@ -208,8 +208,8 @@ class ReadOptimizationTests extends TestRunner {
 
         assert.isSuccess(result);
         assert.equal(result.data.documents.length, 5);
-        // With worker thread overhead, allow up to 1 second
-        assert.performanceWithin(duration, 1000, 'Small limit should enable early termination');
+        // With 10K docs and worker thread overhead, allow up to 2 seconds
+        assert.performanceWithin(duration, 2000, 'Small limit should enable early termination');
         this.log(`     Limit 5 query completed in ${duration}ms`, 'gray');
       });
 
@@ -301,7 +301,7 @@ class ReadOptimizationTests extends TestRunner {
       await this.test('Benchmark: Full scan vs indexed query', async () => {
         // Full scan (no query)
         const fullScanStart = Date.now();
-        await this.collection.query({}).Limit(1000).exec();
+        await this.collection.query({}).Limit(10000).exec();
         const fullScanTime = Date.now() - fullScanStart;
 
         // Indexed query
@@ -309,12 +309,12 @@ class ReadOptimizationTests extends TestRunner {
         await this.collection.query({ name: 'Alice500' }).exec();
         const indexedTime = Date.now() - indexedStart;
 
-        this.log(`     Full scan (1000 docs): ${fullScanTime}ms`, 'gray');
+        this.log(`     Full scan (10000 docs): ${fullScanTime}ms`, 'gray');
         this.log(`     Indexed query: ${indexedTime}ms`, 'gray');
 
         // With worker threads, indexed queries may have startup overhead
         // Just verify both complete successfully without timeout
-        assert.ok(fullScanTime < 5000, 'Full scan should complete within 5 seconds');
+        assert.ok(fullScanTime < 30000, 'Full scan should complete within 30 seconds');
         assert.ok(indexedTime < 5000, 'Indexed query should complete within 5 seconds');
       });
     });
