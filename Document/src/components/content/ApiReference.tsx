@@ -728,6 +728,119 @@ console.log('Top departments:', stats.data);`,
         },
       ],
     },
+    {
+      title: "Collection - Transaction Operations",
+      methods: [
+        {
+          name: "startTransaction",
+          signature: "startTransaction(): Promise<Transaction>",
+          description: "Starts a new transaction for atomic operations. All operations within a transaction are isolated and can be committed together or rolled back if any operation fails. Provides ACID-like guarantees for multiple operations.",
+          example: `// Start a transaction
+const transaction = await collection.startTransaction();
+
+// Operations within transaction are isolated
+await transaction.insert({ name: 'Alice', balance: 1000 });
+await transaction.insert({ name: 'Bob', balance: 500 });
+
+// Commit all changes atomically
+await transaction.commit();`,
+          returns: "Promise<Transaction>: A transaction instance for chaining operations.",
+        },
+        {
+          name: "transaction.insert",
+          signature: "transaction.insert(document: object): Promise<SuccessInterface>",
+          description: "Inserts a document within the transaction context. The document is staged but not persisted until commit() is called. If rollback() is called, this insert will be discarded.",
+          example: `const transaction = await collection.startTransaction();
+
+// Insert multiple documents in transaction
+await transaction.insert({ type: 'debit', amount: 100 });
+await transaction.insert({ type: 'credit', amount: 100 });
+
+await transaction.commit();`,
+          returns: "Promise<SuccessInterface>: Success or error response.",
+        },
+        {
+          name: "transaction.update",
+          signature: "transaction.update(query: object, update: object): Promise<SuccessInterface>",
+          description: "Updates documents matching the query within the transaction. Changes are staged until commit(). Original values are preserved for potential rollback.",
+          example: `const transaction = await collection.startTransaction();
+
+// Transfer funds between accounts
+await transaction.update(
+  { accountId: 'A123' },
+  { $inc: { balance: -500 } }
+);
+await transaction.update(
+  { accountId: 'B456' },
+  { $inc: { balance: 500 } }
+);
+
+await transaction.commit();`,
+          returns: "Promise<SuccessInterface>: Success or error response.",
+        },
+        {
+          name: "transaction.delete",
+          signature: "transaction.delete(query: object): Promise<SuccessInterface>",
+          description: "Deletes documents matching the query within the transaction. Deletion is staged until commit(). Documents are preserved for potential rollback.",
+          example: `const transaction = await collection.startTransaction();
+
+// Delete and log in single transaction
+await transaction.delete({ status: 'expired' });
+await transaction.insert({
+  type: 'audit',
+  action: 'cleanup',
+  timestamp: Date.now()
+});
+
+await transaction.commit();`,
+          returns: "Promise<SuccessInterface>: Success or error response.",
+        },
+        {
+          name: "transaction.commit",
+          signature: "commit(): Promise<SuccessInterface>",
+          description: "Commits all staged operations in the transaction atomically. If any operation fails during commit, all changes are automatically rolled back. After commit, the transaction cannot be reused.",
+          example: `const transaction = await collection.startTransaction();
+
+try {
+  await transaction.insert({ orderId: 'ORD001', total: 299.99 });
+  await transaction.update(
+    { productId: 'PROD001' },
+    { $inc: { stock: -1 } }
+  );
+  
+  // Commit all changes
+  const result = await transaction.commit();
+  console.log('Transaction committed:', result.status);
+} catch (error) {
+  console.error('Transaction failed:', error);
+}`,
+          returns: "Promise<SuccessInterface>: Commit result with status.",
+        },
+        {
+          name: "transaction.rollback",
+          signature: "rollback(): Promise<SuccessInterface>",
+          description: "Discards all staged operations and restores the collection to its state before the transaction began. Use this when you need to cancel operations due to validation failures or business logic conditions.",
+          example: `const transaction = await collection.startTransaction();
+
+await transaction.update(
+  { accountId: 'sender' },
+  { $inc: { balance: -1000 } }
+);
+
+// Check if sender has sufficient balance
+const sender = await collection.query({ accountId: 'sender' }).findOne();
+if (sender.data.balance < 0) {
+  // Rollback if insufficient funds
+  await transaction.rollback();
+  console.log('Transaction rolled back: Insufficient funds');
+  return;
+}
+
+await transaction.commit();`,
+          returns: "Promise<SuccessInterface>: Rollback confirmation.",
+        },
+      ],
+    },
   ];
 
   return (

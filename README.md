@@ -38,7 +38,7 @@ SQLite is great, but it requires native bindings that break in Electron and cros
 
 ## 🚀 Key Features
 
-- **Intelligent Caching:** Advanced `InMemoryCache` system with automatic eviction policies and smart data persistence
+- **Intelligent Caching:** Advanced `InMemoryCache` system with automatic eviction policies, random TTL (5-15 min), and smart data persistence
 - **Production Security:** Enterprise-grade AES-256 encryption for sensitive cached data and secure access controls
 - **Frontend Integration:** Seamless integration with React, Vue, Angular, and all modern frontend frameworks
 - **Chainable Query Methods:** Fluent API for real-time data retrieval and filtering (`.query()`, `.Sort()`, `.Limit()`, `.Skip()`)
@@ -46,10 +46,46 @@ SQLite is great, but it requires native bindings that break in Electron and cros
 - **Bulk Operations:** High-performance bulk insert, update, and delete operations (`insertMany`, `UpdateMany`, `DeleteMany`)
 - **Tree-like Structure:** Hierarchical data storage for efficient retrieval and organization
 - **Auto Indexing:** Optimized indexes on document IDs for lightning-fast queries
+- **Index Cache with TTL:** In-memory index cache with automatic expiration (5-15 min random TTL) and disk persistence
+- **Selective Cache Invalidation:** Smart cache invalidation that only clears affected entries on updates/deletes
+- **Transaction Support:** ACID-compliant transactions with savepoints, rollback, and Write-Ahead Logging (WAL)
 - **Single Instance Architecture:** Unified management for unlimited databases, collections, and documents
 - **Web-Based GUI Dashboard:** Visual database administration, query execution, and real-time monitoring at `localhost:27018`
 - **Zero-Configuration Setup:** Serverless architecture—install and start building instantly
 - **Custom Database Path:** Flexible storage locations for better project organization
+
+---
+
+## 🆕 Recent Enhancements (v5.33+)
+
+### Transaction Support
+Full ACID-compliant transaction support with:
+- **Savepoints:** Create intermediate checkpoints within transactions
+- **Rollback:** Revert to previous state on errors
+- **Write-Ahead Logging (WAL):** Crash recovery and data durability
+- **Session Management:** Scoped transactions with timeout support
+
+```javascript
+// Transaction example
+const session = collection.startSession();
+await session.withTransaction(async (tx) => {
+  await tx.insert({ name: 'Alice', balance: 1000 });
+  await tx.update({ name: 'Bob' }, { $inc: { balance: -100 } });
+  // Auto-commits on success, auto-rollbacks on error
+});
+```
+
+### Enhanced Index System
+- **Index Cache with TTL:** Random 5-15 minute TTL prevents cache stampede
+- **Automatic Document Removal:** Documents are automatically removed from indexes when deleted
+- **Dual-Write Pattern:** Indexes persist to both memory (speed) and disk (durability)
+- **Cold Start Recovery:** Indexes reload from disk automatically on server restart
+
+### Intelligent Cache System
+- **Selective Invalidation:** Only affected cache entries are cleared on update/delete
+- **Random TTL:** 5-15 minute random expiration prevents thundering herd
+- **Async Operations:** Non-blocking cache updates for faster response times
+- **Collection-Scoped Keys:** Cache keys include collection path to prevent collisions
 
 ---
 
@@ -246,9 +282,11 @@ console.log(results);
 - **Encryption:** Military-grade AES-256 encryption for collections
 - **Bulk Operations:** Efficient batch insert, update, and delete
 - **Flexible Collection Types:** Basic or encrypted
-- **Custom Query Operators:** `$gt`, `$lt`, `$in`, `$regex`, etc.
+- **Custom Query Operators:** `$gt`, `$lt`, `$in`, `$regex`, `$gte`, `$lte`, `$ne`, `$nin`, `$exists`, `$or`, `$and`
 - **Schema-less Design:** Store any JSON structure without predefined schemas
-- **Performance Optimization:** Fast lookups, pagination, and intelligent caching
+- **Performance Optimization:** Fast lookups, pagination, and intelligent caching with random TTL
+- **ACID Transactions:** Single-collection transactions with savepoints, rollback, and WAL recovery
+- **Index Management:** Create custom indexes, automatic document-to-index sync on CRUD operations
 - **Enterprise Data Management:** Bulk operations, conditional updates, atomic transactions
 
 ---
@@ -269,10 +307,14 @@ console.log(results);
 ### Collection
 
 - `insert(document: object): Promise<SuccessInterface | ErrorInterface>`
+- `insertMany(documents: object[]): Promise<SuccessInterface | ErrorInterface>`
 - `query(query: object): Reader`
 - `update(query: object): Updater`
 - `delete(query: object): Deleter`
 - `aggregate(pipeline: object[]): Aggregation`
+- `startSession(options?: SessionOptions): Session`
+- `createIndex(fieldName: string): Promise<SuccessInterface>`
+- `dropIndex(indexName: string): Promise<SuccessInterface | ErrorInterface>`
 
 ### Reader
 
@@ -282,6 +324,20 @@ console.log(results);
 - `setCount(count: boolean): Reader`
 - `setProject(project: object): Reader`
 - `exec(): Promise<SuccessInterface | ErrorInterface>`
+- `findOne(): Promise<SuccessInterface | ErrorInterface>`
+
+### Transaction (Session)
+
+- `startSession(options?: { timeout?: number }): Session`
+- `session.withTransaction(callback: Function): Promise<any>`
+- `session.startTransaction(): Transaction`
+- `transaction.insert(document: object): Transaction`
+- `transaction.update(query: object, update: object): Transaction`
+- `transaction.delete(query: object): Transaction`
+- `transaction.savepoint(name: string): Transaction`
+- `transaction.rollbackToSavepoint(name: string): Transaction`
+- `transaction.commit(): Promise<SuccessInterface>`
+- `transaction.rollback(): Promise<void>`
 
 ---
 
@@ -319,7 +375,7 @@ When you outgrow AxioDB (1M+ documents, distributed systems), migrate to Postgre
 
 - **Distributed Systems:** Single-node only. No replication, no sharding, no clustering. For distributed systems, use MongoDB or CouchDB.
 
-- **Transactions:** No ACID transactions across multiple collections. For transaction requirements, use PostgreSQL or MongoDB with transactions enabled.
+- **Transactions:** Single-collection ACID transactions supported. Cross-collection transactions are not supported. For multi-collection transaction requirements, use PostgreSQL or MongoDB.
 
 ---
 

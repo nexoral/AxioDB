@@ -3,6 +3,7 @@ import {
   Code,
   Database,
   Download,
+  GitBranch,
   Shield,
   Sparkles,
   Star,
@@ -210,6 +211,258 @@ const Introduction: React.FC = () => {
                 </span>
               </div>
             </a>
+          </div>
+
+          {/* Performance Metrics & ACID Compliance */}
+          <div className="mb-8">
+            {/* ACID Compliance Banner */}
+            <div className="flex items-center justify-center gap-3 bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 dark:from-amber-900/40 dark:via-yellow-900/30 dark:to-amber-900/40 px-6 py-4 rounded-xl border-2 border-amber-300 dark:border-amber-600 shadow-xl mb-6">
+              <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-xl shadow-lg">
+                <GitBranch className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl font-black bg-gradient-to-r from-amber-700 to-yellow-600 dark:from-amber-300 dark:to-yellow-300 bg-clip-text text-transparent">
+                    ACID Compliant
+                  </span>
+                  <span className="text-sm bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-3 py-1 rounded-full font-bold shadow-md">
+                    ✓ Transactions
+                  </span>
+                </div>
+                <span className="text-sm text-amber-700 dark:text-amber-300 font-medium">
+                  Full Transaction Support with Commit, Rollback & Write-Ahead Logging Recovery
+                </span>
+              </div>
+            </div>
+
+            {/* Performance Benchmark Header */}
+            <div className="bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-xl p-4 mb-4 border border-slate-200 dark:border-slate-700">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-700 dark:text-slate-300">⚡ Performance Benchmark</span>
+                  <span className="text-slate-500 dark:text-slate-400">|</span>
+                  <span className="text-slate-600 dark:text-slate-400">Tested: March 2026</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                  <span>💻 Ubuntu Linux</span>
+                  <span>•</span>
+                  <span>Node.js v20+</span>
+                  <span>•</span>
+                  <span>📊 1,000 documents dataset</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Performance Metrics Grid - Comprehensive */}
+            
+            {/* INSERT Operations */}
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 px-1">📥 Insert Operations</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-md hover:shadow-lg transition-all">
+                  <div className="text-center">
+                    <span className="text-xl font-black text-blue-600 dark:text-blue-400">~3ms</span>
+                    <p className="text-xs text-blue-700 dark:text-blue-300 font-semibold">Insert Single</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-md hover:shadow-lg transition-all">
+                  <div className="text-center">
+                    <span className="text-xl font-black text-blue-600 dark:text-blue-400">~84ms</span>
+                    <p className="text-xs text-blue-700 dark:text-blue-300 font-semibold">InsertMany (10)</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-md hover:shadow-lg transition-all">
+                  <div className="text-center">
+                    <span className="text-xl font-black text-blue-600 dark:text-blue-400">&lt;1ms</span>
+                    <p className="text-xs text-blue-700 dark:text-blue-300 font-semibold">Validation</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* READ/QUERY Operations */}
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 px-1">📖 Read/Query Operations</p>
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~1ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Indexed</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">&lt;1ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">documentId</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">&lt;1ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">findOne</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~3ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Projection</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~358ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">$gt (1K)</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~381ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">$in</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~399ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Limit</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~390ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Skip</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~379ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Sort</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~360ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">setCount</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~439ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Regex</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~419ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Cached</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* UPDATE & DELETE Operations */}
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2 px-1">✏️ Update Operations</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 shadow-sm">
+                    <div className="text-center">
+                      <span className="text-lg font-black text-amber-600 dark:text-amber-400">~11ms</span>
+                      <p className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold">UpdateOne</p>
+                    </div>
+                  </div>
+                  <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 shadow-sm">
+                    <div className="text-center">
+                      <span className="text-lg font-black text-amber-600 dark:text-amber-400">~368ms</span>
+                      <p className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold">UpdateMany</p>
+                    </div>
+                  </div>
+                  <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 shadow-sm">
+                    <div className="text-center">
+                      <span className="text-lg font-black text-amber-600 dark:text-amber-400">~1ms</span>
+                      <p className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold">Verify</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider mb-2 px-1">🗑️ Delete Operations</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm">
+                    <div className="text-center">
+                      <span className="text-lg font-black text-red-600 dark:text-red-400">~2ms</span>
+                      <p className="text-[10px] text-red-700 dark:text-red-300 font-semibold">DeleteOne</p>
+                    </div>
+                  </div>
+                  <div className="relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm">
+                    <div className="text-center">
+                      <span className="text-lg font-black text-red-600 dark:text-red-400">~442ms</span>
+                      <p className="text-[10px] text-red-700 dark:text-red-300 font-semibold">DeleteMany</p>
+                    </div>
+                  </div>
+                  <div className="relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm">
+                    <div className="text-center">
+                      <span className="text-lg font-black text-red-600 dark:text-red-400">~464ms</span>
+                      <p className="text-[10px] text-red-700 dark:text-red-300 font-semibold">Verify</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* TRANSACTION Operations */}
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-2 px-1">🔄 Transaction Operations</p>
+              <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
+                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~22ms</span>
+                    <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Insert</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~12ms</span>
+                    <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Update</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~14ms</span>
+                    <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Delete</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~16ms</span>
+                    <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Mixed</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~2ms</span>
+                    <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">Rollback</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~10ms</span>
+                    <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">Savepoint</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~9ms</span>
+                    <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">withTX</p>
+                  </div>
+                </div>
+                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                  <div className="text-center">
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~9ms</span>
+                    <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">Index Sync</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Terminal Welcome Section */}
