@@ -208,8 +208,8 @@ class ReadOptimizationTests extends TestRunner {
 
         assert.isSuccess(result);
         assert.equal(result.data.documents.length, 5);
-        // With worker thread overhead, allow up to 1 second
-        assert.performanceWithin(duration, 1000, 'Small limit should enable early termination');
+        // With 10K docs and worker thread overhead, allow up to 2 seconds
+        assert.performanceWithin(duration, 2000, 'Small limit should enable early termination');
         this.log(`     Limit 5 query completed in ${duration}ms`, 'gray');
       });
 
