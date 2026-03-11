@@ -248,7 +248,7 @@ const Introduction: React.FC = () => {
                   <span>•</span>
                   <span>Node.js v20+</span>
                   <span>•</span>
-                  <span>📊 1,000 documents dataset</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-400">📊 10,000 documents dataset</span>
                 </div>
               </div>
             </div>
@@ -267,7 +267,7 @@ const Introduction: React.FC = () => {
                 </div>
                 <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-md hover:shadow-lg transition-all">
                   <div className="text-center">
-                    <span className="text-xl font-black text-blue-600 dark:text-blue-400">~84ms</span>
+                    <span className="text-xl font-black text-blue-600 dark:text-blue-400">~87ms</span>
                     <p className="text-xs text-blue-700 dark:text-blue-300 font-semibold">InsertMany (10)</p>
                   </div>
                 </div>
@@ -282,78 +282,78 @@ const Introduction: React.FC = () => {
 
             {/* READ/QUERY Operations */}
             <div className="mb-4">
-              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 px-1">📖 Read/Query Operations</p>
+              <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 px-1">📖 Read/Query Operations (10K docs)</p>
               <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~1ms</span>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~2ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Indexed</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">&lt;1ms</span>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~1ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">documentId</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">&lt;1ms</span>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~1ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">findOne</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~3ms</span>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~2ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Projection</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~358ms</span>
-                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">$gt (1K)</p>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~469ms</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">$gt</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~381ms</span>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~401ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">$in</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~399ms</span>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~454ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Limit</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~390ms</span>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~404ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Skip</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~379ms</span>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~382ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Sort</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~360ms</span>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~434ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">setCount</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~439ms</span>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~2.8s</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Regex</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~419ms</span>
-                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Cached</p>
+                    <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~2.6s</span>
+                    <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Full Scan</p>
                   </div>
                 </div>
               </div>
@@ -366,13 +366,13 @@ const Introduction: React.FC = () => {
                 <div className="grid grid-cols-3 gap-2">
                   <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 shadow-sm">
                     <div className="text-center">
-                      <span className="text-lg font-black text-amber-600 dark:text-amber-400">~11ms</span>
+                      <span className="text-lg font-black text-amber-600 dark:text-amber-400">~8ms</span>
                       <p className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold">UpdateOne</p>
                     </div>
                   </div>
                   <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 shadow-sm">
                     <div className="text-center">
-                      <span className="text-lg font-black text-amber-600 dark:text-amber-400">~368ms</span>
+                      <span className="text-lg font-black text-amber-600 dark:text-amber-400">~466ms</span>
                       <p className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold">UpdateMany</p>
                     </div>
                   </div>
@@ -389,19 +389,19 @@ const Introduction: React.FC = () => {
                 <div className="grid grid-cols-3 gap-2">
                   <div className="relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm">
                     <div className="text-center">
-                      <span className="text-lg font-black text-red-600 dark:text-red-400">~2ms</span>
+                      <span className="text-lg font-black text-red-600 dark:text-red-400">~3ms</span>
                       <p className="text-[10px] text-red-700 dark:text-red-300 font-semibold">DeleteOne</p>
                     </div>
                   </div>
                   <div className="relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm">
                     <div className="text-center">
-                      <span className="text-lg font-black text-red-600 dark:text-red-400">~442ms</span>
+                      <span className="text-lg font-black text-red-600 dark:text-red-400">~446ms</span>
                       <p className="text-[10px] text-red-700 dark:text-red-300 font-semibold">DeleteMany</p>
                     </div>
                   </div>
                   <div className="relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm">
                     <div className="text-center">
-                      <span className="text-lg font-black text-red-600 dark:text-red-400">~464ms</span>
+                      <span className="text-lg font-black text-red-600 dark:text-red-400">~463ms</span>
                       <p className="text-[10px] text-red-700 dark:text-red-300 font-semibold">Verify</p>
                     </div>
                   </div>
@@ -415,49 +415,49 @@ const Introduction: React.FC = () => {
               <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
                 <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~22ms</span>
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~23ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Insert</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~12ms</span>
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~14ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Update</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~14ms</span>
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~15ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Delete</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~16ms</span>
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~23ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Mixed</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~2ms</span>
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~3ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">Rollback</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~10ms</span>
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~14ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">Savepoint</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~9ms</span>
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~10ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">withTX</p>
                   </div>
                 </div>
                 <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~9ms</span>
+                    <span className="text-lg font-black text-violet-600 dark:text-violet-400">~12ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">Index Sync</p>
                   </div>
                 </div>
