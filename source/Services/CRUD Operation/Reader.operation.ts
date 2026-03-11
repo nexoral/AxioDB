@@ -116,7 +116,8 @@ export default class Reader {
           : [`${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
         const ReadResponse = await this.LoadAllBufferRawData(FilePath);
         if ("data" in ReadResponse) {
-          await InMemoryCache.setCache(cacheKey, ReadResponse.data);
+          // Fire-and-forget: Cache asynchronously
+          InMemoryCache.setCache(cacheKey, ReadResponse.data).catch(() => {});
           return this.ApplySkipAndLimit(ReadResponse.data);
         }
         return this.ResponseHelper.Error("Failed to read document by ID");
@@ -144,7 +145,8 @@ export default class Reader {
 
       // If no query filters, return all data
       if (Object.keys(this.baseQuery).length === 0) {
-        await InMemoryCache.setCache(cacheKey, ReadResponse.data);
+        // Fire-and-forget: Cache asynchronously
+        InMemoryCache.setCache(cacheKey, ReadResponse.data).catch(() => {});
         return this.applySortAndReturn(ReadResponse.data);
       }
 
@@ -157,8 +159,8 @@ export default class Reader {
         SearchedData = await searcher.find(this.baseQuery);
       }
 
-      // Cache the search results
-      await InMemoryCache.setCache(cacheKey, SearchedData);
+      // Fire-and-forget: Cache asynchronously
+      InMemoryCache.setCache(cacheKey, SearchedData).catch(() => {});
       
       return this.applySortAndReturn(SearchedData);
     } catch (error) {

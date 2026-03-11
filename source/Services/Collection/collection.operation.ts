@@ -176,8 +176,6 @@ export default class Collection {
     const documentId: string = await this.Insertion.generateUniqueDocumentId();
     data.documentId = documentId;
 
-    await this.IndexManager.InsertToIndex(data)
-
     // Insert the updatedAt field in schema & data
     data.updatedAt = this.updatedAt;
 
@@ -186,8 +184,13 @@ export default class Collection {
       data = await this.cryptoInstance.encrypt(this.Converter.ToString(data));
     }
 
-    // Save the data
-    return await this.Insertion.Save(data, documentId);
+    // Save the data first
+    const saveResult = await this.Insertion.Save(data, documentId);
+    
+    // Index insertion after save
+    await this.IndexManager.InsertToIndex(data);
+    
+    return saveResult;
   }
 
   /**

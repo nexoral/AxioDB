@@ -17,6 +17,7 @@ import InMemoryCache from "../../Memory/memory.operation";
 import { General } from "../../config/Keys/Keys";
 import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
 import { ReadIndex } from "../Index/ReadIndex.service";
+import DeleteIndex from "../Index/DeleteIndex.service";
 /**
  * The DeleteOperation class is used to delete a document from a collection.
  * This class provides methods to delete a single document that matches the base query.
@@ -122,9 +123,11 @@ export default class DeleteOperation {
       // Delete the file
       const deleteResponse = await this.deleteFile(fileName);
       if ("data" in deleteResponse) {
-        // Selective cache invalidation: extract documentId and clear only this collection
+        // Fire-and-forget: Remove from indexes and invalidate cache asynchronously for faster response
         const documentId = fileName.split('.')[0];
-        await InMemoryCache.invalidateByDocument(this.path, documentId);
+        new DeleteIndex(this.path).RemoveFromIndex(documentId, selectedFirstData?.data).catch(() => {});
+        InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
+        
         return this.ResponseHelper.Success({
           message: "Data deleted successfully",
           deleteData: selectedFirstData?.data,
@@ -173,19 +176,25 @@ export default class DeleteOperation {
         );
       }
 
-      // Delete all files
+      // Delete all files - fire index removal async for speed
+      const deleteIndexService = new DeleteIndex(this.path);
       for (let i = 0; i < SearchedData.length; i++) {
         const deleteResponse = await this.deleteFile(SearchedData[i].fileName);
         if ("data" in deleteResponse) {
+          // Fire-and-forget: Remove from indexes asynchronously
+          deleteIndexService.RemoveFromIndex(
+            SearchedData[i].fileName.split('.')[0],
+            SearchedData[i].data
+          ).catch(() => {});
           continue;
         } else {
           return this.ResponseHelper.Error("Failed to delete data");
         }
       }
 
-      // Selective cache invalidation: extract all documentIds and clear only this collection
+      // Fire-and-forget: Invalidate cache asynchronously
       const documentIds = SearchedData.map((data) => data.fileName.split('.')[0]);
-      await InMemoryCache.invalidateByDocuments(this.path, documentIds);
+      InMemoryCache.invalidateByDocuments(this.path, documentIds).catch(() => {});
 
       return this.ResponseHelper.Success({
         message: "Data deleted successfully",

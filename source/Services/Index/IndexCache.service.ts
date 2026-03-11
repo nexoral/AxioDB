@@ -13,11 +13,12 @@ interface IndexData {
 }
 
 /**
- * Cached index entry with metadata
+ * Cached index entry with metadata and TTL
  */
 interface CachedIndex {
   data: IndexData;
   loadedAt: Date;
+  expiresAt: number;
   path: string;
 }
 
@@ -45,6 +46,12 @@ export class IndexCache {
   private readonly fileManager: FileManager;
   private readonly converter: Converter;
   private locks: Map<string, Promise<void>>;  // Simple lock mechanism
+  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
+
+  // TTL constants (5-15 minutes in milliseconds)
+  private static readonly MIN_TTL_MS = 5 * 60 * 1000;   // 5 minutes
+  private static readonly MAX_TTL_MS = 15 * 60 * 1000;  // 15 minutes
+  private static readonly CLEANUP_INTERVAL_MS = 60 * 1000; // Check every 1 minute
 
   constructor(collectionPath: string) {
     this.cache = new Map();
@@ -53,6 +60,52 @@ export class IndexCache {
     this.fileManager = new FileManager();
     this.converter = new Converter();
     this.locks = new Map();
+    this.startCleanupInterval();
+  }
+
+  /**
+   * Generates a random TTL between 5-15 minutes
+   * Randomization prevents cache stampede (thundering herd problem)
+   */
+  private generateRandomTTL(): number {
+    return Math.floor(
+      Math.random() * (IndexCache.MAX_TTL_MS - IndexCache.MIN_TTL_MS + 1) + IndexCache.MIN_TTL_MS
+    );
+  }
+
+  /**
+   * Starts periodic cleanup of expired cache entries
+   */
+  private startCleanupInterval(): void {
+    if (this.cleanupInterval) return;
+    
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupExpiredEntries();
+    }, IndexCache.CLEANUP_INTERVAL_MS);
+
+    // Ensure cleanup doesn't prevent process exit
+    if (this.cleanupInterval.unref) {
+      this.cleanupInterval.unref();
+    }
+  }
+
+  /**
+   * Removes all expired entries from cache
+   */
+  private cleanupExpiredEntries(): void {
+    const now = Date.now();
+    for (const [fieldName, cached] of this.cache.entries()) {
+      if (now >= cached.expiresAt) {
+        this.cache.delete(fieldName);
+      }
+    }
+  }
+
+  /**
+   * Checks if a cached entry is expired
+   */
+  private isExpired(cached: CachedIndex): boolean {
+    return Date.now() >= cached.expiresAt;
   }
 
   /**
@@ -88,6 +141,7 @@ export class IndexCache {
             this.cache.set(meta.indexFieldName, {
               data: indexData,
               loadedAt: new Date(),
+              expiresAt: Date.now() + this.generateRandomTTL(),
               path: indexPath,
             });
           }
@@ -115,28 +169,40 @@ export class IndexCache {
     // Try memory cache first (O(1) fast path)
     const cached = this.cache.get(fieldName);
     if (cached) {
-      return cached.data;
+      // Check if entry is expired
+      if (this.isExpired(cached)) {
+        this.cache.delete(fieldName);
+        // Fall through to reload from disk
+      } else {
+        return cached.data;
+      }
     }
 
-    // Cache miss - load from disk (cold start recovery)
+    // Cache miss or expired - load from disk (cold start recovery)
     try {
       const indexPath = `${this.indexFolderPath}/${fieldName}${General.DBMS_File_EXT}`;
       const indexContent = await this.fileManager.ReadFile(indexPath);
 
       if (indexContent.status) {
-        const indexData = this.converter.ToObject(indexContent.data);
+        try {
+          const indexData = this.converter.ToObject(indexContent.data);
 
-        // Populate cache for future reads
-        this.cache.set(fieldName, {
-          data: indexData,
-          loadedAt: new Date(),
-          path: indexPath,
-        });
+          // Populate cache for future reads with random TTL
+          this.cache.set(fieldName, {
+            data: indexData,
+            loadedAt: new Date(),
+            expiresAt: Date.now() + this.generateRandomTTL(),
+            path: indexPath,
+          });
 
-        return indexData;
+          return indexData;
+        } catch (parseError) {
+          // JSON parse failed - index file may be corrupted, return null
+          console.error(`Index file corrupted for ${fieldName}, skipping cache`);
+          return null;
+        }
       }
     } catch (error) {
-      console.error(error)
       // Index doesn't exist - this is normal for unindexed fields
     }
 
@@ -168,10 +234,11 @@ export class IndexCache {
         return false;
       }
 
-      // Update memory cache after successful disk write
+      // Update memory cache after successful disk write with fresh TTL
       this.cache.set(fieldName, {
         data: indexData,
         loadedAt: new Date(),
+        expiresAt: Date.now() + this.generateRandomTTL(),
         path: indexPath,
       });
 
