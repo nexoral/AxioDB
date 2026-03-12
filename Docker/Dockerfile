@@ -1,5 +1,5 @@
-# Use a specific version of Node.js Alpine with SHA digest
-FROM node:alpine
+# Use Node.js 22 Alpine (matches local development environment)
+FROM node:22-alpine
 
 # Set working directory
 WORKDIR /app
