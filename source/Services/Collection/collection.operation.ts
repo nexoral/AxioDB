@@ -22,6 +22,7 @@ import Converter from "../../Helper/Converter.helper";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import InsertIndex from "../Index/InsertIndex.service";
 import { IndexCache } from "../Index/IndexCache.service";
+import InMemoryCache from "../../Memory/memory.operation";
 
 /**
  * Represents a collection inside a database.
@@ -186,10 +187,13 @@ export default class Collection {
 
     // Save the data first
     const saveResult = await this.Insertion.Save(data, documentId);
-    
+
     // Index insertion after save
     await this.IndexManager.InsertToIndex(data);
-    
+
+    // Fire-and-forget: Invalidate cache asynchronously for faster response
+    InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
+
     return saveResult;
   }
 
