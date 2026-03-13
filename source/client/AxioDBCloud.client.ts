@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Socket } from 'net';
 import { randomUUID } from 'crypto';
 import { EventEmitter } from 'events';
@@ -23,6 +25,9 @@ export class AxioDBCloud extends EventEmitter {
 
   constructor(connectionString: string, options?: AxioDBCloudOptions) {
     super();
+
+    // Increase max listeners for reconnection scenarios
+    this.setMaxListeners(20);
 
     // Parse connection string
     const parsed = this.parseConnectionString(connectionString);
@@ -61,6 +66,15 @@ export class AxioDBCloud extends EventEmitter {
     return new Promise((resolve, reject) => {
       if (this.connectionState === ConnectionState.CONNECTED) {
         return resolve();
+      }
+
+      // Clean up old socket if it exists
+      if (this.socket) {
+        this.socket.removeAllListeners();
+        if (!this.socket.destroyed) {
+          this.socket.destroy();
+        }
+        this.socket = null;
       }
 
       this.connectionState = ConnectionState.CONNECTING;
@@ -109,7 +123,20 @@ export class AxioDBCloud extends EventEmitter {
           this.handleResponse(message as TCPResponse);
         }
       } catch (error) {
-        this.emit('error', error);
+        // Clear buffer on protocol errors to prevent cascade failures
+        this.messageBuffer.clear();
+
+        // Check if error is due to connecting to wrong port (HTTP instead of TCP)
+        if (error instanceof Error && error.message.includes('Message exceeds maximum size')) {
+          const enhancedError = new Error(
+            'Protocol error: Message exceeds maximum size. Are you connecting to the correct port? ' +
+            'AxioDBCloud uses TCP port (default: 27019), not HTTP port (27018).'
+          );
+          this.emit('error', enhancedError);
+          this.socket?.destroy();
+        } else {
+          this.emit('error', error);
+        }
       }
     });
 
@@ -154,6 +181,11 @@ export class AxioDBCloud extends EventEmitter {
   private handleDisconnection(): void {
     this.connectionState = ConnectionState.DISCONNECTED;
     this.stopHeartbeat();
+
+    // Clean up socket listeners
+    if (this.socket) {
+      this.socket.removeAllListeners();
+    }
 
     // Reject all pending requests
     for (const [id, pending] of this.pendingRequests.entries()) {
@@ -263,6 +295,8 @@ export class AxioDBCloud extends EventEmitter {
    * Disconnect from server
    */
   async disconnect(): Promise<void> {
+    // Prevent reconnection attempts
+    this.reconnectAttempt = this.options.reconnectAttempts;
     this.stopHeartbeat();
 
     if (this.socket && !this.socket.destroyed) {
@@ -272,6 +306,8 @@ export class AxioDBCloud extends EventEmitter {
         // Ignore disconnect errors
       }
 
+      // Clean up all socket listeners
+      this.socket.removeAllListeners();
       this.socket.end();
       this.socket = null;
     }
