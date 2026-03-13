@@ -7,6 +7,7 @@ import Aggregation from "../Services/Aggregation/Aggregation.Operation";
 import Collection from "../Services/Collection/collection.operation";
 import Database from "../Services/Database/database.operation";
 import { AxioDB } from "../Services/Indexation.operation";
+import { AxioDBCloud } from "../client/AxioDBCloud.client";
 import FileManager from "../engine/Filesystem/FileManager";
 import FolderManager from "../engine/Filesystem/FolderManager";
 
@@ -23,10 +24,11 @@ const InstanceTypes = {
   InMemoryCache,
 };
 // Export Specific Modules
-export {AxioDB, InstanceTypes };
+export { AxioDB, AxioDBCloud, InstanceTypes };
 
 // Export With All Sub Modules
 export default {
   AxioDB,
+  AxioDBCloud,
   InstanceTypes,
 };
