@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Socket } from 'net';
 import { randomUUID } from 'crypto';
 import { EventEmitter } from 'events';
@@ -23,6 +25,9 @@ export class AxioDBCloud extends EventEmitter {
 
   constructor(connectionString: string, options?: AxioDBCloudOptions) {
     super();
+
+    // Increase max listeners for reconnection scenarios
+    this.setMaxListeners(20);
 
     // Parse connection string
     const parsed = this.parseConnectionString(connectionString);
@@ -61,6 +66,15 @@ export class AxioDBCloud extends EventEmitter {
     return new Promise((resolve, reject) => {
       if (this.connectionState === ConnectionState.CONNECTED) {
         return resolve();
+      }
+
+      // Clean up old socket if it exists
+      if (this.socket) {
+        this.socket.removeAllListeners();
+        if (!this.socket.destroyed) {
+          this.socket.destroy();
+        }
+        this.socket = null;
       }
 
       this.connectionState = ConnectionState.CONNECTING;
@@ -154,6 +168,11 @@ export class AxioDBCloud extends EventEmitter {
   private handleDisconnection(): void {
     this.connectionState = ConnectionState.DISCONNECTED;
     this.stopHeartbeat();
+
+    // Clean up socket listeners
+    if (this.socket) {
+      this.socket.removeAllListeners();
+    }
 
     // Reject all pending requests
     for (const [id, pending] of this.pendingRequests.entries()) {
@@ -263,6 +282,8 @@ export class AxioDBCloud extends EventEmitter {
    * Disconnect from server
    */
   async disconnect(): Promise<void> {
+    // Prevent reconnection attempts
+    this.reconnectAttempt = this.options.reconnectAttempts;
     this.stopHeartbeat();
 
     if (this.socket && !this.socket.destroyed) {
@@ -272,6 +293,8 @@ export class AxioDBCloud extends EventEmitter {
         // Ignore disconnect errors
       }
 
+      // Clean up all socket listeners
+      this.socket.removeAllListeners();
       this.socket.end();
       this.socket = null;
     }

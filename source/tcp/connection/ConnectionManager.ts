@@ -24,6 +24,8 @@ export class ConnectionManager extends EventEmitter {
 
   constructor() {
     super();
+    // Increase max listeners since we handle 1000+ concurrent connections
+    this.setMaxListeners(0); // 0 = unlimited
   }
 
   /**
