@@ -21,6 +21,7 @@ import {
 import { FinalDatabaseInfo } from "../config/Interfaces/Operation/Indexation.operation.interface";
 import createAxioDBControlServer from "../server/config/server";
 import { DatabaseMap } from "../config/Interfaces/Operation/database.operation.interface";
+import createAxioDBTCPServer from "../tcp/config/server";
 
 /**
  * Class representing the AxioDB database.
@@ -37,8 +38,9 @@ export class AxioDB {
   private static _instance: AxioDB;
   private DatabaseMap: Map<string, DatabaseMap>;
   private GUI: boolean = General.DBMS_GUI_Enable;
+  private TCP: boolean = false;
 
-  constructor(GUI?: boolean, RootName?: string, CustomPath?: string) {
+  constructor(GUI?: boolean, RootName?: string, CustomPath?: string, TCP?: boolean) {
     if (AxioDB._instance) {
       throw new Error("Only one instance of AxioDB is allowed.");
     }
@@ -52,6 +54,7 @@ export class AxioDB {
     this.initializeRoot(); // Ensure root initialization
     this.DatabaseMap = new Map<string, DatabaseMap>(); // Initialize the DatabaseMap
     this.GUI = GUI !== undefined ? GUI : General.DBMS_GUI_Enable; // Set GUI option
+    this.TCP = TCP !== undefined ? TCP : false; // Set TCP option
   }
 
   /**
@@ -85,6 +88,10 @@ export class AxioDB {
     if (this.GUI){
       Console.green("Starting AxioDB Control Server...");
       createAxioDBControlServer(this); // Start the web Control Server with the AxioDB instance
+    }
+    if (this.TCP) {
+      Console.green("Starting AxioDB TCP Server...");
+      createAxioDBTCPServer(this); // Start the TCP Server with the AxioDB instance
     }
   }
 
