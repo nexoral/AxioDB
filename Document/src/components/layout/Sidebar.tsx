@@ -58,6 +58,16 @@ const sidebarSections: SidebarSection[] = [
     ],
   },
   {
+    title: "Cloud & Remote Access",
+    items: [
+      {
+        id: "axiodb-cloud",
+        label: "AxioDBCloud (TCP)",
+        path: "/cloud",
+      },
+    ],
+  },
+  {
     title: "Basic Usage",
     items: [{ id: "operations", label: "Operations", path: "/usage" }],
   },

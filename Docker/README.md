@@ -3,11 +3,12 @@
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
 [![AxioDB](https://img.shields.io/badge/AxioDB-2.29.82-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
 
-This Docker image provides a REST API server for AxioDB, allowing you to interact with the AxioDB database management system through HTTP requests. The container includes a web-based GUI dashboard for visual database management and comprehensive API endpoints for programmatic access.
+This Docker image provides both a REST API server and TCP remote access for AxioDB, allowing you to interact with the AxioDB database management system through HTTP requests or TCP connections. The container includes a web-based GUI dashboard for visual database management, comprehensive API endpoints for programmatic access, and AxioDBCloud TCP connector for remote client connections.
 
 ## =� What's Included
 
-- **REST API Server**: Full HTTP API for database operations
+- **REST API Server**: Full HTTP API for database operations (Port 27018)
+- **TCP Remote Access**: AxioDBCloud connector for remote client connections (Port 27019)
 - **Web GUI Dashboard**: Browser-based interface at `http://localhost:27018`
 - **API Documentation**: Interactive API reference at `http://localhost:27018/api`
 - **AxioDB Core**: Complete database management system
@@ -22,19 +23,22 @@ This Docker image provides a REST API server for AxioDB, allowing you to interac
 docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
+  -p 27019:27019 \
   theankansaha/axiodb
 ```
 
 ### Custom Port Mapping
 
 ```bash
-# Run on a different host port (e.g., 8080)
+# Run on different host ports (e.g., 8080 for HTTP, 8081 for TCP)
 docker run -d \
   --name axiodb-server \
   -p 8080:27018 \
+  -p 8081:27019 \
   theankansaha/axiodb
 
-# Access via http://localhost:8080
+# Access HTTP GUI via http://localhost:8080
+# Connect AxioDBCloud via axiodb://localhost:8081
 ```
 
 ### With Data Persistence
@@ -44,13 +48,36 @@ docker run -d \
 docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
-  -v axiodb-data:/app/AxioDB \
+  -p 27019:27019 \
+  -v axiodb-data:/app \
   theankansaha/axiodb
 ```
 
 ## =� Accessing the Services
 
 Once the container is running:
+
+### TCP Remote Access (AxioDBCloud)
+
+- **Connection String**: `axiodb://localhost:27019`
+- **Description**: Direct TCP connection for remote client access using AxioDBCloud
+- **Features**:
+  - Full database API with same interface as embedded mode
+  - Auto-reconnection with exponential backoff
+  - Connection pooling for high concurrency
+  - Heartbeat monitoring for connection health
+  - Perfect for Node.js applications connecting remotely
+
+```javascript
+const { AxioDBCloud } = require('axiodb');
+
+const db = new AxioDBCloud('axiodb://localhost:27019');
+await db.connect();
+
+const database = await db.createDB('myDatabase');
+const collection = await database.createCollection('users');
+const result = await collection.insert({ name: 'John', age: 30 });
+```
 
 ### Web GUI Dashboard
 
@@ -130,15 +157,16 @@ const main = async () => {
 main();
 ```
 
-### When to Use Docker vs NPM Package
+### When to Use: Docker (REST API) vs Docker (TCP) vs NPM Package
 
-| Use Case                       | Docker API         | NPM Package                   |
-| ------------------------------ | ------------------ | ----------------------------- |
-| **Node.js Applications**       | L Not recommended  |  **Recommended**              |
-| **Microservices Architecture** |  Good choice       | � Consider service boundaries |
-| **Non-Node.js Applications**   |  **Recommended**   | L Not available               |
-| **Development/Prototyping**    |  Quick setup       |  Better performance           |
-| **Production Deployment**      | � Network overhead |  **Recommended**              |
+| Use Case                       | Docker (REST API)  | Docker (AxioDBCloud TCP) | NPM Package (Embedded)    |
+| ------------------------------ | ------------------ | ------------------------ | ------------------------- |
+| **Local Node.js Apps**         | Not recommended    | Not recommended          | **Recommended**           |
+| **Remote Node.js Apps**        | Good choice        | **Better performance**   | Not applicable            |
+| **Microservices Architecture** | Good choice        | **Recommended**          | Consider boundaries       |
+| **Non-Node.js Applications**   | **Recommended**    | Not available            | Not available             |
+| **Development/Prototyping**    | Quick setup        | Quick setup              | **Best performance**      |
+| **Cloud Deployment**           | Network overhead   | **Optimized for cloud**  | Not applicable            |
 
 ## =' Configuration
 
@@ -148,9 +176,10 @@ main();
 docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
+  -p 27019:27019 \
   -e AXIODB_PORT=27018 \
   -e AXIODB_HOST=0.0.0.0 \
-  <your-docker-image-name>
+  theankansaha/axiodb
 ```
 
 ### Docker Compose
@@ -160,12 +189,13 @@ version: "3.8"
 
 services:
   axiodb:
-    image: <your-docker-image-name>
+    image: theankansaha/axiodb
     container_name: axiodb-server
     ports:
-      - "27018:27018"
+      - "27018:27018"  # HTTP API & GUI
+      - "27019:27019"  # TCP Remote Access
     volumes:
-      - axiodb-data:/app/AxioDB
+      - axiodb-data:/app
     restart: unless-stopped
 
 volumes:
@@ -238,7 +268,7 @@ cd AxioDB/Docker
 docker build -t axiodb:latest .
 
 # Run the container
-docker run -d --name axiodb-server -p 27018:27018 axiodb:latest
+docker run -d --name axiodb-server -p 27018:27018 -p 27019:27019 axiodb:latest
 ```
 
 ## =
@@ -259,7 +289,7 @@ netstat -tulpn | grep :27018
 
 ```bash
 # Use a different port
-docker run -d --name axiodb-server -p 8080:27018 <your-docker-image-name>
+docker run -d --name axiodb-server -p 8080:27018 -p 8081:27019 theankansaha/axiodb
 ```
 
 ### Data Persistence Issues
@@ -269,8 +299,9 @@ docker run -d --name axiodb-server -p 8080:27018 <your-docker-image-name>
 docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
-  -v "$(pwd)/axiodb-data":/app/AxioDB \
-  <your-docker-image-name>
+  -p 27019:27019 \
+  -v "$(pwd)/axiodb-data":/app \
+  theankansaha/axiodb
 ```
 
 ## =� Additional Resources
