@@ -1,12 +1,16 @@
 import {
   ArrowRight,
+  Cloud,
   Code,
   Database,
   Download,
   GitBranch,
+  RefreshCw,
+  Server,
   Shield,
   Sparkles,
   Star,
+  Terminal,
   Users,
   Zap,
   TrendingUp,
@@ -545,6 +549,63 @@ const Introduction: React.FC = () => {
                     <Code className="h-4 w-4" />
                     View Examples
                   </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* AxioDBCloud Promotional Banner - NEW! */}
+          <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-700 dark:via-indigo-700 dark:to-purple-700 rounded-2xl p-8 mb-8 shadow-2xl border-2 border-blue-400 dark:border-blue-500">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+            <div className="relative z-10">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
+                <div className="flex-shrink-0">
+                  <div className="p-4 bg-white/20 backdrop-blur-sm rounded-2xl border-2 border-white/30 shadow-lg">
+                    <Cloud className="h-12 w-12 text-white" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-yellow-400 text-yellow-900 rounded-full text-xs font-bold mb-3 animate-pulse">
+                    <Sparkles className="h-3 w-3" />
+                    NEW FEATURE
+                  </div>
+                  <h3 className="text-3xl lg:text-4xl font-extrabold text-white mb-3">
+                    Introducing AxioDBCloud
+                  </h3>
+                  <p className="text-xl text-blue-100 mb-4 leading-relaxed">
+                    Deploy AxioDB in Docker or Cloud. Connect from anywhere with TCP protocol. Same API, zero code changes!
+                  </p>
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    <div className="flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+                      <Zap className="h-4 w-4 text-yellow-300" />
+                      <span className="text-sm text-white font-semibold">Fast TCP Protocol</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+                      <Server className="h-4 w-4 text-green-300" />
+                      <span className="text-sm text-white font-semibold">1000+ Connections</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+                      <RefreshCw className="h-4 w-4 text-cyan-300" />
+                      <span className="text-sm text-white font-semibold">Auto-Reconnect</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <a
+                      href="/cloud"
+                      className="inline-flex items-center gap-2 bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover:bg-blue-50 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
+                    >
+                      <Cloud className="h-5 w-5" />
+                      Explore AxioDBCloud
+                      <ArrowRight className="h-5 w-5" />
+                    </a>
+                    <a
+                      href="/cloud"
+                      className="inline-flex items-center gap-2 border-2 border-white text-white px-6 py-3 rounded-lg font-bold hover:bg-white/10 transition-colors"
+                    >
+                      <Terminal className="h-5 w-5" />
+                      Docker Setup
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>

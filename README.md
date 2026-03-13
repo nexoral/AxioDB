@@ -33,6 +33,7 @@ SQLite is great, but it requires native bindings that break in Electron and cros
 - ✅ Built-in InMemoryCache with automatic invalidation
 - ✅ Multi-core parallelism with Worker Threads
 - ✅ Built-in web GUI at `localhost:27018`
+- ✅ **NEW:** AxioDBCloud - TCP remote access for Docker/Cloud deployments
 
 ---
 
@@ -51,6 +52,7 @@ SQLite is great, but it requires native bindings that break in Electron and cros
 - **Transaction Support:** ACID-compliant transactions with savepoints, rollback, and Write-Ahead Logging (WAL)
 - **Single Instance Architecture:** Unified management for unlimited databases, collections, and documents
 - **Web-Based GUI Dashboard:** Visual database administration, query execution, and real-time monitoring at `localhost:27018`
+- **AxioDBCloud Remote Access:** TCP-based client for connecting to AxioDB from anywhere—Docker, Cloud, or local network
 - **Zero-Configuration Setup:** Serverless architecture—install and start building instantly
 - **Custom Database Path:** Flexible storage locations for better project organization
 
@@ -86,6 +88,87 @@ await session.withTransaction(async (tx) => {
 - **Random TTL:** 5-15 minute random expiration prevents thundering herd
 - **Async Operations:** Non-blocking cache updates for faster response times
 - **Collection-Scoped Keys:** Cache keys include collection path to prevent collisions
+
+---
+
+## ☁️ AxioDBCloud - Remote Database Access (NEW!)
+
+**Host AxioDB in Docker, connect from anywhere!** AxioDBCloud provides TCP-based remote access to your AxioDB instance with the exact same API as local embedded mode.
+
+### 🌟 Why AxioDBCloud?
+
+- **🚀 Deploy Once, Connect Everywhere:** Host AxioDB in Docker/Cloud, connect from multiple clients
+- **🔄 Zero Code Changes:** Same API as embedded AxioDB - just change the client class!
+- **⚡ TCP Protocol:** Fast binary protocol with automatic reconnection
+- **🔐 Production Ready:** Connection pooling, heartbeat monitoring, error recovery
+- **📦 Docker Support:** One-command deployment with included Dockerfile
+
+### Quick Start - Server (Docker)
+
+```bash
+# Pull and run the AxioDB Docker container
+docker run -d \
+  --name axiodb-server \
+  -p 27018:27018 \
+  -p 27019:27019 \
+  -v axiodb-data:/app \
+  theankansaha/axiodb
+
+# Ports:
+# 27018 - HTTP GUI Dashboard
+# 27019 - TCP Remote Access (AxioDBCloud)
+# Volume: /app is the main data directory
+```
+
+**Or run locally with Node.js:**
+
+```javascript
+const { AxioDB } = require('axiodb');
+const db = new AxioDB(false, 'MyDB', '.', true); // Enable TCP on port 27019
+```
+
+### Quick Start - Client
+
+```javascript
+const { AxioDBCloud } = require('axiodb');
+
+// Connect to remote AxioDB (same API as embedded!)
+const client = new AxioDBCloud("axiodb://localhost:27019");
+await client.connect();
+
+// Use exactly like embedded AxioDB
+const db = await client.createDB("ProductionDB");
+const users = await db.createCollection("Users");
+
+// All operations work identically
+await users.insert({ name: "Alice", role: "admin" });
+const results = await users.query({ role: "admin" })
+  .Limit(10)
+  .Sort({ createdAt: -1 })
+  .exec();
+
+await client.disconnect();
+```
+
+### Features
+
+✅ **35+ Commands** - Full CRUD, aggregation, indexing
+✅ **Auto-Reconnect** - Exponential backoff with up to 10 retry attempts
+✅ **Heartbeat Monitoring** - PING/PONG every 30 seconds
+✅ **Request Correlation** - UUID-based request/response matching
+✅ **Connection Pooling** - Supports 1000+ concurrent connections
+✅ **TypeScript Support** - Full type definitions included
+✅ **Zero Breaking Changes** - Existing AxioDB code works unchanged
+
+### Use Cases
+
+- **Microservices:** Share one AxioDB instance across multiple services
+- **Desktop Apps:** Electron apps connecting to local/remote database
+- **Development:** Team members sharing a development database
+- **Docker Deployments:** Container-based production deployments
+- **Cloud Hosting:** Deploy to AWS, Azure, Google Cloud, DigitalOcean
+
+👉 **[Full AxioDBCloud Documentation](https://axiodb.in/cloud)** - Setup guides, API reference, Docker examples
 
 ---
 
