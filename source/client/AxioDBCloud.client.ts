@@ -123,7 +123,20 @@ export class AxioDBCloud extends EventEmitter {
           this.handleResponse(message as TCPResponse);
         }
       } catch (error) {
-        this.emit('error', error);
+        // Clear buffer on protocol errors to prevent cascade failures
+        this.messageBuffer.clear();
+
+        // Check if error is due to connecting to wrong port (HTTP instead of TCP)
+        if (error instanceof Error && error.message.includes('Message exceeds maximum size')) {
+          const enhancedError = new Error(
+            'Protocol error: Message exceeds maximum size. Are you connecting to the correct port? ' +
+            'AxioDBCloud uses TCP port (default: 27019), not HTTP port (27018).'
+          );
+          this.emit('error', enhancedError);
+          this.socket?.destroy();
+        } else {
+          this.emit('error', error);
+        }
       }
     });
 

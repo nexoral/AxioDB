@@ -70,6 +70,15 @@ export class MessageBuffer {
     while (this.buffer.length >= MESSAGE_LENGTH_BYTES) {
       const length = this.buffer.readUInt32BE(0);
 
+      // Detect if we're receiving HTTP data instead of binary protocol
+      if (this.buffer.length >= 4) {
+        const firstBytes = this.buffer.toString('utf8', 0, 4);
+        if (firstBytes.match(/^(HTTP|GET |POST|PUT |DELE|HEAD|OPTI)/)) {
+          this.buffer = Buffer.alloc(0);
+          throw new Error('Invalid protocol: Received HTTP data on TCP port. Check connection string.');
+        }
+      }
+
       if (length > MAX_MESSAGE_SIZE) {
         this.buffer = Buffer.alloc(0);
         throw new Error(ErrorMessage.MESSAGE_TOO_LARGE);
