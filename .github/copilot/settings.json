@@ -1,0 +1,127 @@
+{
+  "version": "1.0",
+  "description": "GitHub Copilot CLI settings for AxioDB - Embedded NoSQL database for Node.js",
+
+  "project": {
+    "name": "AxioDB",
+    "type": "typescript",
+    "language": "TypeScript",
+    "runtime": "Node.js ≥20.0.0"
+  },
+
+  "build": {
+    "command": "npm run build",
+    "required": true,
+    "runAfterChanges": true
+  },
+
+  "test": {
+    "command": "npm test",
+    "required": true,
+    "location": "Test/modules/"
+  },
+
+  "codeStyle": {
+    "strictMode": true,
+    "noAnyTypes": true,
+    "preferConst": true,
+    "preferArrowFunctions": true,
+    "useTemplateStrings": true
+  },
+
+  "instructions": [
+    "CRITICAL: Always run 'npm run build' after ANY code change - TypeScript errors in production are unacceptable",
+    "CRITICAL: Update tests in Test/modules/ for ANY feature change (crud.test.js, transaction.test.js, read.test.js)",
+    "CRITICAL: Never leave tasks incomplete - Done means: build passes, tests pass, docs updated, no regressions",
+    "Follow SOLID principles - Single responsibility, DRY, no code duplication",
+    "TypeScript strict mode - No 'any' types, use proper interfaces, null checks, type guards",
+    "Respect singleton pattern - Only one AxioDB instance allowed, tests run in separate processes",
+    "Use dual-write pattern for indexes - Write to both memory (speed) and disk (durability)",
+    "Random cache TTL 5-15 minutes to prevent cache stampede",
+    "File-per-document storage pattern: {RootPath}/{DatabaseName}/{CollectionName}/{documentId}.axiodb",
+    "Always validate input, sanitize paths to prevent traversal attacks",
+    "Use InMemoryCache before disk reads for performance",
+    "Prefer Promise.all for batch operations instead of sequential await",
+    "Update documentation when changing features: README.md, Document/, Dockerfile, JSDoc"
+  ],
+
+  "patterns": {
+    "singleton": {
+      "description": "AxioDB uses singleton pattern - only one instance allowed",
+      "implementation": "private static _instance: AxioDB; throw error if instance exists"
+    },
+    "dualWrite": {
+      "description": "Write to memory cache AND disk for indexes",
+      "implementation": "await indexCache.set() + await fileManager.writeFile()"
+    },
+    "naming": {
+      "files": "{Feature}.operation.ts, {Feature}.service.ts, {Feature}.helper.ts",
+      "classes": "PascalCase (FileManager, QueryMatcher)",
+      "methods": "camelCase verbs (createDatabase, isValidDocument)",
+      "variables": "camelCase descriptive (documentId, collectionPath)"
+    }
+  },
+
+  "structure": {
+    "source": {
+      "Services": "Core operations (Database, Collection, CRUD, Index, Transaction, Aggregation)",
+      "engine": "File operations (FileManager, FolderManager)",
+      "server": "HTTP GUI (Fastify, port 27018)",
+      "tcp": "TCP server (AxioDBCloud, port 27019)",
+      "client": "TCP client + Proxies",
+      "Helper": "Utilities (Converter, Crypto, Response)",
+      "Memory": "InMemoryCache"
+    },
+    "Test": "Test files in separate processes (crud.test.js, transaction.test.js, read.test.js)",
+    "Document": "React docs site (npm run dev)"
+  },
+
+  "security": [
+    "Validate all input - check types, reject arrays as documents",
+    "Sanitize paths using documentId.replace(/[^a-zA-Z0-9-_]/g, '_')",
+    "Use AES-256 encryption for sensitive collections",
+    "Never log sensitive data (passwords, encryption keys)",
+    "Return generic error messages to users, log detailed errors"
+  ],
+
+  "performance": [
+    "Use InMemoryCache with random TTL (5-15 min)",
+    "Batch operations with Promise.all",
+    "Use Map for O(1) lookups instead of Array.find O(n)",
+    "Avoid unnecessary disk I/O - read once, process in memory",
+    "Worker threads for parallel reads"
+  ],
+
+  "antiPatterns": [
+    "Never use 'any' types",
+    "Never duplicate code - extract to helpers (DRY)",
+    "Never use sequential operations when parallel is possible",
+    "Never ignore build errors",
+    "Never skip tests",
+    "Never use magic strings - use enums or const objects",
+    "Never use hacky solutions or temporary fixes"
+  ],
+
+  "completionCriteria": {
+    "required": [
+      "npm run build passes",
+      "Tests added/updated in Test/modules/",
+      "npm test passes",
+      "npm run lint passes",
+      "Documentation updated (README, Document/, Dockerfile)",
+      "No breaking changes (or explicitly approved)",
+      "Security validated",
+      "Performance acceptable"
+    ]
+  },
+
+  "commands": {
+    "build": "npm run build",
+    "test": "npm test",
+    "testCrud": "npm test crud",
+    "testTransaction": "npm test transaction",
+    "testRead": "npm test read",
+    "lint": "npm run lint",
+    "docs": "cd Document && npm run dev"
+  }
+}

@@ -8,6 +8,8 @@ Comprehensive configuration for all major AI coding assistants.
 2. ✅ **Gemini CLI** - Google's AI command line interface
 3. ✅ **Antigravity** - Google's AI IDE (VS Code fork)
 4. ✅ **Cursor** - AI-native IDE
+5. ✅ **GitHub Copilot CLI** - GitHub's AI coding agent for terminal
+6. ✅ **OpenAI Codex CLI** - OpenAI's lightweight coding agent
 
 ## Configuration Files
 
@@ -66,6 +68,77 @@ gemini "implement new feature"
 - Planning Mode: Creates task artifacts before execution
 - Fast Mode: Immediate execution for quick tasks
 - Multi-agent: Parallel execution for complex features
+
+### GitHub Copilot CLI
+```
+.github/copilot/
+├── settings.json         # Project configuration
+└── instructions.md       # Agent instructions
+```
+
+**Setup**:
+```bash
+# Install (requires Node.js 22+)
+npm install -g @github/copilot
+
+# Or via Homebrew (macOS/Linux)
+brew install --cask copilot
+
+# Authenticate
+copilot auth login
+```
+
+**Features**:
+- AI coding agent directly in terminal
+- Context management with `.github/copilot/settings.json`
+- LSP server configuration support
+- MCP server integration
+- Hook system for custom workflows
+- Supports GPT-4, Claude, and custom models
+
+**Configuration**:
+- Global: `~/.copilot/config` (JSON)
+- Project: `.github/copilot/settings.json`
+- LSP: `.github/lsp.json` or `~/.copilot/lsp-config.json`
+- MCP: `~/.copilot/mcp-config.json`
+- Instructions: `~/.copilot/instructions/*.instructions.md`
+
+### OpenAI Codex CLI
+```
+.codex/
+└── config.toml           # Configuration file
+AGENTS.md                 # Agent instructions (root)
+```
+
+**Setup**:
+```bash
+# Install via npm
+npm install -g @openai/codex
+
+# Or via Homebrew
+brew install --cask codex
+
+# Configure API key
+export OPENAI_API_KEY="your_api_key"
+
+# Or authenticate via ChatGPT Plus/Pro/Team
+codex auth login
+```
+
+**Features**:
+- Lightweight coding agent in terminal
+- TOML-based configuration (`.codex/config.toml`)
+- AGENTS.md for project instructions
+- Skills system (`~/.codex/skills/**/SKILL.md`)
+- Sandbox for safe command execution
+- Approval policies for build/delete/install operations
+- Azure OpenAI integration support
+
+**Configuration**:
+- Global: `~/.codex/config.toml` (TOML format)
+- Project: `.codex/config.toml`
+- Instructions: `AGENTS.md` (root, subfolder, or `~/.codex/AGENTS.md`)
+- Skills: `~/.codex/skills/**/SKILL.md`
 
 ### Cursor
 ```
@@ -185,6 +258,21 @@ const TTL = Math.floor(Math.random() * (15 - 5 + 1) + 5) * 60 * 1000;
 - Need parallel task execution
 - Want free tier (Preview status)
 
+### Choose GitHub Copilot CLI if:
+- You have GitHub Copilot subscription
+- Want AI assistance directly in terminal
+- Need context-aware code generation
+- Prefer GitHub ecosystem integration
+- Want LSP and MCP server support
+
+### Choose Codex CLI if:
+- You have OpenAI API access or ChatGPT Plus/Pro
+- Want TOML-based configuration
+- Need sandbox security for safe execution
+- Prefer lightweight terminal agent
+- Want skills system for reusable workflows
+- Need Azure OpenAI integration
+
 ### Choose Cursor if:
 - You need enterprise features (SOC 2)
 - Want VS Code familiarity
@@ -219,9 +307,10 @@ Commit all AI config files to git for team consistency.
 You can use multiple tools together:
 
 1. **Claude Code**: Initial feature planning and architecture
-2. **Cursor**: Implementation in IDE
-3. **Gemini CLI**: Research and documentation
-4. **Antigravity**: Multi-agent orchestration for complex features
+2. **Cursor** or **Antigravity**: Implementation in IDE
+3. **Gemini CLI** or **Codex CLI**: Terminal-based coding and research
+4. **GitHub Copilot CLI**: Quick terminal fixes and inline suggestions
+5. **Antigravity**: Multi-agent orchestration for complex features
 
 All tools will follow the same AxioDB patterns and rules.
 
@@ -242,10 +331,19 @@ Each tool has detailed documentation:
 - **Claude Code**: See .claude/rules/
 - **Gemini CLI**: https://developers.google.com/gemini-code-assist/docs
 - **Antigravity**: Tool preview documentation
+- **GitHub Copilot CLI**: https://docs.github.com/en/copilot/how-tos/copilot-cli
+- **Codex CLI**: https://developers.openai.com/codex/cli
 - **Cursor**: https://cursor.com/docs
 
 ## Sources
 
+- [GitHub Copilot CLI Documentation](https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli)
+- [GitHub Copilot CLI Installation](https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli)
+- [GitHub Copilot CLI Repository](https://github.com/github/copilot-cli)
+- [OpenAI Codex CLI Documentation](https://developers.openai.com/codex/cli/)
+- [Codex CLI Features](https://developers.openai.com/codex/cli/features/)
+- [Codex Configuration Basics](https://developers.openai.com/codex/config-basic/)
+- [Codex Repository](https://github.com/openai/codex)
 - [Gemini CLI Documentation](https://developers.google.com/gemini-code-assist/docs/gemini-cli)
 - [Cursor Rules Documentation](https://docs.cursor.com/context/rules-for-ai)
 - [Antigravity vs Cursor Comparison](https://www.codecademy.com/article/agentic-ide-comparison-cursor-vs-windsurf-vs-antigravity)
@@ -254,17 +352,17 @@ Each tool has detailed documentation:
 ## Summary
 
 Your AxioDB project is now configured for:
-- ✅ 4 major AI coding tools (Claude Code, Gemini CLI, Antigravity, Cursor)
+- ✅ 6 major AI coding tools (Claude Code, Gemini CLI, Antigravity, Cursor, GitHub Copilot CLI, Codex CLI)
 - ✅ Consistent rules across all tools
 - ✅ AxioDB-specific patterns enforced
 - ✅ Production-grade standards
 - ✅ Complete documentation
 
 **All AI assistants will now**:
-1. Build after every change
-2. Update tests for features
-3. Never leave tasks incomplete
-4. Follow SOLID + DRY
-5. Use TypeScript strict mode
-6. Update documentation
-7. Respect AxioDB patterns
+1. Build after every change (`npm run build`)
+2. Update tests for features (`Test/modules/`)
+3. Never leave tasks incomplete (all completion criteria met)
+4. Follow SOLID + DRY principles
+5. Use TypeScript strict mode (no `any` types)
+6. Update documentation (README, Document/, Dockerfile)
+7. Respect AxioDB patterns (Singleton, Dual-Write, Random Cache TTL)
