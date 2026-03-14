@@ -1,0 +1,149 @@
+# OpenAI Codex CLI Configuration for AxioDB
+# TypeScript/Node.js embedded NoSQL database project
+
+[project]
+name = "AxioDB"
+description = "Embedded NoSQL database for Node.js - Zero dependencies, pure TypeScript"
+language = "TypeScript"
+runtime = "Node.js ≥20.0.0"
+
+[model]
+# Default model for code generation
+default = "gpt-4-turbo"
+# Alternative: "gpt-4", "gpt-3.5-turbo"
+
+# Model-specific settings
+[model.preferences]
+temperature = 0.2  # Lower for more deterministic code
+max_tokens = 4096
+top_p = 0.95
+
+[approval]
+# When to ask before running generated commands
+mode = "strict"  # Options: "strict", "moderate", "permissive"
+# Always ask before:
+ask_before_install = true
+ask_before_delete = true
+ask_before_network = true
+ask_before_build = true
+
+[sandbox]
+# Filesystem and network access control
+filesystem = "read-write"  # Options: "read-only", "read-write", "full"
+network = "blocked"        # Options: "blocked", "allowed"
+allow_shell_commands = true
+
+[build]
+command = "npm run build"
+required = true
+run_after_changes = true
+
+[test]
+command = "npm test"
+required = true
+location = "Test/modules/"
+
+[lint]
+command = "npm run lint"
+run_before_commit = true
+
+# MCP Servers Configuration
+[mcp]
+# Add MCP servers here if needed
+# Example:
+# [mcp.filesystem]
+# command = "npx"
+# args = ["@modelcontextprotocol/server-filesystem", "/path/to/allowed/directory"]
+
+# Code Style Preferences
+[style]
+indent = "spaces"
+indent_size = 2
+quote_style = "single"
+trailing_comma = true
+semicolons = true
+prefer_const = true
+prefer_arrow_functions = true
+use_template_strings = true
+
+# TypeScript Specific
+[typescript]
+strict_mode = true
+no_any_types = true
+no_implicit_any = true
+strict_null_checks = true
+no_unused_vars = true
+
+# Project-Specific Rules
+[rules]
+# Core principles
+solid_principles = true
+dry_principle = true
+no_hacky_solutions = true
+production_grade_only = true
+
+# AxioDB Patterns
+singleton_pattern = true
+dual_write_pattern = true  # Memory + Disk for indexes
+random_cache_ttl = true    # 5-15 min to prevent stampede
+
+# File naming conventions
+[rules.naming]
+files = "{Feature}.operation.ts, {Feature}.service.ts, {Feature}.helper.ts"
+classes = "PascalCase"
+methods = "camelCase"
+variables = "camelCase"
+
+# Performance optimizations
+[performance]
+use_cache = true
+batch_operations = true
+prefer_maps = true         # Use Map for O(1) lookups
+avoid_sequential_await = true
+
+# Security settings
+[security]
+validate_input = true
+sanitize_paths = true
+encrypt_sensitive = true
+no_log_secrets = true
+
+# Documentation requirements
+[documentation]
+update_readme = true
+update_docs_site = true    # Document/ folder
+update_dockerfile = true
+require_jsdoc = true
+
+# Commands configuration
+[commands]
+build = "npm run build"
+test = "npm test"
+test_crud = "npm test crud"
+test_transaction = "npm test transaction"
+test_read = "npm test read"
+lint = "npm run lint"
+docs_dev = "cd Document && npm run dev"
+
+# Anti-patterns to avoid
+[antipatterns]
+no_any_types = true
+no_code_duplication = true
+no_sequential_when_parallel = true
+no_ignore_build_errors = true
+no_skip_tests = true
+no_magic_strings = true
+no_temp_fixes = true
+
+# Completion criteria
+[completion]
+required = [
+  "npm run build passes",
+  "Tests added/updated in Test/modules/",
+  "npm test passes",
+  "npm run lint passes",
+  "Documentation updated",
+  "No breaking changes",
+  "Security validated",
+  "Performance acceptable"
+]
