@@ -4,10 +4,9 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-import FolderManager from "../../engine/Filesystem/FolderManager";
+import DocumentLoader from "../../Helper/DocumentLoader.helper";
 import Converter from "../../Helper/Converter.helper";
 import { Console } from "outers";
-import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
 import { ReadIndex } from "../Index/ReadIndex.service";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -297,31 +296,20 @@ export default class Aggregation {
   private async LoadAllBufferRawData(documentIdDirectFile?: string[] | undefined): Promise<
     SuccessInterface | ErrorInterface
   > {
-    try {
-      let ReadResponse: string[] = [];
-      if (documentIdDirectFile !== undefined) {
-        ReadResponse.push(...documentIdDirectFile);
-      } else {
-        // Directly read list of files in directory (no lock/unlock system)
-        ReadResponse = (await new FolderManager().ListDirectory(this.path)).data;
-      }
+    // Use shared DocumentLoader helper (DRY - consolidates duplicated code)
+    const result = await DocumentLoader.loadDocuments(
+      this.path,
+      this.encryptionKey,
+      this.isEncrypted,
+      documentIdDirectFile,
+      false  // Don't include fileName for Aggregation
+    );
 
-      // Store all files in DataFilesList
-      const DataFilesList: string[] = ReadResponse;
-
-      // Read all files from the directory
-      const resultData: any[] = await ReaderWithWorker(
-        DataFilesList,
-        this.encryptionKey,
-        this.path,
-        this.isEncrypted,
-      );
-
-      this.AllData = resultData;
-      return this.ResponseHelper.Success(resultData);
-
-    } catch (error) {
-      return this.ResponseHelper.Error(error);
+    // Store result in AllData if successful
+    if ("data" in result) {
+      this.AllData = result.data;
     }
+
+    return result;
   }
 }

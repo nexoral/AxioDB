@@ -9,6 +9,7 @@ import {
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import { General } from "../../config/Keys/Keys";
 import Converter from "../../Helper/Converter.helper";
+import PathSanitizer from "../../Helper/PathSanitizer.helper";
 
 /**
  * Class representing an insertion operation.
@@ -43,7 +44,9 @@ export default class Insertion {
           ? await this.generateUniqueDocumentId()
           : ExistingdocumentId;
 
-      const filePath = `${this.path}/${documentId}${General.DBMS_File_EXT}`;
+      // Sanitize documentId to prevent directory traversal attacks
+      const sanitizedDocumentId = PathSanitizer.sanitizePathComponent(documentId);
+      const filePath = PathSanitizer.safePath(this.path, `${sanitizedDocumentId}${General.DBMS_File_EXT}`);
 
       // Directly write data to file (no lock/unlock system)
       const WriteResponse = await new FileManager().WriteFile(
@@ -73,8 +76,10 @@ export default class Insertion {
     let ID;
     do {
       ID = new ClassBased.UniqueGenerator(15).RandomWord(true);
+      // Sanitize ID to ensure safe file path
+      const sanitizedID = PathSanitizer.sanitizePathComponent(ID);
       const response = await new FileManager().FileExists(
-        `${this.path}/${ID}${General.DBMS_File_EXT}`,
+        PathSanitizer.safePath(this.path, `${sanitizedID}${General.DBMS_File_EXT}`),
       );
       isExist = response.status;
     } while (isExist);

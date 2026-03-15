@@ -7,6 +7,7 @@ import path from "path";
 // Crypto for hashing
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
+import PathSanitizer from "../../Helper/PathSanitizer.helper";
 import { StatusCodes } from "outers";
 import {
   ErrorInterface,
@@ -54,11 +55,14 @@ export default class Database {
     crypto: boolean = false,
     key?: string | undefined,
   ): Promise<Collection> {
+    // Sanitize collection name to prevent directory traversal attacks
+    const sanitizedCollectionName = PathSanitizer.sanitizePathComponent(collectionName);
+
     // Check if the collection already exists
     const collectionExists = await this.folderManager.DirectoryExists(
-      path.join(this.path, collectionName),
+      PathSanitizer.safePath(this.path, sanitizedCollectionName),
     );
-    const collectionPath = path.join(this.path, collectionName);
+    const collectionPath = PathSanitizer.safePath(this.path, sanitizedCollectionName);
 
     const CollectionMeta = await this.getCollectionMetaDetails(collectionName);
 

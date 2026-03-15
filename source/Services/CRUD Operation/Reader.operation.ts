@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import FolderManager from "../../engine/Filesystem/FolderManager";
 import {
   ErrorInterface,
   SuccessInterface,
@@ -10,11 +9,12 @@ import InMemoryCache from "../../Memory/memory.operation";
 import Converter from "../../Helper/Converter.helper";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import responseHelper from "../../Helper/response.helper";
+import PathSanitizer from "../../Helper/PathSanitizer.helper";
+import DocumentLoader from "../../Helper/DocumentLoader.helper";
 // Import All Utility
 import { General } from "../../config/Keys/Keys";
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
-import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
 import { ReadIndex } from "../Index/ReadIndex.service";
 
 /**
@@ -111,9 +111,14 @@ export default class Reader {
 
       // Direct documentId lookup - fastest path
       if (this.baseQuery?.documentId !== undefined) {
+        // Sanitize document IDs to prevent directory traversal attacks
+        const sanitizeDocId = (id: string) =>
+          `${PathSanitizer.sanitizePathComponent(id)}${General.DBMS_File_EXT}`;
+
         const FilePath = Array.isArray(this.baseQuery.documentId)
-          ? this.baseQuery.documentId.map((id: any) => `${id}${General.DBMS_File_EXT}`)
-          : [`${this.baseQuery.documentId}${General.DBMS_File_EXT}`];
+          ? this.baseQuery.documentId.map(sanitizeDocId)
+          : [sanitizeDocId(this.baseQuery.documentId)];
+
         const ReadResponse = await this.LoadAllBufferRawData(FilePath);
         if ("data" in ReadResponse) {
           // Fire-and-forget: Cache asynchronously
@@ -277,34 +282,21 @@ export default class Reader {
   private async LoadAllBufferRawData(
     documentIdDirectFile?: string[] | undefined,
   ): Promise<SuccessInterface | ErrorInterface> {
-    try {
-      const DataFilesList: string[] = [];
-      if (documentIdDirectFile !== undefined) {
-        DataFilesList.push(...documentIdDirectFile);
-      } else {
-        // Directly read list of files in directory (no lock/unlock system)
-        const ReadResponse = await new FolderManager().ListDirectory(this.path);
-        if ("data" in ReadResponse) {
-          // filter with .axiodb files only
-          ReadResponse.data = ReadResponse.data.filter((file: string) => file.endsWith(".axiodb"));
-          DataFilesList.push(...ReadResponse.data);
-        } else {
-          return this.ResponseHelper.Error("Failed to read directory");
-        }
-      }
-      // Read all files from the directory
-      const resultData: any[] = await ReaderWithWorker(
-        DataFilesList,
-        this.encryptionKey,
-        this.path,
-        this.isEncrypted,
-      );
+    // Use shared DocumentLoader helper (DRY - consolidates duplicated code)
+    const result = await DocumentLoader.loadDocuments(
+      this.path,
+      this.encryptionKey,
+      this.isEncrypted,
+      documentIdDirectFile,
+      false  // Don't include fileName for Reader
+    );
 
-      this.AllData = resultData; // Store all data in AllData
-      return this.ResponseHelper.Success(resultData);
-    } catch (error) {
-      return this.ResponseHelper.Error(error);
+    // Store result in AllData if successful
+    if ("data" in result) {
+      this.AllData = result.data;
     }
+
+    return result;
   }
 
   /**

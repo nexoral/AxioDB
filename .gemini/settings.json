@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "description": "NoSQL database management system for efficient data storage and retrieval.",
+  "project": {
+    "name": "AxioDB",
+    "type": "NoSQL Database",
+    "language": "TypeScript",
+    "runtime": "Node.js ≥18.0.0"
+  },
+  "context": {
+    "fileName": [
+      "GEMINI.md"
+    ],
+    "hierarchical": true,
+    "scanSubdirectories": true
+  },
+  "tools": {
+    "enabled": [
+      "codeSearch",
+      "fileOperations",
+      "shellCommands"
+    ],
+    "codeSearch": {
+      "indexFiles": true,
+      "excludePatterns": [
+        "node_modules",
+        "lib",
+        "dist",
+        ".git"
+      ]
+    }
+  },
+  "safety": {
+    "blockNone": false,
+    "blockFewUnsafe": true,
+    "blockSomeUnsafe": true,
+    "blockMostUnsafe": true
+  },
+  "performance": {
+    "streamResponse": true,
+    "cacheContext": true,
+    "maxCachedContexts": 10
+  },
+  "features": {
+    "codeCompletion": true,
+    "codeGeneration": true,
+    "codeExplanation": true,
+    "debugging": true,
+    "refactoring": true,
+    "testing": true,
+    "documentation": true
+  }
+}

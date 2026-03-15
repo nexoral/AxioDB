@@ -6,6 +6,7 @@ import {
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import WorkerProcess from "../cli/worker_process";
+import FolderManager from "./FolderManager";
 
 export default class FileManager {
   private readonly responseHelper: ResponseHelper;
@@ -258,6 +259,64 @@ export default class FileManager {
       }
     } catch (err) {
       return this.responseHelper.Error(`Failed to get file size: ${err}`);
+    }
+  }
+
+  /**
+   * Safely deletes a file with directory lock management.
+   *
+   * This method handles file deletion with proper directory lock/unlock sequences:
+   * - If directory is unlocked: deletes file directly
+   * - If directory is locked: unlocks, deletes file, then relocks directory
+   *
+   * @param collectionPath - The path to the collection directory
+   * @param fileName - The name of the file to delete
+   * @returns A promise that resolves to a SuccessInterface if the file is deleted successfully,
+   * or an ErrorInterface if an error occurs during the deletion process.
+   */
+  public async DeleteFileWithLock(
+    collectionPath: string,
+    fileName: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    const folderManager = new FolderManager();
+    const filePath = `${collectionPath}/${fileName}`;
+
+    // Check if directory is locked
+    const isLocked = await folderManager.IsDirectoryLocked(collectionPath);
+
+    if (!("data" in isLocked)) {
+      return this.responseHelper.Error("Failed to check directory lock status");
+    }
+
+    if (isLocked.data === false) {
+      // Directory not locked - delete directly
+      const deleteResponse = await this.DeleteFile(filePath);
+      return "data" in deleteResponse
+        ? this.responseHelper.Success("File deleted successfully")
+        : this.responseHelper.Error("Failed to delete file");
+    } else {
+      // Directory locked - unlock, delete, relock
+      const unlockResponse = await folderManager.UnlockDirectory(collectionPath);
+
+      if (!("data" in unlockResponse)) {
+        return this.responseHelper.Error("Failed to unlock directory");
+      }
+
+      const deleteResponse = await this.DeleteFile(filePath);
+
+      if (!("data" in deleteResponse)) {
+        // Attempt to relock even if delete failed
+        await folderManager.LockDirectory(collectionPath);
+        return this.responseHelper.Error("Failed to delete file");
+      }
+
+      const lockResponse = await folderManager.LockDirectory(collectionPath);
+
+      if (!("data" in lockResponse)) {
+        return this.responseHelper.Error("File deleted but failed to relock directory");
+      }
+
+      return this.responseHelper.Success("File deleted successfully");
     }
   }
 }
