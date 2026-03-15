@@ -7,8 +7,8 @@ import {
 import Converter from "../../Helper/Converter.helper";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
+import DocumentLoader from "../../Helper/DocumentLoader.helper";
 import FileManager from "../../engine/Filesystem/FileManager";
-import FolderManager from "../../engine/Filesystem/FolderManager";
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
 
@@ -16,7 +16,6 @@ import Sorting from "../../utility/SortData.utils";
 import Insertion from "./Create.operation";
 import InMemoryCache from "../../Memory/memory.operation";
 import { General } from "../../config/Keys/Keys";
-import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
 import { ReadIndex } from "../Index/ReadIndex.service";
 
 export default class UpdateOperation {
@@ -29,6 +28,7 @@ export default class UpdateOperation {
   private readonly ResponseHelper: ResponseHelper;
   private readonly cryptoInstance?: CryptoHelper;
   private readonly Converter: Converter;
+  private readonly fileManager: FileManager;
   private allDataWithFileName: any[] = [];
   private sort: object | any;
   private updatedAt: string;
@@ -51,6 +51,7 @@ export default class UpdateOperation {
     this.Insertion = new Insertion(this.collectionName, this.path);
     this.ResponseHelper = new ResponseHelper();
     this.Converter = new Converter();
+    this.fileManager = new FileManager();
     if (this.isEncrypted === true) {
       this.cryptoInstance = new CryptoHelper(this.encryptionKey);
     }
@@ -305,38 +306,21 @@ export default class UpdateOperation {
   private async LoadAllBufferRawData(
     documentIdDirectFile?: string[] | undefined,
   ): Promise<SuccessInterface | ErrorInterface> {
-    try {
-      const DataFilesList: string[] = []
-      if (documentIdDirectFile !== undefined) {
-        DataFilesList.push(...documentIdDirectFile)
-      }
-      else {
-        // Directly read list of files in directory (no lock/unlock system)
-        const ReadResponse = await new FolderManager().ListDirectory(this.path);
+    // Use shared DocumentLoader helper (DRY - consolidates duplicated code)
+    const result = await DocumentLoader.loadDocuments(
+      this.path,
+      this.encryptionKey,
+      this.isEncrypted,
+      documentIdDirectFile,
+      true  // Include fileName for Update operations
+    );
 
-        if ("data" in ReadResponse) {
-          // filter with .axiodb files only
-          ReadResponse.data = ReadResponse.data.filter((file: string) => file.endsWith(".axiodb"));
-          DataFilesList.push(...ReadResponse.data);
-        }
-      }
-
-      // Read all files from the directory
-      const resultData: any[] = await ReaderWithWorker(
-        DataFilesList,
-        this.encryptionKey,
-        this.path,
-        this.isEncrypted,
-        true, // keep extra param
-      );
-
-      this.allDataWithFileName = resultData; // Store all data with file name
-      return this.ResponseHelper.Success(resultData);
-
-      return this.ResponseHelper.Error("Failed to read directory");
-    } catch (error) {
-      return this.ResponseHelper.Error(error);
+    // Store result in allDataWithFileName if successful
+    if ("data" in result) {
+      this.allDataWithFileName = result.data;
     }
+
+    return result;
   }
 
   /**
@@ -352,46 +336,8 @@ export default class UpdateOperation {
    * @private
    */
   private async deleteFileUpdate(fileName: string) {
-    // Check if Directory Locked or not
-    const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
-    if ("data" in isLocked) {
-      // If Directory is not locked
-      if (isLocked.data === false) {
-        const deleteResponse = await new FileManager().DeleteFile(
-          `${this.path}/${fileName}`,
-        );
-        if ("data" in deleteResponse) {
-          return this.ResponseHelper.Success("File deleted successfully");
-        } else {
-          return this.ResponseHelper.Error("Failed to delete file");
-        }
-      } else {
-        const unlockResponse = await new FolderManager().UnlockDirectory(
-          this.path,
-        );
-        if ("data" in unlockResponse) {
-          const deleteResponse = await new FileManager().DeleteFile(
-            `${this.path}/${fileName}`,
-          );
-          if ("data" in deleteResponse) {
-            const lockResponse = await new FolderManager().LockDirectory(
-              this.path,
-            );
-            if ("data" in lockResponse) {
-              return this.ResponseHelper.Success("File deleted successfully");
-            } else {
-              return this.ResponseHelper.Error("Failed to lock directory");
-            }
-          } else {
-            return this.ResponseHelper.Error("Failed to delete file");
-          }
-        } else {
-          return this.ResponseHelper.Error("Failed to unlock directory");
-        }
-      }
-    } else {
-      return this.ResponseHelper.Error("Failed to delete file");
-    }
+    // Use FileManager's DeleteFileWithLock method for proper lock management
+    return await this.fileManager.DeleteFileWithLock(this.path, fileName);
   }
 
   /**
