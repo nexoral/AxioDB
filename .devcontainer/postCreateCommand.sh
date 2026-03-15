@@ -18,3 +18,12 @@ cd ./GUI && npm i --force && cd .. # Install & build dependencies for AxioDB GUI
 
 # Install Claude Code CLI
 npm install -g @anthropic-ai/claude-code
+
+# Install OpenAI Codex CLI
+npm i -g @openai/codex
+
+# Install Gemini CLI
+npm install -g @google/gemini-cli
+
+# Install Copilot CLI
+npm install -g @github/copilot
