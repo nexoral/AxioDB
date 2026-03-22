@@ -11,12 +11,14 @@ import DocumentLoader from "../../Helper/DocumentLoader.helper";
 import FileManager from "../../engine/Filesystem/FileManager";
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
+import { randomUUID } from "crypto";
 
 // Validator
 import Insertion from "./Create.operation";
 import InMemoryCache from "../../Memory/memory.operation";
 import { General } from "../../config/Keys/Keys";
 import { ReadIndex } from "../Index/ReadIndex.service";
+import LockManager from "../Transaction/LockManager.service";
 
 export default class UpdateOperation {
   // Properties
@@ -61,21 +63,28 @@ export default class UpdateOperation {
   /**
    * Updates a single document that matches the base query.
    *
-   * This method performs the following operations:
-   * 1. Searches for documents matching the base query
-   * 2. If documents are found, selects the first document (or first after sorting if sort criteria are provided)
-   * 3. Deletes the existing document file
-   * 4. Inserts a new file with updated data using the same document ID
+   * This method performs the following operations with ACID compliance:
+   * 1. Acquires lock on document to ensure atomicity and isolation
+   * 2. Searches for documents matching the base query
+   * 3. If documents are found, selects the first document (or first after sorting if sort criteria are provided)
+   * 4. Deletes the existing document file
+   * 5. Inserts a new file with updated data using the same document ID
+   * 6. Releases lock
    *
    * @param newData - The new data to replace the existing document
    * @returns A Promise resolving to:
    *          - Success with updated data and previous data if successful
-   *          - Error if any step fails
+   *          - Error if any step fails (lock acquisition, read, update)
    * @throws May throw errors during file operations or data processing
    */
   public async UpdateOne(
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
+    const lockManager = new LockManager(this.path);
+    const operationId = randomUUID();
+    const timestamp = Date.now();
+    let documentId: string | null = null;
+
     try {
       // check if the data is an empty object or not
       if (Object.keys(newData).length === 0 || newData === undefined) {
@@ -87,7 +96,7 @@ export default class UpdateOperation {
         throw new Error("Data must be an object.");
       }
 
-      // if documentId is provided in the baseQuery then read the file with the documentId
+      // STEP 1: Find the document first (before acquiring lock)
       let ReadResponse; // Read Response Holder
       if (this.baseQuery?.documentId !== undefined) {
         const FilePath = [
@@ -104,90 +113,112 @@ export default class UpdateOperation {
         }
       }
 
-      if ("data" in ReadResponse) {
-        const SearchedData = await new Searcher(ReadResponse.data, true).find(
-          this.baseQuery,
-          "data",
-        );
-        if (SearchedData.length === 0) {
-          return this.ResponseHelper.Error(
-            "No data found with the specified query",
-          );
-        }
-
-        let selectedFirstData = SearchedData[0]; // Select the first data
-        let fileName: string = selectedFirstData?.fileName; // Get the file name
-        const documentOldData = selectedFirstData.data; // Get the old data
-        const dataForRest: object | any = { ...documentOldData }; // Get the data for rest of the fields
-
-        // Sort the data if sort is provided then select the first data for deletion
-        if (Object.keys(this.sort).length === 0) {
-          selectedFirstData = SearchedData[0]; // Select the first data
-          fileName = selectedFirstData?.fileName; // Get the file name
-        } else {
-          const Sorter: Sorting = new Sorting(SearchedData, this.sort);
-          const SortedData: any[] = await Sorter.sort("data"); // Sort the data
-          selectedFirstData = SortedData[0]; // Select the first data
-          fileName = selectedFirstData?.fileName; // Get the file name
-        }
-        const documentId: string = fileName.split(".")[0];
-
-        // Update All new Fields in the old data
-        for (const key in newData) {
-          documentOldData[key] = newData[key];
-          // also change the updatedAt field
-          documentOldData.updatedAt = this.updatedAt;
-        }
-
-        // Delete the file
-        const deleteResponse = await this.deleteFileUpdate(fileName);
-        if ("data" in deleteResponse) {
-          // Insert the new Data in the file
-          const InsertResponse = await this.insertUpdate(
-            documentOldData,
-            documentId,
-          );
-          if ("data" in InsertResponse) {
-            // Fire-and-forget: Invalidate cache asynchronously
-            InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
-            return this.ResponseHelper.Success({
-              message: "Data updated successfully",
-              newData: documentOldData,
-              previousData: dataForRest,
-              documentId: documentId,
-            });
-          } else {
-            return this.ResponseHelper.Error("Failed to insert data");
-          }
-        } else {
-          return this.ResponseHelper.Error("Failed to delete file");
-        }
-      } else {
-        return this.ResponseHelper.Error("Failed to read  raw data");
+      if (!("data" in ReadResponse)) {
+        return this.ResponseHelper.Error("Failed to read raw data");
       }
+
+      const SearchedData = await new Searcher(ReadResponse.data, true).find(
+        this.baseQuery,
+        "data",
+      );
+
+      if (SearchedData.length === 0) {
+        return this.ResponseHelper.Error(
+          "No data found with the specified query",
+        );
+      }
+
+      let selectedFirstData = SearchedData[0]; // Select the first data
+      let fileName: string = selectedFirstData?.fileName; // Get the file name
+
+      // Sort the data if sort is provided then select the first data for deletion
+      if (Object.keys(this.sort).length !== 0) {
+        const Sorter: Sorting = new Sorting(SearchedData, this.sort);
+        const SortedData: any[] = await Sorter.sort("data"); // Sort the data
+        selectedFirstData = SortedData[0]; // Select the first data
+        fileName = selectedFirstData?.fileName; // Get the file name
+      }
+
+      documentId = fileName.split(".")[0];
+
+      // STEP 2: Acquire lock on the document (ACID: Isolation)
+      const lockResult = await lockManager.acquireLock(documentId, operationId, timestamp);
+      if (!("data" in lockResult)) {
+        return this.ResponseHelper.Error("Lock acquisition failed");
+      }
+
+      // STEP 3: Perform update operation (now safe - locked)
+      const documentOldData = selectedFirstData.data; // Get the old data
+      const dataForRest: object | any = { ...documentOldData }; // Get the data for rest of the fields
+
+      // Update All new Fields in the old data
+      for (const key in newData) {
+        documentOldData[key] = newData[key];
+        // also change the updatedAt field
+        documentOldData.updatedAt = this.updatedAt;
+      }
+
+      // Delete the file
+      const deleteResponse = await this.deleteFileUpdate(fileName);
+      if (!("data" in deleteResponse)) {
+        return this.ResponseHelper.Error("Failed to delete file");
+      }
+
+      // Insert the new Data in the file
+      const InsertResponse = await this.insertUpdate(
+        documentOldData,
+        documentId,
+      );
+
+      if (!("data" in InsertResponse)) {
+        return this.ResponseHelper.Error("Failed to insert data");
+      }
+
+      // Fire-and-forget: Invalidate cache asynchronously
+      InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
+
+      return this.ResponseHelper.Success({
+        message: "Data updated successfully",
+        newData: documentOldData,
+        previousData: dataForRest,
+        documentId: documentId,
+      });
+
     } catch (error) {
       console.log(error);
       return this.ResponseHelper.Error("Failed to update data");
+    } finally {
+      // STEP 4: Always release lock (ACID: ensures no deadlock)
+      if (documentId) {
+        await lockManager.releaseLock(documentId).catch(() => {});
+      }
     }
   }
 
   /**
    * Updates multiple documents that match the base query.
    *
-   * This method performs the following operations:
+   * This method performs the following operations with ACID compliance:
    * 1. Searches for documents matching the base query
-   * 2. Deletes the existing documents
-   * 3. Inserts new files with updated data for each document
+   * 2. Acquires locks on ALL matching documents (ensures atomicity across all updates)
+   * 3. Deletes the existing documents
+   * 4. Inserts new files with updated data for each document
+   * 5. Releases all locks
    *
    * @param newData - The new data to replace the existing documents
    * @returns A Promise resolving to:
    *          - Success with updated data and previous data if successful
-   *          - Error if any step fails
+   *          - Error if any step fails (rollback by releasing all acquired locks)
    * @throws May throw errors during file operations or data processing
    */
   public async UpdateMany(
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
+    const lockManager = new LockManager(this.path);
+    const operationId = randomUUID();
+    const timestamp = Date.now();
+    const acquiredLocks: string[] = [];
+
     try {
       // check if the data is an empty object or not
       if (Object.keys(newData).length === 0 || newData === undefined) {
@@ -201,6 +232,7 @@ export default class UpdateOperation {
 
       newData.updatedAt = new Date().toISOString();
 
+      // STEP 1: Find all matching documents
       let ReadResponse;
       const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery)
       if (fileNames.length > 0) {
@@ -209,72 +241,97 @@ export default class UpdateOperation {
       } else {
         ReadResponse = await this.LoadAllBufferRawData();
       }
-      if ("data" in ReadResponse) {
-        const SearchedData = await new Searcher(ReadResponse.data, true).find(
-          this.baseQuery,
-          "data",
-        );
-        if (SearchedData.length === 0) {
-          return this.ResponseHelper.Error(
-            "No data found with the specified query",
-          );
-        }
 
-        const documentIds: string[] = [];
-        for (let i = 0; i < SearchedData.length; i++) {
-          let selectedData = SearchedData[i]; // Select the first data
-          let fileName: string = selectedData?.fileName; // Get the file name
-          const documentOldData = selectedData.data; // Get the old data
-
-          // Sort the data if sort is provided then select the first data for deletion
-          if (Object.keys(this.sort).length === 0) {
-            selectedData = SearchedData[i]; // Select the first data
-            fileName = selectedData?.fileName; // Get the file name
-          } else {
-            const Sorter: Sorting = new Sorting(SearchedData, this.sort);
-            const SortedData: any[] = await Sorter.sort("data"); // Sort the data
-            selectedData = SortedData[i]; // Select the first data
-            fileName = selectedData?.fileName; // Get the file name
-          }
-          const documentId: string = fileName.split(".")[0];
-          documentIds.push(documentId);
-
-          // Update All new Fields in the old data
-          for (const key in newData) {
-            documentOldData[key] = newData[key];
-            // also change the updatedAt field
-            documentOldData.updatedAt = newData.updatedAt;
-          }
-
-          // Delete the file
-          const deleteResponse = await this.deleteFileUpdate(fileName);
-          if ("data" in deleteResponse) {
-            // Insert the new Data in the file
-            const InsertResponse = await this.insertUpdate(
-              documentOldData,
-              documentId,
-            );
-            if ("data" in InsertResponse) {
-              continue;
-            } else {
-              return this.ResponseHelper.Error("Failed to insert data");
-            }
-          } else {
-            return this.ResponseHelper.Error("Failed to delete file");
-          }
-        }
-        // Fire-and-forget: Invalidate cache asynchronously
-        InMemoryCache.invalidateByDocuments(this.path, documentIds).catch(() => {});
-        return this.ResponseHelper.Success({
-          message: "Data updated successfully",
-          effectedData: SearchedData.length,
-          documentIds: documentIds,
-        });
-      } else {
-        return this.ResponseHelper.Error("Failed to read  raw data");
+      if (!("data" in ReadResponse)) {
+        return this.ResponseHelper.Error("Failed to read raw data");
       }
+
+      const SearchedData = await new Searcher(ReadResponse.data, true).find(
+        this.baseQuery,
+        "data",
+      );
+
+      if (SearchedData.length === 0) {
+        return this.ResponseHelper.Error(
+          "No data found with the specified query",
+        );
+      }
+
+      // STEP 2: Extract all document IDs
+      const documentIds: string[] = [];
+      for (let i = 0; i < SearchedData.length; i++) {
+        const selectedData = SearchedData[i];
+        const fileName: string = selectedData?.fileName;
+        const documentId: string = fileName.split(".")[0];
+        documentIds.push(documentId);
+      }
+
+      // STEP 3: Acquire locks on ALL documents before any modification (ACID: Atomicity + Isolation)
+      // This prevents partial updates if one lock fails
+      for (const docId of documentIds) {
+        const lockResult = await lockManager.acquireLock(docId, operationId, timestamp);
+        if (!("data" in lockResult)) {
+          // Lock acquisition failed - rollback by releasing acquired locks
+          return this.ResponseHelper.Error(`Lock acquisition failed for document ${docId}`);
+        }
+        acquiredLocks.push(docId);
+      }
+
+      // STEP 4: All locks acquired - now perform updates safely
+      for (let i = 0; i < SearchedData.length; i++) {
+        let selectedData = SearchedData[i];
+        let fileName: string = selectedData?.fileName;
+        const documentOldData = selectedData.data;
+
+        // Sort the data if sort is provided
+        if (Object.keys(this.sort).length !== 0) {
+          const Sorter: Sorting = new Sorting(SearchedData, this.sort);
+          const SortedData: any[] = await Sorter.sort("data");
+          selectedData = SortedData[i];
+          fileName = selectedData?.fileName;
+        }
+
+        const documentId: string = fileName.split(".")[0];
+
+        // Update All new Fields in the old data
+        for (const key in newData) {
+          documentOldData[key] = newData[key];
+          documentOldData.updatedAt = newData.updatedAt;
+        }
+
+        // Delete the file
+        const deleteResponse = await this.deleteFileUpdate(fileName);
+        if (!("data" in deleteResponse)) {
+          return this.ResponseHelper.Error(`Failed to delete file for document ${documentId}`);
+        }
+
+        // Insert the new Data in the file
+        const InsertResponse = await this.insertUpdate(
+          documentOldData,
+          documentId,
+        );
+
+        if (!("data" in InsertResponse)) {
+          return this.ResponseHelper.Error(`Failed to insert data for document ${documentId}`);
+        }
+      }
+
+      // Fire-and-forget: Invalidate cache asynchronously
+      InMemoryCache.invalidateByDocuments(this.path, documentIds).catch(() => {});
+
+      return this.ResponseHelper.Success({
+        message: "Data updated successfully",
+        effectedData: SearchedData.length,
+        documentIds: documentIds,
+      });
+
     } catch (error) {
       return this.ResponseHelper.Error("Failed to update data");
+    } finally {
+      // STEP 5: Always release ALL acquired locks (ACID: ensures no deadlock)
+      if (acquiredLocks.length > 0) {
+        await lockManager.releaseAllLocks(acquiredLocks).catch(() => {});
+      }
     }
   }
 

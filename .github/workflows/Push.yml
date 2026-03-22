@@ -20,19 +20,44 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    strategy:
+      matrix:
+        node-version: [20.x, 21.x, 22.x, 23.x, 24.x, latest]
+      fail-fast: false  # Continue testing other versions even if one fails
+    name: Test (Node ${{ matrix.node-version }})
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'  # Cache npm dependencies
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-${{ matrix.node-version }}-
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
         run: npm ci
+
       - name: Build
         run: npm run build
-      - name: Run GUI Build
-        run: cd GUI && npm install && npm run build && cd ..
-      - name: Move GUI build files
-        run: cd ./GUI && mv AxioControl/ ../lib/server/public && cd ..
-      - name: Run tests
-        run: npm run test
+
+      - name: Run CRUD tests
+        run: npm test crud
+
+      - name: Run Transaction tests
+        run: npm test transaction
+
+      - name: Run Read Optimization tests
+        run: npm test read
 
   publish_to_npm:
     needs: [test]
