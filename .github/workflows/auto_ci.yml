@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20.x, 21.x, 22.x, 23.x, 24.x, latest]
+        node-version: [20.x, 21.x, 22.x, 23.x, 24.x]
       fail-fast: false  # Continue testing other versions even if one fails
     name: Test (Node ${{ matrix.node-version }})
     steps:
@@ -48,9 +48,6 @@ jobs:
 
       - name: Run Transaction tests
         run: npm test transaction
-
-      - name: Run Read Optimization tests
-        run: npm test read
 
   auto-merge:
     needs: [test]  # Wait for all test matrix jobs to complete

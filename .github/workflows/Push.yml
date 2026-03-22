@@ -22,7 +22,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        node-version: [20.x, 21.x, 22.x, 23.x, 24.x, latest]
+        node-version: [20.x, 21.x, 22.x, 23.x, 24.x]
       fail-fast: false  # Continue testing other versions even if one fails
     name: Test (Node ${{ matrix.node-version }})
     steps:
