@@ -157,7 +157,7 @@ export default class Searcher {
     const effectiveLimit = findOne ? 1 : limit;
     
     // For small datasets, findOne, or when limit is small - use optimized linear search
-    if (this.data.length < 5000 || findOne || (effectiveLimit && effectiveLimit < 100)) {
+    if (findOne || (effectiveLimit && effectiveLimit < 1000) || this.data.length < 10000) {
       const result: any[] = [];
       for (let i = 0; i < this.data.length; i++) {
         const rawItem = this.data[i];
@@ -250,6 +250,16 @@ export default class Searcher {
       return andMatch && restMatch;
     }
 
+    // Handle root-level $nor (negated OR - none of the conditions should match)
+    if ("$nor" in query && Array.isArray(query.$nor)) {
+      const { $nor, ...rest } = query;
+      const norMatch = !$nor.some((sub) => this.matchesQuery(item, sub));
+      const restMatch = Object.keys(rest).length
+        ? this.matchesQuery(item, rest)
+        : true;
+      return norMatch && restMatch;
+    }
+
     // Two-pointer optimized query matching
     const queryKeys = Object.keys(query);
     const queryLength = queryKeys.length;
@@ -295,6 +305,70 @@ export default class Searcher {
           } else {
             if (!inArray.includes(itemValue)) return false;
           }
+          continue;
+        }
+
+        // $exists - Check if field exists in document
+        if ("$exists" in queryValue) {
+          const shouldExist = queryValue["$exists"];
+          const fieldExists = itemValue !== undefined && itemValue !== null;
+          if (shouldExist && !fieldExists) return false;
+          if (!shouldExist && fieldExists) return false;
+          continue;
+        }
+
+        // $elemMatch - Match array elements with nested conditions
+        if ("$elemMatch" in queryValue) {
+          if (!Array.isArray(itemValue)) return false;
+
+          const elemQuery = queryValue["$elemMatch"];
+          const hasMatch = itemValue.some(elem => {
+            return this.matchesQuery(elem, elemQuery, false);
+          });
+
+          if (!hasMatch) return false;
+          continue;
+        }
+
+        // $not - Negation of query condition
+        if ("$not" in queryValue) {
+          const negatedQuery = queryValue["$not"];
+          const tempDoc = { [key]: itemValue };
+          const tempQuery = { [key]: negatedQuery };
+
+          if (this.matchesQuery(isUpdated ? { data: tempDoc } : tempDoc, tempQuery, isUpdated)) {
+            return false;
+          }
+          continue;
+        }
+
+        // $type - Check value type
+        if ("$type" in queryValue) {
+          const expectedType = queryValue["$type"];
+          let actualType = itemValue === null ? 'null'
+                          : Array.isArray(itemValue) ? 'array'
+                          : typeof itemValue;
+
+          if (actualType !== expectedType) return false;
+          continue;
+        }
+
+        // $size - Check array length
+        if ("$size" in queryValue) {
+          if (!Array.isArray(itemValue)) return false;
+          if (itemValue.length !== queryValue["$size"]) return false;
+          continue;
+        }
+
+        // $all - Array must contain all specified values
+        if ("$all" in queryValue && Array.isArray(queryValue["$all"])) {
+          if (!Array.isArray(itemValue)) return false;
+
+          const requiredValues = queryValue["$all"];
+          const itemSet = new Set(itemValue);
+          const hasAll = requiredValues.every(val => itemSet.has(val));
+
+          if (!hasAll) return false;
           continue;
         }
 

@@ -130,11 +130,49 @@ export default class Reader {
 
       // Try index-based lookup first
       const indexReader = new ReadIndex(this.path);
-      const indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
-      
+      let indexedFileNames: string[] = [];
+
+      // Check if query can use index optimization
+      const queryKeys = Object.keys(this.baseQuery);
+      if (queryKeys.length === 1) {
+        const fieldName = queryKeys[0];
+        const fieldValue = this.baseQuery[fieldName];
+
+        if (typeof fieldValue === 'object' && fieldValue !== null) {
+          // OPTIMIZED: Use $in-aware index lookup (O(K) vs O(N))
+          if ('$in' in fieldValue) {
+            indexedFileNames = await indexReader.getFilesForInOperator(fieldName, fieldValue.$in);
+          }
+          // OPTIMIZED: Use prefix index lookup for regex patterns like /^prefix/
+          else if ('$regex' in fieldValue) {
+            const prefixInfo = this.detectPrefixPattern(fieldValue.$regex, fieldValue.$options);
+            if (prefixInfo.isPrefix && prefixInfo.prefix) {
+              indexedFileNames = await indexReader.getFilesForPrefixQuery(
+                fieldName,
+                prefixInfo.prefix,
+                prefixInfo.caseInsensitive
+              );
+            } else {
+              // Non-prefix regex - use standard lookup (will likely fall back to full scan)
+              indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
+            }
+          }
+          // Other operators - use standard lookup
+          else {
+            indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
+          }
+        } else {
+          // Standard exact match
+          indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
+        }
+      } else {
+        // Multiple fields or no fields - use standard index lookup
+        indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
+      }
+
       let ReadResponse;
       let usedIndex = false;
-      
+
       if (indexedFileNames && indexedFileNames.length > 0) {
         // Index hit - load only indexed files (much faster)
         ReadResponse = await this.LoadAllBufferRawData(indexedFileNames);
@@ -179,10 +217,45 @@ export default class Reader {
   private isExactIndexMatch(): boolean {
     const queryKeys = Object.keys(this.baseQuery);
     if (queryKeys.length !== 1) return false;
-    
+
     const value = this.baseQuery[queryKeys[0]];
     // Exact match if value is primitive (not an operator object)
     return typeof value !== 'object' || value === null;
+  }
+
+  /**
+   * Detects if a regex pattern is a simple prefix match (e.g., /^John/, /^admin@/)
+   * and extracts the prefix for index optimization
+   *
+   * @param regex - The regex pattern (RegExp object or string)
+   * @param options - Optional regex flags (e.g., 'i' for case-insensitive)
+   * @returns Object with isPrefix flag, prefix string, and case-insensitive flag
+   *
+   * @example
+   * detectPrefixPattern(/^John/, 'i') // { isPrefix: true, prefix: 'John', caseInsensitive: true }
+   * detectPrefixPattern(/John/) // { isPrefix: false }
+   * detectPrefixPattern(/^test[0-9]+/) // { isPrefix: false } - complex pattern
+   */
+  private detectPrefixPattern(
+    regex: RegExp | string,
+    options?: string
+  ): { isPrefix: boolean; prefix?: string; caseInsensitive: boolean } {
+    const regexStr = regex instanceof RegExp ? regex.source : String(regex);
+    const flags = regex instanceof RegExp ? regex.flags : (options || '');
+
+    // Match simple prefix patterns: ^abc, ^test, ^John (alphanumeric, underscore, dash, @, .)
+    // Excludes complex patterns with [], *, +, {}, etc.
+    const prefixMatch = regexStr.match(/^\^([a-zA-Z0-9_\-@.]+)$/);
+
+    if (prefixMatch) {
+      return {
+        isPrefix: true,
+        prefix: prefixMatch[1],
+        caseInsensitive: flags.includes('i')
+      };
+    }
+
+    return { isPrefix: false, caseInsensitive: false };
   }
 
   /**
