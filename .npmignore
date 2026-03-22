@@ -1,37 +1,63 @@
-source
+# Source files (only compiled lib/ is needed)
+source/
 tsconfig.json
 tslint.json
+eslint.config.mjs
 .eslintrc.yml
-.github
-library
-dist
-.vscode
-Cache
-.devcontainer
-node_modules
+
+# Development and CI/CD
+.github/
 .gitignore
-.deepsource.toml
 .gitpod.yml
+.deepsource.toml
+.circleci/
 docker-compose.yml
+
+# IDE configurations
+.vscode/
+.idea/
+.devcontainer/
+
+# AI Assistant configurations (non-essential for npm users)
+.agents/
+.claude/
+.codex/
+.cursor/
+.devin/
+.gemini/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+
+# Documentation (covered by README.md and official docs site)
+Document/
+LEARN.md
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
-LEARN.md
 SECURITY.md
-.circleci
-test.js
-.circleci
-GUI
-AxioDB
-test
-.idea
-./source/**/*
+
+# Testing
 Test/
-# Ignore the following directories and files for the GUI
-Document/
+test/
+test.js
+*.test.js
+*.spec.js
+
+# Build artifacts and GUI (not needed in npm package)
 GUI/
 Docker/
 Scripts/
-.devin
-LICENSE
-README.md
-eslint.config.mjs
+dist/
+library/
+Cache/
+AxioDB/
+
+# Dependencies
+node_modules/
+
+# Keep these files (explicitly not ignored):
+# - lib/ (compiled TypeScript output)
+# - package.json
+# - package-lock.json
+# - README.md
+# - LICENSE

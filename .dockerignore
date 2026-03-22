@@ -1,0 +1,73 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Node modules (will be installed in container)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# AI Assistant configurations (not needed in Docker)
+.agents/
+.claude/
+.codex/
+.cursor/
+.devin/
+.gemini/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+
+# IDE configurations
+.vscode/
+.idea/
+.devcontainer/
+
+# Documentation (not needed in runtime)
+Document/
+LEARN.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+SECURITY.md
+
+# Development files
+.gitpod.yml
+.deepsource.toml
+docker-compose.yml
+eslint.config.mjs
+tsconfig.json
+
+# Source TypeScript files (only compiled lib/ needed)
+source/
+Test/
+test/
+*.test.js
+*.spec.js
+
+# Build artifacts
+dist/
+library/
+Cache/
+AxioDB/
+
+# GUI (built separately if needed)
+GUI/
+
+# Scripts (development only)
+Scripts/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.log
+*.tmp
+tmp/
+temp/
