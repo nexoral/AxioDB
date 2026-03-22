@@ -70,6 +70,86 @@ export class ReadIndex extends IndexManager {
   }
 
   /**
+   * Retrieve file paths from an index for documents matching any value in the $in array.
+   *
+   * OPTIMIZED: Uses index lookups for each value in the $in array, unions the results.
+   * This is significantly faster than full collection scan for indexed fields.
+   *
+   * @param fieldName - The field name to query (must have an index)
+   * @param values - Array of values to match (from $in operator)
+   *
+   * @returns Promise resolving to array of unique file paths matching any value
+   *
+   * @remarks
+   * - Uses Set for automatic deduplication of file paths
+   * - Returns empty array if field has no index
+   * - O(K) lookups where K = values.length (much faster than O(N) full scan)
+   *
+   * @example
+   * // For query: { category: { $in: ['Electronics', 'Books'] } }
+   * const files = await readIndex.getFilesForInOperator('category', ['Electronics', 'Books']);
+   */
+  public async getFilesForInOperator(fieldName: string, values: any[]): Promise<string[]> {
+    const indexData = await this.indexCache.getIndex(fieldName);
+    if (!indexData) return [];
+
+    const fileSet = new Set<string>();
+    for (const value of values) {
+      const files = indexData.indexEntries[value];
+      if (files) {
+        files.forEach(f => fileSet.add(f));
+      }
+    }
+    return Array.from(fileSet);
+  }
+
+  /**
+   * Retrieve file paths from an index for documents where field value starts with a prefix.
+   *
+   * OPTIMIZED: Uses index to filter values by prefix, avoiding full collection scan.
+   * Works with hash-based indexes by filtering index keys.
+   *
+   * @param fieldName - The field name to query (must have an index)
+   * @param prefix - The prefix string to match
+   * @param caseInsensitive - Whether to perform case-insensitive matching (default: false)
+   *
+   * @returns Promise resolving to array of unique file paths where field starts with prefix
+   *
+   * @remarks
+   * - Filters index keys for prefix matches (O(K) where K = index key count)
+   * - Much faster than full collection scan for prefix patterns
+   * - Falls back to empty array if field has no index
+   * - Best used for regex patterns like /^John/ or /^admin@/
+   *
+   * @example
+   * // For query: { name: { $regex: /^John/i } }
+   * const files = await readIndex.getFilesForPrefixQuery('name', 'John', true);
+   */
+  public async getFilesForPrefixQuery(
+    fieldName: string,
+    prefix: string,
+    caseInsensitive: boolean = false
+  ): Promise<string[]> {
+    const indexData = await this.indexCache.getIndex(fieldName);
+    if (!indexData) return [];
+
+    const normalizedPrefix = caseInsensitive ? prefix.toLowerCase() : prefix;
+    const fileSet = new Set<string>();
+
+    // Iterate through index keys and find matches
+    // For hash-based indexes, this is O(K) where K = number of unique values
+    for (const [value, files] of Object.entries(indexData.indexEntries)) {
+      const normalizedValue = caseInsensitive ? value.toLowerCase() : value;
+
+      if (normalizedValue.startsWith(normalizedPrefix)) {
+        files.forEach(f => fileSet.add(f));
+      }
+    }
+
+    return Array.from(fileSet);
+  }
+
+  /**
  * Finds index metadata entries that correspond to properties present on the provided document.
  *
  * Reads the index metadata file at `this.indexMetaPath`, converts its content into an object,
