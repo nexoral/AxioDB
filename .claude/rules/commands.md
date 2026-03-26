@@ -17,8 +17,8 @@ npx tsc --noEmit          # Type check without emit
 node Test/modules/crud.test.js
 
 # Manual AxioDB instance
-node -e "const {AxioDB} = require('./lib/config/DB.js'); new AxioDB(true);"  # GUI on 27018
-node -e "const {AxioDB} = require('./lib/config/DB.js'); new AxioDB(false, 'MyDB', '.', true);"  # TCP on 27019
+node -e "const {AxioDB} = require('./lib/config/DB.js'); new AxioDB({ GUI: true });"  # GUI on 27018
+node -e "const {AxioDB} = require('./lib/config/DB.js'); new AxioDB({ GUI: false, RootName: 'MyDB', CustomPath: '.', TCP: true });"  # TCP on 27019
 
 # Documentation site
 cd Document && npm run dev   # localhost:5173

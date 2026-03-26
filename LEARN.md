@@ -42,7 +42,7 @@ npm install axiodb@latest --save
 const { AxioDB } = require('axiodb');
 
 // Create AxioDB instance with built-in GUI
-const db = new AxioDB(true); // GUI at localhost:27018
+const db = new AxioDB({ GUI: true }); // GUI at localhost:27018
 
 // Create database and collection
 const myDB = await db.createDB('HelloWorldDB');
@@ -291,7 +291,7 @@ AxioDB includes a web-based GUI for database visualization:
 
 ```javascript
 // Enable GUI when creating instance
-const db = new AxioDB(true);  // GUI at localhost:27018
+const db = new AxioDB({ GUI: true });  // GUI at localhost:27018
 ```
 
 **GUI Features:**

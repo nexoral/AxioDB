@@ -183,12 +183,12 @@ docker run -d \\
               code={`const { AxioDB } = require('axiodb');
 
 // Create AxioDB instance with TCP enabled
-const db = new AxioDB(
-  false,              // GUI (optional)
-  'MyDatabase',       // Root database name
-  './data',           // Data directory
-  true                // Enable TCP server
-);
+const db = new AxioDB({
+  GUI: false,              // GUI (optional)
+  RootName: 'MyDatabase',  // Root database name
+  CustomPath: './data',    // Data directory
+  TCP: true                // Enable TCP server
+});
 
 // Server automatically starts on port 27019
 console.log('AxioDB TCP Server running on port 27019');`}

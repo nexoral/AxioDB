@@ -132,7 +132,7 @@ docker run -d \
 
 ```javascript
 const { AxioDB } = require('axiodb');
-const db = new AxioDB(false, 'MyDB', '.', true); // Enable TCP on port 27019
+const db = new AxioDB({ GUI: false, RootName: 'MyDB', CustomPath: '.', TCP: true }); // Enable TCP on port 27019
 ```
 
 ### Quick Start - Client
@@ -235,10 +235,10 @@ AxioDB includes a built-in web-based GUI for database visualization and manageme
 
 ```javascript
 // Enable GUI when creating AxioDB instance
-const db = new AxioDB(true); // GUI available at localhost:27018
+const db = new AxioDB({ GUI: true }); // GUI available at localhost:27018
 
 // With custom database path
-const db = new AxioDB(true, "MyDB", "./custom/path");
+const db = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./custom/path" });
 ```
 
 ### GUI Features
@@ -302,7 +302,7 @@ npm install axiodb@latest --save
 const { AxioDB } = require('axiodb');
 
 // Create AxioDB instance with built-in GUI
-const db = new AxioDB(true); // Enable GUI at localhost:27018
+const db = new AxioDB({ GUI: true }); // Enable GUI at localhost:27018
 
 // Create database and collection
 const myDB = await db.createDB('HelloWorldDB');

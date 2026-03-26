@@ -629,7 +629,7 @@ const Introduction: React.FC = () => {
                   Database Visualization Built In
                 </h3>
                 <p className="text-blue-100 mb-4 leading-relaxed">
-                  Start AxioDB with <code className="bg-white/20 px-2 py-1 rounded">new AxioDB(true)</code> to
+                  Start AxioDB with <code className="bg-white/20 px-2 py-1 rounded">new AxioDB(&#123; GUI: true &#125;)</code> to
                   enable the built-in web GUI on localhost:27018. Perfect for Electron apps—give
                   your users a database inspector without extra dependencies.
                 </p>

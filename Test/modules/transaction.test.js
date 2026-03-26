@@ -24,7 +24,7 @@ class TransactionTests extends TestRunner {
       fs.rmSync(this.testDir, { recursive: true, force: true });
     }
 
-    this.dbInstance = new AxioDB(false, 'TransactionTestDB', this.testDir);
+    this.dbInstance = new AxioDB({ GUI: false, RootName: 'TransactionTestDB', CustomPath: this.testDir });
     this.testDB = await this.dbInstance.createDB('TestDB');
     this.collection = await this.testDB.createCollection('Users', false);
     await this.collection.newIndex('email', 'age', 'name');
