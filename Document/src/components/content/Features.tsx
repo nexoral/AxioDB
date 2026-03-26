@@ -399,7 +399,7 @@ const Features: React.FC = () => {
               extra dependencies. Runs on localhost:27018.
             </p>
             <code className="bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 px-3 py-2 rounded-lg text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200 dark:border-indigo-800">
-              new AxioDB(true) // Enable GUI
+              new AxioDB(&#123; GUI: true &#125;) // Enable GUI
             </code>
           </div>
         </div>
@@ -421,7 +421,7 @@ const Features: React.FC = () => {
               deployment flexibility across different environments.
             </p>
             <code className="bg-gradient-to-r from-lime-100 to-green-100 dark:from-lime-900/50 dark:to-green-900/50 px-3 py-2 rounded-lg text-lime-700 dark:text-lime-300 font-semibold border border-lime-200 dark:border-lime-800">
-              new AxioDB(true, "MyDB", "./custom/path")
+              new AxioDB(&#123; GUI: true, RootName: "MyDB", CustomPath: "./custom/path" &#125;)
             </code>
           </div>
         </div>

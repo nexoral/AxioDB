@@ -242,7 +242,7 @@ const WhyChooseAxioDBPage: React.FC = () => {
                 Store user preferences, application state, and local data without requiring users to install database servers.
               </p>
               <code className="text-sm bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
-                new AxioDB(true)
+                new AxioDB(&#123; GUI: true &#125;)
               </code>
             </div>
 
@@ -252,7 +252,7 @@ const WhyChooseAxioDBPage: React.FC = () => {
                 Persist configuration, cache API responses, and manage local data for command-line applications.
               </p>
               <code className="text-sm bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded">
-                new AxioDB(false, "MyCliTool")
+                new AxioDB(&#123; GUI: false, RootName: "MyCliTool" &#125;)
               </code>
             </div>
 

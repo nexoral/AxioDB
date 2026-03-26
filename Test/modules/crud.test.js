@@ -27,7 +27,7 @@ class CRUDTests extends TestRunner {
     }
 
     // Create database instance
-    this.dbInstance = new AxioDB(false, 'CRUDTestDB', this.testDir);
+    this.dbInstance = new AxioDB({ GUI: false, RootName: 'CRUDTestDB', CustomPath: this.testDir });
     this.testDB = await this.dbInstance.createDB('TestDatabase');
     this.collection = await this.testDB.createCollection('Users');
 

@@ -25,7 +25,7 @@ class ReadOptimizationTests extends TestRunner {
       fs.rmSync(this.testDir, { recursive: true, force: true });
     }
 
-    this.dbInstance = new AxioDB(false, 'ReadOptTestDB', this.testDir);
+    this.dbInstance = new AxioDB({ GUI: false, RootName: 'ReadOptTestDB', CustomPath: this.testDir });
     this.testDB = await this.dbInstance.createDB('TestDB');
     this.collection = await this.testDB.createCollection('LargeCollection');
 

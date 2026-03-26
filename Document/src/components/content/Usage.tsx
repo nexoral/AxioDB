@@ -377,12 +377,12 @@ console.log(paginatedDocuments);`,
 
 // Create a single AxioDB instance for your entire application
 // Enable GUI (most common): localhost:27018
-const Instance = new AxioDB(true);
+const Instance = new AxioDB({ GUI: true });
 
 // Other constructor options:
-const NoGUIInstance = new AxioDB(false); // Disable GUI
-const CustomNameInstance = new AxioDB(true, "MyCustomDB"); // Custom database name
-const CustomPathInstance = new AxioDB(true, "MyDB", "./data"); // Custom path
+const NoGUIInstance = new AxioDB({ GUI: false }); // Disable GUI
+const CustomNameInstance = new AxioDB({ GUI: true, RootName: "MyCustomDB" }); // Custom database name
+const CustomPathInstance = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./data" }); // Custom path
 
 const main = async () => {
   // Create database
@@ -490,12 +490,12 @@ main();`}
 
 // Create a single AxioDB instance for your entire application
 // Enable GUI (most common): localhost:27018
-const Instance = new AxioDB(true);
+const Instance = new AxioDB({ GUI: true });
 
 // Other constructor options:
-const NoGUIInstance = new AxioDB(false); // Disable GUI
-const CustomNameInstance = new AxioDB(true, "MyCustomDB"); // Custom database name
-const CustomPathInstance = new AxioDB(true, "MyDB", "./data"); // Custom path
+const NoGUIInstance = new AxioDB({ GUI: false }); // Disable GUI
+const CustomNameInstance = new AxioDB({ GUI: true, RootName: "MyCustomDB" }); // Custom database name
+const CustomPathInstance = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./data" }); // Custom path
 
 const main = async () => {
   // Create database

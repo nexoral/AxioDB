@@ -28,10 +28,10 @@ This GUI is built with:
 const { AxioDB } = require('axiodb');
 
 // Enable GUI when creating AxioDB instance
-const db = new AxioDB(true);  // GUI available at localhost:27018
+const db = new AxioDB({ GUI: true });  // GUI available at localhost:27018
 
 // With custom database path
-const db = new AxioDB(true, "MyDB", "./custom/path");
+const db = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./custom/path" });
 ```
 
 The GUI will automatically start and be available at: `http://localhost:27018`

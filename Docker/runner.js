@@ -1,3 +1,3 @@
 const { AxioDB } = require('./lib/config/DB.js')
 
-new AxioDB(true, undefined, undefined, true)
+new AxioDB({ GUI: true, TCP: true })

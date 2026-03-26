@@ -18,15 +18,21 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../config/Interfaces/Helper/response.helper.interface";
-import { FinalDatabaseInfo } from "../config/Interfaces/Operation/Indexation.operation.interface";
+import { FinalDatabaseInfo, AxioDBOptions } from "../config/Interfaces/Operation/Indexation.operation.interface";
 import createAxioDBControlServer from "../server/config/server";
 import { DatabaseMap } from "../config/Interfaces/Operation/database.operation.interface";
 import createAxioDBTCPServer from "../tcp/config/server";
 
 /**
  * Class representing the AxioDB database.
- * @param {string} RootName - The name of the root folder.
+ * @param {AxioDBOptions} options - Configuration options for AxioDB
+ * @param {boolean} options.GUI - Enable/disable HTTP GUI server (port 27018). Defaults to false.
+ * @param {string} options.RootName - Custom name for the database root folder. Defaults to "AxioDB".
+ * @param {string} options.CustomPath - Custom path for database storage. Defaults to current directory.
+ * @param {boolean} options.TCP - Enable/disable TCP server (port 27019). Defaults to false.
  * @returns {AxioDB} - Returns the instance of AxioDB.
+ * @example
+ * const db = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./data" });
  */
 export class AxioDB {
   private readonly RootName: string;
@@ -40,11 +46,16 @@ export class AxioDB {
   private GUI: boolean = General.DBMS_GUI_Enable;
   private TCP: boolean = false;
 
-  constructor(GUI?: boolean, RootName?: string, CustomPath?: string, TCP?: boolean) {
+  constructor(options: AxioDBOptions = {}) {
     if (AxioDB._instance) {
       throw new Error("Only one instance of AxioDB is allowed.");
     }
     AxioDB._instance = this;
+
+    const { GUI, RootName, CustomPath, TCP } = options;
+
+    // Default Vlaues
+
     this.RootName = RootName || General.DBMS_Name; // Set the root name
     this.currentPATH = path.resolve(CustomPath || "."); // Set the current path
     this.fileManager = new FileManager(); // Initialize the FileManager class

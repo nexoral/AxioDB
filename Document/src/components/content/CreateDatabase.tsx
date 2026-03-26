@@ -11,22 +11,22 @@ const CreateDatabase: React.FC = () => {
 const { AxioDB } = require("axiodb");
 
 // Create AxioDB instance with GUI enabled (most common)
-const db = new AxioDB(true);
+const db = new AxioDB({ GUI: true });
 console.log("AxioDB instance created with GUI at localhost:27018");
 `,
     noGUI: `
 // Create AxioDB instance without GUI
-const db = new AxioDB(false);
+const db = new AxioDB({ GUI: false });
 console.log("AxioDB instance created without GUI");
 `,
     customName: `
 // Create AxioDB instance with GUI and custom root folder name
-const db = new AxioDB(true, "MyCustomDB");
+const db = new AxioDB({ GUI: true, RootName: "MyCustomDB" });
 console.log("Custom AxioDB instance created with GUI");
 `,
     customRootPath: `
 // Create AxioDB instance with GUI, custom name, and custom path
-const db = new AxioDB(true, "MyCustomDB", "./data");
+const db = new AxioDB({ GUI: true, RootName: "MyCustomDB", CustomPath: "./data" });
 console.log("AxioDB instance with custom path created");
 `,
     createDatabase: `
@@ -43,8 +43,8 @@ console.log("Database 'ProductsDB' created");
     <section className="pt-12 scroll-mt-20">
       <h2 className="text-3xl font-bold mb-6">Create Database</h2>
       <p className="text-gray-700 dark:text-gray-300 mb-8">
-        AxioDB constructor follows the pattern: <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">new AxioDB(GUI?, RootName?, CustomPath?)</code>.
-        The GUI parameter is first because most users want to enable the built-in web interface.
+        AxioDB constructor follows the pattern: <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">&#123;GUI?, RootName?, CustomPath?, TCP?&#125;</code>.
+        This pattern provides better readability and flexibility.
       </p>
 
       <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-8">
