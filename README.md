@@ -470,6 +470,60 @@ When you outgrow AxioDB (1M+ documents, distributed systems), migrate to Postgre
 
 ---
 
+## ⚖️ AxioDB vs lowdb, nedb, better-sqlite3
+
+| Feature | lowdb | nedb | better-sqlite3 | AxioDB |
+|---------|-------|------|---------------|--------|
+| **Maintained** | ✅ | ❌ Abandoned | ✅ | ✅ |
+| **Native bindings** | ✅ None | ✅ None | ❌ Yes (C/node-gyp) | ✅ None |
+| **Storage** | Single JSON file | Single file / in-memory | Single .db file | File-per-document |
+| **Query language** | JS/Lodash | JS objects | SQL strings | JS objects (MongoDB-style) |
+| **Built-in caching** | ❌ | ❌ | ❌ | ✅ InMemoryCache |
+| **Worker Threads** | ❌ | ❌ | ❌ | ✅ |
+| **ACID Transactions** | ❌ | ❌ | ✅ | ✅ |
+| **AES-256 Encryption** | ❌ | ❌ | ❌ | ✅ |
+| **Aggregation Pipelines** | ❌ | Partial | ❌ | ✅ MongoDB-compatible |
+| **TypeScript support** | ✅ | Partial | ✅ | ✅ Full |
+| **Electron compatible** | ✅ | ✅ | ❌ (requires rebuild) | ✅ |
+| **Sweet spot** | <5K docs | <100K docs | 10M+ (relational) | 10K–500K docs |
+| **Built-in GUI** | ❌ | ❌ | ❌ | ✅ localhost:27018 |
+
+---
+
+## ❓ FAQ
+
+**Q: What is AxioDB?**
+An embedded NoSQL database for Node.js. Pure JavaScript, zero native dependencies. `npm install axiodb` and you have a database — no server, no node-gyp, no electron-rebuild.
+
+**Q: Is AxioDB a replacement for MongoDB?**
+No. AxioDB is embedded (runs inside your app). MongoDB is a client-server database for multi-user systems. Use AxioDB for desktop apps, CLI tools, and local-first apps up to 500K documents. Use MongoDB when you need a shared networked database.
+
+**Q: Does AxioDB work with Electron?**
+Yes — this is the primary use case it was built for. Zero native dependencies means no `electron-rebuild`, no platform-specific `.node` files, no compilation step.
+
+**Q: What is the difference between AxioDB and better-sqlite3?**
+`better-sqlite3` uses C native bindings and requires `node-gyp` compilation. AxioDB is pure JavaScript — no compilation, works across all platforms including Electron without a rebuild step. AxioDB also uses MongoDB-style JSON queries instead of SQL strings.
+
+**Q: What is the difference between AxioDB and lowdb?**
+`lowdb` stores everything in a single JSON file — it gets slow above 1,000–5,000 records because every read parses the entire file. AxioDB uses file-per-document storage, InMemoryCache, Worker Threads, and auto-indexing — optimized for 10K–500K documents with O(1) lookups by documentId.
+
+**Q: What is the difference between AxioDB and nedb?**
+NeDB is abandoned since 2016. AxioDB is actively maintained with TypeScript, ACID transactions, Worker Threads, AES-256 encryption, custom field indexing, built-in GUI, and AxioDBCloud remote access.
+
+**Q: How many documents can AxioDB handle?**
+Optimized for 10,000–500,000 documents. For 1M+, use PostgreSQL or MongoDB. documentId lookups take ~1ms on 10K documents with InMemoryCache.
+
+**Q: Does AxioDB support TypeScript?**
+Yes. Full type definitions are included — no separate `@types` package needed.
+
+**Q: Does AxioDB work in the browser?**
+No. AxioDB requires Node.js (v20+) and the filesystem. Server-side and desktop only.
+
+**Q: What is AxioDBCloud?**
+TCP-based remote access for AxioDB. Deploy AxioDB in Docker, connect from multiple clients with the exact same API. Supports 1,000+ concurrent connections with auto-reconnect.
+
+---
+
 ## 🔮 Future Roadmap
 
 - **Data Export & Import:** Seamless data migration with support for JSON, CSV, and native AxioDB formats
@@ -542,18 +596,3 @@ If you find AxioDB helpful, consider:
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions from the community! Whether it's code improvements, documentation updates, bug reports, or feature suggestions, your input helps make AxioDB better. Please read the [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to get started.
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙌 Acknowledgments
-
-Special thanks to all contributors and supporters of AxioDB. Your feedback and contributions make this project better!

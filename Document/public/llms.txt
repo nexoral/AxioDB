@@ -1,0 +1,47 @@
+# AxioDB
+
+> Embedded NoSQL database for Node.js — pure JavaScript SQLite alternative with MongoDB-style queries. Zero native dependencies, no node-gyp, no electron-rebuild. Works everywhere Node.js runs. 2,000+ npm downloads.
+
+## What it is
+
+AxioDB is a file-based embedded NoSQL database for Node.js. Think SQLite but with MongoDB-style JavaScript queries and no native C bindings. Install with `npm install axiodb` and you have a database — no mongod process, no compilation, no platform-specific builds.
+
+Sweet spot: 10K–500K documents. Perfect for Electron apps, CLI tools, local-first applications, and rapid prototyping.
+
+## Key Differentiators
+
+- Zero native dependencies (no node-gyp, no electron-rebuild, no .node files)
+- MongoDB-style queries: `{ age: { $gt: 25 } }` — not SQL strings
+- Built-in InMemoryCache with automatic TTL and selective invalidation
+- Worker Threads for multi-core parallel processing
+- ACID-compliant transactions with savepoints, rollback, and WAL
+- AES-256 encryption per collection
+- Built-in web GUI at localhost:27018
+- AxioDBCloud: TCP remote access for Docker/Cloud deployments
+- Full TypeScript support
+
+## Install
+
+```bash
+npm install axiodb
+```
+
+Requires Node.js >= 20.0.0
+
+## Documentation Pages
+
+- [Introduction & Quick Start](https://axiodb.in/): What AxioDB is, hello world example, performance benchmarks
+- [Installation](https://axiodb.in/installation): npm install, requirements, Docker setup
+- [Usage & Examples](https://axiodb.in/usage): CRUD, queries, collections, aggregation, transactions
+- [Features](https://axiodb.in/features): Caching, encryption, bulk ops, indexing, GUI
+- [Comparison](https://axiodb.in/comparison): AxioDB vs SQLite, JSON files, lowdb, nedb, better-sqlite3
+- [AxioDBCloud](https://axiodb.in/cloud): TCP remote access, Docker deployment, 1000+ connections
+- [API Reference](https://axiodb.in/api): Complete API — AxioDB, Database, Collection, Reader, Transaction
+- [Security](https://axiodb.in/security): AES-256 encryption, access controls, best practices
+- [Advanced Features](https://axiodb.in/advanced): Transactions, custom indexes, aggregation pipelines
+
+## Source & Package
+
+- [GitHub](https://github.com/nexoral/AxioDB)
+- [npm](https://www.npmjs.com/package/axiodb)
+- [Full Documentation (LLM-optimized)](https://axiodb.in/llms-full.txt)
