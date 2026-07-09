@@ -4,7 +4,6 @@
     "target": "ES6", // Specify ECMAScript target version
     "module": "CommonJS", // Specify module code generation
     "declaration": true, // Generate declaration files
-    "moduleResolution": "Node", // Specify module resolution strategy
     "checkJs": false, // Disable checking of JavaScript files
     "allowJs": true, // Allow JavaScript files to be included
     "sourceMap": true, // Generate source maps
