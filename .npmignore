@@ -51,6 +51,7 @@ dist/
 library/
 Cache/
 AxioDB/
+.dockerignore
 
 # Dependencies
 node_modules/
