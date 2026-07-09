@@ -11,7 +11,6 @@ import { AxioDB } from "../../Services/Indexation.operation";
 
 // All Sub Routers
 import dbRouter from "./Routers/DB.routes";
-import KeyController from "../controller/Key/key.controller";
 import collectionRouter from "./Routers/Collection.routes";
 import OperationRouter from "./Routers/Operation.routes";
 import StatsController from "../controller/Stats.controller";

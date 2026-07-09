@@ -4,7 +4,7 @@ import { ConnectionManager } from '../connection/ConnectionManager';
 import { CommandHandler } from '../handler/CommandHandler';
 import { RequestContext } from '../connection/RequestContext';
 import { TCPRequest, TCPResponse } from '../types/protocol.types';
-import { MessageValidator, MessageFramer } from './protocol';
+import { MessageFramer } from './protocol';
 import { DEFAULT_TCP_PORT, ErrorMessage, StatusCode } from './keys';
 import { CommandType } from '../types/command.types';
 
@@ -56,10 +56,6 @@ function setupConnectionManagerHandlers(connectionManager: ConnectionManager): v
 
   connectionManager.on('connection:removed', (connectionId: string) => {
     console.log(`[AxioDB TCP] Client disconnected: ${connectionId}`);
-  });
-
-  connectionManager.on('message', async (connectionId: string, message: TCPRequest, socket: Socket) => {
-    // This is handled in handleMessage function
   });
 
   connectionManager.on('error', (error: Error, connectionId: string) => {
@@ -159,22 +155,4 @@ async function handleMessage(
 
     connectionManager.sendResponse(connectionId, errorResponse);
   }
-}
-
-/**
- * Gracefully shutdown TCP server
- */
-export function shutdownTCPServer(server: Server, connectionManager: ConnectionManager): Promise<void> {
-  return new Promise((resolve) => {
-    console.log('[AxioDB TCP Server] Shutting down...');
-
-    // Close all connections
-    connectionManager.closeAll();
-
-    // Close server
-    server.close(() => {
-      console.log('[AxioDB TCP Server] Shutdown complete');
-      resolve();
-    });
-  });
 }
