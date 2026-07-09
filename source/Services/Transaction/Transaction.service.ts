@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ClassBased } from "outers";
+import UniqueGenerator from "../../Helper/UniqueGenerator.helper";
 import {
   ErrorInterface,
   SuccessInterface,
@@ -42,7 +42,7 @@ export default class Transaction {
     isEncrypted: boolean = false,
     encryptionKey?: string
   ) {
-    this.transactionId = new ClassBased.UniqueGenerator(15).RandomWord(true);
+    this.transactionId = new UniqueGenerator(15).RandomWord(true);
     this.collectionPath = collectionPath;
     this.isEncrypted = isEncrypted;
     this.encryptionKey = encryptionKey;
@@ -144,7 +144,7 @@ export default class Transaction {
       throw new Error("Data must be a valid object");
     }
 
-    const documentId = new ClassBased.UniqueGenerator(15).RandomWord(true);
+    const documentId = new UniqueGenerator(15).RandomWord(true);
     const operation: TransactionOperation = {
       type: 'INSERT',
       documentId,

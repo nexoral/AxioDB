@@ -1,5 +1,5 @@
 // Purpose: Helper class for response.
-import { StatusCodes } from "outers";
+import { StatusCodes } from "../config/Keys/StatusCode";
 
 // Import Types & Interfaces
 import {

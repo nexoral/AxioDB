@@ -22,6 +22,7 @@ import { npmApi } from "../../services/npmApi";
 
 const Introduction: React.FC = () => {
   const [totalDownloads, setTotalDownloads] = useState<number | null>(null);
+  const [yearlyDownloads, setYearlyDownloads] = useState<number | null>(null);
   const [weeklyDownloads, setWeeklyDownloads] = useState<number | null>(null);
   const [monthlyDownloads, setMonthlyDownloads] = useState<number | null>(null);
   const [isLoadingDownloads, setIsLoadingDownloads] = useState(true);
@@ -33,17 +34,20 @@ const Introduction: React.FC = () => {
     const fetchDownloads = async () => {
       try {
         setIsLoadingDownloads(true);
-        const [total, weekly, monthly] = await Promise.all([
+        const [total, yearly, weekly, monthly] = await Promise.all([
           npmApi.getTotalDownloads(),
+          npmApi.getYearlyDownloads(),
           npmApi.getDownloadsLastWeek(),
           npmApi.getDownloadsLastMonth()
         ]);
         setTotalDownloads(total);
+        setYearlyDownloads(yearly);
         setWeeklyDownloads(weekly.downloads);
         setMonthlyDownloads(monthly.downloads);
       } catch (error) {
         console.error('Failed to fetch npm downloads:', error);
         setTotalDownloads(null);
+        setYearlyDownloads(null);
         setWeeklyDownloads(null);
         setMonthlyDownloads(null);
       } finally {
@@ -128,8 +132,37 @@ const Introduction: React.FC = () => {
           </div>
 
           {/* NPM Download Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {/* Total Downloads */}
+            <a
+              href={npmApi.getNpmPackageUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-5 py-3 rounded-xl border border-amber-200 dark:border-amber-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+            >
+              <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg group-hover:scale-110 transition-transform duration-300">
+                <Download className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-amber-700 to-orange-600 dark:from-amber-300 dark:to-orange-300 bg-clip-text text-transparent">
+                    {isLoadingDownloads ? (
+                      <span className="inline-block animate-pulse">...</span>
+                    ) : totalDownloads !== null ? (
+                      npmApi.formatDownloadCount(totalDownloads)
+                    ) : (
+                      '---'
+                    )}
+                  </span>
+                  <TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                </div>
+                <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">
+                  Total Downloads
+                </span>
+              </div>
+            </a>
+
+            {/* Yearly Downloads */}
             <a
               href={npmApi.getNpmPackageUrl()}
               target="_blank"
@@ -144,8 +177,8 @@ const Introduction: React.FC = () => {
                   <span className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-pink-600 dark:from-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
                     {isLoadingDownloads ? (
                       <span className="inline-block animate-pulse">...</span>
-                    ) : totalDownloads !== null ? (
-                      npmApi.formatDownloadCount(totalDownloads)
+                    ) : yearlyDownloads !== null ? (
+                      npmApi.formatDownloadCount(yearlyDownloads)
                     ) : (
                       '---'
                     )}
@@ -153,7 +186,7 @@ const Introduction: React.FC = () => {
                   <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 </div>
                 <span className="text-xs text-purple-700 dark:text-purple-300 font-medium">
-                  Total Downloads
+                  Yearly Downloads
                 </span>
               </div>
             </a>

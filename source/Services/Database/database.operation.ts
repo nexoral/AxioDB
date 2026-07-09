@@ -8,7 +8,7 @@ import path from "path";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
 import PathSanitizer from "../../Helper/PathSanitizer.helper";
-import { StatusCodes } from "outers";
+import { StatusCodes } from "../../config/Keys/StatusCode";
 import {
   ErrorInterface,
   SuccessInterface,
