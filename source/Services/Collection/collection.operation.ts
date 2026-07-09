@@ -14,7 +14,7 @@ import Aggregation from "../Aggregation/Aggregation.Operation";
 import Transaction from "../Transaction/Transaction.service";
 import Session from "../Transaction/Session.service";
 
-import { StatusCodes } from "outers";
+import { StatusCodes } from "../../config/Keys/StatusCode";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 
 // Converter

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import FileManager from "../../engine/Filesystem/FileManager";
 
-import { ClassBased } from "outers";
+import UniqueGenerator from "../../Helper/UniqueGenerator.helper";
 import responseHelper from "../../Helper/response.helper";
 import {
   ErrorInterface,
@@ -75,7 +75,7 @@ export default class Insertion {
     let isExist = true;
     let ID;
     do {
-      ID = new ClassBased.UniqueGenerator(15).RandomWord(true);
+      ID = new UniqueGenerator(15).RandomWord(true);
       // Sanitize ID to ensure safe file path
       const sanitizedID = PathSanitizer.sanitizePathComponent(ID);
       const response = await new FileManager().FileExists(

@@ -1,5 +1,5 @@
 /* eslint-disable no-self-assign */
-import { StatusCodes } from "outers";
+import { StatusCodes } from "../../config/Keys/StatusCode";
 import { AxioDB } from "../../Services/Indexation.operation";
 import buildResponse from "../helper/responseBuilder.helper"; // ResponseBuilder,
 // import { FastifyRequest } from "fastify";

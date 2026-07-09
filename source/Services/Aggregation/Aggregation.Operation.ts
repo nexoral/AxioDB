@@ -6,7 +6,7 @@ import {
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
 import Converter from "../../Helper/Converter.helper";
-import { Console } from "outers";
+import Console from "../../Helper/Console.helper";
 import { ReadIndex } from "../Index/ReadIndex.service";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

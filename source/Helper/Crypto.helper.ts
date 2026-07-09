@@ -3,7 +3,7 @@
 import { hostname, platform } from "node:os";
 import ResponseHelper from "./response.helper";
 import { SuccessInterface } from "../config/Interfaces/Helper/response.helper.interface";
-import { ClassBased } from "outers";
+import CryptoGraphy from "./CryptoGraphy.helper";
 import Converter from "./Converter.helper";
 
 /**
@@ -24,7 +24,7 @@ export class CryptoHelper {
   /**
    * Instance of Cryptography class for performing cryptographic operations.
    */
-  private readonly Cryptography;
+  private readonly Cryptography: CryptoGraphy;
 
   /**
    * Instance of Converter class for converting data formats.
@@ -38,7 +38,7 @@ export class CryptoHelper {
   constructor(encryptionKey?: string) {
     this.encryptionKey = encryptionKey || `${hostname()}-${platform()}`;
     this.responseHelper = new ResponseHelper();
-    this.Cryptography = new ClassBased.CryptoGraphy(this.encryptionKey);
+    this.Cryptography = new CryptoGraphy(this.encryptionKey);
     this.Converter = new Converter();
   }
 

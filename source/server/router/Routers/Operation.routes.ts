@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
 import buildResponse from "../../helper/responseBuilder.helper";
-import { StatusCodes } from "outers";
+import { StatusCodes } from "../../../config/Keys/StatusCode";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import CRUDController from "../../controller/Operation/CRUD.controller";
 

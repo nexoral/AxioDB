@@ -10,7 +10,8 @@ import Database from "./Database/database.operation";
 
 // Helper Classes
 import Converter from "../Helper/Converter.helper";
-import { Console, StatusCodes } from "outers";
+import Console from "../Helper/Console.helper";
+import { StatusCodes } from "../config/Keys/StatusCode";
 import ResponseHelper from "../Helper/response.helper";
 
 // Interfaces

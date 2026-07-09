@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ClassBased } from "outers";
+import UniqueGenerator from "../../Helper/UniqueGenerator.helper";
 import {
   ErrorInterface,
   SuccessInterface,
@@ -29,7 +29,7 @@ export default class Session {
     encryptionKey?: string,
     options: SessionOptions = {}
   ) {
-    this.sessionId = new ClassBased.UniqueGenerator(20).RandomWord(true);
+    this.sessionId = new UniqueGenerator(20).RandomWord(true);
     this.collectionPath = collectionPath;
     this.isEncrypted = isEncrypted;
     this.encryptionKey = encryptionKey;
