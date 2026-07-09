@@ -1,6 +1,3 @@
 const { AxioDB } = require('./lib/config/DB.js')
 
-new AxioDB({ GUI: true, TCP: true })
-
-
-// Runner
+new AxioDB({ GUI: true, TCP: true });
