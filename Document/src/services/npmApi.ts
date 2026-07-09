@@ -78,9 +78,28 @@ class NpmApiService {
     );
   }
 
+  async getYearlyDownloads(): Promise<number> {
+    try {
+      // Rolling 1-year window ending today (matches npm-stat.com's yearly chart)
+      const end = new Date();
+      const start = new Date(end);
+      start.setFullYear(start.getFullYear() - 1);
+
+      const response = await this.fetchFromNpm<NpmDownloads>(
+        `${this.downloadsApiUrl}/point/${start.toISOString().split('T')[0]}:${end.toISOString().split('T')[0]}/${this.packageName}`
+      );
+      return response.downloads;
+    } catch (error) {
+      console.error('Failed to get yearly downloads:', error);
+      // Fallback to last month if yearly fetch fails
+      const lastMonth = await this.getDownloadsLastMonth();
+      return lastMonth.downloads;
+    }
+  }
+
   async getTotalDownloads(): Promise<number> {
     try {
-      // Get downloads from inception to now
+      // All-time downloads since package inception
       const response = await this.fetchFromNpm<NpmDownloads>(
         `${this.downloadsApiUrl}/point/2020-01-01:${new Date().toISOString().split('T')[0]}/${this.packageName}`
       );
