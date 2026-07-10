@@ -6,6 +6,7 @@ import buildResponse, {
 } from "../../helper/responseBuilder.helper";
 import { FastifyRequest } from "fastify";
 import countFilesRecursive from "../../helper/filesCounterInFolder.helper";
+import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
 /**
  * Controller class for managing collections in AxioDB.
  *
@@ -47,6 +48,9 @@ export default class CollectionController {
     }
     if (!collectionName || typeof collectionName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
+    }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
@@ -101,6 +105,9 @@ export default class CollectionController {
         StatusCodes.BAD_REQUEST,
         "Database name is required",
       );
+    }
+    if (isReservedDatabaseName(databaseName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
     try {
@@ -168,6 +175,9 @@ export default class CollectionController {
     }
     if (!collectionName || typeof collectionName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
+    }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);

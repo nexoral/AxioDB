@@ -5,6 +5,7 @@ import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse from "../../helper/responseBuilder.helper";
 import { FastifyRequest } from "fastify";
 import Database from "../../../Services/Database/database.operation";
+import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
 
 /**
  * CRUD Controller class for handling database operations
@@ -52,6 +53,9 @@ export default class CRUDController {
 
     if (typeof page !== "number" || page < 1) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid page number");
+    }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
     const skip = (page - 1) * 10;
@@ -134,6 +138,9 @@ export default class CRUDController {
     if (!query || typeof query !== "object") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid query");
     }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+    }
 
     const skip: number = (PageNumber - 1) * 10;
     const databaseInstance: Database =
@@ -198,6 +205,9 @@ export default class CRUDController {
     if (!collectionName || typeof collectionName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
     }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+    }
 
     const databaseInstance: Database =
       await this.AxioDBInstance.createDB(dbName);
@@ -254,6 +264,9 @@ export default class CRUDController {
     if (!documentData || typeof documentData !== "object") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid document data");
     }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+    }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
     const DB_Collection =
@@ -308,6 +321,9 @@ export default class CRUDController {
     if (!documentData || typeof documentData !== "object") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid document data");
     }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+    }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
     const DB_Collection =
@@ -358,6 +374,9 @@ export default class CRUDController {
     }
     if (!updatedData || typeof updatedData !== "object") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid updated data");
+    }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
@@ -417,6 +436,9 @@ export default class CRUDController {
     }
     if (!updatedData || typeof updatedData !== "object") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid updated data");
+    }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
@@ -479,6 +501,9 @@ export default class CRUDController {
     if (!documentId || typeof documentId !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid document ID");
     }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+    }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
     const DB_Collection =
@@ -536,6 +561,9 @@ export default class CRUDController {
     }
     if (!query || typeof query !== "object") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid query");
+    }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
@@ -603,6 +631,9 @@ export default class CRUDController {
         StatusCodes.BAD_REQUEST,
         "Invalid aggregation pipeline",
       );
+    }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);

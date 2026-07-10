@@ -16,7 +16,7 @@ Sweet spot: 10K–500K documents. Perfect for Electron apps, CLI tools, local-fi
 - Worker Threads for multi-core parallel processing
 - ACID-compliant transactions with savepoints, rollback, and WAL
 - AES-256 encryption per collection
-- Built-in web GUI at localhost:27018
+- Built-in web GUI at localhost:27018, with role-based login (Super Admin/Admin/View roles)
 - AxioDBCloud: TCP remote access for Docker/Cloud deployments
 - Full TypeScript support
 

@@ -1,4 +1,4 @@
-import { AlertTriangle, Database, Key, ShieldCheck, Zap } from "lucide-react";
+import { AlertTriangle, Database, Key, Lock, ShieldCheck, Users, Zap } from "lucide-react";
 import React, { useEffect } from "react";
 import { React as Service } from "react-caches";
 
@@ -120,6 +120,55 @@ const customKeyCollection = await db1.createCollection(
           delete) will automatically handle encryption and decryption, making
           the process transparent to your application.
         </p>
+      </div>
+
+      {/* Control Server Authentication (RBAC) */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-green-200 dark:border-green-800 mb-8 animate-fade-in-up">
+        <h3 className="text-xl font-bold mb-4 text-green-700 dark:text-green-300 flex items-center gap-2">
+          <Users className="h-6 w-6" /> Control Server Authentication (RBAC)
+        </h3>
+        <p className="text-gray-700 dark:text-gray-300 mb-4">
+          The Control Server (the built-in web GUI at <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">localhost:27018</code>) ships
+          with login and role-based access control. On first start it seeds a reserved{" "}
+          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">config</code> database (hidden from the regular
+          database list and unreachable through the generic database/collection/document routes) holding three collections -{" "}
+          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">users</code>,{" "}
+          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">roles</code>, and{" "}
+          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">permissions</code> - plus a default{" "}
+          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">admin</code>/<code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">admin</code> account.
+        </p>
+        <ul className="space-y-2 list-disc pl-6 text-gray-700 dark:text-gray-300 mb-4">
+          <li>
+            <strong>Password hashing:</strong> Node&apos;s built-in <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">crypto.scrypt</code>{" "}
+            with a random per-user salt - no extra dependency, consistent with AxioDB&apos;s zero-native-dependency design.
+          </li>
+          <li>
+            <strong>In-memory sessions only:</strong> Sessions live in a server-side memory map, never written to disk. A
+            restart invalidates every session and forces everyone to log in again - this is by design, not a bug.
+          </li>
+          <li>
+            <strong>Cookie is not the trust boundary:</strong> The session cookie only carries a random, unguessable session
+            ID; the username/role are looked up server-side from the in-memory session map on every request, not trusted
+            from the cookie itself.
+          </li>
+          <li>
+            <strong>Forced password change:</strong> Every account, including the seeded <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">admin</code>,
+            must change its password on first login before any other action is permitted.
+          </li>
+          <li>
+            <strong>Three predefined roles:</strong> <em>Super Admin</em> (full access, including user/role management),{" "}
+            <em>Admin</em> (full database/collection/document access, no user/role management), and <em>View</em> (read-only).
+            A Super Admin can create additional custom roles from the predefined permission catalogue.
+          </li>
+        </ul>
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-r-lg flex items-start gap-2">
+          <Lock className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+          <p className="text-gray-700 dark:text-gray-300 text-sm">
+            RBAC protects the Control Server&apos;s HTTP API from unauthorized use, but it is still designed for trusted
+            local/network access - it is not a substitute for network-level protections if you expose the Control Server
+            beyond your own machine or private network.
+          </p>
+        </div>
       </div>
 
       <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-r-lg mb-8">

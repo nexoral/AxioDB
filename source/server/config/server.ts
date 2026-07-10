@@ -2,12 +2,14 @@
 import Fastify from "fastify";
 import fastifyCors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
+import fastifyCookie from "@fastify/cookie";
 import path from "path";
 import fs from "fs";
 import { CORS_CONFIG, ServerKeys, staticPath } from "./keys";
 import checkPortAndDocker from "./PortFreeChecker";
 import { AxioDB } from "../../Services/Indexation.operation";
 import router from "../router/Router";
+import SessionStore from "../../Services/Auth/SessionStore.service";
 
 export default async function createAxioDBControlServer(
   AxioDBInstance: AxioDB,
@@ -29,6 +31,10 @@ export default async function createAxioDBControlServer(
     exposedHeaders: CORS_CONFIG.EXPOSED_HEADERS, // Expose specific headers
     maxAge: CORS_CONFIG.MAX_AGE, // Cache preflight response for 24 hours
   });
+
+  // Cookie support for session-based authentication (no signing secret needed -
+  // the cookie value is meaningless without a matching entry in SessionStore's map)
+  await AxioDBControlServer.register(fastifyCookie);
 
   // Configure JSON parsing
   AxioDBControlServer.addContentTypeParser(
@@ -69,6 +75,7 @@ export default async function createAxioDBControlServer(
       port: Number(ServerKeys.PORT),
       host: "0.0.0.0",
     });
+    SessionStore.startCleanupSweep();
     console.log(
       `AxioDB Control Server is running on http://localhost:${ServerKeys.PORT}`,
     );
