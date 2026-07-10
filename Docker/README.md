@@ -24,8 +24,11 @@ docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -p 27019:27019 \
+  -v axiodb-data:/app \
   theankansaha/axiodb
 ```
+
+> **Authentication is on by default** (`AXIODB_TCP_AUTH=true`) - both the GUI (`http://localhost:27018`) and TCP (`axiodb://localhost:27019`) share the same seeded `admin` / `admin` account, which must have its password changed on first login via the GUI before it (or any account) can be used over TCP. See [Environment Variables](#environment-variables) to turn this off or change the root database name.
 
 ### Custom Port Mapping
 
@@ -35,6 +38,7 @@ docker run -d \
   --name axiodb-server \
   -p 8080:27018 \
   -p 8081:27019 \
+  -v axiodb-data:/app \
   theankansaha/axiodb
 
 # Access HTTP GUI via http://localhost:8080
@@ -49,6 +53,21 @@ docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -p 27019:27019 \
+  -v axiodb-data:/app \
+  theankansaha/axiodb
+```
+
+### Disabling TCP Authentication
+
+```bash
+# Only do this on a trusted private network or behind your own VPN/TLS termination -
+# the TCP protocol itself is unencrypted, and with auth off any client on the network
+# that can reach port 27019 has full database access.
+docker run -d \
+  --name axiodb-server \
+  -p 27018:27018 \
+  -p 27019:27019 \
+  -e AXIODB_TCP_AUTH=false \
   -v axiodb-data:/app \
   theankansaha/axiodb
 ```
@@ -172,15 +191,26 @@ main();
 
 ### Environment Variables
 
+| Variable | Default | Description |
+| --- | --- | --- |
+| `AXIODB_GUI` | `true` | Enable the HTTP Control Server / web GUI on port 27018 |
+| `AXIODB_TCP` | `true` | Enable the AxioDBCloud TCP server on port 27019 |
+| `AXIODB_TCP_AUTH` | `true` | Require username/password authentication on TCP connections (same RBAC accounts as the GUI) |
+| `AXIODB_ROOT_NAME` | `AxioDB` | Name of the root database folder created under the data volume |
+| `AXIODB_CUSTOM_PATH` | *(container's working directory)* | Custom path for database storage inside the container |
+
 ```bash
 docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -p 27019:27019 \
-  -e AXIODB_PORT=27018 \
-  -e AXIODB_HOST=0.0.0.0 \
+  -e AXIODB_TCP_AUTH=false \
+  -e AXIODB_ROOT_NAME=MyProductionDB \
+  -v axiodb-data:/app \
   theankansaha/axiodb
 ```
+
+> Ports themselves (27018/27019) aren't currently configurable via environment variable - remap them at the Docker layer instead with `-p <host-port>:27018` / `-p <host-port>:27019`, as shown under [Custom Port Mapping](#custom-port-mapping).
 
 ### Docker Compose
 
@@ -194,6 +224,11 @@ services:
     ports:
       - "27018:27018"  # HTTP API & GUI
       - "27019:27019"  # TCP Remote Access
+    environment:
+      - AXIODB_GUI=true
+      - AXIODB_TCP=true
+      - AXIODB_TCP_AUTH=true
+      - AXIODB_ROOT_NAME=AxioDB
     volumes:
       - axiodb-data:/app
     restart: unless-stopped
@@ -268,7 +303,13 @@ cd AxioDB/Docker
 docker build -t axiodb:latest .
 
 # Run the container
-docker run -d --name axiodb-server -p 27018:27018 -p 27019:27019 axiodb:latest
+docker run -d \
+  --name axiodb-server \
+  -p 27018:27018 \
+  -p 27019:27019 \
+  -e AXIODB_TCP_AUTH=true \
+  -v axiodb-data:/app \
+  axiodb:latest
 ```
 
 ## =
@@ -300,6 +341,7 @@ docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -p 27019:27019 \
+  -e AXIODB_ROOT_NAME=AxioDB \
   -v "$(pwd)/axiodb-data":/app \
   theankansaha/axiodb
 ```

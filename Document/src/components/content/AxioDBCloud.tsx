@@ -148,6 +148,7 @@ docker run -d \\
   --name axiodb-server \\
   -p 27018:27018 \\
   -p 27019:27019 \\
+  -e AXIODB_TCP_AUTH=true \\
   -v axiodb-data:/app \\
   theankansaha/axiodb
 
@@ -163,6 +164,12 @@ docker run -d \\
             <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 <strong>Tip:</strong> Use <code className="px-1 py-0.5 bg-white dark:bg-slate-800 rounded">-v</code> to persist data across container restarts.
+              </p>
+            </div>
+
+            <div className="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-700">
+              <p className="text-sm text-emerald-800 dark:text-emerald-200">
+                <strong>Configurable via env vars:</strong> <code className="px-1 py-0.5 bg-white dark:bg-slate-800 rounded">AXIODB_GUI</code>, <code className="px-1 py-0.5 bg-white dark:bg-slate-800 rounded">AXIODB_TCP</code>, <code className="px-1 py-0.5 bg-white dark:bg-slate-800 rounded">AXIODB_TCP_AUTH</code>, <code className="px-1 py-0.5 bg-white dark:bg-slate-800 rounded">AXIODB_ROOT_NAME</code>, <code className="px-1 py-0.5 bg-white dark:bg-slate-800 rounded">AXIODB_CUSTOM_PATH</code> &mdash; each defaults to the image's current behavior and only changes when set. TCP auth is on by default; the seeded <code className="px-1 py-0.5 bg-white dark:bg-slate-800 rounded">admin</code>/<code className="px-1 py-0.5 bg-white dark:bg-slate-800 rounded">admin</code> account must have its password changed via the GUI before it can authenticate over TCP.
               </p>
             </div>
           </div>

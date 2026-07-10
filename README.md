@@ -123,6 +123,7 @@ docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -p 27019:27019 \
+  -e AXIODB_TCP_AUTH=true \
   -v axiodb-data:/app \
   theankansaha/axiodb
 
@@ -130,6 +131,10 @@ docker run -d \
 # 27018 - HTTP GUI Dashboard
 # 27019 - TCP Remote Access (AxioDBCloud)
 # Volume: /app is the main data directory
+#
+# TCP authentication is on by default - log into the GUI as admin/admin to change
+# the password before connecting over TCP. Configurable via env vars: AXIODB_GUI,
+# AXIODB_TCP, AXIODB_TCP_AUTH, AXIODB_ROOT_NAME, AXIODB_CUSTOM_PATH.
 ```
 
 **Or run locally with Node.js:**

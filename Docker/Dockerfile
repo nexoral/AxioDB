@@ -22,5 +22,12 @@ RUN apk add --no-cache bash
 # Install dependencies
 RUN npm install --force
 
+# Default configuration - override any of these at `docker run` time with
+# `-e VAR=value` (or in docker-compose's `environment:` block); no rebuild required.
+ENV AXIODB_GUI=true
+ENV AXIODB_TCP=true
+ENV AXIODB_TCP_AUTH=true
+ENV AXIODB_ROOT_NAME=AxioDB
+
 # Set the command to run the runner.js file
 CMD ["node", "runner.js"]
