@@ -13,8 +13,12 @@ export enum ServerKeys {
 }
 
 // Config for CORS
+// NOTE: ORIGIN cannot be "*" while ALLOW_CREDENTIALS is true - browsers reject
+// wildcard origins on credentialed (cookie-bearing) requests. 5173 is the GUI's
+// Vite dev server; 27018 is where the built GUI is served from in production
+// (same-origin there, so CORS doesn't matter for that case).
 export const CORS_CONFIG = {
-  ORIGIN: "*",
+  ORIGIN: ["http://localhost:5173", "http://localhost:27018"],
   METHODS: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
   ALLOWED_HEADERS: ["Content-Type", "Authorization"],
   EXPOSED_HEADERS: ["Content-Length", "X-Requested-With"],
@@ -28,7 +32,7 @@ export const staticPath: string = path.resolve(
 );
 
 interface MainRoutesInterface {
-  method: "GET" | "POST" | "PUT" | "DELETE";
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: string;
   description: string;
   payload?: Record<string, any>;
@@ -205,6 +209,84 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         payload: {
           aggregation: "array",
         },
+      },
+    ],
+  },
+  {
+    groupName: "Authentication",
+    description: "Login, session, and self-service password endpoints",
+    Paths: [
+      {
+        method: "POST",
+        path: "/api/auth/login",
+        description: "Authenticate with username/password and start a session",
+        payload: { username: "string", password: "string" },
+      },
+      {
+        method: "POST",
+        path: "/api/auth/logout",
+        description: "End the current session",
+      },
+      {
+        method: "GET",
+        path: "/api/auth/me",
+        description: "Get the currently authenticated user's role and permissions",
+      },
+      {
+        method: "PATCH",
+        path: "/api/auth/change-password",
+        description: "Change the current user's own password",
+        payload: { currentPassword: "string", newPassword: "string" },
+      },
+    ],
+  },
+  {
+    groupName: "User & Role Management",
+    description: "Super Admin-only endpoints for managing users and roles",
+    Paths: [
+      {
+        method: "GET",
+        path: "/api/auth/users",
+        description: "List all users",
+      },
+      {
+        method: "POST",
+        path: "/api/auth/users",
+        description: "Create a new user",
+        payload: { username: "string", password: "string", role: "string" },
+      },
+      {
+        method: "PATCH",
+        path: "/api/auth/users/:username/role",
+        description: "Change a user's assigned role",
+        payload: { role: "string" },
+      },
+      {
+        method: "PATCH",
+        path: "/api/auth/users/:username/reset-password",
+        description: "Reset a user's password (forces change on next login)",
+        payload: { newPassword: "string" },
+      },
+      {
+        method: "DELETE",
+        path: "/api/auth/users/:username",
+        description: "Delete a user",
+      },
+      {
+        method: "GET",
+        path: "/api/auth/roles",
+        description: "List all roles",
+      },
+      {
+        method: "POST",
+        path: "/api/auth/roles",
+        description: "Create a new role from the predefined permission catalogue",
+        payload: { roleName: "string", permissions: "array" },
+      },
+      {
+        method: "GET",
+        path: "/api/auth/roles/permissions",
+        description: "List the full predefined permission catalogue",
       },
     ],
   },

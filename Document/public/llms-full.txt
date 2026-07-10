@@ -321,6 +321,9 @@ GUI features:
 - Query execution interface
 - Performance monitoring
 - No external dependencies required
+- Built-in login and role-based access control (RBAC): default `admin`/`admin` account (forced password
+  change on first login), predefined Super Admin/Admin/View roles, and a user/role management page for
+  Super Admins. Sessions live only in server memory and are lost on restart.
 
 ---
 
@@ -566,7 +569,7 @@ No. AxioDB requires Node.js (v20+) and uses the filesystem. It is server-side / 
 AxioDBCloud is a TCP-based client that connects to a remote AxioDB instance. Deploy AxioDB in Docker, connect from multiple clients with the exact same API. Supports 1,000+ concurrent connections with auto-reconnect.
 
 **Q: Is there a web GUI?**
-Yes. Enable with `new AxioDB({ GUI: true })`. The GUI runs at http://localhost:27018 and provides a visual database browser, query interface, and performance monitoring.
+Yes. Enable with `new AxioDB({ GUI: true })`. The GUI runs at http://localhost:27018 and provides a visual database browser, query interface, and performance monitoring. It requires login (default `admin`/`admin`, forced password change on first use) and enforces role-based access control (Super Admin/Admin/View).
 
 **Q: What encryption does AxioDB use?**
 AES-256 encryption per collection, with optional custom encryption keys. Store keys in environment variables, never hardcode them.

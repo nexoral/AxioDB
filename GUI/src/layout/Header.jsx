@@ -1,26 +1,41 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { DBInfoStore } from '../store/store'
+import { useAuthStore } from '../store/authStore'
 import axios from 'axios'
 import { BASE_API_URL } from '../config/key'
+import UserAvatarMenu from '../components/auth/UserAvatarMenu'
 
 const Header = () => {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false)
   const { Rootname } = DBInfoStore((state) => state)
   const { setRootname } = DBInfoStore((state) => state)
+  const { isAuthenticated, permissions } = useAuthStore((state) => state)
+  const location = useLocation()
 
   useEffect(() => {
-    axios.get(`${BASE_API_URL}/api/db/databases`).then((response) => {
-      if (response.status === 200) {
-        setRootname(response.data.data.RootName ?? 'AxioDB')
-      }
-    })
+    axios.get(`${BASE_API_URL}/api/db/databases`)
+      .then((response) => {
+        if (response.status === 200) {
+          setRootname(response.data.data.RootName ?? 'AxioDB')
+        }
+      })
+      .catch(() => {
+        // Session may not be ready yet or the caller lacks db:view - ignore here,
+        // ProtectedRoute/page-level error handling covers the user-facing message.
+      })
+    // eslint-disable-next-line
   }, [])
 
-  // eslint-disable-next-line
+  useEffect(() => {
+    setIsUserDropdownOpen(false)
+  }, [location.pathname])
+
   const toggleUserDropdown = () => {
-    setIsUserDropdownOpen(!isUserDropdownOpen)
+    setIsUserDropdownOpen((prev) => !prev)
   }
+
+  const canViewUsers = permissions.includes('user:view')
 
   return (
     <header className='bg-gradient-to-r from-blue-700 to-indigo-800 shadow-lg'>
@@ -57,6 +72,14 @@ const Header = () => {
                 >
                   Import DB
                 </Link>
+                {canViewUsers && (
+                  <Link
+                    to='/users'
+                    className='text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors'
+                  >
+                    Users
+                  </Link>
+                )}
                 <Link
                   to='/support'
                   className='text-blue-100 hover:bg-blue-600 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors'
@@ -72,6 +95,14 @@ const Header = () => {
               </div>
             </div>
           </div>
+
+          {isAuthenticated && (
+            <UserAvatarMenu
+              isOpen={isUserDropdownOpen}
+              onToggle={toggleUserDropdown}
+              onClose={() => setIsUserDropdownOpen(false)}
+            />
+          )}
         </div>
       </nav>
     </header>

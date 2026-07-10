@@ -13,7 +13,13 @@ import { AxioDB } from "../../Services/Indexation.operation";
 import dbRouter from "./Routers/DB.routes";
 import collectionRouter from "./Routers/Collection.routes";
 import OperationRouter from "./Routers/Operation.routes";
+import authRouter from "./Routers/Auth.routes";
+import userManagementRouter from "./Routers/UserManagement.routes";
+import roleManagementRouter from "./Routers/RoleManagement.routes";
 import StatsController from "../controller/Stats.controller";
+import { requireAuth, requireFreshPassword } from "../middleware/auth.middleware";
+import { requirePermission } from "../middleware/permission.middleware";
+import { PERMISSIONS } from "../../config/Keys/Permissions";
 
 // Interfaces
 type PackageInterface = {
@@ -84,9 +90,13 @@ export default async function mainRouter(
   });
 
   // Get Dashboard Stats
-  fastify.get("/dashboard-stats", async (request, reply) => {
-    return new StatsController(AxioDBInstance).getDashBoardStat();
-  });
+  fastify.get(
+    "/dashboard-stats",
+    { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DASHBOARD_VIEW)] },
+    async (request, reply) => {
+      return new StatsController(AxioDBInstance).getDashBoardStat();
+    },
+  );
 
   // Register the DB router
   fastify.register(dbRouter, {
@@ -105,6 +115,13 @@ export default async function mainRouter(
     prefix: "/operation",
     AxioDBInstance: AxioDBInstance, // Pass the AxioDB instance to the Operation router
   });
+
+  // Register Auth Router (login is public, session/password endpoints require auth)
+  fastify.register(authRouter, { prefix: "/auth" });
+
+  // Register User & Role Management Routers (Super Admin only)
+  fastify.register(userManagementRouter, { prefix: "/auth/users" });
+  fastify.register(roleManagementRouter, { prefix: "/auth/roles" });
 
   // Handle 404 Not Found
   fastify.setNotFoundHandler((request, reply) => {

@@ -32,7 +32,8 @@ const colors = {
 const testModules = {
   crud: './modules/crud.test.js',
   transaction: './modules/transaction.test.js',
-  read: './modules/read.test.js'
+  read: './modules/read.test.js',
+  auth: './modules/auth.test.js'
 };
 
 /**

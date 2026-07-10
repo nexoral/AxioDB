@@ -23,6 +23,8 @@ import { FinalDatabaseInfo, AxioDBOptions } from "../config/Interfaces/Operation
 import createAxioDBControlServer from "../server/config/server";
 import { DatabaseMap } from "../config/Interfaces/Operation/database.operation.interface";
 import createAxioDBTCPServer from "../tcp/config/server";
+import AuthSeeder from "./Auth/AuthSeeder.service";
+import { RESERVED_DB_NAME } from "../config/Keys/Permissions";
 
 /**
  * Class representing the AxioDB database.
@@ -98,6 +100,7 @@ export class AxioDB {
       }
     }
     if (this.GUI){
+      await new AuthSeeder(this).seedIfNeeded(); // Ensure config DB, RBAC seed data exist before accepting requests
       Console.green("Starting AxioDB Control Server...");
       createAxioDBControlServer(this); // Start the web Control Server with the AxioDB instance
     }
@@ -162,14 +165,18 @@ export class AxioDB {
     );
     // check if all data is returned
     if ("data" in totalDatabases && "data" in totalSize) {
+      // Hide the reserved RBAC "config" database from user-facing database listings
+      const visibleDatabases: string[] = totalDatabases.data.filter(
+        (db: string) => db.toLowerCase() !== RESERVED_DB_NAME,
+      );
       const FinalDatabaseInfo: FinalDatabaseInfo = {
         CurrentPath: this.currentPATH,
         RootName: this.RootName,
         TotalSize: parseFloat(totalSize.data),
-        TotalDatabases: `${totalDatabases.data.length} Databases`,
-        ListOfDatabases: totalDatabases.data,
+        TotalDatabases: `${visibleDatabases.length} Databases`,
+        ListOfDatabases: visibleDatabases,
         DatabaseMap: this.DatabaseMap,
-        AllDatabasesPaths: totalDatabases.data.map((db: string) =>
+        AllDatabasesPaths: visibleDatabases.map((db: string) =>
           path.join(this.currentPATH, db),
         ),
       };

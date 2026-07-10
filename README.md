@@ -63,6 +63,7 @@ SQLite is great, but it requires native bindings that break in Electron and cros
 - **Transaction Support:** ACID-compliant transactions with savepoints, rollback, and Write-Ahead Logging (WAL)
 - **Single Instance Architecture:** Unified management for unlimited databases, collections, and documents
 - **Web-Based GUI Dashboard:** Visual database administration, query execution, and real-time monitoring at `localhost:27018`
+- **Role-Based Access Control:** Built-in login for the Control Server with Super Admin/Admin/View roles and per-permission enforcement
 - **AxioDBCloud Remote Access:** TCP-based client for connecting to AxioDB from anywhere—Docker, Cloud, or local network
 - **Zero-Configuration Setup:** Serverless architecture—install and start building instantly
 - **Custom Database Path:** Flexible storage locations for better project organization
@@ -253,6 +254,27 @@ const db = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./custom/path"
 - 🎯 No external dependencies required
 
 Access the GUI at `http://localhost:27018` when enabled.
+
+### Authentication & Access Control (v9.8+)
+
+The Control Server ships with built-in login and role-based access control (RBAC). On first start with `GUI: true`, AxioDB seeds a reserved `config` database (hidden from the regular database list) containing three collections—`users`, `roles`, `permissions`—and a default account:
+
+```
+Username: admin
+Password: admin
+```
+
+You'll be forced to change this password on first login (this applies to every account, not just the default one). Three predefined roles are seeded automatically:
+
+| Role | Access |
+|------|--------|
+| **Super Admin** | Full access, including creating users/roles |
+| **Admin** | Full database/collection/document access, no user or role management |
+| **View** | Read-only access to databases, collections, and documents |
+
+A Super Admin can create additional roles from the predefined permission catalogue and create new users with any role. Sessions are held only in server memory (never persisted to disk) and are tied to an httpOnly cookie, so restarting the server logs everyone out.
+
+> **Security note:** RBAC protects the Control Server's HTTP API; it is still intended for trusted local/network access, not public internet exposure.
 
 ---
 

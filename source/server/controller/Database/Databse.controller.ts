@@ -8,6 +8,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { tarGzFolder, unzipFile } from "../../../utility/ZipUnzip.utils";
 import fs from "fs";
 import path from "path";
+import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
 
 /**
  * Controller class for managing databases in AxioDB.
@@ -102,6 +103,9 @@ export default class DatabaseController {
     request: FastifyRequest,
   ): Promise<ResponseBuilder> {
     const { dbName } = request.query as { dbName: string };
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+    }
     try {
       // check if the database exists
       const exists = await this.AxioDBInstance.isDatabaseExists(dbName);
@@ -145,6 +149,12 @@ export default class DatabaseController {
         return reply.status(400).send({
           success: false,
           message: "Database name is required",
+        });
+      }
+      if (isReservedDatabaseName(dbName)) {
+        return reply.status(403).send({
+          success: false,
+          message: "This is a reserved system database",
         });
       }
 
@@ -235,6 +245,14 @@ export default class DatabaseController {
       return reply.status(400).send({
         success: false,
         message: "No file uploaded",
+      });
+    }
+
+    const uploadedArchiveName = path.parse(data.filename).name;
+    if (isReservedDatabaseName(uploadedArchiveName)) {
+      return reply.status(403).send({
+        success: false,
+        message: "This is a reserved system database",
       });
     }
 

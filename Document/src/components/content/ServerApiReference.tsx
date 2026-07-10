@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { React as Service } from "react-caches";
 
 interface ApiEndpoint {
-  method: "GET" | "POST" | "PUT" | "DELETE";
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: string;
   description: string;
   parameters?: {
@@ -59,6 +59,8 @@ const ServerApiReference: React.FC = () => {
         return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-300 dark:border-blue-700";
       case "PUT":
         return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-300 dark:border-amber-700";
+      case "PATCH":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 border-purple-300 dark:border-purple-700";
       case "DELETE":
         return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-300 dark:border-red-700";
       default:
@@ -140,6 +142,256 @@ const ServerApiReference: React.FC = () => {
 }`,
           statusCodes: [
             { code: 200, description: "Success - Returns dashboard statistics" },
+          ],
+        },
+      ],
+    },
+    {
+      title: "Authentication & Access Control",
+      description: "Login, session, and RBAC-gated user/role management endpoints",
+      endpoints: [
+        {
+          method: "POST",
+          path: "/api/auth/login",
+          description: "Authenticates with username/password and starts a server-side session, returning the session as an httpOnly cookie. On first login (including the seeded default admin), the response signals that a password change is required before any other action is allowed.",
+          parameters: [
+            { name: "username", type: "body", dataType: "string", required: true, description: "Account username" },
+            { name: "password", type: "body", dataType: "string", required: true, description: "Account password" },
+          ],
+          requestBody: `{
+  "username": "admin",
+  "password": "admin"
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Login successful",
+  "data": {
+    "username": "admin",
+    "role": "Super Admin",
+    "permissions": ["db:view", "db:create", "..."],
+    "mustChangePassword": true
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Login successful, session cookie set" },
+            { code: 400, description: "Bad Request - Missing username or password" },
+            { code: 401, description: "Unauthorized - Invalid username or password" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/auth/logout",
+          description: "Revokes the current session (server-side) and clears the session cookie.",
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Logged out successfully"
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Session revoked" },
+            { code: 401, description: "Unauthorized - No valid session" },
+          ],
+        },
+        {
+          method: "GET",
+          path: "/api/auth/me",
+          description: "Returns the currently authenticated user's username, role, resolved permissions, and whether a password change is still required. This is the endpoint the GUI calls on load to restore session state.",
+          responseExample: `{
+  "statusCode": 200,
+  "message": "OK",
+  "data": {
+    "username": "admin",
+    "role": "Super Admin",
+    "mustChangePassword": false,
+    "permissions": ["db:view", "user:create", "..."]
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Returns the authenticated user" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+          ],
+        },
+        {
+          method: "PATCH",
+          path: "/api/auth/change-password",
+          description: "Changes the caller's own password. Requires the current password. Rotates the session, so any previously issued cookie for this account becomes invalid.",
+          parameters: [
+            { name: "currentPassword", type: "body", dataType: "string", required: true, description: "The account's current password" },
+            { name: "newPassword", type: "body", dataType: "string", required: true, description: "The new password (min 4 characters)" },
+          ],
+          requestBody: `{
+  "currentPassword": "admin",
+  "newPassword": "a-much-stronger-password"
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Password changed successfully",
+  "data": {
+    "username": "admin",
+    "role": "Super Admin",
+    "permissions": ["..."],
+    "mustChangePassword": false
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Password changed, session rotated" },
+            { code: 400, description: "Bad Request - Wrong current password or weak new password" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+          ],
+        },
+        {
+          method: "GET",
+          path: "/api/auth/users",
+          description: "Lists all users (Super Admin only - requires the `user:view` permission). Password hashes are never included in the response.",
+          responseExample: `{
+  "statusCode": 200,
+  "message": "List of Users",
+  "data": [
+    { "username": "admin", "role": "Super Admin", "mustChangePassword": false, "isActive": true, "createdAt": "2026-01-01T00:00:00.000Z" }
+  ]
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Returns the user list" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing user:view permission" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/auth/users",
+          description: "Creates a new user with a temporary password and an assigned role (Super Admin only - requires `user:create`). The new user is forced to change their password on first login.",
+          parameters: [
+            { name: "username", type: "body", dataType: "string", required: true, description: "New account's username" },
+            { name: "password", type: "body", dataType: "string", required: true, description: "Temporary password" },
+            { name: "role", type: "body", dataType: "string", required: true, description: "One of the existing role names" },
+          ],
+          requestBody: `{
+  "username": "jane",
+  "password": "TempPass123",
+  "role": "Admin"
+}`,
+          responseExample: `{
+  "statusCode": 201,
+  "message": "User created successfully",
+  "data": { "username": "jane", "role": "Admin" }
+}`,
+          statusCodes: [
+            { code: 201, description: "Created - User created successfully" },
+            { code: 400, description: "Bad Request - Invalid username/password or unknown role" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing user:create permission" },
+            { code: 409, description: "Conflict - Username already exists" },
+          ],
+        },
+        {
+          method: "PATCH",
+          path: "/api/auth/users/:username/role",
+          description: "Changes a user's assigned role (Super Admin only - requires `user:update-role`). Revokes that user's existing sessions immediately.",
+          parameters: [
+            { name: "role", type: "body", dataType: "string", required: true, description: "New role name to assign" },
+          ],
+          requestBody: `{ "role": "View" }`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Role updated successfully"
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Role updated, target user's sessions revoked" },
+            { code: 400, description: "Bad Request - Unknown role, user not found, or would remove the last Super Admin" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing user:update-role permission" },
+          ],
+        },
+        {
+          method: "PATCH",
+          path: "/api/auth/users/:username/reset-password",
+          description: "Admin-forced password reset (Super Admin only - requires `user:reset-password`). Sets a new password and flags the account to require a password change on next login. Revokes that user's existing sessions immediately.",
+          parameters: [
+            { name: "newPassword", type: "body", dataType: "string", required: true, description: "New temporary password" },
+          ],
+          requestBody: `{ "newPassword": "NewTempPass1" }`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Password reset successfully"
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Password reset, target user's sessions revoked" },
+            { code: 400, description: "Bad Request - User not found or weak password" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing user:reset-password permission" },
+          ],
+        },
+        {
+          method: "DELETE",
+          path: "/api/auth/users/:username",
+          description: "Deletes a user (Super Admin only - requires `user:delete`). Rejected if the target is the last remaining Super Admin account.",
+          responseExample: `{
+  "statusCode": 200,
+  "message": "User deleted successfully"
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - User deleted" },
+            { code: 400, description: "Bad Request - User not found or is the last remaining Super Admin" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing user:delete permission" },
+          ],
+        },
+        {
+          method: "GET",
+          path: "/api/auth/roles",
+          description: "Lists all roles, including custom roles created from the permission catalogue (Super Admin only - requires `role:view`).",
+          responseExample: `{
+  "statusCode": 200,
+  "message": "List of Roles",
+  "data": [
+    { "roleName": "Super Admin", "permissions": ["..."], "isSystemRole": true, "createdAt": "2026-01-01T00:00:00.000Z" }
+  ]
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Returns the role list" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing role:view permission" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/auth/roles",
+          description: "Creates a new role from the predefined permission catalogue (Super Admin only - requires `role:create`). Every permission key must exist in the catalogue returned by GET /api/auth/roles/permissions.",
+          parameters: [
+            { name: "roleName", type: "body", dataType: "string", required: true, description: "Unique name for the new role" },
+            { name: "permissions", type: "body", dataType: "array", required: true, description: "Array of permission keys from the catalogue" },
+          ],
+          requestBody: `{
+  "roleName": "Auditor",
+  "permissions": ["document:view", "document:query", "dashboard:view"]
+}`,
+          responseExample: `{
+  "statusCode": 201,
+  "message": "Role created successfully",
+  "data": { "roleName": "Auditor", "permissions": ["document:view", "document:query", "dashboard:view"] }
+}`,
+          statusCodes: [
+            { code: 201, description: "Created - Role created successfully" },
+            { code: 400, description: "Bad Request - Unknown permission key(s)" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing role:create permission" },
+            { code: 409, description: "Conflict - Role name already exists" },
+          ],
+        },
+        {
+          method: "GET",
+          path: "/api/auth/roles/permissions",
+          description: "Returns the full predefined permission catalogue, grouped by category - used to render the permission picker when creating a custom role.",
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Permission catalogue",
+  "data": [
+    { "key": "db:view", "group": "Database", "description": "View the list of databases and dashboard database counts" }
+  ]
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Returns the permission catalogue" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing role:view permission" },
           ],
         },
       ],
@@ -961,6 +1213,9 @@ file: [database.tar.gz file]`,
               The AxioDB GUI Server provides a comprehensive RESTful API for managing databases, collections, and documents
               over HTTP. All endpoints return JSON responses and support standard HTTP status codes. Base URL: <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">http://localhost:27018</code>
             </p>
+            <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+              Every endpoint below except <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">/api/info</code>, <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">/api/health</code>, <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">/api/routes</code>, and <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">/api/auth/login</code> requires an authenticated session (see the <strong>Authentication &amp; Access Control</strong> section below) and is subject to role-based permission checks - expect <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">401</code> without a valid session cookie and <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">403</code> if the caller's role lacks the required permission.
+            </p>
 
             {/* Quick Info Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
@@ -988,7 +1243,7 @@ file: [database.tar.gz file]`,
                   Authentication
                 </h3>
                 <p className="text-sm text-pink-800 dark:text-pink-300">
-                  None (Local server)
+                  Session cookie (httpOnly) via <code>/api/auth/login</code>, RBAC-enforced
                 </p>
               </div>
             </div>
