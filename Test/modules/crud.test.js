@@ -472,6 +472,38 @@ class CRUDTests extends TestRunner {
         assert.equal(result.data.documents.length, 0);
       });
     });
+
+    // Index Tests
+    await this.describe('Index Operations', async () => {
+      await this.test('List indexes returns the indexes created in setUp', async () => {
+        const result = await this.collection.getIndexes();
+
+        assert.isSuccess(result);
+        const fieldNames = result.data.map((entry) => entry.indexFieldName);
+        assert.includes(fieldNames, 'name');
+        assert.includes(fieldNames, 'email');
+        assert.includes(fieldNames, 'age');
+      });
+
+      await this.test('Newly created index appears in the list', async () => {
+        await this.collection.newIndex('city');
+        const result = await this.collection.getIndexes();
+
+        assert.isSuccess(result);
+        assert.includes(result.data.map((entry) => entry.indexFieldName), 'city');
+      });
+
+      await this.test('Dropped index no longer appears in the list', async () => {
+        await this.collection.dropIndex('city');
+        const result = await this.collection.getIndexes();
+
+        assert.isSuccess(result);
+        assert.ok(
+          !result.data.some((entry) => entry.indexFieldName === 'city'),
+          'Dropped index should not appear in the list'
+        );
+      });
+    });
   }
 }
 

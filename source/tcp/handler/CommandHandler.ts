@@ -1,14 +1,19 @@
 import { AxioDB } from '../../Services/Indexation.operation';
-import { TCPRequest, TCPResponse } from '../types/protocol.types';
+import { TCPResponse } from '../types/protocol.types';
 import { CommandType } from '../types/command.types';
 import { MessageValidator } from '../config/protocol';
 import { StatusCode, ErrorMessage, SuccessMessage } from '../config/keys';
 import { RequestContext } from '../connection/RequestContext';
+import { ConnectionManager } from '../connection/ConnectionManager';
+import { TCP_COMMAND_PERMISSIONS, TCP_AUTH_EXEMPT_COMMANDS } from '../config/permissions';
+import { isReservedDatabaseName } from '../../config/Keys/Permissions';
+import PermissionChecker from '../../Services/Auth/PermissionChecker.helper';
 
 // Handlers
 import DBHandler from './handlers/DB.handler';
 import CollectionHandler from './handlers/Collection.handler';
 import OperationHandler from './handlers/Operation.handler';
+import AuthHandler from './handlers/Auth.handler';
 
 /**
  * Command Handler - Main dispatcher for TCP commands
@@ -16,17 +21,23 @@ import OperationHandler from './handlers/Operation.handler';
  */
 export class CommandHandler {
   private axioDB: AxioDB;
+  private connectionManager: ConnectionManager;
+  private requireAuth: boolean;
   private dbHandler: DBHandler;
   private collectionHandler: CollectionHandler;
   private operationHandler: OperationHandler;
+  private authHandler: AuthHandler;
 
-  constructor(axioDB: AxioDB) {
+  constructor(axioDB: AxioDB, connectionManager: ConnectionManager, requireAuth: boolean = false) {
     this.axioDB = axioDB;
+    this.connectionManager = connectionManager;
+    this.requireAuth = requireAuth;
 
     // Initialize handlers
     this.dbHandler = new DBHandler(axioDB);
     this.collectionHandler = new CollectionHandler(axioDB);
     this.operationHandler = new OperationHandler(axioDB);
+    this.authHandler = new AuthHandler();
   }
 
   /**
@@ -42,8 +53,28 @@ export class CommandHandler {
       // Validate command-specific parameters
       MessageValidator.validateParams(request.command, request.params);
 
+      // Reject any attempt to operate on the reserved `config` (RBAC) database,
+      // matching the guard already applied on every HTTP route.
+      const dbName = (request.params as { dbName?: string })?.dbName;
+      if (dbName && isReservedDatabaseName(dbName)) {
+        return this.createErrorResponse(request.id, StatusCode.FORBIDDEN, ErrorMessage.RESERVED_DATABASE);
+      }
+
+      // Authentication + permission gate (only enforced when the TCP server was started with TCPAuth)
+      if (this.requireAuth && !TCP_AUTH_EXEMPT_COMMANDS.has(request.command)) {
+        const authUser = this.connectionManager.getAuthUser(context.connectionId);
+        if (!authUser) {
+          return this.createErrorResponse(request.id, StatusCode.UNAUTHORIZED, ErrorMessage.AUTH_REQUIRED);
+        }
+
+        const requiredPermission = TCP_COMMAND_PERMISSIONS[request.command];
+        if (requiredPermission && !PermissionChecker.roleHasPermission(authUser.role, requiredPermission)) {
+          return this.createErrorResponse(request.id, StatusCode.FORBIDDEN, ErrorMessage.INSUFFICIENT_PERMISSIONS);
+        }
+      }
+
       // Route to appropriate handler
-      return await this.routeCommand(request);
+      return await this.routeCommand(context);
     } catch (error) {
       return this.createErrorResponse(
         request.id,
@@ -56,8 +87,8 @@ export class CommandHandler {
   /**
    * Route command to appropriate handler
    */
-  private async routeCommand(request: TCPRequest): Promise<TCPResponse> {
-    const { command, params, id } = request;
+  private async routeCommand(context: RequestContext): Promise<TCPResponse> {
+    const { command, params, id } = context.request;
 
     try {
       switch (command) {
@@ -67,6 +98,16 @@ export class CommandHandler {
 
         case CommandType.DISCONNECT:
           return this.handleDisconnect(id);
+
+        // Authentication commands
+        case CommandType.AUTHENTICATE:
+          return await this.authHandler.handleAuthenticate(
+            id,
+            params,
+            context.connectionId,
+            context.remoteIp,
+            this.connectionManager,
+          );
 
         // Database commands
         case CommandType.CREATE_DB:
@@ -131,6 +172,9 @@ export class CommandHandler {
 
         case CommandType.DROP_INDEX:
           return await this.operationHandler.handleDropIndex(id, params);
+
+        case CommandType.LIST_INDEXES:
+          return await this.operationHandler.handleListIndexes(id, params);
 
         // Transaction operations (future - not implemented)
         case CommandType.BEGIN_TRANSACTION:

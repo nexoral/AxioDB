@@ -134,6 +134,32 @@ export const AvailableRoutes: RouteGroupInterface[] = [
     ],
   },
   {
+    groupName: "Index",
+    description: "Index Management Endpoints",
+    Paths: [
+      {
+        method: "GET",
+        path: "/api/index/list/?dbName&collectionName",
+        description: "List all indexes registered on a collection",
+      },
+      {
+        method: "POST",
+        path: "/api/index/create/",
+        description: "Create one or more indexes on a collection",
+        payload: {
+          dbName: "string",
+          collectionName: "string",
+          fieldNames: "array",
+        },
+      },
+      {
+        method: "DELETE",
+        path: "/api/index/delete/?dbName&collectionName&indexName",
+        description: "Delete an index from a collection",
+      },
+    ],
+  },
+  {
     groupName: "CRUD Operations",
     description: "CRUD Operations Endpoints",
     Paths: [

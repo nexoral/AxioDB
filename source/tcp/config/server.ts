@@ -7,6 +7,7 @@ import { TCPRequest, TCPResponse } from '../types/protocol.types';
 import { MessageFramer } from './protocol';
 import { DEFAULT_TCP_PORT, ErrorMessage, StatusCode } from './keys';
 import { CommandType } from '../types/command.types';
+import AuthEvents from '../../Services/Auth/AuthEvents.service';
 
 /**
  * TCP Server for AxioDB
@@ -14,14 +15,23 @@ import { CommandType } from '../types/command.types';
  */
 export default async function createAxioDBTCPServer(
   axioDB: AxioDB,
-  port: number = DEFAULT_TCP_PORT
+  port: number = DEFAULT_TCP_PORT,
+  requireAuth: boolean = false
 ): Promise<Server> {
   const connectionManager = new ConnectionManager();
-  const commandHandler = new CommandHandler(axioDB);
+  const commandHandler = new CommandHandler(axioDB, connectionManager, requireAuth);
   let server: Server;
 
   // Setup connection manager event handlers
   setupConnectionManagerHandlers(connectionManager);
+
+  // Bridge GUI-side auth mutations (role change, password reset, deletion) into this
+  // TCP server's own connection state - see AuthEvents.service.ts. AxioDB is a
+  // singleton with at most one TCP server per process, so this is a single
+  // process-lifetime subscription, not a per-connection leak.
+  AuthEvents.on('user-revoked', (username: string) => {
+    connectionManager.revokeAuthForUser(username);
+  });
 
   // Create TCP server
   server = createServer((socket: Socket) => {
@@ -106,12 +116,23 @@ function handleNewConnection(
     return;
   }
 
-  // Setup message handler
-  connectionManager.on('message', async (connId: string, message: TCPRequest, clientSocket: Socket) => {
+  // Setup message handler. Registered as a named listener (rather than an anonymous
+  // closure kept forever) so it can be removed on disconnect - otherwise every past
+  // connection leaves a permanent no-op listener on the shared ConnectionManager,
+  // and every subsequent message pays O(n) dead-listener invocations.
+  const onMessage = async (connId: string, message: TCPRequest, clientSocket: Socket) => {
     if (connId !== connectionId) return; // Only handle messages for this connection
 
     await handleMessage(connId, message, clientSocket, commandHandler, connectionManager);
-  });
+  };
+  connectionManager.on('message', onMessage);
+
+  const onConnectionRemoved = (removedConnectionId: string) => {
+    if (removedConnectionId !== connectionId) return; // Not this connection - keep listening
+    connectionManager.off('message', onMessage);
+    connectionManager.off('connection:removed', onConnectionRemoved);
+  };
+  connectionManager.on('connection:removed', onConnectionRemoved);
 }
 
 /**
@@ -126,7 +147,7 @@ async function handleMessage(
 ): Promise<void> {
   try {
     // Create request context
-    const context = new RequestContext(message, socket);
+    const context = new RequestContext(message, socket, connectionId);
 
     // Handle the request
     const response = await commandHandler.handleRequest(context);

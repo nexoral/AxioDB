@@ -5,6 +5,8 @@ import AuthService from "../../../Services/Auth/AuthService.service";
 import SessionStore from "../../../Services/Auth/SessionStore.service";
 import CookieCodec from "../../../Services/Auth/CookieCodec.helper";
 import PermissionChecker from "../../../Services/Auth/PermissionChecker.helper";
+import AuthEvents from "../../../Services/Auth/AuthEvents.service";
+import LoginRateLimiter from "../../../Services/Auth/LoginRateLimiter.service";
 import { SESSION_COOKIE_NAME, SESSION_TTL_MS } from "../../../config/Keys/Permissions";
 import {
   ChangePasswordRequestBody,
@@ -30,10 +32,23 @@ export default class AuthController {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Password is required"));
     }
 
+    const cooldownRemaining = LoginRateLimiter.getCooldownRemaining(request.ip);
+    if (cooldownRemaining > 0) {
+      return sendResponse(
+        reply,
+        buildResponse(
+          StatusCodes.TOO_MANY_REQUESTS,
+          `Too many failed login attempts. Try again in ${Math.ceil(cooldownRemaining / 1000)}s.`,
+        ),
+      );
+    }
+
     const result = await this.authService.login(username, password);
     if (!result.success || !result.user) {
+      LoginRateLimiter.recordFailure(request.ip);
       return sendResponse(reply, buildResponse(StatusCodes.UNAUTHORIZED, result.message));
     }
+    LoginRateLimiter.recordSuccess(request.ip);
 
     const session = SessionStore.createSession(
       result.user.username,
@@ -115,6 +130,7 @@ export default class AuthController {
 
     // Rotate the session so a still-live cookie can't keep referencing the old password state.
     SessionStore.revokeSessionsForUser(authUser.username);
+    AuthEvents.emit("user-revoked", authUser.username);
     const session = SessionStore.createSession(authUser.username, authUser.role, false);
     this.setSessionCookie(reply, session.sid);
 

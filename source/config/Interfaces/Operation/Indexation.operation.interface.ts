@@ -5,6 +5,8 @@ export interface AxioDBOptions {
   RootName?: string;
   CustomPath?: string;
   TCP?: boolean;
+  /** Require username/password authentication (same RBAC users as the GUI) for TCP connections. Defaults to false. */
+  TCPAuth?: boolean;
 }
 
 export interface FinalDatabaseInfo {

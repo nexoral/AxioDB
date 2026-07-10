@@ -10,6 +10,15 @@ export interface AxioDBCloudOptions {
   reconnectAttempts?: number; // Max reconnection attempts (default: 10)
   reconnectDelay?: number; // Initial reconnection delay in ms (default: 1000)
   heartbeatInterval?: number; // Heartbeat interval in ms (default: 30000)
+  username?: string; // Username to authenticate with, if the server was started with TCPAuth: true
+  password?: string; // Password to authenticate with, if the server was started with TCPAuth: true
+}
+
+/** Public shape returned by a successful AUTHENTICATE command. */
+export interface AuthenticatedUser {
+  username: string;
+  role: string;
+  mustChangePassword: boolean;
 }
 
 /**

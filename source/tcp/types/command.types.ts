@@ -8,6 +8,9 @@ export enum CommandType {
   PING = 'PING',
   DISCONNECT = 'DISCONNECT',
 
+  // Authentication Commands
+  AUTHENTICATE = 'AUTHENTICATE',
+
   // Database Operations
   CREATE_DB = 'CREATE_DB',
   DELETE_DB = 'DELETE_DB',
@@ -35,6 +38,7 @@ export enum CommandType {
   // Index Operations
   CREATE_INDEX = 'CREATE_INDEX',
   DROP_INDEX = 'DROP_INDEX',
+  LIST_INDEXES = 'LIST_INDEXES',
 
   // Transaction Operations (future)
   BEGIN_TRANSACTION = 'BEGIN_TRANSACTION',
@@ -48,6 +52,7 @@ export enum CommandType {
 export const CommandDocumentation: Record<CommandType, string> = {
   [CommandType.PING]: 'Heartbeat ping to verify connection',
   [CommandType.DISCONNECT]: 'Gracefully disconnect from server',
+  [CommandType.AUTHENTICATE]: 'Authenticate with username and password',
   [CommandType.CREATE_DB]: 'Create a new database',
   [CommandType.DELETE_DB]: 'Delete an existing database',
   [CommandType.DB_EXISTS]: 'Check if database exists',
@@ -68,6 +73,7 @@ export const CommandDocumentation: Record<CommandType, string> = {
   [CommandType.TOTAL_DOCUMENTS]: 'Get total document count',
   [CommandType.CREATE_INDEX]: 'Create index on collection fields',
   [CommandType.DROP_INDEX]: 'Drop existing index',
+  [CommandType.LIST_INDEXES]: 'List all indexes registered on a collection',
   [CommandType.BEGIN_TRANSACTION]: 'Begin database transaction',
   [CommandType.COMMIT_TRANSACTION]: 'Commit database transaction',
   [CommandType.ROLLBACK_TRANSACTION]: 'Rollback database transaction',

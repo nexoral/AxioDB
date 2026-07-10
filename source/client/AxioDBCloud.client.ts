@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 import { MessageBuffer, MessageFramer } from '../tcp/config/protocol';
 import { TCPRequest, TCPResponse, PendingRequest } from '../tcp/types/protocol.types';
 import { CommandType } from '../tcp/types/command.types';
-import { AxioDBCloudOptions, ConnectionState, ParsedConnectionString } from './types/client.types';
+import { AxioDBCloudOptions, AuthenticatedUser, ConnectionState, ParsedConnectionString } from './types/client.types';
 import DatabaseProxy from './DatabaseProxy';
 
 /**
@@ -19,9 +19,13 @@ export class AxioDBCloud extends EventEmitter {
   private messageBuffer: MessageBuffer = new MessageBuffer();
   private pendingRequests: Map<string, PendingRequest> = new Map();
   private connectionState: ConnectionState = ConnectionState.DISCONNECTED;
-  private options: Required<AxioDBCloudOptions>;
+  private options: Required<Omit<AxioDBCloudOptions, 'username' | 'password'>>;
   private reconnectAttempt: number = 0;
   private heartbeatInterval: NodeJS.Timeout | null = null;
+  // Kept separate from `options` above: unlike timeout/reconnectAttempts/etc, credentials
+  // have no sensible default, so they can't live in a Required<AxioDBCloudOptions> object.
+  private credentials?: { username: string; password: string };
+  private authUser?: AuthenticatedUser;
 
   constructor(connectionString: string, options?: AxioDBCloudOptions) {
     super();
@@ -41,6 +45,10 @@ export class AxioDBCloud extends EventEmitter {
       reconnectDelay: options?.reconnectDelay || 1000,
       heartbeatInterval: options?.heartbeatInterval || 30000,
     };
+
+    if (options?.username && options?.password) {
+      this.credentials = { username: options.username, password: options.password };
+    }
   }
 
   /**
@@ -91,13 +99,30 @@ export class AxioDBCloud extends EventEmitter {
       }, this.options.timeout);
 
       // Connect to server
-      this.socket.connect(this.port, this.host, () => {
+      this.socket.connect(this.port, this.host, async () => {
         clearTimeout(connectionTimeout);
         this.connectionState = ConnectionState.CONNECTED;
         this.reconnectAttempt = 0;
         this.startHeartbeat();
         this.emit('connected');
-        resolve();
+
+        if (!this.credentials) {
+          resolve();
+          return;
+        }
+
+        try {
+          await this.performAuthenticate(this.credentials.username, this.credentials.password);
+          resolve();
+        } catch (authError) {
+          // Mirror disconnect()'s guard: prevent handleDisconnection's auto-reconnect
+          // from retrying the same bad credentials up to `reconnectAttempts` times.
+          this.reconnectAttempt = this.options.reconnectAttempts;
+          this.connectionState = ConnectionState.FAILED;
+          this.stopHeartbeat();
+          this.socket?.destroy();
+          reject(authError);
+        }
       });
 
       // Handle connection errors
@@ -107,6 +132,36 @@ export class AxioDBCloud extends EventEmitter {
         reject(error);
       });
     });
+  }
+
+  /**
+   * Authenticate with username/password (same RBAC users as the GUI Control Server).
+   * Only required when the server was started with `TCPAuth: true`.
+   *
+   * Stashes the credentials so a later automatic reconnect replays login - otherwise a
+   * network blip after a runtime `login()` call would silently leave the reconnected
+   * socket unauthenticated.
+   */
+  async login(username: string, password: string): Promise<AuthenticatedUser> {
+    const authUser = await this.performAuthenticate(username, password);
+    this.credentials = { username, password };
+    return authUser;
+  }
+
+  /**
+   * Sends the AUTHENTICATE command and stores the resulting identity.
+   */
+  private async performAuthenticate(username: string, password: string): Promise<AuthenticatedUser> {
+    const result = await this.sendCommand(CommandType.AUTHENTICATE, { username, password });
+    this.authUser = result as AuthenticatedUser;
+    return this.authUser;
+  }
+
+  /**
+   * The currently authenticated identity, if `login()` (or constructor credentials) succeeded.
+   */
+  get authenticatedUser(): AuthenticatedUser | undefined {
+    return this.authUser;
   }
 
   /**

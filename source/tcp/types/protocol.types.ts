@@ -8,6 +8,10 @@ export interface TCPRequest {
   id: string; // Correlation ID (UUID v4)
   command: CommandType; // Command to execute
   params: {
+    // Authentication parameters
+    username?: string;
+    password?: string;
+
     // Database parameters
     dbName?: string;
 
