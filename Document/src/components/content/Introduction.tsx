@@ -555,7 +555,7 @@ const Introduction: React.FC = () => {
                   <span className="text-blue-400">const</span> <span className="text-white">{'{'}</span> <span className="text-yellow-300">AxioDB</span> <span className="text-white">{'}'}</span> <span className="text-blue-400">=</span> <span className="text-yellow-300">require</span><span className="text-white">(</span><span className="text-green-300">'axiodb'</span><span className="text-white">);</span><br />
                   <br />
                   <div className="text-gray-400">// Create AxioDB instance with built-in GUI</div>
-                  <span className="text-blue-400">const</span> <span className="text-white">db</span> <span className="text-blue-400">=</span> <span className="text-blue-400">new</span> <span className="text-yellow-300">AxioDB</span><span className="text-white">(</span><span className="text-orange-400">true</span><span className="text-white">);</span> <span className="text-gray-400">// Enable GUI at localhost:27018</span><br />
+                  <span className="text-blue-400">const</span> <span className="text-white">db</span> <span className="text-blue-400">=</span> <span className="text-blue-400">new</span> <span className="text-yellow-300">AxioDB</span><span className="text-white">(</span><span className="text-white">{'{'}</span> <span className="text-cyan-400">GUI:</span> <span className="text-orange-400">true</span> <span className="text-white">{'}'});</span> <span className="text-gray-400">// Enable GUI at localhost:27018</span><br />
                   <br />
                   <div className="text-gray-400">// Create database and collection</div>
                   <span className="text-blue-400">const</span> <span className="text-white">myDB</span> <span className="text-blue-400">=</span> <span className="text-blue-400">await</span> <span className="text-white">db.</span><span className="text-yellow-300">createDB</span><span className="text-white">(</span><span className="text-green-300">'HelloWorldDB'</span><span className="text-white">);</span><br />
@@ -564,7 +564,7 @@ const Introduction: React.FC = () => {
                   <div className="text-gray-400">// Insert and retrieve data - Hello World! 👋</div>
                   <span className="text-blue-400">await</span> <span className="text-white">collection.</span><span className="text-yellow-300">insert</span><span className="text-white">(</span><span className="text-white">{'{'}</span> <span className="text-cyan-400">message:</span> <span className="text-green-300">'Hello, Developer! 👋'</span> <span className="text-white">{'}'});</span><br />
                   <span className="text-blue-400">const</span> <span className="text-white">result</span> <span className="text-blue-400">=</span> <span className="text-blue-400">await</span> <span className="text-white">collection.</span><span className="text-yellow-300">query</span><span className="text-white">(</span><span className="text-white">{'{'}</span><span className="text-white">{'}'}</span><span className="text-white">).</span><span className="text-yellow-300">exec</span><span className="text-white">();</span><br />
-                  <span className="text-blue-400">console</span><span className="text-white">.</span><span className="text-yellow-300">log</span><span className="text-white">(</span><span className="text-white">result</span><span className="text-white">[</span><span className="text-orange-400">0</span><span className="text-white">].</span><span className="text-cyan-400">message</span><span className="text-white">);</span> <span className="text-gray-400">// Hello, Developer! 👋</span>
+                  <span className="text-blue-400">console</span><span className="text-white">.</span><span className="text-yellow-300">log</span><span className="text-white">(</span><span className="text-white">result</span><span className="text-white">.</span><span className="text-cyan-400">data</span><span className="text-white">.</span><span className="text-cyan-400">documents</span><span className="text-white">[</span><span className="text-orange-400">0</span><span className="text-white">].</span><span className="text-cyan-400">message</span><span className="text-white">);</span> <span className="text-gray-400">// Hello, Developer! 👋</span>
                 </div>
                 <div className="flex gap-3">
                   <a
@@ -847,37 +847,43 @@ const Introduction: React.FC = () => {
         </div>
       </div>
 
-      {/* Enhanced Pain Points Section */}
+      {/* Pain Points Section: why not SQLite, JSON files, or MongoDB */}
       <div className="relative animate-fade-in-up">
         <div className="mt-8 flex flex-col items-center">
           <div className="max-w-3xl text-center mb-6 animate-slide-in-right">
             <h3 className="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-4">
-              Why Use AxioDB Instead of SQLite?
+              The Problem With the Usual Options
             </h3>
             <div className="text-left bg-white dark:bg-slate-800 rounded-xl p-6 mb-6 shadow-lg border border-slate-200 dark:border-slate-700">
-              <p className="text-lg text-slate-700 dark:text-slate-300 mb-4">
-                SQLite is great, but it requires native bindings that break in Electron:
-              </p>
-              <ul className="space-y-2 text-slate-600 dark:text-slate-400 mb-4">
-                <li className="flex items-start gap-2">
-                  <span className="text-red-500 font-bold">✗</span>
-                  <span><code className="bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">electron-rebuild</code> on every Electron update</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-red-500 font-bold">✗</span>
-                  <span>Platform-specific builds (Windows .node files ≠ Mac .node files)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-red-500 font-bold">✗</span>
-                  <span>SQL strings instead of JavaScript objects</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-red-500 font-bold">✗</span>
-                  <span>Schema migrations when your data model changes</span>
-                </li>
-              </ul>
+              <div className="space-y-4 mb-4">
+                <div>
+                  <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">SQLite:</h4>
+                  <ul className="space-y-1 text-slate-600 dark:text-slate-400 pl-6 text-sm">
+                    <li>✗ Requires native C bindings (better-sqlite3, node-sqlite3)</li>
+                    <li>✗ <code className="bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">electron-rebuild</code> on every Electron update, platform-specific compilation</li>
+                    <li>✗ SQL strings instead of JavaScript objects</li>
+                    <li>✗ Schema migrations when your data model changes</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">JSON Files:</h4>
+                  <ul className="space-y-1 text-slate-600 dark:text-slate-400 pl-6 text-sm">
+                    <li>✗ Full file read/write for every operation</li>
+                    <li>✗ No built-in querying, indexing, or caching</li>
+                    <li>✗ Linear O(n) search performance</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">MongoDB (Server):</h4>
+                  <ul className="space-y-1 text-slate-600 dark:text-slate-400 pl-6 text-sm">
+                    <li>✗ Requires a separate server process</li>
+                    <li>✗ Overkill for small-to-medium, single-app datasets</li>
+                    <li>✗ Not suitable for embedded/desktop scenarios</li>
+                  </ul>
+                </div>
+              </div>
               <p className="text-lg text-slate-700 dark:text-slate-300 mb-2">
-                AxioDB is pure JavaScript:
+                AxioDB is pure JavaScript, embedded, with MongoDB-style queries built in:
               </p>
               <ul className="space-y-2 text-slate-600 dark:text-slate-400">
                 <li className="flex items-start gap-2">
@@ -893,6 +899,10 @@ const Introduction: React.FC = () => {
                   <span>Schema-less JSON documents—no migrations</span>
                 </li>
               </ul>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">
+                See the full <a href="/comparison" className="underline font-medium">feature-by-feature comparison</a> against
+                SQLite, JSON files, lowdb, nedb, and better-sqlite3.
+              </p>
             </div>
             <div className="flex justify-center gap-4 animate-glow">
               <a href="/installation" className="inline-block">

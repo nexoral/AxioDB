@@ -32,17 +32,19 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
   // Documentation pages for search - wrapped in useMemo for performance
   const searchablePages: SearchResult[] = useMemo(() => [
     { title: "Introduction", path: "/", description: "Get started with AxioDB - The Pure JavaScript Alternative to SQLite" },
-    { title: "Why Choose AxioDB", path: "/why-choose-axiodb", description: "Learn why AxioDB is the best choice for your project" },
     { title: "Features", path: "/features", description: "Explore production caching features and capabilities" },
-    { title: "Performance Comparison", path: "/comparison", description: "See how AxioDB compares to other databases" },
     { title: "Installation", path: "/installation", description: "Install and set up AxioDB in your project" },
+    { title: "AxioDBCloud (Remote/TCP)", path: "/cloud", description: "Connect remotely over TCP, with optional shared-RBAC authentication" },
+    { title: "Troubleshooting", path: "/troubleshooting", description: "Common connection and authentication errors, and how to fix them" },
+    { title: "Docker Deployment", path: "/docker", description: "Run AxioDB in Docker - simple quick start, then env vars, volumes, and Compose" },
     { title: "Create Database", path: "/create-database", description: "Learn how to create a database in AxioDB" },
     { title: "Create Collection", path: "/create-collection", description: "Create collections with optional encryption and schema" },
     { title: "Basic Usage & Operations", path: "/usage", description: "CRUD operations and basic database usage" },
     { title: "Advanced Features", path: "/advanced-features", description: "Advanced querying, aggregation, and optimization" },
     { title: "API Reference", path: "/api-reference", description: "Complete JavaScript/TypeScript API documentation" },
-    { title: "Server API (HTTP)", path: "/server-api", description: "RESTful HTTP API for AxioDB GUI Server" },
-    { title: "Security", path: "/security", description: "AES-256 encryption and security features" },
+    { title: "Server API (HTTP)", path: "/server-api", description: "RESTful HTTP API for AxioDB GUI Server, including index routes" },
+    { title: "Security & Access Control", path: "/security", description: "AES-256 encryption, RBAC, and TCP authentication" },
+    { title: "Performance Comparison", path: "/comparison", description: "See how AxioDB compares to other databases" },
     { title: "Community & Contributing", path: "/community", description: "Join the community and contribute to AxioDB" },
     { title: "Maintainer's Zone", path: "/maintainers-zone", description: "Resources and guides for maintainers" },
   ], []);

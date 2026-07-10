@@ -15,36 +15,46 @@ interface SidebarProps {
 
 const sidebarSections: SidebarSection[] = [
   {
-    title: "Getting Started",
+    title: "Get Started",
     items: [
       { id: "introduction", label: "Introduction", path: "/" },
-      {
-        id: "why-choose-axiodb",
-        label: "Why Choose AxioDB",
-        path: "/why-choose-axiodb",
-      },
       { id: "features", label: "Features", path: "/features" },
-      {
-        id: "comparison",
-        label: "Performance Comparison",
-        path: "/comparison",
-      },
+      { id: "installation", label: "Installation", path: "/installation" },
+      { id: "operations", label: "Quick Start & Usage", path: "/usage" },
       {
         id: "limitations",
         label: "Current Limitations",
         path: "/features#limitations",
       },
+    ],
+  },
+  {
+    title: "AxioDBCloud (Remote/TCP)",
+    items: [
       {
-        id: "future-plans",
-        label: "Future Plans",
-        path: "/features#future-plans",
+        id: "axiodb-cloud",
+        label: "Connecting to AxioDBCloud",
+        path: "/cloud",
       },
     ],
   },
   {
-    title: "Installation & Setup",
+    title: "Troubleshooting",
     items: [
-      { id: "installation", label: "Installation", path: "/installation" },
+      {
+        id: "troubleshooting",
+        label: "Troubleshooting",
+        path: "/troubleshooting",
+      },
+    ],
+  },
+  {
+    title: "Docker Deployment",
+    items: [{ id: "docker", label: "Docker Deployment", path: "/docker" }],
+  },
+  {
+    title: "Working with Data",
+    items: [
       {
         id: "create-database",
         label: "Create Database",
@@ -55,33 +65,32 @@ const sidebarSections: SidebarSection[] = [
         label: "Create Collection",
         path: "/create-collection",
       },
-    ],
-  },
-  {
-    title: "Cloud & Remote Access",
-    items: [
-      {
-        id: "axiodb-cloud",
-        label: "AxioDBCloud (TCP)",
-        path: "/cloud",
-      },
-    ],
-  },
-  {
-    title: "Basic Usage",
-    items: [{ id: "operations", label: "Operations", path: "/usage" }],
-  },
-  {
-    title: "Advanced Topics",
-    items: [
       {
         id: "advanced-features",
         label: "Advanced Features",
         path: "/advanced-features",
       },
-      { id: "api-reference", label: "API Reference", path: "/api-reference" },
+    ],
+  },
+  {
+    title: "API Reference",
+    items: [
+      { id: "api-reference", label: "SDK API Reference", path: "/api-reference" },
       { id: "server-api", label: "Server API (HTTP)", path: "/server-api" },
-      { id: "security", label: "Security", path: "/security" },
+    ],
+  },
+  {
+    title: "Security & Access Control",
+    items: [{ id: "security", label: "Security & RBAC", path: "/security" }],
+  },
+  {
+    title: "Comparisons",
+    items: [
+      {
+        id: "comparison",
+        label: "Performance Comparison",
+        path: "/comparison",
+      },
     ],
   },
   {

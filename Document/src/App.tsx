@@ -13,8 +13,9 @@ import Comparison from "./components/content/Comparison";
 import CreateDatabase from "./components/content/CreateDatabase";
 import CreateCollection from "./components/content/CreateCollection";
 import MaintainersZone from "./components/content/MaintainersZone";
-import WhyChooseAxioDBPage from "./pages/WhyChooseAxioDBPage";
 import AxioDBCloud from "./components/content/AxioDBCloud";
+import Docker from "./components/content/Docker";
+import Troubleshooting from "./components/content/Troubleshooting";
 
 function App() {
   return (
@@ -34,8 +35,10 @@ function App() {
           <Route path="/create-database" element={<CreateDatabase />} />
           <Route path="/create-collection" element={<CreateCollection />} />
           <Route path="/cloud" element={<AxioDBCloud />} />
+          <Route path="/docker" element={<Docker />} />
+          <Route path="/troubleshooting" element={<Troubleshooting />} />
           <Route path="/maintainers-zone" element={<MaintainersZone />} />
-          <Route path="/why-choose-axiodb" element={<WhyChooseAxioDBPage />} />
+          <Route path="/why-choose-axiodb" element={<Introduction />} />
         </Routes>
       </Layout>
     </Router>

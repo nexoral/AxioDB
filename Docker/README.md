@@ -149,19 +149,15 @@ npm install axiodb@latest --save
 #### NPM Package Usage Example
 
 ```javascript
-const { AxioDB, SchemaTypes } = require("axiodb");
+const { AxioDB } = require("axiodb");
 
 // Create a single AxioDB instance
 const db = new AxioDB();
 
 const main = async () => {
-  // Create database and collection
+  // Create database and an encrypted collection (auto-generated key)
   const database = await db.createDB("myApp");
-  const collection = await database.createCollection("users", true, {
-    name: SchemaTypes.string().required(),
-    email: SchemaTypes.string().required().email(),
-    age: SchemaTypes.number().min(0).max(120),
-  });
+  const collection = await database.createCollection("users", true);
 
   // Insert document
   const result = await collection.insert({

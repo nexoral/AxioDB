@@ -161,12 +161,24 @@ const customKeyCollection = await db1.createCollection(
             A Super Admin can create additional custom roles from the predefined permission catalogue.
           </li>
         </ul>
+        <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-4">
+          <p className="text-gray-700 dark:text-gray-300 text-sm">
+            <strong>This isn&apos;t GUI-only:</strong> AxioDBCloud&apos;s TCP server reuses this exact same{" "}
+            <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">config</code> database, accounts, and
+            roles when started with <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">TCPAuth: true</code> —
+            one login system for both. TCP additionally enforces a shared per-IP rate limiter, rejects
+            still-must-change-password accounts outright, and forces re-authentication on an open connection when
+            an admin changes that user&apos;s password/role via the GUI. See{" "}
+            <a href="/cloud" className="underline font-medium">AxioDBCloud &rarr; Advanced: TCP Authentication</a> for
+            the full enforcement details.
+          </p>
+        </div>
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-r-lg flex items-start gap-2">
           <Lock className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
           <p className="text-gray-700 dark:text-gray-300 text-sm">
-            RBAC protects the Control Server&apos;s HTTP API from unauthorized use, but it is still designed for trusted
-            local/network access - it is not a substitute for network-level protections if you expose the Control Server
-            beyond your own machine or private network.
+            RBAC protects the Control Server&apos;s HTTP API and the TCP server alike, but both are still designed for
+            trusted local/network access - not a substitute for network-level protections if you expose either
+            beyond your own machine or private network. The TCP protocol itself is also unencrypted (no TLS).
           </p>
         </div>
       </div>

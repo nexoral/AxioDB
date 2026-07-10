@@ -4,7 +4,6 @@ import {
   Code2,
   Cpu,
   Database,
-  Download,
   FilterX,
   Layers,
   Lock,
@@ -519,98 +518,6 @@ const Features: React.FC = () => {
               applications with moderate data needs. Think SQLite-scale with MongoDB-style
               queries and built-in caching.
             </p>
-          </div>
-        </div>
-      </section>
-
-      <section id="future-plans" className="pt-12 scroll-mt-20">
-        <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-indigo-50 dark:from-purple-900/20 dark:via-slate-800 dark:to-indigo-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-purple-200 dark:border-purple-800 shadow-xl">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-purple-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
-
-          <div className="relative z-10">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl shadow-lg">
-                <Layers className="h-10 w-10 text-white" />
-              </div>
-              <div>
-                <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-800 via-indigo-700 to-blue-700 dark:from-purple-200 dark:via-indigo-300 dark:to-blue-200 bg-clip-text text-transparent">
-                  Innovation Roadmap
-                </h2>
-                <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
-                  Pioneering the future of database technology
-                </p>
-              </div>
-            </div>
-            <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-              Our development roadmap focuses on cutting-edge innovations that
-              will position AxioDB as the premier choice for next-generation
-              applications. We're committed to continuous enhancement and
-              staying ahead of industry trends while maintaining our core
-              principles of simplicity and performance.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transform hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
-                  <Download className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                  Data Export & Import
-                </h3>
-              </div>
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-                Seamless data migration capabilities with support for multiple
-                formats including JSON, CSV, and native AxioDB formats for
-                comprehensive data portability.
-              </p>
-            </div>
-          </div>
-
-          <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-600 transform hover:-translate-y-1">
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
-                  <Code2 className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                  Comprehensive Documentation
-                </h3>
-              </div>
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
-                Extensive tutorials, interactive examples, and complete API
-                references designed for developers at every skill level and
-                experience.
-              </p>
-            </div>
-          </div>
-
-          <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-600 transform hover:-translate-y-1 md:col-span-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/10 dark:to-purple-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
-                  <Settings className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                  Enhanced Web-Based GUI Dashboard
-                </h3>
-              </div>
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg mb-4">
-                Advanced web-based interface with real-time analytics, visual
-                query builder, performance monitoring, and comprehensive
-                database management tools. Already available at{" "}
-                <code className="bg-gradient-to-r from-violet-100 to-purple-100 dark:from-violet-900/50 dark:to-purple-900/50 px-3 py-1 rounded-lg text-violet-700 dark:text-violet-300 font-semibold border border-violet-200 dark:border-violet-800">
-                  localhost:27018
-                </code>{" "}
-                when you run AxioDB.
-              </p>
-            </div>
           </div>
         </div>
       </section>
