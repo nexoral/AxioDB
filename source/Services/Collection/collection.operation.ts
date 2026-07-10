@@ -156,6 +156,15 @@ export default class Collection {
   }
 
   /**
+   * Lists all indexes currently registered for this collection.
+   *
+   * @returns A promise that resolves with the result returned by IndexManager.listIndexes.
+   */
+  public async getIndexes() {
+    return await this.IndexManager.listIndexes();
+  }
+
+  /**
    * Inserts a document into the collection.
    * @param {object} data - The data to be inserted.
    * @returns {Promise<any>} - A promise that resolves with the response of the insertion operation.

@@ -8,12 +8,17 @@ import { TCPRequest } from '../types/protocol.types';
 export class RequestContext {
   public readonly request: TCPRequest;
   public readonly socket: Socket;
+  public readonly connectionId: string;
   public readonly remoteAddress: string;
+  /** Bare client IP (no port), used as the login rate limiter's key. */
+  public readonly remoteIp: string;
   public readonly timestamp: number;
 
-  constructor(request: TCPRequest, socket: Socket) {
+  constructor(request: TCPRequest, socket: Socket, connectionId: string) {
     this.request = request;
     this.socket = socket;
+    this.connectionId = connectionId;
+    this.remoteIp = socket.remoteAddress ?? 'unknown';
     this.remoteAddress = `${socket.remoteAddress}:${socket.remotePort}`;
     this.timestamp = Date.now();
   }

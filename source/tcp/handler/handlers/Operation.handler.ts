@@ -296,6 +296,34 @@ export default class OperationHandler {
   }
 
   /**
+   * Handle LIST_INDEXES command
+   */
+  async handleListIndexes(requestId: string, params: any): Promise<TCPResponse> {
+    const { dbName, collectionName } = params;
+
+    try {
+      const databaseInstance = await this.axioDB.createDB(dbName);
+      const collection = await databaseInstance.createCollection(collectionName);
+
+      const result = await collection.getIndexes();
+
+      return {
+        id: requestId,
+        statusCode: result.statusCode,
+        message: 'message' in result ? result.message || 'Indexes retrieved successfully' : 'Indexes retrieved successfully',
+        data: result.data,
+      };
+    } catch (error) {
+      return {
+        id: requestId,
+        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
+        message: error instanceof Error ? error.message : String(error),
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  /**
    * Handle DROP_INDEX command
    */
   async handleDropIndex(requestId: string, params: any): Promise<TCPResponse> {

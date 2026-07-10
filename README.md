@@ -162,9 +162,47 @@ const results = await users.query({ role: "admin" })
 await client.disconnect();
 ```
 
+### 🔐 TCP Authentication (NEW!)
+
+TCP connections are unauthenticated by default (same as before). Opt in with `TCPAuth: true` to require a username/password on every connection, reusing the **exact same accounts and roles** as the GUI's RBAC system (see [Authentication & Access Control](#authentication--access-control-v98)) — one set of credentials for both.
+
+```javascript
+// Server
+const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'MyDB', CustomPath: '.' });
+```
+
+```javascript
+// Client - pass credentials in the constructor options; connect() authenticates automatically
+const client = new AxioDBCloud("axiodb://localhost:27019", {
+  username: 'admin',
+  password: 'admin',
+});
+await client.connect();
+
+console.log(client.authenticatedUser); // { username, role, mustChangePassword }
+```
+
+Or authenticate after connecting, e.g. if credentials are supplied at runtime:
+
+```javascript
+const client = new AxioDBCloud("axiodb://localhost:27019");
+await client.connect();
+await client.login('admin', 'admin');
+```
+
+**What's enforced:**
+- Every command except `PING`/`DISCONNECT`/`AUTHENTICATE` requires a prior successful login on that connection.
+- The same role permissions as the GUI apply per command (e.g. a `View`-role user gets `403` on `CREATE_DB`).
+- The same per-IP login rate limiter as the GUI: 5 failed attempts within 15 minutes locks that IP out for 15 minutes (`429 Too Many Requests`), shared across both TCP and GUI login attempts from that IP.
+- **Accounts that still need their forced password change are rejected outright** (`403`), not allowed through with a warning — there's no TCP command to change a password today, so log into the GUI (`http://localhost:27018`) to complete it first, or authenticate with an account that already has.
+- If a Super Admin resets a user's password, changes their role, or deletes them via the GUI while that user has an open TCP connection, the TCP connection is immediately forced to re-authenticate on its next command.
+
+**Known limitations:** the TCP protocol itself is unencrypted (no TLS) — deploy behind a private network, VPN, or your own TLS termination if connecting over an untrusted network. There's currently no TCP command to change a password; that must go through the GUI.
+
 ### Features
 
 ✅ **35+ Commands** - Full CRUD, aggregation, indexing
+✅ **Optional Authentication (NEW!)** - Shared RBAC with the GUI, per-IP rate limiting, forced-password-change enforcement
 ✅ **Auto-Reconnect** - Exponential backoff with up to 10 retry attempts
 ✅ **Heartbeat Monitoring** - PING/PONG every 30 seconds
 ✅ **Request Correlation** - UUID-based request/response matching
@@ -273,6 +311,10 @@ You'll be forced to change this password on first login (this applies to every a
 | **View** | Read-only access to databases, collections, and documents |
 
 A Super Admin can create additional roles from the predefined permission catalogue and create new users with any role. Sessions are held only in server memory (never persisted to disk) and are tied to an httpOnly cookie, so restarting the server logs everyone out.
+
+**Login rate limiting (NEW!):** after 5 failed login attempts from the same IP within 15 minutes, that IP is locked out for 15 minutes (`429 Too Many Requests`) — regardless of username. This limiter is shared with [TCP AUTHENTICATE attempts](#tcp-authentication-new), so brute-forcing either surface counts against the same per-IP cooldown.
+
+**Index management:** the Control Server also exposes `GET /api/index/list`, `POST /api/index/create`, and `DELETE /api/index/delete`, gated by the same `index:view` / `index:create` / `index:delete` permissions (View role gets view-only, Admin and Super Admin get all three).
 
 > **Security note:** RBAC protects the Control Server's HTTP API; it is still intended for trusted local/network access, not public internet exposure.
 
@@ -429,8 +471,9 @@ console.log(results);
 - `delete(query: object): Deleter`
 - `aggregate(pipeline: object[]): Aggregation`
 - `startSession(options?: SessionOptions): Session`
-- `createIndex(fieldName: string): Promise<SuccessInterface>`
+- `newIndex(...fieldNames: string[]): Promise<SuccessInterface>`
 - `dropIndex(indexName: string): Promise<SuccessInterface | ErrorInterface>`
+- `getIndexes(): Promise<SuccessInterface | ErrorInterface>` — lists all indexes registered on the collection (**NEW!**)
 
 ### Reader
 
@@ -545,7 +588,7 @@ Yes. Full type definitions are included — no separate `@types` package needed.
 No. AxioDB requires Node.js (v20+) and the filesystem. Server-side and desktop only.
 
 **Q: What is AxioDBCloud?**
-TCP-based remote access for AxioDB. Deploy AxioDB in Docker, connect from multiple clients with the exact same API. Supports 1,000+ concurrent connections with auto-reconnect.
+TCP-based remote access for AxioDB. Deploy AxioDB in Docker, connect from multiple clients with the exact same API. Supports 1,000+ concurrent connections with auto-reconnect. Optional username/password authentication (`TCPAuth: true`) reuses the same RBAC accounts as the GUI.
 
 ---
 

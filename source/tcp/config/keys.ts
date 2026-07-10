@@ -41,6 +41,7 @@ export const StatusCode = {
   CONFLICT: 409,
   PAYLOAD_TOO_LARGE: 413,
   UNPROCESSABLE_ENTITY: 422,
+  TOO_MANY_REQUESTS: 429,
 
   // Server Errors
   INTERNAL_SERVER_ERROR: 500,
@@ -59,6 +60,13 @@ export const ErrorMessage = {
   REQUEST_TIMEOUT: 'Request timeout',
   SERVER_OVERLOAD: 'Server is overloaded',
   INTERNAL_ERROR: 'Internal server error',
+  AUTH_REQUIRED: 'Authentication required. Send an AUTHENTICATE command with username and password.',
+  INVALID_CREDENTIALS: 'Invalid username or password',
+  INSUFFICIENT_PERMISSIONS: 'Insufficient permissions for this operation',
+  RESERVED_DATABASE: 'This is a reserved system database',
+  TOO_MANY_LOGIN_ATTEMPTS: 'Too many failed login attempts. Try again later.',
+  PASSWORD_CHANGE_REQUIRED:
+    'This account must change its password before it can be used over TCP. Log into the Control Server GUI to change the password, or authenticate with a different account that has already completed its password change.',
 } as const;
 
 // Success Messages
@@ -77,4 +85,5 @@ export const SuccessMessage = {
   DOCUMENTS_DELETED: 'Documents deleted successfully',
   INDEX_CREATED: 'Index created successfully',
   INDEX_DROPPED: 'Index dropped successfully',
+  AUTHENTICATED: 'Authenticated successfully',
 } as const;

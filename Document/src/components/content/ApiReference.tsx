@@ -221,6 +221,25 @@ const users = await db.createCollection('users');
 users.newIndex('email', 'age', 'createdAt');`,
           returns: "void: No return value. Indexes are created synchronously.",
         },
+        {
+          name: "dropIndex",
+          signature: "dropIndex(indexName: string): Promise<SuccessInterface | ErrorInterface>",
+          description: "Removes an existing index by field name, deleting its index file and metadata entry. Use this to reclaim disk space or when a field no longer needs fast lookups.",
+          example: `// Drop an index that's no longer needed
+const result = await collection.dropIndex('email');
+console.log(result.data); // "Index: email deleted successfully"`,
+          returns: "Promise<SuccessInterface | ErrorInterface>: Success message, or an error if the index doesn't exist.",
+        },
+        {
+          name: "getIndexes",
+          signature: "getIndexes(): Promise<SuccessInterface | ErrorInterface>",
+          description: "Lists every index currently registered on the collection. Useful for auditing which fields are indexed before adding new ones, or confirming a drop took effect.",
+          example: `// List all indexes on a collection
+const result = await collection.getIndexes();
+console.log(result.data);
+// [{ indexFieldName: 'email', fileName: 'email.axiodb', path: '...' }, ...]`,
+          returns: "Promise<SuccessInterface>: Array of index metadata entries ({ indexFieldName, fileName, path }).",
+        },
       ],
     },
     {

@@ -25,6 +25,7 @@ import { DatabaseMap } from "../config/Interfaces/Operation/database.operation.i
 import createAxioDBTCPServer from "../tcp/config/server";
 import AuthSeeder from "./Auth/AuthSeeder.service";
 import { RESERVED_DB_NAME } from "../config/Keys/Permissions";
+import LoginRateLimiter from "./Auth/LoginRateLimiter.service";
 
 /**
  * Class representing the AxioDB database.
@@ -33,9 +34,12 @@ import { RESERVED_DB_NAME } from "../config/Keys/Permissions";
  * @param {string} options.RootName - Custom name for the database root folder. Defaults to "AxioDB".
  * @param {string} options.CustomPath - Custom path for database storage. Defaults to current directory.
  * @param {boolean} options.TCP - Enable/disable TCP server (port 27019). Defaults to false.
+ * @param {boolean} options.TCPAuth - Require username/password authentication (same RBAC users as the GUI) for TCP connections. Defaults to false.
  * @returns {AxioDB} - Returns the instance of AxioDB.
  * @example
  * const db = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./data" });
+ * @example
+ * const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: "MyDB", CustomPath: "./data" });
  */
 export class AxioDB {
   private readonly RootName: string;
@@ -48,6 +52,7 @@ export class AxioDB {
   private DatabaseMap: Map<string, DatabaseMap>;
   private GUI: boolean = General.DBMS_GUI_Enable;
   private TCP: boolean = false;
+  private TCPAuth: boolean = false;
 
   constructor(options: AxioDBOptions = {}) {
     if (AxioDB._instance) {
@@ -55,7 +60,7 @@ export class AxioDB {
     }
     AxioDB._instance = this;
 
-    const { GUI, RootName, CustomPath, TCP } = options;
+    const { GUI, RootName, CustomPath, TCP, TCPAuth } = options;
 
     // Default Vlaues
 
@@ -65,10 +70,11 @@ export class AxioDB {
     this.folderManager = new FolderManager(); // Initialize the FolderManager class
     this.Converter = new Converter(); // Initialize the Converter class
     this.ResponseHelper = new ResponseHelper(); // Initialize the ResponseHelper class
-    this.initializeRoot(); // Ensure root initialization
     this.DatabaseMap = new Map<string, DatabaseMap>(); // Initialize the DatabaseMap
     this.GUI = GUI !== undefined ? GUI : General.DBMS_GUI_Enable; // Set GUI option
     this.TCP = TCP !== undefined ? TCP : false; // Set TCP option
+    this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false; // Set TCPAuth option
+    this.initializeRoot(); // Ensure root initialization (reads GUI/TCP/TCPAuth, so runs after they're set)
   }
 
   /**
@@ -99,14 +105,17 @@ export class AxioDB {
         console.log(`AxioDB folder created at: ${this.currentPATH}`);
       }
     }
-    if (this.GUI){
+    if (this.GUI || (this.TCP && this.TCPAuth)) {
       await new AuthSeeder(this).seedIfNeeded(); // Ensure config DB, RBAC seed data exist before accepting requests
+      LoginRateLimiter.startCleanupSweep(); // Only relevant once some auth surface (GUI or TCPAuth) is active
+    }
+    if (this.GUI) {
       Console.green("Starting AxioDB Control Server...");
       createAxioDBControlServer(this); // Start the web Control Server with the AxioDB instance
     }
     if (this.TCP) {
       Console.green("Starting AxioDB TCP Server...");
-      createAxioDBTCPServer(this); // Start the TCP Server with the AxioDB instance
+      createAxioDBTCPServer(this, undefined, this.TCPAuth); // Start the TCP Server with the AxioDB instance
     }
   }
 

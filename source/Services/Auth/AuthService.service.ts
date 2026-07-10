@@ -2,6 +2,7 @@ import PasswordHasher from "./PasswordHasher.helper";
 import ConfigDatabase from "./ConfigDatabase.service";
 import PermissionChecker from "./PermissionChecker.helper";
 import SessionStore from "./SessionStore.service";
+import AuthEvents from "./AuthEvents.service";
 import {
   UserDocument,
   RoleDocument,
@@ -143,6 +144,7 @@ export default class AuthService {
       .UpdateOne({ passwordHash, mustChangePassword: true });
 
     SessionStore.revokeSessionsForUser(username);
+    AuthEvents.emit("user-revoked", username);
     return { success: true, message: "Password reset successfully" };
   }
 
@@ -171,6 +173,7 @@ export default class AuthService {
       .UpdateOne({ role: newRole });
 
     SessionStore.revokeSessionsForUser(username);
+    AuthEvents.emit("user-revoked", username);
     return { success: true, message: "Role updated successfully" };
   }
 
@@ -189,6 +192,7 @@ export default class AuthService {
 
     await ConfigDatabase.getUsersCollection().delete({ username }).deleteOne();
     SessionStore.revokeSessionsForUser(username);
+    AuthEvents.emit("user-revoked", username);
     return { success: true, message: "User deleted successfully" };
   }
 

@@ -6,6 +6,12 @@ import FolderManager from "../../engine/Filesystem/FolderManager";
 import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
 
+export interface IndexMetaEntry {
+  indexFieldName: string;
+  fileName: string;
+  path: string;
+}
+
 export class IndexManager {
   // Properties
   public readonly path: string;
@@ -94,7 +100,6 @@ export class IndexManager {
             });
             await this.fileManager.WriteFile(this.indexMetaPath, this.converter.ToString(indexMeta));
             EffectedIndexes.push(indexName);
-            return this.ResponseHelper.Success(`Indexes: ${EffectedIndexes.join(", ")} created Indexes: ${FailedIndexes.join(", ")}`);
           }
           else {
             FailedIndexes.push(indexName);
@@ -102,6 +107,7 @@ export class IndexManager {
         }
       }
     }
+    return this.ResponseHelper.Success(`Indexes: ${EffectedIndexes.join(", ")} created Indexes: ${FailedIndexes.join(", ")}`);
   }
 
   /**
@@ -146,6 +152,29 @@ export class IndexManager {
     else {
       return this.ResponseHelper.Error(`Index: ${indexName} does not exist`);
     }
+  }
+
+  /**
+   * Lists all indexes currently registered for this collection.
+   *
+   * Reads the index metadata file (`index.meta.json`) and returns its parsed entries as-is —
+   * this is a pure read of the same metadata `createIndex`/`dropIndex` already maintain, no new
+   * storage format is introduced.
+   *
+   * @returns A promise that resolves to a SuccessInterface containing the list of index metadata
+   *          entries (`{ indexFieldName, fileName, path }`), or an ErrorInterface if the metadata
+   *          file could not be read.
+   *
+   * @example
+   * const result = await service.listIndexes();
+   */
+  public async listIndexes(): Promise<SuccessInterface | ErrorInterface> {
+    const indexMetaContent = await this.fileManager.ReadFile(this.indexMetaPath);
+    if (indexMetaContent.status) {
+      const indexMeta: IndexMetaEntry[] = this.converter.ToObject(indexMetaContent.data);
+      return this.ResponseHelper.Success(indexMeta);
+    }
+    return this.ResponseHelper.Error("Failed to read index metadata");
   }
 
   /**

@@ -12,6 +12,9 @@
  *   node Test/run.js crud      # Run only CRUD tests
  *   node Test/run.js transaction  # Run only transaction tests
  *   node Test/run.js read      # Run only read optimization tests
+ *   node Test/run.js auth      # Run only GUI RBAC tests
+ *   node Test/run.js tcp-auth  # Run only TCP (AxioDBCloud) RBAC tests
+ *   node Test/run.js tcp-noauth  # Run only TCP zero-auth backward-compat tests
  */
 
 const { spawn } = require('child_process');
@@ -33,7 +36,9 @@ const testModules = {
   crud: './modules/crud.test.js',
   transaction: './modules/transaction.test.js',
   read: './modules/read.test.js',
-  auth: './modules/auth.test.js'
+  auth: './modules/auth.test.js',
+  'tcp-auth': './modules/tcp-auth.test.js',
+  'tcp-noauth': './modules/tcp-noauth.test.js'
 };
 
 /**

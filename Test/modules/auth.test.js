@@ -128,6 +128,33 @@ class AuthTests extends TestRunner {
       });
     });
 
+    await this.describe('Login rate limiting (per-IP cooldown)', async () => {
+      await this.test('IP is locked out after enough failed attempts, even with correct credentials', async () => {
+        let lastRes;
+        // 8 attempts leaves a safety margin over the 5-attempt threshold regardless
+        // of how many failures the earlier 'Login' tests already accumulated.
+        for (let i = 0; i < 8; i++) {
+          lastRes = await fetch(`${BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: 'admin', password: `wrong-${i}` }),
+          });
+        }
+        assert.equal(lastRes.status, 429);
+
+        const blockedEvenWithGoodCreds = await fetch(`${BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'admin', password: 'admin' }),
+        });
+        assert.equal(blockedEvenWithGoodCreds.status, 429);
+      });
+    });
+
+    // Reset the shared rate limiter directly so the lockout above doesn't block the
+    // legitimate logins the rest of this suite depends on.
+    require('../../lib/Services/Auth/LoginRateLimiter.service').default.clearAll();
+
     await this.describe('Unauthenticated access', async () => {
       await this.test('Protected route without a cookie returns 401', async () => {
         const res = await fetch(`${BASE_URL}/db/databases`);

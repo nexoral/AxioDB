@@ -3,6 +3,7 @@ import { EventEmitter } from 'events';
 import { MessageBuffer, MessageFramer } from '../config/protocol';
 import { TCPRequest, TCPResponse } from '../types/protocol.types';
 import { MAX_CONNECTIONS, ErrorMessage, StatusCode } from '../config/keys';
+import { AuthenticatedUser } from '../../config/Interfaces/Auth/auth.interface';
 
 /**
  * Connection metadata
@@ -13,6 +14,8 @@ interface ConnectionInfo {
   connectedAt: number;
   lastActivity: number;
   requestCount: number;
+  /** Set once a successful AUTHENTICATE command has run on this connection. Lives for the socket's lifetime. */
+  authUser?: AuthenticatedUser;
 }
 
 /**
@@ -93,6 +96,38 @@ export class ConnectionManager extends EventEmitter {
    */
   getConnection(connectionId: string): ConnectionInfo | undefined {
     return this.connections.get(connectionId);
+  }
+
+  /**
+   * Mark a connection as authenticated, following a successful AUTHENTICATE command.
+   */
+  setAuthUser(connectionId: string, authUser: AuthenticatedUser): void {
+    const info = this.connections.get(connectionId);
+    if (info) {
+      info.authUser = authUser;
+    }
+  }
+
+  /**
+   * Get the authenticated identity for a connection, if AUTHENTICATE has succeeded.
+   */
+  getAuthUser(connectionId: string): AuthenticatedUser | undefined {
+    return this.connections.get(connectionId)?.authUser;
+  }
+
+  /**
+   * Clears the cached authenticated identity for every connection belonging to a
+   * given username, following a role change, password reset, or account deletion
+   * elsewhere (see AuthEvents). The connection itself is left open - the next
+   * command on it will simply be treated as unauthenticated again, mirroring how a
+   * revoked GUI session cookie stops working without forcibly closing the browser tab.
+   */
+  revokeAuthForUser(username: string): void {
+    for (const info of this.connections.values()) {
+      if (info.authUser?.username === username) {
+        info.authUser = undefined;
+      }
+    }
   }
 
   /**

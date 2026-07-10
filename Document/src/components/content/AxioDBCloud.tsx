@@ -15,6 +15,8 @@ import {
   Terminal,
   Code2,
   Network,
+  Lock,
+  AlertTriangle,
 } from "lucide-react";
 
 const AxioDBCloud: React.FC = () => {
@@ -271,9 +273,86 @@ await client.disconnect();`}
   timeout: 30000,           // Request timeout (ms)
   reconnectAttempts: 10,    // Max reconnect attempts
   reconnectDelay: 1000,     // Initial delay (ms)
-  heartbeatInterval: 30000  // Heartbeat every 30s
+  heartbeatInterval: 30000, // Heartbeat every 30s
+  username: 'admin',        // Only needed if the server has TCPAuth: true
+  password: 'admin',
 });`}
             />
+          </div>
+        </div>
+      </section>
+
+      {/* TCP Authentication */}
+      <section>
+        <h2 className="text-3xl font-bold mb-6 text-slate-900 dark:text-white flex items-center gap-3">
+          <Lock className="h-8 w-8 text-emerald-500" />
+          TCP Authentication (NEW!)
+        </h2>
+
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 space-y-6">
+          <p className="text-slate-700 dark:text-slate-300">
+            TCP connections are unauthenticated by default (unchanged from before). Opt in with{" "}
+            <code className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded">TCPAuth: true</code> to require a
+            username/password on every connection - it reuses the <strong>exact same accounts and roles</strong> as
+            the GUI Control Server&apos;s RBAC system, so there&apos;s only one set of credentials to manage.
+          </p>
+
+          <div>
+            <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Server</h3>
+            <CodeBlock
+              language="javascript"
+              code={`const db = new AxioDB({
+  TCP: true,
+  TCPAuth: true,           // Require authentication on every TCP connection
+  RootName: 'MyDatabase',
+  CustomPath: './data',
+});`}
+            />
+          </div>
+
+          <div>
+            <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Client</h3>
+            <CodeBlock
+              language="javascript"
+              code={`// Pass credentials in the constructor options - connect() authenticates automatically
+const client = new AxioDBCloud("axiodb://localhost:27019", {
+  username: 'admin',
+  password: 'admin',
+});
+await client.connect();
+
+console.log(client.authenticatedUser);
+// { username: 'admin', role: 'Super Admin', mustChangePassword: false }
+
+// Or authenticate after connecting (e.g. credentials supplied at runtime)
+const client2 = new AxioDBCloud("axiodb://localhost:27019");
+await client2.connect();
+await client2.login('admin', 'admin');`}
+            />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-700">
+              <h4 className="font-bold text-emerald-900 dark:text-emerald-200 mb-2">What&apos;s enforced</h4>
+              <ul className="text-sm text-emerald-800 dark:text-emerald-300 space-y-1.5">
+                <li>• Every command except PING/DISCONNECT/AUTHENTICATE requires a prior successful login on that connection</li>
+                <li>• Same role permissions as the GUI, checked per command (e.g. a View-role user gets 403 on CREATE_DB)</li>
+                <li>• Shared per-IP login rate limiter with the GUI: 5 failed attempts in 15 minutes locks that IP out for 15 minutes (429)</li>
+                <li>• Accounts still needing their forced password change are rejected outright (403) - complete it via the GUI first</li>
+                <li>• A password reset, role change, or deletion via the GUI immediately forces an already-open TCP connection to re-authenticate</li>
+              </ul>
+            </div>
+
+            <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-700">
+              <h4 className="font-bold text-amber-900 dark:text-amber-200 mb-2 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Known limitations
+              </h4>
+              <ul className="text-sm text-amber-800 dark:text-amber-300 space-y-1.5">
+                <li>• The TCP protocol itself is unencrypted (no TLS) - use a private network, VPN, or your own TLS termination for untrusted networks</li>
+                <li>• No TCP command exists yet to change a password - that must go through the GUI</li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -394,6 +473,7 @@ main().catch(console.error);`}
         <div className="grid md:grid-cols-2 gap-4">
           {[
             { icon: CheckCircle, title: "35+ Commands", desc: "Full CRUD, aggregation, indexing support" },
+            { icon: Lock, title: "Optional Auth (NEW!)", desc: "Shared RBAC with the GUI, per-IP rate limiting" },
             { icon: RefreshCw, title: "Auto-Reconnect", desc: "Exponential backoff with 10 retry attempts" },
             { icon: Activity, title: "Heartbeat", desc: "PING/PONG every 30 seconds" },
             { icon: Network, title: "Connection Pool", desc: "1000+ concurrent connections" },

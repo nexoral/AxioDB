@@ -12,6 +12,7 @@ import { AxioDB } from "../../Services/Indexation.operation";
 // All Sub Routers
 import dbRouter from "./Routers/DB.routes";
 import collectionRouter from "./Routers/Collection.routes";
+import indexRouter from "./Routers/Index.routes";
 import OperationRouter from "./Routers/Operation.routes";
 import authRouter from "./Routers/Auth.routes";
 import userManagementRouter from "./Routers/UserManagement.routes";
@@ -114,6 +115,12 @@ export default async function mainRouter(
   fastify.register(OperationRouter, {
     prefix: "/operation",
     AxioDBInstance: AxioDBInstance, // Pass the AxioDB instance to the Operation router
+  });
+
+  // Register Index Router
+  fastify.register(indexRouter, {
+    prefix: "/index",
+    AxioDBInstance: AxioDBInstance, // Pass the AxioDB instance to the Index router
   });
 
   // Register Auth Router (login is public, session/password endpoints require auth)

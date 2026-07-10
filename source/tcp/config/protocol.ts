@@ -224,9 +224,24 @@ export class MessageValidator {
         }
         break;
 
+      case CommandType.LIST_INDEXES:
+        if (!params.dbName || !params.collectionName) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName, collectionName`);
+        }
+        break;
+
+      case CommandType.AUTHENTICATE:
+        if (!params.username || !params.password) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: username, password`);
+        }
+        break;
+
       case CommandType.PING:
       case CommandType.DISCONNECT:
       case CommandType.GET_INSTANCE_INFO:
+      case CommandType.BEGIN_TRANSACTION:
+      case CommandType.COMMIT_TRANSACTION:
+      case CommandType.ROLLBACK_TRANSACTION:
         // No required params
         break;
 

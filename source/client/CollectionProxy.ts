@@ -103,6 +103,16 @@ export default class CollectionProxy {
   }
 
   /**
+   * List all indexes registered on this collection
+   */
+  async listIndexes(): Promise<any> {
+    return await this.client.sendCommand(CommandType.LIST_INDEXES, {
+      dbName: this.dbName,
+      collectionName: this.collectionName,
+    });
+  }
+
+  /**
    * Get collection name
    */
   get name(): string {

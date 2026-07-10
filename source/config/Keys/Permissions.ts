@@ -28,6 +28,10 @@ export const PERMISSIONS = {
 
   ROLE_VIEW: "role:view",
   ROLE_CREATE: "role:create",
+
+  INDEX_VIEW: "index:view",
+  INDEX_CREATE: "index:create",
+  INDEX_DELETE: "index:delete",
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -66,6 +70,10 @@ export const PERMISSION_CATALOGUE: PermissionCatalogueEntry[] = [
 
   { key: PERMISSIONS.ROLE_VIEW, group: "Role Management", description: "View the list of roles and the permission catalogue" },
   { key: PERMISSIONS.ROLE_CREATE, group: "Role Management", description: "Create new roles from the predefined permission catalogue" },
+
+  { key: PERMISSIONS.INDEX_VIEW, group: "Index", description: "View the list of indexes on a collection" },
+  { key: PERMISSIONS.INDEX_CREATE, group: "Index", description: "Create new indexes on a collection" },
+  { key: PERMISSIONS.INDEX_DELETE, group: "Index", description: "Delete an index from a collection" },
 ];
 
 export const ALL_PERMISSION_KEYS: string[] = PERMISSION_CATALOGUE.map((entry) => entry.key);
@@ -86,6 +94,9 @@ const DATA_PLANE_PERMISSIONS: string[] = [
   PERMISSIONS.DOCUMENT_DELETE,
   PERMISSIONS.DOCUMENT_AGGREGATE,
   PERMISSIONS.DASHBOARD_VIEW,
+  PERMISSIONS.INDEX_VIEW,
+  PERMISSIONS.INDEX_CREATE,
+  PERMISSIONS.INDEX_DELETE,
 ];
 
 const VIEW_ONLY_PERMISSIONS: string[] = [
@@ -95,6 +106,7 @@ const VIEW_ONLY_PERMISSIONS: string[] = [
   PERMISSIONS.DOCUMENT_QUERY,
   PERMISSIONS.DOCUMENT_AGGREGATE,
   PERMISSIONS.DASHBOARD_VIEW,
+  PERMISSIONS.INDEX_VIEW,
 ];
 
 export const SUPER_ADMIN_ROLE = "Super Admin";
@@ -124,3 +136,14 @@ export const DEFAULT_ADMIN_PASSWORD = "admin";
 export const SESSION_COOKIE_NAME = "axiodb_session";
 export const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 export const SESSION_SWEEP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Login rate limiting - shared by the GUI's /auth/login route and the TCP AUTHENTICATE
+ * command (see LoginRateLimiter.service.ts). Tracked per client IP: after
+ * LOGIN_RATE_LIMIT_MAX_ATTEMPTS failures within LOGIN_RATE_LIMIT_WINDOW_MS, that IP is
+ * locked out for LOGIN_RATE_LIMIT_COOLDOWN_MS.
+ */
+export const LOGIN_RATE_LIMIT_MAX_ATTEMPTS = 5;
+export const LOGIN_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+export const LOGIN_RATE_LIMIT_COOLDOWN_MS = 15 * 60 * 1000; // 15 minutes
+export const LOGIN_RATE_LIMIT_SWEEP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
