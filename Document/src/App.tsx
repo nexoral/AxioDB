@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import Introduction from "./components/content/Introduction";
 import Features from "./components/content/Features";
+import Limitations from "./components/content/Limitations";
 import Installation from "./components/content/Installation";
 import Usage from "./components/content/Usage";
 import AdvancedFeatures from "./components/content/AdvancedFeatures";
@@ -13,8 +14,9 @@ import Comparison from "./components/content/Comparison";
 import CreateDatabase from "./components/content/CreateDatabase";
 import CreateCollection from "./components/content/CreateCollection";
 import MaintainersZone from "./components/content/MaintainersZone";
-import WhyChooseAxioDBPage from "./pages/WhyChooseAxioDBPage";
 import AxioDBCloud from "./components/content/AxioDBCloud";
+import Docker from "./components/content/Docker";
+import Troubleshooting from "./components/content/Troubleshooting";
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Introduction />} />
           <Route path="/features" element={<Features />} />
+          <Route path="/limitations" element={<Limitations />} />
           <Route path="/installation" element={<Installation />} />
           <Route path="/usage" element={<Usage />} />
           <Route path="/advanced-features" element={<AdvancedFeatures />} />
@@ -34,8 +37,10 @@ function App() {
           <Route path="/create-database" element={<CreateDatabase />} />
           <Route path="/create-collection" element={<CreateCollection />} />
           <Route path="/cloud" element={<AxioDBCloud />} />
+          <Route path="/docker" element={<Docker />} />
+          <Route path="/troubleshooting" element={<Troubleshooting />} />
           <Route path="/maintainers-zone" element={<MaintainersZone />} />
-          <Route path="/why-choose-axiodb" element={<WhyChooseAxioDBPage />} />
+          <Route path="/why-choose-axiodb" element={<Introduction />} />
         </Routes>
       </Layout>
     </Router>

@@ -449,7 +449,7 @@ const main = async () => {
         avgAge: { $avg: "$age" }
       }
     }
-  ]);
+  ]).exec();
 
   // Update operations
   await UserCollection.update({ name: "John Doe" }).UpdateOne({ name: "Ankan" });

@@ -16,339 +16,83 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0%20native-success)](https://www.npmjs.com/package/axiodb)
 
-> **AxioDB** is an embedded NoSQL database for Node.js with MongoDB-style queries. Zero native dependencies, no compilation, no platform issues. Pure JavaScript from npm install to production. Think SQLite, but NoSQL with JavaScript queries—perfect for desktop apps, CLI tools, and embedded systems.
-
 👉 **[Official Documentation](https://axiodb.in/)**: Access full guides, examples, and API references.
 
 ---
 
-## 🎯 Why AxioDB?
+## Table of Contents
 
-**SQLite requires native C bindings that cause deployment headaches. JSON files have no querying or caching. MongoDB needs a separate server. AxioDB combines the best of all: embedded like SQLite, NoSQL queries like MongoDB, intelligent caching built-in.**
+- [What is AxioDB, and why does it exist?](#what-is-axiodb-and-why-does-it-exist)
+- [Installation](#-installation)
+- [Quick Start — Local AxioDB](#-quick-start--local-axiodb)
+- [Features](#-features)
+- [AxioDBCloud — Connecting Remotely](#-axiodbcloud--connecting-remotely)
+  - [Simple: connect without authentication](#simple-connect-without-authentication)
+  - [Advanced: TCP authentication](#advanced-tcp-authentication)
+- [Troubleshooting](#-troubleshooting)
+- [Docker Deployment](#-docker-deployment)
+  - [Simple: run the container](#simple-run-the-container)
+  - [Advanced: env vars, volumes, Compose](#advanced-env-vars-volumes-compose)
+- [Built-in Web GUI & Authentication (RBAC)](#-built-in-web-gui--authentication-rbac)
+- [Detailed Usage](#-detailed-usage)
+- [API Reference](#-api-reference)
+- [Best Practices](#-best-practices)
+- [Architecture & Internal Mechanisms](#-architecture--internal-mechanisms)
+- [Comparisons](#-comparisons)
+- [Limitations & Honest Positioning](#-limitations--honest-positioning)
+- [FAQ](#-faq)
+- [Contributing, License & Support](#-contributing-license--support)
 
-### The Problem with SQLite
+---
 
-SQLite is great, but it requires native bindings that break in Electron and cross-platform deployments:
+## What is AxioDB, and why does it exist?
+
+**AxioDB is an embedded NoSQL database for Node.js, with MongoDB-style queries, zero native dependencies, and a built-in web GUI.** Think SQLite, but NoSQL — install it with npm, and you have a working database with no server, no compilation step, and no platform-specific binaries.
+
+### The problem
+
+SQLite is great, but its native C bindings cause real deployment pain in JavaScript projects:
 
 - ❌ `electron-rebuild` on every Electron update
-- ❌ Platform-specific builds (Windows .node files ≠ Mac .node files)
+- ❌ Platform-specific builds (Windows `.node` files ≠ Mac `.node` files)
 - ❌ SQL strings instead of JavaScript objects
 - ❌ Schema migrations when your data model changes
 - ❌ `node-gyp` compilation headaches
 
-### AxioDB Solution
+Meanwhile, plain JSON files have no querying, no caching, and no indexing — they just don't scale past a few thousand records. And MongoDB solves the query/caching problem, but needs a separate server process, which is overkill for a desktop app, CLI tool, or embedded system.
 
-- ✅ Works everywhere Node.js runs—no rebuild, no native dependencies
-- ✅ MongoDB-style queries: `{age: {$gt: 25}}`
-- ✅ Schema-less JSON documents—no migrations
-- ✅ Built-in InMemoryCache with automatic invalidation
+### The solution
+
+AxioDB combines the parts of each that actually matter for an embedded use case:
+
+- ✅ Works everywhere Node.js runs — no rebuild, no native dependencies
+- ✅ MongoDB-style queries: `{ age: { $gt: 25 } }`
+- ✅ Schema-less JSON documents — no migrations
+- ✅ Built-in `InMemoryCache` with automatic invalidation
 - ✅ Multi-core parallelism with Worker Threads
 - ✅ Built-in web GUI at `localhost:27018`
-- ✅ **NEW:** AxioDBCloud - TCP remote access for Docker/Cloud deployments
-
----
-
-## 🚀 Key Features
-
-- **Intelligent Caching:** Advanced `InMemoryCache` system with automatic eviction policies, random TTL (5-15 min), and smart data persistence
-- **Production Security:** Enterprise-grade AES-256 encryption for sensitive cached data and secure access controls
-- **Frontend Integration:** Seamless integration with React, Vue, Angular, and all modern frontend frameworks
-- **Chainable Query Methods:** Fluent API for real-time data retrieval and filtering (`.query()`, `.Sort()`, `.Limit()`, `.Skip()`)
-- **Aggregation Pipelines:** MongoDB-compatible aggregation operations (`$match`, `$group`, `$sort`, `$project`, etc.)
-- **Bulk Operations:** High-performance bulk insert, update, and delete operations (`insertMany`, `UpdateMany`, `DeleteMany`)
-- **Tree-like Structure:** Hierarchical data storage for efficient retrieval and organization
-- **Auto Indexing:** Optimized indexes on document IDs for lightning-fast queries
-- **Index Cache with TTL:** In-memory index cache with automatic expiration (5-15 min random TTL) and disk persistence
-- **Selective Cache Invalidation:** Smart cache invalidation that only clears affected entries on updates/deletes
-- **Transaction Support:** ACID-compliant transactions with savepoints, rollback, and Write-Ahead Logging (WAL)
-- **Single Instance Architecture:** Unified management for unlimited databases, collections, and documents
-- **Web-Based GUI Dashboard:** Visual database administration, query execution, and real-time monitoring at `localhost:27018`
-- **Role-Based Access Control:** Built-in login for the Control Server with Super Admin/Admin/View roles and per-permission enforcement
-- **AxioDBCloud Remote Access:** TCP-based client for connecting to AxioDB from anywhere—Docker, Cloud, or local network
-- **Zero-Configuration Setup:** Serverless architecture—install and start building instantly
-- **Custom Database Path:** Flexible storage locations for better project organization
-
----
-
-## 🆕 Recent Enhancements (v5.33+)
-
-### Transaction Support
-Full ACID-compliant transaction support with:
-- **Savepoints:** Create intermediate checkpoints within transactions
-- **Rollback:** Revert to previous state on errors
-- **Write-Ahead Logging (WAL):** Crash recovery and data durability
-- **Session Management:** Scoped transactions with timeout support
-
-```javascript
-// Transaction example
-const session = collection.startSession();
-await session.withTransaction(async (tx) => {
-  await tx.insert({ name: 'Alice', balance: 1000 });
-  await tx.update({ name: 'Bob' }, { $inc: { balance: -100 } });
-  // Auto-commits on success, auto-rollbacks on error
-});
-```
-
-### Enhanced Index System
-- **Index Cache with TTL:** Random 5-15 minute TTL prevents cache stampede
-- **Automatic Document Removal:** Documents are automatically removed from indexes when deleted
-- **Dual-Write Pattern:** Indexes persist to both memory (speed) and disk (durability)
-- **Cold Start Recovery:** Indexes reload from disk automatically on server restart
-
-### Intelligent Cache System
-- **Selective Invalidation:** Only affected cache entries are cleared on update/delete
-- **Random TTL:** 5-15 minute random expiration prevents thundering herd
-- **Async Operations:** Non-blocking cache updates for faster response times
-- **Collection-Scoped Keys:** Cache keys include collection path to prevent collisions
-
----
-
-## ☁️ AxioDBCloud - Remote Database Access (NEW!)
-
-**Host AxioDB in Docker, connect from anywhere!** AxioDBCloud provides TCP-based remote access to your AxioDB instance with the exact same API as local embedded mode.
-
-### 🌟 Why AxioDBCloud?
-
-- **🚀 Deploy Once, Connect Everywhere:** Host AxioDB in Docker/Cloud, connect from multiple clients
-- **🔄 Zero Code Changes:** Same API as embedded AxioDB - just change the client class!
-- **⚡ TCP Protocol:** Fast binary protocol with automatic reconnection
-- **🔐 Production Ready:** Connection pooling, heartbeat monitoring, error recovery
-- **📦 Docker Support:** One-command deployment with included Dockerfile
-
-### Quick Start - Server (Docker)
-
-```bash
-# Pull and run the AxioDB Docker container
-docker run -d \
-  --name axiodb-server \
-  -p 27018:27018 \
-  -p 27019:27019 \
-  -v axiodb-data:/app \
-  theankansaha/axiodb
-
-# Ports:
-# 27018 - HTTP GUI Dashboard
-# 27019 - TCP Remote Access (AxioDBCloud)
-# Volume: /app is the main data directory
-```
-
-**Or run locally with Node.js:**
-
-```javascript
-const { AxioDB } = require('axiodb');
-const db = new AxioDB({ GUI: false, RootName: 'MyDB', CustomPath: '.', TCP: true }); // Enable TCP on port 27019
-```
-
-### Quick Start - Client
-
-```javascript
-const { AxioDBCloud } = require('axiodb');
-
-// Connect to remote AxioDB (same API as embedded!)
-const client = new AxioDBCloud("axiodb://localhost:27019");
-await client.connect();
-
-// Use exactly like embedded AxioDB
-const db = await client.createDB("ProductionDB");
-const users = await db.createCollection("Users");
-
-// All operations work identically
-await users.insert({ name: "Alice", role: "admin" });
-const results = await users.query({ role: "admin" })
-  .Limit(10)
-  .Sort({ createdAt: -1 })
-  .exec();
-
-await client.disconnect();
-```
-
-### 🔐 TCP Authentication (NEW!)
-
-TCP connections are unauthenticated by default (same as before). Opt in with `TCPAuth: true` to require a username/password on every connection, reusing the **exact same accounts and roles** as the GUI's RBAC system (see [Authentication & Access Control](#authentication--access-control-v98)) — one set of credentials for both.
-
-```javascript
-// Server
-const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'MyDB', CustomPath: '.' });
-```
-
-```javascript
-// Client - pass credentials in the constructor options; connect() authenticates automatically
-const client = new AxioDBCloud("axiodb://localhost:27019", {
-  username: 'admin',
-  password: 'admin',
-});
-await client.connect();
-
-console.log(client.authenticatedUser); // { username, role, mustChangePassword }
-```
-
-Or authenticate after connecting, e.g. if credentials are supplied at runtime:
-
-```javascript
-const client = new AxioDBCloud("axiodb://localhost:27019");
-await client.connect();
-await client.login('admin', 'admin');
-```
-
-**What's enforced:**
-- Every command except `PING`/`DISCONNECT`/`AUTHENTICATE` requires a prior successful login on that connection.
-- The same role permissions as the GUI apply per command (e.g. a `View`-role user gets `403` on `CREATE_DB`).
-- The same per-IP login rate limiter as the GUI: 5 failed attempts within 15 minutes locks that IP out for 15 minutes (`429 Too Many Requests`), shared across both TCP and GUI login attempts from that IP.
-- **Accounts that still need their forced password change are rejected outright** (`403`), not allowed through with a warning — there's no TCP command to change a password today, so log into the GUI (`http://localhost:27018`) to complete it first, or authenticate with an account that already has.
-- If a Super Admin resets a user's password, changes their role, or deletes them via the GUI while that user has an open TCP connection, the TCP connection is immediately forced to re-authenticate on its next command.
-
-**Known limitations:** the TCP protocol itself is unencrypted (no TLS) — deploy behind a private network, VPN, or your own TLS termination if connecting over an untrusted network. There's currently no TCP command to change a password; that must go through the GUI.
-
-### Features
-
-✅ **35+ Commands** - Full CRUD, aggregation, indexing
-✅ **Optional Authentication (NEW!)** - Shared RBAC with the GUI, per-IP rate limiting, forced-password-change enforcement
-✅ **Auto-Reconnect** - Exponential backoff with up to 10 retry attempts
-✅ **Heartbeat Monitoring** - PING/PONG every 30 seconds
-✅ **Request Correlation** - UUID-based request/response matching
-✅ **Connection Pooling** - Supports 1000+ concurrent connections
-✅ **TypeScript Support** - Full type definitions included
-✅ **Zero Breaking Changes** - Existing AxioDB code works unchanged
-
-### Use Cases
-
-- **Microservices:** Share one AxioDB instance across multiple services
-- **Desktop Apps:** Electron apps connecting to local/remote database
-- **Development:** Team members sharing a development database
-- **Docker Deployments:** Container-based production deployments
-- **Cloud Hosting:** Deploy to AWS, Azure, Google Cloud, DigitalOcean
-
-👉 **[Full AxioDBCloud Documentation](https://axiodb.in/cloud)** - Setup guides, API reference, Docker examples
-
----
-
-## 🏆 Performance Comparison
-
-### AxioDB vs SQLite
-
-| Feature | SQLite | AxioDB |
-| ------- | ------ | ------ |
-| **Native Dependencies** | ❌ Yes (C bindings) | ✅ Pure JavaScript |
-| **Query Language** | SQL Strings | JavaScript Objects |
-| **Schema Migrations** | ❌ Required (ALTER TABLE) | ✅ Schema-less (optional) |
-| **Built-in Caching** | ⚠️ Manual | ✅ InMemoryCache |
-| **Multi-core Processing** | ❌ Single-threaded | ✅ Worker Threads |
-| **Built-in GUI** | ❌ External tools only | ✅ Web interface included |
-| **Best For** | 10M+ records, relational data | 10K-500K documents, embedded apps |
-
-### AxioDB vs Traditional JSON Files
-
-| Feature | Traditional JSON Files | AxioDB |
-| ------- | --------------------- | ------ |
-| **Storage** | Single JSON file | File-per-document |
-| **Caching** | None | InMemoryCache |
-| **Indexing** | None | Auto documentId |
-| **Query Speed** | Linear O(n) | Sub-millisecond O(1) |
-| **Scalability** | Poor | Excellent |
-| **Built-in Query Operators** | None | $gt, $lt, $regex, $in |
-
-**Benchmark:** AxioDB's documentId search with InMemoryCache provides **instant retrieval** compared to traditional JSON files that require full-file parsing (tested with 1M+ documents).
-
----
-
-## 🛡️ Security
-
-- **AES-256 Encryption:** Optional for collections, with auto-generated or custom keys
-- **Secure Storage:** Data stored in `.axiodb` files with file-level isolation and locking
-- **InMemoryCache:** Minimizes disk reads and exposure of sensitive data
-- **Configurable Access Controls:** Protects against unauthorized access
-- **Automatic Cache Invalidation:** Ensures stale data is never served
-
-**Best Practices:**
-
-- Use strong, unique encryption keys
-- Never hardcode keys—use environment variables or secure key management
-- Implement proper access controls and regular backups
-
-For vulnerabilities, see [SECURITY.md](SECURITY.md).
-
----
-
-## 🎨 Built-in Web GUI
-
-AxioDB includes a built-in web-based GUI for database visualization and management—perfect for Electron apps and development environments.
-
-### Enabling the GUI
-
-```javascript
-// Enable GUI when creating AxioDB instance
-const db = new AxioDB({ GUI: true }); // GUI available at localhost:27018
-
-// With custom database path
-const db = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./custom/path" });
-```
-
-### GUI Features
-
-- 📊 Visual database and collection browser
-- 🔍 Real-time data inspection
-- 📝 Query execution interface
-- 📈 Performance monitoring
-- 🎯 No external dependencies required
-
-Access the GUI at `http://localhost:27018` when enabled.
-
-### Authentication & Access Control (v9.8+)
-
-The Control Server ships with built-in login and role-based access control (RBAC). On first start with `GUI: true`, AxioDB seeds a reserved `config` database (hidden from the regular database list) containing three collections—`users`, `roles`, `permissions`—and a default account:
-
-```
-Username: admin
-Password: admin
-```
-
-You'll be forced to change this password on first login (this applies to every account, not just the default one). Three predefined roles are seeded automatically:
-
-| Role | Access |
-|------|--------|
-| **Super Admin** | Full access, including creating users/roles |
-| **Admin** | Full database/collection/document access, no user or role management |
-| **View** | Read-only access to databases, collections, and documents |
-
-A Super Admin can create additional roles from the predefined permission catalogue and create new users with any role. Sessions are held only in server memory (never persisted to disk) and are tied to an httpOnly cookie, so restarting the server logs everyone out.
-
-**Login rate limiting (NEW!):** after 5 failed login attempts from the same IP within 15 minutes, that IP is locked out for 15 minutes (`429 Too Many Requests`) — regardless of username. This limiter is shared with [TCP AUTHENTICATE attempts](#tcp-authentication-new), so brute-forcing either surface counts against the same per-IP cooldown.
-
-**Index management:** the Control Server also exposes `GET /api/index/list`, `POST /api/index/create`, and `DELETE /api/index/delete`, gated by the same `index:view` / `index:create` / `index:delete` permissions (View role gets view-only, Admin and Super Admin get all three).
-
-> **Security note:** RBAC protects the Control Server's HTTP API; it is still intended for trusted local/network access, not public internet exposure.
-
----
-
-## ⚙️ Architecture & Internal Mechanisms
-
-### Tree Structure for Fast Data Retrieval
-
-Hierarchical storage enables O(1) document lookups, logarithmic query time, and efficient indexing. Each document is isolated in its own file, supporting selective loading and easy backup.
-
-### Worker Threads for Parallel Processing
-
-Leverages Node.js Worker Threads for non-blocking I/O, multi-core utilization, and scalable performance—especially for read operations.
-
-### Two-Pointer Searching Algorithm
-
-Optimized for range queries and filtered searches, minimizing memory usage and computational overhead.
-
-### InMemoryCache System
-
-Built-in intelligent caching with automatic eviction policies, TTL support, and memory optimization. Delivers sub-millisecond response times for frequently accessed data.
-
-### Query Processing Pipeline
-
-Intelligent caching, parallelized processing, lazy evaluation, and just-in-time query optimization for maximum throughput.
-
-### Single Instance Architecture
-
-Ensures ACID compliance, strong data consistency, and simplified deployment. One AxioDB instance manages all databases and collections.
-
-### Designed for Node.js Developers
-
-Native JavaScript API, promise-based interface, lightweight dependency, and simple learning curve.
+- ✅ AxioDBCloud — optional TCP remote access for Docker/cloud deployments
+
+### Is it a fit for you?
+
+**Great fit for:**
+- 🖥️ Desktop apps (Electron, Tauri)
+- 🛠️ CLI tools
+- 📦 Embedded systems
+- 🚀 Rapid prototyping
+- 🏠 Local-first applications
+- 💻 Node.js apps requiring local storage
+
+**Sweet spot:** 10K–500K documents with intelligent caching.
+
+**Not a fit for:**
+- 10M+ documents, or datasets that need to scale far beyond a single node → use PostgreSQL, MongoDB, or SQLite
+- Multi-user web applications with hundreds of concurrent connections → AxioDB is single-instance, not a client-server database
+- Relational data with JOINs and foreign-key constraints → AxioDB is document-based NoSQL
+- Distributed systems needing replication, sharding, or clustering → AxioDB is single-node only
+- Cross-collection ACID transactions → AxioDB's transactions are scoped to a single collection
+
+**AxioDB isn't competing with PostgreSQL or MongoDB.** It's for when you need a database *embedded in your app* — no server setup, no native dependencies. When you outgrow it, migrating to PostgreSQL or MongoDB is the right call, and expected.
 
 ---
 
@@ -358,36 +102,334 @@ Native JavaScript API, promise-based interface, lightweight dependency, and simp
 npm install axiodb@latest --save
 ```
 
+**Requirements:** Node.js ≥20.0.0, npm ≥6.0.0 (yarn ≥1.0.0 optional). AxioDB runs on Node.js servers only — it requires the filesystem, so it does not run in a browser.
+
 ---
 
-## 🛠️ Quick Start
-
-### Hello World in 30 Seconds
+## 🛠️ Quick Start — Local AxioDB
 
 ```javascript
-// npm install axiodb
 const { AxioDB } = require('axiodb');
 
-// Create AxioDB instance with built-in GUI
-const db = new AxioDB({ GUI: true }); // Enable GUI at localhost:27018
+// Create AxioDB instance with the built-in GUI enabled
+const db = new AxioDB({ GUI: true }); // GUI available at http://localhost:27018
 
-// Create database and collection
+// Create a database and a collection
 const myDB = await db.createDB('HelloWorldDB');
-const collection = await myDB.createCollection('greetings', false);
+const collection = await myDB.createCollection('greetings');
 
-// Insert and retrieve data - Hello World! 👋
+// Insert and query — Hello World! 👋
 await collection.insert({ message: 'Hello, Developer! 👋' });
-const result = await collection.findAll();
-console.log(result[0].message); // Hello, Developer! 👋
+const result = await collection.query({}).exec();
+console.log(result.data.documents[0].message); // Hello, Developer! 👋
 ```
 
-**Node.js Required:** AxioDB runs on Node.js servers (v20.0.0+), not in browsers.
+> **Only one `AxioDB` instance per application.** It's a singleton by design — create it once, then create as many databases and collections as you need under it.
+
+---
+
+## 🚀 Features
+
+### Querying
+- **Chainable Query API:** `.query()`, `.Sort()`, `.Limit()`, `.Skip()`, `.setCount()`, `.setProject()`, `.exec()` / `.findOne()`
+- **MongoDB-style Query Operators:** `$gt`, `$gte`, `$lt`, `$lte`, `$ne`, `$in`, `$nin`, `$exists`, `$regex`, `$or`, `$and`
+- **Aggregation Pipelines:** MongoDB-compatible (`$match`, `$group`, `$sort`, `$project`, `$limit`, `$skip`, `$unwind`, `$addFields`, ...)
+- **Bulk Operations:** high-performance `insertMany`, `UpdateMany`, `deleteMany`
+
+### Indexing
+- **Auto Indexing:** every collection gets an automatic `documentId` index for O(1) lookups
+- **Custom Field Indexes:** `newIndex(...fieldNames)` to add fast lookups on any field, `dropIndex(indexName)` to remove one, `getIndexes()` to list what's registered
+- **Index Cache with TTL:** in-memory index cache with random 5–15 min TTL (prevents cache stampede) and disk persistence for cold-start recovery
+- **Automatic Document Removal:** documents are automatically removed from indexes when deleted
+- **Dual-Write Pattern:** indexes persist to both memory (speed) and disk (durability)
+
+### Transactions
+- **ACID-compliant, single-collection transactions** with savepoints, rollback, and Write-Ahead Logging (WAL) for crash recovery
+- **Session Management:** scoped transactions with timeout support
+
+```javascript
+const session = collection.startSession();
+await session.withTransaction(async (tx) => {
+  await tx.insert({ name: 'Alice', balance: 1000 });
+  await tx.update({ name: 'Bob' }, { $inc: { balance: -100 } });
+  // Auto-commits on success, auto-rolls-back on error
+});
+```
+
+### Caching
+- **`InMemoryCache`:** automatic eviction policies, random TTL (5–15 min) to avoid thundering-herd cache expiry
+- **Selective Invalidation:** only the affected cache entries are cleared on update/delete — not the whole cache
+- **Async, Non-blocking Updates:** cache writes don't block the response path
+- **Collection-Scoped Keys:** cache keys include the collection path, so there's no cross-collection collision
+
+### Encryption & Security
+- **AES-256 Encryption:** optional per collection, with an auto-generated or custom key
+- **File-level Isolation:** each document lives in its own `.axiodb` file with locking
+- See [Built-in Web GUI & Authentication](#-built-in-web-gui--authentication-rbac) for RBAC/login and [Security Best Practices](#-best-practices) below
+
+### Architecture
+- **Tree-like Storage:** hierarchical, file-per-document layout for efficient retrieval, selective loading, and easy backup
+- **Worker Threads:** non-blocking I/O and multi-core utilization, especially for reads
+- **Single Instance Architecture:** one `AxioDB` instance manages unlimited databases and collections, with strong consistency
+- **Zero-Configuration Setup:** serverless — install and start building instantly
+- **Custom Database Path:** flexible storage location via `CustomPath`
+
+### GUI & Remote Access
+- **Web-based GUI Dashboard:** visual database browser, query execution, real-time monitoring at `localhost:27018`
+- **Role-Based Access Control:** Super Admin / Admin / View roles, shared between the GUI and AxioDBCloud
+- **AxioDBCloud:** TCP-based remote access — connect to a running AxioDB instance from anywhere with the exact same API as embedded mode
+
+---
+
+## ☁️ AxioDBCloud — Connecting Remotely
+
+**Host AxioDB in Docker or on a server, connect from anywhere** — AxioDBCloud is a TCP client that mirrors the embedded API exactly, so switching from local to remote is a one-line change (`new AxioDB()` → `new AxioDBCloud()`).
+
+- **🔄 Zero Code Changes:** same `createDB`/`createCollection`/`insert`/`query` API as embedded AxioDB
+- **⚡ Fast Binary Protocol:** length-prefixed JSON framing, with automatic reconnection
+- **🔐 Optional Authentication:** shared RBAC with the GUI, per-IP rate limiting (see [Advanced](#advanced-tcp-authentication) below)
+- **📦 35+ Commands:** full CRUD, aggregation, and indexing over the wire
+- **🔁 Auto-Reconnect:** exponential backoff, up to 10 retry attempts
+- **💓 Heartbeat Monitoring:** `PING`/`PONG` every 30 seconds
+- **🆔 Request Correlation:** UUID-based request/response matching
+- **🧵 Connection Pooling:** supports 1,000+ concurrent connections
+- **📐 TypeScript Support:** full type definitions included
+
+**Use cases:** microservices sharing one AxioDB instance, Electron apps connecting to a local or remote database, teams sharing a development database, container/cloud deployments (AWS, Azure, GCP, DigitalOcean).
+
+### Simple: connect without authentication
+
+By default, TCP connections are unauthenticated — anyone who can reach the port can run any command. This is fine for local development or a fully trusted private network.
+
+**Server:**
+```javascript
+const { AxioDB } = require('axiodb');
+const db = new AxioDB({ GUI: false, RootName: 'MyDB', CustomPath: '.', TCP: true }); // TCP on port 27019
+```
+
+**Client:**
+```javascript
+const { AxioDBCloud } = require('axiodb');
+
+const client = new AxioDBCloud("axiodb://localhost:27019");
+await client.connect();
+
+const db = await client.createDB("ProductionDB");
+const users = await db.createCollection("Users");
+
+await users.insert({ name: "Alice", role: "admin" });
+const results = await users.query({ role: "admin" })
+  .Limit(10)
+  .Sort({ createdAt: -1 })
+  .exec();
+
+await client.disconnect();
+```
+
+### Advanced: TCP authentication
+
+Opt in with `TCPAuth: true` to require a username/password on every connection. This reuses the **exact same accounts and roles** as the GUI's RBAC system (see [Built-in Web GUI & Authentication](#-built-in-web-gui--authentication-rbac)) — one set of credentials for both.
+
+**Server:**
+```javascript
+const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'MyDB', CustomPath: '.' });
+```
+
+**Client — credentials in the constructor** (recommended; `connect()` authenticates automatically):
+```javascript
+const client = new AxioDBCloud("axiodb://localhost:27019", {
+  username: 'admin',
+  password: 'admin',
+});
+await client.connect();
+
+console.log(client.authenticatedUser); // { username, role, mustChangePassword }
+```
+
+**Client — authenticate after connecting** (e.g. credentials supplied at runtime):
+```javascript
+const client = new AxioDBCloud("axiodb://localhost:27019");
+await client.connect();
+await client.login('admin', 'admin');
+```
+
+**What's enforced:**
+- Every command except `PING`/`DISCONNECT`/`AUTHENTICATE` requires a prior successful login on that connection.
+- The same role permissions as the GUI apply per command (e.g. a `View`-role user gets `403` on `CREATE_DB`).
+- **Shared per-IP login rate limiter with the GUI:** 5 failed attempts within a trailing 15-minute window locks that IP out for 15 minutes (`429 Too Many Requests`) — counted across both TCP and GUI login attempts from that IP.
+- **Accounts that still need their forced password change are rejected outright (`403`)**, not allowed through with a warning — there's no TCP command to change a password today, so log into the GUI (`http://localhost:27018`) to complete it first, or authenticate with an account that already has.
+- If a Super Admin resets a user's password, changes their role, or deletes them via the GUI while that user has an open TCP connection, the TCP connection is immediately forced to re-authenticate on its next command.
+
+**Known limitations:** the TCP protocol itself is unencrypted (no TLS) — deploy behind a private network, VPN, or your own TLS termination if connecting over an untrusted network. There's currently no TCP command to change a password; that must go through the GUI.
+
+👉 **[Full AxioDBCloud Documentation](https://axiodb.in/cloud)** — setup guides, API reference, Docker examples
+
+---
+
+## 🔧 Troubleshooting
+
+### "Not connected to server" right after calling `connect()`
+
+`client.connect()` is asynchronous and must be `await`ed before you use the connection — it resolves only once the TCP handshake (and, if `TCPAuth` is on, the `AUTHENTICATE` round-trip) has completed.
+
+```javascript
+// ❌ Wrong — races ahead before the connection (and login) finish
+client.connect();
+console.log(client.authenticatedUser); // undefined
+await client.createDB("MyDB");         // "Not connected to server"
+
+// ✅ Right
+await client.connect();
+console.log(client.authenticatedUser); // populated
+await client.createDB("MyDB");         // works
+```
+
+### `401` — "Authentication required..."
+
+You're running with `TCPAuth: true` and sent a command before a successful `AUTHENTICATE`. Either pass `{ username, password }` in the `AxioDBCloud` constructor (auto-authenticates on `connect()`), or call `await client.login(username, password)` yourself before any other command.
+
+### `403` — "This account must change its password before it can be used over TCP..."
+
+Your credentials are correct, but that account is still flagged for a forced password change (true for the default `admin`/`admin` account, and for any newly created user). Log into the GUI at `http://localhost:27018`, sign in, and complete the password change there — there's no TCP command for this yet. Then reconnect with the new password, or use a different account that has already completed its change.
+
+### `429` — "Too many failed login attempts..."
+
+Five failed logins from your IP within 15 minutes trigger a 15-minute lockout, shared between TCP and the GUI. Double check the credentials you're sending, wait out the cooldown, or fix the underlying typo/config issue causing repeated failures — there's no way to clear the lockout early.
+
+### `403` — "This is a reserved system database"
+
+You (or a client) tried to read/write a database literally named `config` — that name is reserved for AxioDB's own RBAC storage (`users`/`roles`/`permissions`) and is blocked on both the GUI and TCP, authenticated or not. Use a different database name.
+
+### Connection refused / timeout connecting to `axiodb://host:27019`
+
+- Confirm the server was started with `TCP: true` (or, in Docker, `AXIODB_TCP=true`, the default).
+- Confirm the port is published: `-p 27019:27019` on `docker run`, or that nothing else on the host is bound to 27019.
+- If you're getting a protocol error mentioning "Message exceeds maximum size" or "Received HTTP data on TCP port," you're likely pointed at the GUI port (27018) instead of the TCP port (27019) — check your connection string.
+
+### Docker container issues (won't start, port conflicts, data not persisting)
+
+See the [Docker Deployment](#-docker-deployment) section below, and `Docker/README.md` in the repository for a fuller Docker-specific troubleshooting guide (`docker logs`, port-conflict remapping, volume-mounting checklist).
+
+---
+
+## 🐳 Docker Deployment
+
+### Simple: run the container
+
+```bash
+docker run -d \
+  --name axiodb-server \
+  -p 27018:27018 \
+  -p 27019:27019 \
+  -e AXIODB_TCP_AUTH=true \
+  -v axiodb-data:/app \
+  theankansaha/axiodb
+
+# Ports:
+# 27018 - HTTP GUI Dashboard
+# 27019 - TCP Remote Access (AxioDBCloud)
+# Volume: /app is the main data directory
+```
+
+TCP authentication is on by default in the image. Log into the GUI at `http://localhost:27018` as `admin`/`admin` to complete the forced password change before connecting over TCP (see [Troubleshooting](#-troubleshooting) if you skip this step).
+
+### Advanced: env vars, volumes, Compose
+
+Every option below has a default matching the image's previous fixed behavior — override any of them with `-e VAR=value` at `docker run` time, no rebuild required:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `AXIODB_GUI` | `true` | Enable the HTTP Control Server / web GUI on port 27018 |
+| `AXIODB_TCP` | `true` | Enable the AxioDBCloud TCP server on port 27019 |
+| `AXIODB_TCP_AUTH` | `true` | Require username/password authentication on TCP connections (same RBAC accounts as the GUI) |
+| `AXIODB_ROOT_NAME` | `AxioDB` | Name of the root database folder created under the data volume |
+| `AXIODB_CUSTOM_PATH` | *(container's working directory)* | Custom path for database storage inside the container |
+
+> Ports themselves (27018/27019) aren't configurable via environment variable — remap them at the Docker layer with `-p <host-port>:27018` / `-p <host-port>:27019`.
+
+**Disabling TCP authentication** (only on a trusted private network — the wire is unencrypted; see [Known limitations](#advanced-tcp-authentication)):
+```bash
+docker run -d \
+  --name axiodb-server \
+  -p 27018:27018 \
+  -p 27019:27019 \
+  -e AXIODB_TCP_AUTH=false \
+  -v axiodb-data:/app \
+  theankansaha/axiodb
+```
+
+**Docker Compose:**
+```yaml
+version: "3.8"
+
+services:
+  axiodb:
+    image: theankansaha/axiodb
+    container_name: axiodb-server
+    ports:
+      - "27018:27018"
+      - "27019:27019"
+    environment:
+      - AXIODB_GUI=true
+      - AXIODB_TCP=true
+      - AXIODB_TCP_AUTH=true
+      - AXIODB_ROOT_NAME=AxioDB
+    volumes:
+      - axiodb-data:/app
+    restart: unless-stopped
+
+volumes:
+  axiodb-data:
+```
+
+**Building the image from source, and a fuller Docker troubleshooting guide** (container won't start, port-in-use, data-persistence checks) live in [`Docker/README.md`](Docker/README.md) — the canonical Docker doc, not duplicated here in full.
+
+---
+
+## 🎨 Built-in Web GUI & Authentication (RBAC)
+
+AxioDB includes a built-in web-based GUI for database visualization and management — perfect for Electron apps and development environments.
+
+### Enabling the GUI
+
+```javascript
+// Enable GUI when creating the AxioDB instance
+const db = new AxioDB({ GUI: true }); // GUI available at localhost:27018
+
+// With a custom database path
+const db = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./custom/path" });
+```
+
+**GUI Features:** visual database and collection browser, real-time data inspection, query execution interface, performance monitoring, no external dependencies required. Access at `http://localhost:27018` when enabled.
+
+### Authentication & Access Control
+
+The Control Server ships with built-in login and role-based access control (RBAC) — the same system TCP's [`TCPAuth`](#advanced-tcp-authentication) reuses. On first start with `GUI: true` (or `TCP: true, TCPAuth: true`), AxioDB seeds a reserved `config` database (hidden from the regular database list) containing three collections — `users`, `roles`, `permissions` — and a default account:
+
+```
+Username: admin
+Password: admin
+```
+
+You'll be forced to change this password on first login (this applies to every account, not just the default one — there's currently no way around it other than completing the change via the GUI). Three predefined roles are seeded automatically:
+
+| Role | Access |
+|------|--------|
+| **Super Admin** | Full access, including creating users/roles |
+| **Admin** | Full database/collection/document access, no user or role management |
+| **View** | Read-only access to databases, collections, documents, and indexes |
+
+A Super Admin can create additional roles from the predefined permission catalogue and create new users with any role. Sessions are held only in server memory (never persisted to disk) and are tied to an httpOnly cookie, so restarting the server logs everyone out.
+
+**Login rate limiting:** after 5 failed login attempts from the same IP within a trailing 15-minute window, that IP is locked out for 15 minutes (`429 Too Many Requests`) — regardless of username. This limiter is shared with [TCP `AUTHENTICATE` attempts](#advanced-tcp-authentication) (see [Troubleshooting](#-troubleshooting) for what the error looks like).
+
+**Index management:** the Control Server also exposes `GET /api/index/list`, `POST /api/index/create`, and `DELETE /api/index/delete`, gated by the same `index:view` / `index:create` / `index:delete` permissions (View role gets view-only, Admin and Super Admin get all three).
+
+> **Security note:** RBAC protects the Control Server's HTTP API and TCP server; both are still intended for trusted local/network access, not public internet exposure. See [Troubleshooting](#-troubleshooting) for the TLS caveat on TCP.
 
 ---
 
 ## 🛠️ Detailed Usage
-
-> **Important:** Only one AxioDB instance should be initialized per application for consistency and security.
 
 ### Collection Creation Options
 
@@ -407,10 +449,10 @@ const db = new AxioDB();
 
 const userDB = await db.createDB("MyDB");
 
-// Create basic collection
+// Create a basic collection
 const userCollection = await userDB.createCollection("Users");
 
-// Create encrypted collection with custom key
+// Create an encrypted collection with a custom key
 const secureCollection = await userDB.createCollection(
   "SecureUsers",
   true,
@@ -428,24 +470,59 @@ const results = await userCollection
   .Limit(10)
   .Sort({ age: 1 })
   .exec();
-console.log(results);
+console.log(results.data.documents);
+```
+
+### Worked example: e-commerce product catalog
+
+```javascript
+const { AxioDB } = require('axiodb');
+const db = new AxioDB();
+
+const shopDB = await db.createDB('ecommerce');
+const products = await shopDB.createCollection('products');
+
+await products.insert({
+  name: 'Laptop',
+  price: 999.99,
+  category: 'Electronics',
+  inStock: true,
+});
+
+// Sorted, filtered query
+const electronics = await products
+  .query({ category: 'Electronics', inStock: true })
+  .Sort({ price: 1 })
+  .exec();
+```
+
+### Worked example: encrypted user records
+
+```javascript
+const users = await db.createCollection(
+  'users',
+  true,                              // encrypted
+  process.env.USER_ENCRYPTION_KEY,   // custom key from env — see Best Practices below
+);
+
+await users.insert({
+  username: 'johndoe',
+  email: 'john@example.com',
+  passwordHash: hashedPassword,
+  createdAt: new Date(),
+});
+
+const user = await users.query({ username: 'johndoe' }).exec();
 ```
 
 ---
 
 ## 🌟 Advanced Features
 
-- **Multiple Databases:** Architect scalable apps with multiple databases and collections with flexible security
-- **Aggregation Pipelines:** Complex data processing with MongoDB-like syntax
-- **Encryption:** Military-grade AES-256 encryption for collections
-- **Bulk Operations:** Efficient batch insert, update, and delete
-- **Flexible Collection Types:** Basic or encrypted
-- **Custom Query Operators:** `$gt`, `$lt`, `$in`, `$regex`, `$gte`, `$lte`, `$ne`, `$nin`, `$exists`, `$or`, `$and`
-- **Schema-less Design:** Store any JSON structure without predefined schemas
-- **Performance Optimization:** Fast lookups, pagination, and intelligent caching with random TTL
-- **ACID Transactions:** Single-collection transactions with savepoints, rollback, and WAL recovery
-- **Index Management:** Create custom indexes, automatic document-to-index sync on CRUD operations
-- **Enterprise Data Management:** Bulk operations, conditional updates, atomic transactions
+- **Multiple Databases:** architect scalable apps with multiple databases and collections, each with independent security settings
+- **Custom Query Processing:** the full operator set (`$gt`, `$lt`, `$in`, `$regex`, `$gte`, `$lte`, `$ne`, `$nin`, `$exists`, `$or`, `$and`) plus aggregation pipelines
+- **Enterprise Data Management:** bulk operations, conditional updates, atomic transactions
+- **Performance Optimization:** fast lookups, pagination, and intelligent caching with random TTL
 
 ---
 
@@ -453,7 +530,7 @@ console.log(results);
 
 ### AxioDB
 
-- `createDB(dbName: string, schemaValidation: boolean = true): Promise<Database>`
+- `createDB(dbName: string): Promise<Database>`
 - `deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>`
 
 ### Database
@@ -473,7 +550,7 @@ console.log(results);
 - `startSession(options?: SessionOptions): Session`
 - `newIndex(...fieldNames: string[]): Promise<SuccessInterface>`
 - `dropIndex(indexName: string): Promise<SuccessInterface | ErrorInterface>`
-- `getIndexes(): Promise<SuccessInterface | ErrorInterface>` — lists all indexes registered on the collection (**NEW!**)
+- `getIndexes(): Promise<SuccessInterface | ErrorInterface>` — lists all indexes registered on the collection
 
 ### Reader
 
@@ -500,45 +577,95 @@ console.log(results);
 
 ---
 
-## 🎯 When to Use AxioDB
+## ✅ Best Practices
 
-**Perfect For:**
-- 🖥️ Desktop apps (Electron, Tauri)
-- 🛠️ CLI tools
-- 📦 Embedded systems
-- 🚀 Rapid prototyping
-- 🏠 Local-first applications
-- 💻 Node.js apps requiring local storage
+**Use environment variables for encryption keys and TCP credentials — never hardcode them:**
 
-**Sweet Spot:** 10K-500K documents with intelligent caching
+```javascript
+// ❌ Bad
+const collection = await db.createCollection('data', true, 'myKey123');
+
+// ✅ Good
+const collection = await db.createCollection(
+  'data',
+  true,
+  process.env.AXIODB_ENCRYPTION_KEY,
+);
+```
+
+**Use `documentId` for the fastest possible lookups** — it's the one field that's always indexed automatically, backed by `InMemoryCache`:
+
+```javascript
+const user = await collection.query({ documentId: 'ABC123' }).exec();
+```
+
+**Handle errors explicitly** — AxioDB operations reject/return error responses rather than throwing silently:
+
+```javascript
+try {
+  await collection.insert({ name: 'User' });
+} catch (error) {
+  console.error('Insert failed:', error);
+}
+```
+
+**Clean up resources you no longer need:**
+
+```javascript
+await database.deleteCollection('tempCollection');
+await db.deleteDatabase('tempDB');
+```
+
+**Encryption & access control:**
+- Use strong, unique encryption keys
+- Never hardcode keys — use environment variables or a secrets manager
+- Implement proper access controls and take regular backups
+- For AxioDBCloud/GUI, rotate the default `admin` password immediately (see [Authentication & Access Control](#-built-in-web-gui--authentication-rbac))
+
+For vulnerability reporting, see [SECURITY.md](SECURITY.md).
 
 ---
 
-## 💭 Honest Positioning
+## ⚙️ Architecture & Internal Mechanisms
 
-**AxioDB is not competing with PostgreSQL or MongoDB.** It's for when you need a database embedded in your app—no server setup, no native dependencies. Think SQLite-scale with MongoDB-style queries and built-in caching.
-
-When you outgrow AxioDB (1M+ documents, distributed systems), migrate to PostgreSQL or MongoDB. That's the right choice, and we support it.
-
----
-
-## ⚠️ Limitations & Scale Considerations
-
-### Scale & Performance Boundaries
-
-- **Dataset Size:** Optimized for 10K-500K documents. For 10M+ documents, use PostgreSQL, MongoDB, or SQLite which are designed for massive scale.
-
-- **Concurrency:** Single-instance architecture. For multi-user web applications with hundreds of concurrent connections, use traditional client-server databases.
-
-- **Relational Data:** Document-based NoSQL architecture. No JOIN operations. For complex relational data with foreign keys and constraints, use SQL databases.
-
-- **Distributed Systems:** Single-node only. No replication, no sharding, no clustering. For distributed systems, use MongoDB or CouchDB.
-
-- **Transactions:** Single-collection ACID transactions supported. Cross-collection transactions are not supported. For multi-collection transaction requirements, use PostgreSQL or MongoDB.
+- **Tree Structure for Fast Data Retrieval:** hierarchical storage enables O(1) document lookups and efficient indexing. Each document is isolated in its own file, supporting selective loading and easy backup.
+- **Worker Threads for Parallel Processing:** leverages Node.js Worker Threads for non-blocking I/O, multi-core utilization, and scalable performance — especially for read operations.
+- **Two-Pointer Searching Algorithm:** optimized for range queries and filtered searches, minimizing memory usage and computational overhead.
+- **`InMemoryCache` System:** automatic eviction policies, TTL support, and memory optimization, delivering sub-millisecond response times for frequently accessed data.
+- **Query Processing Pipeline:** intelligent caching, parallelized processing, lazy evaluation, and just-in-time query optimization.
+- **Single Instance Architecture:** ensures ACID compliance, strong data consistency, and simplified deployment — one `AxioDB` instance manages all databases and collections.
+- **Designed for Node.js Developers:** native JavaScript API, promise-based interface, lightweight dependency footprint, simple learning curve.
 
 ---
 
-## ⚖️ AxioDB vs lowdb, nedb, better-sqlite3
+## 🏆 Comparisons
+
+### AxioDB vs SQLite
+
+| Feature | SQLite | AxioDB |
+| ------- | ------ | ------ |
+| **Native Dependencies** | ❌ Yes (C bindings) | ✅ Pure JavaScript |
+| **Query Language** | SQL Strings | JavaScript Objects |
+| **Schema Migrations** | ❌ Required (ALTER TABLE) | ✅ Schema-less |
+| **Built-in Caching** | ⚠️ Manual | ✅ InMemoryCache |
+| **Multi-core Processing** | ❌ Single-threaded | ✅ Worker Threads |
+| **Built-in GUI** | ❌ External tools only | ✅ Web interface included |
+| **Best For** | 10M+ records, relational data | 10K–500K documents, embedded apps |
+
+### AxioDB vs Traditional JSON Files
+
+| Feature | Traditional JSON Files | AxioDB |
+| ------- | --------------------- | ------ |
+| **Storage** | Single JSON file | File-per-document |
+| **Caching** | None | InMemoryCache |
+| **Indexing** | None | Auto `documentId` + custom fields |
+| **Query Speed** | Linear O(n) | Sub-millisecond O(1) |
+| **Scalability** | Poor | Excellent (up to sweet spot) |
+| **Built-in Query Operators** | None | `$gt`, `$lt`, `$regex`, `$in`, ... |
+
+**Benchmark:** AxioDB's `documentId` search with `InMemoryCache` provides instant retrieval compared to traditional JSON files, which require full-file parsing (tested with 1M+ documents).
+
+### AxioDB vs lowdb, nedb, better-sqlite3
 
 | Feature | lowdb | nedb | better-sqlite3 | AxioDB |
 |---------|-------|------|---------------|--------|
@@ -558,109 +685,71 @@ When you outgrow AxioDB (1M+ documents, distributed systems), migrate to Postgre
 
 ---
 
+## ⚠️ Limitations & Honest Positioning
+
+- **Dataset Size:** optimized for 10K–500K documents. For 10M+, use PostgreSQL, MongoDB, or SQLite.
+- **Concurrency:** single-instance architecture. For multi-user web apps with hundreds of concurrent connections, use a traditional client-server database.
+- **Relational Data:** document-based NoSQL, no JOIN operations. For complex relational data with foreign keys, use a SQL database.
+- **Distributed Systems:** single-node only — no replication, sharding, or clustering. Use MongoDB or CouchDB for that.
+- **Transactions:** single-collection ACID transactions only. For cross-collection transaction requirements, use PostgreSQL or MongoDB.
+
+None of this is a shortcoming to apologize for — AxioDB is deliberately scoped to the embedded/local-first niche. When you outgrow it, that's a sign to migrate, not a bug to file.
+
+---
+
 ## ❓ FAQ
 
 **Q: What is AxioDB?**
-An embedded NoSQL database for Node.js. Pure JavaScript, zero native dependencies. `npm install axiodb` and you have a database — no server, no node-gyp, no electron-rebuild.
+An embedded NoSQL database for Node.js. Pure JavaScript, zero native dependencies. `npm install axiodb` and you have a database — no server, no `node-gyp`, no `electron-rebuild`.
 
 **Q: Is AxioDB a replacement for MongoDB?**
-No. AxioDB is embedded (runs inside your app). MongoDB is a client-server database for multi-user systems. Use AxioDB for desktop apps, CLI tools, and local-first apps up to 500K documents. Use MongoDB when you need a shared networked database.
+No. AxioDB is embedded (runs inside your app); MongoDB is a client-server database for multi-user systems. Use AxioDB for desktop apps, CLI tools, and local-first apps up to ~500K documents; use MongoDB when you need a shared networked database.
 
 **Q: Does AxioDB work with Electron?**
 Yes — this is the primary use case it was built for. Zero native dependencies means no `electron-rebuild`, no platform-specific `.node` files, no compilation step.
 
-**Q: What is the difference between AxioDB and better-sqlite3?**
-`better-sqlite3` uses C native bindings and requires `node-gyp` compilation. AxioDB is pure JavaScript — no compilation, works across all platforms including Electron without a rebuild step. AxioDB also uses MongoDB-style JSON queries instead of SQL strings.
-
-**Q: What is the difference between AxioDB and lowdb?**
-`lowdb` stores everything in a single JSON file — it gets slow above 1,000–5,000 records because every read parses the entire file. AxioDB uses file-per-document storage, InMemoryCache, Worker Threads, and auto-indexing — optimized for 10K–500K documents with O(1) lookups by documentId.
-
-**Q: What is the difference between AxioDB and nedb?**
-NeDB is abandoned since 2016. AxioDB is actively maintained with TypeScript, ACID transactions, Worker Threads, AES-256 encryption, custom field indexing, built-in GUI, and AxioDBCloud remote access.
+**Q: How does AxioDB compare to better-sqlite3 / lowdb / nedb?**
+See the [Comparisons](#-comparisons) tables above for the full breakdown — in short: no native bindings (unlike better-sqlite3), no single-file bottleneck (unlike lowdb), and actively maintained with TypeScript/transactions/encryption (unlike the abandoned nedb).
 
 **Q: How many documents can AxioDB handle?**
-Optimized for 10,000–500,000 documents. For 1M+, use PostgreSQL or MongoDB. documentId lookups take ~1ms on 10K documents with InMemoryCache.
+Optimized for 10,000–500,000 documents. For 1M+, use PostgreSQL or MongoDB. `documentId` lookups take ~1ms on 10K documents with `InMemoryCache`.
 
 **Q: Does AxioDB support TypeScript?**
 Yes. Full type definitions are included — no separate `@types` package needed.
 
 **Q: Does AxioDB work in the browser?**
-No. AxioDB requires Node.js (v20+) and the filesystem. Server-side and desktop only.
+No. AxioDB requires Node.js (v20+) and the filesystem — server-side and desktop only.
 
 **Q: What is AxioDBCloud?**
-TCP-based remote access for AxioDB. Deploy AxioDB in Docker, connect from multiple clients with the exact same API. Supports 1,000+ concurrent connections with auto-reconnect. Optional username/password authentication (`TCPAuth: true`) reuses the same RBAC accounts as the GUI.
+TCP-based remote access for AxioDB. Deploy AxioDB in Docker, connect from multiple clients with the exact same API. Supports 1,000+ concurrent connections with auto-reconnect. Optional username/password authentication (`TCPAuth: true`) reuses the same RBAC accounts as the GUI — see [AxioDBCloud](#-axiodbcloud--connecting-remotely) above.
 
 ---
 
-## 🔮 Future Roadmap
+## 🤝 Contributing, License & Support
 
-- **Data Export & Import:** Seamless data migration with support for JSON, CSV, and native AxioDB formats
-- **Enhanced Web GUI:** Advanced web interface with real-time analytics, visual query builder, and performance monitoring
-- **Comprehensive Documentation:** Extensive tutorials, interactive examples, and complete API references for all skill levels
-- **Performance Optimizations:** Continued improvements to query performance and caching strategies
+**Contributing:** we welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
----
+**License:** MIT. See [LICENSE](LICENSE).
 
-## 🤝 Contributing
+**Requirements:** Node.js ≥20.0.0, npm ≥6.0.0, yarn ≥1.0.0 (optional).
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-## 📜 License
-
-MIT License. See [LICENSE](LICENSE).
-
----
-
-## 🙌 Acknowledgments
-
-Special thanks to all contributors and supporters of AxioDB. Your feedback and contributions make this project better!
-
----
-
-## 📋 Requirements
-
-- **Node.js:** >=20.0.0
-- **npm:** >=6.0.0
-- **yarn:** >=1.0.0 (optional)
-
----
-
-## 🌐 Documentation Website
-
-The AxioDB documentation is built with:
-- **React 18** with TypeScript
-- **Vite** for fast development and building
-- **TailwindCSS** for styling
-- **Lucide React** for icons
-
-To run the documentation locally:
-
+**Documentation website:** built with React 18 + TypeScript, Vite, TailwindCSS, and Lucide React. To run it locally:
 ```bash
 cd Document
 npm install
 npm run dev
 ```
+Available at `http://localhost:5173`.
 
-The documentation site will be available at `http://localhost:5173`
+**Author:** Ankan Saha
 
----
+**Support the project:**
+- ⭐ Star the repository
+- 🐛 Report issues
+- 💡 Suggest features
+- 🤝 Contribute code
+- 💰 [Sponsor the project](https://github.com/sponsors/AnkanSaha)
 
-## 📝 Author
-
-**Ankan Saha**
-
----
-
-## 💖 Support
-
-If you find AxioDB helpful, consider:
-- ⭐ Starring the repository
-- 🐛 Reporting issues
-- 💡 Suggesting features
-- 🤝 Contributing code
-- 💰 [Sponsoring the project](https://github.com/sponsors/AnkanSaha)
+**Acknowledgments:** special thanks to all contributors and supporters of AxioDB — your feedback and contributions make this project better.
 
 ---
-

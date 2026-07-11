@@ -673,6 +673,136 @@ file: [database.tar.gz file]`,
       ],
     },
     {
+      title: "Index Management",
+      description: "List, create, and drop custom field indexes on a collection - gated by the index:view / index:create / index:delete permissions (View role gets view-only; Admin and Super Admin get all three)",
+      endpoints: [
+        {
+          method: "GET",
+          path: "/api/index/list",
+          description: "Lists every index currently registered on a collection, including the automatic documentId index.",
+          parameters: [
+            {
+              name: "dbName",
+              type: "query",
+              dataType: "string",
+              required: true,
+              description: "The name of the database",
+            },
+            {
+              name: "collectionName",
+              type: "query",
+              dataType: "string",
+              required: true,
+              description: "The name of the collection",
+            },
+          ],
+          responseExample: `{
+  "statusCode": 200,
+  "status": "success",
+  "message": "Indexes retrieved successfully",
+  "data": [
+    { "indexFieldName": "documentId", "fileName": "documentId.axiodb", "path": "/path/to/indexes/documentId.axiodb" },
+    { "indexFieldName": "email", "fileName": "email.axiodb", "path": "/path/to/indexes/email.axiodb" }
+  ]
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Returns list of index metadata entries" },
+            { code: 400, description: "Bad Request - Invalid database or collection name" },
+            { code: 403, description: "Forbidden - Insufficient permissions, or the reserved config database" },
+            { code: 404, description: "Not Found - Collection does not exist" },
+            { code: 500, description: "Internal Server Error - Failed to retrieve indexes" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/index/create",
+          description: "Creates one or more indexes on a collection, one per field name. Safe to call again for a field that's already indexed - it's a no-op for that field.",
+          parameters: [
+            {
+              name: "dbName",
+              type: "body",
+              dataType: "string",
+              required: true,
+              description: "The name of the database",
+            },
+            {
+              name: "collectionName",
+              type: "body",
+              dataType: "string",
+              required: true,
+              description: "The name of the collection",
+            },
+            {
+              name: "fieldNames",
+              type: "body",
+              dataType: "string[]",
+              required: true,
+              description: "One or more field names to index (non-empty array)",
+            },
+          ],
+          requestBody: `{
+  "dbName": "UserDB",
+  "collectionName": "users",
+  "fieldNames": ["email", "age"]
+}`,
+          responseExample: `{
+  "statusCode": 201,
+  "status": "success",
+  "message": "Indexes: email, age created Indexes: ",
+  "data": null
+}`,
+          statusCodes: [
+            { code: 201, description: "Created - Index(es) created (or already existed)" },
+            { code: 400, description: "Bad Request - fieldNames must be a non-empty array" },
+            { code: 403, description: "Forbidden - Insufficient permissions, or the reserved config database" },
+            { code: 404, description: "Not Found - Collection does not exist" },
+            { code: 500, description: "Internal Server Error - Failed to create index" },
+          ],
+        },
+        {
+          method: "DELETE",
+          path: "/api/index/delete",
+          description: "Removes an index from a collection by field name.",
+          parameters: [
+            {
+              name: "dbName",
+              type: "query",
+              dataType: "string",
+              required: true,
+              description: "The name of the database",
+            },
+            {
+              name: "collectionName",
+              type: "query",
+              dataType: "string",
+              required: true,
+              description: "The name of the collection",
+            },
+            {
+              name: "indexName",
+              type: "query",
+              dataType: "string",
+              required: true,
+              description: "The indexed field name to drop",
+            },
+          ],
+          responseExample: `{
+  "statusCode": 200,
+  "status": "success",
+  "message": "Index deleted successfully",
+  "data": null
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Index deleted successfully" },
+            { code: 400, description: "Bad Request - Invalid parameters" },
+            { code: 403, description: "Forbidden - Insufficient permissions, or the reserved config database" },
+            { code: 404, description: "Not Found - Collection or index does not exist" },
+            { code: 500, description: "Internal Server Error - Failed to delete index" },
+          ],
+        },
+      ],
+    },
+    {
       title: "Document Operations (CRUD)",
       description: "Create, read, update, and delete documents with advanced query support",
       endpoints: [
