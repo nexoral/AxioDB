@@ -1,4 +1,6 @@
 import { Server, Socket, createServer } from 'net';
+import { createServer as createTLSServer } from 'tls';
+import fs from 'fs';
 import { AxioDB } from '../../Services/Indexation.operation';
 import { ConnectionManager, ConnectionRejectReason } from '../connection/ConnectionManager';
 import { CommandHandler } from '../handler/CommandHandler';
@@ -9,6 +11,12 @@ import { DEFAULT_TCP_PORT, ErrorMessage, StatusCode } from './keys';
 import { CommandType } from '../types/command.types';
 import AuthEvents from '../../Services/Auth/AuthEvents.service';
 import ConnectionRateLimiter from '../connection/ConnectionRateLimiter';
+
+/** Path to a PEM cert + matching private key, used to encrypt the TCP server with TLS instead of plaintext. */
+export interface TCPTLSOptions {
+  certPath: string;
+  keyPath: string;
+}
 
 /** Wire response for each way `ConnectionManager.addConnection` can reject a new socket. */
 const CONNECTION_REJECTION_RESPONSES: Record<
@@ -39,7 +47,8 @@ const CONNECTION_REJECTION_RESPONSES: Record<
 export default async function createAxioDBTCPServer(
   axioDB: AxioDB,
   port: number = DEFAULT_TCP_PORT,
-  requireAuth: boolean = false
+  requireAuth: boolean = false,
+  tlsOptions?: TCPTLSOptions,
 ): Promise<Server> {
   const connectionManager = new ConnectionManager();
   const commandHandler = new CommandHandler(axioDB, connectionManager, requireAuth);
@@ -60,10 +69,21 @@ export default async function createAxioDBTCPServer(
     connectionManager.revokeAuthForUser(username);
   });
 
-  // Create TCP server
-  server = createServer((socket: Socket) => {
+  const connectionListener = (socket: Socket): void => {
     handleNewConnection(socket, connectionManager, commandHandler);
-  });
+  };
+
+  if (tlsOptions) {
+    // Reading here (rather than in Indexation.operation.ts) keeps file I/O and the actual
+    // TLS wiring in the same module that owns the TCP server. AxioDB itself only validates
+    // that the paths exist before ever getting here - fail-fast, not a silent plaintext
+    // fallback if a read fails unexpectedly (e.g. permissions changed between checks).
+    const cert = fs.readFileSync(tlsOptions.certPath);
+    const key = fs.readFileSync(tlsOptions.keyPath);
+    server = createTLSServer({ cert, key }, connectionListener);
+  } else {
+    server = createServer(connectionListener);
+  }
 
   // Setup server error handling
   server.on('error', (error: Error) => {
@@ -77,7 +97,9 @@ export default async function createAxioDBTCPServer(
 
   // Start listening
   server.listen(port, () => {
-    console.log(`[AxioDB TCP Server] Started successfully on port ${port}`);
+    console.log(
+      `[AxioDB TCP Server] Started successfully on port ${port}${tlsOptions ? ' (TLS)' : ''}`,
+    );
   });
 
   return server;

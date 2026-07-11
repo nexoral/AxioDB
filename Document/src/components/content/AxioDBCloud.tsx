@@ -17,6 +17,7 @@ import {
   Network,
   Lock,
   AlertTriangle,
+  ShieldCheck,
 } from "lucide-react";
 
 const AxioDBCloud: React.FC = () => {
@@ -404,10 +405,134 @@ await client2.login('admin', 'admin');`}
                 Known limitations
               </h4>
               <ul className="text-sm text-amber-800 dark:text-amber-300 space-y-1.5">
-                <li>• The TCP protocol itself is unencrypted (no TLS) - use a private network, VPN, or your own TLS termination for untrusted networks</li>
                 <li>• No TCP command exists yet to change a password - that must go through the GUI</li>
               </ul>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TLS Encryption */}
+      <section>
+        <h2 className="text-3xl font-bold mb-6 text-slate-900 dark:text-white flex items-center gap-3">
+          <ShieldCheck className="h-8 w-8 text-emerald-500" />
+          TLS Encryption (NEW!)
+        </h2>
+
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 space-y-6">
+          <p className="text-slate-700 dark:text-slate-300">
+            By default, the TCP protocol is <strong>plaintext</strong> - anyone who can capture
+            network traffic between client and server (e.g. Wireshark on a shared network) can
+            read your data and, if <code className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded">TCPAuth</code>{" "}
+            is on, your password. TLS fixes this. It&apos;s <strong>off by default</strong> -
+            nothing here is required, and existing plaintext deployments keep working exactly as
+            before unless you turn it on.
+          </p>
+          <p className="text-slate-700 dark:text-slate-300">
+            <strong>You must provide your own certificate + key.</strong> AxioDB never generates
+            one for you - that&apos;s a security decision only you can make (a real cert from a
+            CA, or a self-signed one for local/private use).
+          </p>
+
+          <div>
+            <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">
+              Step 1 - Get a cert + key
+            </h3>
+            <p className="text-slate-700 dark:text-slate-300 mb-3">
+              For local/dev/private use, generate a self-signed one (one-time, takes a second):
+            </p>
+            <CodeBlock
+              language="bash"
+              code={`openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/CN=localhost"`}
+            />
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+              This creates two files, <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">cert.pem</code>{" "}
+              and <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">key.pem</code>, in your current
+              folder. For a real production deployment reachable from the internet, use a cert
+              from a real CA (Let&apos;s Encrypt, your org&apos;s CA, your cloud provider&apos;s
+              managed cert) instead - the rest of the setup is identical either way.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">
+              Step 2 - Point the server at them
+            </h3>
+            <CodeBlock
+              language="javascript"
+              code={`const { AxioDB } = require('axiodb');
+const db = new AxioDB({
+  TCP: true,
+  TLS: true,
+  TLSCertPath: './cert.pem', // path to the file from step 1
+  TLSKeyPath: './key.pem',
+});`}
+            />
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+              If <strong>TLS: true</strong> but either path is missing or unreadable, AxioDB
+              throws immediately at startup - it never silently falls back to plaintext.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">
+              Step 3 - Point the client at the same cert
+            </h3>
+            <p className="text-slate-700 dark:text-slate-300 mb-3">
+              Only needed because it&apos;s self-signed - a real CA-issued cert wouldn&apos;t
+              need this step, the same way your browser trusts <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">https://</code> sites
+              without extra setup:
+            </p>
+            <CodeBlock
+              language="javascript"
+              code={`const { AxioDBCloud } = require('axiodb');
+const client = new AxioDBCloud("axiodb://localhost:27019", {
+  tls: true,
+  tlsCAPath: './cert.pem', // same cert.pem from step 1 - proves this server is the real one
+});
+await client.connect();`}
+            />
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+              Without <strong>tlsCAPath</strong>, the client refuses to connect to a self-signed
+              server by default (<code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">tlsRejectUnauthorized</code>{" "}
+              defaults to <strong>true</strong>) - this is intentional, the same protection that
+              stops a browser from silently trusting a fake <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">https://</code> site.
+              Only set <strong>tlsRejectUnauthorized: false</strong> for local/dev testing, never
+              in production, since it turns that protection off entirely.
+            </p>
+          </div>
+
+          <div className="p-4 bg-sky-50 dark:bg-sky-900/20 rounded-lg border border-sky-200 dark:border-sky-700">
+            <h4 className="font-bold text-sky-900 dark:text-sky-200 mb-2">Running this in Docker?</h4>
+            <p className="text-sm text-sky-800 dark:text-sky-300 mb-3">
+              The cert/key files need to get <em>into</em> the container. The simplest way to
+              think about it: your cert files live on your real machine; a Docker{" "}
+              <strong>bind mount</strong> (<code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">-v</code>)
+              makes a folder from your machine visible inside the container at whatever path you
+              choose, and you point the env vars at <em>that in-container path</em>, not your
+              real machine&apos;s path:
+            </p>
+            <CodeBlock
+              language="bash"
+              code={`# cert.pem and key.pem are really at /home/you/mycerts/ on your machine.
+# "/certs" below is just a name we're choosing for where they'll appear inside the container.
+docker run -d --name axiodb-server \\
+  -p 27018:27018 -p 27019:27019 \\
+  -v /home/you/mycerts:/certs:ro \\
+  -e AXIODB_TLS=true \\
+  -e AXIODB_TLS_CERT_PATH=/certs/cert.pem \\
+  -e AXIODB_TLS_KEY_PATH=/certs/key.pem \\
+  theankansaha/axiodb`}
+            />
+            <p className="mt-3 text-sm text-sky-800 dark:text-sky-300">
+              The rule: the <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">AXIODB_TLS_CERT_PATH</code>{" "}
+              value must always match the <em>right-hand side</em> of the{" "}
+              <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">-v</code> mount
+              (<code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">/certs/...</code>),
+              never the real path on your machine - the container can&apos;t see your
+              machine&apos;s filesystem directly, only whatever you&apos;ve explicitly mounted
+              into it.
+            </p>
           </div>
         </div>
       </section>

@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Code2,
   ShieldOff,
+  ShieldCheck,
 } from "lucide-react";
 
 const Docker: React.FC = () => {
@@ -125,6 +126,21 @@ const Docker: React.FC = () => {
                     <td className="py-2">Require username/password on TCP connections (same RBAC accounts as the GUI)</td>
                   </tr>
                   <tr className="border-b border-slate-100 dark:border-slate-800">
+                    <td className="py-2 pr-4 font-mono text-xs">AXIODB_TLS</td>
+                    <td className="py-2 pr-4"><code>false</code></td>
+                    <td className="py-2">Encrypt TCP connections with TLS instead of plaintext (see below)</td>
+                  </tr>
+                  <tr className="border-b border-slate-100 dark:border-slate-800">
+                    <td className="py-2 pr-4 font-mono text-xs">AXIODB_TLS_CERT_PATH</td>
+                    <td className="py-2 pr-4">-</td>
+                    <td className="py-2">Path <em>inside the container</em> to a PEM cert file - required when TLS is on</td>
+                  </tr>
+                  <tr className="border-b border-slate-100 dark:border-slate-800">
+                    <td className="py-2 pr-4 font-mono text-xs">AXIODB_TLS_KEY_PATH</td>
+                    <td className="py-2 pr-4">-</td>
+                    <td className="py-2">Path <em>inside the container</em> to the matching private key - required when TLS is on</td>
+                  </tr>
+                  <tr className="border-b border-slate-100 dark:border-slate-800">
                     <td className="py-2 pr-4 font-mono text-xs">AXIODB_ROOT_NAME</td>
                     <td className="py-2 pr-4"><code>AxioDB</code></td>
                     <td className="py-2">Name of the root database folder created under the data volume</td>
@@ -154,9 +170,9 @@ const Docker: React.FC = () => {
             </div>
             <CodeBlock
               language="bash"
-              code={`# Only do this on a trusted private network or behind your own VPN/TLS termination -
-# the TCP protocol itself is unencrypted, and with auth off any client on the network
-# that can reach port 27019 has full database access.
+              code={`# Only do this on a trusted private network, or with AXIODB_TLS=true (see below) -
+# with auth off and no TLS, any client that can reach port 27019 has full database access
+# and traffic is readable by anyone on the network.
 docker run -d \\
   --name axiodb-server \\
   -p 27018:27018 \\
@@ -165,6 +181,43 @@ docker run -d \\
   -v axiodb-data:/app \\
   theankansaha/axiodb`}
             />
+          </div>
+
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-3 mb-4">
+              <ShieldCheck className="h-6 w-6 text-emerald-500" />
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                Enabling TLS
+              </h3>
+            </div>
+            <p className="text-slate-700 dark:text-slate-300 mb-4">
+              The TCP protocol is plaintext by default. To encrypt it, you need your own cert +
+              key (AxioDB never generates one for you) mounted into the container - the cert/key
+              env vars must point at the path <em>inside the container</em>, not on your real
+              machine:
+            </p>
+            <CodeBlock
+              language="bash"
+              code={`# cert.pem and key.pem are really at /home/you/mycerts/ on your machine.
+# "/certs" below is just a name we're choosing for where they'll appear inside the container.
+docker run -d --name axiodb-server \\
+  -p 27018:27018 -p 27019:27019 \\
+  -v /home/you/mycerts:/certs:ro \\
+  -e AXIODB_TLS=true \\
+  -e AXIODB_TLS_CERT_PATH=/certs/cert.pem \\
+  -e AXIODB_TLS_KEY_PATH=/certs/key.pem \\
+  theankansaha/axiodb`}
+            />
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">
+              The rule: <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">AXIODB_TLS_CERT_PATH</code>{" "}
+              must match the <em>right-hand side</em> of the{" "}
+              <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">-v</code> mount
+              (<code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">/certs/...</code>),
+              never your real machine&apos;s path - the container only sees what you&apos;ve
+              explicitly mounted into it. See the{" "}
+              <a href="/cloud#advanced-tls-encryption" className="text-blue-600 dark:text-blue-400 hover:underline">AxioDBCloud TLS guide</a>{" "}
+              for how to generate a cert and configure the client to match.
+            </p>
           </div>
 
           <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -214,6 +267,42 @@ services:
       - AXIODB_ROOT_NAME=AxioDB
     volumes:
       - axiodb-data:/app
+    restart: unless-stopped
+
+volumes:
+  axiodb-data:`}
+            />
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">
+              With TLS enabled, note the two different kinds of entry under{" "}
+              <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">volumes:</code> below
+              - <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">./mycerts:/certs:ro</code> is
+              your real folder (it contains a <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">/</code>),
+              mounted read-only; <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">axiodb-data:/app</code> is
+              a Docker-managed named volume (no <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">/</code>,
+              just a label):
+            </p>
+            <CodeBlock
+              language="yaml"
+              code={`version: "3.8"
+
+services:
+  axiodb:
+    image: theankansaha/axiodb
+    container_name: axiodb-server
+    ports:
+      - "27018:27018"
+      - "27019:27019"
+    environment:
+      - AXIODB_GUI=true
+      - AXIODB_TCP=true
+      - AXIODB_TCP_AUTH=true
+      - AXIODB_TLS=true
+      - AXIODB_TLS_CERT_PATH=/certs/cert.pem
+      - AXIODB_TLS_KEY_PATH=/certs/key.pem
+      - AXIODB_ROOT_NAME=AxioDB
+    volumes:
+      - ./mycerts:/certs:ro      # your real cert.pem/key.pem folder -> /certs in the container
+      - axiodb-data:/app         # Docker-managed volume for database files
     restart: unless-stopped
 
 volumes:

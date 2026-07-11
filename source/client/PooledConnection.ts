@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Socket } from 'net';
+import { connect as tlsConnect } from 'tls';
 import { randomUUID } from 'crypto';
 import { MessageBuffer, MessageFramer } from '../tcp/config/protocol';
 import { TCPRequest, TCPResponse, PendingRequest } from '../tcp/types/protocol.types';
@@ -12,6 +13,11 @@ export interface PooledConnectionOptions {
   reconnectAttempts: number;
   reconnectDelay: number;
   heartbeatInterval: number;
+  /** Encrypt this connection with TLS instead of plaintext. */
+  tls?: boolean;
+  /** Pre-read CA certificate content (see AxioDBCloud's tlsCAPath) - read once at the pool level, not per connection. */
+  tlsCA?: Buffer;
+  tlsRejectUnauthorized?: boolean;
 }
 
 /** Callbacks a PooledConnection uses to surface lifecycle events to its owning AxioDBCloud pool. */
@@ -73,8 +79,6 @@ export default class PooledConnection {
       }
 
       this.state = ConnectionState.CONNECTING;
-      const socket = new Socket();
-      this.socket = socket;
 
       const connectionTimeout = setTimeout(() => {
         socket.destroy();
@@ -92,11 +96,8 @@ export default class PooledConnection {
         this.state = ConnectionState.FAILED;
         reject(error);
       };
-      socket.once('error', connectErrorHandler);
 
-      this.setupSocketHandlers(socket);
-
-      socket.connect(this.port, this.host, async () => {
+      const onReady = async () => {
         clearTimeout(connectionTimeout);
         socket.off('error', connectErrorHandler);
         this.state = ConnectionState.CONNECTED;
@@ -121,7 +122,30 @@ export default class PooledConnection {
           socket.destroy();
           reject(authError);
         }
-      });
+      };
+
+      // tls.connect() both creates and initiates the connection in one call (unlike
+      // net.Socket, which needs a separate .connect()), firing 'secureConnect' once the TLS
+      // handshake completes - a stronger readiness signal than plain TCP's 'connect', since
+      // it also implies certificate validation passed (rejectUnauthorized: true, the default).
+      const socket: Socket = this.options.tls
+        ? tlsConnect(
+            {
+              host: this.host,
+              port: this.port,
+              ca: this.options.tlsCA,
+              rejectUnauthorized: this.options.tlsRejectUnauthorized ?? true,
+            },
+            onReady,
+          )
+        : new Socket();
+      this.socket = socket;
+      socket.once('error', connectErrorHandler);
+      this.setupSocketHandlers(socket);
+
+      if (!this.options.tls) {
+        socket.connect(this.port, this.host, onReady);
+      }
     });
   }
 

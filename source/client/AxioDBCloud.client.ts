@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EventEmitter } from 'events';
+import fs from 'fs';
 import PooledConnection from './PooledConnection';
 import { CommandType } from '../tcp/types/command.types';
 import { AxioDBCloudOptions, AuthenticatedUser, ConnectionState, ParsedConnectionString, PoolDegradedEvent } from './types/client.types';
@@ -22,10 +23,13 @@ export class AxioDBCloud extends EventEmitter {
   private host: string;
   private port: number;
   private pool: PooledConnection[] = [];
-  private options: Required<Omit<AxioDBCloudOptions, 'username' | 'password'>>;
+  private options: Required<Omit<AxioDBCloudOptions, 'username' | 'password' | 'tlsCAPath'>>;
   // Kept separate from `options` above: unlike timeout/reconnectAttempts/etc, credentials
   // have no sensible default, so they can't live in a Required<AxioDBCloudOptions> object.
   private credentials?: { username: string; password: string };
+  // Read once here (not per pooled connection) and handed to each PooledConnection as a
+  // Buffer - see PooledConnectionOptions.tlsCA.
+  private readonly tlsCA?: Buffer;
 
   constructor(connectionString: string, options?: AxioDBCloudOptions) {
     super();
@@ -61,7 +65,13 @@ export class AxioDBCloud extends EventEmitter {
       reconnectDelay: options?.reconnectDelay || 1000,
       heartbeatInterval: options?.heartbeatInterval || 30000,
       maxPoolSize: options?.maxPoolSize || DEFAULT_MAX_POOL_SIZE,
+      tls: options?.tls ?? false,
+      tlsRejectUnauthorized: options?.tlsRejectUnauthorized ?? true,
     };
+
+    if (options?.tlsCAPath) {
+      this.tlsCA = fs.readFileSync(options.tlsCAPath);
+    }
 
     if (options?.username && options?.password) {
       this.credentials = { username: options.username, password: options.password };
@@ -139,6 +149,9 @@ export class AxioDBCloud extends EventEmitter {
         reconnectAttempts: this.options.reconnectAttempts,
         reconnectDelay: this.options.reconnectDelay,
         heartbeatInterval: this.options.heartbeatInterval,
+        tls: this.options.tls,
+        tlsCA: this.tlsCA,
+        tlsRejectUnauthorized: this.options.tlsRejectUnauthorized,
       },
       () => this.credentials,
       {

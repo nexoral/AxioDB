@@ -17,6 +17,12 @@ export interface AxioDBCloudOptions {
   // pool member has the fewest in-flight requests (least-busy); each member reconnects and
   // re-authenticates independently.
   maxPoolSize?: number;
+  /** Encrypt the connection with TLS instead of plaintext. Must match the server's own TLS setting. Defaults to false. */
+  tls?: boolean;
+  /** Path to a CA certificate (or the server's own cert, for a self-signed deployment) to validate the server's certificate against. Only relevant when `tls: true`. */
+  tlsCAPath?: string;
+  /** Defaults to true. Set to false only for local/dev testing against an unverified self-signed certificate - never in production, since it disables all server-identity verification. */
+  tlsRejectUnauthorized?: boolean;
 }
 
 /** Public shape returned by a successful AUTHENTICATE command. */
