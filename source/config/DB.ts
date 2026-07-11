@@ -1,4 +1,3 @@
-// Import All Required Sub Modules
 import { InMemoryCache } from "../Memory/memory.operation";
 import Converter from "../Helper/Converter.helper";
 import { CryptoHelper } from "../Helper/Crypto.helper";
@@ -11,7 +10,6 @@ import { AxioDBCloud } from "../client/AxioDBCloud.client";
 import FileManager from "../engine/Filesystem/FileManager";
 import FolderManager from "../engine/Filesystem/FolderManager";
 
-// Export All Required Sub Modules Instance Types to support TypeScript
 const InstanceTypes = {
   Collection,
   Database,
@@ -23,10 +21,9 @@ const InstanceTypes = {
   ResponseHelper,
   InMemoryCache,
 };
-// Export Specific Modules
+
 export { AxioDB, AxioDBCloud, InstanceTypes };
 
-// Export With All Sub Modules
 export default {
   AxioDB,
   AxioDBCloud,

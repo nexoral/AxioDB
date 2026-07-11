@@ -7,9 +7,6 @@ import { FastifyRequest } from "fastify";
 import Database from "../../../Services/Database/database.operation";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
 
-/**
- * CRUD Controller class for handling database operations
- */
 export default class CRUDController {
   private AxioDBInstance: AxioDB;
 
@@ -17,24 +14,7 @@ export default class CRUDController {
     this.AxioDBInstance = AxioDBInstance;
   }
 
-  /**
-   * Retrieves all documents from a specified collection with pagination.
-   *
-   * @param request - The Fastify request object containing query parameters
-   * @param request.query.dbName - The name of the database to query
-   * @param request.query.collectionName - The name of the collection to query
-   * @param request.query.page - The page number for pagination (starts from 1)
-   *
-   * @returns A response object with:
-   *   - Status code 200 and documents data if successful
-   *   - Status code 400 if database name, collection name, or page number is invalid
-   *   - Status code 404 if no documents are found
-   *
-   * @example
-   * // GET /documents?dbName=users&collectionName=profiles&page=1
-   */
   public async getAllDocuments(request: FastifyRequest) {
-    // Extracting parameters from the request body
     let { dbName, collectionName, page } = request.query as {
       dbName: string;
       collectionName: string;
@@ -43,7 +23,6 @@ export default class CRUDController {
 
     page = parseInt(String(page));
 
-    // Validating extracted parameters
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
     }
@@ -64,7 +43,6 @@ export default class CRUDController {
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
-    // Find All Data
     const allDocuments = await DB_Collection.query({})
       .Limit(10)
       .Sort({ updatedAt: -1 })
@@ -81,37 +59,7 @@ export default class CRUDController {
     );
   }
 
-  /**
-   * Retrieves documents from a specified collection based on a query with pagination.
-   *
-   * @param request - The Fastify request object containing query parameters and body data.
-   * @param request.query - Query parameters for the database and collection.
-   * @param request.query.dbName - The name of the database to query.
-   * @param request.query.collectionName - The name of the collection to query.
-   * @param request.query.page - The page number for pagination (starts from 1).
-   * @param request.body - The request body containing the query object.
-   * @param request.body.query - The query object to filter documents.
-   *
-   * @returns A response object with:
-   *   - Status code 200 and the retrieved documents if successful.
-   *   - Status code 400 if any required parameters are invalid.
-   *   - Status code 404 if no documents are found.
-   *
-   * @example
-   * // Example request:
-   * {
-   *   query: {
-   *     dbName: "users",
-   *     collectionName: "profiles",
-   *     page: 1
-   *   },
-   *   body: {
-   *     query: { age: { $gte: 18 } }
-   *   }
-   * }
-   */
   public async getDocumentsByQuery(request: FastifyRequest) {
-    // Extracting parameters from the request body
     let { dbName, collectionName, page } = request.query as {
       dbName: string;
       collectionName: string;
@@ -123,7 +71,6 @@ export default class CRUDController {
 
     let PageNumber = parseInt(String(page));
 
-    // Validating extracted parameters
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
     }
@@ -149,7 +96,6 @@ export default class CRUDController {
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
-    // Find All Data
     const allDocuments = await DB_Collection.query({ ...query })
       .Limit(10)
       .Sort({ updatedAt: -1 })
@@ -166,39 +112,13 @@ export default class CRUDController {
     );
   }
 
-  /**
-   * Retrieves a document from a specified collection in a database by its ID.
-   *
-   * @param request - The Fastify request object containing query parameters.
-   * @param request.query - Query parameters for the database and collection.
-   * @param request.query.dbName - The name of the database to query.
-   * @param request.query.collectionName - The name of the collection to query.
-   * @param request.query.documentId - The ID of the document to retrieve.
-   *
-   * @returns A response object with:
-   *   - Status code 200 and the retrieved document if successful.
-   *   - Status code 400 if any required parameters are invalid.
-   *   - Status code 404 if no document is found.
-   *
-   * @example
-   * // Example request:
-   * {
-   *   query: {
-   *     dbName: "users",
-   *     collectionName: "profiles",
-   *     documentId: "12345"
-   *   }
-   * }
-   */
   public async getDocumentsById(request: FastifyRequest) {
-    // Extracting parameters from the request body
     let { dbName, collectionName, documentId } = request.query as {
       dbName: string;
       collectionName: string;
       documentId: string;
     };
 
-    // Validating extracted parameters
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
     }
@@ -215,7 +135,6 @@ export default class CRUDController {
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
-    // Find All Data
     const allDocuments = await DB_Collection.query({ documentId: documentId })
       .findOne(true)
       .exec();
@@ -230,31 +149,13 @@ export default class CRUDController {
     );
   }
 
-  /**
-   * Creates a new document in a specified collection within a database.
-   *
-   * @param request - The Fastify request object containing query parameters and body data
-   * @param request.query - Query parameters containing database and collection names
-   * @param request.query.dbName - The name of the database to store the document in
-   * @param request.query.collectionName - The name of the collection to store the document in
-   * @param request.body - The document data to be inserted
-   *
-   * @returns A response object with appropriate status code and message:
-   *  - 201 (Created) with the inserted document data on success
-   *  - 400 (Bad Request) if any required parameters are invalid
-   *  - 500 (Internal Server Error) if document insertion fails
-   *
-   * @throws May throw exceptions if database or collection operations fail
-   */
   public async createNewDocument(request: FastifyRequest) {
-    // Extracting parameters from the request body
     let { dbName, collectionName } = request.query as {
       dbName: string;
       collectionName: string;
     };
     const documentData = request.body as Record<string, any>;
 
-    // Validating extracted parameters
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
     }
@@ -272,7 +173,6 @@ export default class CRUDController {
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
-    // Insert the new document
     const insertResult = await DB_Collection.insert(documentData);
     if (!insertResult || insertResult.statusCode !== StatusCodes.OK) {
       return buildResponse(
@@ -287,31 +187,13 @@ export default class CRUDController {
     );
   }
 
-  /**
-   * Creates multiple new documents in a specified collection within a database.
-   *
-   * @param request - The Fastify request object containing query parameters and body data
-   * @param request.query - Query parameters containing database and collection names
-   * @param request.query.dbName - The name of the database to store the documents in
-   * @param request.query.collectionName - The name of the collection to store the documents in
-   * @param request.body - An array of document data to be inserted
-   *
-   * @returns A response object with appropriate status code and message:
-   *  - 201 (Created) with the inserted document data on success
-   *  - 400 (Bad Request) if any required parameters are invalid
-   *  - 500 (Internal Server Error) if document insertion fails
-   *
-   * @throws May throw exceptions if database or collection operations fail
-   */
   public async createManyNewDocument(request: FastifyRequest) {
-    // Extracting parameters from the request body
     let { dbName, collectionName } = request.query as {
       dbName: string;
       collectionName: string;
     };
     const documentData = request.body as Record<string, any>;
 
-    // Validating extracted parameters
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
     }
@@ -329,7 +211,6 @@ export default class CRUDController {
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
-    // Insert the new document Array Document
     const insertResult = await DB_Collection.insertMany(documentData);
     if (!insertResult || insertResult.statusCode !== StatusCodes.OK) {
       return buildResponse(
@@ -344,17 +225,7 @@ export default class CRUDController {
     );
   }
 
-  /**
-   * Update an existing document in a specified collection within a database.
-   * @param request - The Fastify request object containing query parameters and body data
-   * @param request.query - Query parameters containing database, collection, and document IDs
-   * @param request.query.dbName - The name of the database
-   * @param request.query.collectionName - The name of the collection
-   * @param request.query.documentId - The ID of the document to update
-   * @param request.body - The updated document data
-   */
   public async updateDocumentById(request: FastifyRequest) {
-    // Extracting parameters from the request body
     let { dbName, collectionName, documentId } = request.query as {
       dbName: string;
       collectionName: string;
@@ -362,7 +233,6 @@ export default class CRUDController {
     };
     const updatedData = request.body as Record<string, any>;
 
-    // Validating extracted parameters
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
     }
@@ -383,7 +253,6 @@ export default class CRUDController {
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
-    // Update the document
     const updateResult = await DB_Collection.update({
       documentId: documentId,
     }).UpdateOne(updatedData);
@@ -400,20 +269,7 @@ export default class CRUDController {
     );
   }
 
-  /**
-   * Updates documents in a specified collection based on a query.
-   * @param request - The Fastify request object containing query parameters and body data
-   * @param request.query - Query parameters containing database, collection, and update options
-   * @param request.query.dbName - The name of the database
-   * @param request.query.collectionName - The name of the collection
-   * @param request.query.isMany - Flag indicating if multiple documents should be updated
-   * @param request.body - The update query and data
-   * @param request.body.query - The query to match documents
-   * @param request.body.update - The updated document data
-   * @returns A response object with the status of the update operation
-   */
   public async updateDocumentByQuery(request: FastifyRequest) {
-    // Extracting parameters from the request body
     let { dbName, collectionName, isMany } = request.query as {
       dbName: string;
       collectionName: string;
@@ -424,7 +280,6 @@ export default class CRUDController {
       update: Record<string, any>;
     };
 
-    // Validating extracted parameters
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
     }
@@ -455,7 +310,6 @@ export default class CRUDController {
         );
       }
     } else {
-      // Update the single document
       const updateResult =
         await DB_Collection.update(query).UpdateOne(updatedData);
       if (!updateResult || updateResult.statusCode !== StatusCodes.OK) {
@@ -468,30 +322,13 @@ export default class CRUDController {
     return buildResponse(StatusCodes.OK, "Document updated successfully");
   }
 
-  /**
-   * Deletes a document from a specified collection in a database.
-   *
-   * @param request - The Fastify request object containing query parameters
-   * @param request.query.dbName - The name of the database
-   * @param request.query.collectionName - The name of the collection
-   * @param request.query.documentId - The ID of the document to delete
-   *
-   * @returns A response object with appropriate status code and message:
-   *   - 200 (OK) if the document was successfully deleted
-   *   - 400 (BAD REQUEST) if any required parameters are missing or invalid
-   *   - 500 (INTERNAL SERVER ERROR) if the deletion operation fails
-   *
-   * @throws May throw exceptions during database operations
-   */
   public async deleteDocumentById(request: FastifyRequest) {
-    // Extracting parameters from the request body
     let { dbName, collectionName, documentId } = request.query as {
       dbName: string;
       collectionName: string;
       documentId: string;
     };
 
-    // Validating extracted parameters
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
     }
@@ -509,7 +346,6 @@ export default class CRUDController {
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
-    // Delete the document
     const deleteResult = await DB_Collection.delete({
       documentId: documentId,
     }).deleteOne();
@@ -524,24 +360,7 @@ export default class CRUDController {
     return buildResponse(StatusCodes.OK, "Document deleted successfully");
   }
 
-  /**
-   * Deletes one or more documents from a collection based on a query
-   *
-   * @param request - The Fastify request object containing the query parameters
-   * @param request.query.dbName - The name of the database
-   * @param request.query.collectionName - The name of the collection
-   * @param request.query.query - The query object to match documents for deletion
-   * @param request.query.isMany - Boolean flag indicating whether to delete multiple documents (true) or a single document (false)
-   *
-   * @returns A response object with status code and message
-   * - 200 OK if the document(s) were successfully deleted
-   * - 400 BAD_REQUEST if any of the required parameters are invalid
-   * - 500 INTERNAL_SERVER_ERROR if the deletion operation failed
-   *
-   * @throws May throw exceptions from database operations
-   */
   public async deleteDocumentByQuery(request: FastifyRequest) {
-    // Extracting parameters from the request body
     let { dbName, collectionName, isMany } = request.query as {
       dbName: string;
       collectionName: string;
@@ -552,7 +371,6 @@ export default class CRUDController {
       query: object;
     };
 
-    // Validating extracted parameters
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
     }
@@ -570,7 +388,6 @@ export default class CRUDController {
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
-    // Delete the document
     if (isMany) {
       const deleteResult = await DB_Collection.delete(query).deleteMany();
       console.log(deleteResult);
@@ -594,18 +411,7 @@ export default class CRUDController {
   }
 
   /**
-   * Executes an aggregation pipeline on a specified collection.
-   *
-   * @param request - The Fastify request object containing query parameters.
-   * @param request.query.dbName - The name of the database to use.
-   * @param request.query.collectionName - The name of the collection to perform aggregation on.
-   * @param request.query.aggregation - An array of aggregation pipeline stages.
-   *
-   * @returns A response object with status code, message, and aggregation results if successful.
-   * If the aggregation fails, returns an error response with appropriate status code.
-   *
    * @example
-   * // Example request query:
    * {
    *   dbName: "myDatabase",
    *   collectionName: "users",
@@ -625,7 +431,6 @@ export default class CRUDController {
       aggregation: object[];
     };
 
-    // validate aggregation pipeline
     if (!Array.isArray(aggregation) || aggregation.length === 0) {
       return buildResponse(
         StatusCodes.BAD_REQUEST,

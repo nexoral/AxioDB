@@ -1,9 +1,7 @@
 /* eslint-disable no-self-assign */
 import { StatusCodes } from "../../config/Keys/StatusCode";
 import { AxioDB } from "../../Services/Indexation.operation";
-import buildResponse from "../helper/responseBuilder.helper"; // ResponseBuilder,
-// import { FastifyRequest } from "fastify";
-// import countFilesRecursive from "../../helper/filesCounterInFolder.helper";
+import buildResponse from "../helper/responseBuilder.helper";
 import InMemoryCache from "../../Memory/memory.operation";
 import fs from "fs";
 
@@ -14,28 +12,7 @@ export default class StatsController {
     this.AxioDBInstance = AxioDBInstance;
   }
 
-  /**
-   * Retrieves dashboard statistics for the AxioDB instance.
-   *
-   * This method gathers and compiles various statistics about the database system:
-   * - Count of databases, collections, and documents
-   * - Storage information (used storage and total machine storage)
-   * - In-memory cache details
-   *
-   * All storage metrics are converted to MB for consistency.
-   *
-   * @returns {Promise<Object>} A formatted response object containing:
-   *   - HTTP status code
-   *   - Status message
-   *   - Data payload with the following statistics:
-   *     - totalDatabases: Number of databases in the instance
-   *     - totalCollections: Total number of collections across all databases
-   *     - totalDocuments: Total number of documents across all collections
-   *     - storageInfo: Object containing storage metrics (total used, machine total, and units)
-   *     - cacheStorage: Object containing cache storage metrics (current usage, maximum, and units)
-   *
-   * @throws Will return an error response with status 500 if the operation fails
-   */
+  /** All storage metrics are converted to MB for consistency. */
   public async getDashBoardStat(): Promise<object> {
     try {
       const InstanceInfo = await this.AxioDBInstance.getInstanceInfo();
@@ -43,7 +20,6 @@ export default class StatsController {
       let totalDocuments = 0;
       const treeMap = [];
 
-      // Extract Total Stats from the InstanceInfo
       if (InstanceInfo && InstanceInfo.data) {
         for (const db of InstanceInfo.data.ListOfDatabases) {
           const dbTree = {
@@ -73,16 +49,13 @@ export default class StatsController {
         }
       }
 
-      // Get storage info and convert to MB
       let totalMachineStorage = 0;
       let totalUsedStorage = InstanceInfo?.data?.TotalSize || 0;
 
       try {
-        // Get disk info for the root directory
         const stats = fs.statfsSync("/");
         const totalBytes = stats.blocks * stats.bsize;
 
-        // Convert to MB
         totalMachineStorage = parseFloat(
           (totalBytes / (1024 * 1024)).toFixed(2),
         );

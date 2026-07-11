@@ -5,19 +5,16 @@ import { requireAuth, requireFreshPassword } from "../../middleware/auth.middlew
 import { requirePermission } from "../../middleware/permission.middleware";
 import { PERMISSIONS } from "../../../config/Keys/Permissions";
 
-// Extended options interface to include AxioDB instance
 interface RouterOptions extends FastifyPluginOptions {
   AxioDBInstance: AxioDB;
 }
 
-// Index Router
 export default async function indexRouter(
   fastify: FastifyInstance,
   options: RouterOptions,
 ) {
   const { AxioDBInstance } = options;
 
-  // List Indexes
   fastify.get(
     "/list",
     {
@@ -26,7 +23,6 @@ export default async function indexRouter(
     async (request) => new IndexController(AxioDBInstance).getIndexes(request),
   );
 
-  // Create Index
   fastify.post(
     "/create",
     {
@@ -35,7 +31,6 @@ export default async function indexRouter(
     async (request) => new IndexController(AxioDBInstance).createIndex(request),
   );
 
-  // Delete Index
   fastify.delete(
     "/delete",
     {

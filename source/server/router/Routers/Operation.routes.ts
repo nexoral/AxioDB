@@ -8,40 +8,34 @@ import { requireAuth, requireFreshPassword } from "../../middleware/auth.middlew
 import { requirePermission } from "../../middleware/permission.middleware";
 import { PERMISSIONS } from "../../../config/Keys/Permissions";
 
-// Extended options interface to include AxioDB instance
 interface RouterOptions extends FastifyPluginOptions {
   AxioDBInstance: AxioDB;
 }
 
-// Collection Router
 export default async function OperationRouter(
   fastify: FastifyInstance,
   options: RouterOptions,
 ) {
   const { AxioDBInstance } = options;
 
-  // Get All Documents
   fastify.get(
     "/all/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_VIEW)] },
     async (request, reply) => new CRUDController(AxioDBInstance).getAllDocuments(request),
   );
 
-  // Get Document by Query
   fastify.post(
     "/all/by-query/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_QUERY)] },
     async (request, reply) => new CRUDController(AxioDBInstance).getDocumentsByQuery(request),
   );
 
-  // Get Document by id
   fastify.get(
     "/all/by-id/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_VIEW)] },
     async (request, reply) => new CRUDController(AxioDBInstance).getDocumentsById(request),
   );
 
-  // Create New Document
   fastify.post(
     "/create/",
     {
@@ -58,7 +52,6 @@ export default async function OperationRouter(
     async (request, reply) => new CRUDController(AxioDBInstance).createManyNewDocument(request),
   );
 
-  // Update Document by Id
   fastify.put(
     "/update/by-id/",
     {
@@ -67,7 +60,6 @@ export default async function OperationRouter(
     async (request, reply) => new CRUDController(AxioDBInstance).updateDocumentById(request),
   );
 
-  // Update Document by Query
   fastify.put(
     "/update/by-query/",
     {
@@ -76,7 +68,6 @@ export default async function OperationRouter(
     async (request, reply) => new CRUDController(AxioDBInstance).updateDocumentByQuery(request),
   );
 
-  // Delete Document by Id
   fastify.delete(
     "/delete/by-id/",
     {
@@ -85,7 +76,6 @@ export default async function OperationRouter(
     async (request, reply) => new CRUDController(AxioDBInstance).deleteDocumentById(request),
   );
 
-  // Delete Document by Query
   fastify.delete(
     "/delete/by-query/",
     {

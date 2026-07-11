@@ -4,7 +4,6 @@ export const General = {
   DBMS_File_EXT : ".axiodb",
 }
 
-// Web Server Configuration
 export enum WebServer {
   StaticServerPORT = 2025,
   ApiServerPORT = 2026,

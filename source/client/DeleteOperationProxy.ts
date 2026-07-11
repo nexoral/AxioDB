@@ -1,10 +1,7 @@
 import { AxioDBCloud } from './AxioDBCloud.client';
 import { CommandType } from '../tcp/types/command.types';
 
-/**
- * Delete Operation Proxy - Delete builder for remote deletes
- * Mirrors the DeleteOperation class API
- */
+/** Mirrors the DeleteOperation class API. */
 export default class DeleteOperationProxy {
   private client: AxioDBCloud;
   private dbName: string;
@@ -18,9 +15,6 @@ export default class DeleteOperationProxy {
     this.query = query;
   }
 
-  /**
-   * Delete one document matching the query
-   */
   async deleteOne(): Promise<any> {
     return await this.client.sendCommand(CommandType.DELETE_DOCUMENTS_BY_QUERY, {
       dbName: this.dbName,
@@ -30,9 +24,6 @@ export default class DeleteOperationProxy {
     });
   }
 
-  /**
-   * Delete many documents matching the query
-   */
   async deleteMany(): Promise<any> {
     return await this.client.sendCommand(CommandType.DELETE_DOCUMENTS_BY_QUERY, {
       dbName: this.dbName,

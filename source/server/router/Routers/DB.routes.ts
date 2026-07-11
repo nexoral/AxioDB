@@ -10,20 +10,17 @@ import { requireAuth, requireFreshPassword } from "../../middleware/auth.middlew
 import { requirePermission } from "../../middleware/permission.middleware";
 import { PERMISSIONS } from "../../../config/Keys/Permissions";
 
-// Extended options interface to include AxioDB instance
 interface RouterOptions extends FastifyPluginOptions {
   AxioDBInstance: AxioDB;
 }
 
-// DB Routers
 export default async function dbRouter(
   fastify: FastifyInstance,
   options: RouterOptions,
 ): Promise<void> {
-  const { AxioDBInstance } = options; // Access the AxioDB instance passed from the main router
+  const { AxioDBInstance } = options;
   fastify.register(fastifyMultipart);
 
-  // Get all databases
   fastify.get(
     "/databases",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DB_VIEW)] },
@@ -32,21 +29,18 @@ export default async function dbRouter(
     },
   );
 
-  // Create a new database
   fastify.post(
     "/create-database",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DB_CREATE)] },
     async (request) => new DatabaseController(AxioDBInstance).createDatabase(request),
   );
 
-  // Delete a database
   fastify.delete(
     "/delete-database",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DB_DELETE)] },
     async (request) => new DatabaseController(AxioDBInstance).deleteDatabase(request),
   );
 
-  // Export Database
   fastify.get(
     "/export-database/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DB_EXPORT)] },
@@ -54,7 +48,6 @@ export default async function dbRouter(
       new DatabaseController(AxioDBInstance).exportDatabase(request, reply),
   );
 
-  // Import Database
   fastify.post(
     "/import-database/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DB_IMPORT)] },

@@ -5,10 +5,7 @@ import UpdateOperationProxy from './UpdateOperationProxy';
 import DeleteOperationProxy from './DeleteOperationProxy';
 import AggregationProxy from './AggregationProxy';
 
-/**
- * Collection Proxy - Remote proxy for Collection operations
- * Mirrors the Collection class API
- */
+/** Mirrors the Collection class API. */
 export default class CollectionProxy {
   private client: AxioDBCloud;
   private dbName: string;
@@ -20,9 +17,6 @@ export default class CollectionProxy {
     this.collectionName = collectionName;
   }
 
-  /**
-   * Insert a single document
-   */
   async insert(data: object): Promise<any> {
     return await this.client.sendCommand(CommandType.INSERT_DOCUMENT, {
       dbName: this.dbName,
@@ -31,9 +25,6 @@ export default class CollectionProxy {
     });
   }
 
-  /**
-   * Insert many documents
-   */
   async insertMany(documents: object[]): Promise<any> {
     return await this.client.sendCommand(CommandType.INSERT_MANY_DOCUMENTS, {
       dbName: this.dbName,
@@ -42,37 +33,22 @@ export default class CollectionProxy {
     });
   }
 
-  /**
-   * Query documents - returns a query builder
-   */
   query(query: object): ReaderProxy {
     return new ReaderProxy(this.client, this.dbName, this.collectionName, query);
   }
 
-  /**
-   * Update documents - returns an update operation builder
-   */
   update(query: object): UpdateOperationProxy {
     return new UpdateOperationProxy(this.client, this.dbName, this.collectionName, query);
   }
 
-  /**
-   * Delete documents - returns a delete operation builder
-   */
   delete(query: object): DeleteOperationProxy {
     return new DeleteOperationProxy(this.client, this.dbName, this.collectionName, query);
   }
 
-  /**
-   * Aggregate - returns an aggregation builder
-   */
   aggregate(pipeline: object[]): AggregationProxy {
     return new AggregationProxy(this.client, this.dbName, this.collectionName, pipeline);
   }
 
-  /**
-   * Get total document count
-   */
   async totalDocuments(): Promise<any> {
     return await this.client.sendCommand(CommandType.TOTAL_DOCUMENTS, {
       dbName: this.dbName,
@@ -80,9 +56,6 @@ export default class CollectionProxy {
     });
   }
 
-  /**
-   * Create index on fields
-   */
   async newIndex(...fieldNames: string[]): Promise<any> {
     return await this.client.sendCommand(CommandType.CREATE_INDEX, {
       dbName: this.dbName,
@@ -91,9 +64,6 @@ export default class CollectionProxy {
     });
   }
 
-  /**
-   * Drop an index
-   */
   async dropIndex(indexName: string): Promise<any> {
     return await this.client.sendCommand(CommandType.DROP_INDEX, {
       dbName: this.dbName,
@@ -102,9 +72,6 @@ export default class CollectionProxy {
     });
   }
 
-  /**
-   * List all indexes registered on this collection
-   */
   async listIndexes(): Promise<any> {
     return await this.client.sendCommand(CommandType.LIST_INDEXES, {
       dbName: this.dbName,
@@ -112,9 +79,6 @@ export default class CollectionProxy {
     });
   }
 
-  /**
-   * Get collection name
-   */
   get name(): string {
     return this.collectionName;
   }

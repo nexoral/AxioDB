@@ -34,23 +34,20 @@ export default class PathSanitizer {
       throw new Error('Invalid path component: must be a non-empty string');
     }
 
-    // Remove all directory traversal attempts
     let sanitized = userInput
-      .replace(/\.\./g, '_')    // Remove .. (parent directory)
-      .replace(/\//g, '_')      // Remove / (Unix path separator)
-      .replace(/\\/g, '_')      // Remove \ (Windows path separator)
-      .replace(/\0/g, '_');     // Remove null bytes
+      .replace(/\.\./g, '_')    // parent directory
+      .replace(/\//g, '_')      // Unix path separator
+      .replace(/\\/g, '_')      // Windows path separator
+      .replace(/\0/g, '_');     // null bytes
 
-    // Allow only alphanumeric, dash, underscore, and dot (for file extensions)
-    // Note: We preserve dots for file extensions but removed '..' above
+    // Dots are preserved (for file extensions) since '..' was already stripped above
     sanitized = sanitized.replace(/[^a-zA-Z0-9-_.]/g, '_');
 
-    // Prevent empty result
     if (sanitized.length === 0) {
       throw new Error('Invalid path component: results in empty string after sanitization');
     }
 
-    // Prevent starting with dot (hidden files) to avoid potential issues
+    // Avoid producing a hidden file
     if (sanitized.startsWith('.')) {
       sanitized = '_' + sanitized.substring(1);
     }
@@ -104,13 +101,8 @@ export default class PathSanitizer {
    * // Throws: Security violation (after sanitization and validation)
    */
   static safePath(basePath: string, ...components: string[]): string {
-    // Sanitize each component
     const sanitizedComponents = components.map(c => this.sanitizePathComponent(c));
-
-    // Join paths using Node.js path.join (handles platform differences)
     const fullPath = path.join(basePath, ...sanitizedComponents);
-
-    // Validate final path is within base (defense in depth)
     this.validatePath(basePath, fullPath);
 
     return fullPath;

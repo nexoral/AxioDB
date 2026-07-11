@@ -1,10 +1,3 @@
-/**
- * Client-side type definitions for AxioDBCloud
- */
-
-/**
- * Connection configuration options
- */
 export interface AxioDBCloudOptions {
   timeout?: number; // Request timeout in milliseconds (default: 30000)
   reconnectAttempts?: number; // Max reconnection attempts (default: 10)
@@ -46,9 +39,6 @@ export interface PoolDegradedEvent {
   errors: Error[];
 }
 
-/**
- * Connection state
- */
 export enum ConnectionState {
   DISCONNECTED = 'DISCONNECTED',
   CONNECTING = 'CONNECTING',
@@ -57,9 +47,7 @@ export enum ConnectionState {
   FAILED = 'FAILED',
 }
 
-/**
- * Connection string format: axiodb://host:port
- */
+/** Parsed form of an `axiodb://host:port` connection string. */
 export interface ParsedConnectionString {
   host: string;
   port: number;

@@ -34,7 +34,6 @@ export class AxioDBCloud extends EventEmitter {
   constructor(connectionString: string, options?: AxioDBCloudOptions) {
     super();
 
-    // Increase max listeners for reconnection scenarios
     this.setMaxListeners(20);
 
     // Default 'error' listener: Node's EventEmitter throws synchronously when 'error' is
@@ -53,12 +52,10 @@ export class AxioDBCloud extends EventEmitter {
       }
     });
 
-    // Parse connection string
     const parsed = this.parseConnectionString(connectionString);
     this.host = parsed.host;
     this.port = parsed.port;
 
-    // Set options with defaults
     this.options = {
       timeout: options?.timeout || 30000,
       reconnectAttempts: options?.reconnectAttempts || 10,
@@ -198,9 +195,6 @@ export class AxioDBCloud extends EventEmitter {
     return this.pool.find((connection) => connection.authUser)?.authUser;
   }
 
-  /**
-   * Send command to server - picks the least-busy connected pool member.
-   */
   async sendCommand(command: CommandType, params: any): Promise<any> {
     const connection = this.pickConnection();
     if (!connection) {
@@ -230,17 +224,11 @@ export class AxioDBCloud extends EventEmitter {
     return best;
   }
 
-  /**
-   * Disconnect from server - closes every connection in the pool.
-   */
   async disconnect(): Promise<void> {
     await Promise.all(this.pool.map((connection) => connection.disconnect()));
     this.pool = [];
   }
 
-  /**
-   * Database API - mirrors AxioDB
-   */
   async createDB(name: string): Promise<DatabaseProxy> {
     await this.sendCommand(CommandType.CREATE_DB, { dbName: name });
     return new DatabaseProxy(this, name);
@@ -279,9 +267,7 @@ export class AxioDBCloud extends EventEmitter {
     return ConnectionState.FAILED;
   }
 
-  /**
-   * Check if connected - true when at least one pool member is connected.
-   */
+  /** True when at least one pool member is connected (not necessarily all). */
   get isConnected(): boolean {
     return this.pool.some((connection) => connection.state === ConnectionState.CONNECTED);
   }

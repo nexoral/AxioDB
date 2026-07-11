@@ -2,8 +2,6 @@
 import FileSystem from "fs/promises";
 import FileSystemSync from "fs";
 import WorkerProcess from "../cli/worker_process";
-
-// Import Helpers
 import ResponseHelper from "../../Helper/response.helper";
 import {
   ErrorInterface,
@@ -23,9 +21,6 @@ export default class FolderManager {
     this.WorkerProcess = new WorkerProcess();
   }
 
-  /**
-   * Creates a new directory at the specified path.
-   */
   public async CreateDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -37,9 +32,6 @@ export default class FolderManager {
     }
   }
 
-  /**
-   * Deletes a directory at the specified path.
-   */
   public async DeleteDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -51,9 +43,6 @@ export default class FolderManager {
     }
   }
 
-  /**
-   * Checks if a directory exists at the specified path.
-   */
   public async DirectoryExists(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -65,9 +54,6 @@ export default class FolderManager {
     }
   }
 
-  /**
-   * Lists the contents of a directory at the specified path.
-   */
   public async ListDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -79,9 +65,6 @@ export default class FolderManager {
     }
   }
 
-  /**
-   * Moves a directory from the old path to the new path.
-   */
   public async MoveDirectory(
     oldPath: string,
     newPath: string,
@@ -94,9 +77,6 @@ export default class FolderManager {
     }
   }
 
-  /**
-   * Locks a directory at the specified path.
-   */
   public async LockDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -108,9 +88,6 @@ export default class FolderManager {
     }
   }
 
-  /**
-   * Unlocks a directory at the specified path.
-   */
   public async UnlockDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -122,33 +99,25 @@ export default class FolderManager {
     }
   }
 
-  /**
-   * Checks if a directory is locked at the specified path.
-   */
   public async IsDirectoryLocked(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const stats = await this.fileSystem.stat(path);
-      const isLocked = (stats.mode & 0o200) === 0; // Check if the directory is locked (no write permission for owner)
+      const isLocked = (stats.mode & 0o200) === 0; // no write permission for owner
       return this.responseHelper.Success(isLocked);
     } catch (error) {
       return this.responseHelper.Error(`Failed to check lock status: ${error}`);
     }
   }
 
-  /**
-   * get the size of a directory at the specified path.
-   * Handles permission issues by temporarily modifying permissions if needed.
-   */
+  /** Handles permission issues by temporarily modifying permissions if needed. */
   public async GetDirectorySize(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
-    // Store original permissions to restore later
     const permissionsMap = new Map<string, number>();
 
     try {
-      // Check if directory exists
       try {
         await this.fileSystem.access(path);
       } catch (error) {
@@ -160,13 +129,11 @@ export default class FolderManager {
       // Collect and store original permissions, unlock files/folders as needed
       await this.prepareDirectoryForSizeCalculation(path, permissionsMap);
 
-      // Now perform the size calculation
       const osType = WorkerProcess.getOS();
       let size: number;
 
       if (osType === "windows") {
         try {
-          // More comprehensive PowerShell command that handles directories better
           const stdout = await this.WorkerProcess.execCommand(
             `powershell -command "(Get-ChildItem '${path}' -Recurse -Force | Measure-Object -Property Length -Sum).Sum"`,
           );
@@ -179,7 +146,6 @@ export default class FolderManager {
         }
       } else {
         try {
-          // Try du with error redirection
           const stdout = await this.WorkerProcess.execCommand(
             `du -sb "${path}" 2>/dev/null`,
           );
@@ -196,7 +162,6 @@ export default class FolderManager {
       console.error(`Error getting directory size: ${err}`);
       return this.responseHelper.Error(`Failed to get directory size: ${err}`);
     } finally {
-      // Restore original permissions
       await this.restoreDirectoryPermissions(permissionsMap);
     }
   }
@@ -210,12 +175,10 @@ export default class FolderManager {
     permissionsMap: Map<string, number>,
   ): Promise<void> {
     try {
-      // Store original directory permissions
       try {
         const stats = await this.fileSystem.stat(dirPath);
         permissionsMap.set(dirPath, stats.mode);
 
-        // If directory isn't readable, make it readable
         if ((stats.mode & 0o444) !== 0o444) {
           await this.fileSystem.chmod(dirPath, 0o755);
         }
@@ -226,7 +189,6 @@ export default class FolderManager {
         return;
       }
 
-      // Process directory contents
       let items: string[];
       try {
         items = await this.fileSystem.readdir(dirPath);
@@ -235,29 +197,23 @@ export default class FolderManager {
         return;
       }
 
-      // Process each item recursively
       for (const item of items) {
         const itemPath = `${dirPath}/${item}`;
 
         try {
           const stats = await this.fileSystem.stat(itemPath);
-
-          // Store original permissions
           permissionsMap.set(itemPath, stats.mode);
 
           if (stats.isDirectory()) {
-            // If subdirectory isn't readable, make it readable
             if ((stats.mode & 0o444) !== 0o444) {
               await this.fileSystem.chmod(itemPath, 0o755);
             }
 
-            // Recursively process subdirectory
             await this.prepareDirectoryForSizeCalculation(
               itemPath,
               permissionsMap,
             );
           } else if (stats.isFile()) {
-            // If file isn't readable, make it readable
             if ((stats.mode & 0o444) !== 0o444) {
               await this.fileSystem.chmod(itemPath, 0o644);
             }
@@ -271,9 +227,6 @@ export default class FolderManager {
     }
   }
 
-  /**
-   * Restores original permissions for all modified files and directories
-   */
   private async restoreDirectoryPermissions(
     permissionsMap: Map<string, number>,
   ): Promise<void> {

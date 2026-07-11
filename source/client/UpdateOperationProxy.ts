@@ -1,10 +1,7 @@
 import { AxioDBCloud } from './AxioDBCloud.client';
 import { CommandType } from '../tcp/types/command.types';
 
-/**
- * Update Operation Proxy - Update builder for remote updates
- * Mirrors the UpdateOperation class API
- */
+/** Mirrors the UpdateOperation class API. */
 export default class UpdateOperationProxy {
   private client: AxioDBCloud;
   private dbName: string;
@@ -18,9 +15,6 @@ export default class UpdateOperationProxy {
     this.query = query;
   }
 
-  /**
-   * Update one document matching the query
-   */
   async UpdateOne(data: object): Promise<any> {
     return await this.client.sendCommand(CommandType.UPDATE_DOCUMENTS_BY_QUERY, {
       dbName: this.dbName,
@@ -31,9 +25,6 @@ export default class UpdateOperationProxy {
     });
   }
 
-  /**
-   * Update many documents matching the query
-   */
   async UpdateMany(data: object): Promise<any> {
     return await this.client.sendCommand(CommandType.UPDATE_DOCUMENTS_BY_QUERY, {
       dbName: this.dbName,

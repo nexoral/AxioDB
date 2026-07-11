@@ -17,26 +17,24 @@ export default async function createAxioDBControlServer(
   await checkPortAndDocker(ServerKeys.PORT);
 
   const AxioDBControlServer = Fastify({
-    logger: false, // Disable default logging
-    trustProxy: true, // Trust the reverse proxy headers
-    bodyLimit: 52428800, // Set body limit to 50MB
+    logger: false,
+    trustProxy: true,
+    bodyLimit: 52428800, // 50MB
   });
 
-  // Attach Middlewares
   await AxioDBControlServer.register(fastifyCors, {
-    origin: CORS_CONFIG.ORIGIN, // Allow all origins
-    methods: CORS_CONFIG.METHODS, // Allow specific methods
-    allowedHeaders: CORS_CONFIG.ALLOWED_HEADERS, // Allow specific headers
-    credentials: CORS_CONFIG.ALLOW_CREDENTIALS, // Allow credentials
-    exposedHeaders: CORS_CONFIG.EXPOSED_HEADERS, // Expose specific headers
-    maxAge: CORS_CONFIG.MAX_AGE, // Cache preflight response for 24 hours
+    origin: CORS_CONFIG.ORIGIN,
+    methods: CORS_CONFIG.METHODS,
+    allowedHeaders: CORS_CONFIG.ALLOWED_HEADERS,
+    credentials: CORS_CONFIG.ALLOW_CREDENTIALS,
+    exposedHeaders: CORS_CONFIG.EXPOSED_HEADERS,
+    maxAge: CORS_CONFIG.MAX_AGE, // preflight cache duration
   });
 
   // Cookie support for session-based authentication (no signing secret needed -
   // the cookie value is meaningless without a matching entry in SessionStore's map)
   await AxioDBControlServer.register(fastifyCookie);
 
-  // Configure JSON parsing
   AxioDBControlServer.addContentTypeParser(
     "application/json",
     { parseAs: "string", bodyLimit: 52428800 },
@@ -50,24 +48,24 @@ export default async function createAxioDBControlServer(
     },
   );
 
-  // Serve static files first (JS, CSS, images)
+  // Registered before the SPA fallback route below, so static assets are served directly
+  // rather than falling through to index.html.
   await AxioDBControlServer.register(fastifyStatic, {
     root: staticPath,
     prefix: "/",
     decorateReply: false,
   });
 
-  // Serve React app for all other routes as SPA fallback
+  // SPA fallback: any non-API, non-static route gets the React app's index.html
   AxioDBControlServer.get("/", async (request, reply) => {
     const indexPath = path.join(staticPath, "index.html");
     const stream = fs.createReadStream(indexPath);
     return reply.type("text/html").send(stream);
   });
 
-  // Register the main router with /api prefix
   AxioDBControlServer.register(router, {
     prefix: "/api",
-    AxioDBInstance, // Pass the AxioDB instance to the router
+    AxioDBInstance,
   });
 
   try {
