@@ -34,7 +34,10 @@ function checkTcp() {
   // uses internally to monitor its own connection - PING is exempt from TCPAuth, so this
   // works regardless of whether the container was started with AXIODB_TCP_AUTH=true.
   const { AxioDBCloud } = require('./lib/config/DB.js');
-  const client = new AxioDBCloud('axiodb://localhost:27019', { timeout: CHECK_TIMEOUT_MS });
+  // maxPoolSize: 1 - a liveness probe only needs one connection; the client's default pool
+  // size of 10 would otherwise open (and immediately tear down) 10 TCP handshakes every
+  // HEALTHCHECK interval for no benefit.
+  const client = new AxioDBCloud('axiodb://localhost:27019', { timeout: CHECK_TIMEOUT_MS, maxPoolSize: 1 });
 
   // AxioDBCloud is an EventEmitter that re-emits socket errors as 'error' - without a
   // listener here, an unexpected disconnect would crash this healthcheck process instead

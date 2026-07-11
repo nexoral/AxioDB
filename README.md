@@ -212,7 +212,7 @@ await session.withTransaction(async (tx) => {
 - **🔁 Auto-Reconnect:** exponential backoff, up to 10 retry attempts
 - **💓 Heartbeat Monitoring:** `PING`/`PONG` every 30 seconds
 - **🆔 Request Correlation:** UUID-based request/response matching
-- **🧵 Connection Pooling:** client keeps a pool of `maxPoolSize` concurrent connections (default: 10, mirrors MongoDB's driver option) and distributes commands round-robin; server accepts 1,000+ concurrent connections total
+- **🧵 Connection Pooling:** client keeps a pool of `maxPoolSize` concurrent connections (default: 10, mirrors MongoDB's driver option) and routes each command to the least-busy connected member (fewest in-flight requests); server accepts 1,000+ concurrent connections total (see the [file descriptor limit note](#connection-refused--too-many-open-files-errors-at-high-concurrency) below if you're running near that scale)
 - **📐 TypeScript Support:** full type definitions included
 
 **Use cases:** microservices sharing one AxioDB instance, Electron apps connecting to a local or remote database, teams sharing a development database, container/cloud deployments (AWS, Azure, GCP, DigitalOcean).
@@ -329,6 +329,37 @@ You (or a client) tried to read/write a database literally named `config` — th
 ### Docker container issues (won't start, port conflicts, data not persisting)
 
 See the [Docker Deployment](#-docker-deployment) section below, and `Docker/README.md` in the repository for a fuller Docker-specific troubleshooting guide (`docker logs`, port-conflict remapping, volume-mounting checklist).
+
+### Connection refused / "Too many open files" errors at high concurrency
+
+Each `AxioDBCloud` client opens `maxPoolSize` TCP sockets (default: 10), and the server holds one socket per connected client — both count against the OS's open-file-descriptor limit. Most Linux distros default `ulimit -n` to 1024 per process, which is enough for only ~100 clients at the default pool size before the server starts refusing new connections with `EMFILE`/`ENFILE`.
+
+If you're deploying towards the 1,000+ concurrent connections the server supports, raise the limit before starting the process:
+
+```bash
+ulimit -n 65536          # current shell / process
+node lib/config/DB.js
+```
+
+In Docker, set it on the container instead of the host shell:
+
+```bash
+docker run --ulimit nofile=65536:65536 -p 27018:27018 -p 27019:27019 axiodb:latest
+```
+
+or, in Compose:
+
+```yaml
+services:
+  axiodb:
+    image: axiodb:latest
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+```
+
+On the client side, prefer a smaller `maxPoolSize` per instance rather than raising it — the least-busy routing (see [Connection Pooling](#-axiodbcloud--connecting-remotely) above) already avoids the head-of-line blocking a bigger pool would otherwise compensate for.
 
 ---
 

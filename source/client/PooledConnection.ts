@@ -39,6 +39,11 @@ export default class PooledConnection {
   public state: ConnectionState = ConnectionState.DISCONNECTED;
   public authUser?: AuthenticatedUser;
 
+  /** Number of requests sent on this connection awaiting a response - used by the owning pool to route new commands to the least-busy member instead of blind round-robin. */
+  get pendingCount(): number {
+    return this.pendingRequests.size;
+  }
+
   constructor(
     private readonly host: string,
     private readonly port: number,

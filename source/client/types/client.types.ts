@@ -13,8 +13,9 @@ export interface AxioDBCloudOptions {
   username?: string; // Username to authenticate with, if the server was started with TCPAuth: true
   password?: string; // Password to authenticate with, if the server was started with TCPAuth: true
   // Number of concurrent TCP connections to keep open in the pool (default: 10). Mirrors
-  // MongoDB's driver option of the same name. Commands are distributed round-robin across
-  // connected pool members; each member reconnects and re-authenticates independently.
+  // MongoDB's driver option of the same name. Commands are routed to whichever connected
+  // pool member has the fewest in-flight requests (least-busy); each member reconnects and
+  // re-authenticates independently.
   maxPoolSize?: number;
 }
 

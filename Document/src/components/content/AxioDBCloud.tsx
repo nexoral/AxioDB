@@ -270,11 +270,24 @@ await client.disconnect();`}
             />
             <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
               <strong>maxPoolSize</strong> mirrors MongoDB&apos;s driver option of the same name.
-              AxioDBCloud opens this many concurrent TCP connections to the server and
-              distributes commands across them round-robin, so a burst of concurrent requests
-              isn&apos;t serialized over a single socket. Each pooled connection reconnects and
+              AxioDBCloud opens this many concurrent TCP connections to the server and routes
+              each command to whichever connected member currently has the fewest in-flight
+              requests (least-busy), so a burst of concurrent requests isn&apos;t serialized over
+              a single socket, and a slow command on one connection doesn&apos;t queue new work
+              behind it while other members sit idle. Each pooled connection reconnects and
               re-authenticates independently, so one dropped connection never blocks commands
               routed to the others.
+            </p>
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+              Each pool member is a socket, and the server holds one socket per connected
+              client - both count against the OS&apos;s open-file-descriptor limit
+              (<code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">ulimit -n</code>,
+              often 1024 by default on Linux). At the default pool size that&apos;s enough for
+              roughly 100 clients before the server starts refusing new connections. If you&apos;re
+              deploying towards the 1,000+ concurrent connections the server supports, raise the
+              limit (e.g. <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">ulimit -n 65536</code>,
+              or <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">docker run --ulimit nofile=65536:65536</code>)
+              rather than raising <strong>maxPoolSize</strong> per client.
             </p>
           </div>
         </div>

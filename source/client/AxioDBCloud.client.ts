@@ -11,16 +11,17 @@ const DEFAULT_MAX_POOL_SIZE = 10;
  * AxioDBCloud - TCP Client for remote AxioDB access
  *
  * Maintains a pool of `maxPoolSize` concurrent TCP connections (default: 10, mirrors
- * MongoDB's driver default naming/behavior) to the same server. Commands are distributed
- * round-robin across connected pool members; each member independently reconnects (with
- * exponential backoff) and re-authenticates, so one dropped connection never affects the
- * others or blocks in-flight commands routed to healthy members.
+ * MongoDB's driver default naming/behavior) to the same server. Commands are routed to
+ * whichever connected pool member has the fewest in-flight requests, so a slow command
+ * on one connection doesn't queue new commands behind it while other members sit idle;
+ * each member independently reconnects (with exponential backoff) and re-authenticates,
+ * so one dropped connection never affects the others or blocks in-flight commands routed
+ * to healthy members.
  */
 export class AxioDBCloud extends EventEmitter {
   private host: string;
   private port: number;
   private pool: PooledConnection[] = [];
-  private roundRobinIndex = 0;
   private options: Required<Omit<AxioDBCloudOptions, 'username' | 'password'>>;
   // Kept separate from `options` above: unlike timeout/reconnectAttempts/etc, credentials
   // have no sensible default, so they can't live in a Required<AxioDBCloudOptions> object.
@@ -163,7 +164,7 @@ export class AxioDBCloud extends EventEmitter {
   }
 
   /**
-   * Send command to server - picks a connected pool member round-robin.
+   * Send command to server - picks the least-busy connected pool member.
    */
   async sendCommand(command: CommandType, params: any): Promise<any> {
     const connection = this.pickConnection();
@@ -174,21 +175,24 @@ export class AxioDBCloud extends EventEmitter {
     return connection.sendCommand(command, params);
   }
 
+  /**
+   * Picks the connected pool member with the fewest in-flight requests (least-busy),
+   * rather than round-robin, so a connection stuck on a slow command doesn't receive
+   * more work while other members are idle.
+   */
   private pickConnection(): PooledConnection | null {
-    const poolSize = this.pool.length;
-    if (poolSize === 0) {
-      return null;
-    }
+    let best: PooledConnection | null = null;
 
-    for (let attempts = 0; attempts < poolSize; attempts++) {
-      const connection = this.pool[this.roundRobinIndex % poolSize];
-      this.roundRobinIndex = (this.roundRobinIndex + 1) % poolSize;
-      if (connection.state === ConnectionState.CONNECTED) {
-        return connection;
+    for (const connection of this.pool) {
+      if (connection.state !== ConnectionState.CONNECTED) {
+        continue;
+      }
+      if (best === null || connection.pendingCount < best.pendingCount) {
+        best = connection;
       }
     }
 
-    return null;
+    return best;
   }
 
   /**
