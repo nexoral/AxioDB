@@ -232,6 +232,37 @@ export default class AuthService {
     return result.data.documents as RoleDocument[];
   }
 
+  public async deleteRole(roleName: string): Promise<MutationResult> {
+    const roles = await this.listRoles();
+    const role = roles.find((entry) => entry.roleName === roleName);
+    if (!role) {
+      return { success: false, message: "Role not found" };
+    }
+    if (role.isSystemRole) {
+      return { success: false, message: "Cannot delete a predefined system role" };
+    }
+
+    const usersWithRole = await ConfigDatabase.getUsersCollection()
+      .query({ role: roleName })
+      .Limit(1)
+      .exec();
+    const hasUsers =
+      "data" in usersWithRole &&
+      Array.isArray(usersWithRole.data?.documents) &&
+      usersWithRole.data.documents.length > 0;
+    if (hasUsers) {
+      return {
+        success: false,
+        message: `Cannot delete role "${roleName}" - it is still assigned to one or more users`,
+      };
+    }
+
+    await ConfigDatabase.getRolesCollection().delete({ roleName }).deleteOne();
+    PermissionChecker.deleteRole(roleName);
+
+    return { success: true, message: "Role deleted successfully" };
+  }
+
   /**
    * Rejects an operation that would leave zero active Super Admin users behind,
    * preventing a permanent RBAC lockout.

@@ -31,4 +31,13 @@ if (process.env.AXIODB_TLS_KEY_PATH) {
   options.TLSKeyPath = process.env.AXIODB_TLS_KEY_PATH;
 }
 
-new AxioDB(options);
+const axioDBInstance = new AxioDB(options);
+
+// Opt-in MCP server (Model Context Protocol) - runs in this same process against this same
+// AxioDB instance, on its own port. Requires real login (default admin/admin, same as the
+// GUI) and enforces the same RBAC permissions per tool call; see mcpServer.js.
+if (parseBoolean(process.env.AXIODB_MCP, false)) {
+  require('./mcpServer.js')(axioDBInstance);
+}
+
+module.exports = axioDBInstance;

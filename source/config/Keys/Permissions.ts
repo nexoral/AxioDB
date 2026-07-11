@@ -28,6 +28,7 @@ export const PERMISSIONS = {
 
   ROLE_VIEW: "role:view",
   ROLE_CREATE: "role:create",
+  ROLE_DELETE: "role:delete",
 
   INDEX_VIEW: "index:view",
   INDEX_CREATE: "index:create",
@@ -70,6 +71,7 @@ export const PERMISSION_CATALOGUE: PermissionCatalogueEntry[] = [
 
   { key: PERMISSIONS.ROLE_VIEW, group: "Role Management", description: "View the list of roles and the permission catalogue" },
   { key: PERMISSIONS.ROLE_CREATE, group: "Role Management", description: "Create new roles from the predefined permission catalogue" },
+  { key: PERMISSIONS.ROLE_DELETE, group: "Role Management", description: "Delete a custom role that is not a predefined system role and has no users assigned" },
 
   { key: PERMISSIONS.INDEX_VIEW, group: "Index", description: "View the list of indexes on a collection" },
   { key: PERMISSIONS.INDEX_CREATE, group: "Index", description: "Create new indexes on a collection" },

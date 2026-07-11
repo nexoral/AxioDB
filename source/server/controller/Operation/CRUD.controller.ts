@@ -388,23 +388,15 @@ export default class CRUDController {
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
-    if (isMany) {
-      const deleteResult = await DB_Collection.delete(query).deleteMany();
-      console.log(deleteResult);
-      if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
-        return buildResponse(
-          StatusCodes.INTERNAL_SERVER_ERROR,
-          "Failed to delete document",
-        );
-      } else {
-        const deleteResult = await DB_Collection.delete(query).deleteOne();
-        if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
-          return buildResponse(
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            "Failed to delete document",
-          );
-        }
-      }
+    const deleteResult = isMany
+      ? await DB_Collection.delete(query).deleteMany()
+      : await DB_Collection.delete(query).deleteOne();
+
+    if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
+      return buildResponse(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "Failed to delete document",
+      );
     }
 
     return buildResponse(StatusCodes.OK, "Document deleted successfully");

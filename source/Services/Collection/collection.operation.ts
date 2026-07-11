@@ -16,6 +16,7 @@ import Session from "../Transaction/Session.service";
 
 import { StatusCodes } from "../../config/Keys/StatusCode";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
+import { General } from "../../config/Keys/Keys";
 
 // Converter
 import Converter from "../../Helper/Converter.helper";
@@ -92,9 +93,12 @@ export default class Collection {
         if (isLocked.data === false) {
           // List all files in the directory
           const files = await new FolderManager().ListDirectory(this.path);
+          const documentFiles = files.data.filter((fileName: string) =>
+            fileName.endsWith(General.DBMS_File_EXT),
+          );
           return new ResponseHelper().Success({
             message: "Total Documents in the Collection",
-            total: files.data.length,
+            total: documentFiles.length,
           });
         } else {
           // if Directory is locked then unlock it
@@ -104,6 +108,9 @@ export default class Collection {
           if ("data" in unlockResponse) {
             // List all files in the directory
             const files = await new FolderManager().ListDirectory(this.path);
+            const documentFiles = files.data.filter((fileName: string) =>
+              fileName.endsWith(General.DBMS_File_EXT),
+            );
             // Lock the directory again
             const lockResponse = await new FolderManager().LockDirectory(
               this.path,
@@ -111,7 +118,7 @@ export default class Collection {
             if ("data" in lockResponse) {
               return new ResponseHelper().Success({
                 message: "Total Documents in the Collection",
-                total: files.data.length,
+                total: documentFiles.length,
               });
             } else {
               return new ResponseHelper().Error("Cannot lock the directory");

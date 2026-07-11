@@ -18,6 +18,10 @@ class PermissionChecker {
     this.rolePermissions.set(roleName, permissions);
   }
 
+  public deleteRole(roleName: string): void {
+    this.rolePermissions.delete(roleName);
+  }
+
   public hydrate(roles: { roleName: string; permissions: string[] }[]): void {
     for (const role of roles) {
       this.rolePermissions.set(role.roleName, role.permissions);
