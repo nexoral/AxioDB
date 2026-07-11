@@ -9,13 +9,115 @@ permissions:
   pull-requests: write
 
 jobs:
+  auth_rbac_gate:
+    name: "Gate 1 — Auth (RBAC) Test Suite"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Run Auth (RBAC) tests
+        run: npm test auth
+
+  tcp_auth_rbac_gate:
+    name: "Gate 2 — TCP Auth (AxioDBCloud RBAC) Test Suite"
+    needs: [auth_rbac_gate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Run TCP Auth (AxioDBCloud RBAC) tests
+        run: npm test tcp-auth
+
+  tcp_noauth_compat_gate:
+    name: "Gate 3 — TCP No-Auth (Backward Compatibility) Test Suite"
+    needs: [tcp_auth_rbac_gate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Run TCP No-Auth (backward compatibility) tests
+        run: npm test tcp-noauth
+
   test:
+    needs: [tcp_noauth_compat_gate]
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [20.x, 21.x, 22.x, 23.x, 24.x, 25.x, 26.x]
       fail-fast: false  # Continue testing other versions even if one fails
-    name: Test (Node ${{ matrix.node-version }})
+    name: "Gate 4 — Full Matrix Test (Node ${{ matrix.node-version }})"
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
@@ -49,7 +151,11 @@ jobs:
       - name: Run Transaction tests
         run: npm test transaction
 
+      - name: Run Read Optimization tests
+        run: npm test read
+
   auto-merge:
+    name: "Gate 5 — Version Check & Auto Merge"
     needs: [test]  # Wait for all test matrix jobs to complete
     runs-on: ubuntu-latest
     if: success()  # Only run if all tests passed

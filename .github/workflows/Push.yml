@@ -26,7 +26,9 @@ jobs:
     outputs:
       run_test: ${{ steps.filter.outputs.test_scripts == 'true' || steps.filter.outputs.main == 'true' || steps.filter.outputs.docker == 'true' }}
       run_npm_github: ${{ steps.filter.outputs.main == 'true' }}
-      run_docker: ${{ steps.filter.outputs.docker == 'true' }}
+      # 'main' already covers source/** and GUI/** (see filters below), so this fires the
+      # Docker publish whenever source, GUI, or Docker/** itself changes - not just Docker/**.
+      run_docker: ${{ steps.filter.outputs.docker == 'true' || steps.filter.outputs.main == 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -48,8 +50,113 @@ jobs:
             docker:
               - 'Docker/**'
 
-  test:
+  auth_rbac_gate:
+    name: "Gate 1 — Auth (RBAC) Test Suite"
     needs: [detect_changes]
+    if: needs.detect_changes.outputs.run_test == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run Auth (RBAC) tests
+        run: npm test auth
+
+  tcp_auth_rbac_gate:
+    name: "Gate 2 — TCP Auth (AxioDBCloud RBAC) Test Suite"
+    needs: [detect_changes, auth_rbac_gate]
+    if: needs.detect_changes.outputs.run_test == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run TCP Auth (AxioDBCloud RBAC) tests
+        run: npm test tcp-auth
+
+  tcp_noauth_compat_gate:
+    name: "Gate 3 — TCP No-Auth (Backward Compatibility) Test Suite"
+    needs: [detect_changes, tcp_auth_rbac_gate]
+    if: needs.detect_changes.outputs.run_test == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run TCP No-Auth (backward compatibility) tests
+        run: npm test tcp-noauth
+
+  test:
+    needs: [detect_changes, tcp_noauth_compat_gate]
     if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -58,7 +165,7 @@ jobs:
       matrix:
         node-version: [20.x, 21.x, 22.x, 23.x, 24.x, 25.x, 26.x]
       fail-fast: false  # Continue testing other versions even if one fails
-    name: Test (Node ${{ matrix.node-version }})
+    name: "Gate 4 — Full Matrix Test (Node ${{ matrix.node-version }})"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
