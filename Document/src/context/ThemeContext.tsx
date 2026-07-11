@@ -17,6 +17,13 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
+    // SSG prerenders this on the Node side, where window/localStorage don't exist -
+    // fall back to "light" there; the real preference is picked up once this
+    // hydrates in the browser and the effect below re-checks localStorage.
+    if (typeof window === "undefined") {
+      return "light";
+    }
+
     // Check for saved theme preference in localStorage
     const savedTheme = localStorage.getItem("theme");
 

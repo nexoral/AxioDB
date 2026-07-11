@@ -17,7 +17,7 @@ Sweet spot: 10K–500K documents. Perfect for Electron apps, CLI tools, local-fi
 - ACID-compliant transactions with savepoints, rollback, and WAL
 - AES-256 encryption per collection
 - Built-in web GUI at localhost:27018, with role-based login (Super Admin/Admin/View roles)
-- AxioDBCloud: TCP remote access for Docker/Cloud deployments
+- AxioDBCloud: TCP remote access for Docker/Cloud deployments, with optional shared-RBAC authentication (TCPAuth)
 - Full TypeScript support
 
 ## Install
@@ -30,15 +30,23 @@ Requires Node.js >= 20.0.0
 
 ## Documentation Pages
 
-- [Introduction & Quick Start](https://axiodb.in/): What AxioDB is, hello world example, performance benchmarks
-- [Installation](https://axiodb.in/installation): npm install, requirements, Docker setup
-- [Usage & Examples](https://axiodb.in/usage): CRUD, queries, collections, aggregation, transactions
-- [Features](https://axiodb.in/features): Caching, encryption, bulk ops, indexing, GUI
-- [Comparison](https://axiodb.in/comparison): AxioDB vs SQLite, JSON files, lowdb, nedb, better-sqlite3
-- [AxioDBCloud](https://axiodb.in/cloud): TCP remote access, Docker deployment, 1000+ connections
-- [API Reference](https://axiodb.in/api): Complete API — AxioDB, Database, Collection, Reader, Transaction
-- [Security](https://axiodb.in/security): AES-256 encryption, access controls, best practices
-- [Advanced Features](https://axiodb.in/advanced): Transactions, custom indexes, aggregation pipelines
+- [Introduction](https://axiodb.in/)
+- [Features](https://axiodb.in/features)
+- [Limitations & Scale Considerations](https://axiodb.in/limitations)
+- [Installation](https://axiodb.in/installation)
+- [Basic Usage & Operations](https://axiodb.in/usage)
+- [Advanced Features](https://axiodb.in/advanced-features)
+- [API Reference](https://axiodb.in/api-reference)
+- [Server API (HTTP)](https://axiodb.in/server-api)
+- [Security & Access Control](https://axiodb.in/security)
+- [Community](https://axiodb.in/community)
+- [Performance Comparison](https://axiodb.in/comparison)
+- [Create Database](https://axiodb.in/create-database)
+- [Create Collection](https://axiodb.in/create-collection)
+- [AxioDBCloud (Remote/TCP)](https://axiodb.in/cloud)
+- [Docker Deployment](https://axiodb.in/docker)
+- [Troubleshooting](https://axiodb.in/troubleshooting)
+- [Maintainer's Zone](https://axiodb.in/maintainers-zone)
 
 ## Source & Package
 

@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { React as Service } from "react-caches";
+import React from "react";
+import Seo from "../ui/Seo";
 import CodeBlock from "../ui/CodeBlock";
 import {
   Cloud,
@@ -20,14 +20,13 @@ import {
 } from "lucide-react";
 
 const AxioDBCloud: React.FC = () => {
-  useEffect(() => {
-    Service.UpdateDocumentTitle(
-      "AxioDBCloud - Remote Database Access | AxioDB Documentation"
-    );
-  }, []);
-
   return (
     <div className="space-y-12">
+      <Seo
+        title="AxioDBCloud - Remote Database Access | AxioDB Documentation"
+        description="Connect to AxioDB remotely over TCP with AxioDBCloud - simple and authenticated (TCPAuth) connection modes, Docker deployment, and the same API as embedded AxioDB."
+        path="/cloud"
+      />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-blue-900/20 dark:via-slate-800 dark:to-indigo-900/20 rounded-2xl p-8 lg:p-12 border border-blue-200 dark:border-blue-700 shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"></div>

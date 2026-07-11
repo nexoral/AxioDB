@@ -11,12 +11,9 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import CodeBlock from "../ui/CodeBlock";
-import { React as Service } from "react-caches";
+import Seo from "../ui/Seo";
 
 const Usage: React.FC = () => {
-  React.useEffect(() => {
-    Service.UpdateDocumentTitle("AxioDB Basic Usage - CRUD Operations & Query Guide");
-  }, []);
   const [step, setStep] = useState<
     "selectCodeType" | "selectExampleType" | "showExample"
   >("selectCodeType");
@@ -138,6 +135,11 @@ console.log(paginatedDocuments);`,
 
   return (
     <section id="usage" className="pt-12 scroll-mt-20">
+      <Seo
+        title="AxioDB Basic Usage - CRUD Operations & Query Guide"
+        description="Learn AxioDB's CRUD operations, chainable query API, and basic usage patterns with CommonJS and ES6 examples."
+        path="/usage"
+      />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-green-900/20 dark:via-slate-800 dark:to-emerald-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-green-200 dark:border-green-800 shadow-xl">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-green-400/10 to-emerald-400/10 rounded-full blur-3xl"></div>
@@ -148,9 +150,9 @@ console.log(paginatedDocuments);`,
               <BookOpen className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-green-800 via-emerald-700 to-teal-700 dark:from-green-200 dark:via-emerald-300 dark:to-teal-200 bg-clip-text text-transparent">
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-green-800 via-emerald-700 to-teal-700 dark:from-green-200 dark:via-emerald-300 dark:to-teal-200 bg-clip-text text-transparent">
                 Getting Started with AxioDB
-              </h2>
+              </h1>
               <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
                 Interactive examples and comprehensive usage guide
               </p>

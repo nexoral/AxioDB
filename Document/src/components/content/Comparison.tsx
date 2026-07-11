@@ -1,20 +1,22 @@
 import { GitCompare, Zap } from "lucide-react";
-import React, { useEffect } from "react";
-import { React as Service } from "react-caches";
+import React from "react";
+import Seo from "../ui/Seo";
 
 const Comparison: React.FC = () => {
-  useEffect(() => {
-    Service.UpdateDocumentTitle("AxioDB vs SQLite, MongoDB, LowDB - Performance Comparison");
-  }, []);
   return (
     <section id="comparison" className="pt-12 scroll-mt-20">
+      <Seo
+        title="AxioDB vs SQLite, MongoDB, LowDB - Performance Comparison"
+        description="Feature and performance comparison of AxioDB against SQLite, JSON files, lowdb, nedb, and better-sqlite3."
+        path="/comparison"
+      />
       <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-purple-900/20 dark:via-slate-800 dark:to-blue-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-purple-200 dark:border-purple-800 shadow-xl animate-fade-in">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-purple-400/10 to-blue-400/10 rounded-full blur-3xl animate-float"></div>
         <div className="relative z-10">
-          <h2 className="text-4xl font-extrabold mb-6 flex items-center gap-2 bg-gradient-to-r from-purple-700 via-blue-600 to-pink-700 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-extrabold mb-6 flex items-center gap-2 bg-gradient-to-r from-purple-700 via-blue-600 to-pink-700 bg-clip-text text-transparent">
             <GitCompare className="h-10 w-10 text-purple-500" /> Performance
             Comparison
-          </h2>
+          </h1>
           <p className="text-xl text-slate-700 dark:text-slate-300 font-light mb-8">
             AxioDB is designed for embedded applications requiring local data storage
             with intelligent caching. It combines the simplicity of SQLite with MongoDB-style

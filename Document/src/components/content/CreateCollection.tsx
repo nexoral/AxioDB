@@ -1,12 +1,9 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { AlertCircle } from "lucide-react";
 import CodeBlock from "../ui/CodeBlock";
-import { React as Service } from "react-caches";
+import Seo from "../ui/Seo";
 
 const CreateCollection: React.FC = () => {
-  useEffect(() => {
-    Service.UpdateDocumentTitle("Create Collection in AxioDB - Schema & Encryption Guide");
-  }, []);
   const codeExamples = {
     basic: `
 const { AxioDB } = require("axiodb");
@@ -32,7 +29,12 @@ console.log("Encrypted collection created (custom key):", customKeyCollection);
 
   return (
     <section className="pt-12 scroll-mt-20">
-      <h2 className="text-3xl font-bold mb-6">Create Collection</h2>
+      <Seo
+        title="Create Collection in AxioDB - Schema & Encryption Guide"
+        description="Create plain or AES-256 encrypted collections in AxioDB, with auto-generated or custom encryption keys."
+        path="/create-collection"
+      />
+      <h1 className="text-3xl font-bold mb-6">Create Collection</h1>
 
       {/* Parameter Block */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-8">

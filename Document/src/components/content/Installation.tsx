@@ -7,16 +7,18 @@ import {
   AlertCircle,
 } from "lucide-react";
 import CodeBlock from "../ui/CodeBlock";
-import { React as Service } from "react-caches";
+import Seo from "../ui/Seo";
 
 const Installation: React.FC = () => {
-  React.useEffect(() => {
-    Service.UpdateDocumentTitle("Install AxioDB - NPM Package Installation Guide");
-  }, []);
   const installationCode = `npm install axiodb@latest --save`;
 
   return (
     <section id="installation" className="pt-12 scroll-mt-20">
+      <Seo
+        title="Install AxioDB - NPM Package Installation Guide"
+        description="Install AxioDB with npm in seconds - zero native dependencies, no compilation, works on Node.js 20+."
+        path="/installation"
+      />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-blue-900/20 dark:via-slate-800 dark:to-indigo-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-blue-200 dark:border-blue-800 shadow-xl">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
@@ -27,9 +29,9 @@ const Installation: React.FC = () => {
               <PackageOpen className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-800 via-indigo-700 to-purple-700 dark:from-blue-200 dark:via-indigo-300 dark:to-purple-200 bg-clip-text text-transparent">
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-800 via-indigo-700 to-purple-700 dark:from-blue-200 dark:via-indigo-300 dark:to-purple-200 bg-clip-text text-transparent">
                 Quick Installation
-              </h2>
+              </h1>
               <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
                 Get started in seconds with zero configuration
               </p>

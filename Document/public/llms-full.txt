@@ -338,17 +338,35 @@ docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -p 27019:27019 \
+  -e AXIODB_TCP_AUTH=true \
   -v axiodb-data:/app \
   theankansaha/axiodb
 ```
 
-Ports: 27018 = HTTP GUI, 27019 = TCP remote access
+Ports: 27018 = HTTP GUI, 27019 = TCP remote access. Env vars (all optional, defaults shown):
+`AXIODB_GUI=true`, `AXIODB_TCP=true`, `AXIODB_TCP_AUTH=true`, `AXIODB_ROOT_NAME=AxioDB`, `AXIODB_CUSTOM_PATH` (defaults to the container's working directory).
+See the Docker Deployment page (https://axiodb.in/docker) for volumes and Docker Compose.
 
 ### Server Setup (Node.js)
 
 ```javascript
 const db = new AxioDB({ GUI: false, RootName: 'MyDB', CustomPath: '.', TCP: true });
 ```
+
+### TCP Authentication (TCPAuth)
+
+Opt in with `TCPAuth: true` to require a username/password on every TCP connection, reusing the exact same RBAC accounts/roles as the GUI:
+
+```javascript
+const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'MyDB', CustomPath: '.' });
+```
+
+```javascript
+const client = new AxioDBCloud("axiodb://localhost:27019", { username: 'admin', password: 'admin' });
+await client.connect(); // authenticates automatically
+```
+
+Enforcement: every command except PING/DISCONNECT/AUTHENTICATE requires a prior login; the same role permissions as the GUI apply per command; a shared per-IP rate limiter locks an IP out for 15 minutes after 5 failed attempts in a trailing 15-minute window (shared with the GUI); accounts still flagged for a forced password change are rejected outright (403) until that's completed via the GUI (no TCP command for it exists yet); an admin-triggered password reset/role change/deletion immediately forces an open TCP connection to re-authenticate. The TCP protocol itself is unencrypted (no TLS) — use a private network, VPN, or your own TLS termination.
 
 ### Client Connection
 
@@ -368,12 +386,25 @@ await client.disconnect();
 
 AxioDBCloud features:
 - 35+ commands — full CRUD, aggregation, indexing
+- Optional authentication (TCPAuth) — shared RBAC with the GUI, per-IP rate limiting
 - Auto-reconnect with exponential backoff (up to 10 retries)
 - Heartbeat monitoring (PING/PONG every 30 seconds)
 - UUID-based request/response correlation
 - Connection pooling — supports 1,000+ concurrent connections
 - Full TypeScript support
 - Zero breaking changes from embedded API
+
+---
+
+## Troubleshooting
+
+- "Not connected to server": `client.connect()` is async and must be awaited before use — it only resolves once the TCP handshake (and, with TCPAuth on, the AUTHENTICATE round-trip) completes.
+- 401 "Authentication required": a command was sent before a successful AUTHENTICATE. Pass `{ username, password }` in the AxioDBCloud constructor, or call `await client.login(username, password)` first.
+- 403 "This account must change its password before it can be used over TCP": the account is correct but still flagged for a forced password change (true for the default admin/admin, and any newly created user). Complete it via the GUI at http://localhost:27018, then reconnect.
+- 429 "Too many failed login attempts": 5 failed logins from one IP within 15 minutes triggers a 15-minute lockout, shared between TCP and the GUI.
+- 403 "This is a reserved system database": the `config` database is reserved for AxioDB's own RBAC storage and is blocked on both GUI and TCP, authenticated or not.
+- Connection refused/timeout: confirm the server was started with `TCP: true` (or `AXIODB_TCP=true` in Docker, the default) and the port is published/reachable.
+- Full guide: https://axiodb.in/troubleshooting — Docker-specific issues: https://axiodb.in/docker and Docker/README.md in the GitHub repository.
 
 ---
 

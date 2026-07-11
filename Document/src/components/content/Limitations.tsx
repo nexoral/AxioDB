@@ -1,13 +1,15 @@
 import { FilterX } from "lucide-react";
-import React, { useEffect } from "react";
-import { React as Service } from "react-caches";
+import React from "react";
+import Seo from "../ui/Seo";
 
 const Limitations: React.FC = () => {
-  useEffect(() => {
-    Service.UpdateDocumentTitle("Limitations & Scale Considerations | AxioDB Documentation");
-  }, []);
   return (
     <section id="limitations" className="pt-12 scroll-mt-20">
+      <Seo
+        title="Limitations & Scale Considerations | AxioDB Documentation"
+        description="Understand AxioDB's design scope: optimized for 10K-500K documents, single-instance, single-collection transactions - and when to use PostgreSQL or MongoDB instead."
+        path="/limitations"
+      />
       <div className="relative overflow-hidden bg-gradient-to-br from-orange-50 via-white to-red-50 dark:from-orange-900/20 dark:via-slate-800 dark:to-red-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-orange-200 dark:border-orange-800 shadow-xl">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-orange-400/10 to-red-400/10 rounded-full blur-3xl"></div>
 
@@ -17,9 +19,9 @@ const Limitations: React.FC = () => {
               <FilterX className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-800 via-red-700 to-pink-700 dark:from-orange-200 dark:via-red-300 dark:to-pink-200 bg-clip-text text-transparent">
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-800 via-red-700 to-pink-700 dark:from-orange-200 dark:via-red-300 dark:to-pink-200 bg-clip-text text-transparent">
                 Limitations & Scale Considerations
-              </h2>
+              </h1>
               <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
                 Understanding AxioDB's design scope
               </p>

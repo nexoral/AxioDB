@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { StrictMode } from "react";
+import type { RouteRecord } from "vite-react-ssg";
 import Layout from "./components/layout/Layout";
 import Introduction from "./components/content/Introduction";
 import Features from "./components/content/Features";
@@ -18,33 +19,37 @@ import AxioDBCloud from "./components/content/AxioDBCloud";
 import Docker from "./components/content/Docker";
 import Troubleshooting from "./components/content/Troubleshooting";
 
-function App() {
-  return (
-    <Router>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Introduction />} />
-          <Route path="/features" element={<Features />} />
-          <Route path="/limitations" element={<Limitations />} />
-          <Route path="/installation" element={<Installation />} />
-          <Route path="/usage" element={<Usage />} />
-          <Route path="/advanced-features" element={<AdvancedFeatures />} />
-          <Route path="/api-reference" element={<ApiReference />} />
-          <Route path="/server-api" element={<ServerApiReference />} />
-          <Route path="/security" element={<Security />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/comparison" element={<Comparison />} />
-          <Route path="/create-database" element={<CreateDatabase />} />
-          <Route path="/create-collection" element={<CreateCollection />} />
-          <Route path="/cloud" element={<AxioDBCloud />} />
-          <Route path="/docker" element={<Docker />} />
-          <Route path="/troubleshooting" element={<Troubleshooting />} />
-          <Route path="/maintainers-zone" element={<MaintainersZone />} />
-          <Route path="/why-choose-axiodb" element={<Introduction />} />
-        </Routes>
-      </Layout>
-    </Router>
-  );
-}
+// Route table consumed by vite-react-ssg to know which pages to prerender at
+// build time, and by react-router-dom at runtime for client-side navigation.
+export const routes: RouteRecord[] = [
+  {
+    path: "/",
+    element: (
+      <StrictMode>
+        <Layout />
+      </StrictMode>
+    ),
+    children: [
+      { index: true, element: <Introduction /> },
+      { path: "features", element: <Features /> },
+      { path: "limitations", element: <Limitations /> },
+      { path: "installation", element: <Installation /> },
+      { path: "usage", element: <Usage /> },
+      { path: "advanced-features", element: <AdvancedFeatures /> },
+      { path: "api-reference", element: <ApiReference /> },
+      { path: "server-api", element: <ServerApiReference /> },
+      { path: "security", element: <Security /> },
+      { path: "community", element: <Community /> },
+      { path: "comparison", element: <Comparison /> },
+      { path: "create-database", element: <CreateDatabase /> },
+      { path: "create-collection", element: <CreateCollection /> },
+      { path: "cloud", element: <AxioDBCloud /> },
+      { path: "docker", element: <Docker /> },
+      { path: "troubleshooting", element: <Troubleshooting /> },
+      { path: "maintainers-zone", element: <MaintainersZone /> },
+      { path: "why-choose-axiodb", element: <Introduction /> },
+    ],
+  },
+];
 
-export default App;
+export default routes;

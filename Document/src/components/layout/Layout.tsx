@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { ThemeProvider } from "../../context/ThemeContext";
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("introduction");
 
@@ -79,7 +76,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
           <main className="flex-1 pt-16 pb-16 transition-all duration-300 md:ml-64">
             <div className="container mx-auto px-6 py-12 max-w-6xl">
-              {children}
+              <Outlet />
             </div>
           </main>
         </div>

@@ -1,6 +1,6 @@
 import { BookOpen, ChevronDown, ChevronRight } from "lucide-react";
-import React, { useState, useEffect } from "react";
-import { React as Service } from "react-caches";
+import React, { useState } from "react";
+import Seo from "../ui/Seo";
 
 interface ApiSection {
   title: string;
@@ -18,10 +18,6 @@ interface ApiMethod {
 const ApiReference: React.FC = () => {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [expandedMethods, setExpandedMethods] = useState<string[]>([]);
-
-  useEffect(() => {
-    Service.UpdateDocumentTitle("AxioDB API Reference - Complete JavaScript/TypeScript Documentation");
-  }, []);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>
@@ -864,6 +860,11 @@ await transaction.commit();`,
 
   return (
     <section id="api-reference" className="pt-12 scroll-mt-20">
+      <Seo
+        title="AxioDB API Reference - Complete JavaScript/TypeScript Documentation"
+        description="Complete SDK API reference for AxioDB: Database, Collection, Reader, Aggregation, and Transaction classes with method signatures and examples."
+        path="/api-reference"
+      />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-blue-900/20 dark:via-slate-800 dark:to-indigo-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-blue-200 dark:border-blue-800 shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
@@ -874,9 +875,9 @@ await transaction.commit();`,
               <BookOpen className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-800 via-indigo-700 to-purple-700 dark:from-blue-200 dark:via-indigo-300 dark:to-purple-200 bg-clip-text text-transparent">
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-800 via-indigo-700 to-purple-700 dark:from-blue-200 dark:via-indigo-300 dark:to-purple-200 bg-clip-text text-transparent">
                 Complete API Reference
-              </h2>
+              </h1>
               <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
                 Comprehensive documentation with examples for every method
               </p>

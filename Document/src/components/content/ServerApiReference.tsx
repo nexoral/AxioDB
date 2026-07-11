@@ -1,6 +1,6 @@
 import { Globe, Server, ChevronDown, ChevronRight } from "lucide-react";
-import React, { useState, useEffect } from "react";
-import { React as Service } from "react-caches";
+import React, { useState } from "react";
+import Seo from "../ui/Seo";
 
 interface ApiEndpoint {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -31,9 +31,6 @@ const ServerApiReference: React.FC = () => {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [expandedEndpoints, setExpandedEndpoints] = useState<string[]>([]);
 
-  useEffect(() => {
-    Service.UpdateDocumentTitle("AxioDB Server API Reference - Comprehensive Guide to RESTful Endpoints");
-  }, []);
 
   const toggleCategory = (category: string) => {
     setExpandedCategories((prev) =>
@@ -1319,6 +1316,11 @@ file: [database.tar.gz file]`,
 
   return (
     <section id="server-api-reference" className="pt-12 scroll-mt-20">
+      <Seo
+        title="AxioDB Server API Reference - Comprehensive Guide to RESTful Endpoints"
+        description="REST API reference for the AxioDB Control Server: authentication, database, collection, index, and document endpoints."
+        path="/server-api"
+      />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-indigo-900/20 dark:via-slate-800 dark:to-purple-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-indigo-200 dark:border-indigo-800 shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
@@ -1329,9 +1331,9 @@ file: [database.tar.gz file]`,
               <Globe className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-800 via-purple-700 to-pink-700 dark:from-indigo-200 dark:via-purple-300 dark:to-pink-200 bg-clip-text text-transparent">
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-800 via-purple-700 to-pink-700 dark:from-indigo-200 dark:via-purple-300 dark:to-pink-200 bg-clip-text text-transparent">
                 HTTP Server API Reference
-              </h2>
+              </h1>
               <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
                 RESTful API documentation for AxioDB GUI Server
               </p>
