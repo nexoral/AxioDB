@@ -263,10 +263,19 @@ await client.disconnect();`}
   reconnectAttempts: 10,    // Max reconnect attempts
   reconnectDelay: 1000,     // Initial delay (ms)
   heartbeatInterval: 30000, // Heartbeat every 30s
+  maxPoolSize: 10,          // Concurrent connections in the pool (default: 10)
   username: 'admin',        // Only needed if the server has TCPAuth: true
   password: 'admin',
 });`}
             />
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+              <strong>maxPoolSize</strong> mirrors MongoDB&apos;s driver option of the same name.
+              AxioDBCloud opens this many concurrent TCP connections to the server and
+              distributes commands across them round-robin, so a burst of concurrent requests
+              isn&apos;t serialized over a single socket. Each pooled connection reconnects and
+              re-authenticates independently, so one dropped connection never blocks commands
+              routed to the others.
+            </p>
           </div>
         </div>
       </section>

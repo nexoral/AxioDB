@@ -42,8 +42,8 @@ const ApiReference: React.FC = () => {
       methods: [
         {
           name: "constructor",
-          signature: "new AxioDB(options?: { GUI?: boolean, RootName?: string, CustomPath?: string, TCP?: boolean })",
-          description: "Creates a new AxioDB instance using an options object. This is the main entry point for AxioDB. Only one instance is allowed per application (singleton pattern). The GUI option enables/disables the web-based GUI dashboard at localhost:27018. TCP option enables the TCP server on port 27019.",
+          signature: "new AxioDB(options?: { GUI?: boolean, RootName?: string, CustomPath?: string, TCP?: boolean, TCPAuth?: boolean })",
+          description: "Creates a new AxioDB instance using an options object. This is the main entry point for AxioDB. Only one instance is allowed per application (singleton pattern). The GUI option enables/disables the web-based GUI dashboard at localhost:27018. TCP option enables the TCP server on port 27019. TCPAuth requires username/password authentication (same RBAC users as the GUI) for TCP connections - defaults to false.",
           example: `// Basic initialization with GUI enabled
 const db = new AxioDB({ GUI: true });
 
@@ -51,7 +51,10 @@ const db = new AxioDB({ GUI: true });
 const db = new AxioDB({ GUI: true, RootName: 'MyCustomDB', CustomPath: './data' });
 
 // GUI disabled
-const db = new AxioDB({ GUI: false });`,
+const db = new AxioDB({ GUI: false });
+
+// TCP server with authentication required
+const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'MyDB', CustomPath: './data' });`,
           returns: "AxioDB: The AxioDB instance for managing databases.",
         },
         {

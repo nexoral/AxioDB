@@ -138,7 +138,7 @@ const Installation: React.FC = () => {
                 </p>
                 <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
                   AxioDB requires{" "}
-                  <strong>Node.js version 12.0.0 or higher</strong>. Verify your
+                  <strong>Node.js version 20.0.0 or higher</strong>. Verify your
                   Node.js version with{" "}
                   <code className="bg-white dark:bg-slate-800 px-2 py-1 rounded-md text-xs font-mono border border-blue-200 dark:border-blue-800">
                     node --version
@@ -178,7 +178,7 @@ const Installation: React.FC = () => {
                 </strong>
               </div>
               <p className="text-slate-600 dark:text-slate-400">
-                v12.0.0 or higher recommended
+                v20.0.0 or higher recommended
               </p>
             </div>
 

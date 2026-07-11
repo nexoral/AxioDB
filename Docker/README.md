@@ -83,7 +83,7 @@ Once the container is running:
 - **Features**:
   - Full database API with same interface as embedded mode
   - Auto-reconnection with exponential backoff
-  - Connection pooling for high concurrency
+  - Connection pooling for high concurrency (default pool of 10 connections, configurable via `maxPoolSize`)
   - Heartbeat monitoring for connection health
   - Perfect for Node.js applications connecting remotely
 
@@ -210,6 +210,10 @@ docker run -d \
 
 ### Docker Compose
 
+Save the block below as `docker-compose.yml`. It includes a `healthcheck` wired to the same
+script the image's own `HEALTHCHECK` instruction uses (probes `/health` for the GUI and a real
+`PING`/`PONG` round-trip for TCP):
+
 ```yaml
 version: "3.8"
 
@@ -228,9 +232,19 @@ services:
     volumes:
       - axiodb-data:/app
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
 
 volumes:
   axiodb-data:
+```
+
+```bash
+docker compose up -d
 ```
 
 ## =� API Examples

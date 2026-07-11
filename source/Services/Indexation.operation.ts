@@ -115,7 +115,10 @@ export class AxioDB {
     }
     if (this.TCP) {
       Console.green("Starting AxioDB TCP Server...");
-      createAxioDBTCPServer(this, undefined, this.TCPAuth); // Start the TCP Server with the AxioDB instance
+      // Start the TCP Server with the AxioDB instance
+      createAxioDBTCPServer(this, undefined, this.TCPAuth).catch((error) => {
+        console.error("[AxioDB TCP Server] Failed to start:", error);
+      });
     }
   }
 

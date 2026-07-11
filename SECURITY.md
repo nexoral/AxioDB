@@ -6,9 +6,9 @@ We actively support the following versions of AxioDB with security updates. Plea
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 3.x.x   | ✅ Yes             |
-| 2.x.x   | ⚠️ Security fixes only |
-| < 2.0   | ❌ No              |
+| 11.x.x  | ✅ Yes             |
+| 10.x.x  | ⚠️ Security fixes only |
+| < 10.0  | ❌ No              |
 
 **Recommendation:** Always use the latest version of AxioDB for the best security, performance, and features.
 
@@ -175,14 +175,19 @@ AxioDB stores data in the file system:
 - Use encryption for sensitive data
 - Implement regular backups
 
-### GUI Security (localhost:27018)
+### GUI and TCP Security (RBAC)
 
-The built-in GUI is intended for **development and local use only**:
+The built-in GUI (localhost:27018) and AxioDBCloud TCP server (port 27019) share a single
+role-based access control system:
 
-- ⚠️ Do not expose to public networks
-- ⚠️ No authentication by default
-- ✅ Binds to localhost only
-- ✅ Safe for Electron apps (local environment)
+- ✅ Role-based access control (Super Admin / Admin / View) shared by the GUI and TCP server
+- ✅ A seeded `admin` account is forced to change its password (`mustChangePassword`) before
+  any protected GUI route or authenticated TCP command will work
+- ⚠️ TCP authentication is opt-in via `TCPAuth: true` (or `AXIODB_TCP_AUTH=true` in Docker,
+  which is the container's default) - without it, any client that can reach the TCP port has
+  full database access over an unencrypted protocol
+- ⚠️ Do not expose the GUI or TCP port to public networks without your own TLS termination
+- ✅ Safe for Electron apps and local development (binds to localhost by default)
 
 ## Disclosure Policy
 
