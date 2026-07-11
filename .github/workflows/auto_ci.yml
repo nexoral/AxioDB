@@ -155,7 +155,7 @@ jobs:
         run: npm test read
 
   auto-merge:
-    name: "Gate 5 — Version Check & Auto Merge"
+    name: "auto-merge"
     needs: [test]  # Wait for all test matrix jobs to complete
     runs-on: ubuntu-latest
     if: success()  # Only run if all tests passed
