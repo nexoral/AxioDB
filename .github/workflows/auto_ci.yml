@@ -44,7 +44,6 @@ jobs:
 
   tcp_auth_rbac_gate:
     name: "Gate 2 — TCP Auth (AxioDBCloud RBAC) Test Suite"
-    needs: [auth_rbac_gate]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR branch
@@ -78,7 +77,6 @@ jobs:
 
   tcp_noauth_compat_gate:
     name: "Gate 3 — TCP No-Auth (Backward Compatibility) Test Suite"
-    needs: [tcp_auth_rbac_gate]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR branch
@@ -111,7 +109,7 @@ jobs:
         run: npm test tcp-noauth
 
   test:
-    needs: [tcp_noauth_compat_gate]
+    needs: [auth_rbac_gate, tcp_auth_rbac_gate, tcp_noauth_compat_gate]
     runs-on: ubuntu-latest
     strategy:
       matrix:
