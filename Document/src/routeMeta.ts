@@ -32,5 +32,6 @@ export const routeMeta: RouteMeta[] = [
   { path: "/cloud", label: "AxioDBCloud (Remote/TCP)" },
   { path: "/docker", label: "Docker Deployment" },
   { path: "/troubleshooting", label: "Troubleshooting" },
+  { path: "/changelog", label: "Changelog" },
   { path: "/maintainers-zone", label: "Maintainer's Zone" },
 ];
