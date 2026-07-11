@@ -383,9 +383,6 @@ export default class UpdateOperation {
   /**
    * Deletes a file from the specified path.
    *
-   * This method checks if the directory is locked before attempting to delete the file.
-   * If the directory is locked, it tries to unlock it, delete the file, and then lock it again.
-   *
    * @param fileName - The name of the file to be deleted
    * @returns A response object indicating success or failure
    *          Success response: { status: true, message: "File deleted successfully" }
@@ -393,7 +390,6 @@ export default class UpdateOperation {
    * @private
    */
   private async deleteFileUpdate(fileName: string) {
-    // Use FileManager's DeleteFileWithLock method for proper lock management
     return await this.fileManager.DeleteFileWithLock(this.path, fileName);
   }
 
