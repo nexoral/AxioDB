@@ -2,7 +2,7 @@
 import { EventEmitter } from 'events';
 import PooledConnection from './PooledConnection';
 import { CommandType } from '../tcp/types/command.types';
-import { AxioDBCloudOptions, AuthenticatedUser, ConnectionState, ParsedConnectionString } from './types/client.types';
+import { AxioDBCloudOptions, AuthenticatedUser, ConnectionState, ParsedConnectionString, PoolDegradedEvent } from './types/client.types';
 import DatabaseProxy from './DatabaseProxy';
 
 const DEFAULT_MAX_POOL_SIZE = 10;
@@ -90,6 +90,13 @@ export class AxioDBCloud extends EventEmitter {
    * attempts against the server's shared per-IP rate limiter N times over for a single bad
    * -credentials connect() call, and ensures a bad-credentials failure never leaves any pool
    * member mid-reconnect.
+   *
+   * The first connection must succeed or `connect()` rejects entirely (it's the signal that
+   * the server is reachable and credentials are valid at all). The rest of the pool uses
+   * allSettled rather than all: if `maxPoolSize` asks for more connections than the server
+   * allows from this IP (see the server's per-IP connection cap) or a handful hit a transient
+   * error, the pool still comes up with however many succeeded instead of failing outright -
+   * a smaller-than-requested pool is far more useful to the caller than no pool at all.
    */
   async connect(): Promise<void> {
     if (this.pool.length > 0 && this.pool.some((connection) => connection.state === ConnectionState.CONNECTED)) {
@@ -102,7 +109,22 @@ export class AxioDBCloud extends EventEmitter {
     await this.pool[0].connect();
 
     if (poolSize > 1) {
-      await Promise.all(this.pool.slice(1).map((connection) => connection.connect()));
+      const results = await Promise.allSettled(this.pool.slice(1).map((connection) => connection.connect()));
+      const failures = results.filter(
+        (result): result is PromiseRejectedResult => result.status === 'rejected',
+      );
+
+      if (failures.length > 0) {
+        const event: PoolDegradedEvent = {
+          requested: poolSize,
+          connected: poolSize - failures.length,
+          failed: failures.length,
+          errors: failures.map((failure) =>
+            failure.reason instanceof Error ? failure.reason : new Error(String(failure.reason)),
+          ),
+        };
+        this.emit('poolDegraded', event);
+      }
     }
 
     this.emit('connected');

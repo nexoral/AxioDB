@@ -27,6 +27,20 @@ export interface AuthenticatedUser {
 }
 
 /**
+ * Emitted by `connect()` when the pool comes up smaller than `maxPoolSize` requested -
+ * e.g. some members hit the server's per-IP connection cap, or a transient network error.
+ * `connect()` still resolves as long as at least one pool member connected; this event is
+ * how the app finds out it's running under capacity instead of silently getting fewer
+ * connections than it asked for.
+ */
+export interface PoolDegradedEvent {
+  requested: number;
+  connected: number;
+  failed: number;
+  errors: Error[];
+}
+
+/**
  * Connection state
  */
 export enum ConnectionState {

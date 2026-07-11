@@ -212,7 +212,8 @@ await session.withTransaction(async (tx) => {
 - **🔁 Auto-Reconnect:** exponential backoff, up to 10 retry attempts
 - **💓 Heartbeat Monitoring:** `PING`/`PONG` every 30 seconds
 - **🆔 Request Correlation:** UUID-based request/response matching
-- **🧵 Connection Pooling:** client keeps a pool of `maxPoolSize` concurrent connections (default: 10, mirrors MongoDB's driver option) and routes each command to the least-busy connected member (fewest in-flight requests); server accepts 1,000+ concurrent connections total (see the [file descriptor limit note](#connection-refused--too-many-open-files-errors-at-high-concurrency) below if you're running near that scale)
+- **🧵 Connection Pooling:** client keeps a pool of `maxPoolSize` concurrent connections (default: 10, mirrors MongoDB's driver option) and routes each command to the least-busy connected member (fewest in-flight requests); server accepts 1,000+ concurrent connections total, capped at 100 per remote IP (see the [file descriptor limit note](#connection-refused--too-many-open-files-errors-at-high-concurrency) below if you're running near that scale)
+- **🛡️ Connection-Level DoS Protection:** per-IP concurrent connection cap (100) plus a separate per-IP connection-*attempt* rate limiter (300 attempts / 10s → 30s cooldown), so one client can't starve the server either by holding too many sockets open or by rapidly opening and dropping them
 - **📐 TypeScript Support:** full type definitions included
 
 **Use cases:** microservices sharing one AxioDB instance, Electron apps connecting to a local or remote database, teams sharing a development database, container/cloud deployments (AWS, Azure, GCP, DigitalOcean).
@@ -315,6 +316,27 @@ Your credentials are correct, but that account is still flagged for a forced pas
 ### `429` — "Too many failed login attempts..."
 
 Five failed logins from your IP within 15 minutes trigger a 15-minute lockout, shared between TCP and the GUI. Double check the credentials you're sending, wait out the cooldown, or fix the underlying typo/config issue causing repeated failures — there's no way to clear the lockout early.
+
+### `429` — "Too many concurrent connections from this IP address"
+
+Unrelated to the login lockout above — this fires at connection time, before any `AUTHENTICATE`, once a single remote IP has 100 concurrent open TCP sockets to the server (`MAX_CONNECTIONS_PER_IP`), regardless of whether any of those connections are authenticated. This caps how much of the server's total 1,000-connection budget one IP can claim, so one client can't starve every other client. It's per-*connection*, not per-*request* — a single `AxioDBCloud` client at the default `maxPoolSize: 10` is nowhere near this limit; you'd only hit it by running many separate client processes behind the same IP/NAT gateway, or a runaway reconnect loop leaking sockets. If you legitimately need more than 100 concurrent connections from one IP, that's a server-side constant (`MAX_CONNECTIONS_PER_IP` in `source/tcp/config/keys.ts`) — there's no runtime option to raise it yet.
+
+If you do set a `maxPoolSize` that pushes past this cap (or any other subset of the pool fails for another reason, e.g. a network blip), `connect()` doesn't throw as long as at least one pool member connected — it resolves with a smaller-than-requested pool and emits a `poolDegraded` event so you know about it instead of silently running under capacity:
+
+```javascript
+client.on('poolDegraded', ({ requested, connected, failed, errors }) => {
+  console.warn(`Pool came up smaller than requested: ${connected}/${requested} connected, ${failed} failed`);
+  console.warn(errors[0].message); // e.g. "Too many concurrent connections from this IP address"
+});
+
+await client.connect(); // resolves even if some pool members were rejected
+```
+
+(The very first connection in the pool is the exception — if *that* one fails, `connect()` rejects entirely, since it's the signal that the server is reachable and credentials are valid at all.)
+
+### `429` — "Too many connection attempts from this IP address. Try again later."
+
+Different from both `429`s above, and checked first: this guards against rapid connect-then-drop *churn*, which the concurrent-connection cap (`MAX_CONNECTIONS_PER_IP`) doesn't catch on its own — an attacker who never holds more than a few sockets open at once could still hammer the server with a high rate of connection attempts, each costing a TCP handshake and an accept/reject cycle, and stay under that cap the whole time. This is tracked separately, per IP, as a sliding window: once an IP crosses 300 connection attempts (successful or rejected, it doesn't matter which) within a trailing 10-second window, every new connection from that IP is rejected outright for the next 30 seconds. A normal `AxioDBCloud` client, even reconnecting a full `maxPoolSize: 10` pool repeatedly, is nowhere near this threshold — you'd only hit it via a genuine connection flood or a reconnect loop gone very wrong (e.g. retrying without backoff). There's no runtime option to raise these thresholds yet; they're constants in `source/tcp/config/keys.ts` (`CONNECTION_RATE_LIMIT_*`).
 
 ### `403` — "This is a reserved system database"
 

@@ -289,6 +289,50 @@ await client.disconnect();`}
               or <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">docker run --ulimit nofile=65536:65536</code>)
               rather than raising <strong>maxPoolSize</strong> per client.
             </p>
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+              The server also caps concurrent connections at 100 per remote IP, independent of
+              the global 1,000-connection budget - so a single misbehaving or malicious client
+              can&apos;t claim the entire pool of server connections for itself. This is checked
+              at connect time, before authentication, and rejects the extra connection with a{" "}
+              <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">429</code>{" "}
+              (&quot;Too many concurrent connections from this IP address&quot;). A single client
+              at the default <strong>maxPoolSize: 10</strong> is nowhere near this limit.
+            </p>
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+              If <strong>maxPoolSize</strong> asks for more connections than the server allows
+              (from the per-IP cap above, or any other reason a handful of pool members fail),
+              <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">connect()</code>{" "}
+              doesn&apos;t reject outright - it resolves as long as at least one pool member
+              connected, and emits a <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">poolDegraded</code>{" "}
+              event so the app knows it&apos;s running with fewer connections than requested
+              instead of failing (or silently under capacity):
+            </p>
+            <CodeBlock
+              language="javascript"
+              code={`client.on('poolDegraded', ({ requested, connected, failed, errors }) => {
+  console.warn(\`Pool came up smaller than requested: \${connected}/\${requested} connected, \${failed} failed\`);
+  console.warn(errors[0].message); // e.g. "Too many concurrent connections from this IP address"
+});
+
+await client.connect(); // resolves even if some pool members were rejected`}
+            />
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+              The one exception is the very first connection in the pool - if that one fails,
+              <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">connect()</code>{" "}
+              still rejects entirely, since it&apos;s the signal that the server is reachable
+              and credentials are valid at all.
+            </p>
+            <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
+              The 100-per-IP cap only bounds <em>concurrent</em> connections - by itself it
+              wouldn&apos;t stop an attacker who never holds more than a few sockets open but
+              rapidly opens and drops them, since each attempt still costs a TCP handshake and
+              an accept/reject cycle. A separate per-IP rate limiter tracks connection{" "}
+              <em>attempts</em> (successful or rejected, either counts) in a trailing 10-second
+              window; once an IP crosses 300 attempts, every new connection from it is rejected
+              with a <code className="px-1 py-0.5 bg-slate-100 dark:bg-slate-900 rounded">429</code>{" "}
+              for the next 30 seconds. A normal client - even one repeatedly reconnecting a full{" "}
+              <strong>maxPoolSize: 10</strong> pool - is nowhere near this threshold.
+            </p>
           </div>
         </div>
       </section>
