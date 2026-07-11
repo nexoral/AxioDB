@@ -1,19 +1,21 @@
 import { AlertTriangle, Database, Key, Lock, ShieldCheck, Users, Zap } from "lucide-react";
-import React, { useEffect } from "react";
-import { React as Service } from "react-caches";
+import React from "react";
+import Seo from "../ui/Seo";
 
 const Security: React.FC = () => {
-  useEffect(() => {
-    Service.UpdateDocumentTitle("AxioDB Security - AES-256 Encryption & Data Protection");
-  }, []);
   return (
     <section id="security" className="pt-12 scroll-mt-20">
+      <Seo
+        title="AxioDB Security - AES-256 Encryption & Data Protection"
+        description="AES-256 encryption, RBAC authentication, and security best practices for AxioDB's GUI and AxioDBCloud TCP server."
+        path="/security"
+      />
       <div className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-blue-50 dark:from-green-900/20 dark:via-slate-800 dark:to-blue-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-green-200 dark:border-green-800 shadow-xl animate-fade-in">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-green-400/10 to-blue-400/10 rounded-full blur-3xl animate-float"></div>
         <div className="relative z-10">
-          <h2 className="text-4xl font-extrabold mb-6 flex items-center gap-2 bg-gradient-to-r from-green-700 via-blue-600 to-purple-700 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-extrabold mb-6 flex items-center gap-2 bg-gradient-to-r from-green-700 via-blue-600 to-purple-700 bg-clip-text text-transparent">
             <ShieldCheck className="h-10 w-10 text-green-500" /> Security
-          </h2>
+          </h1>
           <p className="text-xl text-slate-700 dark:text-slate-300 font-light mb-8">
             AxioDB prioritizes data security with built-in features to protect
             your data—whether it's sensitive user info or critical business

@@ -11,15 +11,17 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
-import React, { useEffect } from "react";
-import { React as Service } from "react-caches";
+import React from "react";
+import Seo from "../ui/Seo";
 
 const Features: React.FC = () => {
-  useEffect(() => {
-    Service.UpdateDocumentTitle("AxioDB Features - Production-Ready NoSQL Database for Node.js");
-  }, []);
   return (
     <section id="features" className="pt-12 scroll-mt-20">
+      <Seo
+        title="AxioDB Features - Production-Ready NoSQL Database for Node.js"
+        description="Explore AxioDB's caching, indexing, transactions, encryption, and GUI features for embedded Node.js applications."
+        path="/features"
+      />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-green-50 dark:from-emerald-900/20 dark:via-slate-800 dark:to-green-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-emerald-200 dark:border-emerald-800 shadow-xl">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-400/10 to-green-400/10 rounded-full blur-3xl"></div>
@@ -30,9 +32,9 @@ const Features: React.FC = () => {
               <CheckCircle2 className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-emerald-800 via-green-700 to-teal-700 dark:from-emerald-200 dark:via-green-300 dark:to-teal-200 bg-clip-text text-transparent">
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-emerald-800 via-green-700 to-teal-700 dark:from-emerald-200 dark:via-green-300 dark:to-teal-200 bg-clip-text text-transparent">
                 Production Caching Features
-              </h2>
+              </h1>
               <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
                 Advanced caching capabilities for modern production environments
               </p>

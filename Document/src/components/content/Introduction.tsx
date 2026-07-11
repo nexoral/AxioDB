@@ -16,7 +16,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { React as Service } from "react-caches";
+import Seo from "../ui/Seo";
 import { githubApi } from "../../services/githubApi";
 import { npmApi } from "../../services/npmApi";
 
@@ -28,8 +28,6 @@ const Introduction: React.FC = () => {
   const [isLoadingDownloads, setIsLoadingDownloads] = useState(true);
 
   useEffect(() => {
-    Service.UpdateDocumentTitle("AxioDB - Pure JavaScript Alternative to SQLite | Introduction");
-
     // Fetch npm download statistics
     const fetchDownloads = async () => {
       try {
@@ -66,6 +64,11 @@ const Introduction: React.FC = () => {
 
   return (
     <section id="introduction" className="scroll-mt-20">
+      <Seo
+        title="AxioDB - Pure JavaScript Alternative to SQLite | Introduction"
+        description="Embedded NoSQL database for Node.js with MongoDB-style queries, zero native dependencies, and a built-in web GUI. Install with npm and start building in seconds."
+        path="/"
+      />
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900 rounded-2xl p-8 lg:p-12 mb-12 border border-slate-200 dark:border-slate-700 shadow-xl animate-fade-in">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-float"></div>

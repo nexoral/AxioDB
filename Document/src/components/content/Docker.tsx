@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { React as Service } from "react-caches";
+import React from "react";
+import Seo from "../ui/Seo";
 import CodeBlock from "../ui/CodeBlock";
 import {
   Package,
@@ -14,14 +14,13 @@ import {
 } from "lucide-react";
 
 const Docker: React.FC = () => {
-  useEffect(() => {
-    Service.UpdateDocumentTitle(
-      "Docker Deployment | AxioDB Documentation"
-    );
-  }, []);
-
   return (
     <div className="space-y-12">
+      <Seo
+        title="Docker Deployment | AxioDB Documentation"
+        description="Run AxioDB in Docker - simple docker run quick start, then advanced env vars, volumes, and Docker Compose configuration."
+        path="/docker"
+      />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-sky-50 via-white to-blue-50 dark:from-sky-900/20 dark:via-slate-800 dark:to-blue-900/20 rounded-2xl p-8 lg:p-12 border border-sky-200 dark:border-sky-700 shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-sky-400/10 to-blue-400/10 rounded-full blur-3xl"></div>

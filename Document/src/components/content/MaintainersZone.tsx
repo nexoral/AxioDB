@@ -13,7 +13,7 @@ import {
   FaRocket,
   FaSpinner,
 } from "react-icons/fa";
-import { React as Service } from "react-caches";
+import Seo from "../ui/Seo";
 import { TbBrandThreads } from "react-icons/tb";
 // import GitHubProfileSection from "./GitHubProfileSection";
 import { githubApi } from "../../services/githubApi";
@@ -24,8 +24,6 @@ const MaintainersZone = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Service.UpdateDocumentTitle("AxioDB Maintainer's Zone - Resources for Core Team");
-
     const fetchGithubUser = async () => {
       try {
         const user = await githubApi.getUser();
@@ -77,6 +75,11 @@ const MaintainersZone = () => {
 
   return (
     <div className="p-6 animate-fade-in">
+      <Seo
+        title="AxioDB Maintainer's Zone - Resources for Core Team"
+        description="Resources, links, and contact information for AxioDB maintainers and core contributors."
+        path="/maintainers-zone"
+      />
       {/* Terminal-style Welcome */}
       <div className="relative bg-gray-900 dark:bg-gray-800 rounded-xl p-6 mb-8 shadow-lg border border-gray-700 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-4 bg-gray-800 dark:bg-gray-700 flex items-center justify-start px-4 gap-2">

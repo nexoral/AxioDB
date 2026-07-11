@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Users,
   GitPullRequest,
@@ -7,14 +7,16 @@ import {
   Github,
   ExternalLink,
 } from "lucide-react";
-import { React as Service } from "react-caches";
+import Seo from "../ui/Seo";
 
 const Community: React.FC = () => {
-  useEffect(() => {
-    Service.UpdateDocumentTitle("AxioDB Community - Join, Contribute & Get Support");
-  }, []);
   return (
     <div>
+      <Seo
+        title="AxioDB Community - Join, Contribute & Get Support"
+        description="Contribute to AxioDB, join the community, and find support resources and acknowledgments."
+        path="/community"
+      />
       <section id="contributing" className="pt-12 scroll-mt-20">
         {/* Contributing Hero Header */}
         <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-blue-900/20 dark:via-slate-800 dark:to-indigo-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-blue-200 dark:border-blue-800 shadow-xl">
@@ -26,9 +28,9 @@ const Community: React.FC = () => {
                 <GitPullRequest className="h-10 w-10 text-white" />
               </div>
               <div>
-                <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-800 via-indigo-700 to-purple-700 dark:from-blue-200 dark:via-indigo-300 dark:to-purple-200 bg-clip-text text-transparent">
+                <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-800 via-indigo-700 to-purple-700 dark:from-blue-200 dark:via-indigo-300 dark:to-purple-200 bg-clip-text text-transparent">
                   Join Our Community
-                </h2>
+                </h1>
                 <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
                   Shape the future of AxioDB together
                 </p>

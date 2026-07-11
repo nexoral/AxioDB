@@ -2,12 +2,9 @@ import { Code, Database, GitBranch, Lock, RefreshCw, Rocket } from "lucide-react
 import React, { useState } from "react";
 import Button from "../ui/Button";
 import CodeBlock from "../ui/CodeBlock";
-import { React as Service } from "react-caches";
+import Seo from "../ui/Seo";
 
 const AdvancedFeatures: React.FC = () => {
-  React.useEffect(() => {
-    Service.UpdateDocumentTitle("AxioDB Advanced Features - Aggregation, Multi-DB & Optimization");
-  }, []);
   const [activeFeature, setActiveFeature] = useState<string>("multi-db");
 
   const featuresCode = {
@@ -242,6 +239,11 @@ console.log("Transaction completed successfully!");`,
 
   return (
     <section id="advanced-features" className="pt-12 scroll-mt-20">
+      <Seo
+        title="AxioDB Advanced Features - Aggregation, Multi-DB & Optimization"
+        description="Advanced AxioDB features: encryption, aggregation pipelines, multi-database architecture, ACID transactions, and performance optimization."
+        path="/advanced-features"
+      />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 via-white to-indigo-50 dark:from-purple-900/20 dark:via-slate-800 dark:to-indigo-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-purple-200 dark:border-purple-800 shadow-xl">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-purple-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
@@ -252,9 +254,9 @@ console.log("Transaction completed successfully!");`,
               <Rocket className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-800 via-indigo-700 to-blue-700 dark:from-purple-200 dark:via-indigo-300 dark:to-blue-200 bg-clip-text text-transparent">
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-800 via-indigo-700 to-blue-700 dark:from-purple-200 dark:via-indigo-300 dark:to-blue-200 bg-clip-text text-transparent">
                 Advanced Database Features
-              </h2>
+              </h1>
               <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
                 Enterprise-grade capabilities for complex applications
               </p>

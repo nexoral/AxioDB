@@ -1,11 +1,8 @@
-import React, { useEffect } from "react";
+import React from "react";
 import CodeBlock from "../ui/CodeBlock";
-import { React as Service } from "react-caches";
+import Seo from "../ui/Seo";
 
 const CreateDatabase: React.FC = () => {
-  useEffect(() => {
-    Service.UpdateDocumentTitle("Create Database in AxioDB - Quick Start Guide");
-  }, []);
   const codeExamples = {
     defaultInstance: `
 const { AxioDB } = require("axiodb");
@@ -41,7 +38,12 @@ console.log("Database 'ProductsDB' created");
 
   return (
     <section className="pt-12 scroll-mt-20">
-      <h2 className="text-3xl font-bold mb-6">Create Database</h2>
+      <Seo
+        title="Create Database in AxioDB - Quick Start Guide"
+        description="How to create and configure an AxioDB database instance, with GUI, custom root name, and custom path options."
+        path="/create-database"
+      />
+      <h1 className="text-3xl font-bold mb-6">Create Database</h1>
       <p className="text-gray-700 dark:text-gray-300 mb-8">
         AxioDB constructor follows the pattern: <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">&#123;GUI?, RootName?, CustomPath?, TCP?&#125;</code>.
         This pattern provides better readability and flexibility.

@@ -7,10 +7,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Primary Meta Tags -->
-  <title>AxioDB - Pure JavaScript Alternative to SQLite | Embedded NoSQL Database for Node.js</title>
-  <meta name="title" content="AxioDB - Pure JavaScript Alternative to SQLite | Embedded NoSQL Database for Node.js" />
-  <meta name="description"
-    content="AxioDB is an embedded NoSQL database for Node.js with MongoDB-style queries. Zero native dependencies, no node-gyp, no electron-rebuild. Perfect for Electron apps, CLI tools, and desktop applications. Built-in InMemoryCache, AES-256 encryption, ACID transactions, and web GUI at localhost:27018." />
+  <!-- title / description / canonical / og:title / og:description / og:url / twitter:title / twitter:description / twitter:url
+       are intentionally NOT set here - every one of the 18 routes sets its own via the <Seo> component
+       (src/components/ui/Seo.tsx), rendered per-page during vite-react-ssg's prerender pass. A static <title>/tag
+       here would leave a second, duplicate element in every prerendered file's <head> (flagged by SEO auditing
+       tools even though browsers use the first `<title>` per spec) with no route that actually needs the fallback,
+       since the full route set is enumerated and prerendered - see App.tsx's routes array. -->
   <meta name="keywords"
     content="AxioDB, SQLite alternative, embedded database, NoSQL, Node.js database, JavaScript database, MongoDB queries, file-based database, zero dependencies, no native bindings, no node-gyp, Electron database, desktop app database, CLI database, TypeScript database, encryption, AES-256, in-memory cache, aggregation pipeline, worker threads, web GUI, localhost database, JSON database, portable database, cross-platform database, schema validation, bulk operations, ACID transactions, better-sqlite3 alternative, lowdb alternative, nedb alternative, embedded nosql nodejs" />
   <meta name="author" content="Ankan Saha" />
@@ -20,27 +22,19 @@
   <meta name="rating" content="general" />
   <meta name="distribution" content="global" />
 
-  <!-- Canonical URL -->
-  <link rel="canonical" href="https://axiodb.in" />
+  <!-- Canonical URL, og:url/title/description, and twitter:url/title/description are set
+       per-route by <Seo> (see note above) -->
 
-  <!-- Open Graph / Facebook -->
+  <!-- Open Graph / Facebook (site-wide, non-conflicting fields only) -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://axiodb.in" />
-  <meta property="og:title" content="AxioDB - Pure JavaScript Alternative to SQLite | Embedded NoSQL Database for Node.js" />
-  <meta property="og:description"
-    content="Embedded NoSQL database for Node.js with MongoDB-style queries. Zero native dependencies, no node-gyp, built-in caching, AES-256 encryption, ACID transactions, and web GUI. Perfect for Electron apps and CLI tools." />
   <meta property="og:image" content="https://axiodb.in/AXioDB.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:site_name" content="AxioDB" />
   <meta property="og:locale" content="en_US" />
 
-  <!-- Twitter -->
+  <!-- Twitter (site-wide, non-conflicting fields only) -->
   <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:url" content="https://axiodb.in" />
-  <meta property="twitter:title" content="AxioDB - Pure JavaScript SQLite Alternative for Node.js" />
-  <meta property="twitter:description"
-    content="Embedded NoSQL database for Node.js. Zero native dependencies, MongoDB-style queries, built-in caching, AES-256 encryption, ACID transactions, and web GUI." />
   <meta property="twitter:image" content="https://axiodb.in/AXioDB.png" />
   <meta property="twitter:creator" content="@AnkanSaha" />
 

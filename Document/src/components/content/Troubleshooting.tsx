@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { React as Service } from "react-caches";
+import React from "react";
+import Seo from "../ui/Seo";
 import CodeBlock from "../ui/CodeBlock";
 import {
   LifeBuoy,
@@ -150,14 +150,13 @@ await client.createDB("MyDB");         // works`}
 ];
 
 const Troubleshooting: React.FC = () => {
-  useEffect(() => {
-    Service.UpdateDocumentTitle(
-      "Troubleshooting | AxioDB Documentation"
-    );
-  }, []);
-
   return (
     <div className="space-y-12">
+      <Seo
+        title="Troubleshooting | AxioDB Documentation"
+        description="Common AxioDB connection and authentication errors - AxioDBCloud, TCP auth, rate limiting, and Docker issues - with fixes."
+        path="/troubleshooting"
+      />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-white to-orange-50 dark:from-amber-900/20 dark:via-slate-800 dark:to-orange-900/20 rounded-2xl p-8 lg:p-12 border border-amber-200 dark:border-amber-700 shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-amber-400/10 to-orange-400/10 rounded-full blur-3xl"></div>
