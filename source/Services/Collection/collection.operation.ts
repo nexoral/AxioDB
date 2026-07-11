@@ -87,49 +87,15 @@ export default class Collection {
     }
 
     try {
-      // Check if Directory Locked or not
-      const isLocked = await new FolderManager().IsDirectoryLocked(this.path);
-      if ("data" in isLocked) {
-        if (isLocked.data === false) {
-          // List all files in the directory
-          const files = await new FolderManager().ListDirectory(this.path);
-          const documentFiles = files.data.filter((fileName: string) =>
-            fileName.endsWith(General.DBMS_File_EXT),
-          );
-          return new ResponseHelper().Success({
-            message: "Total Documents in the Collection",
-            total: documentFiles.length,
-          });
-        } else {
-          // if Directory is locked then unlock it
-          const unlockResponse = await new FolderManager().UnlockDirectory(
-            this.path,
-          );
-          if ("data" in unlockResponse) {
-            // List all files in the directory
-            const files = await new FolderManager().ListDirectory(this.path);
-            const documentFiles = files.data.filter((fileName: string) =>
-              fileName.endsWith(General.DBMS_File_EXT),
-            );
-            // Lock the directory again
-            const lockResponse = await new FolderManager().LockDirectory(
-              this.path,
-            );
-            if ("data" in lockResponse) {
-              return new ResponseHelper().Success({
-                message: "Total Documents in the Collection",
-                total: documentFiles.length,
-              });
-            } else {
-              return new ResponseHelper().Error("Cannot lock the directory");
-            }
-          } else {
-            return new ResponseHelper().Error("Cannot unlock the directory");
-          }
-        }
-      } else {
-        return new ResponseHelper().Error("Cannot access the directory");
-      }
+      // List all files in the directory
+      const files = await new FolderManager().ListDirectory(this.path);
+      const documentFiles = files.data.filter((fileName: string) =>
+        fileName.endsWith(General.DBMS_File_EXT),
+      );
+      return new ResponseHelper().Success({
+        message: "Total Documents in the Collection",
+        total: documentFiles.length,
+      });
     } catch (error) {
       return new ResponseHelper().Error(error);
     }

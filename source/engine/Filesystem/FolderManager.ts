@@ -77,17 +77,6 @@ export default class FolderManager {
     }
   }
 
-  public async LockDirectory(
-    path: string,
-  ): Promise<SuccessInterface | ErrorInterface> {
-    try {
-      await this.fileSystem.chmod(path, 0o000);
-      return this.responseHelper.Success(`Directory locked: ${path}`);
-    } catch (error) {
-      return this.responseHelper.Error(`Failed to lock directory: ${error}`);
-    }
-  }
-
   public async UnlockDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -96,18 +85,6 @@ export default class FolderManager {
       return this.responseHelper.Success(`Directory unlocked: ${path}`);
     } catch (error) {
       return this.responseHelper.Error(`Failed to unlock directory: ${error}`);
-    }
-  }
-
-  public async IsDirectoryLocked(
-    path: string,
-  ): Promise<SuccessInterface | ErrorInterface> {
-    try {
-      const stats = await this.fileSystem.stat(path);
-      const isLocked = (stats.mode & 0o200) === 0; // no write permission for owner
-      return this.responseHelper.Success(isLocked);
-    } catch (error) {
-      return this.responseHelper.Error(`Failed to check lock status: ${error}`);
     }
   }
 
