@@ -34,6 +34,7 @@
 - [Docker Deployment](#-docker-deployment)
   - [Simple: run the container](#simple-run-the-container)
   - [Advanced: env vars, volumes, Compose](#advanced-env-vars-volumes-compose)
+- [MCP Server — AI Agent Integration](#-mcp-server--ai-agent-integration)
 - [Built-in Web GUI & Authentication (RBAC)](#-built-in-web-gui--authentication-rbac)
 - [Detailed Usage](#-detailed-usage)
 - [API Reference](#-api-reference)
@@ -471,6 +472,8 @@ Every option below has a default matching the image's previous fixed behavior �
 | `AXIODB_TLS_KEY_PATH` | *(none)* | Path **inside the container** to the matching PEM private key - required when `AXIODB_TLS=true` |
 | `AXIODB_ROOT_NAME` | `AxioDB` | Name of the root database folder created under the data volume |
 | `AXIODB_CUSTOM_PATH` | *(container's working directory)* | Custom path for database storage inside the container |
+| `AXIODB_MCP` | `false` | Enable the MCP server (AI agent integration) on port 27020 - see [MCP Server](#-mcp-server--ai-agent-integration) |
+| `AXIODB_MCP_PORT` | `27020` | Port the MCP server listens on inside the container |
 
 > Ports themselves (27018/27019) aren't configurable via environment variable — remap them at the Docker layer with `-p <host-port>:27018` / `-p <host-port>:27019`.
 
@@ -538,6 +541,50 @@ volumes:
 ```
 
 **Building the image from source, and a fuller Docker troubleshooting guide** (container won't start, port-in-use, data-persistence checks) live in [`Docker/README.md`](Docker/README.md) — the canonical Docker doc, not duplicated here in full.
+
+---
+
+## 🤖 MCP Server — AI Agent Integration
+
+Spin up the same Docker container with `AXIODB_MCP=true` and let Claude (or any MCP-compatible
+AI agent) talk to your AxioDB instance directly — 32 tools covering databases, collections,
+documents, aggregation, indexes, dashboard stats, and user/role management, all gated by the
+same RBAC as the web GUI. It runs in the same process as your existing container; nothing new
+to install, no second database instance.
+
+```bash
+docker run -d \
+  --name axiodb-server \
+  -e AXIODB_GUI=true \
+  -e AXIODB_MCP=true \
+  -p 27018:27018 \
+  -p 27019:27019 \
+  -p 27020:27020 \
+  -v axiodb-data:/app \
+  theankansaha/axiodb
+```
+
+Register the endpoint (`http://localhost:27020/mcp`) with whichever AI tool you use:
+
+| Tool | How |
+| --- | --- |
+| **Claude Code** | `claude mcp add --transport http axiodb http://localhost:27020/mcp` |
+| **OpenAI Codex CLI** | `codex mcp add axiodb --url http://localhost:27020/mcp` (or `[mcp_servers.axiodb]` + `url = "..."` in `~/.codex/config.toml`) |
+| **opencode** | `opencode mcp add` (interactive → type "remote") or add `"axiodb": { "type": "remote", "url": "...", "enabled": true }` under `mcp` in `opencode.json` |
+| **GitHub Copilot CLI** | `/mcp add` inside the `copilot` REPL, or add to `~/.copilot/mcp-config.json`: `{ "mcpServers": { "axiodb": { "type": "http", "url": "..." } } }` |
+| **Cursor** | Add to `.cursor/mcp.json` (or `~/.cursor/mcp.json`): `{ "mcpServers": { "axiodb": { "url": "..." } } }` |
+| **Windsurf** | Add to `~/.codeium/windsurf/mcp_config.json`: `{ "mcpServers": { "axiodb": { "serverUrl": "..." } } }` |
+| **Google Antigravity** (IDE & CLI) | Add to `~/.gemini/config/mcp_config.json`: `{ "mcpServers": { "axiodb": { "serverUrl": "..." } } }` — note `serverUrl`, not `url` |
+
+Every tool except `axiodb_login` requires a `sessionId` obtained by logging in first (default
+seeded account: `admin`/`admin`, same as the GUI) — every subsequent call is checked against
+that logged-in user's actual role, exactly like the HTTP Control Server. A View-role session
+gets a real `403` on write tools; nothing is gated by a static container environment variable.
+
+`AXIODB_MCP=true` only has RBAC to serve once it's actually seeded, which requires
+`AXIODB_GUI=true` (the default) or `AXIODB_TCP=true` + `AXIODB_TCP_AUTH=true`.
+
+Full tool catalogue, examples, and security notes: **[MCP Server docs](https://axiodb.in/mcp-server)**.
 
 ---
 

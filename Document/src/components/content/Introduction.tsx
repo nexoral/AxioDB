@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  Bot,
   Cloud,
   Code,
   Database,
@@ -133,6 +134,32 @@ const Introduction: React.FC = () => {
               className="h-7 rounded shadow-sm hover:shadow-md transition-shadow"
             />
           </div>
+
+          {/* New Feature Banner: MCP Server */}
+          <a
+            href="/mcp-server"
+            className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gradient-to-r from-fuchsia-100 via-purple-50 to-indigo-100 dark:from-fuchsia-900/40 dark:via-purple-900/30 dark:to-indigo-900/40 px-6 py-5 rounded-xl border-2 border-fuchsia-300 dark:border-fuchsia-600 shadow-xl hover:shadow-2xl transition-all duration-300 mb-8"
+          >
+            <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-fuchsia-500 to-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+              <Bot className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-xs bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md">
+                  NEW
+                </span>
+                <span className="text-lg font-black bg-gradient-to-r from-fuchsia-700 to-purple-700 dark:from-fuchsia-300 dark:to-purple-300 bg-clip-text text-transparent">
+                  AxioDB MCP Server
+                </span>
+              </div>
+              <p className="text-sm text-slate-700 dark:text-slate-300">
+                Spin up AxioDB on a cloud container and let your AI agent (Claude, or any
+                MCP-compatible client) talk to that database directly — 32 tools, real login,
+                the exact same RBAC as the web GUI.
+              </p>
+            </div>
+            <ArrowRight className="h-6 w-6 text-fuchsia-600 dark:text-fuchsia-400 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
+          </a>
 
           {/* NPM Download Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
