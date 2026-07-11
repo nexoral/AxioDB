@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-// Map Interface for metadata
 export interface CollectionMap {
   isCryptoEnabled: boolean;
   cryptoKey?: string;

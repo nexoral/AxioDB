@@ -9,19 +9,16 @@ import { requireAuth, requireFreshPassword } from "../../middleware/auth.middlew
 import { requirePermission } from "../../middleware/permission.middleware";
 import { PERMISSIONS } from "../../../config/Keys/Permissions";
 
-// Extended options interface to include AxioDB instance
 interface RouterOptions extends FastifyPluginOptions {
   AxioDBInstance: AxioDB;
 }
 
-// Collection Router
 export default async function collectionRouter(
   fastify: FastifyInstance,
   options: RouterOptions,
 ) {
   const { AxioDBInstance } = options;
 
-  // Get All Collection
   fastify.get(
     "/all/",
     {
@@ -32,7 +29,6 @@ export default async function collectionRouter(
     },
   );
 
-  // Create Collection
   fastify.post(
     "/create-collection",
     {
@@ -45,7 +41,6 @@ export default async function collectionRouter(
     async (request, reply) => new CollectionController(AxioDBInstance).createCollection(request),
   );
 
-  // Delete Collection
   fastify.delete(
     "/delete-collection/",
     {

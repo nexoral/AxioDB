@@ -9,7 +9,6 @@ import { StatusCodes } from "../../config/Keys/StatusCode";
 import { readFile } from "node:fs/promises";
 import { AxioDB } from "../../Services/Indexation.operation";
 
-// All Sub Routers
 import dbRouter from "./Routers/DB.routes";
 import collectionRouter from "./Routers/Collection.routes";
 import indexRouter from "./Routers/Index.routes";
@@ -22,7 +21,6 @@ import { requireAuth, requireFreshPassword } from "../middleware/auth.middleware
 import { requirePermission } from "../middleware/permission.middleware";
 import { PERMISSIONS } from "../../config/Keys/Permissions";
 
-// Interfaces
 type PackageInterface = {
   name: string;
   version: number;
@@ -30,23 +28,15 @@ type PackageInterface = {
   license: string;
 };
 
-// Extended options interface to include AxioDB instance
 interface RouterOptions extends FastifyPluginOptions {
   AxioDBInstance: AxioDB;
 }
 
-/**
- * Main router plugin for the AxioDB server
- * @param fastify - Fastify instance
- * @param _options - Plugin options
- * @param done - Callback to signal completion
- */
 export default async function mainRouter(
   fastify: FastifyInstance,
   options: RouterOptions,
   done: () => void,
 ): Promise<void> {
-  // Now you can access the AxioDB instance
   const { AxioDBInstance } = options;
 
   fastify.get("/info", async () => {
@@ -67,7 +57,6 @@ export default async function mainRouter(
     return Reply;
   });
 
-  // Health check route
   fastify.get("/health", async () => {
     const Reply: ResponseBuilder = buildResponse(
       StatusCodes.OK,
@@ -80,7 +69,6 @@ export default async function mainRouter(
     return Reply;
   });
 
-  // Available routes List
   fastify.get("/routes", async (request, reply) => {
     const Reply: ResponseBuilder = buildResponse(
       StatusCodes.OK,
@@ -90,7 +78,6 @@ export default async function mainRouter(
     return reply.status(200).send(Reply);
   });
 
-  // Get Dashboard Stats
   fastify.get(
     "/dashboard-stats",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DASHBOARD_VIEW)] },
@@ -99,38 +86,33 @@ export default async function mainRouter(
     },
   );
 
-  // Register the DB router
   fastify.register(dbRouter, {
     prefix: "/db",
-    AxioDBInstance: AxioDBInstance, // Pass the AxioDB instance to the DB router
+    AxioDBInstance: AxioDBInstance,
   });
 
-  // Register Collection Router
   fastify.register(collectionRouter, {
     prefix: "/collection",
-    AxioDBInstance: AxioDBInstance, // Pass the AxioDB instance to the Collection router
+    AxioDBInstance: AxioDBInstance,
   });
 
-  // Register Operation Router
   fastify.register(OperationRouter, {
     prefix: "/operation",
-    AxioDBInstance: AxioDBInstance, // Pass the AxioDB instance to the Operation router
+    AxioDBInstance: AxioDBInstance,
   });
 
-  // Register Index Router
   fastify.register(indexRouter, {
     prefix: "/index",
-    AxioDBInstance: AxioDBInstance, // Pass the AxioDB instance to the Index router
+    AxioDBInstance: AxioDBInstance,
   });
 
-  // Register Auth Router (login is public, session/password endpoints require auth)
+  // login is public; session/password endpoints inside require auth
   fastify.register(authRouter, { prefix: "/auth" });
 
-  // Register User & Role Management Routers (Super Admin only)
+  // Super Admin only (enforced inside these routers)
   fastify.register(userManagementRouter, { prefix: "/auth/users" });
   fastify.register(roleManagementRouter, { prefix: "/auth/roles" });
 
-  // Handle 404 Not Found
   fastify.setNotFoundHandler((request, reply) => {
     return reply
       .status(404)

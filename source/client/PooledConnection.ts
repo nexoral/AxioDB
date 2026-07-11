@@ -156,7 +156,6 @@ export default class PooledConnection {
     return this.authUser;
   }
 
-  /** Send a command over this specific connection. */
   sendCommand(command: CommandType | string, params: any): Promise<any> {
     if (this.state !== ConnectionState.CONNECTED || !this.socket) {
       return Promise.reject(new Error('Not connected to server'));
@@ -199,7 +198,7 @@ export default class PooledConnection {
       try {
         await this.sendCommand(CommandType.DISCONNECT, {});
       } catch {
-        // Ignore disconnect errors
+        // no-op
       }
 
       this.socket.removeAllListeners();

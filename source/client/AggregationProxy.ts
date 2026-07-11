@@ -1,10 +1,7 @@
 import { AxioDBCloud } from './AxioDBCloud.client';
 import { CommandType } from '../tcp/types/command.types';
 
-/**
- * Aggregation Proxy - Aggregation builder for remote aggregations
- * Mirrors the Aggregation class API
- */
+/** Mirrors the Aggregation class API. */
 export default class AggregationProxy {
   private client: AxioDBCloud;
   private dbName: string;
@@ -18,9 +15,6 @@ export default class AggregationProxy {
     this.pipeline = pipeline;
   }
 
-  /**
-   * Execute the aggregation pipeline
-   */
   async exec(): Promise<any> {
     return await this.client.sendCommand(CommandType.AGGREGATE, {
       dbName: this.dbName,

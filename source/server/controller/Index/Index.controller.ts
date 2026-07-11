@@ -6,13 +6,6 @@ import buildResponse, {
 import { FastifyRequest } from "fastify";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
 
-/**
- * Controller class for managing indexes on a collection in AxioDB.
- *
- * This class provides methods for listing, creating, and deleting indexes on a
- * collection within the AxioDB instance. It acts as an interface between the API
- * routes and the AxioDB instance.
- */
 export default class IndexController {
   private AxioDBInstance: AxioDB;
 
@@ -20,12 +13,7 @@ export default class IndexController {
     this.AxioDBInstance = AxioDBInstance;
   }
 
-  /**
-   * Lists all indexes registered on the specified collection.
-   *
-   * @param request - The Fastify request object containing `dbName`/`collectionName` query parameters
-   * @returns A ResponseBuilder object containing the list of index metadata entries
-   */
+  /** Reads `dbName`/`collectionName` from the query string. */
   public async getIndexes(request: FastifyRequest): Promise<ResponseBuilder> {
     const { dbName, collectionName } = request.query as {
       dbName: string;
@@ -64,12 +52,7 @@ export default class IndexController {
     }
   }
 
-  /**
-   * Creates one or more indexes on the specified collection.
-   *
-   * @param request - The Fastify request object containing `dbName`/`collectionName`/`fieldNames` in the body
-   * @returns A ResponseBuilder object with appropriate status code and message
-   */
+  /** Reads `dbName`/`collectionName`/`fieldNames` from the request body. */
   public async createIndex(request: FastifyRequest): Promise<ResponseBuilder> {
     const { dbName, collectionName, fieldNames } = request.body as {
       dbName: string;
@@ -113,12 +96,7 @@ export default class IndexController {
     }
   }
 
-  /**
-   * Deletes an index from the specified collection.
-   *
-   * @param request - The Fastify request object containing `dbName`/`collectionName`/`indexName` query parameters
-   * @returns A ResponseBuilder object with appropriate status code and message
-   */
+  /** Reads `dbName`/`collectionName`/`indexName` from the query string. */
   public async deleteIndex(request: FastifyRequest): Promise<ResponseBuilder> {
     const { dbName, collectionName, indexName } = request.query as {
       dbName: string;

@@ -12,7 +12,6 @@ export enum ServerKeys {
   DEFAULT_KEY_ROUNDS = 1,
 }
 
-// Config for CORS
 // NOTE: ORIGIN cannot be "*" while ALLOW_CREDENTIALS is true - browsers reject
 // wildcard origins on credentialed (cookie-bearing) requests. 5173 is the GUI's
 // Vite dev server; 27018 is where the built GUI is served from in production
@@ -43,7 +42,6 @@ interface RouteGroupInterface {
   Paths: MainRoutesInterface[];
 }
 
-// Routes
 export const AvailableRoutes: RouteGroupInterface[] = [
   {
     groupName: "Information",

@@ -4,48 +4,13 @@ import ReaderWithWorker from '../utility/BufferLoaderWithWorker.utils';
 import responseHelper from './response.helper';
 
 /**
- * DocumentLoader - Shared utility for loading documents from collection directories
- *
- * Provides a centralized method for loading document files using worker threads,
- * replacing duplicated code in Reader, Update, Delete, and Aggregation operations.
- *
- * @class DocumentLoader
+ * Centralizes document-loading logic that used to be duplicated across the Reader,
+ * Update, Delete, and Aggregation operations - handles both a direct file list and
+ * full directory scanning (filtered to `.axiodb` files), loaded via worker threads.
  */
 export default class DocumentLoader {
   private static readonly ResponseHelper = new responseHelper();
 
-  /**
-   * Loads all documents from a collection directory using worker threads
-   *
-   * This method consolidates the LoadAllBufferRawData logic that was previously
-   * duplicated across multiple CRUD operations. It handles both direct file
-   * specification and directory scanning with .axiodb file filtering.
-   *
-   * @param collectionPath - Full path to collection directory
-   * @param encryptionKey - Optional encryption key for encrypted documents
-   * @param isEncrypted - Whether documents are encrypted (default: false)
-   * @param documentFiles - Optional specific file names to load
-   * @param includeFileName - Whether to include fileName in result (default: false)
-   * @returns Success with document array or Error
-   *
-   * @example
-   * // Load all documents from a collection
-   * const result = await DocumentLoader.loadDocuments(
-   *   '/path/to/collection',
-   *   undefined,
-   *   false
-   * );
-   *
-   * @example
-   * // Load specific documents with filenames included
-   * const result = await DocumentLoader.loadDocuments(
-   *   '/path/to/collection',
-   *   'encryption-key',
-   *   true,
-   *   ['doc1.axiodb', 'doc2.axiodb'],
-   *   true
-   * );
-   */
   static async loadDocuments(
     collectionPath: string,
     encryptionKey?: string,
@@ -57,14 +22,11 @@ export default class DocumentLoader {
       const dataFilesList: string[] = [];
 
       if (documentFiles !== undefined) {
-        // Use provided file list
         dataFilesList.push(...documentFiles);
       } else {
-        // Scan directory for .axiodb files
         const readResponse = await new FolderManager().ListDirectory(collectionPath);
 
         if ("data" in readResponse) {
-          // Filter for .axiodb files only
           const axiodbFiles = readResponse.data.filter((file: string) =>
             file.endsWith(".axiodb")
           );
@@ -74,7 +36,7 @@ export default class DocumentLoader {
         }
       }
 
-      // Load all files using worker threads (parallel processing)
+      // Loaded via worker threads for parallelism
       const resultData = await ReaderWithWorker(
         dataFilesList,
         encryptionKey,
