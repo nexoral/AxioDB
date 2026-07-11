@@ -24,7 +24,7 @@ const sidebarSections: SidebarSection[] = [
       {
         id: "limitations",
         label: "Current Limitations",
-        path: "/features#limitations",
+        path: "/limitations",
       },
     ],
   },

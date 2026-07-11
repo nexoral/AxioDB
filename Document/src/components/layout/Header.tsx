@@ -33,6 +33,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
   const searchablePages: SearchResult[] = useMemo(() => [
     { title: "Introduction", path: "/", description: "Get started with AxioDB - The Pure JavaScript Alternative to SQLite" },
     { title: "Features", path: "/features", description: "Explore production caching features and capabilities" },
+    { title: "Limitations & Scale Considerations", path: "/limitations", description: "Understand AxioDB's design scope and when to use something else" },
     { title: "Installation", path: "/installation", description: "Install and set up AxioDB in your project" },
     { title: "AxioDBCloud (Remote/TCP)", path: "/cloud", description: "Connect remotely over TCP, with optional shared-RBAC authentication" },
     { title: "Troubleshooting", path: "/troubleshooting", description: "Common connection and authentication errors, and how to fix them" },

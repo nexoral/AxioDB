@@ -41,7 +41,6 @@
 - [Comparisons](#-comparisons)
 - [Limitations & Honest Positioning](#-limitations--honest-positioning)
 - [FAQ](#-faq)
-- [Future Roadmap](#-future-roadmap)
 - [Contributing, License & Support](#-contributing-license--support)
 
 ---
@@ -723,15 +722,6 @@ No. AxioDB requires Node.js (v20+) and the filesystem — server-side and deskto
 
 **Q: What is AxioDBCloud?**
 TCP-based remote access for AxioDB. Deploy AxioDB in Docker, connect from multiple clients with the exact same API. Supports 1,000+ concurrent connections with auto-reconnect. Optional username/password authentication (`TCPAuth: true`) reuses the same RBAC accounts as the GUI — see [AxioDBCloud](#-axiodbcloud--connecting-remotely) above.
-
----
-
-## 🔮 Future Roadmap
-
-- **Data Export & Import:** seamless data migration with support for JSON, CSV, and native AxioDB formats
-- **Enhanced Web GUI:** advanced web interface with real-time analytics, visual query builder, and performance monitoring
-- **Comprehensive Documentation:** extensive tutorials, interactive examples, and complete API references for all skill levels
-- **Performance Optimizations:** continued improvements to query performance and caching strategies
 
 ---
 

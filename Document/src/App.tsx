@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import Introduction from "./components/content/Introduction";
 import Features from "./components/content/Features";
+import Limitations from "./components/content/Limitations";
 import Installation from "./components/content/Installation";
 import Usage from "./components/content/Usage";
 import AdvancedFeatures from "./components/content/AdvancedFeatures";
@@ -24,6 +25,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Introduction />} />
           <Route path="/features" element={<Features />} />
+          <Route path="/limitations" element={<Limitations />} />
           <Route path="/installation" element={<Installation />} />
           <Route path="/usage" element={<Usage />} />
           <Route path="/advanced-features" element={<AdvancedFeatures />} />
