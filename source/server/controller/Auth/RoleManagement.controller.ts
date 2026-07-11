@@ -47,6 +47,16 @@ export default class RoleManagementController {
     );
   }
 
+  public async deleteRole(request: FastifyRequest, reply: FastifyReply): Promise<ResponseBuilder> {
+    const { roleName } = request.params as { roleName: string };
+
+    const result = await this.authService.deleteRole(roleName);
+    if (!result.success) {
+      return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, result.message));
+    }
+    return sendResponse(reply, buildResponse(StatusCodes.OK, result.message));
+  }
+
   public async listPermissions(
     request: FastifyRequest,
     reply: FastifyReply,

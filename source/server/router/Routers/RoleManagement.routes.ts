@@ -23,4 +23,10 @@ export default async function roleManagementRouter(fastify: FastifyInstance): Pr
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.ROLE_VIEW)] },
     async (request, reply) => new RoleManagementController().listPermissions(request, reply),
   );
+
+  fastify.delete(
+    "/:roleName",
+    { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.ROLE_DELETE)] },
+    async (request, reply) => new RoleManagementController().deleteRole(request, reply),
+  );
 }

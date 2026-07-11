@@ -107,7 +107,16 @@ export class IndexManager {
         }
       }
     }
-    return this.ResponseHelper.Success(`Indexes: ${EffectedIndexes.join(", ")} created Indexes: ${FailedIndexes.join(", ")}`);
+    const messageParts: string[] = [];
+    if (EffectedIndexes.length > 0) {
+      messageParts.push(`Indexes created: ${EffectedIndexes.join(", ")}`);
+    }
+    if (FailedIndexes.length > 0) {
+      messageParts.push(`Indexes already existed: ${FailedIndexes.join(", ")}`);
+    }
+    return this.ResponseHelper.Success(
+      messageParts.length > 0 ? messageParts.join("; ") : "No new indexes created",
+    );
   }
 
   /**

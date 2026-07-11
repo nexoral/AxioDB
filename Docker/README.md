@@ -9,6 +9,7 @@ This Docker image provides both a REST API server and TCP remote access for Axio
 
 - **REST API Server**: Full HTTP API for database operations (Port 27018)
 - **TCP Remote Access**: AxioDBCloud connector for remote client connections (Port 27019)
+- **MCP Server**: Opt-in AI agent integration (Claude, or any MCP-compatible client) over Streamable HTTP (Port 27020)
 - **Web GUI Dashboard**: Browser-based interface at `http://localhost:27018`
 - **API Documentation**: Interactive API reference at `http://localhost:27018/api`
 - **AxioDB Core**: Complete database management system
@@ -194,6 +195,8 @@ main();
 | `AXIODB_TCP_AUTH` | `true` | Require username/password authentication on TCP connections (same RBAC accounts as the GUI) |
 | `AXIODB_ROOT_NAME` | `AxioDB` | Name of the root database folder created under the data volume |
 | `AXIODB_CUSTOM_PATH` | *(container's working directory)* | Custom path for database storage inside the container |
+| `AXIODB_MCP` | `false` | Enable the MCP server (AI agent integration) on port 27020 |
+| `AXIODB_MCP_PORT` | `27020` | Port the MCP server listens on inside the container |
 
 ```bash
 docker run -d \
@@ -246,6 +249,58 @@ volumes:
 ```bash
 docker compose up -d
 ```
+
+## > MCP Server (AI Agent Integration)
+
+Set `AXIODB_MCP=true` on this same container to let Claude (or any MCP-compatible AI agent)
+talk to your AxioDB instance directly, over Streamable HTTP on port 27020. It runs in the same
+process as the GUI/TCP server already in this image - no separate install, no second database
+instance.
+
+```bash
+docker run -d \
+  --name axiodb-server \
+  -e AXIODB_GUI=true \
+  -e AXIODB_MCP=true \
+  -p 27018:27018 \
+  -p 27019:27019 \
+  -p 27020:27020 \
+  -v axiodb-data:/app \
+  theankansaha/axiodb
+```
+
+Register the endpoint (`http://localhost:27020/mcp`) with whichever AI tool you use:
+
+| Tool | How |
+| --- | --- |
+| **Claude Code** | `claude mcp add --transport http axiodb http://localhost:27020/mcp` |
+| **OpenAI Codex CLI** | `codex mcp add axiodb --url http://localhost:27020/mcp` (or `[mcp_servers.axiodb]` + `url = "..."` in `~/.codex/config.toml`) |
+| **opencode** | `opencode mcp add` (interactive → type "remote") or add `"axiodb": { "type": "remote", "url": "...", "enabled": true }` under `mcp` in `opencode.json` |
+| **GitHub Copilot CLI** | `/mcp add` inside the `copilot` REPL, or add to `~/.copilot/mcp-config.json`: `{ "mcpServers": { "axiodb": { "type": "http", "url": "..." } } }` |
+| **Cursor** | Add to `.cursor/mcp.json` (or `~/.cursor/mcp.json`): `{ "mcpServers": { "axiodb": { "url": "..." } } }` |
+| **Windsurf** | Add to `~/.codeium/windsurf/mcp_config.json`: `{ "mcpServers": { "axiodb": { "serverUrl": "..." } } }` |
+| **Google Antigravity** (IDE & CLI) | Add to `~/.gemini/config/mcp_config.json`: `{ "mcpServers": { "axiodb": { "serverUrl": "..." } } }` — note `serverUrl`, not `url` |
+
+**32 tools**, covering:
+
+- **Session**: `axiodb_login`, `axiodb_logout`, `axiodb_whoami`, `axiodb_change_own_password`
+- **Database**: create/delete/exists/instance-info
+- **Collection**: create (plain or AES-256 encrypted)/delete/exists/info
+- **Documents & Aggregation**: insert/insert-many/query/update/delete/count/aggregate
+- **Index**: create/drop/list
+- **Dashboard**: stats
+- **User & Role Management**: full CRUD on users and roles, Super Admin only
+
+Every tool except `axiodb_login` requires a `sessionId` from a successful login - every
+subsequent call is checked against that logged-in user's actual RBAC role, exactly like the
+HTTP API. Nothing is gated by a static container environment variable. `AXIODB_MCP=true` only
+has RBAC to serve once it's actually seeded, i.e. `AXIODB_GUI=true` (default) or
+`AXIODB_TCP=true` + `AXIODB_TCP_AUTH=true`.
+
+Transactions and database export/import are intentionally not exposed as MCP tools.
+
+Full tool catalogue, request/response examples, and security notes:
+**[https://axiodb.in/mcp-server](https://axiodb.in/mcp-server)**.
 
 ## =� API Examples
 

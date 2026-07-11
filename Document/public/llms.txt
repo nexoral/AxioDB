@@ -45,6 +45,7 @@ Requires Node.js >= 20.0.0
 - [Create Collection](https://axiodb.in/create-collection)
 - [AxioDBCloud (Remote/TCP)](https://axiodb.in/cloud)
 - [Docker Deployment](https://axiodb.in/docker)
+- [MCP Server (AI Agent Integration)](https://axiodb.in/mcp-server)
 - [Troubleshooting](https://axiodb.in/troubleshooting)
 - [Changelog](https://axiodb.in/changelog)
 - [Maintainer's Zone](https://axiodb.in/maintainers-zone)

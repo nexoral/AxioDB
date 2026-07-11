@@ -212,19 +212,22 @@ export default class Aggregation {
             any,
           ][]) {
             if (key === "_id") continue;
-            if (operation.$avg) {
-              const field = operation.$avg.replace("$", "");
+            if (operation.$avg !== undefined) {
+              const operand = operation.$avg;
+              const value =
+                typeof operand === "string" ? item[operand.replace("$", "")] : operand;
               groupedData[groupKey][key] = groupedData[groupKey][key] || {
                 sum: 0,
                 count: 0,
               };
-              groupedData[groupKey][key].sum += item[field];
+              groupedData[groupKey][key].sum += value;
               groupedData[groupKey][key].count += 1;
             }
-            if (operation.$sum) {
-              const field = operation.$sum.replace("$", "");
-              groupedData[groupKey][key] =
-                (groupedData[groupKey][key] || 0) + item[field];
+            if (operation.$sum !== undefined) {
+              const operand = operation.$sum;
+              const value =
+                typeof operand === "string" ? item[operand.replace("$", "")] : operand;
+              groupedData[groupKey][key] = (groupedData[groupKey][key] || 0) + value;
             }
           }
         }

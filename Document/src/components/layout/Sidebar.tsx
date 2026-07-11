@@ -73,6 +73,10 @@ const sidebarSections: SidebarSection[] = [
     items: [{ id: "docker", label: "Docker Deployment", path: "/docker" }],
   },
   {
+    title: "AI Agent Integration",
+    items: [{ id: "mcp-server", label: "MCP Server", path: "/mcp-server" }],
+  },
+  {
     title: "API Reference",
     items: [
       { id: "api-reference", label: "SDK API Reference", path: "/api-reference" },

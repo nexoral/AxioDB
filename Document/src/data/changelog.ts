@@ -12,6 +12,22 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "12.10.20+",
+    date: "2026-07-12",
+    title: "MCP Server for AI agent integration",
+    changes: [
+      "MCP server (Model Context Protocol) added to the Docker image, opt-in via AXIODB_MCP=true, exposing 32 tools over Streamable HTTP on port 27020",
+      "Real login required (axiodb_login) - every tool is gated by the logged-in user's actual RBAC role, mirroring the HTTP Control Server's permissions exactly",
+      "Full coverage: database/collection/document CRUD, aggregation, indexes, dashboard stats, and user/role management (including a new role-deletion capability, added to both the HTTP API and MCP)",
+      "Session tools: axiodb_logout, axiodb_whoami, axiodb_change_own_password",
+      "Fixed: aggregation $sum/$avg crashing on numeric literal operands (e.g. { $sum: 1 })",
+      "Fixed: delete-by-query silently deleting nothing while reporting success when isMany was left unset",
+      "Fixed: total document count including the collection's internal indexes folder in the total",
+      "Fixed: collection metadata responses no longer leak the raw AES encryption key",
+      "Removed dead chmod-based file/directory locking code (LockFile/UnlockFile/IsFileLocked, LockDirectory/IsDirectoryLocked) that was never actually engaged by any internal flow",
+    ],
+  },
+  {
     version: "11.9.13+",
     date: "2026-07-11",
     title: "AxioDBCloud connection pooling, rate limiting & TLS",

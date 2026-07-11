@@ -178,6 +178,17 @@ export default class Database {
       ),
     );
 
+    // Never surface the raw encryption key outside the engine - getCollectionMetaDetails()
+    // itself must keep returning it (createCollection() needs the real key to re-open an
+    // existing encrypted collection), this response is the only place it gets redacted.
+    const RedactedCollectionStatus = CollectionStatus.map((meta) => {
+      if (!meta) {
+        return meta;
+      }
+      const { encryptionKey: _encryptionKey, ...safeMeta } = meta;
+      return safeMeta;
+    });
+
     if ("data" in collections && "data" in totalSize) {
       const FinalCollections: FinalCollectionsInfo = {
         CurrentPath: this.path,
@@ -186,7 +197,7 @@ export default class Database {
         TotalCollections: `${collections.data.length} Collections`,
         TotalSize: parseInt((totalSize.data / 1024 / 1024).toFixed(4)),
         ListOfCollections: collections.data,
-        collectionMetaStatus: CollectionStatus,
+        collectionMetaStatus: RedactedCollectionStatus,
         AllCollectionsPaths: collections.data.map((collection: string) =>
           path.join(this.path, collection),
         ),
