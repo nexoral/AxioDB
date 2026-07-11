@@ -97,6 +97,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://axiodb.in/changelog</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://axiodb.in/maintainers-zone</loc>
     <lastmod>2026-07-11</lastmod>
     <changefreq>monthly</changefreq>

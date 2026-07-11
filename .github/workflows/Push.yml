@@ -87,7 +87,7 @@ jobs:
 
   tcp_auth_rbac_gate:
     name: "Gate 2 — TCP Auth (AxioDBCloud RBAC) Test Suite"
-    needs: [detect_changes, auth_rbac_gate]
+    needs: [detect_changes]
     if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -122,7 +122,7 @@ jobs:
 
   tcp_noauth_compat_gate:
     name: "Gate 3 — TCP No-Auth (Backward Compatibility) Test Suite"
-    needs: [detect_changes, tcp_auth_rbac_gate]
+    needs: [detect_changes]
     if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -156,7 +156,7 @@ jobs:
         run: npm test tcp-noauth
 
   test:
-    needs: [detect_changes, tcp_noauth_compat_gate]
+    needs: [detect_changes, auth_rbac_gate, tcp_auth_rbac_gate, tcp_noauth_compat_gate]
     if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
     permissions:

@@ -55,10 +55,30 @@ async insert(document: object): Promise<SuccessInterface | ErrorInterface> { }
 
 **Complex logic**: Add inline comments explaining "why" not "what"
 
+### 5. Changelog (`Document/src/data/changelog.ts`)
+**When**: Any *major* or breaking change - new feature, breaking API change, security fix,
+significant performance work. Rendered live at `/changelog` on the docs site.
+
+**When NOT to**: Trivial fixes, refactors, chores, doc-only tweaks - this is a curated
+milestone list (see the file's own header comment), not a full commit log.
+
+**How**: Add a new entry to the top of the `changelog` array (newest first):
+```typescript
+{
+  version: "12.0.0",       // match whatever package.json bumps to for this change
+  date: "2026-08-01",      // YYYY-MM-DD
+  title: "Short summary of the milestone",
+  changes: [
+    "One line per notable change in this release",
+    "Keep each line scannable - what changed, not why",
+  ],
+},
+```
+
 ## Documentation Workflow
 
 1. **During implementation**: Add JSDoc, inline comments
-2. **After implementation**: Update README, Document/, Dockerfile
+2. **After implementation**: Update README, Document/, Dockerfile, and Changelog (if major/breaking)
 3. **Before commit**: Verify docs updated, examples work, links valid, docs build succeeds
 
 ## Checklist for Feature Addition
@@ -71,6 +91,7 @@ async insert(document: object): Promise<SuccessInterface | ErrorInterface> { }
   - [ ] Navigation links added
 - [ ] Dockerfile updated (if relevant)
 - [ ] JSDoc comments added
+- [ ] Changelog entry added (if major/breaking) - `Document/src/data/changelog.ts`
 - [ ] Examples tested and working
 
 ## Standards

@@ -18,6 +18,7 @@ import MaintainersZone from "./components/content/MaintainersZone";
 import AxioDBCloud from "./components/content/AxioDBCloud";
 import Docker from "./components/content/Docker";
 import Troubleshooting from "./components/content/Troubleshooting";
+import Changelog from "./components/content/Changelog";
 
 // Route table consumed by vite-react-ssg to know which pages to prerender at
 // build time, and by react-router-dom at runtime for client-side navigation.
@@ -46,6 +47,7 @@ export const routes: RouteRecord[] = [
       { path: "cloud", element: <AxioDBCloud /> },
       { path: "docker", element: <Docker /> },
       { path: "troubleshooting", element: <Troubleshooting /> },
+      { path: "changelog", element: <Changelog /> },
       { path: "maintainers-zone", element: <MaintainersZone /> },
       { path: "why-choose-axiodb", element: <Introduction /> },
     ],

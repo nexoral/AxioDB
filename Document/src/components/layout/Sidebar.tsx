@@ -109,6 +109,12 @@ const sidebarSections: SidebarSection[] = [
     ],
   },
   {
+    title: "Changelog",
+    items: [
+      { id: "changelog", label: "Changelog", path: "/changelog" },
+    ],
+  },
+  {
     title: "Maintainer's Zone",
     items: [
       {

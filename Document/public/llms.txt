@@ -46,6 +46,7 @@ Requires Node.js >= 20.0.0
 - [AxioDBCloud (Remote/TCP)](https://axiodb.in/cloud)
 - [Docker Deployment](https://axiodb.in/docker)
 - [Troubleshooting](https://axiodb.in/troubleshooting)
+- [Changelog](https://axiodb.in/changelog)
 - [Maintainer's Zone](https://axiodb.in/maintainers-zone)
 
 ## Source & Package

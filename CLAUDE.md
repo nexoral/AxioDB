@@ -30,6 +30,7 @@ node Test/modules/crud.test.js
 4. **Respect existing**: Read files before modifying, follow patterns
 5. **SOLID + DRY**: No hacks, no duplication, modular design
 6. **Update docs**: README.md, Document/, Dockerfile when features change
+7. **Update changelog**: Any major/breaking change (new feature, breaking API change, security fix, significant perf work) gets an entry in `Document/src/data/changelog.ts` - see `.claude/rules/documentation.md`
 
 ## Definition of "Done"
 
@@ -38,6 +39,7 @@ node Test/modules/crud.test.js
 - ✅ Tests added/updated in `Test/modules/`
 - ✅ `npm test` passes
 - ✅ Docs updated (README, Document/, Dockerfile)
+- ✅ Changelog updated (`Document/src/data/changelog.ts`) if the change is major/breaking
 - ✅ No breaking changes (unless approved)
 
 ## Structure

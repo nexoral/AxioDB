@@ -273,6 +273,11 @@ When adding/changing features, update:
 2. **Document/** - React docs site (`cd Document && npm run dev`)
 3. **Dockerfile** - If ports, environment vars, or commands change
 4. **JSDoc** - All public methods with complete examples
+5. **Changelog** - `Document/src/data/changelog.ts` (rendered at `/changelog`) - add an entry for any
+   major or breaking change: new features, breaking API changes, security fixes, significant
+   performance work. Follow the existing entry shape (`version`, `date`, `title`, `changes[]`) and
+   match the version to whatever `package.json` bumps to for that change. Skip this for trivial
+   fixes/refactors/chores - it's a curated milestone list, not a full commit log.
 
 ### JSDoc Format
 ```typescript
@@ -355,6 +360,7 @@ Before marking ANY task complete, verify:
 - [ ] Lint passes (`npm run lint`)
 - [ ] Tests added/updated in `Test/modules/`
 - [ ] Documentation updated (README, Document/, Dockerfile)
+- [ ] Changelog updated (`Document/src/data/changelog.ts`) if the change is major/breaking
 - [ ] No breaking changes (or explicitly approved)
 - [ ] Follows SOLID + DRY principles
 - [ ] No `any` types (TypeScript strict)
