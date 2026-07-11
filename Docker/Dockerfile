@@ -36,7 +36,15 @@ EXPOSE 27018 27019
 ENV AXIODB_GUI=true
 ENV AXIODB_TCP=true
 ENV AXIODB_TCP_AUTH=true
+ENV AXIODB_TLS=false
 ENV AXIODB_ROOT_NAME=AxioDB
+
+# To enable TLS on the TCP server, set AXIODB_TLS=true and mount a cert/key pair into the
+# container, then point these at the mounted paths, e.g.:
+#   docker run -v /host/certs:/certs:ro -e AXIODB_TLS=true \
+#     -e AXIODB_TLS_CERT_PATH=/certs/server.crt -e AXIODB_TLS_KEY_PATH=/certs/server.key ...
+# ENV AXIODB_TLS_CERT_PATH=/certs/server.crt
+# ENV AXIODB_TLS_KEY_PATH=/certs/server.key
 
 # Probes whichever of the GUI (/health) and TCP (real PING/PONG heartbeat) surfaces are
 # enabled - see healthcheck.js. Reported via `docker ps` / `docker inspect` and consumed by

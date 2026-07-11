@@ -1,6 +1,8 @@
 import { Server, Socket, createServer } from 'net';
+import { createServer as createTLSServer } from 'tls';
+import fs from 'fs';
 import { AxioDB } from '../../Services/Indexation.operation';
-import { ConnectionManager } from '../connection/ConnectionManager';
+import { ConnectionManager, ConnectionRejectReason } from '../connection/ConnectionManager';
 import { CommandHandler } from '../handler/CommandHandler';
 import { RequestContext } from '../connection/RequestContext';
 import { TCPRequest, TCPResponse } from '../types/protocol.types';
@@ -8,6 +10,35 @@ import { MessageFramer } from './protocol';
 import { DEFAULT_TCP_PORT, ErrorMessage, StatusCode } from './keys';
 import { CommandType } from '../types/command.types';
 import AuthEvents from '../../Services/Auth/AuthEvents.service';
+import ConnectionRateLimiter from '../connection/ConnectionRateLimiter';
+
+/** Path to a PEM cert + matching private key, used to encrypt the TCP server with TLS instead of plaintext. */
+export interface TCPTLSOptions {
+  certPath: string;
+  keyPath: string;
+}
+
+/** Wire response for each way `ConnectionManager.addConnection` can reject a new socket. */
+const CONNECTION_REJECTION_RESPONSES: Record<
+  ConnectionRejectReason,
+  { id: string; statusCode: number; message: string }
+> = {
+  [ConnectionRejectReason.SERVER_OVERLOAD]: {
+    id: 'server_overload',
+    statusCode: StatusCode.SERVICE_UNAVAILABLE,
+    message: ErrorMessage.SERVER_OVERLOAD,
+  },
+  [ConnectionRejectReason.IP_LIMIT_EXCEEDED]: {
+    id: 'ip_limit_exceeded',
+    statusCode: StatusCode.TOO_MANY_REQUESTS,
+    message: ErrorMessage.TOO_MANY_CONNECTIONS_FROM_IP,
+  },
+  [ConnectionRejectReason.RATE_LIMITED]: {
+    id: 'rate_limited',
+    statusCode: StatusCode.TOO_MANY_REQUESTS,
+    message: ErrorMessage.TOO_MANY_CONNECTION_ATTEMPTS,
+  },
+};
 
 /**
  * TCP Server for AxioDB
@@ -16,11 +47,16 @@ import AuthEvents from '../../Services/Auth/AuthEvents.service';
 export default async function createAxioDBTCPServer(
   axioDB: AxioDB,
   port: number = DEFAULT_TCP_PORT,
-  requireAuth: boolean = false
+  requireAuth: boolean = false,
+  tlsOptions?: TCPTLSOptions,
 ): Promise<Server> {
   const connectionManager = new ConnectionManager();
   const commandHandler = new CommandHandler(axioDB, connectionManager, requireAuth);
   let server: Server;
+
+  // Connection-attempt rate limiting is relevant as soon as the TCP surface is up at all,
+  // independent of TCPAuth (it guards raw connection churn, not logins).
+  ConnectionRateLimiter.startCleanupSweep();
 
   // Setup connection manager event handlers
   setupConnectionManagerHandlers(connectionManager);
@@ -33,10 +69,21 @@ export default async function createAxioDBTCPServer(
     connectionManager.revokeAuthForUser(username);
   });
 
-  // Create TCP server
-  server = createServer((socket: Socket) => {
+  const connectionListener = (socket: Socket): void => {
     handleNewConnection(socket, connectionManager, commandHandler);
-  });
+  };
+
+  if (tlsOptions) {
+    // Reading here (rather than in Indexation.operation.ts) keeps file I/O and the actual
+    // TLS wiring in the same module that owns the TCP server. AxioDB itself only validates
+    // that the paths exist before ever getting here - fail-fast, not a silent plaintext
+    // fallback if a read fails unexpectedly (e.g. permissions changed between checks).
+    const cert = fs.readFileSync(tlsOptions.certPath);
+    const key = fs.readFileSync(tlsOptions.keyPath);
+    server = createTLSServer({ cert, key }, connectionListener);
+  } else {
+    server = createServer(connectionListener);
+  }
 
   // Setup server error handling
   server.on('error', (error: Error) => {
@@ -50,7 +97,9 @@ export default async function createAxioDBTCPServer(
 
   // Start listening
   server.listen(port, () => {
-    console.log(`[AxioDB TCP Server] Started successfully on port ${port}`);
+    console.log(
+      `[AxioDB TCP Server] Started successfully on port ${port}${tlsOptions ? ' (TLS)' : ''}`,
+    );
   });
 
   return server;
@@ -95,26 +144,23 @@ function handleNewConnection(
   connectionManager: ConnectionManager,
   commandHandler: CommandHandler
 ): void {
-  const connectionId = connectionManager.addConnection(socket);
+  const result = connectionManager.addConnection(socket);
 
-  if (!connectionId) {
-    // Server overload - reject connection
-    const errorResponse: TCPResponse = {
-      id: 'server_overload',
-      statusCode: StatusCode.SERVICE_UNAVAILABLE,
-      message: ErrorMessage.SERVER_OVERLOAD,
-      error: ErrorMessage.SERVER_OVERLOAD,
-    };
+  if ('rejected' in result) {
+    const { id, statusCode, message } = CONNECTION_REJECTION_RESPONSES[result.rejected];
+    const errorResponse: TCPResponse = { id, statusCode, message, error: message };
 
     try {
       socket.write(MessageFramer.encode(errorResponse));
     } catch (error) {
-      console.error('[AxioDB TCP] Error sending overload response:', error);
+      console.error('[AxioDB TCP] Error sending rejection response:', error);
     }
 
     socket.end();
     return;
   }
+
+  const { connectionId } = result;
 
   // Setup message handler. Registered as a named listener (rather than an anonymous
   // closure kept forever) so it can be removed on disconnect - otherwise every past

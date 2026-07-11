@@ -5,6 +5,7 @@ import FileManager from "../engine/Filesystem/FileManager";
 import FolderManager from "../engine/Filesystem/FolderManager";
 import { General } from "../config/Keys/Keys";
 import path from "path";
+import fs from "fs";
 import Database from "./Database/database.operation";
 // import startWebServer from "../server/Fastify";
 
@@ -53,6 +54,9 @@ export class AxioDB {
   private GUI: boolean = General.DBMS_GUI_Enable;
   private TCP: boolean = false;
   private TCPAuth: boolean = false;
+  private TLS: boolean = false;
+  private TLSCertPath?: string;
+  private TLSKeyPath?: string;
 
   constructor(options: AxioDBOptions = {}) {
     if (AxioDB._instance) {
@@ -60,7 +64,7 @@ export class AxioDB {
     }
     AxioDB._instance = this;
 
-    const { GUI, RootName, CustomPath, TCP, TCPAuth } = options;
+    const { GUI, RootName, CustomPath, TCP, TCPAuth, TLS, TLSCertPath, TLSKeyPath } = options;
 
     // Default Vlaues
 
@@ -74,7 +78,27 @@ export class AxioDB {
     this.GUI = GUI !== undefined ? GUI : General.DBMS_GUI_Enable; // Set GUI option
     this.TCP = TCP !== undefined ? TCP : false; // Set TCP option
     this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false; // Set TCPAuth option
-    this.initializeRoot(); // Ensure root initialization (reads GUI/TCP/TCPAuth, so runs after they're set)
+    this.TLS = TLS !== undefined ? TLS : false; // Set TLS option
+    this.TLSCertPath = TLSCertPath;
+    this.TLSKeyPath = TLSKeyPath;
+
+    // Fail fast: never silently fall back to plaintext because a cert/key path was
+    // missing or unreadable - that would be a silent security downgrade.
+    if (this.TLS) {
+      if (!this.TLSCertPath || !this.TLSKeyPath) {
+        throw new Error(
+          "TLS: true requires both TLSCertPath and TLSKeyPath to be set.",
+        );
+      }
+      if (!fs.existsSync(this.TLSCertPath)) {
+        throw new Error(`TLSCertPath does not exist: ${this.TLSCertPath}`);
+      }
+      if (!fs.existsSync(this.TLSKeyPath)) {
+        throw new Error(`TLSKeyPath does not exist: ${this.TLSKeyPath}`);
+      }
+    }
+
+    this.initializeRoot(); // Ensure root initialization (reads GUI/TCP/TCPAuth/TLS, so runs after they're set)
   }
 
   /**
@@ -114,9 +138,14 @@ export class AxioDB {
       createAxioDBControlServer(this); // Start the web Control Server with the AxioDB instance
     }
     if (this.TCP) {
-      Console.green("Starting AxioDB TCP Server...");
+      Console.green(
+        this.TLS ? "Starting AxioDB TCP Server (TLS)..." : "Starting AxioDB TCP Server...",
+      );
       // Start the TCP Server with the AxioDB instance
-      createAxioDBTCPServer(this, undefined, this.TCPAuth).catch((error) => {
+      const tlsOptions = this.TLS
+        ? { certPath: this.TLSCertPath as string, keyPath: this.TLSKeyPath as string }
+        : undefined;
+      createAxioDBTCPServer(this, undefined, this.TCPAuth, tlsOptions).catch((error) => {
         console.error("[AxioDB TCP Server] Failed to start:", error);
       });
     }

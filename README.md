@@ -29,6 +29,7 @@
 - [AxioDBCloud — Connecting Remotely](#-axiodbcloud--connecting-remotely)
   - [Simple: connect without authentication](#simple-connect-without-authentication)
   - [Advanced: TCP authentication](#advanced-tcp-authentication)
+  - [Advanced: TLS encryption](#advanced-tls-encryption)
 - [Troubleshooting](#-troubleshooting)
 - [Docker Deployment](#-docker-deployment)
   - [Simple: run the container](#simple-run-the-container)
@@ -212,7 +213,9 @@ await session.withTransaction(async (tx) => {
 - **🔁 Auto-Reconnect:** exponential backoff, up to 10 retry attempts
 - **💓 Heartbeat Monitoring:** `PING`/`PONG` every 30 seconds
 - **🆔 Request Correlation:** UUID-based request/response matching
-- **🧵 Connection Pooling:** client keeps a pool of `maxPoolSize` concurrent connections (default: 10, mirrors MongoDB's driver option) and distributes commands round-robin; server accepts 1,000+ concurrent connections total
+- **🧵 Connection Pooling:** client keeps a pool of `maxPoolSize` concurrent connections (default: 10, mirrors MongoDB's driver option) and routes each command to the least-busy connected member (fewest in-flight requests); server accepts 1,000+ concurrent connections total, capped at 100 per remote IP (see the [file descriptor limit note](#connection-refused--too-many-open-files-errors-at-high-concurrency) below if you're running near that scale)
+- **🛡️ Connection-Level DoS Protection:** per-IP concurrent connection cap (100) plus a separate per-IP connection-*attempt* rate limiter (300 attempts / 10s → 30s cooldown), so one client can't starve the server either by holding too many sockets open or by rapidly opening and dropping them
+- **🔒 Optional TLS Encryption:** encrypt the wire protocol with your own cert (see [Advanced: TLS](#advanced-tls-encryption) below) — off by default, so existing plaintext deployments are unaffected unless you turn it on
 - **📐 TypeScript Support:** full type definitions included
 
 **Use cases:** microservices sharing one AxioDB instance, Electron apps connecting to a local or remote database, teams sharing a development database, container/cloud deployments (AWS, Azure, GCP, DigitalOcean).
@@ -280,7 +283,56 @@ await client.login('admin', 'admin');
 - **Accounts that still need their forced password change are rejected outright (`403`)**, not allowed through with a warning — there's no TCP command to change a password today, so log into the GUI (`http://localhost:27018`) to complete it first, or authenticate with an account that already has.
 - If a Super Admin resets a user's password, changes their role, or deletes them via the GUI while that user has an open TCP connection, the TCP connection is immediately forced to re-authenticate on its next command.
 
-**Known limitations:** the TCP protocol itself is unencrypted (no TLS) — deploy behind a private network, VPN, or your own TLS termination if connecting over an untrusted network. There's currently no TCP command to change a password; that must go through the GUI.
+**Known limitations:** there's currently no TCP command to change a password; that must go through the GUI.
+
+### Advanced: TLS encryption
+
+By default, the TCP protocol is **plaintext** — anyone who can capture the network traffic between client and server (e.g. Wireshark on a shared network) can read your data and, if `TCPAuth` is on, your password. TLS fixes this. It's **off by default** — nothing below is required, and existing plaintext deployments keep working exactly as before unless you turn it on.
+
+**You must provide your own certificate + key.** AxioDB never generates one for you — that's a security decision only you can make (a real cert from a CA, or a self-signed one for local/private use).
+
+**Step 1 — get a cert + key.** For local/dev/private use, generate a self-signed one (one-time, takes a second):
+```bash
+openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes -subj "/CN=localhost"
+```
+This creates two files, `cert.pem` and `key.pem`, in your current folder. For a real production deployment reachable from the internet, use a cert from a real CA (Let's Encrypt, your org's CA, your cloud provider's managed cert) instead — the rest of the setup below is identical either way.
+
+**Step 2 — point the server at them:**
+```javascript
+const { AxioDB } = require('axiodb');
+const db = new AxioDB({
+  TCP: true,
+  TLS: true,
+  TLSCertPath: './cert.pem', // path to the file from step 1
+  TLSKeyPath: './key.pem',
+});
+```
+If `TLS: true` but either path is missing or unreadable, AxioDB throws immediately at startup — it never silently falls back to plaintext.
+
+**Step 3 — point the client at the same cert** (only needed because it's self-signed; a real CA-issued cert wouldn't need this step, the same way your browser trusts `https://` sites without extra setup):
+```javascript
+const { AxioDBCloud } = require('axiodb');
+const client = new AxioDBCloud("axiodb://localhost:27019", {
+  tls: true,
+  tlsCAPath: './cert.pem', // same cert.pem from step 1 - proves this server is the real one
+});
+await client.connect();
+```
+Without `tlsCAPath`, the client refuses to connect to a self-signed server by default (`tlsRejectUnauthorized` defaults to `true`) — this is intentional, it's the same protection that stops your browser from silently trusting a fake `https://` site. Only set `tlsRejectUnauthorized: false` for local/dev testing, never in production, since it turns that protection off entirely.
+
+**Running this in Docker?** The cert/key files need to get *into* the container. The simplest way to think about it: your cert files live on your real machine; a Docker **bind mount** (`-v`) makes a folder from your machine visible inside the container at whatever path you choose, and you point `AXIODB_TLS_CERT_PATH`/`AXIODB_TLS_KEY_PATH` at *that in-container path*, not your real machine's path:
+```bash
+# cert.pem and key.pem are really at /home/you/mycerts/ on your machine.
+# "/certs" below is just a name we're choosing for where they'll appear inside the container.
+docker run -d --name axiodb-server \
+  -p 27018:27018 -p 27019:27019 \
+  -v /home/you/mycerts:/certs:ro \
+  -e AXIODB_TLS=true \
+  -e AXIODB_TLS_CERT_PATH=/certs/cert.pem \
+  -e AXIODB_TLS_KEY_PATH=/certs/key.pem \
+  theankansaha/axiodb
+```
+The rule: the `-e AXIODB_TLS_CERT_PATH=...` value must always match the *right-hand side* of the `-v` mount (`/certs/...`), never the real path on your machine (`/home/you/mycerts/...`) — the container can't see your machine's filesystem directly, only whatever you've explicitly mounted into it.
 
 👉 **[Full AxioDBCloud Documentation](https://axiodb.in/cloud)** — setup guides, API reference, Docker examples
 
@@ -316,6 +368,27 @@ Your credentials are correct, but that account is still flagged for a forced pas
 
 Five failed logins from your IP within 15 minutes trigger a 15-minute lockout, shared between TCP and the GUI. Double check the credentials you're sending, wait out the cooldown, or fix the underlying typo/config issue causing repeated failures — there's no way to clear the lockout early.
 
+### `429` — "Too many concurrent connections from this IP address"
+
+Unrelated to the login lockout above — this fires at connection time, before any `AUTHENTICATE`, once a single remote IP has 100 concurrent open TCP sockets to the server (`MAX_CONNECTIONS_PER_IP`), regardless of whether any of those connections are authenticated. This caps how much of the server's total 1,000-connection budget one IP can claim, so one client can't starve every other client. It's per-*connection*, not per-*request* — a single `AxioDBCloud` client at the default `maxPoolSize: 10` is nowhere near this limit; you'd only hit it by running many separate client processes behind the same IP/NAT gateway, or a runaway reconnect loop leaking sockets. If you legitimately need more than 100 concurrent connections from one IP, that's a server-side constant (`MAX_CONNECTIONS_PER_IP` in `source/tcp/config/keys.ts`) — there's no runtime option to raise it yet.
+
+If you do set a `maxPoolSize` that pushes past this cap (or any other subset of the pool fails for another reason, e.g. a network blip), `connect()` doesn't throw as long as at least one pool member connected — it resolves with a smaller-than-requested pool and emits a `poolDegraded` event so you know about it instead of silently running under capacity:
+
+```javascript
+client.on('poolDegraded', ({ requested, connected, failed, errors }) => {
+  console.warn(`Pool came up smaller than requested: ${connected}/${requested} connected, ${failed} failed`);
+  console.warn(errors[0].message); // e.g. "Too many concurrent connections from this IP address"
+});
+
+await client.connect(); // resolves even if some pool members were rejected
+```
+
+(The very first connection in the pool is the exception — if *that* one fails, `connect()` rejects entirely, since it's the signal that the server is reachable and credentials are valid at all.)
+
+### `429` — "Too many connection attempts from this IP address. Try again later."
+
+Different from both `429`s above, and checked first: this guards against rapid connect-then-drop *churn*, which the concurrent-connection cap (`MAX_CONNECTIONS_PER_IP`) doesn't catch on its own — an attacker who never holds more than a few sockets open at once could still hammer the server with a high rate of connection attempts, each costing a TCP handshake and an accept/reject cycle, and stay under that cap the whole time. This is tracked separately, per IP, as a sliding window: once an IP crosses 300 connection attempts (successful or rejected, it doesn't matter which) within a trailing 10-second window, every new connection from that IP is rejected outright for the next 30 seconds. A normal `AxioDBCloud` client, even reconnecting a full `maxPoolSize: 10` pool repeatedly, is nowhere near this threshold — you'd only hit it via a genuine connection flood or a reconnect loop gone very wrong (e.g. retrying without backoff). There's no runtime option to raise these thresholds yet; they're constants in `source/tcp/config/keys.ts` (`CONNECTION_RATE_LIMIT_*`).
+
 ### `403` — "This is a reserved system database"
 
 You (or a client) tried to read/write a database literally named `config` — that name is reserved for AxioDB's own RBAC storage (`users`/`roles`/`permissions`) and is blocked on both the GUI and TCP, authenticated or not. Use a different database name.
@@ -329,6 +402,37 @@ You (or a client) tried to read/write a database literally named `config` — th
 ### Docker container issues (won't start, port conflicts, data not persisting)
 
 See the [Docker Deployment](#-docker-deployment) section below, and `Docker/README.md` in the repository for a fuller Docker-specific troubleshooting guide (`docker logs`, port-conflict remapping, volume-mounting checklist).
+
+### Connection refused / "Too many open files" errors at high concurrency
+
+Each `AxioDBCloud` client opens `maxPoolSize` TCP sockets (default: 10), and the server holds one socket per connected client — both count against the OS's open-file-descriptor limit. Most Linux distros default `ulimit -n` to 1024 per process, which is enough for only ~100 clients at the default pool size before the server starts refusing new connections with `EMFILE`/`ENFILE`.
+
+If you're deploying towards the 1,000+ concurrent connections the server supports, raise the limit before starting the process:
+
+```bash
+ulimit -n 65536          # current shell / process
+node lib/config/DB.js
+```
+
+In Docker, set it on the container instead of the host shell:
+
+```bash
+docker run --ulimit nofile=65536:65536 -p 27018:27018 -p 27019:27019 theankansaha/axiodb
+```
+
+or, in Compose:
+
+```yaml
+services:
+  axiodb:
+    image: theankansaha/axiodb
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+```
+
+On the client side, prefer a smaller `maxPoolSize` per instance rather than raising it — the least-busy routing (see [Connection Pooling](#-axiodbcloud--connecting-remotely) above) already avoids the head-of-line blocking a bigger pool would otherwise compensate for.
 
 ---
 
@@ -362,12 +466,15 @@ Every option below has a default matching the image's previous fixed behavior �
 | `AXIODB_GUI` | `true` | Enable the HTTP Control Server / web GUI on port 27018 |
 | `AXIODB_TCP` | `true` | Enable the AxioDBCloud TCP server on port 27019 |
 | `AXIODB_TCP_AUTH` | `true` | Require username/password authentication on TCP connections (same RBAC accounts as the GUI) |
+| `AXIODB_TLS` | `false` | Encrypt TCP connections with TLS instead of plaintext (see [Advanced: TLS encryption](#advanced-tls-encryption)) |
+| `AXIODB_TLS_CERT_PATH` | *(none)* | Path **inside the container** to a PEM cert file - required when `AXIODB_TLS=true`. Mount the real file in with `-v` first (see the TLS section above) |
+| `AXIODB_TLS_KEY_PATH` | *(none)* | Path **inside the container** to the matching PEM private key - required when `AXIODB_TLS=true` |
 | `AXIODB_ROOT_NAME` | `AxioDB` | Name of the root database folder created under the data volume |
 | `AXIODB_CUSTOM_PATH` | *(container's working directory)* | Custom path for database storage inside the container |
 
 > Ports themselves (27018/27019) aren't configurable via environment variable — remap them at the Docker layer with `-p <host-port>:27018` / `-p <host-port>:27019`.
 
-**Disabling TCP authentication** (only on a trusted private network — the wire is unencrypted; see [Known limitations](#advanced-tcp-authentication)):
+**Disabling TCP authentication** (only on a trusted private network — the wire is plaintext unless you also enable `AXIODB_TLS`; see [Advanced: TLS encryption](#advanced-tls-encryption)):
 ```bash
 docker run -d \
   --name axiodb-server \
@@ -396,6 +503,34 @@ services:
       - AXIODB_ROOT_NAME=AxioDB
     volumes:
       - axiodb-data:/app
+    restart: unless-stopped
+
+volumes:
+  axiodb-data:
+```
+
+**The same, with TLS enabled** — note the two different kinds of entry under `volumes:`: `./mycerts:/certs:ro` is *your real folder* on the machine running Compose (because it contains a `/`), mounted read-only at `/certs` inside the container; `axiodb-data:/app` is a Docker-managed named volume (no `/`, just a label) for the actual database files:
+```yaml
+version: "3.8"
+
+services:
+  axiodb:
+    image: theankansaha/axiodb
+    container_name: axiodb-server
+    ports:
+      - "27018:27018"
+      - "27019:27019"
+    environment:
+      - AXIODB_GUI=true
+      - AXIODB_TCP=true
+      - AXIODB_TCP_AUTH=true
+      - AXIODB_TLS=true
+      - AXIODB_TLS_CERT_PATH=/certs/cert.pem
+      - AXIODB_TLS_KEY_PATH=/certs/key.pem
+      - AXIODB_ROOT_NAME=AxioDB
+    volumes:
+      - ./mycerts:/certs:ro      # your real cert.pem/key.pem folder -> /certs in the container
+      - axiodb-data:/app         # Docker-managed volume for database files
     restart: unless-stopped
 
 volumes:
@@ -445,7 +580,7 @@ A Super Admin can create additional roles from the predefined permission catalog
 
 **Index management:** the Control Server also exposes `GET /api/index/list`, `POST /api/index/create`, and `DELETE /api/index/delete`, gated by the same `index:view` / `index:create` / `index:delete` permissions (View role gets view-only, Admin and Super Admin get all three).
 
-> **Security note:** RBAC protects the Control Server's HTTP API and TCP server; both are still intended for trusted local/network access, not public internet exposure. See [Troubleshooting](#-troubleshooting) for the TLS caveat on TCP.
+> **Security note:** RBAC protects the Control Server's HTTP API and TCP server, but the HTTP GUI itself has no TLS support - keep it on a trusted local/private network, not public internet exposure. The TCP server *can* be encrypted (see [Advanced: TLS encryption](#advanced-tls-encryption)), which is recommended if it's reachable over any untrusted network.
 
 ---
 
@@ -764,7 +899,7 @@ Yes. Full type definitions are included — no separate `@types` package needed.
 No. AxioDB requires Node.js (v20+) and the filesystem — server-side and desktop only.
 
 **Q: What is AxioDBCloud?**
-TCP-based remote access for AxioDB. Deploy AxioDB in Docker, connect from multiple clients with the exact same API. Supports 1,000+ concurrent connections with auto-reconnect. Optional username/password authentication (`TCPAuth: true`) reuses the same RBAC accounts as the GUI — see [AxioDBCloud](#-axiodbcloud--connecting-remotely) above.
+TCP-based remote access for AxioDB. Deploy AxioDB in Docker, connect from multiple clients with the exact same API. Supports 1,000+ concurrent connections with auto-reconnect. Optional username/password authentication (`TCPAuth: true`) reuses the same RBAC accounts as the GUI, and optional TLS encryption (`TLS: true`) protects the wire protocol on untrusted networks — see [AxioDBCloud](#-axiodbcloud--connecting-remotely) above.
 
 ---
 

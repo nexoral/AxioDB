@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { EventEmitter } from 'events';
+import fs from 'fs';
 import PooledConnection from './PooledConnection';
 import { CommandType } from '../tcp/types/command.types';
-import { AxioDBCloudOptions, AuthenticatedUser, ConnectionState, ParsedConnectionString } from './types/client.types';
+import { AxioDBCloudOptions, AuthenticatedUser, ConnectionState, ParsedConnectionString, PoolDegradedEvent } from './types/client.types';
 import DatabaseProxy from './DatabaseProxy';
 
 const DEFAULT_MAX_POOL_SIZE = 10;
@@ -11,20 +12,24 @@ const DEFAULT_MAX_POOL_SIZE = 10;
  * AxioDBCloud - TCP Client for remote AxioDB access
  *
  * Maintains a pool of `maxPoolSize` concurrent TCP connections (default: 10, mirrors
- * MongoDB's driver default naming/behavior) to the same server. Commands are distributed
- * round-robin across connected pool members; each member independently reconnects (with
- * exponential backoff) and re-authenticates, so one dropped connection never affects the
- * others or blocks in-flight commands routed to healthy members.
+ * MongoDB's driver default naming/behavior) to the same server. Commands are routed to
+ * whichever connected pool member has the fewest in-flight requests, so a slow command
+ * on one connection doesn't queue new commands behind it while other members sit idle;
+ * each member independently reconnects (with exponential backoff) and re-authenticates,
+ * so one dropped connection never affects the others or blocks in-flight commands routed
+ * to healthy members.
  */
 export class AxioDBCloud extends EventEmitter {
   private host: string;
   private port: number;
   private pool: PooledConnection[] = [];
-  private roundRobinIndex = 0;
-  private options: Required<Omit<AxioDBCloudOptions, 'username' | 'password'>>;
+  private options: Required<Omit<AxioDBCloudOptions, 'username' | 'password' | 'tlsCAPath'>>;
   // Kept separate from `options` above: unlike timeout/reconnectAttempts/etc, credentials
   // have no sensible default, so they can't live in a Required<AxioDBCloudOptions> object.
   private credentials?: { username: string; password: string };
+  // Read once here (not per pooled connection) and handed to each PooledConnection as a
+  // Buffer - see PooledConnectionOptions.tlsCA.
+  private readonly tlsCA?: Buffer;
 
   constructor(connectionString: string, options?: AxioDBCloudOptions) {
     super();
@@ -60,7 +65,13 @@ export class AxioDBCloud extends EventEmitter {
       reconnectDelay: options?.reconnectDelay || 1000,
       heartbeatInterval: options?.heartbeatInterval || 30000,
       maxPoolSize: options?.maxPoolSize || DEFAULT_MAX_POOL_SIZE,
+      tls: options?.tls ?? false,
+      tlsRejectUnauthorized: options?.tlsRejectUnauthorized ?? true,
     };
+
+    if (options?.tlsCAPath) {
+      this.tlsCA = fs.readFileSync(options.tlsCAPath);
+    }
 
     if (options?.username && options?.password) {
       this.credentials = { username: options.username, password: options.password };
@@ -89,6 +100,13 @@ export class AxioDBCloud extends EventEmitter {
    * attempts against the server's shared per-IP rate limiter N times over for a single bad
    * -credentials connect() call, and ensures a bad-credentials failure never leaves any pool
    * member mid-reconnect.
+   *
+   * The first connection must succeed or `connect()` rejects entirely (it's the signal that
+   * the server is reachable and credentials are valid at all). The rest of the pool uses
+   * allSettled rather than all: if `maxPoolSize` asks for more connections than the server
+   * allows from this IP (see the server's per-IP connection cap) or a handful hit a transient
+   * error, the pool still comes up with however many succeeded instead of failing outright -
+   * a smaller-than-requested pool is far more useful to the caller than no pool at all.
    */
   async connect(): Promise<void> {
     if (this.pool.length > 0 && this.pool.some((connection) => connection.state === ConnectionState.CONNECTED)) {
@@ -101,7 +119,22 @@ export class AxioDBCloud extends EventEmitter {
     await this.pool[0].connect();
 
     if (poolSize > 1) {
-      await Promise.all(this.pool.slice(1).map((connection) => connection.connect()));
+      const results = await Promise.allSettled(this.pool.slice(1).map((connection) => connection.connect()));
+      const failures = results.filter(
+        (result): result is PromiseRejectedResult => result.status === 'rejected',
+      );
+
+      if (failures.length > 0) {
+        const event: PoolDegradedEvent = {
+          requested: poolSize,
+          connected: poolSize - failures.length,
+          failed: failures.length,
+          errors: failures.map((failure) =>
+            failure.reason instanceof Error ? failure.reason : new Error(String(failure.reason)),
+          ),
+        };
+        this.emit('poolDegraded', event);
+      }
     }
 
     this.emit('connected');
@@ -116,6 +149,9 @@ export class AxioDBCloud extends EventEmitter {
         reconnectAttempts: this.options.reconnectAttempts,
         reconnectDelay: this.options.reconnectDelay,
         heartbeatInterval: this.options.heartbeatInterval,
+        tls: this.options.tls,
+        tlsCA: this.tlsCA,
+        tlsRejectUnauthorized: this.options.tlsRejectUnauthorized,
       },
       () => this.credentials,
       {
@@ -163,7 +199,7 @@ export class AxioDBCloud extends EventEmitter {
   }
 
   /**
-   * Send command to server - picks a connected pool member round-robin.
+   * Send command to server - picks the least-busy connected pool member.
    */
   async sendCommand(command: CommandType, params: any): Promise<any> {
     const connection = this.pickConnection();
@@ -174,21 +210,24 @@ export class AxioDBCloud extends EventEmitter {
     return connection.sendCommand(command, params);
   }
 
+  /**
+   * Picks the connected pool member with the fewest in-flight requests (least-busy),
+   * rather than round-robin, so a connection stuck on a slow command doesn't receive
+   * more work while other members are idle.
+   */
   private pickConnection(): PooledConnection | null {
-    const poolSize = this.pool.length;
-    if (poolSize === 0) {
-      return null;
-    }
+    let best: PooledConnection | null = null;
 
-    for (let attempts = 0; attempts < poolSize; attempts++) {
-      const connection = this.pool[this.roundRobinIndex % poolSize];
-      this.roundRobinIndex = (this.roundRobinIndex + 1) % poolSize;
-      if (connection.state === ConnectionState.CONNECTED) {
-        return connection;
+    for (const connection of this.pool) {
+      if (connection.state !== ConnectionState.CONNECTED) {
+        continue;
+      }
+      if (best === null || connection.pendingCount < best.pendingCount) {
+        best = connection;
       }
     }
 
-    return null;
+    return best;
   }
 
   /**

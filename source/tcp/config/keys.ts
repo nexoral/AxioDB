@@ -6,7 +6,25 @@
 export const DEFAULT_TCP_PORT = 27019;
 export const MAX_MESSAGE_SIZE = 50 * 1024 * 1024; // 50MB
 export const MAX_CONNECTIONS = 1000; // Maximum concurrent connections
+// Maximum concurrent connections from a single remote IP. Prevents one client (malicious
+// or misbehaving) from exhausting the entire MAX_CONNECTIONS budget by itself; 100 still
+// comfortably covers several legitimate AxioDBCloud clients sharing one IP/NAT gateway at
+// the default maxPoolSize of 10.
+export const MAX_CONNECTIONS_PER_IP = 100;
 export const CONNECTION_TIMEOUT = 60000; // 60 seconds
+
+/**
+ * Per-IP connection-*attempt* rate limiting - complements MAX_CONNECTIONS_PER_IP, which only
+ * bounds concurrent connections and does nothing to stop an attacker who stays under that cap
+ * while hammering the server with rapid connect-then-drop churn (each attempt still costs a
+ * TCP handshake + accept/reject cycle). Same sliding-window + cooldown shape as the login rate
+ * limiter (LOGIN_RATE_LIMIT_* in config/Keys/Permissions.ts), applied to raw connection
+ * attempts instead of failed logins. See ConnectionRateLimiter.ts.
+ */
+export const CONNECTION_RATE_LIMIT_MAX_ATTEMPTS = 300; // per IP, within the trailing window
+export const CONNECTION_RATE_LIMIT_WINDOW_MS = 10000; // 10 seconds
+export const CONNECTION_RATE_LIMIT_COOLDOWN_MS = 30000; // 30 seconds
+export const CONNECTION_RATE_LIMIT_SWEEP_INTERVAL_MS = 60000; // 1 minute
 
 // Request/Response Configuration
 export const DEFAULT_REQUEST_TIMEOUT = 30000; // 30 seconds
@@ -59,6 +77,8 @@ export const ErrorMessage = {
   CONNECTION_TIMEOUT: 'Connection timeout',
   REQUEST_TIMEOUT: 'Request timeout',
   SERVER_OVERLOAD: 'Server is overloaded',
+  TOO_MANY_CONNECTIONS_FROM_IP: 'Too many concurrent connections from this IP address',
+  TOO_MANY_CONNECTION_ATTEMPTS: 'Too many connection attempts from this IP address. Try again later.',
   INTERNAL_ERROR: 'Internal server error',
   AUTH_REQUIRED: 'Authentication required. Send an AUTHENTICATE command with username and password.',
   INVALID_CREDENTIALS: 'Invalid username or password',

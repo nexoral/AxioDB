@@ -416,6 +416,36 @@ class TcpAuthTests extends TestRunner {
 
         await client.disconnect();
       });
+
+      await this.test('sendCommand() routes to the least-busy connection, not round-robin', async () => {
+        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        const client = new AxioDBCloud(`axiodb://${TCP_HOST}:${TCP_PORT}`, {
+          username: 'tcpadmin',
+          password: 'TcpAdminPass1',
+          maxPoolSize: 3,
+        });
+
+        await client.connect();
+
+        const busyConnection = client.pool[0];
+        // sendCommand() registers the pending request synchronously (before any network
+        // I/O), so firing several here without awaiting leaves pendingCount reflecting
+        // all of them even though none has resolved yet - simulating one pool member
+        // stuck on slow work while the others sit idle.
+        const busyRequests = [];
+        for (let i = 0; i < 5; i += 1) {
+          busyRequests.push(busyConnection.sendCommand(CommandType.GET_INSTANCE_INFO, {}));
+        }
+
+        assert.equal(busyConnection.pendingCount, 5, 'Directly-issued commands should be pending on pool member 0');
+
+        const picked = client.pickConnection();
+        assert.ok(picked !== busyConnection, 'Least-busy routing must avoid the connection with in-flight requests');
+        assert.equal(picked.pendingCount, 0, 'Picked connection should be an idle pool member');
+
+        await Promise.all(busyRequests);
+        await client.disconnect();
+      });
     });
 
     await this.describe('AxioDBCloud client - error handling regression', async () => {
