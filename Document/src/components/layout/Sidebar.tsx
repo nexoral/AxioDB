@@ -29,6 +29,26 @@ const sidebarSections: SidebarSection[] = [
     ],
   },
   {
+    title: "Working with Data",
+    items: [
+      {
+        id: "create-database",
+        label: "Create Database",
+        path: "/create-database",
+      },
+      {
+        id: "create-collection",
+        label: "Create Collection",
+        path: "/create-collection",
+      },
+      {
+        id: "advanced-features",
+        label: "Advanced Features",
+        path: "/advanced-features",
+      },
+    ],
+  },
+  {
     title: "AxioDBCloud (Remote/TCP)",
     items: [
       {
@@ -51,26 +71,6 @@ const sidebarSections: SidebarSection[] = [
   {
     title: "Docker Deployment",
     items: [{ id: "docker", label: "Docker Deployment", path: "/docker" }],
-  },
-  {
-    title: "Working with Data",
-    items: [
-      {
-        id: "create-database",
-        label: "Create Database",
-        path: "/create-database",
-      },
-      {
-        id: "create-collection",
-        label: "Create Collection",
-        path: "/create-collection",
-      },
-      {
-        id: "advanced-features",
-        label: "Advanced Features",
-        path: "/advanced-features",
-      },
-    ],
   },
   {
     title: "API Reference",

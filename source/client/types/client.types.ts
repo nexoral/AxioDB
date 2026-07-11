@@ -12,6 +12,10 @@ export interface AxioDBCloudOptions {
   heartbeatInterval?: number; // Heartbeat interval in ms (default: 30000)
   username?: string; // Username to authenticate with, if the server was started with TCPAuth: true
   password?: string; // Password to authenticate with, if the server was started with TCPAuth: true
+  // Number of concurrent TCP connections to keep open in the pool (default: 10). Mirrors
+  // MongoDB's driver option of the same name. Commands are distributed round-robin across
+  // connected pool members; each member reconnects and re-authenticates independently.
+  maxPoolSize?: number;
 }
 
 /** Public shape returned by a successful AUTHENTICATE command. */

@@ -126,6 +126,26 @@ console.log(result.data.documents[0].message); // Hello, Developer! 👋
 
 > **Only one `AxioDB` instance per application.** It's a singleton by design — create it once, then create as many databases and collections as you need under it.
 
+### `new AxioDB(options?)` — all constructor options
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `GUI` | `boolean` | `false` | Enable the web-based GUI dashboard at `localhost:27018` |
+| `RootName` | `string` | `"AxioDB"` | Name of the root folder database files are stored under |
+| `CustomPath` | `string` | current working directory | Custom filesystem path for database storage |
+| `TCP` | `boolean` | `false` | Enable the AxioDBCloud TCP server on port 27019 |
+| `TCPAuth` | `boolean` | `false` | Require username/password authentication on TCP connections (same RBAC accounts as the GUI) — see [Advanced: TCP authentication](#advanced-tcp-authentication) |
+
+```javascript
+const db = new AxioDB({
+  GUI: true,
+  RootName: 'MyDB',
+  CustomPath: './data',
+  TCP: true,
+  TCPAuth: true,
+});
+```
+
 ---
 
 ## 🚀 Features
@@ -192,7 +212,7 @@ await session.withTransaction(async (tx) => {
 - **🔁 Auto-Reconnect:** exponential backoff, up to 10 retry attempts
 - **💓 Heartbeat Monitoring:** `PING`/`PONG` every 30 seconds
 - **🆔 Request Correlation:** UUID-based request/response matching
-- **🧵 Connection Pooling:** supports 1,000+ concurrent connections
+- **🧵 Connection Pooling:** client keeps a pool of `maxPoolSize` concurrent connections (default: 10, mirrors MongoDB's driver option) and distributes commands round-robin; server accepts 1,000+ concurrent connections total
 - **📐 TypeScript Support:** full type definitions included
 
 **Use cases:** microservices sharing one AxioDB instance, Electron apps connecting to a local or remote database, teams sharing a development database, container/cloud deployments (AWS, Azure, GCP, DigitalOcean).
@@ -551,6 +571,29 @@ const user = await users.query({ username: 'johndoe' }).exec();
 - `newIndex(...fieldNames: string[]): Promise<SuccessInterface>`
 - `dropIndex(indexName: string): Promise<SuccessInterface | ErrorInterface>`
 - `getIndexes(): Promise<SuccessInterface | ErrorInterface>` — lists all indexes registered on the collection
+
+### Updater / Deleter
+
+`update(query)` and `delete(query)` on their own don't change anything — they return a chainable object. Call one of the methods below to actually apply the change:
+
+- `updater.UpdateOne(data: object): Promise<SuccessInterface | ErrorInterface>` — applies `data` to the first document matching `query`
+- `updater.UpdateMany(data: object): Promise<SuccessInterface | ErrorInterface>` — applies `data` to every document matching `query`
+- `deleter.deleteOne(): Promise<SuccessInterface | ErrorInterface>` — deletes the first document matching `query`
+- `deleter.deleteMany(): Promise<SuccessInterface | ErrorInterface>` — deletes every document matching `query`
+
+```javascript
+// Update the first matching document
+await collection.update({ name: 'Alice' }).UpdateOne({ status: 'active' });
+
+// Update every matching document
+await collection.update({ role: 'trial' }).UpdateMany({ role: 'active' });
+
+// Delete the first matching document
+await collection.delete({ name: 'Alice' }).deleteOne();
+
+// Delete every matching document
+await collection.delete({ status: 'inactive' }).deleteMany();
+```
 
 ### Reader
 

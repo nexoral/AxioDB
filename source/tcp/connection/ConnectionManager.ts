@@ -2,7 +2,7 @@ import { Socket } from 'net';
 import { EventEmitter } from 'events';
 import { MessageBuffer, MessageFramer } from '../config/protocol';
 import { TCPRequest, TCPResponse } from '../types/protocol.types';
-import { MAX_CONNECTIONS, ErrorMessage, StatusCode } from '../config/keys';
+import { MAX_CONNECTIONS, CONNECTION_TIMEOUT, ErrorMessage, StatusCode } from '../config/keys';
 import { AuthenticatedUser } from '../../config/Interfaces/Auth/auth.interface';
 
 /**
@@ -49,6 +49,12 @@ export class ConnectionManager extends EventEmitter {
     };
 
     this.connections.set(connectionId, info);
+
+    // Idle timeout: destroys the connection (via the 'timeout' handler below) if no data
+    // is received for CONNECTION_TIMEOUT ms. Without this, a client that opens a connection
+    // and never completes its handshake (e.g. sends a partial length-prefixed header and
+    // goes silent) would hold its slot in the MAX_CONNECTIONS cap indefinitely.
+    socket.setTimeout(CONNECTION_TIMEOUT);
 
     // Setup socket handlers
     this.setupSocketHandlers(connectionId, socket, info);

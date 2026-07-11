@@ -1,37 +1,52 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Socket } from 'net';
-import { randomUUID } from 'crypto';
 import { EventEmitter } from 'events';
-import { MessageBuffer, MessageFramer } from '../tcp/config/protocol';
-import { TCPRequest, TCPResponse, PendingRequest } from '../tcp/types/protocol.types';
+import PooledConnection from './PooledConnection';
 import { CommandType } from '../tcp/types/command.types';
 import { AxioDBCloudOptions, AuthenticatedUser, ConnectionState, ParsedConnectionString } from './types/client.types';
 import DatabaseProxy from './DatabaseProxy';
 
+const DEFAULT_MAX_POOL_SIZE = 10;
+
 /**
  * AxioDBCloud - TCP Client for remote AxioDB access
+ *
+ * Maintains a pool of `maxPoolSize` concurrent TCP connections (default: 10, mirrors
+ * MongoDB's driver default naming/behavior) to the same server. Commands are distributed
+ * round-robin across connected pool members; each member independently reconnects (with
+ * exponential backoff) and re-authenticates, so one dropped connection never affects the
+ * others or blocks in-flight commands routed to healthy members.
  */
 export class AxioDBCloud extends EventEmitter {
   private host: string;
   private port: number;
-  private socket: Socket | null = null;
-  private messageBuffer: MessageBuffer = new MessageBuffer();
-  private pendingRequests: Map<string, PendingRequest> = new Map();
-  private connectionState: ConnectionState = ConnectionState.DISCONNECTED;
+  private pool: PooledConnection[] = [];
+  private roundRobinIndex = 0;
   private options: Required<Omit<AxioDBCloudOptions, 'username' | 'password'>>;
-  private reconnectAttempt: number = 0;
-  private heartbeatInterval: NodeJS.Timeout | null = null;
   // Kept separate from `options` above: unlike timeout/reconnectAttempts/etc, credentials
   // have no sensible default, so they can't live in a Required<AxioDBCloudOptions> object.
   private credentials?: { username: string; password: string };
-  private authUser?: AuthenticatedUser;
 
   constructor(connectionString: string, options?: AxioDBCloudOptions) {
     super();
 
     // Increase max listeners for reconnection scenarios
     this.setMaxListeners(20);
+
+    // Default 'error' listener: Node's EventEmitter throws synchronously when 'error' is
+    // emitted with zero listeners attached. Every pooled connection re-emits its socket
+    // errors onto this instance (see PooledConnectionCallbacks.onError below), so without a
+    // guaranteed listener here, a network error the host application never explicitly
+    // listens for (e.g. a server restart) would crash the entire process. This listener only
+    // logs when it's the sole 'error' listener - if the consuming app has also attached its
+    // own, that one handles visibility and we don't double-log.
+    this.on('error', (error: Error) => {
+      if (this.listenerCount('error') <= 1) {
+        console.error(
+          '[AxioDBCloud] Unhandled connection error:',
+          error instanceof Error ? error.message : error,
+        );
+      }
+    });
 
     // Parse connection string
     const parsed = this.parseConnectionString(connectionString);
@@ -44,6 +59,7 @@ export class AxioDBCloud extends EventEmitter {
       reconnectAttempts: options?.reconnectAttempts || 10,
       reconnectDelay: options?.reconnectDelay || 1000,
       heartbeatInterval: options?.heartbeatInterval || 30000,
+      maxPoolSize: options?.maxPoolSize || DEFAULT_MAX_POOL_SIZE,
     };
 
     if (options?.username && options?.password) {
@@ -68,306 +84,119 @@ export class AxioDBCloud extends EventEmitter {
   }
 
   /**
-   * Connect to AxioDB TCP server
+   * Open the connection pool. Authenticates the first connection alone (if credentials are
+   * provided) before opening the rest of the pool - this avoids multiplying failed-login
+   * attempts against the server's shared per-IP rate limiter N times over for a single bad
+   * -credentials connect() call, and ensures a bad-credentials failure never leaves any pool
+   * member mid-reconnect.
    */
   async connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.connectionState === ConnectionState.CONNECTED) {
-        return resolve();
-      }
+    if (this.pool.length > 0 && this.pool.some((connection) => connection.state === ConnectionState.CONNECTED)) {
+      return;
+    }
 
-      // Clean up old socket if it exists
-      if (this.socket) {
-        this.socket.removeAllListeners();
-        if (!this.socket.destroyed) {
-          this.socket.destroy();
-        }
-        this.socket = null;
-      }
+    const poolSize = this.options.maxPoolSize;
+    this.pool = Array.from({ length: poolSize }, () => this.createPooledConnection());
 
-      this.connectionState = ConnectionState.CONNECTING;
-      this.socket = new Socket();
+    await this.pool[0].connect();
 
-      // Setup socket event handlers
-      this.setupSocketHandlers();
+    if (poolSize > 1) {
+      await Promise.all(this.pool.slice(1).map((connection) => connection.connect()));
+    }
 
-      // Connection timeout
-      const connectionTimeout = setTimeout(() => {
-        this.socket?.destroy();
-        this.connectionState = ConnectionState.FAILED;
-        reject(new Error('Connection timeout'));
-      }, this.options.timeout);
+    this.emit('connected');
+  }
 
-      // Connect to server
-      this.socket.connect(this.port, this.host, async () => {
-        clearTimeout(connectionTimeout);
-        this.connectionState = ConnectionState.CONNECTED;
-        this.reconnectAttempt = 0;
-        this.startHeartbeat();
-        this.emit('connected');
-
-        if (!this.credentials) {
-          resolve();
-          return;
-        }
-
-        try {
-          await this.performAuthenticate(this.credentials.username, this.credentials.password);
-          resolve();
-        } catch (authError) {
-          // Mirror disconnect()'s guard: prevent handleDisconnection's auto-reconnect
-          // from retrying the same bad credentials up to `reconnectAttempts` times.
-          this.reconnectAttempt = this.options.reconnectAttempts;
-          this.connectionState = ConnectionState.FAILED;
-          this.stopHeartbeat();
-          this.socket?.destroy();
-          reject(authError);
-        }
-      });
-
-      // Handle connection errors
-      this.socket.once('error', (error) => {
-        clearTimeout(connectionTimeout);
-        this.connectionState = ConnectionState.FAILED;
-        reject(error);
-      });
-    });
+  private createPooledConnection(): PooledConnection {
+    return new PooledConnection(
+      this.host,
+      this.port,
+      {
+        timeout: this.options.timeout,
+        reconnectAttempts: this.options.reconnectAttempts,
+        reconnectDelay: this.options.reconnectDelay,
+        heartbeatInterval: this.options.heartbeatInterval,
+      },
+      () => this.credentials,
+      {
+        onError: (error: Error) => this.emit('error', error),
+        onDisconnected: (hadError: boolean) => this.emit('disconnected', hadError),
+        onReconnecting: (attempt: number) => this.emit('reconnecting', attempt),
+        onReconnected: () => this.emit('reconnected'),
+        onExhausted: () => {
+          if (this.pool.every((connection) => connection.state === ConnectionState.FAILED)) {
+            this.emit('failed', new Error('Max reconnection attempts reached'));
+          }
+        },
+      },
+    );
   }
 
   /**
    * Authenticate with username/password (same RBAC users as the GUI Control Server).
    * Only required when the server was started with `TCPAuth: true`.
    *
-   * Stashes the credentials so a later automatic reconnect replays login - otherwise a
-   * network blip after a runtime `login()` call would silently leave the reconnected
-   * socket unauthenticated.
+   * Authenticates every currently-connected pool member and stashes the credentials so a
+   * later automatic reconnect replays login on any member that drops - otherwise a network
+   * blip after a runtime `login()` call would silently leave the reconnected member
+   * unauthenticated.
    */
   async login(username: string, password: string): Promise<AuthenticatedUser> {
-    const authUser = await this.performAuthenticate(username, password);
-    this.credentials = { username, password };
-    return authUser;
-  }
-
-  /**
-   * Sends the AUTHENTICATE command and stores the resulting identity.
-   */
-  private async performAuthenticate(username: string, password: string): Promise<AuthenticatedUser> {
-    const result = await this.sendCommand(CommandType.AUTHENTICATE, { username, password });
-    this.authUser = result as AuthenticatedUser;
-    return this.authUser;
-  }
-
-  /**
-   * The currently authenticated identity, if `login()` (or constructor credentials) succeeded.
-   */
-  get authenticatedUser(): AuthenticatedUser | undefined {
-    return this.authUser;
-  }
-
-  /**
-   * Setup socket event handlers
-   */
-  private setupSocketHandlers(): void {
-    if (!this.socket) return;
-
-    this.socket.on('data', (chunk: Buffer) => {
-      try {
-        const messages = this.messageBuffer.addChunk(chunk);
-
-        for (const message of messages) {
-          this.handleResponse(message as TCPResponse);
-        }
-      } catch (error) {
-        // Clear buffer on protocol errors to prevent cascade failures
-        this.messageBuffer.clear();
-
-        // Check if error is due to connecting to wrong port (HTTP instead of TCP)
-        if (error instanceof Error && error.message.includes('Message exceeds maximum size')) {
-          const enhancedError = new Error(
-            'Protocol error: Message exceeds maximum size. Are you connecting to the correct port? ' +
-            'AxioDBCloud uses TCP port (default: 27019), not HTTP port (27018).'
-          );
-          this.emit('error', enhancedError);
-          this.socket?.destroy();
-        } else {
-          this.emit('error', error);
-        }
-      }
-    });
-
-    this.socket.on('error', (error: Error) => {
-      this.emit('error', error);
-      this.handleDisconnection();
-    });
-
-    this.socket.on('close', (hadError: boolean) => {
-      this.emit('disconnected', hadError);
-      this.handleDisconnection();
-    });
-
-    this.socket.on('end', () => {
-      this.handleDisconnection();
-    });
-  }
-
-  /**
-   * Handle server response
-   */
-  private handleResponse(response: TCPResponse): void {
-    const pending = this.pendingRequests.get(response.id);
-
-    if (pending) {
-      clearTimeout(pending.timeout);
-      this.pendingRequests.delete(response.id);
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        pending.resolve(response.data);
-      } else {
-        pending.reject(new Error(response.error || response.message));
-      }
-    } else {
-      console.warn(`[AxioDBCloud] Received response for unknown request: ${response.id}`);
-    }
-  }
-
-  /**
-   * Handle disconnection
-   */
-  private handleDisconnection(): void {
-    this.connectionState = ConnectionState.DISCONNECTED;
-    this.stopHeartbeat();
-
-    // Clean up socket listeners
-    if (this.socket) {
-      this.socket.removeAllListeners();
-    }
-
-    // Reject all pending requests
-    for (const [id, pending] of this.pendingRequests.entries()) {
-      clearTimeout(pending.timeout);
-      pending.reject(new Error('Connection lost'));
-      this.pendingRequests.delete(id);
-    }
-
-    // Attempt reconnection
-    if (this.reconnectAttempt < this.options.reconnectAttempts) {
-      this.attemptReconnect();
-    } else {
-      this.emit('failed', new Error('Max reconnection attempts reached'));
-    }
-  }
-
-  /**
-   * Attempt to reconnect
-   */
-  private async attemptReconnect(): Promise<void> {
-    this.reconnectAttempt++;
-    const delay = Math.min(
-      this.options.reconnectDelay * Math.pow(2, this.reconnectAttempt - 1),
-      30000
-    );
-
-    this.emit('reconnecting', this.reconnectAttempt);
-    this.connectionState = ConnectionState.RECONNECTING;
-
-    setTimeout(async () => {
-      try {
-        await this.connect();
-        this.emit('reconnected');
-      } catch (error) {
-        // Reconnection will be attempted again in handleDisconnection
-      }
-    }, delay);
-  }
-
-  /**
-   * Start heartbeat
-   */
-  private startHeartbeat(): void {
-    this.heartbeatInterval = setInterval(async () => {
-      try {
-        await this.sendCommand(CommandType.PING, {});
-      } catch (error) {
-        console.warn('[AxioDBCloud] Heartbeat failed:', error);
-      }
-    }, this.options.heartbeatInterval);
-  }
-
-  /**
-   * Stop heartbeat
-   */
-  private stopHeartbeat(): void {
-    if (this.heartbeatInterval) {
-      clearInterval(this.heartbeatInterval);
-      this.heartbeatInterval = null;
-    }
-  }
-
-  /**
-   * Send command to server
-   */
-  async sendCommand(command: CommandType, params: any): Promise<any> {
-    if (this.connectionState !== ConnectionState.CONNECTED) {
+    const connectedMembers = this.pool.filter((connection) => connection.state === ConnectionState.CONNECTED);
+    if (connectedMembers.length === 0) {
       throw new Error('Not connected to server');
     }
 
-    if (!this.socket) {
-      throw new Error('Socket not initialized');
-    }
-
-    const id = randomUUID();
-    const request: TCPRequest = {
-      id,
-      command,
-      params,
-    };
-
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        this.pendingRequests.delete(id);
-        reject(new Error('Request timeout'));
-      }, this.options.timeout);
-
-      this.pendingRequests.set(id, {
-        resolve,
-        reject,
-        timeout,
-        timestamp: Date.now(),
-      });
-
-      try {
-        const buffer = MessageFramer.encode(request);
-        this.socket!.write(buffer);
-      } catch (error) {
-        clearTimeout(timeout);
-        this.pendingRequests.delete(id);
-        reject(error);
-      }
-    });
+    const results = await Promise.all(
+      connectedMembers.map((connection) => connection.authenticate(username, password)),
+    );
+    this.credentials = { username, password };
+    return results[0];
   }
 
   /**
-   * Disconnect from server
+   * The currently authenticated identity, if `login()` (or constructor credentials)
+   * succeeded on at least one pool member.
    */
-  async disconnect(): Promise<void> {
-    // Prevent reconnection attempts
-    this.reconnectAttempt = this.options.reconnectAttempts;
-    this.stopHeartbeat();
+  get authenticatedUser(): AuthenticatedUser | undefined {
+    return this.pool.find((connection) => connection.authUser)?.authUser;
+  }
 
-    if (this.socket && !this.socket.destroyed) {
-      try {
-        await this.sendCommand(CommandType.DISCONNECT, {});
-      } catch (error) {
-        // Ignore disconnect errors
-      }
-
-      // Clean up all socket listeners
-      this.socket.removeAllListeners();
-      this.socket.end();
-      this.socket = null;
+  /**
+   * Send command to server - picks a connected pool member round-robin.
+   */
+  async sendCommand(command: CommandType, params: any): Promise<any> {
+    const connection = this.pickConnection();
+    if (!connection) {
+      throw new Error('Not connected to server');
     }
 
-    this.connectionState = ConnectionState.DISCONNECTED;
+    return connection.sendCommand(command, params);
+  }
+
+  private pickConnection(): PooledConnection | null {
+    const poolSize = this.pool.length;
+    if (poolSize === 0) {
+      return null;
+    }
+
+    for (let attempts = 0; attempts < poolSize; attempts++) {
+      const connection = this.pool[this.roundRobinIndex % poolSize];
+      this.roundRobinIndex = (this.roundRobinIndex + 1) % poolSize;
+      if (connection.state === ConnectionState.CONNECTED) {
+        return connection;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Disconnect from server - closes every connection in the pool.
+   */
+  async disconnect(): Promise<void> {
+    await Promise.all(this.pool.map((connection) => connection.disconnect()));
+    this.pool = [];
   }
 
   /**
@@ -392,16 +221,29 @@ export class AxioDBCloud extends EventEmitter {
   }
 
   /**
-   * Get current connection state
+   * Get current connection state - CONNECTED if at least one pool member is connected,
+   * otherwise the "best" state across the pool (RECONNECTING > CONNECTING > FAILED).
    */
   get state(): ConnectionState {
-    return this.connectionState;
+    if (this.pool.length === 0) {
+      return ConnectionState.DISCONNECTED;
+    }
+    if (this.pool.some((connection) => connection.state === ConnectionState.CONNECTED)) {
+      return ConnectionState.CONNECTED;
+    }
+    if (this.pool.some((connection) => connection.state === ConnectionState.RECONNECTING)) {
+      return ConnectionState.RECONNECTING;
+    }
+    if (this.pool.some((connection) => connection.state === ConnectionState.CONNECTING)) {
+      return ConnectionState.CONNECTING;
+    }
+    return ConnectionState.FAILED;
   }
 
   /**
-   * Check if connected
+   * Check if connected - true when at least one pool member is connected.
    */
   get isConnected(): boolean {
-    return this.connectionState === ConnectionState.CONNECTED;
+    return this.pool.some((connection) => connection.state === ConnectionState.CONNECTED);
   }
 }

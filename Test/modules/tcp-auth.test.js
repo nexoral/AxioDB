@@ -366,6 +366,70 @@ class TcpAuthTests extends TestRunner {
         assert.equal(reconnecting, false, 'Bad credentials must not trigger automatic reconnect attempts');
       });
     });
+
+    await this.describe('AxioDBCloud client - connection pooling (maxPoolSize)', async () => {
+      await this.test('connect() opens a default pool of 10 connections', async () => {
+        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        const client = new AxioDBCloud(`axiodb://${TCP_HOST}:${TCP_PORT}`, {
+          username: 'tcpadmin',
+          password: 'TcpAdminPass1',
+        });
+
+        await client.connect();
+        assert.equal(client.pool.length, 10, 'Default maxPoolSize should open 10 connections');
+        assert.ok(client.isConnected, 'Client should report connected once the pool is up');
+
+        await client.disconnect();
+      });
+
+      await this.test('connect() respects a custom maxPoolSize', async () => {
+        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        const client = new AxioDBCloud(`axiodb://${TCP_HOST}:${TCP_PORT}`, {
+          username: 'tcpadmin',
+          password: 'TcpAdminPass1',
+          maxPoolSize: 3,
+        });
+
+        await client.connect();
+        assert.equal(client.pool.length, 3, 'Custom maxPoolSize should be respected');
+
+        await client.disconnect();
+      });
+
+      await this.test('commands still succeed when routed across a pooled connection', async () => {
+        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        const client = new AxioDBCloud(`axiodb://${TCP_HOST}:${TCP_PORT}`, {
+          username: 'tcpadmin',
+          password: 'TcpAdminPass1',
+          maxPoolSize: 4,
+        });
+
+        await client.connect();
+
+        // Enough concurrent commands to guarantee more than one pool member handles a request.
+        const results = await Promise.all(
+          Array.from({ length: 8 }, () => client.getInstanceInfo()),
+        );
+        for (const result of results) {
+          assert.exists(result, 'Each pooled request should resolve with instance info');
+        }
+
+        await client.disconnect();
+      });
+    });
+
+    await this.describe('AxioDBCloud client - error handling regression', async () => {
+      await this.test('connect() to an unreachable port rejects cleanly without crashing the process', async () => {
+        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        // Deliberately does NOT attach client.on('error', ...) - this is exactly the
+        // scenario that used to crash the whole process via Node's "throw on unhandled
+        // EventEmitter 'error' event" behavior, even with a .catch() on connect().
+        const client = new AxioDBCloud(`axiodb://${TCP_HOST}:59999`, { timeout: 2000 });
+
+        await assert.throws(() => client.connect());
+        // Reaching this line at all proves the process survived the socket error.
+      });
+    });
   }
 }
 
