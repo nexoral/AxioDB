@@ -49,16 +49,16 @@ console.log("Database 'ProductsDB' created");
         path="/create-database"
       />
       <h1 className="text-3xl font-bold mb-6">Create Database</h1>
-      <p className="text-gray-700 dark:text-gray-300 mb-8">
-        AxioDB constructor follows the pattern: <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">&#123;GUI?, RootName?, CustomPath?, TCP?, TCPAuth?&#125;</code>.
+      <p className="text-gray-300 mb-8">
+        AxioDB constructor follows the pattern: <code className="bg-gray-800 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-800 px-2 py-1 rounded">&#123;GUI?, RootName?, CustomPath?, TCP?, TCPAuth?&#125;</code>.
         This pattern provides better readability and flexibility.
       </p>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-8">
-        <h3 className="font-semibold mb-2 text-blue-800 dark:text-blue-400">
+      <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-8">
+        <h3 className="font-semibold mb-2 text-blue-400">
           💡 Constructor Parameters
         </h3>
-        <ul className="space-y-2 text-gray-700 dark:text-gray-300">
+        <ul className="space-y-2 text-gray-300">
           <li><strong>GUI</strong> (boolean, optional): Enable web GUI on localhost:27018 - defaults to false</li>
           <li><strong>RootName</strong> (string, optional): Custom root folder name - defaults to "AxioDB"</li>
           <li><strong>CustomPath</strong> (string, optional): Custom storage path - defaults to current directory</li>
@@ -68,46 +68,46 @@ console.log("Database 'ProductsDB' created");
       </div>
 
       <h3 className="text-2xl font-semibold mb-4">Basic Instance (With GUI)</h3>
-      <p className="text-gray-700 dark:text-gray-300 mb-4">
+      <p className="text-gray-300 mb-4">
         Most common use case - enable the built-in GUI for data inspection.
       </p>
       <CodeBlock code={codeExamples.defaultInstance} language="javascript" />
 
       <h3 className="text-2xl font-semibold mt-8 mb-4">Instance Without GUI</h3>
-      <p className="text-gray-700 dark:text-gray-300 mb-4">
+      <p className="text-gray-300 mb-4">
         For production environments where you don't need the web interface.
       </p>
       <CodeBlock code={codeExamples.noGUI} language="javascript" />
 
       <h3 className="text-2xl font-semibold mt-8 mb-4">Custom Database Name</h3>
-      <p className="text-gray-700 dark:text-gray-300 mb-4">
+      <p className="text-gray-300 mb-4">
         Specify a custom root folder name for your database.
       </p>
       <CodeBlock code={codeExamples.customName} language="javascript" />
 
       <h3 className="text-2xl font-semibold mt-8 mb-4">Custom Storage Path</h3>
-      <p className="text-gray-700 dark:text-gray-300 mb-4">
+      <p className="text-gray-300 mb-4">
         Store database files in a specific directory.
       </p>
       <CodeBlock code={codeExamples.customRootPath} language="javascript" />
 
       <h3 className="text-2xl font-semibold mt-8 mb-4">TCP Server with Authentication</h3>
-      <p className="text-gray-700 dark:text-gray-300 mb-4">
+      <p className="text-gray-300 mb-4">
         Enable remote access via AxioDBCloud and require login before any TCP command is accepted.
       </p>
       <CodeBlock code={codeExamples.tcpAuth} language="javascript" />
 
       <h3 className="text-2xl font-semibold mt-8 mb-4">Create Multiple Databases</h3>
-      <p className="text-gray-700 dark:text-gray-300 mb-4">
+      <p className="text-gray-300 mb-4">
         Create multiple isolated databases within your AxioDB instance.
       </p>
       <CodeBlock code={codeExamples.createDatabase} language="javascript" />
 
-      <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-r-lg mt-8">
-        <h3 className="font-semibold mb-2 text-yellow-800 dark:text-yellow-400">
+      <div className="bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-r-lg mt-8">
+        <h3 className="font-semibold mb-2 text-yellow-400">
           ⚠️ Important Notes
         </h3>
-        <ul className="space-y-2 text-gray-700 dark:text-gray-300 list-disc pl-6">
+        <ul className="space-y-2 text-gray-300 list-disc pl-6">
           <li>Only one AxioDB instance is allowed per application (singleton pattern)</li>
           <li>GUI runs on localhost:27018 and starts automatically when enabled</li>
           <li>Database files are stored in the root folder you specify</li>

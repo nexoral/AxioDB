@@ -161,10 +161,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
 
   return (
     <aside
-      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900 shadow-lg transition-all duration-300 overflow-y-auto z-40 scrollbar-hide ${isOpen
-        ? "w-[85vw] max-w-xs translate-x-0"
-        : "w-[85vw] max-w-xs -translate-x-full md:translate-x-0 md:w-64"
-        }`}
+      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gray-900 shadow-lg transition-all duration-300 overflow-y-auto z-40 scrollbar-hide ${isOpen ? "w-[85vw] max-w-xs translate-x-0" : "w-[85vw] max-w-xs -translate-x-full md:translate-x-0 md:w-64" }`}
       style={{
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
@@ -172,27 +169,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
     >
       <nav className="p-4">
         <div className="mb-6">
-          <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <div className="text-lg font-semibold text-white mb-2">
             Documentation
           </div>
-          <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg p-3 mb-4 border border-blue-200 dark:border-blue-700/50">
+          <div className="bg-gradient-to-r from-blue-900/20 to-green-900/20 rounded-lg p-3 mb-4 border border-blue-700/50">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">👋</span>
-              <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+              <span className="text-sm font-semibold text-blue-300">
                 Hey there, Dev!
               </span>
             </div>
-            <p className="text-xs text-blue-600 dark:text-blue-400 leading-relaxed">
-              Start with <span className="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">Hello World</span> or jump to any section you need!
+            <p className="text-xs text-blue-400 leading-relaxed">
+              Start with <span className="font-mono bg-blue-900/50 px-1 rounded">Hello World</span> or jump to any section you need!
             </p>
           </div>
-          <div className="border-b border-gray-200 dark:border-gray-700 mb-4"></div>
+          <div className="border-b border-gray-700 mb-4"></div>
         </div>
 
         {sidebarSections.map((section) => (
           <div key={section.title} className="mb-4">
             <button
-              className="flex items-center justify-between w-full text-left text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400 font-medium"
+              className="flex items-center justify-between w-full text-left text-gray-300 hover:text-blue-400 font-medium"
               onClick={() => toggleSection(section.title)}
             >
               <span>{section.title}</span>
@@ -212,7 +209,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
                       className={`block py-1 text-sm ${location.pathname === item.path ||
                         (location.hash && item.path.includes(location.hash))
                         ? "text-blue-500 font-medium"
-                        : "text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400"
+                        : "text-gray-400 hover:text-blue-400"
                         }`}
                       onClick={() => handleNavClick(item.path, item.id)}
                     >

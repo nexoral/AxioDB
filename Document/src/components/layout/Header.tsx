@@ -1,7 +1,6 @@
-import { Menu, Moon, MoreHorizontal, Search, Sun, X, Star, GitFork } from "lucide-react";
+import { Menu, MoreHorizontal, Search, X, Star, GitFork } from "lucide-react";
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useTheme } from "../../hooks/useTheme";
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -34,7 +33,6 @@ const TOP_NAV_LINKS: TopNavLink[] = [
 ];
 
 const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
-  const { theme, toggleTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -160,7 +158,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-        ? "bg-white dark:bg-gray-900 shadow-md py-2"
+        ? "bg-gray-900 shadow-md py-2"
         : "bg-transparent py-4"
         }`}
     >
@@ -168,7 +166,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
-              className="md:hidden p-2 rounded-md text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
+              className="md:hidden p-2 rounded-md text-gray-400 hover:text-blue-400"
               onClick={toggleSidebar}
               aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
             >
@@ -180,7 +178,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
                 navigation concerns. */}
             <div className="relative md:hidden" ref={mobileNavRef}>
               <button
-                className="p-2 rounded-md text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
+                className="p-2 rounded-md text-gray-400 hover:text-blue-400"
                 onClick={() => setIsMobileNavOpen((open) => !open)}
                 aria-label={isMobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
                 aria-expanded={isMobileNavOpen}
@@ -189,7 +187,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
               </button>
 
               {isMobileNavOpen && (
-                <div className="absolute top-full left-0 mt-2 w-56 max-w-[80vw] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                <div className="absolute top-full left-0 mt-2 w-56 max-w-[80vw] bg-gray-800 rounded-lg shadow-xl border border-gray-700 py-2 z-50">
                   {TOP_NAV_LINKS.map((link) => (
                     <Link
                       key={link.path}
@@ -197,7 +195,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
                       onClick={() => setIsMobileNavOpen(false)}
                       className={`block px-4 py-2 text-sm font-medium ${location.pathname === link.path
                         ? "text-blue-500"
-                        : "text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                        : "text-gray-300 hover:text-blue-400"
                         }`}
                     >
                       {link.label}
@@ -209,12 +207,12 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
 
             <Link
               to="/"
-              className="flex items-center gap-2 text-gray-900 dark:text-white group"
+              className="flex items-center gap-2 text-white group"
             >
               <img src="/AXioDB.png" alt="AxioDB Logo" className="h-8 w-8 group-hover:scale-110 transition-transform" />
               <div className="flex flex-col">
                 <span className="text-xl font-bold">AxioDB Docs</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400 hidden md:block">
+                <span className="text-xs text-gray-400 hidden md:block">
                   Built for developers ⚡
                 </span>
               </div>
@@ -228,7 +226,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
                 to={link.path}
                 className={`text-sm font-medium transition-colors ${location.pathname === link.path
                   ? "text-blue-500"
-                  : "text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                  : "text-gray-300 hover:text-blue-400"
                   }`}
               >
                 {link.label}
@@ -242,11 +240,11 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
               href="https://github.com/nexoral/AxioDB"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors group"
               aria-label="GitHub Stars"
             >
               <Star size={16} className="text-yellow-500 group-hover:fill-yellow-500 transition-all" />
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <span className="text-sm font-semibold text-gray-300">
                 {githubStats.stars.toLocaleString()}
               </span>
             </a>
@@ -255,11 +253,11 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
               href="https://github.com/nexoral/AxioDB/fork"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors group"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors group"
               aria-label="GitHub Forks"
             >
               <GitFork size={16} className="text-blue-500 transition-all" />
-              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              <span className="text-sm font-semibold text-gray-300">
                 {githubStats.forks.toLocaleString()}
               </span>
             </a>
@@ -272,7 +270,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
                   <input
                     type="text"
                     placeholder="Search documentation..."
-                    className="w-full py-2 px-4 pr-10 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full py-2 px-4 pr-10 rounded-md bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     autoFocus
@@ -280,26 +278,26 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
 
                   {/* Search Results Dropdown */}
                   {searchQuery.trim() !== "" && (
-                    <div className="absolute top-full mt-2 w-[min(90vw,24rem)] right-0 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto z-50">
+                    <div className="absolute top-full mt-2 w-[min(90vw,24rem)] right-0 bg-gray-800 rounded-lg shadow-xl border border-gray-700 max-h-96 overflow-y-auto z-50">
                       {searchResults.length > 0 ? (
                         <div className="p-2">
                           {searchResults.map((result) => (
                             <button
                               key={result.path}
                               onClick={() => handleSearchResultClick(result.path)}
-                              className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
+                              className="w-full text-left px-3 py-2.5 rounded-lg hover:bg-gray-700 transition-colors group"
                             >
-                              <div className="font-medium text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                              <div className="font-medium text-gray-100 group-hover:text-blue-400">
                                 {result.title}
                               </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">
+                              <div className="text-sm text-gray-400 line-clamp-2 mt-0.5">
                                 {result.description}
                               </div>
                             </button>
                           ))}
                         </div>
                       ) : (
-                        <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                        <div className="px-4 py-8 text-center text-gray-400">
                           <Search size={32} className="mx-auto mb-2 opacity-50" />
                           <p className="text-sm">No results found for "{searchQuery}"</p>
                         </div>
@@ -309,25 +307,13 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
                 </>
               )}
               <button
-                className={`p-2 rounded-md text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 ${searchOpen ? "absolute right-1 top-1/2 transform -translate-y-1/2" : ""}`}
+                className={`p-2 rounded-md text-gray-400 hover:text-blue-400 ${searchOpen ? "absolute right-1 top-1/2 transform -translate-y-1/2" : ""}`}
                 onClick={() => setSearchOpen(!searchOpen)}
                 aria-label={searchOpen ? "Close search" : "Open search"}
               >
                 {searchOpen ? <X size={20} /> : <Search size={20} />}
               </button>
             </div>
-
-            <button
-              className="p-2 rounded-md text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
-              onClick={toggleTheme}
-              aria-label={
-                theme === "dark"
-                  ? "Switch to light mode"
-                  : "Switch to dark mode"
-              }
-            >
-              {theme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
-            </button>
           </div>
         </div>
       </div>

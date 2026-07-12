@@ -81,8 +81,8 @@ const MaintainersZone = () => {
         path="/maintainers-zone"
       />
       {/* Terminal-style Welcome */}
-      <div className="relative bg-gray-900 dark:bg-gray-800 rounded-xl p-6 mb-8 shadow-lg border border-gray-700 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-4 bg-gray-800 dark:bg-gray-700 flex items-center justify-start px-4 gap-2">
+      <div className="relative bg-gray-800 rounded-xl p-6 mb-8 shadow-lg border border-gray-700 overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-4 bg-gray-700 flex items-center justify-start px-4 gap-2">
           <div className="w-3 h-3 bg-red-500 rounded-full"></div>
           <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -114,7 +114,7 @@ const MaintainersZone = () => {
           <div className="flex flex-col lg:flex-row items-center gap-8">
             <div className="relative">
               {loading ? (
-                <div className="w-32 h-32 rounded-xl border-4 border-blue-400/50 shadow-xl bg-gray-300 dark:bg-gray-600 animate-pulse flex items-center justify-center">
+                <div className="w-32 h-32 rounded-xl border-4 border-blue-400/50 shadow-xl bg-gray-600 animate-pulse flex items-center justify-center">
                   <FaSpinner className="animate-spin text-gray-500" />
                 </div>
               ) : (

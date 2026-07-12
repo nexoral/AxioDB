@@ -64,10 +64,10 @@ const GitHubProfileSection: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+      <div className="bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-700">
         <div className="flex items-center justify-center py-12">
           <FaSpinner className="animate-spin text-4xl text-blue-500" />
-          <span className="ml-3 text-lg text-gray-600 dark:text-gray-300">Loading GitHub data...</span>
+          <span className="ml-3 text-lg text-gray-300">Loading GitHub data...</span>
         </div>
       </div>
     );
@@ -75,8 +75,8 @@ const GitHubProfileSection: React.FC = () => {
 
   if (error || !githubStats) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-8">
-        <p className="text-red-600 dark:text-red-400 text-center">{error || 'Failed to load GitHub data'}</p>
+      <div className="bg-red-900/20 border border-red-800 rounded-2xl p-8">
+        <p className="text-red-400 text-center">{error || 'Failed to load GitHub data'}</p>
       </div>
     );
   }
@@ -159,17 +159,17 @@ const GitHubProfileSection: React.FC = () => {
 
 
       {/* Pinned Repositories */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
-        <h3 className="text-2xl font-bold mb-6 text-gray-800 dark:text-white flex items-center gap-3">
+      <div className="bg-gray-800 rounded-2xl p-8 shadow-lg border border-gray-700">
+        <h3 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
           <FaStar className="text-yellow-500" />
           Featured Repositories
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pinnedRepos.map((repo) => (
-            <div key={repo.name} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 hover:shadow-lg transition-all duration-200 border hover:border-blue-300 dark:hover:border-blue-600">
+            <div key={repo.name} className="bg-gray-700 rounded-xl p-6 hover:shadow-lg transition-all duration-200 border hover:border-blue-600">
               <div className="flex items-start justify-between mb-3">
-                <h4 className="font-bold text-gray-800 dark:text-gray-100 text-lg truncate">
+                <h4 className="font-bold text-gray-100 text-lg truncate">
                   {repo.name}
                 </h4>
                 <a
@@ -183,12 +183,12 @@ const GitHubProfileSection: React.FC = () => {
               </div>
 
               {repo.description && (
-                <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
+                <p className="text-gray-300 text-sm mb-4 line-clamp-2">
                   {repo.description}
                 </p>
               )}
 
-              <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+              <div className="flex items-center gap-4 text-sm text-gray-400">
                 {repo.language && (
                   <span className="flex items-center gap-1">
                     <div className="w-3 h-3 rounded-full bg-blue-500"></div>
@@ -210,7 +210,7 @@ const GitHubProfileSection: React.FC = () => {
                   {repo.topics.slice(0, 3).map((topic) => (
                     <span
                       key={topic}
-                      className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-md"
+                      className="px-2 py-1 bg-blue-900/30 text-blue-300 text-xs rounded-md"
                     >
                       {topic}
                     </span>
@@ -226,7 +226,7 @@ const GitHubProfileSection: React.FC = () => {
             href={`https://github.com/${user.login}?tab=repositories`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-gray-800 dark:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-900 dark:hover:bg-gray-700 transition-colors"
+            className="inline-flex items-center gap-2 bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
           >
             <FaGithub />
             View All Repositories

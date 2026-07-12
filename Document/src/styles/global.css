@@ -120,13 +120,8 @@ html {
 
 /* Professional glass morphism effect */
 .glass-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.dark .glass-card {
   background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -194,27 +189,15 @@ code {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgb(241 245 249);
-}
-
-.dark ::-webkit-scrollbar-track {
   background: rgb(30 41 59);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgb(148 163 184);
+  background: rgb(71 85 105);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgb(100 116 139);
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: rgb(71 85 105);
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
   background: rgb(148 163 184);
 }
 
@@ -259,13 +242,9 @@ code {
 }
 
 .loading-skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
   background-size: 200px 100%;
   animation: shimmer 1.5s infinite;
-}
-
-.dark .loading-skeleton {
-  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
 }
 
 /* Advanced card hover effects */
