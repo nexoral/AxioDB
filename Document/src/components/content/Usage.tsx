@@ -228,27 +228,27 @@ console.log(paginatedDocuments);`,
               <p className="text-lg text-slate-700 dark:text-slate-300 mb-8">
                 Choose your preferred module system to get started:
               </p>
-              <div className="flex justify-center gap-6">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                 <button
-                  className="group relative bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
+                  className="group relative w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
                   onClick={() => {
                     setCodeType("commonjs");
                     setStep("selectExampleType");
                   }}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center gap-3">
                     <Database className="h-6 w-6" />
                     CommonJS
                   </div>
                 </button>
                 <button
-                  className="group relative bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
+                  className="group relative w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
                   onClick={() => {
                     setCodeType("es6");
                     setStep("selectExampleType");
                   }}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center gap-3">
                     <Sparkles className="h-6 w-6" />
                     ES6 Modules
                   </div>

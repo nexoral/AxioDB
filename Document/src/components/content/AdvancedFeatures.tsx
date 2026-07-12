@@ -75,8 +75,6 @@ console.log("Complex Aggregation:", complexAggregation);`,
   "secureCollection",
   true,        // Enable encryption
   "mySecretKey",  // Custom encryption key
-  true,        // Enable schema validation
-  schema       // Schema object
 );
 
 // Insert encrypted data
@@ -349,7 +347,7 @@ console.log("Transaction completed successfully!");`,
 
         <p className="text-lg text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
           {activeFeature === "multi-db" &&
-            "Architect scalable applications with multiple databases and collections, each configured with specific schemas, security protocols, and performance optimizations to meet diverse business requirements."}
+            "Architect scalable applications with multiple databases and collections, each configured with independent security protocols and performance optimizations to meet diverse business requirements."}
           {activeFeature === "aggregation" &&
             "Execute complex data processing workflows using MongoDB-compatible aggregation pipelines, enabling sophisticated filtering, grouping, sorting, and transformation operations for business intelligence and analytics."}
           {activeFeature === "encryption" &&
@@ -631,11 +629,10 @@ console.log("Transaction completed successfully!");`,
             <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
               Maximize AxioDB's potential by strategically combining features:
               implement encryption for sensitive data collections, utilize
-              aggregation pipelines for complex analytics, leverage
-              multi-database architecture for microservices, and employ schema
-              validation for data integrity. This integrated approach ensures
-              scalable, secure, and high-performance database operations that
-              meet enterprise standards.
+              aggregation pipelines for complex analytics, and leverage
+              multi-database architecture for microservices. This integrated
+              approach ensures scalable, secure, and high-performance database
+              operations that meet enterprise standards.
             </p>
           </div>
         </div>

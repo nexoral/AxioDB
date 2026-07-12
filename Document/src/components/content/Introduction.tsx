@@ -18,8 +18,26 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Seo from "../ui/Seo";
+import CodeBlock from "../ui/CodeBlock";
 import { githubApi } from "../../services/githubApi";
 import { npmApi } from "../../services/npmApi";
+import { useScrollReveal } from "../../hooks/useScrollReveal";
+
+const HELLO_WORLD_CODE = `// npm install axiodb
+const { AxioDB } = require('axiodb');
+
+// Create AxioDB instance with built-in GUI
+const db = new AxioDB({ GUI: true }); // Enable GUI at localhost:27018
+
+// Create database and collection
+const myDB = await db.createDB('HelloWorldDB');
+const collection = await myDB.createCollection('greetings');
+
+// Insert and retrieve data - Hello World! 👋
+await collection.insert({ message: 'Hello, Developer! 👋' });
+const result = await collection.query({}).exec();
+console.log(result.data.documents[0].message); // Hello, Developer! 👋
+`;
 
 const Introduction: React.FC = () => {
   const [totalDownloads, setTotalDownloads] = useState<number | null>(null);
@@ -27,6 +45,23 @@ const Introduction: React.FC = () => {
   const [weeklyDownloads, setWeeklyDownloads] = useState<number | null>(null);
   const [monthlyDownloads, setMonthlyDownloads] = useState<number | null>(null);
   const [isLoadingDownloads, setIsLoadingDownloads] = useState(true);
+
+  // Scroll-triggered reveal state for each below-the-fold section of the
+  // page (see useScrollReveal). The hero itself animates immediately on
+  // mount instead (it's already above the fold on load).
+  const npmStatsReveal = useScrollReveal<HTMLDivElement>();
+  const insertOpsReveal = useScrollReveal<HTMLDivElement>();
+  const readOpsReveal = useScrollReveal<HTMLDivElement>();
+  const updateDeleteReveal = useScrollReveal<HTMLDivElement>();
+  const transactionReveal = useScrollReveal<HTMLDivElement>();
+  const terminalReveal = useScrollReveal<HTMLDivElement>();
+  const mcpBannerReveal = useScrollReveal<HTMLDivElement>();
+  const cloudBannerReveal = useScrollReveal<HTMLDivElement>();
+  const guiBannerReveal = useScrollReveal<HTMLDivElement>();
+  const whyAxioDBReveal = useScrollReveal<HTMLDivElement>();
+  const featureCardsReveal = useScrollReveal<HTMLDivElement>();
+  const quoteReveal = useScrollReveal<HTMLDivElement>();
+  const painPointsReveal = useScrollReveal<HTMLDivElement>();
 
   useEffect(() => {
     // Fetch npm download statistics
@@ -72,9 +107,9 @@ const Introduction: React.FC = () => {
       />
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900 rounded-2xl p-8 lg:p-12 mb-12 border border-slate-200 dark:border-slate-700 shadow-xl animate-fade-in">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-blob-drift"></div>
         <div
-          className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-indigo-400/10 to-cyan-400/10 rounded-full blur-3xl animate-float"
+          className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-indigo-400/10 to-cyan-400/10 rounded-full blur-3xl animate-blob-drift"
           style={{ animationDelay: "2s" }}
         ></div>
 
@@ -103,7 +138,7 @@ const Introduction: React.FC = () => {
               </span>
             </div>
           </div>
-          <h1 className="text-5xl lg:text-7xl xl:text-8xl font-extrabold mb-8 bg-gradient-to-r from-slate-900 via-blue-800 to-indigo-900 dark:from-white dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent leading-tight tracking-tight">
+          <h1 className="text-5xl lg:text-7xl xl:text-8xl font-extrabold mb-8 bg-gradient-to-r from-slate-900 via-blue-800 to-indigo-900 dark:from-white dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent leading-tight tracking-tight animate-gradient-flow">
             AxioDB
           </h1>
           <div className="space-y-4 mb-10">
@@ -137,15 +172,16 @@ const Introduction: React.FC = () => {
 
           {/* New Feature Banner: MCP Server */}
           <a
+            ref={mcpBannerReveal.ref}
             href="/mcp-server"
-            className="group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gradient-to-r from-fuchsia-100 via-purple-50 to-indigo-100 dark:from-fuchsia-900/40 dark:via-purple-900/30 dark:to-indigo-900/40 px-6 py-5 rounded-xl border-2 border-fuchsia-300 dark:border-fuchsia-600 shadow-xl hover:shadow-2xl transition-all duration-300 mb-8"
+            className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gradient-to-r from-fuchsia-100 via-purple-50 to-indigo-100 dark:from-fuchsia-900/40 dark:via-purple-900/30 dark:to-indigo-900/40 px-6 py-5 rounded-xl border-2 border-fuchsia-300 dark:border-fuchsia-600 shadow-xl hover:shadow-2xl transition-all duration-300 mb-8 reveal-on-scroll ${mcpBannerReveal.isVisible ? "is-visible" : ""}`}
           >
             <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-fuchsia-500 to-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
               <Bot className="h-6 w-6 text-white" />
             </div>
             <div className="flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="text-xs bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md">
+                <span className="text-xs bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
                   NEW
                 </span>
                 <span className="text-lg font-black bg-gradient-to-r from-fuchsia-700 to-purple-700 dark:from-fuchsia-300 dark:to-purple-300 bg-clip-text text-transparent">
@@ -162,13 +198,16 @@ const Introduction: React.FC = () => {
           </a>
 
           {/* NPM Download Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div
+            ref={npmStatsReveal.ref}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 reveal-stagger-grid"
+          >
             {/* Total Downloads */}
             <a
               href={npmApi.getNpmPackageUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-5 py-3 rounded-xl border border-amber-200 dark:border-amber-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+              className={`flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-5 py-3 rounded-xl border border-amber-200 dark:border-amber-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer reveal-on-scroll ${npmStatsReveal.isVisible ? "is-visible" : ""}`}
             >
               <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg group-hover:scale-110 transition-transform duration-300">
                 <Download className="h-5 w-5 text-white" />
@@ -197,7 +236,7 @@ const Introduction: React.FC = () => {
               href={npmApi.getNpmPackageUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 px-5 py-3 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+              className={`flex items-center gap-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 px-5 py-3 rounded-xl border border-purple-200 dark:border-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer reveal-on-scroll ${npmStatsReveal.isVisible ? "is-visible" : ""}`}
             >
               <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg group-hover:scale-110 transition-transform duration-300">
                 <Download className="h-5 w-5 text-white" />
@@ -226,7 +265,7 @@ const Introduction: React.FC = () => {
               href={npmApi.getNpmPackageUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 px-5 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+              className={`flex items-center gap-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 px-5 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer reveal-on-scroll ${npmStatsReveal.isVisible ? "is-visible" : ""}`}
             >
               <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg group-hover:scale-110 transition-transform duration-300">
                 <Download className="h-5 w-5 text-white" />
@@ -255,7 +294,7 @@ const Introduction: React.FC = () => {
               href={npmApi.getNpmPackageUrl()}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 px-5 py-3 rounded-xl border border-green-200 dark:border-green-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer"
+              className={`flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 px-5 py-3 rounded-xl border border-green-200 dark:border-green-700 shadow-lg hover:shadow-xl transition-all duration-300 group cursor-pointer reveal-on-scroll ${npmStatsReveal.isVisible ? "is-visible" : ""}`}
             >
               <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg group-hover:scale-110 transition-transform duration-300">
                 <Download className="h-5 w-5 text-white" />
@@ -325,20 +364,20 @@ const Introduction: React.FC = () => {
             {/* INSERT Operations */}
             <div className="mb-4">
               <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-2 px-1">📥 Insert Operations</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-md hover:shadow-lg transition-all">
+              <div ref={insertOpsReveal.ref} className="grid grid-cols-2 md:grid-cols-3 gap-3 reveal-stagger-grid">
+                <div className={`relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-md hover:shadow-lg transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-xl font-black text-blue-600 dark:text-blue-400">~3ms</span>
                     <p className="text-xs text-blue-700 dark:text-blue-300 font-semibold">Insert Single</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-md hover:shadow-lg transition-all">
+                <div className={`relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-md hover:shadow-lg transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-xl font-black text-blue-600 dark:text-blue-400">~87ms</span>
                     <p className="text-xs text-blue-700 dark:text-blue-300 font-semibold">InsertMany (10)</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-md hover:shadow-lg transition-all">
+                <div className={`relative bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-700 shadow-md hover:shadow-lg transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-xl font-black text-blue-600 dark:text-blue-400">&lt;1ms</span>
                     <p className="text-xs text-blue-700 dark:text-blue-300 font-semibold">Validation</p>
@@ -350,74 +389,74 @@ const Introduction: React.FC = () => {
             {/* READ/QUERY Operations */}
             <div className="mb-4">
               <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-2 px-1">📖 Read/Query Operations (10K docs)</p>
-              <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+              <div ref={readOpsReveal.ref} className="grid grid-cols-3 md:grid-cols-6 gap-2 reveal-stagger-grid">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~2ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Indexed</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~1ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">documentId</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~1ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">findOne</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~2ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Projection</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~469ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">$gt</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~401ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">$in</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~454ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Limit</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~404ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Skip</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~382ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Sort</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~434ms</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">setCount</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~2.8s</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Regex</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all">
+                <div className={`relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/30 dark:to-teal-900/30 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">~2.6s</span>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-semibold">Full Scan</p>
@@ -427,23 +466,23 @@ const Introduction: React.FC = () => {
             </div>
 
             {/* UPDATE & DELETE Operations */}
-            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div ref={updateDeleteReveal.ref} className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2 px-1">✏️ Update Operations</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 shadow-sm">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 reveal-stagger-grid">
+                  <div className={`relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
                       <span className="text-lg font-black text-amber-600 dark:text-amber-400">~8ms</span>
                       <p className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold">UpdateOne</p>
                     </div>
                   </div>
-                  <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 shadow-sm">
+                  <div className={`relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
                       <span className="text-lg font-black text-amber-600 dark:text-amber-400">~466ms</span>
                       <p className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold">UpdateMany</p>
                     </div>
                   </div>
-                  <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 shadow-sm">
+                  <div className={`relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
                       <span className="text-lg font-black text-amber-600 dark:text-amber-400">~1ms</span>
                       <p className="text-[10px] text-amber-700 dark:text-amber-300 font-semibold">Verify</p>
@@ -453,20 +492,20 @@ const Introduction: React.FC = () => {
               </div>
               <div>
                 <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider mb-2 px-1">🗑️ Delete Operations</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 reveal-stagger-grid">
+                  <div className={`relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
                       <span className="text-lg font-black text-red-600 dark:text-red-400">~3ms</span>
                       <p className="text-[10px] text-red-700 dark:text-red-300 font-semibold">DeleteOne</p>
                     </div>
                   </div>
-                  <div className="relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm">
+                  <div className={`relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
                       <span className="text-lg font-black text-red-600 dark:text-red-400">~446ms</span>
                       <p className="text-[10px] text-red-700 dark:text-red-300 font-semibold">DeleteMany</p>
                     </div>
                   </div>
-                  <div className="relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm">
+                  <div className={`relative bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-900/30 px-3 py-2 rounded-lg border border-red-200 dark:border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
                       <span className="text-lg font-black text-red-600 dark:text-red-400">~463ms</span>
                       <p className="text-[10px] text-red-700 dark:text-red-300 font-semibold">Verify</p>
@@ -479,50 +518,50 @@ const Introduction: React.FC = () => {
             {/* TRANSACTION Operations */}
             <div className="mb-4">
               <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-2 px-1">🔄 Transaction Operations</p>
-              <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
-                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+              <div ref={transactionReveal.ref} className="grid grid-cols-4 md:grid-cols-8 gap-2 reveal-stagger-grid">
+                <div className={`relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-violet-600 dark:text-violet-400">~23ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Insert</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                <div className={`relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-violet-600 dark:text-violet-400">~14ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Update</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                <div className={`relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-violet-600 dark:text-violet-400">~15ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Delete</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                <div className={`relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-violet-600 dark:text-violet-400">~23ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">TX Mixed</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                <div className={`relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-violet-600 dark:text-violet-400">~3ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">Rollback</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                <div className={`relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-violet-600 dark:text-violet-400">~14ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">Savepoint</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                <div className={`relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-violet-600 dark:text-violet-400">~10ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">withTX</p>
                   </div>
                 </div>
-                <div className="relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm">
+                <div className={`relative bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 px-2 py-2 rounded-lg border border-violet-200 dark:border-violet-700 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-violet-600 dark:text-violet-400">~12ms</span>
                     <p className="text-[10px] text-violet-700 dark:text-violet-300 font-semibold">Index Sync</p>
@@ -533,7 +572,10 @@ const Introduction: React.FC = () => {
           </div>
 
           {/* Terminal Welcome Section */}
-          <div className="relative bg-gray-900 dark:bg-gray-800 rounded-xl p-6 mb-8 shadow-lg border border-gray-700 overflow-hidden">
+          <div
+            ref={terminalReveal.ref}
+            className={`relative bg-gray-900 dark:bg-gray-800 rounded-xl p-6 mb-8 shadow-lg border border-gray-700 overflow-hidden reveal-on-scroll ${terminalReveal.isVisible ? "is-visible animate-glow-once" : ""}`}
+          >
             <div className="absolute top-0 left-0 w-full h-4 bg-gray-800 dark:bg-gray-700 flex items-center justify-start px-4 gap-2">
               <div className="w-3 h-3 bg-red-500 rounded-full"></div>
               <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -580,22 +622,7 @@ const Introduction: React.FC = () => {
                     <span>AxioDB runs on Node.js servers, not in browsers</span>
                   </div>
                 </div>
-                <div className="bg-gray-800 rounded-lg p-4 mb-4 font-mono text-sm overflow-x-auto">
-                  <div className="text-gray-400 mb-2">// npm install axiodb</div>
-                  <span className="text-blue-400">const</span> <span className="text-white">{'{'}</span> <span className="text-yellow-300">AxioDB</span> <span className="text-white">{'}'}</span> <span className="text-blue-400">=</span> <span className="text-yellow-300">require</span><span className="text-white">(</span><span className="text-green-300">'axiodb'</span><span className="text-white">);</span><br />
-                  <br />
-                  <div className="text-gray-400">// Create AxioDB instance with built-in GUI</div>
-                  <span className="text-blue-400">const</span> <span className="text-white">db</span> <span className="text-blue-400">=</span> <span className="text-blue-400">new</span> <span className="text-yellow-300">AxioDB</span><span className="text-white">(</span><span className="text-white">{'{'}</span> <span className="text-cyan-400">GUI:</span> <span className="text-orange-400">true</span> <span className="text-white">{'}'});</span> <span className="text-gray-400">// Enable GUI at localhost:27018</span><br />
-                  <br />
-                  <div className="text-gray-400">// Create database and collection</div>
-                  <span className="text-blue-400">const</span> <span className="text-white">myDB</span> <span className="text-blue-400">=</span> <span className="text-blue-400">await</span> <span className="text-white">db.</span><span className="text-yellow-300">createDB</span><span className="text-white">(</span><span className="text-green-300">'HelloWorldDB'</span><span className="text-white">);</span><br />
-                  <span className="text-blue-400">const</span> <span className="text-white">collection</span> <span className="text-blue-400">=</span> <span className="text-blue-400">await</span> <span className="text-white">myDB.</span><span className="text-yellow-300">createCollection</span><span className="text-white">(</span><span className="text-green-300">'greetings'</span><span className="text-white">);</span><br />
-                  <br />
-                  <div className="text-gray-400">// Insert and retrieve data - Hello World! 👋</div>
-                  <span className="text-blue-400">await</span> <span className="text-white">collection.</span><span className="text-yellow-300">insert</span><span className="text-white">(</span><span className="text-white">{'{'}</span> <span className="text-cyan-400">message:</span> <span className="text-green-300">'Hello, Developer! 👋'</span> <span className="text-white">{'}'});</span><br />
-                  <span className="text-blue-400">const</span> <span className="text-white">result</span> <span className="text-blue-400">=</span> <span className="text-blue-400">await</span> <span className="text-white">collection.</span><span className="text-yellow-300">query</span><span className="text-white">(</span><span className="text-white">{'{'}</span><span className="text-white">{'}'}</span><span className="text-white">).</span><span className="text-yellow-300">exec</span><span className="text-white">();</span><br />
-                  <span className="text-blue-400">console</span><span className="text-white">.</span><span className="text-yellow-300">log</span><span className="text-white">(</span><span className="text-white">result</span><span className="text-white">.</span><span className="text-cyan-400">data</span><span className="text-white">.</span><span className="text-cyan-400">documents</span><span className="text-white">[</span><span className="text-orange-400">0</span><span className="text-white">].</span><span className="text-cyan-400">message</span><span className="text-white">);</span> <span className="text-gray-400">// Hello, Developer! 👋</span>
-                </div>
+                <CodeBlock code={HELLO_WORLD_CODE} language="javascript" />
                 <div className="flex gap-3">
                   <a
                     href="/installation"
@@ -618,7 +645,10 @@ const Introduction: React.FC = () => {
           </div>
 
           {/* AxioDBCloud Promotional Banner - NEW! */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-700 dark:via-indigo-700 dark:to-purple-700 rounded-2xl p-8 mb-8 shadow-2xl border-2 border-blue-400 dark:border-blue-500">
+          <div
+            ref={cloudBannerReveal.ref}
+            className={`relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-700 dark:via-indigo-700 dark:to-purple-700 rounded-2xl p-8 mb-8 shadow-2xl border-2 border-blue-400 dark:border-blue-500 reveal-on-scroll ${cloudBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
             <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
             <div className="relative z-10">
               <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
@@ -675,7 +705,10 @@ const Introduction: React.FC = () => {
           </div>
 
           {/* Built-in GUI Banner */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-6 mb-8 shadow-lg">
+          <div
+            ref={guiBannerReveal.ref}
+            className={`bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-6 mb-8 shadow-lg reveal-on-scroll ${guiBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
                 <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
@@ -711,7 +744,10 @@ const Introduction: React.FC = () => {
       </div>
 
       {/* Executive Overview */}
-      <div className="relative bg-gradient-to-br from-slate-50 to-blue-50/50 dark:from-slate-800/50 dark:to-blue-900/20 rounded-3xl p-8 lg:p-12 mb-16 border border-slate-200/50 dark:border-slate-700/50 shadow-lg">
+      <div
+        ref={whyAxioDBReveal.ref}
+        className={`relative bg-gradient-to-br from-slate-50 to-blue-50/50 dark:from-slate-800/50 dark:to-blue-900/20 rounded-3xl p-8 lg:p-12 mb-16 border border-slate-200/50 dark:border-slate-700/50 shadow-lg reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}
+      >
         <div className="max-w-5xl">
           <h2 className="text-3xl lg:text-4xl font-bold text-slate-800 dark:text-slate-100 mb-6">
             Why AxioDB?
@@ -722,8 +758,8 @@ const Introduction: React.FC = () => {
               querying or caching. MongoDB needs a separate server. AxioDB combines the best of all:
               embedded like SQLite, NoSQL queries like MongoDB, intelligent caching built-in.
             </p>
-            <div className="grid md:grid-cols-3 gap-6 text-base lg:text-lg">
-              <div className="space-y-2">
+            <div className="grid md:grid-cols-3 gap-6 text-base lg:text-lg reveal-stagger-grid">
+              <div className={`space-y-2 reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
@@ -739,7 +775,7 @@ const Introduction: React.FC = () => {
                   headaches. Works everywhere Node.js runs.
                 </p>
               </div>
-              <div className="space-y-2">
+              <div className={`space-y-2 reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
@@ -751,7 +787,7 @@ const Introduction: React.FC = () => {
                   for frequently-accessed data. Multi-core parallelism with Worker Threads.
                 </p>
               </div>
-              <div className="space-y-2">
+              <div className={`space-y-2 reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                   <span className="font-semibold text-slate-800 dark:text-slate-200">
@@ -775,8 +811,8 @@ const Introduction: React.FC = () => {
       </div>
 
       {/* Feature Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-600 transform hover:-translate-y-1">
+      <div ref={featureCardsReveal.ref} className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 reveal-stagger-grid">
+        <div className={`group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-600 transform hover:-translate-y-1 reveal-on-scroll ${featureCardsReveal.isVisible ? "is-visible" : ""}`}>
           <div className="absolute inset-0 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/10 dark:to-red-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
@@ -795,7 +831,7 @@ const Introduction: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transform hover:-translate-y-1">
+        <div className={`group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 transform hover:-translate-y-1 reveal-on-scroll ${featureCardsReveal.isVisible ? "is-visible" : ""}`}>
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
@@ -816,7 +852,7 @@ const Introduction: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-green-300 dark:hover:border-green-600 transform hover:-translate-y-1">
+        <div className={`group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-green-300 dark:hover:border-green-600 transform hover:-translate-y-1 reveal-on-scroll ${featureCardsReveal.isVisible ? "is-visible" : ""}`}>
           <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
@@ -835,7 +871,7 @@ const Introduction: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transform hover:-translate-y-1">
+        <div className={`group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 transform hover:-translate-y-1 reveal-on-scroll ${featureCardsReveal.isVisible ? "is-visible" : ""}`}>
           <div className="absolute inset-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/10 dark:to-pink-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
@@ -856,7 +892,10 @@ const Introduction: React.FC = () => {
       </div>
 
       {/* Honest Positioning Section */}
-      <div className="relative bg-gradient-to-r from-slate-900 to-blue-900 dark:from-slate-800 dark:to-blue-800 rounded-2xl p-8 lg:p-12 mb-16 overflow-hidden">
+      <div
+        ref={quoteReveal.ref}
+        className={`relative bg-gradient-to-r from-slate-900 to-blue-900 dark:from-slate-800 dark:to-blue-800 rounded-2xl p-8 lg:p-12 mb-16 overflow-hidden reveal-on-scroll ${quoteReveal.isVisible ? "is-visible animate-scale-in" : ""}`}
+      >
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
           <div className="absolute top-4 left-4 text-6xl text-blue-400">"</div>
           <div className="absolute bottom-4 right-4 text-6xl text-blue-400 rotate-180">
@@ -878,9 +917,12 @@ const Introduction: React.FC = () => {
       </div>
 
       {/* Pain Points Section: why not SQLite, JSON files, or MongoDB */}
-      <div className="relative animate-fade-in-up">
+      <div
+        ref={painPointsReveal.ref}
+        className={`relative reveal-on-scroll ${painPointsReveal.isVisible ? "is-visible animate-fade-in-up" : ""}`}
+      >
         <div className="mt-8 flex flex-col items-center">
-          <div className="max-w-3xl text-center mb-6 animate-slide-in-right">
+          <div className={`max-w-3xl text-center mb-6 ${painPointsReveal.isVisible ? "animate-slide-in-right" : ""}`}>
             <h3 className="text-2xl font-bold text-blue-700 dark:text-blue-300 mb-4">
               The Problem With the Usual Options
             </h3>

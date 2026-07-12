@@ -60,7 +60,7 @@ Before creating bug reports, please check the [existing issues](https://github.c
 
 **Code:**
 \`\`\`javascript
-const collection = await db.createCollection('test', true, schema, true, 'short');
+const collection = await db.createCollection('test', true, 'short');
 \`\`\`
 ```
 

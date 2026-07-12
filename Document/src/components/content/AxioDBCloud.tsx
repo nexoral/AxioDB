@@ -61,7 +61,7 @@ const AxioDBCloud: React.FC = () => {
           Why AxioDBCloud?
         </h2>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-6 rounded-xl border border-green-200 dark:border-green-700">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-green-500 rounded-lg">
@@ -387,7 +387,7 @@ await client2.login('admin', 'admin');`}
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-700">
               <h4 className="font-bold text-emerald-900 dark:text-emerald-200 mb-2">What&apos;s enforced</h4>
               <ul className="text-sm text-emerald-800 dark:text-emerald-300 space-y-1.5">
@@ -650,7 +650,7 @@ main().catch(console.error);`}
           Features & Capabilities
         </h2>
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
             { icon: CheckCircle, title: "35+ Commands", desc: "Full CRUD, aggregation, indexing support" },
             { icon: Lock, title: "Optional Auth (NEW!)", desc: "Shared RBAC with the GUI, per-IP rate limiting" },
@@ -686,7 +686,7 @@ main().catch(console.error);`}
           Perfect For
         </h2>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
               title: "Microservices",

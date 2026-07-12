@@ -21,7 +21,6 @@ npm install axiodb@latest
 AxioDB includes several security features to protect your data:
 
 - **AES-256 Encryption**: Optional encryption for sensitive collections
-- **Schema Validation**: Prevent injection of malicious data structures
 - **File Isolation**: Each document stored in separate files with proper permissions
 - **Secure Defaults**: Security-first configuration out of the box
 - **No External Dependencies**: Reduces attack surface (pure JavaScript)
@@ -94,10 +93,8 @@ When using AxioDB in production:
 ```javascript
 const sensitiveCollection = await db.createCollection(
   'users',
-  true,
-  schema,
-  true,  // Enable encryption
-  process.env.ENCRYPTION_KEY  // Use environment variable
+  true,                         // Enable encryption
+  process.env.ENCRYPTION_KEY    // Use environment variable
 );
 ```
 
@@ -105,7 +102,7 @@ const sensitiveCollection = await db.createCollection(
 
 ❌ **Bad:**
 ```javascript
-const collection = await db.createCollection('data', true, schema, true, 'myKey123');
+const collection = await db.createCollection('data', true, 'myKey123');
 ```
 
 ✅ **Good:**
@@ -113,22 +110,27 @@ const collection = await db.createCollection('data', true, schema, true, 'myKey1
 const collection = await db.createCollection(
   'data',
   true,
-  schema,
-  true,
   process.env.AXIODB_ENCRYPTION_KEY
 );
 ```
 
 ### 3. Validate Input Data
 
-Always use schema validation to prevent malicious data:
+AxioDB is schema-less and does not validate document structure — validate and
+sanitize untrusted input in your application code *before* calling `insert()`:
 
 ```javascript
-const schema = {
-  email: SchemaTypes.string().required().email(),
-  age: SchemaTypes.number().min(0).max(150),
-  name: SchemaTypes.string().required().max(100),
-};
+function isValidUser(doc) {
+  return (
+    typeof doc.email === 'string' && /\S+@\S+\.\S+/.test(doc.email) &&
+    typeof doc.age === 'number' && doc.age >= 0 && doc.age <= 150 &&
+    typeof doc.name === 'string' && doc.name.length > 0 && doc.name.length <= 100
+  );
+}
+
+if (isValidUser(userInput)) {
+  await collection.insert(userInput);
+}
 ```
 
 ### 4. Implement Access Controls
