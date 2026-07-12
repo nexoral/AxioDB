@@ -211,19 +211,24 @@ jobs:
             ${{ runner.os }}-node-22-
             ${{ runner.os }}-node-
 
-      # Version comparison: Ensure new version > main branch version
+      # Version comparison: Ensure new version > main branch version.
+      # Only relevant when the PR actually touches code/test paths - skip entirely
+      # for e.g. docs-only PRs, where bumping package.json isn't expected.
       - name: Get version from current PR
         id: pr_version
+        if: needs.detect_changes.outputs.run_test == 'true'
         run: echo "version_pr=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Get version from main branch
         id: main_version
+        if: needs.detect_changes.outputs.run_test == 'true'
         run: |
           git fetch origin main
           echo "version_main=$(git show origin/main:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version")" >> $GITHUB_OUTPUT
 
       - name: Compare Versions
         id: version_check
+        if: needs.detect_changes.outputs.run_test == 'true'
         run: |
           echo "PR Version: ${{ steps.pr_version.outputs.version_pr }}"
           echo "Main Version: ${{ steps.main_version.outputs.version_main }}"
@@ -235,7 +240,7 @@ jobs:
           fi
 
       - name: Enable Auto Merge
-        if: success() && steps.version_check.outputs.version_ok == 'true'
+        if: success() && (needs.detect_changes.outputs.run_test != 'true' || steps.version_check.outputs.version_ok == 'true')
         env:
           GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
         run: |
