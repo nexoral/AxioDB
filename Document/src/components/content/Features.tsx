@@ -312,9 +312,8 @@ const Features: React.FC = () => {
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
               Create collections with versatile configurations: basic
-              collections, encrypted collections with auto-generated or custom
-              keys, schema-only collections, or collections with both encryption
-              and comprehensive schema validation.
+              collections, or encrypted collections with auto-generated or
+              custom encryption keys.
             </p>
           </div>
         </div>

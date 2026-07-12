@@ -105,7 +105,7 @@ const result = await collection.insert({ name: 'John', age: 30 });
 - **Description**: Interactive web interface for managing databases, collections, and documents
 - **Features**:
   - Database creation and management
-  - Collection operations with schema validation
+  - Collection operations (create, encrypt, delete)
   - Document CRUD operations
   - Real-time statistics and monitoring
 

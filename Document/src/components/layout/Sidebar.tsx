@@ -162,8 +162,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
   return (
     <aside
       className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gray-50 dark:bg-gray-900 shadow-lg transition-all duration-300 overflow-y-auto z-40 scrollbar-hide ${isOpen
-        ? "w-64 translate-x-0"
-        : "w-64 -translate-x-full md:translate-x-0 md:w-64"
+        ? "w-[85vw] max-w-xs translate-x-0"
+        : "w-[85vw] max-w-xs -translate-x-full md:translate-x-0 md:w-64"
         }`}
       style={{
         scrollbarWidth: 'none',

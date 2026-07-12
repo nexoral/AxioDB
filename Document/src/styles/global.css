@@ -299,3 +299,147 @@ code {
   transform: translateY(-4px) scale(1.02);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
+
+/* ---------------------------------------------------------------------- */
+/* Scroll-reveal system (drives useScrollReveal / Introduction.tsx)       */
+/* ---------------------------------------------------------------------- */
+
+/* Fixes a previously-dead class reference (Introduction.tsx pain-points
+   section) - entrance animation for content that fades up into place. */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out both;
+}
+
+/* Reveal-on-scroll is gated behind `.js-enabled` (set once React hydrates,
+   see Layout.tsx) so prerendered HTML and no-JS clients always see fully
+   visible content - only JS-capable browsers get the pre-hidden + animate-in
+   treatment driven by useScrollReveal's `is-visible` class toggle. */
+.js-enabled .reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.js-enabled .reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 {
+  transition-delay: 0.1s;
+}
+.reveal-delay-2 {
+  transition-delay: 0.2s;
+}
+.reveal-delay-3 {
+  transition-delay: 0.3s;
+}
+.reveal-delay-4 {
+  transition-delay: 0.4s;
+}
+.reveal-delay-5 {
+  transition-delay: 0.5s;
+}
+.reveal-delay-6 {
+  transition-delay: 0.6s;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Decorative hero/section animations                                     */
+/* ---------------------------------------------------------------------- */
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-flow {
+  background-size: 300% 300%;
+  animation: gradient-flow 8s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes bg-blob-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(24px, -18px) scale(1.08);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+.animate-blob-drift {
+  animation: bg-blob-drift 12s ease-in-out infinite alternate;
+}
+
+/* One-shot glow (vs. the existing infinite .animate-glow) for elements that
+   should pulse briefly on first reveal and then settle. */
+@keyframes glow-once {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 34px rgba(59, 130, 246, 0.65);
+  }
+}
+
+.animate-glow-once {
+  animation: glow-once 1.4s ease-in-out 1;
+}
+
+/* Respect reduced-motion preferences across every animation/transition in
+   this stylesheet, both new and pre-existing. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .js-enabled .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+  }
+}

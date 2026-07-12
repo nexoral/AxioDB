@@ -1,5 +1,5 @@
-import { Menu, Moon, Search, Sun, X, Star, GitFork } from "lucide-react";
-import React, { useEffect, useState, useMemo } from "react";
+import { Menu, Moon, MoreHorizontal, Search, Sun, X, Star, GitFork } from "lucide-react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -19,6 +19,20 @@ interface SearchResult {
   description: string;
 }
 
+interface TopNavLink {
+  label: string;
+  path: string;
+}
+
+const TOP_NAV_LINKS: TopNavLink[] = [
+  { label: "Features", path: "/features" },
+  { label: "Comparison", path: "/comparison" },
+  { label: "Installation", path: "/installation" },
+  { label: "Usage", path: "/usage" },
+  { label: "API", path: "/api-reference" },
+  { label: "Maintainer's Zone", path: "/maintainers-zone" },
+];
+
 const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
   const { theme, toggleTheme } = useTheme();
   const [scrolled, setScrolled] = useState(false);
@@ -26,6 +40,8 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [githubStats, setGithubStats] = useState<GitHubStats>({ stars: 0, forks: 0 });
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -116,6 +132,31 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [searchOpen]);
 
+  // Close the mobile top-nav panel on outside click, escape, or route change.
+  useEffect(() => {
+    if (!isMobileNavOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (mobileNavRef.current && !mobileNavRef.current.contains(event.target as Node)) {
+        setIsMobileNavOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsMobileNavOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMobileNavOpen]);
+
+  useEffect(() => {
+    setIsMobileNavOpen(false);
+  }, [location.pathname]);
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
@@ -134,6 +175,38 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
               {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
+            {/* Separate trigger for the top-level nav links (Features/Comparison/etc.) -
+                distinct from the docs Sidebar toggle above, since they're different
+                navigation concerns. */}
+            <div className="relative md:hidden" ref={mobileNavRef}>
+              <button
+                className="p-2 rounded-md text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
+                onClick={() => setIsMobileNavOpen((open) => !open)}
+                aria-label={isMobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={isMobileNavOpen}
+              >
+                {isMobileNavOpen ? <X size={22} /> : <MoreHorizontal size={22} />}
+              </button>
+
+              {isMobileNavOpen && (
+                <div className="absolute top-full left-0 mt-2 w-56 max-w-[80vw] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+                  {TOP_NAV_LINKS.map((link) => (
+                    <Link
+                      key={link.path}
+                      to={link.path}
+                      onClick={() => setIsMobileNavOpen(false)}
+                      className={`block px-4 py-2 text-sm font-medium ${location.pathname === link.path
+                        ? "text-blue-500"
+                        : "text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                        }`}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <Link
               to="/"
               className="flex items-center gap-2 text-gray-900 dark:text-white group"
@@ -149,57 +222,18 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
           </div>
 
           <div className="hidden md:flex items-center gap-6">
-            <Link
-              to="/features"
-              className={`text-sm font-medium ${location.pathname === "/features"
-                ? "text-blue-500"
-                : "text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
-                }`}
-            >
-              Features
-            </Link>
-            <Link
-              to="/comparison"
-              className={`text-sm font-medium ${location.pathname === "/comparison"
-                ? "text-blue-500"
-                : "text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
-                }`}
-            >
-              Comparison
-            </Link>
-            <Link
-              to="/installation"
-              className={`text-sm font-medium ${location.pathname === "/installation"
-                ? "text-blue-500"
-                : "text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
-                }`}
-            >
-              Installation
-            </Link>
-            <Link
-              to="/usage"
-              className={`text-sm font-medium ${location.pathname === "/usage"
-                ? "text-blue-500"
-                : "text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
-                }`}
-            >
-              Usage
-            </Link>
-            <Link
-              to="/api-reference"
-              className={`text-sm font-medium ${location.pathname === "/api-reference"
-                ? "text-blue-500"
-                : "text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
-                }`}
-            >
-              API
-            </Link>
-            <Link
-              to="/maintainers-zone"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
-            >
-              Maintainer's Zone
-            </Link>
+            {TOP_NAV_LINKS.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`text-sm font-medium transition-colors ${location.pathname === link.path
+                  ? "text-blue-500"
+                  : "text-gray-600 hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400"
+                  }`}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
 
           <div className="flex items-center gap-2">
@@ -231,7 +265,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
             </a>
 
             <div
-              className={`relative ${searchOpen ? "w-64" : "w-10"} transition-all duration-300`}
+              className={`relative ${searchOpen ? "w-[min(70vw,16rem)]" : "w-10"} transition-all duration-300`}
             >
               {searchOpen && (
                 <>
@@ -246,7 +280,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
 
                   {/* Search Results Dropdown */}
                   {searchQuery.trim() !== "" && (
-                    <div className="absolute top-full mt-2 w-96 right-0 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto z-50">
+                    <div className="absolute top-full mt-2 w-[min(90vw,24rem)] right-0 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto z-50">
                       {searchResults.length > 0 ? (
                         <div className="p-2">
                           {searchResults.map((result) => (

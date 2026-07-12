@@ -76,7 +76,7 @@ const GitHubActivity: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="bg-white dark:bg-slate-700 rounded-xl p-4 text-center">
               <Star className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
               <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{repo.stargazers_count}</div>

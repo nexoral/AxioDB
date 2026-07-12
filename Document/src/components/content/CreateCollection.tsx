@@ -30,7 +30,7 @@ console.log("Encrypted collection created (custom key):", customKeyCollection);
   return (
     <section className="pt-12 scroll-mt-20">
       <Seo
-        title="Create Collection in AxioDB - Schema & Encryption Guide"
+        title="Create Collection in AxioDB - Encryption Guide"
         description="Create plain or AES-256 encrypted collections in AxioDB, with auto-generated or custom encryption keys."
         path="/create-collection"
       />
@@ -89,10 +89,6 @@ console.log("Encrypted collection created (custom key):", customKeyCollection);
           Important Notes
         </h3>
         <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
-          <li>
-            If <code>false</code> is passed for schema validation, use{" "}
-            <code>{`{}`}</code> for the schema.
-          </li>
           <li>Encryption keys are generated automatically if not provided.</li>
           <li>
             Store your custom encryption keys securely—data recovery is

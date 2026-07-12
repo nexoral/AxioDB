@@ -173,8 +173,12 @@ export default class Collection {
     // Index insertion after save
     await this.IndexManager.InsertToIndex(data);
 
-    // Fire-and-forget: Invalidate cache asynchronously for faster response
-    InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
+    // Fire-and-forget: Invalidate cache asynchronously for faster response.
+    // A brand-new document was never part of any cached result, so per-document invalidation
+    // would be a no-op here - a cached "list"/filter query could now be missing it, so the
+    // whole collection's cache needs to be dropped (unlike update/delete, which target only
+    // the cache entries that already contained the mutated document).
+    InMemoryCache.invalidateByCollection(this.path).catch(() => {});
 
     return saveResult;
   }

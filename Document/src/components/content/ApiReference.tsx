@@ -146,7 +146,7 @@ console.log(\`Total size: \${info.data.totalSize} bytes\`);`,
         {
           name: "insert",
           signature: "insert(document: object): Promise<SuccessInterface | ErrorInterface>",
-          description: "Inserts a single document into the collection. The document must be a valid JavaScript object. AxioDB automatically adds a unique documentId and updatedAt timestamp. If schema validation is enabled, the document must match the schema.",
+          description: "Inserts a single document into the collection. The document must be a valid JavaScript object. AxioDB automatically adds a unique documentId and updatedAt timestamp. AxioDB is schema-less - any JSON structure is accepted.",
           example: `// Insert a single document
 const result = await collection.insert({
   name: 'John Doe',
@@ -952,22 +952,22 @@ await transaction.commit();`,
                 {section.methods.map((method) => (
                   <div key={`${section.title}-${method.name}`} className="p-4">
                     <button
-                      className="flex items-center justify-between w-full text-left mb-2"
+                      className="flex items-center justify-between w-full text-left mb-2 gap-2"
                       onClick={() =>
                         toggleMethod(`${section.title}-${method.name}`)
                       }
                     >
-                      <div className="flex items-center">
-                        <span className="font-mono text-blue-600 dark:text-blue-400 font-medium">
+                      <div className="flex items-center min-w-0 flex-1">
+                        <span className="font-mono text-blue-600 dark:text-blue-400 font-medium truncate">
                           {method.name}
                         </span>
                       </div>
                       {expandedMethods.includes(
                         `${section.title}-${method.name}`,
                       ) ? (
-                        <ChevronDown size={16} className="text-gray-500" />
+                        <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />
                       ) : (
-                        <ChevronRight size={16} className="text-gray-500" />
+                        <ChevronRight size={16} className="text-gray-500 flex-shrink-0" />
                       )}
                     </button>
 
@@ -1115,7 +1115,7 @@ await transaction.commit();`,
             </li>
             <li className="flex items-start gap-2">
               <span className="text-purple-600 dark:text-purple-400 mt-0.5">✓</span>
-              <span className="text-sm">Enable schema validation for data integrity in production</span>
+              <span className="text-sm">Enable AES-256 encryption for collections holding sensitive data</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-purple-600 dark:text-purple-400 mt-0.5">✓</span>

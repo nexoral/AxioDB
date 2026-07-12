@@ -104,6 +104,44 @@ class ReadOptimizationTests extends TestRunner {
         );
       });
 
+      await this.test('Updating one document evicts only its own cached queries', async () => {
+        const queryA = { age: { $gt: 30, $lt: 35 } };
+        const queryB = { age: { $gt: 55, $lt: 60 } }; // disjoint age range - shares no documents with queryA
+
+        // Warm both caches
+        await this.collection.query(queryA).exec();
+        await this.collection.query(queryB).exec();
+
+        const bBeforeStart = Date.now();
+        await this.collection.query(queryB).exec();
+        const bBeforeDuration = Date.now() - bBeforeStart;
+
+        // Update a document that belongs to queryA's cached result
+        const aResult = await this.collection.query(queryA).exec();
+        const targetId = aResult.data.documents[0].documentId;
+        await this.collection.update({ documentId: targetId }).UpdateOne({ marked: true });
+
+        // queryB never contained the updated document - its cache entry should survive untouched
+        const bAfterStart = Date.now();
+        await this.collection.query(queryB).exec();
+        const bAfterDuration = Date.now() - bAfterStart;
+
+        // queryA did contain the updated document - its cache entry should have been evicted,
+        // forcing a full recompute (noticeably slower than a cache hit)
+        const aAfterStart = Date.now();
+        await this.collection.query(queryA).exec();
+        const aAfterDuration = Date.now() - aAfterStart;
+
+        this.log(`     queryB cache hit before: ${bBeforeDuration}ms, after unrelated update: ${bAfterDuration}ms`, 'gray');
+        this.log(`     queryA recomputed after its own document was updated: ${aAfterDuration}ms`, 'gray');
+
+        assert.ok(bAfterDuration < 100, 'Unrelated cached query (queryB) should remain a fast cache hit after queryA document update');
+        assert.ok(
+          aAfterDuration > bAfterDuration,
+          'queryA should have been evicted and recomputed (slower than the untouched cache hit), proving invalidation was targeted to the affected entry'
+        );
+      });
+
       await this.test('DocumentId queries are cached', async () => {
         // Get a documentId first
         const firstResult = await this.collection.query({ name: 'Alice0' }).exec();
