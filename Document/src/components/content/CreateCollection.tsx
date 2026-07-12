@@ -37,19 +37,19 @@ console.log("Encrypted collection created (custom key):", customKeyCollection);
       <h1 className="text-3xl font-bold mb-6">Create Collection</h1>
 
       {/* Parameter Block */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-8">
-        <h3 className="flex items-center text-lg font-semibold text-blue-800 dark:text-blue-400 mb-2">
+      <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-8">
+        <h3 className="flex items-center text-lg font-semibold text-blue-400 mb-2">
           <AlertCircle className="h-5 w-5 mr-2" />
           Collection Creation Parameters
         </h3>
-        <p className="text-gray-700 dark:text-gray-300">
+        <p className="text-gray-300">
           The{" "}
-          <code className="bg-gray-100 dark:bg-gray-900 px-1 py-0.5 rounded">
+          <code className="bg-gray-900 px-1 py-0.5 rounded">
             createCollection
           </code>{" "}
           method supports the following format:
         </p>
-        <pre className="bg-gray-100 dark:bg-gray-900 p-3 rounded-md mt-2 text-sm overflow-x-auto">
+        <pre className="bg-gray-900 p-3 rounded-md mt-2 text-sm overflow-x-auto">
           {`createCollection(
   name: string,
   isEncrypted?: boolean,
@@ -58,7 +58,7 @@ console.log("Encrypted collection created (custom key):", customKeyCollection);
         </pre>
       </div>
 
-      <p className="text-gray-700 dark:text-gray-300 mb-4">
+      <p className="text-gray-300 mb-4">
         Below are examples of creating collections with different
         configurations.
       </p>
@@ -83,12 +83,12 @@ console.log("Encrypted collection created (custom key):", customKeyCollection);
       />
 
       {/* Notes */}
-      <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-r-lg mt-10 mb-4">
-        <h3 className="flex items-center text-lg font-semibold text-yellow-800 dark:text-yellow-400 mb-2">
+      <div className="bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-r-lg mt-10 mb-4">
+        <h3 className="flex items-center text-lg font-semibold text-yellow-400 mb-2">
           <AlertCircle className="h-5 w-5 mr-2" />
           Important Notes
         </h3>
-        <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300">
+        <ul className="list-disc list-inside space-y-2 text-gray-300">
           <li>Encryption keys are generated automatically if not provided.</li>
           <li>
             Store your custom encryption keys securely—data recovery is

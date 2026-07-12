@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import { ThemeProvider } from "../../context/ThemeContext";
 
 const Layout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -67,29 +66,27 @@ const Layout: React.FC = () => {
   }, []);
 
   return (
-    <ThemeProvider>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-        <Header
-          toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-          isSidebarOpen={isSidebarOpen}
+    <div className="min-h-screen bg-slate-900 text-slate-100">
+      <Header
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        isSidebarOpen={isSidebarOpen}
+      />
+
+      <div className="flex">
+        <Sidebar
+          isOpen={isSidebarOpen}
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
         />
 
-        <div className="flex">
-          <Sidebar
-            isOpen={isSidebarOpen}
-            activeSection={activeSection}
-            setActiveSection={setActiveSection}
-          />
-
-          {/* md:ml-64 mirrors Sidebar's md:w-64 - keep both in sync if either changes */}
-          <main className="flex-1 pt-16 pb-16 transition-all duration-300 md:ml-64">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-6xl">
-              <Outlet />
-            </div>
-          </main>
-        </div>
+        {/* md:ml-64 mirrors Sidebar's md:w-64 - keep both in sync if either changes */}
+        <main className="flex-1 pt-16 pb-16 transition-all duration-300 md:ml-64">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-6xl">
+            <Outlet />
+          </div>
+        </main>
       </div>
-    </ThemeProvider>
+    </div>
   );
 };
 

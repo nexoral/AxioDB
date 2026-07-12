@@ -141,7 +141,7 @@ console.log(paginatedDocuments);`,
         path="/usage"
       />
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-green-900/20 dark:via-slate-800 dark:to-emerald-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-green-200 dark:border-green-800 shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-br from-green-900/20 via-slate-800 to-emerald-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-green-800 shadow-xl">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-green-400/10 to-emerald-400/10 rounded-full blur-3xl"></div>
 
         <div className="relative z-10">
@@ -150,15 +150,15 @@ console.log(paginatedDocuments);`,
               <BookOpen className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-green-800 via-emerald-700 to-teal-700 dark:from-green-200 dark:via-emerald-300 dark:to-teal-200 bg-clip-text text-transparent">
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-green-200 via-emerald-300 to-teal-200 bg-clip-text text-transparent">
                 Getting Started with AxioDB
               </h1>
-              <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
+              <p className="text-xl text-slate-300 font-light mt-2">
                 Interactive examples and comprehensive usage guide
               </p>
             </div>
           </div>
-          <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+          <p className="text-lg text-slate-300 leading-relaxed">
             Explore AxioDB's powerful features through interactive examples.
             From basic CRUD operations to advanced aggregation pipelines, master
             every aspect of modern NoSQL database operations with our
@@ -168,7 +168,7 @@ console.log(paginatedDocuments);`,
       </div>
 
       {/* Important Note Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-900/20 dark:via-yellow-900/20 dark:to-orange-900/20 rounded-2xl p-8 lg:p-10 border-l-4 border-yellow-500 shadow-xl mb-12">
+      <div className="relative overflow-hidden bg-gradient-to-r from-amber-900/20 via-yellow-900/20 to-orange-900/20 rounded-2xl p-8 lg:p-10 border-l-4 border-yellow-500 shadow-xl mb-12">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/20 to-amber-400/20 rounded-full blur-2xl"></div>
 
         <div className="relative z-10 flex items-start gap-4">
@@ -178,15 +178,15 @@ console.log(paginatedDocuments);`,
             </div>
           </div>
           <div className="flex-1">
-            <h3 className="text-2xl font-bold text-yellow-900 dark:text-yellow-100 mb-3">
+            <h3 className="text-2xl font-bold text-yellow-100 mb-3">
               Instance Management Architecture
             </h3>
-            <div className="space-y-4 text-lg text-yellow-800 dark:text-yellow-200 leading-relaxed">
+            <div className="space-y-4 text-lg text-yellow-200 leading-relaxed">
               <p>
                 AxioDB employs a <strong>single instance architecture</strong>{" "}
                 for optimal data consistency and security. Initialize one AxioDB
                 instance with the{" "}
-                <code className="bg-white dark:bg-slate-800 px-3 py-1 rounded-lg text-yellow-700 dark:text-yellow-300 font-semibold border border-yellow-200 dark:border-yellow-800">
+                <code className="bg-slate-800 px-3 py-1 rounded-lg text-yellow-300 font-semibold border border-yellow-800">
                   new
                 </code>{" "}
                 keyword, enabling unlimited databases, collections, and
@@ -195,7 +195,7 @@ console.log(paginatedDocuments);`,
               <p>
                 Upon instance creation, AxioDB automatically launches a
                 comprehensive web-based management interface at{" "}
-                <code className="bg-white dark:bg-slate-800 px-3 py-1 rounded-lg text-yellow-700 dark:text-yellow-300 font-semibold border border-yellow-200 dark:border-yellow-800">
+                <code className="bg-slate-800 px-3 py-1 rounded-lg text-yellow-300 font-semibold border border-yellow-800">
                   localhost:27018
                 </code>{" "}
                 for visual database administration and real-time monitoring.
@@ -206,18 +206,18 @@ console.log(paginatedDocuments);`,
       </div>
 
       {/* Interactive Examples Section */}
-      <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 lg:p-10 mb-16 border border-slate-200 dark:border-slate-700">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-indigo-50/30 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      <div className="group relative bg-slate-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 lg:p-10 mb-16 border border-slate-700">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-indigo-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-8">
             <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-lg">
               <Play className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+              <h3 className="text-2xl font-bold text-slate-100">
                 Interactive Code Examples
               </h3>
-              <p className="text-slate-600 dark:text-slate-300">
+              <p className="text-slate-300">
                 Explore different operations with live code samples
               </p>
             </div>
@@ -225,7 +225,7 @@ console.log(paginatedDocuments);`,
 
           {step === "selectCodeType" && (
             <div className="text-center">
-              <p className="text-lg text-slate-700 dark:text-slate-300 mb-8">
+              <p className="text-lg text-slate-300 mb-8">
                 Choose your preferred module system to get started:
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
@@ -259,7 +259,7 @@ console.log(paginatedDocuments);`,
 
           {step === "selectExampleType" && (
             <div className="text-center">
-              <p className="text-lg text-slate-700 dark:text-slate-300 mb-8">
+              <p className="text-lg text-slate-300 mb-8">
                 Select the operation you want to explore:
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -325,12 +325,12 @@ console.log(paginatedDocuments);`,
           {step === "showExample" && codeType && exampleType && (
             <div className="space-y-6">
               <div className="text-center">
-                <h4 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+                <h4 className="text-xl font-bold text-slate-100 mb-2">
                   {exampleType.charAt(0).toUpperCase() + exampleType.slice(1)}{" "}
                   Example (
                   {codeType === "commonjs" ? "CommonJS" : "ES6 Modules"})
                 </h4>
-                <p className="text-slate-600 dark:text-slate-300">
+                <p className="text-slate-300">
                   Production-ready code example for {exampleType} operations
                 </p>
               </div>
@@ -356,18 +356,18 @@ console.log(paginatedDocuments);`,
       {/* Complete Examples Section */}
       <div className="space-y-12">
         {/* CommonJS Example */}
-        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 lg:p-10 border border-slate-200 dark:border-slate-700">
-          <div className="absolute inset-0 bg-gradient-to-br from-green-50/30 to-blue-50/30 dark:from-green-900/10 dark:to-blue-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="group relative bg-slate-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 lg:p-10 border border-slate-700">
+          <div className="absolute inset-0 bg-gradient-to-br from-green-900/10 to-blue-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-8">
               <div className="p-3 bg-gradient-to-br from-green-500 to-blue-500 rounded-xl shadow-lg">
                 <Code2 className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                <h3 className="text-2xl font-bold text-slate-100">
                   Complete CommonJS Implementation
                 </h3>
-                <p className="text-slate-600 dark:text-slate-300">
+                <p className="text-slate-300">
                   Production-ready example with all major features
                 </p>
               </div>
@@ -469,18 +469,18 @@ main();`}
         </div>
 
         {/* ES6 Module Example */}
-        <div className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 lg:p-10 border border-slate-200 dark:border-slate-700">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 to-pink-50/30 dark:from-purple-900/10 dark:to-pink-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="group relative bg-slate-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 lg:p-10 border border-slate-700">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 to-pink-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-8">
               <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
                 <Sparkles className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                <h3 className="text-2xl font-bold text-slate-100">
                   Complete ES6 Module Implementation
                 </h3>
-                <p className="text-slate-600 dark:text-slate-300">
+                <p className="text-slate-300">
                   Modern JavaScript with import/export syntax
                 </p>
               </div>

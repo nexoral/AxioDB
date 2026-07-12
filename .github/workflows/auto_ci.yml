@@ -9,8 +9,33 @@ permissions:
   pull-requests: write
 
 jobs:
+  detect_changes:
+    name: "Detect Changes"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      run_test: ${{ steps.filter.outputs.relevant == 'true' }}
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - 'source/**'
+              - 'GUI/**'
+              - 'Docker/**'
+              - 'Test/**'
+              - 'package.json'
+
   auth_rbac_gate:
     name: "Gate 1 — Auth (RBAC) Test Suite"
+    needs: [detect_changes]
+    if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR branch
@@ -44,6 +69,8 @@ jobs:
 
   tcp_auth_rbac_gate:
     name: "Gate 2 — TCP Auth (AxioDBCloud RBAC) Test Suite"
+    needs: [detect_changes]
+    if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR branch
@@ -77,6 +104,8 @@ jobs:
 
   tcp_noauth_compat_gate:
     name: "Gate 3 — TCP No-Auth (Backward Compatibility) Test Suite"
+    needs: [detect_changes]
+    if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout PR branch
@@ -109,7 +138,8 @@ jobs:
         run: npm test tcp-noauth
 
   test:
-    needs: [auth_rbac_gate, tcp_auth_rbac_gate, tcp_noauth_compat_gate]
+    needs: [detect_changes, auth_rbac_gate, tcp_auth_rbac_gate, tcp_noauth_compat_gate]
+    if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -154,9 +184,11 @@ jobs:
 
   auto-merge:
     name: "auto-merge"
-    needs: [test]  # Wait for all test matrix jobs to complete
+    needs: [detect_changes, test]  # Wait for change detection and all test matrix jobs to complete
     runs-on: ubuntu-latest
-    if: success()  # Only run if all tests passed
+    # Run if tests weren't needed for this change (irrelevant paths only), or if they ran and passed.
+    # `always()` is required so this job still runs when `test` was skipped rather than succeeded.
+    if: always() && (needs.detect_changes.outputs.run_test != 'true' || needs.test.result == 'success')
 
     steps:
       - name: Checkout PR branch
@@ -179,19 +211,24 @@ jobs:
             ${{ runner.os }}-node-22-
             ${{ runner.os }}-node-
 
-      # Version comparison: Ensure new version > main branch version
+      # Version comparison: Ensure new version > main branch version.
+      # Only relevant when the PR actually touches code/test paths - skip entirely
+      # for e.g. docs-only PRs, where bumping package.json isn't expected.
       - name: Get version from current PR
         id: pr_version
+        if: needs.detect_changes.outputs.run_test == 'true'
         run: echo "version_pr=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Get version from main branch
         id: main_version
+        if: needs.detect_changes.outputs.run_test == 'true'
         run: |
           git fetch origin main
           echo "version_main=$(git show origin/main:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version")" >> $GITHUB_OUTPUT
 
       - name: Compare Versions
         id: version_check
+        if: needs.detect_changes.outputs.run_test == 'true'
         run: |
           echo "PR Version: ${{ steps.pr_version.outputs.version_pr }}"
           echo "Main Version: ${{ steps.main_version.outputs.version_main }}"
@@ -203,7 +240,7 @@ jobs:
           fi
 
       - name: Enable Auto Merge
-        if: success() && steps.version_check.outputs.version_ok == 'true'
+        if: success() && (needs.detect_changes.outputs.run_test != 'true' || steps.version_check.outputs.version_ok == 'true')
         env:
           GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
         run: |

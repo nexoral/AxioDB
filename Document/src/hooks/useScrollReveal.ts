@@ -6,7 +6,7 @@ interface UseScrollRevealOptions {
 }
 
 interface UseScrollRevealResult<T extends HTMLElement> {
-  ref: React.RefObject<T | null>;
+  ref: React.RefObject<T>;
   isVisible: boolean;
 }
 

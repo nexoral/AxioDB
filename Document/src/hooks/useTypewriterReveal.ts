@@ -10,7 +10,7 @@ interface UseTypewriterRevealOptions {
 }
 
 interface UseTypewriterRevealResult<T extends HTMLElement> {
-  ref: React.RefObject<T | null>;
+  ref: React.RefObject<T>;
   revealedCount: number;
 }
 

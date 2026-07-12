@@ -51,17 +51,17 @@ const ServerApiReference: React.FC = () => {
   const getMethodColor = (method: string) => {
     switch (method) {
       case "GET":
-        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-300 dark:border-green-700";
+        return "bg-green-900/30 text-green-300 border-green-700";
       case "POST":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-300 dark:border-blue-700";
+        return "bg-blue-900/30 text-blue-300 border-blue-700";
       case "PUT":
-        return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 border-amber-300 dark:border-amber-700";
+        return "bg-amber-900/30 text-amber-300 border-amber-700";
       case "PATCH":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 border-purple-300 dark:border-purple-700";
+        return "bg-purple-900/30 text-purple-300 border-purple-700";
       case "DELETE":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-300 dark:border-red-700";
+        return "bg-red-900/30 text-red-300 border-red-700";
       default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300 border-gray-300 dark:border-gray-700";
+        return "bg-gray-900/30 text-gray-300 border-gray-700";
     }
   };
 
@@ -1322,7 +1322,7 @@ file: [database.tar.gz file]`,
         path="/server-api"
       />
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-indigo-900/20 dark:via-slate-800 dark:to-purple-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-indigo-200 dark:border-indigo-800 shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-900/20 via-slate-800 to-purple-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-indigo-800 shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
 
         <div className="relative z-10">
@@ -1331,50 +1331,50 @@ file: [database.tar.gz file]`,
               <Globe className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-800 via-purple-700 to-pink-700 dark:from-indigo-200 dark:via-purple-300 dark:to-pink-200 bg-clip-text text-transparent">
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-200 via-purple-300 to-pink-200 bg-clip-text text-transparent">
                 HTTP Server API Reference
               </h1>
-              <p className="text-xl text-slate-600 dark:text-slate-300 font-light mt-2">
+              <p className="text-xl text-slate-300 font-light mt-2">
                 RESTful API documentation for AxioDB GUI Server
               </p>
             </div>
           </div>
 
           <div className="space-y-4">
-            <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
+            <p className="text-lg text-slate-300 leading-relaxed">
               The AxioDB GUI Server provides a comprehensive RESTful API for managing databases, collections, and documents
-              over HTTP. All endpoints return JSON responses and support standard HTTP status codes. Base URL: <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">http://localhost:27018</code>
+              over HTTP. All endpoints return JSON responses and support standard HTTP status codes. Base URL: <code className="bg-indigo-900 px-2 py-1 rounded">http://localhost:27018</code>
             </p>
-            <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
-              Every endpoint below except <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">/api/info</code>, <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">/api/health</code>, <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">/api/routes</code>, and <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">/api/auth/login</code> requires an authenticated session (see the <strong>Authentication &amp; Access Control</strong> section below) and is subject to role-based permission checks - expect <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">401</code> without a valid session cookie and <code className="bg-indigo-100 dark:bg-indigo-900 px-2 py-1 rounded">403</code> if the caller's role lacks the required permission.
+            <p className="text-lg text-slate-300 leading-relaxed">
+              Every endpoint below except <code className="bg-indigo-900 px-2 py-1 rounded">/api/info</code>, <code className="bg-indigo-900 px-2 py-1 rounded">/api/health</code>, <code className="bg-indigo-900 px-2 py-1 rounded">/api/routes</code>, and <code className="bg-indigo-900 px-2 py-1 rounded">/api/auth/login</code> requires an authenticated session (see the <strong>Authentication &amp; Access Control</strong> section below) and is subject to role-based permission checks - expect <code className="bg-indigo-900 px-2 py-1 rounded">401</code> without a valid session cookie and <code className="bg-indigo-900 px-2 py-1 rounded">403</code> if the caller's role lacks the required permission.
             </p>
 
             {/* Quick Info Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <div className="bg-indigo-100 dark:bg-indigo-900/30 rounded-lg p-4 border border-indigo-200 dark:border-indigo-700">
-                <h3 className="font-semibold text-indigo-900 dark:text-indigo-200 mb-2 flex items-center gap-2">
+              <div className="bg-indigo-900/30 rounded-lg p-4 border border-indigo-700">
+                <h3 className="font-semibold text-indigo-200 mb-2 flex items-center gap-2">
                   <Server className="h-5 w-5" />
                   Base URL
                 </h3>
-                <code className="text-sm text-indigo-800 dark:text-indigo-300 break-all">
+                <code className="text-sm text-indigo-300 break-all">
                   http://localhost:27018
                 </code>
               </div>
 
-              <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
-                <h3 className="font-semibold text-purple-900 dark:text-purple-200 mb-2">
+              <div className="bg-purple-900/30 rounded-lg p-4 border border-purple-700">
+                <h3 className="font-semibold text-purple-200 mb-2">
                   Content-Type
                 </h3>
-                <code className="text-sm text-purple-800 dark:text-purple-300">
+                <code className="text-sm text-purple-300">
                   application/json
                 </code>
               </div>
 
-              <div className="bg-pink-100 dark:bg-pink-900/30 rounded-lg p-4 border border-pink-200 dark:border-pink-700">
-                <h3 className="font-semibold text-pink-900 dark:text-pink-200 mb-2">
+              <div className="bg-pink-900/30 rounded-lg p-4 border border-pink-700">
+                <h3 className="font-semibold text-pink-200 mb-2">
                   Authentication
                 </h3>
-                <p className="text-sm text-pink-800 dark:text-pink-300">
+                <p className="text-sm text-pink-300">
                   Session cookie (httpOnly) via <code>/api/auth/login</code>, RBAC-enforced
                 </p>
               </div>
@@ -1388,17 +1388,17 @@ file: [database.tar.gz file]`,
         {apiCategories.map((category) => (
           <div
             key={category.title}
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden"
+            className="bg-slate-800 rounded-2xl shadow-lg border border-slate-700 overflow-hidden"
           >
             <button
-              className="flex items-center justify-between w-full p-6 text-left bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 hover:from-slate-100 hover:to-slate-200 dark:hover:from-slate-600 dark:hover:to-slate-700 transition-all"
+              className="flex items-center justify-between w-full p-6 text-left bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 transition-all"
               onClick={() => toggleCategory(category.title)}
             >
               <div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
+                <h3 className="text-2xl font-bold text-white mb-1">
                   {category.title}
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-slate-400">
                   {category.description}
                 </p>
               </div>
@@ -1410,7 +1410,7 @@ file: [database.tar.gz file]`,
             </button>
 
             {expandedCategories.includes(category.title) && (
-              <div className="divide-y divide-slate-100 dark:divide-slate-700">
+              <div className="divide-y divide-slate-700">
                 {category.endpoints.map((endpoint, idx) => {
                   const endpointId = `${category.title}-${idx}`;
                   return (
@@ -1425,7 +1425,7 @@ file: [database.tar.gz file]`,
                           >
                             {endpoint.method}
                           </span>
-                          <code className="font-mono text-slate-700 dark:text-slate-300 font-medium">
+                          <code className="font-mono text-slate-300 font-medium">
                             {endpoint.path}
                           </code>
                         </div>
@@ -1436,7 +1436,7 @@ file: [database.tar.gz file]`,
                         )}
                       </button>
 
-                      <p className="text-slate-700 dark:text-slate-300 mb-4">
+                      <p className="text-slate-300 mb-4">
                         {endpoint.description}
                       </p>
 
@@ -1445,29 +1445,29 @@ file: [database.tar.gz file]`,
                           {/* Parameters */}
                           {endpoint.parameters && endpoint.parameters.length > 0 && (
                             <div>
-                              <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">
+                              <h4 className="text-sm font-semibold text-slate-400 mb-2">
                                 Parameters
                               </h4>
-                              <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 space-y-3">
+                              <div className="bg-slate-900 rounded-lg p-4 space-y-3">
                                 {endpoint.parameters.map((param, paramIdx) => (
                                   <div key={paramIdx} className="border-l-2 border-indigo-400 pl-3">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                      <code className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold">
+                                      <code className="font-mono text-indigo-400 font-semibold">
                                         {param.name}
                                       </code>
-                                      <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded">
+                                      <span className="text-xs bg-slate-700 px-2 py-0.5 rounded">
                                         {param.type}
                                       </span>
-                                      <span className="text-xs text-slate-600 dark:text-slate-400">
+                                      <span className="text-xs text-slate-400">
                                         {param.dataType}
                                       </span>
                                       {param.required && (
-                                        <span className="text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-2 py-0.5 rounded font-semibold">
+                                        <span className="text-xs bg-red-900/30 text-red-400 px-2 py-0.5 rounded font-semibold">
                                           required
                                         </span>
                                       )}
                                     </div>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                    <p className="text-sm text-slate-400 mt-1">
                                       {param.description}
                                     </p>
                                   </div>
@@ -1479,10 +1479,10 @@ file: [database.tar.gz file]`,
                           {/* Request Body */}
                           {endpoint.requestBody && (
                             <div>
-                              <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">
+                              <h4 className="text-sm font-semibold text-slate-400 mb-2">
                                 Request Body Example
                               </h4>
-                              <pre className="bg-slate-900 dark:bg-slate-950 p-4 rounded-lg overflow-x-auto">
+                              <pre className="bg-slate-950 p-4 rounded-lg overflow-x-auto">
                                 <code className="text-sm font-mono text-green-400">
                                   {endpoint.requestBody}
                                 </code>
@@ -1493,10 +1493,10 @@ file: [database.tar.gz file]`,
                           {/* Response Example */}
                           {endpoint.responseExample && (
                             <div>
-                              <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">
+                              <h4 className="text-sm font-semibold text-slate-400 mb-2">
                                 Response Example
                               </h4>
-                              <pre className="bg-slate-900 dark:bg-slate-950 p-4 rounded-lg overflow-x-auto">
+                              <pre className="bg-slate-950 p-4 rounded-lg overflow-x-auto">
                                 <code className="text-sm font-mono text-cyan-400">
                                   {endpoint.responseExample}
                                 </code>
@@ -1506,7 +1506,7 @@ file: [database.tar.gz file]`,
 
                           {/* Status Codes */}
                           <div>
-                            <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">
+                            <h4 className="text-sm font-semibold text-slate-400 mb-2">
                               Status Codes
                             </h4>
                             <div className="space-y-2">
@@ -1517,15 +1517,15 @@ file: [database.tar.gz file]`,
                                 >
                                   <span
                                     className={`px-2 py-1 rounded font-mono font-semibold ${status.code >= 200 && status.code < 300
-                                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                      ? "bg-green-900/30 text-green-400"
                                       : status.code >= 400 && status.code < 500
-                                        ? "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
-                                        : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                        ? "bg-amber-900/30 text-amber-400"
+                                        : "bg-red-900/30 text-red-400"
                                       }`}
                                   >
                                     {status.code}
                                   </span>
-                                  <span className="text-slate-700 dark:text-slate-300">
+                                  <span className="text-slate-300">
                                     {status.description}
                                   </span>
                                 </div>
@@ -1546,14 +1546,14 @@ file: [database.tar.gz file]`,
       {/* Footer Info */}
       <div className="mt-12 space-y-6">
         {/* Error Response Format */}
-        <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-lg p-6 border border-red-200 dark:border-red-800">
-          <h3 className="text-xl font-bold text-red-900 dark:text-red-200 mb-4 flex items-center gap-2">
+        <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 rounded-lg p-6 border border-red-800">
+          <h3 className="text-xl font-bold text-red-200 mb-4 flex items-center gap-2">
             <span className="text-2xl">⚠️</span> Error Response Format
           </h3>
-          <p className="text-red-800 dark:text-red-300 mb-3">
+          <p className="text-red-300 mb-3">
             All error responses follow this consistent format:
           </p>
-          <pre className="bg-red-900 dark:bg-red-950 p-4 rounded-lg overflow-x-auto">
+          <pre className="bg-red-950 p-4 rounded-lg overflow-x-auto">
             <code className="text-sm font-mono text-red-200">{`{
   "statusCode": 400,
   "status": "error",
@@ -1566,46 +1566,46 @@ file: [database.tar.gz file]`,
         </div>
 
         {/* Usage Tips */}
-        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
-          <h3 className="text-xl font-bold text-blue-900 dark:text-blue-200 mb-4 flex items-center gap-2">
+        <div className="bg-gradient-to-r from-blue-900/20 to-cyan-900/20 rounded-lg p-6 border border-blue-800">
+          <h3 className="text-xl font-bold text-blue-200 mb-4 flex items-center gap-2">
             <span className="text-2xl">💡</span> Usage Tips
           </h3>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-blue-800 dark:text-blue-300">
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-blue-300">
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
-              <span className="text-sm">Set <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">Content-Type: application/json</code> for all requests</span>
+              <span className="text-blue-400 mt-0.5">✓</span>
+              <span className="text-sm">Set <code className="bg-blue-900 px-1 rounded">Content-Type: application/json</code> for all requests</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
+              <span className="text-blue-400 mt-0.5">✓</span>
               <span className="text-sm">Use pagination for large datasets (10 items per page)</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
+              <span className="text-blue-400 mt-0.5">✓</span>
               <span className="text-sm">Check status codes for proper error handling</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
+              <span className="text-blue-400 mt-0.5">✓</span>
               <span className="text-sm">Use documentId queries for fastest lookups</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
+              <span className="text-blue-400 mt-0.5">✓</span>
               <span className="text-sm">Enable encryption when creating sensitive collections</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
+              <span className="text-blue-400 mt-0.5">✓</span>
               <span className="text-sm">Export databases regularly for backups</span>
             </li>
           </ul>
         </div>
 
         {/* Final Note */}
-        <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-6 border border-slate-200 dark:border-slate-700">
-          <p className="text-slate-700 dark:text-slate-300 flex items-center gap-2">
-            <span className="text-indigo-600 dark:text-indigo-400 text-xl">ℹ️</span>
+        <div className="bg-slate-900 rounded-lg p-6 border border-slate-700">
+          <p className="text-slate-300 flex items-center gap-2">
+            <span className="text-indigo-400 text-xl">ℹ️</span>
             <span>
-              The AxioDB GUI Server runs on <code className="bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded mx-1">localhost:27018</code> by default.
+              The AxioDB GUI Server runs on <code className="bg-slate-800 px-2 py-1 rounded mx-1">localhost:27018</code> by default.
               All API endpoints are available when GUI is enabled in AxioDB initialization. For more details on the JavaScript/TypeScript API,
-              see the <a href="/api-reference" className="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">Core API Reference</a>.
+              see the <a href="/api-reference" className="text-indigo-400 hover:underline font-semibold">Core API Reference</a>.
             </span>
           </p>
         </div>
