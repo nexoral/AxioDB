@@ -111,6 +111,26 @@ class CRUDTests extends TestRunner {
         assert.isSuccess(result);
       });
 
+      await this.test('Find with $ne operator', async () => {
+        const result = await this.collection.query({ age: { $ne: 20 } }).exec();
+
+        assert.isSuccess(result);
+        result.data.documents.forEach(doc => {
+          assert.ok(doc.age !== 20, 'Should exclude documents with age 20');
+        });
+      });
+
+      await this.test('Find with $nin operator', async () => {
+        const result = await this.collection
+          .query({ age: { $nin: [20, 21, 22] } })
+          .exec();
+
+        assert.isSuccess(result);
+        result.data.documents.forEach(doc => {
+          assert.ok(![20, 21, 22].includes(doc.age), 'Should exclude ages 20, 21, and 22');
+        });
+      });
+
       await this.test('Find with Limit', async () => {
         const result = await this.collection.query({}).Limit(5).exec();
 
@@ -192,6 +212,25 @@ class CRUDTests extends TestRunner {
         if (result.data.documents.length > 0) {
           assert.equal(result.data.documents[0].status, 'updated');
         }
+      });
+
+      await this.test('Update with $ne operator excludes matching documents', async () => {
+        await this.collection.insertMany([
+          { name: 'NeUser1', age: 77, tag: 'ne-test' },
+          { name: 'NeUser2', age: 78, tag: 'ne-test' },
+          { name: 'NeUser3', age: 79, tag: 'ne-test' }
+        ]);
+
+        const result = await this.collection
+          .update({ tag: 'ne-test', age: { $ne: 78 } })
+          .UpdateMany({ marked: true });
+
+        assert.isSuccess(result);
+        assert.equal(result.data.effectedData, 2, 'Should update only the 2 documents where age != 78');
+
+        const untouched = await this.collection.query({ name: 'NeUser2' }).exec();
+        assert.isSuccess(untouched);
+        assert.ok(!untouched.data.documents[0].marked, 'age=78 document should be excluded by $ne and stay untouched');
       });
     });
 
@@ -470,6 +509,28 @@ class CRUDTests extends TestRunner {
 
         assert.isSuccess(result);
         assert.equal(result.data.documents.length, 0);
+      });
+
+      await this.test('Delete with $nin operator excludes matching documents', async () => {
+        await this.collection.insertMany([
+          { name: 'NinUser1', status: 'x', tag: 'nin-test' },
+          { name: 'NinUser2', status: 'y', tag: 'nin-test' },
+          { name: 'NinUser3', status: 'z', tag: 'nin-test' }
+        ]);
+
+        const result = await this.collection
+          .delete({ tag: 'nin-test', status: { $nin: ['x', 'y'] } })
+          .deleteMany();
+
+        assert.isSuccess(result);
+        assert.equal(result.data.deleteData.length, 1, 'Should delete only the document with status "z"');
+
+        const remaining = await this.collection
+          .query({ tag: 'nin-test' })
+          .Limit(10)
+          .exec();
+        assert.isSuccess(remaining);
+        assert.equal(remaining.data.documents.length, 2, 'The two excluded documents (status x, y) should remain');
       });
     });
 

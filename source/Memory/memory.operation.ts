@@ -11,6 +11,7 @@ interface CacheEntry {
   registeredAt: Date;
   ttl: number;        // Random TTL in milliseconds (5-15 min)
   expiresAt: Date;    // Pre-computed expiration timestamp
+  documentKeys?: string[]; // "{collectionPath}::{documentId}" entries this result contains, for reverse invalidation
 }
 
 /**
@@ -24,6 +25,9 @@ export class InMemoryCache {
   private cacheObject: Map<string, CacheEntry>;
   private tempSearchQuery: Array<{ queryString: any; registeredAt: Date }> = [];
   private readonly autoResetCacheInterval: number = 86400; // 24 hours
+  // Reverse index: "{collectionPath}::{documentId}" -> cache keys whose cached result contains that document.
+  // Lets invalidateByDocument(s) evict only the affected entries instead of the whole collection's cache.
+  private documentIndex: Map<string, Set<string>> = new Map();
 
   /** @param TTL - Time to live in seconds for cache entries. Defaults to 86400 seconds (24 hours) */
   constructor(TTL: string | number = 86400) {
@@ -49,22 +53,69 @@ export class InMemoryCache {
   /**
    * Each cache entry gets its own random TTL (5-15 minutes) to prevent cache stampede
    * (synchronized mass-expiration), with expiresAt pre-computed for O(1) validation later.
+   *
+   * @param collectionPath - When provided and `value` is an array of documents (each with a
+   *   `documentId`), the entry is registered in the reverse document index so a future
+   *   invalidateByDocument(s) call can evict exactly this entry instead of the whole collection.
    * @example
    * await cache.setCache('user-123', { name: 'John', age: 30 });
    */
-  public async setCache(key: string, value: any): Promise<boolean> {
+  public async setCache(key: string, value: any, collectionPath?: string): Promise<boolean> {
     const ttl = this.generateRandomTTL();
     const now = new Date();
     const expiresAt = new Date(now.getTime() + ttl);
+
+    let documentKeys: string[] | undefined;
+    if (collectionPath && Array.isArray(value)) {
+      documentKeys = [];
+      for (const doc of value) {
+        if (doc && typeof doc === "object" && typeof doc.documentId === "string") {
+          const docKey = `${collectionPath}::${doc.documentId}`;
+          documentKeys.push(docKey);
+
+          let keysForDoc = this.documentIndex.get(docKey);
+          if (!keysForDoc) {
+            keysForDoc = new Set();
+            this.documentIndex.set(docKey, keysForDoc);
+          }
+          keysForDoc.add(key);
+        }
+      }
+    }
 
     this.cacheObject.set(key, {
       value: value,
       registeredAt: now,
       ttl: ttl,
       expiresAt: expiresAt,
+      documentKeys: documentKeys,
     });
 
     return true;
+  }
+
+  /**
+   * Removes a single cache entry and cleans up any reverse document-index references to it,
+   * preventing the index from accumulating stale entries as the cache turns over.
+   */
+  private evictCacheEntry(key: string): void {
+    const entry = this.cacheObject.get(key);
+    if (!entry) {
+      return;
+    }
+    this.cacheObject.delete(key);
+
+    if (entry.documentKeys) {
+      for (const docKey of entry.documentKeys) {
+        const keysForDoc = this.documentIndex.get(docKey);
+        if (keysForDoc) {
+          keysForDoc.delete(key);
+          if (keysForDoc.size === 0) {
+            this.documentIndex.delete(docKey);
+          }
+        }
+      }
+    }
   }
 
   /** Tracked for analytics/monitoring only - does not gate or block caching. */
@@ -92,7 +143,7 @@ export class InMemoryCache {
     const now = new Date();
     if (now >= cacheItem.expiresAt) {
       // Lazy cleanup on read
-      this.cacheObject.delete(key);
+      this.evictCacheEntry(key);
       return false;
     }
 
@@ -101,6 +152,7 @@ export class InMemoryCache {
 
   public async clearAllCache(): Promise<boolean> {
     this.cacheObject.clear();
+    this.documentIndex.clear();
     this.tempSearchQuery = [];
     return true;
   }
@@ -121,24 +173,53 @@ export class InMemoryCache {
       }
     }
 
-    // Batch delete for performance
-    keysToDelete.forEach(key => this.cacheObject.delete(key));
+    keysToDelete.forEach(key => this.evictCacheEntry(key));
 
     return true;
   }
 
   /**
-   * Conservative strategy: invalidates the whole collection's cache rather than just this
-   * document's entries, since we can't tell which cached queries matched it without
-   * re-executing them (would need a reverse index of documentId -> cache keys to do better).
+   * Evicts only the cache entries that actually contained this document (via the reverse
+   * document index), leaving cached results for unrelated documents in the same collection
+   * untouched. If the document was never part of any cached result (e.g. it's brand new),
+   * this is a no-op - callers inserting a new document should use invalidateByCollection
+   * instead, since a cached "list"/filter query could now be missing it.
+   *
+   * Note: for updates, a cached filtered query that the document's *old* values didn't match
+   * won't be invalidated even if the new values would now match it. That staleness is bounded
+   * by the existing cache TTL (5-15 min), the same eventual-consistency window already used by
+   * the index cache elsewhere in this engine.
    */
   public async invalidateByDocument(collectionPath: string, documentId: string): Promise<boolean> {
-    return this.invalidateByCollection(collectionPath);
+    const docKey = `${collectionPath}::${documentId}`;
+    const keysForDoc = this.documentIndex.get(docKey);
+    if (!keysForDoc) {
+      return true;
+    }
+
+    // Snapshot before iterating - evictCacheEntry mutates keysForDoc (same Set) as it goes
+    for (const key of Array.from(keysForDoc)) {
+      this.evictCacheEntry(key);
+    }
+
+    return true;
   }
 
-  /** Same conservative strategy as invalidateByDocument, for a batch of documents. */
+  /** Same targeted strategy as invalidateByDocument, for a batch of documents. */
   public async invalidateByDocuments(collectionPath: string, documentIds: string[]): Promise<boolean> {
-    return this.invalidateByCollection(collectionPath);
+    const keysToEvict = new Set<string>();
+
+    for (const documentId of documentIds) {
+      const docKey = `${collectionPath}::${documentId}`;
+      const keysForDoc = this.documentIndex.get(docKey);
+      if (keysForDoc) {
+        keysForDoc.forEach(key => keysToEvict.add(key));
+      }
+    }
+
+    keysToEvict.forEach(key => this.evictCacheEntry(key));
+
+    return true;
   }
 
   /** Returns estimated cache size/memory stats, or false if calculation fails (logged, not thrown). */
@@ -193,7 +274,7 @@ export class InMemoryCache {
           }
         }
 
-        keysToDelete.forEach(key => this.cacheObject.delete(key));
+        keysToDelete.forEach(key => this.evictCacheEntry(key));
 
         // 24-hour retention for temp search queries
         this.tempSearchQuery = this.tempSearchQuery.filter((item) => {

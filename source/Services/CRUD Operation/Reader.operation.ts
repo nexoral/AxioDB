@@ -122,7 +122,7 @@ export default class Reader {
         const ReadResponse = await this.LoadAllBufferRawData(FilePath);
         if ("data" in ReadResponse) {
           // Fire-and-forget: Cache asynchronously
-          InMemoryCache.setCache(cacheKey, ReadResponse.data).catch(() => {});
+          InMemoryCache.setCache(cacheKey, ReadResponse.data, this.path).catch(() => {});
           return this.ApplySkipAndLimit(ReadResponse.data);
         }
         return this.ResponseHelper.Error("Failed to read document by ID");
@@ -189,7 +189,7 @@ export default class Reader {
       // If no query filters, return all data
       if (Object.keys(this.baseQuery).length === 0) {
         // Fire-and-forget: Cache asynchronously
-        InMemoryCache.setCache(cacheKey, ReadResponse.data).catch(() => {});
+        InMemoryCache.setCache(cacheKey, ReadResponse.data, this.path).catch(() => {});
         return this.applySortAndReturn(ReadResponse.data);
       }
 
@@ -203,8 +203,8 @@ export default class Reader {
       }
 
       // Fire-and-forget: Cache asynchronously
-      InMemoryCache.setCache(cacheKey, SearchedData).catch(() => {});
-      
+      InMemoryCache.setCache(cacheKey, SearchedData, this.path).catch(() => {});
+
       return this.applySortAndReturn(SearchedData);
     } catch (error) {
       return this.ResponseHelper.Error(error);

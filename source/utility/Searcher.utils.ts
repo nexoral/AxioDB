@@ -13,7 +13,7 @@ const workerPath: string = path.resolve(
 // Compiled query cache for reusable regex and Set objects
 interface CompiledQuery {
   key: string;
-  type: 'regex' | 'in_set' | 'range' | 'eq' | 'direct';
+  type: 'regex' | 'in_set' | 'range' | 'eq' | 'direct' | 'ne' | 'nin';
   regex?: RegExp;
   inSet?: Set<any>;
   rangeOps?: { $gt?: number; $lt?: number; $gte?: number; $lte?: number };
@@ -82,6 +82,22 @@ export default class Searcher {
             eqValue: queryValue["$eq"]
           });
         }
+        // Handle $ne
+        else if ("$ne" in queryValue) {
+          compiled.push({
+            key,
+            type: 'ne',
+            eqValue: queryValue["$ne"]
+          });
+        }
+        // Handle $nin - convert to Set for O(1) lookup
+        else if ("$nin" in queryValue && Array.isArray(queryValue["$nin"])) {
+          compiled.push({
+            key,
+            type: 'nin',
+            inSet: new Set(queryValue["$nin"])
+          });
+        }
       } else {
         // Direct value comparison
         compiled.push({
@@ -125,6 +141,12 @@ export default class Searcher {
         }
         case 'eq':
           if (itemValue !== cq.eqValue) return false;
+          break;
+        case 'ne':
+          if (itemValue === cq.eqValue) return false;
+          break;
+        case 'nin':
+          if (cq.inSet!.has(itemValue)) return false;
           break;
         case 'direct':
           if (itemValue !== cq.directValue) return false;
@@ -374,6 +396,24 @@ export default class Searcher {
 
         if ("$eq" in queryValue) {
           if (itemValue !== queryValue["$eq"]) return false;
+          continue;
+        }
+
+        // $ne - Not equal
+        if ("$ne" in queryValue) {
+          if (itemValue === queryValue["$ne"]) return false;
+          continue;
+        }
+
+        // $nin - Not in array (inverse of $in)
+        if ("$nin" in queryValue && Array.isArray(queryValue["$nin"])) {
+          const ninArray = queryValue["$nin"];
+          if (ninArray.length > 10) {
+            const ninSet = new Set(ninArray);
+            if (ninSet.has(itemValue)) return false;
+          } else {
+            if (ninArray.includes(itemValue)) return false;
+          }
           continue;
         }
       }
