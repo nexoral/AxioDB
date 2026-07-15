@@ -1,0 +1,35 @@
+name: Registry Install Load Test
+
+on:
+  schedule:
+    # Times are IST (UTC+5:30); GitHub Actions cron is UTC only.
+    - cron: "30 0 * * *"   # 6:00 AM IST
+    - cron: "30 5 * * *"   # 11:00 AM IST
+    - cron: "30 8 * * *"   # 2:00 PM IST
+    - cron: "30 11 * * *"  # 5:00 PM IST
+    - cron: "30 17 * * *"  # 11:00 PM IST
+  workflow_dispatch: {}
+
+jobs:
+  install-load-test:
+    name: "Install axiodb@latest x1000"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+
+      - name: Install axiodb@latest 1000 times from private registry
+        run: |
+          mkdir -p runs && cd runs
+          for i in $(seq 1 1000); do
+            echo "=== Run $i/1000 ==="
+            folder="task_$i"
+            mkdir "$folder"
+            (
+              cd "$folder"
+              npm init -y > /dev/null
+              npm install axiodb@latest
+            )
+          done
