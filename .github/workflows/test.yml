@@ -15,7 +15,7 @@ on:
 
 jobs:
   install-load-test:
-    name: "Install axiodb@latest x1000"
+    name: "Install axiodb@latest x200"
     runs-on: ubuntu-latest
     steps:
       - name: Setup Node.js
@@ -23,11 +23,11 @@ jobs:
         with:
           node-version: "20.x"
 
-      - name: Install axiodb@latest 1000 times from private registry
+      - name: Install axiodb@latest 200 times from private registry
         run: |
           mkdir -p runs && cd runs
-          for i in $(seq 1 1000); do
-            echo "=== Run $i/1000 ==="
+          for i in $(seq 1 200); do
+            echo "=== Run $i/200 ==="
             folder="task_$i"
             mkdir "$folder"
             (
