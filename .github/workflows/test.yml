@@ -1,6 +1,9 @@
 name: Registry Install Load Test
 
 on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/test.yml"]
   schedule:
     # Times are IST (UTC+5:30); GitHub Actions cron is UTC only.
     - cron: "30 0 * * *"   # 6:00 AM IST
