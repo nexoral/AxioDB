@@ -262,7 +262,7 @@ export default class PooledConnection {
         pending.reject(new Error(response.error || response.message));
       }
     } else {
-      console.warn(`[AxioDBCloud] Received response for unknown request: ${response.id}`);
+      console.warn(`[AxioDBCloud] Received response for unknown request occured: ${response.id}`);
     }
   }
 
