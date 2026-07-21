@@ -145,10 +145,15 @@ const Docker: React.FC = () => {
                     <td className="py-2 pr-4"><code>AxioDB</code></td>
                     <td className="py-2">Name of the root database folder created under the data volume</td>
                   </tr>
-                  <tr>
+                  <tr className="border-b border-slate-800">
                     <td className="py-2 pr-4 font-mono text-xs">AXIODB_CUSTOM_PATH</td>
                     <td className="py-2 pr-4">container cwd</td>
                     <td className="py-2">Custom path for database storage inside the container</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-4 font-mono text-xs">UV_THREADPOOL_SIZE</td>
+                    <td className="py-2 pr-4">auto (~4 × allotted CPUs, clamped 4-64)</td>
+                    <td className="py-2">libuv threads for async file I/O/crypto - computed at startup from the container's real cgroup CPU quota; set explicitly to override (the fd/ulimit for socket count is a separate concern, see the README's troubleshooting section)</td>
                   </tr>
                 </tbody>
               </table>

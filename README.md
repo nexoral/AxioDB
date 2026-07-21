@@ -408,14 +408,14 @@ See the [Docker Deployment](#-docker-deployment) section below, and `Docker/READ
 
 Each `AxioDBCloud` client opens `maxPoolSize` TCP sockets (default: 10), and the server holds one socket per connected client — both count against the OS's open-file-descriptor limit. Most Linux distros default `ulimit -n` to 1024 per process, which is enough for only ~100 clients at the default pool size before the server starts refusing new connections with `EMFILE`/`ENFILE`.
 
-If you're deploying towards the 1,000+ concurrent connections the server supports, raise the limit before starting the process:
+The published Docker image already raises its own soft limit to 65536 on startup (see `Docker/Dockerfile`'s `CMD`), so this is normally only something to think about on bare-metal/host installs, or if your Docker host's *hard* limit is itself capped below 65536:
 
 ```bash
-ulimit -n 65536          # current shell / process
+ulimit -n 65536          # current shell / process (non-Docker deployments)
 node lib/config/DB.js
 ```
 
-In Docker, set it on the container instead of the host shell:
+If the container still refuses connections, the host's hard limit is the ceiling to raise instead:
 
 ```bash
 docker run --ulimit nofile=65536:65536 -p 27018:27018 -p 27019:27019 theankansaha/axiodb
@@ -434,6 +434,16 @@ services:
 ```
 
 On the client side, prefer a smaller `maxPoolSize` per instance rather than raising it — the least-busy routing (see [Connection Pooling](#-axiodbcloud--connecting-remotely) above) already avoids the head-of-line blocking a bigger pool would otherwise compensate for.
+
+### Raising libuv's thread pool for higher disk-I/O concurrency
+
+File reads/writes (`FileManager`) go through Node's async `fs` APIs, which run on libuv's threadpool - 4 threads by default, regardless of how many TCP connections are open. Under many concurrent clients doing real disk I/O at once, that pool - not connection count - is the throughput ceiling.
+
+The published image (`Docker/runner.js`) computes a default automatically from the container's actual CPU allotment (its cgroup quota, not the host's core count - `--cpus`/Kubernetes `resources.limits.cpu` are read directly, since Node has no stdlib API for this), roughly `4 × allotted CPUs`, clamped to `[4, 64]`. Override it explicitly if you want a fixed value instead, no rebuild required:
+
+```bash
+docker run -e UV_THREADPOOL_SIZE=16 -p 27018:27018 -p 27019:27019 theankansaha/axiodb
+```
 
 ---
 
