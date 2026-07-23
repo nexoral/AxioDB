@@ -11,6 +11,9 @@ import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
 
 export default class LockManager {
+  // One LockManager per collection path, shared across every caller.
+  private static instances: Map<string, LockManager> = new Map();
+
   private readonly collectionPath: string;
   private readonly lockDir: string;
   private readonly FileManager: FileManager;
@@ -20,13 +23,27 @@ export default class LockManager {
   private readonly maxWaitTime: number = 30000;
   private readonly pollInterval: number = 100;
 
-  constructor(collectionPath: string) {
+  private constructor(collectionPath: string) {
     this.collectionPath = collectionPath;
     this.lockDir = `${collectionPath}/.transactions/locks`;
     this.FileManager = new FileManager();
     this.FolderManager = new FolderManager();
     this.Converter = new Converter();
     this.ResponseHelper = new ResponseHelper();
+  }
+
+  /**
+   * Returns the shared LockManager for a collection path, creating it on first use.
+   *
+   * @param collectionPath - Absolute path of the collection this lock manager guards
+   */
+  public static getInstance(collectionPath: string): LockManager {
+    let instance = LockManager.instances.get(collectionPath);
+    if (!instance) {
+      instance = new LockManager(collectionPath);
+      LockManager.instances.set(collectionPath, instance);
+    }
+    return instance;
   }
 
   public async acquireLock(

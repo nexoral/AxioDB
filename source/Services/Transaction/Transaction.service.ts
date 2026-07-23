@@ -49,7 +49,7 @@ export default class Transaction {
     this.startTime = Date.now();
 
     this.WAL = new WriteAheadLog(collectionPath, this.transactionId, isEncrypted, encryptionKey);
-    this.LockManager = new LockManager(collectionPath);
+    this.LockManager = LockManager.getInstance(collectionPath);
     this.Registry = new TransactionRegistry(collectionPath);
     this.IndexManager = new TransactionIndexManager(
       collectionPath,
@@ -438,7 +438,7 @@ export default class Transaction {
 
       for (const txnMeta of activeTransactions) {
         const wal = new WriteAheadLog(collectionPath, txnMeta.transactionId);
-        const lockManager = new LockManager(collectionPath);
+        const lockManager = LockManager.getInstance(collectionPath);
 
         if (txnMeta.status === 'COMMITTED' || txnMeta.status === 'PREPARING') {
           await wal.redo();

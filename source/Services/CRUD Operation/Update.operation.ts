@@ -82,7 +82,7 @@ export default class UpdateOperation {
   public async UpdateOne(
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
-    const lockManager = new LockManager(this.path);
+    const lockManager = LockManager.getInstance(this.path);
     const operationId = randomUUID();
     const timestamp = Date.now();
     let documentId: string | null = null;
@@ -222,7 +222,7 @@ export default class UpdateOperation {
   public async UpdateMany(
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
-    const lockManager = new LockManager(this.path);
+    const lockManager = LockManager.getInstance(this.path);
     const operationId = randomUUID();
     const timestamp = Date.now();
     const acquiredLocks: string[] = [];

@@ -83,7 +83,7 @@ export default class DeleteOperation {
    * @throws Will propagate any errors from underlying operations
    */
   public async deleteOne(): Promise<SuccessInterface | ErrorInterface> {
-    const lockManager = new LockManager(this.path);
+    const lockManager = LockManager.getInstance(this.path);
     const operationId = randomUUID();
     const timestamp = Date.now();
     let documentId: string | null = null;
@@ -187,7 +187,7 @@ export default class DeleteOperation {
    *     - The initial buffer data loading fails
    */
   public async deleteMany(): Promise<SuccessInterface | ErrorInterface> {
-    const lockManager = new LockManager(this.path);
+    const lockManager = LockManager.getInstance(this.path);
     const operationId = randomUUID();
     const timestamp = Date.now();
     const acquiredLocks: string[] = [];
