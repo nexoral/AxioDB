@@ -28,6 +28,19 @@ export default class FileManager {
     }
   }
 
+  /** Atomically creates a file only if absent (OS-level 'wx' flag) - safe for lock files. */
+  public async WriteFileExclusive(
+    path: string,
+    data: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      await fs.writeFile(path, data, { encoding: "utf-8", flag: "wx" });
+      return this.responseHelper.Success("File created exclusively.");
+    } catch (error) {
+      return this.responseHelper.Error(error);
+    }
+  }
+
   public async ReadFile(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
