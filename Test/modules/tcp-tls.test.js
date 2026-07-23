@@ -44,7 +44,16 @@ class TcpTlsTests extends TestRunner {
     const pems = await selfsigned.generate(attrs, {
       days: 1,
       keySize: 2048,
-      extensions: [{ name: 'subjectAltName', altNames: [{ type: 2, value: 'localhost' }] }],
+      // Client connects via TCP_HOST (127.0.0.1), so the cert needs an IP-type SAN entry
+      // for it, not just the DNS name - Node's TLS validation checks IP connections
+      // against the cert's IP SANs specifically, a DNS-only SAN doesn't satisfy that.
+      extensions: [{
+        name: 'subjectAltName',
+        altNames: [
+          { type: 2, value: 'localhost' },
+          { type: 7, ip: '127.0.0.1' },
+        ],
+      }],
     });
 
     this.certPath = path.join(this.certDir, 'server.crt');
