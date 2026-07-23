@@ -124,6 +124,15 @@ class TestRunner {
       await this.setUp();
       await this.runTests();
     } catch (error) {
+      // A setUp()/runTests() throw must count as a failure, not just a log line -
+      // otherwise a suite whose environment never came up "passes" with 0 tests run.
+      this.testResults.total++;
+      this.testResults.failed++;
+      this.testResults.failures.push({
+        description: 'Suite setup/execution',
+        error: error.message || error,
+        duration: Date.now() - suiteStartTime,
+      });
       this.log(`Suite error: ${error.message}`, 'error');
     } finally {
       try {

@@ -11,6 +11,9 @@ import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
 
 export default class LockManager {
+  // One LockManager per collection path, shared across every caller.
+  private static instances: Map<string, LockManager> = new Map();
+
   private readonly collectionPath: string;
   private readonly lockDir: string;
   private readonly FileManager: FileManager;
@@ -20,13 +23,23 @@ export default class LockManager {
   private readonly maxWaitTime: number = 30000;
   private readonly pollInterval: number = 100;
 
-  constructor(collectionPath: string) {
+  private constructor(collectionPath: string) {
     this.collectionPath = collectionPath;
     this.lockDir = `${collectionPath}/.transactions/locks`;
     this.FileManager = new FileManager();
     this.FolderManager = new FolderManager();
     this.Converter = new Converter();
     this.ResponseHelper = new ResponseHelper();
+  }
+
+  /** Returns the shared LockManager for a collection path, creating it on first use. */
+  public static getInstance(collectionPath: string): LockManager {
+    let instance = LockManager.instances.get(collectionPath);
+    if (!instance) {
+      instance = new LockManager(collectionPath);
+      LockManager.instances.set(collectionPath, instance);
+    }
+    return instance;
   }
 
   public async acquireLock(
@@ -41,41 +54,26 @@ export default class LockManager {
       }
 
       const lockFilePath = `${this.lockDir}/${documentId}.lock`;
+      const lockContent = this.buildLockContent(documentId, transactionId, transactionTimestamp);
       const startTime = Date.now();
 
       while (Date.now() - startTime < this.maxWaitTime) {
-        const fileExists = await this.FileManager.FileExists(lockFilePath);
+        // Atomic acquire-if-free - avoids the FileExists-then-WriteFile race.
+        const acquired = await this.FileManager.WriteFileExclusive(lockFilePath, lockContent);
+        if (acquired.status) {
+          return this.ResponseHelper.Success({ message: "Lock acquired", documentId });
+        }
 
-        if (!fileExists.status) {
-          const lockInfo: LockInfo = {
-            documentId,
-            transactionId,
-            lockType: 'WRITE',
-            timestamp: transactionTimestamp,
-          };
-
-          const lockData = this.Converter.ToString(lockInfo);
-          const checksum = createHash('sha256').update(lockData).digest('hex');
-          const lockContent = this.Converter.ToString({ lockInfo, checksum });
-
-          const writeResult = await this.FileManager.WriteFile(lockFilePath, lockContent);
-          if (writeResult.status) {
-            return this.ResponseHelper.Success({ message: "Lock acquired", documentId });
+        // Wait-Die: older transactions wait, younger ones abort.
+        const lockOwner = await this.getLockOwner(documentId);
+        if (lockOwner) {
+          if (transactionTimestamp < lockOwner.timestamp) {
+            await this.sleep(this.pollInterval);
+            continue;
           }
-        } else {
-          const lockOwner = await this.getLockOwner(documentId);
-          if (lockOwner) {
-            const ownerTimestamp = lockOwner.timestamp;
-
-            if (transactionTimestamp < ownerTimestamp) {
-              await this.sleep(this.pollInterval);
-              continue;
-            } else {
-              return this.ResponseHelper.Error(
-                `Deadlock detected: Transaction ${transactionId} aborted (Wait-Die)`
-              );
-            }
-          }
+          return this.ResponseHelper.Error(
+            `Deadlock detected: Transaction ${transactionId} aborted (Wait-Die)`
+          );
         }
 
         await this.sleep(this.pollInterval);
@@ -85,6 +83,26 @@ export default class LockManager {
     } catch (error) {
       return this.ResponseHelper.Error(error);
     }
+  }
+
+  /** Builds the checksummed lock-file content; keeps format in sync with getLockOwner(). */
+  private buildLockContent(
+    documentId: string,
+    transactionId: string,
+    transactionTimestamp: number
+  ): string {
+    const lockInfo: LockInfo = {
+      documentId,
+      transactionId,
+      lockType: 'WRITE',
+      timestamp: transactionTimestamp,
+    };
+
+    const checksum = createHash('sha256')
+      .update(this.Converter.ToString(lockInfo))
+      .digest('hex');
+
+    return this.Converter.ToString({ lockInfo, checksum });
   }
 
   public async releaseLock(documentId: string): Promise<SuccessInterface | ErrorInterface> {

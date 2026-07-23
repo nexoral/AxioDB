@@ -6,7 +6,6 @@ import {
 import { SessionOptions } from "../../config/Interfaces/Transaction/transaction.interface";
 import ResponseHelper from "../../Helper/response.helper";
 // Operations
-import Insertion from "../CRUD Operation/Create.operation";
 import Reader from "../CRUD Operation/Reader.operation";
 import DeleteOperation from "../CRUD Operation/Delete.operation";
 import UpdateOperation from "../CRUD Operation/Update.operation";
@@ -35,7 +34,6 @@ export default class Collection {
   private readonly isEncrypted: boolean;
   private readonly cryptoInstance?: CryptoHelper;
   private Converter: Converter;
-  private Insertion: Insertion;
   private readonly encryptionKey: string | undefined;
   private readonly IndexManager: InsertIndex;
   private readonly indexCache: IndexCache;
@@ -54,12 +52,10 @@ export default class Collection {
     this.Converter = new Converter();
     this.updatedAt = new Date().toISOString();
     this.encryptionKey = encryptionKey;
-    // Initialize the Insertion class
-    this.Insertion = new Insertion(this.name, this.path);
     this.IndexManager = new InsertIndex(this.path);
 
     // Initialize and eagerly load index cache for maximum query performance
-    this.indexCache = new IndexCache(this.path);
+    this.indexCache = IndexCache.getInstance(this.path);
     this.indexCache.loadAllIndexes().catch(() => {
       // Silent failure - indexes will load on demand from disk (cold start recovery)
     });
@@ -139,6 +135,12 @@ export default class Collection {
 
   /**
    * Inserts a document into the collection.
+   *
+   * Routed through a single-operation Transaction so the insert is WAL-backed: if the
+   * process crashes between writing the document and updating its index, Transaction.recoverTransactions()
+   * (run at collection startup) redoes or undoes it from the WAL instead of leaving a
+   * half-written document.
+   *
    * @param {object} data - The data to be inserted.
    * @returns {Promise<any>} - A promise that resolves with the response of the insertion operation.
    */
@@ -155,32 +157,18 @@ export default class Collection {
       throw new Error("Data must be an object.");
     }
 
-    // Add the documentId to the data
-    const documentId: string = await this.Insertion.generateUniqueDocumentId();
-    data.documentId = documentId;
+    const txn = this.beginTransaction();
+    txn.insert(data);
+    const commitResult = await txn.commit();
 
-    // Insert the updatedAt field in schema & data
-    data.updatedAt = this.updatedAt;
-
-    // Encrypt the data if crypto is enabled
-    if (this.cryptoInstance && this.isEncrypted) {
-      data = await this.cryptoInstance.encrypt(this.Converter.ToString(data));
+    if (!("data" in commitResult) || !commitResult.data.documentIds?.length) {
+      return commitResult;
     }
 
-    // Save the data first
-    const saveResult = await this.Insertion.Save(data, documentId);
-
-    // Index insertion after save
-    await this.IndexManager.InsertToIndex(data);
-
-    // Fire-and-forget: Invalidate cache asynchronously for faster response.
-    // A brand-new document was never part of any cached result, so per-document invalidation
-    // would be a no-op here - a cached "list"/filter query could now be missing it, so the
-    // whole collection's cache needs to be dropped (unlike update/delete, which target only
-    // the cache entries that already contained the mutated document).
-    InMemoryCache.invalidateByCollection(this.path).catch(() => {});
-
-    return saveResult;
+    return new ResponseHelper().Success({
+      Message: "Data Inserted Successfully",
+      documentId: commitResult.data.documentIds[0],
+    });
   }
 
   /**

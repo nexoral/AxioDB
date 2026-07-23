@@ -9,6 +9,7 @@ import FileManager from "../../engine/Filesystem/FileManager";
 import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
 import { ReadIndex } from "../Index/ReadIndex.service";
+import { IndexCache } from "../Index/IndexCache.service";
 import Searcher from "../../utility/Searcher.utils";
 import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
 
@@ -20,25 +21,29 @@ export default class TransactionIndexManager {
   private readonly Converter: Converter;
   private readonly ResponseHelper: ResponseHelper;
   private readonly ReadIndexService: ReadIndex;
-  private readonly transactionId: string;
+  private readonly indexCache: IndexCache;
+  // Keyed by fieldName (not file path) - IndexCache.updateIndex() takes the field name
   private stagedIndexUpdates: Map<string, any> = new Map();
   private readonly isEncrypted: boolean;
   private readonly encryptionKey?: string;
 
   constructor(
     collectionPath: string,
-    transactionId: string,
     isEncrypted: boolean = false,
     encryptionKey?: string
   ) {
     this.collectionPath = collectionPath;
-    this.transactionId = transactionId;
     this.indexFolderPath = `${collectionPath}/indexes`;
     this.indexMetaPath = `${this.indexFolderPath}/index.meta.json`;
     this.FileManager = new FileManager();
     this.Converter = new Converter();
     this.ResponseHelper = new ResponseHelper();
     this.ReadIndexService = new ReadIndex(collectionPath);
+    // Same shared cache InsertIndex/DeleteIndex/ReadIndex use - staging reads and
+    // committing writes through it (instead of raw file I/O) keeps transactional
+    // index changes visible to every other index consumer instead of leaving the
+    // cache holding a stale pre-transaction copy.
+    this.indexCache = IndexCache.getInstance(collectionPath);
     this.isEncrypted = isEncrypted;
     this.encryptionKey = encryptionKey;
   }
@@ -86,15 +91,15 @@ export default class TransactionIndexManager {
       const indexMeta = this.Converter.ToObject(indexMetaContent.data);
 
       for (const indexMetaEntry of indexMeta) {
-        const indexFilePath = indexMetaEntry.path;
         const fieldName = indexMetaEntry.indexFieldName;
 
-        const indexContent = await this.FileManager.ReadFile(indexFilePath);
-        if (!indexContent.status) {
+        // Read through the shared cache (memory hit, or disk on cold start) so
+        // staging sees the same up-to-date state every other index consumer does.
+        const indexData = await this.indexCache.getIndex(fieldName);
+        if (!indexData) {
           continue;
         }
 
-        const indexData = this.Converter.ToObject(indexContent.data);
         const indexEntries = indexData.indexEntries || {};
 
         for (const op of operations) {
@@ -150,7 +155,7 @@ export default class TransactionIndexManager {
         }
 
         indexData.indexEntries = indexEntries;
-        this.stagedIndexUpdates.set(indexFilePath, indexData);
+        this.stagedIndexUpdates.set(fieldName, indexData);
       }
     } catch {
       return;
@@ -159,18 +164,13 @@ export default class TransactionIndexManager {
 
   public async commitIndexUpdates(): Promise<SuccessInterface | ErrorInterface> {
     try {
-      for (const [indexFilePath, indexData] of this.stagedIndexUpdates) {
-        const tempFilePath = `${indexFilePath}.tmp-${this.transactionId}`;
-
-        await this.FileManager.WriteFile(tempFilePath, this.Converter.ToString(indexData));
-
-        const readResult = await this.FileManager.ReadFile(tempFilePath);
-        if (!readResult.status) {
-          return this.ResponseHelper.Error("Failed to verify temp index file");
+      for (const [fieldName, indexData] of this.stagedIndexUpdates) {
+        // updateIndex() writes disk + refreshes the shared in-memory cache under
+        // its per-field lock, so every other index consumer sees this immediately.
+        const updated = await this.indexCache.updateIndex(fieldName, indexData);
+        if (!updated) {
+          return this.ResponseHelper.Error(`Failed to commit index update for field: ${fieldName}`);
         }
-
-        const fs = await import('fs/promises');
-        await fs.rename(tempFilePath, indexFilePath);
       }
 
       this.stagedIndexUpdates.clear();
@@ -181,19 +181,10 @@ export default class TransactionIndexManager {
   }
 
   public async rollbackIndexUpdates(): Promise<void> {
-    try {
-      for (const [indexFilePath] of this.stagedIndexUpdates) {
-        const tempFilePath = `${indexFilePath}.tmp-${this.transactionId}`;
-        const fileExists = await this.FileManager.FileExists(tempFilePath);
-        if (fileExists.status) {
-          await this.FileManager.DeleteFile(tempFilePath);
-        }
-      }
-
-      this.stagedIndexUpdates.clear();
-    } catch {
-      return;
-    }
+    // Staged updates only ever lived in memory (this.stagedIndexUpdates) until
+    // commitIndexUpdates() wrote them - nothing was persisted, so rolling back is
+    // just discarding the staged map.
+    this.stagedIndexUpdates.clear();
   }
 
   private async getAllDocumentFiles(): Promise<string[]> {

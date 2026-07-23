@@ -8,7 +8,7 @@ export default class InsertIndex extends IndexManager {
 
   constructor (path: string){
     super(path);
-    this.indexCache = new IndexCache(path);
+    this.indexCache = IndexCache.getInstance(path);
   }
 
 

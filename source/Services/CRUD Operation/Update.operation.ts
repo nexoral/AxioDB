@@ -18,6 +18,8 @@ import Insertion from "./Create.operation";
 import InMemoryCache from "../../Memory/memory.operation";
 import { General } from "../../config/Keys/Keys";
 import { ReadIndex } from "../Index/ReadIndex.service";
+import DeleteIndex from "../Index/DeleteIndex.service";
+import InsertIndex from "../Index/InsertIndex.service";
 import LockManager from "../Transaction/LockManager.service";
 
 export default class UpdateOperation {
@@ -80,7 +82,7 @@ export default class UpdateOperation {
   public async UpdateOne(
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
-    const lockManager = new LockManager(this.path);
+    const lockManager = LockManager.getInstance(this.path);
     const operationId = randomUUID();
     const timestamp = Date.now();
     let documentId: string | null = null;
@@ -174,6 +176,20 @@ export default class UpdateOperation {
         return this.ResponseHelper.Error("Failed to insert data");
       }
 
+      // Keep indexes in sync - but only for fields whose value actually changed.
+      const changedOldValues: any = { documentId };
+      const changedNewValues: any = { documentId };
+      for (const key in newData) {
+        if (dataForRest[key] !== documentOldData[key]) {
+          changedOldValues[key] = dataForRest[key];
+          changedNewValues[key] = documentOldData[key];
+        }
+      }
+      if (Object.keys(changedOldValues).length > 1) {
+        await new DeleteIndex(this.path).RemoveFromIndex(documentId, changedOldValues).catch(() => {});
+        await new InsertIndex(this.path).InsertToIndex(changedNewValues).catch(() => {});
+      }
+
       // Fire-and-forget: Invalidate cache asynchronously
       InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
 
@@ -214,7 +230,7 @@ export default class UpdateOperation {
   public async UpdateMany(
     newData: object | any,
   ): Promise<SuccessInterface | ErrorInterface> {
-    const lockManager = new LockManager(this.path);
+    const lockManager = LockManager.getInstance(this.path);
     const operationId = randomUUID();
     const timestamp = Date.now();
     const acquiredLocks: string[] = [];
@@ -278,10 +294,13 @@ export default class UpdateOperation {
       }
 
       // STEP 4: All locks acquired - now perform updates safely
+      const deleteIndexService = new DeleteIndex(this.path);
+      const insertIndexService = new InsertIndex(this.path);
       for (let i = 0; i < SearchedData.length; i++) {
         let selectedData = SearchedData[i];
         let fileName: string = selectedData?.fileName;
         const documentOldData = selectedData.data;
+        const previousData = { ...documentOldData };
 
         // Sort the data if sort is provided
         if (Object.keys(this.sort).length !== 0) {
@@ -313,6 +332,21 @@ export default class UpdateOperation {
 
         if (!("data" in InsertResponse)) {
           return this.ResponseHelper.Error(`Failed to insert data for document ${documentId}`);
+        }
+
+        // Keep indexes in sync - only for fields whose value actually changed (see
+        // UpdateOne for why: touching unchanged fields reorders their index bucket).
+        const changedOldValues: any = { documentId };
+        const changedNewValues: any = { documentId };
+        for (const key in newData) {
+          if (previousData[key] !== documentOldData[key]) {
+            changedOldValues[key] = previousData[key];
+            changedNewValues[key] = documentOldData[key];
+          }
+        }
+        if (Object.keys(changedOldValues).length > 1) {
+          await deleteIndexService.RemoveFromIndex(documentId, changedOldValues).catch(() => {});
+          await insertIndexService.InsertToIndex(changedNewValues).catch(() => {});
         }
       }
 

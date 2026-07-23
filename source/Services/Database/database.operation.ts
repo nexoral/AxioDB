@@ -15,6 +15,7 @@ import {
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import { FinalCollectionsInfo } from "../../config/Interfaces/Operation/database.operation.interface";
 import { IndexManager } from "../Index/Index.service";
+import { IndexCache } from "../Index/IndexCache.service";
 
 // Types
 type CollectionMetadata = {
@@ -146,6 +147,9 @@ export default class Database {
         return status;
       }
       await this.folderManager.DeleteDirectory(collectionPath);
+      // Drop the shared index cache for this path - otherwise its cleanup timer
+      // keeps running and the registry keeps a stale entry for a deleted collection.
+      IndexCache.releaseInstance(collectionPath);
       return this.ResponseHelper.Success(
         `Collection: ${collectionName} deleted successfully`,
       );
