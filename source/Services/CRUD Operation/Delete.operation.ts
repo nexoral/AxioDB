@@ -147,13 +147,18 @@ export default class DeleteOperation {
       }
 
       // Fire-and-forget: Remove from indexes and invalidate cache asynchronously for faster response
-      new DeleteIndex(this.path).RemoveFromIndex(documentId, selectedFirstData?.data).catch(() => {});
-      InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
+      const isDeleted = await new DeleteIndex(this.path).RemoveFromIndex(documentId, selectedFirstData?.data).catch(() => {});
+      
+      if (isDeleted){ await InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
 
       return this.ResponseHelper.Success({
         message: "Data deleted successfully",
         deleteData: selectedFirstData?.data,
       });
+    } 
+    else {
+      return this.ResponseHelper.Error("Failed to remove from index & invalidate cache");
+    }
 
     } finally {
       // STEP 4: Always release lock (ACID: ensures no deadlock)
@@ -234,19 +239,24 @@ export default class DeleteOperation {
         }
 
         // Fire-and-forget: Remove from indexes asynchronously
-        deleteIndexService.RemoveFromIndex(
+        await deleteIndexService.RemoveFromIndex(
           SearchedData[i].fileName.split('.')[0],
           SearchedData[i].data
         ).catch(() => {});
       }
 
       // Fire-and-forget: Invalidate cache asynchronously
-      InMemoryCache.invalidateByDocuments(this.path, documentIds).catch(() => {});
+      const isRemoved = await InMemoryCache.invalidateByDocuments(this.path, documentIds).catch(() => {});
 
-      return this.ResponseHelper.Success({
-        message: "Data deleted successfully",
-        deleteData: SearchedData.map((data) => data.data),
-      });
+      if (isRemoved){
+        return this.ResponseHelper.Success({
+          message: "Data deleted successfully",
+          deleteData: SearchedData.map((data) => data.data),
+        });
+      }
+      else {
+        return this.ResponseHelper.Error("Failed to invalidate cache after deletion");
+      }
 
     } finally {
       // STEP 4: Always release ALL acquired locks (ACID: ensures no deadlock)
