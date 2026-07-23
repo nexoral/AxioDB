@@ -176,11 +176,19 @@ export default class UpdateOperation {
         return this.ResponseHelper.Error("Failed to insert data");
       }
 
-      // Keep indexes in sync: drop the entry filed under the old field value(s),
-      // add one under the new value(s) - otherwise indexed lookups by old/new
-      // value both return stale results after an update.
-      await new DeleteIndex(this.path).RemoveFromIndex(documentId, dataForRest).catch(() => {});
-      await new InsertIndex(this.path).InsertToIndex(documentOldData).catch(() => {});
+      // Keep indexes in sync - but only for fields whose value actually changed.
+      const changedOldValues: any = { documentId };
+      const changedNewValues: any = { documentId };
+      for (const key in newData) {
+        if (dataForRest[key] !== documentOldData[key]) {
+          changedOldValues[key] = dataForRest[key];
+          changedNewValues[key] = documentOldData[key];
+        }
+      }
+      if (Object.keys(changedOldValues).length > 1) {
+        await new DeleteIndex(this.path).RemoveFromIndex(documentId, changedOldValues).catch(() => {});
+        await new InsertIndex(this.path).InsertToIndex(changedNewValues).catch(() => {});
+      }
 
       // Fire-and-forget: Invalidate cache asynchronously
       InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
@@ -326,10 +334,20 @@ export default class UpdateOperation {
           return this.ResponseHelper.Error(`Failed to insert data for document ${documentId}`);
         }
 
-        // Keep indexes in sync: drop the entry filed under the old field value(s),
-        // add one under the new value(s)
-        await deleteIndexService.RemoveFromIndex(documentId, previousData).catch(() => {});
-        await insertIndexService.InsertToIndex(documentOldData).catch(() => {});
+        // Keep indexes in sync - only for fields whose value actually changed (see
+        // UpdateOne for why: touching unchanged fields reorders their index bucket).
+        const changedOldValues: any = { documentId };
+        const changedNewValues: any = { documentId };
+        for (const key in newData) {
+          if (previousData[key] !== documentOldData[key]) {
+            changedOldValues[key] = previousData[key];
+            changedNewValues[key] = documentOldData[key];
+          }
+        }
+        if (Object.keys(changedOldValues).length > 1) {
+          await deleteIndexService.RemoveFromIndex(documentId, changedOldValues).catch(() => {});
+          await insertIndexService.InsertToIndex(changedNewValues).catch(() => {});
+        }
       }
 
       // Fire-and-forget: Invalidate cache asynchronously

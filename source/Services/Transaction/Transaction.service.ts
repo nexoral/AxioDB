@@ -53,7 +53,6 @@ export default class Transaction {
     this.Registry = new TransactionRegistry(collectionPath);
     this.IndexManager = new TransactionIndexManager(
       collectionPath,
-      this.transactionId,
       isEncrypted,
       encryptionKey
     );
@@ -234,6 +233,9 @@ export default class Transaction {
         message: "Transaction committed successfully",
         transactionId: this.transactionId,
         operationsCount: this.operations.length,
+        documentIds: this.resolvedOperations
+          .filter((op) => op.type === 'INSERT' && op.documentId)
+          .map((op) => op.documentId as string),
       });
     } catch (error) {
       await this.rollback();
@@ -294,6 +296,22 @@ export default class Transaction {
 
     for (const op of this.operations) {
       if (op.type === 'INSERT') {
+        // Guard against documentId collisions. insert() must stay synchronous to
+        // keep the chainable API (txn.insert(a).update(b)...), so it can't await
+        // a FileExists check itself - do it here instead, before commit() writes
+        // anything to disk.
+        let documentId = op.documentId!;
+        let filePath = `${this.collectionPath}/${documentId}${General.DBMS_File_EXT}`;
+        while ((await this.FileManager.FileExists(filePath)).status) {
+          documentId = new UniqueGenerator(15).RandomWord(true);
+          filePath = `${this.collectionPath}/${documentId}${General.DBMS_File_EXT}`;
+        }
+        if (documentId !== op.documentId) {
+          op.documentId = documentId;
+          if (op.data) {
+            op.data = { ...op.data, documentId };
+          }
+        }
         resolvedOperations.push(op);
       } else if (op.type === 'UPDATE' && op.query && op.data) {
         const documentIds = await this.IndexManager.resolveQueryToDocumentIds(op.query);
