@@ -18,6 +18,8 @@ import Insertion from "./Create.operation";
 import InMemoryCache from "../../Memory/memory.operation";
 import { General } from "../../config/Keys/Keys";
 import { ReadIndex } from "../Index/ReadIndex.service";
+import DeleteIndex from "../Index/DeleteIndex.service";
+import InsertIndex from "../Index/InsertIndex.service";
 import LockManager from "../Transaction/LockManager.service";
 
 export default class UpdateOperation {
@@ -174,6 +176,12 @@ export default class UpdateOperation {
         return this.ResponseHelper.Error("Failed to insert data");
       }
 
+      // Keep indexes in sync: drop the entry filed under the old field value(s),
+      // add one under the new value(s) - otherwise indexed lookups by old/new
+      // value both return stale results after an update.
+      await new DeleteIndex(this.path).RemoveFromIndex(documentId, dataForRest).catch(() => {});
+      await new InsertIndex(this.path).InsertToIndex(documentOldData).catch(() => {});
+
       // Fire-and-forget: Invalidate cache asynchronously
       InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
 
@@ -278,10 +286,13 @@ export default class UpdateOperation {
       }
 
       // STEP 4: All locks acquired - now perform updates safely
+      const deleteIndexService = new DeleteIndex(this.path);
+      const insertIndexService = new InsertIndex(this.path);
       for (let i = 0; i < SearchedData.length; i++) {
         let selectedData = SearchedData[i];
         let fileName: string = selectedData?.fileName;
         const documentOldData = selectedData.data;
+        const previousData = { ...documentOldData };
 
         // Sort the data if sort is provided
         if (Object.keys(this.sort).length !== 0) {
@@ -314,6 +325,11 @@ export default class UpdateOperation {
         if (!("data" in InsertResponse)) {
           return this.ResponseHelper.Error(`Failed to insert data for document ${documentId}`);
         }
+
+        // Keep indexes in sync: drop the entry filed under the old field value(s),
+        // add one under the new value(s)
+        await deleteIndexService.RemoveFromIndex(documentId, previousData).catch(() => {});
+        await insertIndexService.InsertToIndex(documentOldData).catch(() => {});
       }
 
       // Fire-and-forget: Invalidate cache asynchronously
