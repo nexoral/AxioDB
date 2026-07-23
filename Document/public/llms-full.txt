@@ -1,42 +1,23 @@
 # AxioDB — Complete Documentation
 
-Version: 9.6.6 | License: MIT | Node.js >= 20.0.0
+Version: 12.11.27 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
+
+This file documents the actual, source-verified API surface of AxioDB — every method signature, every query/update/aggregation operator, and every constructor option that exists in the shipped code. Where an example below differs from what you may have seen elsewhere (including AxioDB's own README), this file is the corrected version; specific corrections are called out inline.
 
 ---
 
 ## What is AxioDB?
 
-AxioDB is an embedded NoSQL database for Node.js with MongoDB-style queries. It is a pure JavaScript alternative to SQLite with zero native dependencies, no compilation, and no platform-specific binaries. It works everywhere Node.js runs — Electron apps, CLI tools, local-first applications, and Node.js backends.
+AxioDB is an embedded NoSQL database for Node.js with MongoDB-style queries. It is a pure JavaScript alternative to SQLite with zero native dependencies, no compilation step, and no platform-specific binaries. It works everywhere Node.js runs — Electron apps, CLI tools, local-first applications, and Node.js backends.
 
-**One-liner:** npm install axiodb and you have a database. No mongod process, no node-gyp, no electron-rebuild.
+**One-liner:** `npm install axiodb` and you have a database. No mongod process, no node-gyp, no electron-rebuild.
 
-**Sweet spot:** 10,000–500,000 documents per collection.
+**Sweet spot:** 10,000–500,000 documents per collection, single process.
 
----
-
-## Why AxioDB Exists
-
-SQLite requires native C bindings that break in Electron and cross-platform deployments:
-- electron-rebuild required on every Electron update
-- Platform-specific builds (Windows .node files are not Mac .node files)
-- SQL strings instead of JavaScript objects
-- Schema migrations required when data model changes
-- node-gyp compilation headaches
-
-JSON files (lowdb, plain JSON) have no querying or caching:
-- Single file storage means heavy Read/Write I/O
-- No built-in caching
-- Linear O(n) search for document retrieval
-- Performance degrades with larger datasets
-
-NeDB is abandoned and keeps the entire database in memory.
-
-MongoDB needs a separate server process.
-
-AxioDB combines the best of all: embedded like SQLite, NoSQL queries like MongoDB, intelligent caching built-in, pure JavaScript.
+**Not a fit for:** 10M+ documents, multi-user web apps with hundreds of concurrent connections, relational data with JOINs, distributed/replicated/sharded systems, or cross-collection ACID transactions (AxioDB's transactions are scoped to a single collection).
 
 ---
 
@@ -46,586 +27,575 @@ AxioDB combines the best of all: embedded like SQLite, NoSQL queries like MongoD
 npm install axiodb
 ```
 
-Requirements:
-- Node.js >= 20.0.0
-- npm >= 6.0.0
-
-AxioDB runs on Node.js servers and desktop apps. It does NOT run in the browser.
+Requires Node.js >= 20.0.0, npm >= 6.0.0. Server-side/desktop only — does not run in a browser (needs the filesystem).
 
 ---
 
-## Quick Start (Hello World in 30 seconds)
+## Quick Start
 
 ```javascript
 const { AxioDB } = require('axiodb');
 
-// Create instance (optionally enable built-in GUI at localhost:27018)
-const db = new AxioDB({ GUI: true });
+const db = new AxioDB({ GUI: true }); // GUI at http://localhost:27018
 
-// Create database and collection
 const myDB = await db.createDB('HelloWorldDB');
 const collection = await myDB.createCollection('greetings');
 
-// Insert a document
-await collection.insert({ message: 'Hello, Developer!', createdAt: new Date() });
+await collection.insert({ message: 'Hello, Developer!' });
 
-// Query documents
-const results = await collection.query({}).exec();
-console.log(results[0].message); // Hello, Developer!
+const result = await collection.query({}).exec();
+console.log(result.data.documents[0].message); // Hello, Developer!
+```
+
+`AxioDB` is a hard singleton — only one instance per process. Constructing a second one throws `Only one instance of AxioDB is allowed.`
+
+---
+
+## AxioDB (root instance)
+
+```typescript
+new AxioDB(options?: {
+  GUI?: boolean;          // Enable HTTP GUI on port 27018 (default: false)
+  RootName?: string;      // Root storage folder name (default: "AxioDB")
+  CustomPath?: string;    // Custom storage path (default: current working directory)
+  TCP?: boolean;          // Enable AxioDBCloud TCP server on port 27019 (default: false)
+  TCPAuth?: boolean;      // Require username/password on TCP connections, same RBAC as GUI (default: false)
+  TLS?: boolean;          // Encrypt the TCP server with TLS (default: false)
+  TLSCertPath?: string;   // Path to a PEM cert file - required if TLS: true
+  TLSKeyPath?: string;    // Path to the matching PEM private key - required if TLS: true
+})
+```
+
+If `TLS: true` but either path is missing/unreadable, the constructor throws immediately — it never silently falls back to plaintext.
+
+```typescript
+db.createDB(dbName: string): Promise<Database>
+db.deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>
+db.isDatabaseExists(dbName: string): Promise<boolean>
+db.getInstanceInfo(): Promise<SuccessInterface | undefined>
+```
+
+There is no schema-validation parameter on `createDB` or `createCollection` — AxioDB is schema-less. (If you've seen a `createDB(name, schemaValidation)` or `createCollection(name, enc, key, schema)` signature anywhere, that's not a real feature.)
+
+---
+
+## Database
+
+```typescript
+database.createCollection(
+  name: string,
+  isEncrypted?: boolean,   // default: false
+  encryptionKey?: string   // auto-generated if isEncrypted is true and this is omitted
+): Promise<Collection>
+
+database.deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>
+database.isCollectionExists(name: string): Promise<boolean>
+database.getCollectionInfo(): Promise<SuccessInterface | undefined>
 ```
 
 ---
 
-## Core Concepts
+## Collection
 
-### AxioDB Instance
-
-One instance manages all databases and collections. Single instance architecture ensures ACID compliance and data consistency.
-
-```javascript
-const { AxioDB } = require('axiodb');
-
-// Basic
-const db = new AxioDB();
-
-// With options
-const db = new AxioDB({
-  GUI: true,           // Enable web GUI at localhost:27018
-  RootName: 'MyDB',   // Custom root folder name
-  CustomPath: './data', // Custom storage path
-  TCP: true            // Enable AxioDBCloud TCP server on port 27019
-});
+```typescript
+collection.insert(document: object): Promise<SuccessInterface | ErrorInterface>
+collection.insertMany(documents: object[] | object): Promise<SuccessInterface | ErrorInterface>
+collection.query(query: object): Reader
+collection.update(query: object): UpdateOperation
+collection.delete(query: object): DeleteOperation
+collection.aggregate(pipeline: object[]): Aggregation
+collection.newIndex(...fieldNames: string[]): Promise<SuccessInterface>
+collection.dropIndex(indexName: string): Promise<SuccessInterface | ErrorInterface>
+collection.getIndexes(): Promise<SuccessInterface | ErrorInterface>
+collection.totalDocuments(): Promise<SuccessInterface | ErrorInterface>
+collection.beginTransaction(): Transaction
+collection.startSession(options?: SessionOptions): Session
 ```
 
-### Creating Databases
+`query()`, `update()`, `delete()`, and `aggregate()` all return chainable objects — nothing happens until you call the terminal method (`.exec()`, `.UpdateOne()`, `.deleteMany()`, etc.). There is no `collection.findAll()` method.
 
-```javascript
-const userDB = await db.createDB('UserDatabase');
-const productDB = await db.createDB('ProductDatabase');
-
-// Delete a database
-await db.deleteDatabase('OldDatabase');
-```
-
-### Creating Collections
-
-```javascript
-// Basic collection
-const users = await userDB.createCollection('Users');
-
-// Encrypted collection (auto-generated key)
-const secure = await userDB.createCollection('SecureData', true);
-
-// Encrypted with custom key
-const encrypted = await userDB.createCollection('Payments', true, 'my-secret-key-256bit');
-
-// Schema-validated collection
-const validated = await userDB.createCollection('Products', false, undefined, schema);
-```
-
----
-
-## CRUD Operations
+`insert()` is routed through a single-operation transaction internally, so it is Write-Ahead-Log-backed: if the process crashes mid-write, the next collection open (`Transaction.recoverTransactions()`, run automatically on `Collection` construction) redoes or undoes the half-finished write from the WAL.
 
 ### Insert
 
 ```javascript
-// Insert single document
-await users.insert({
-  name: 'Alice',
-  email: 'alice@example.com',
-  age: 30,
-  role: 'admin'
-});
+await users.insert({ name: 'Alice', email: 'alice@example.com', age: 30 });
 
-// Insert many documents
 await users.insertMany([
   { name: 'Bob', age: 25 },
   { name: 'Carol', age: 35 },
-  { name: 'Dave', age: 28 }
 ]);
 ```
 
-### Query (Read)
+`documentId` and `updatedAt` are set automatically — don't set them yourself, they'll be overwritten.
 
-```javascript
-// Get all documents
-const all = await users.query({}).exec();
+---
 
-// Filter with operators
-const adults = await users.query({ age: { $gt: 18 } }).exec();
-const admins = await users.query({ role: 'admin' }).exec();
-const found = await users.query({ name: { $regex: /^Ali/ } }).exec();
-const inList = await users.query({ age: { $in: [25, 30, 35] } }).exec();
+## Query (Reader)
 
-// Chainable methods
-const paginated = await users
-  .query({ role: 'admin' })
-  .Sort({ age: -1 })       // -1 = descending, 1 = ascending
-  .Limit(10)
-  .Skip(20)
-  .setProject({ name: 1, email: 1 })  // Select specific fields
-  .exec();
+```typescript
+collection.query(query: object): Reader
 
-// Find one document
-const one = await users.query({ email: 'alice@example.com' }).findOne();
-
-// Count documents
-const count = await users.query({ role: 'admin' }).setCount(true).exec();
+reader.Limit(n: number): Reader
+reader.Skip(n: number): Reader
+reader.Sort(sort: object): Reader            // { field: 1 } ascending, { field: -1 } descending
+reader.setCount(count: boolean): Reader      // include totalDocuments in the result
+reader.setProject(fields: object): Reader    // { field: 1 } to include only that field
+reader.findOne(matchOneOnly?: boolean): Reader  // still needs .exec() after - see below
+reader.exec(): Promise<SuccessInterface | ErrorInterface>
 ```
 
-### Query Operators
+`findOne()` returns `Reader` for chaining, not a Promise directly — you must still call `.exec()`:
+
+```javascript
+const one = await users.query({ email: 'alice@example.com' }).findOne(true).exec();
+```
+
+```javascript
+const all = await users.query({}).exec();
+
+const paginated = await users
+  .query({ role: 'admin' })
+  .Sort({ age: -1 })
+  .Limit(10)
+  .Skip(20)
+  .setProject({ name: 1, email: 1 })
+  .exec();
+
+const withCount = await users.query({ role: 'admin' }).setCount(true).exec();
+```
+
+### Query operators (full list)
+
+These work on any field passed to `.query()` — this is the complete set as implemented, more than what's usually documented:
 
 | Operator | Meaning | Example |
 |----------|---------|---------|
-| $gt | Greater than | { age: { $gt: 25 } } |
-| $lt | Less than | { age: { $lt: 60 } } |
-| $gte | Greater than or equal | { age: { $gte: 18 } } |
-| $lte | Less than or equal | { price: { $lte: 100 } } |
-| $ne | Not equal | { status: { $ne: 'inactive' } } |
-| $in | Value in array | { role: { $in: ['admin', 'mod'] } } |
-| $nin | Value not in array | { tag: { $nin: ['spam'] } } |
-| $exists | Field exists | { email: { $exists: true } } |
-| $regex | Regular expression | { name: { $regex: /^John/ } } |
-| $or | Logical OR | { $or: [{ age: { $lt: 18 } }, { age: { $gt: 65 } }] } |
-| $and | Logical AND | { $and: [{ age: { $gt: 18 } }, { active: true }] } |
+| `$gt` | Greater than | `{ age: { $gt: 25 } }` |
+| `$gte` | Greater than or equal | `{ age: { $gte: 18 } }` |
+| `$lt` | Less than | `{ age: { $lt: 60 } }` |
+| `$lte` | Less than or equal | `{ price: { $lte: 100 } }` |
+| `$eq` | Equal | `{ status: { $eq: 'active' } }` |
+| `$ne` | Not equal | `{ status: { $ne: 'inactive' } }` |
+| `$in` | Value in array | `{ role: { $in: ['admin', 'mod'] } }` |
+| `$nin` | Value not in array | `{ tag: { $nin: ['spam'] } }` |
+| `$exists` | Field present/absent | `{ email: { $exists: true } }` |
+| `$regex` | Regular expression (use `$options` for flags, default `'i'`) | `{ name: { $regex: '^John', $options: 'i' } }` or a real `RegExp` |
+| `$not` | Negates a nested condition | `{ age: { $not: { $lt: 18 } } }` |
+| `$type` | Value's JS type (`'string'`, `'number'`, `'array'`, `'null'`, ...) | `{ age: { $type: 'number' } }` |
+| `$size` | Array length equals | `{ tags: { $size: 3 } }` |
+| `$all` | Array contains every given value | `{ tags: { $all: ['a', 'b'] } }` |
+| `$elemMatch` | At least one array element matches a nested query | `{ items: { $elemMatch: { qty: { $gt: 5 } } } }` |
+| `$or` | Logical OR (top-level) | `{ $or: [{ age: { $lt: 18 } }, { age: { $gt: 65 } }] }` |
+| `$and` | Logical AND (top-level) | `{ $and: [{ age: { $gt: 18 } }, { active: true }] }` |
+| `$nor` | None of the given conditions match (top-level) | `{ $nor: [{ status: 'banned' }, { status: 'deleted' }] }` |
 
-### Update
+`$gt`/`$gte`/`$lt`/`$lte` can be combined on the same field (e.g. a range query `{ age: { $gte: 18, $lte: 65 } }`). `documentId` and single-field exact-match queries on an indexed field use the index for O(1) lookup; everything else falls back to a full collection scan.
 
-```javascript
-// Update matching documents
-await users.update({ name: 'Alice' })
-  .set({ role: 'superadmin', updatedAt: new Date() })
-  .exec();
+---
 
-// Update operators
-await users.update({ name: 'Bob' })
-  .set({ $inc: { loginCount: 1 } })   // Increment
-  .exec();
+## Update
 
-// Update many
-await users.update({ role: 'user' })
-  .set({ verified: false })
-  .execMany();
+```typescript
+collection.update(query: object): UpdateOperation
+
+updater.Sort(sort: object): UpdateOperation
+updater.UpdateOne(data: object): Promise<SuccessInterface | ErrorInterface>   // first match only
+updater.UpdateMany(data: object): Promise<SuccessInterface | ErrorInterface> // every match
 ```
 
-### Delete
+```javascript
+await users.update({ name: 'Alice' }).UpdateOne({ role: 'superadmin' });
+await users.update({ role: 'trial' }).UpdateMany({ role: 'active' });
+```
+
+**Important correction:** updates are a **flat merge** — `data` is shallow-merged onto the existing document (`{ ...oldDoc, ...data }`). There is no MongoDB-style update-operator support (`$inc`, `$set`, `$push`, `$pull`, `$unset`, etc.). If you write `.UpdateOne({ $inc: { balance: -100 } })`, it does **not** increment `balance` — it literally sets a field named `"$inc"` to `{ balance: -100 }` on the document. To increment a value, read it and write the new value yourself:
 
 ```javascript
-// Delete one matching document
-await users.delete({ name: 'Dave' }).exec();
+const doc = await users.query({ name: 'Alice' }).exec();
+const newBalance = doc.data.documents[0].balance - 100;
+await users.update({ name: 'Alice' }).UpdateOne({ balance: newBalance });
+```
 
-// Delete many matching documents
-await users.delete({ active: false }).execMany();
+Updating a document only touches the index entries for fields whose value actually changed (not every indexed field on the document), so unrelated indexed fields keep their existing order.
+
+---
+
+## Delete
+
+```typescript
+collection.delete(query: object): DeleteOperation
+
+deleter.Sort(sort: object): DeleteOperation
+deleter.deleteOne(): Promise<SuccessInterface | ErrorInterface>   // first match only
+deleter.deleteMany(): Promise<SuccessInterface | ErrorInterface> // every match
+```
+
+```javascript
+await users.delete({ name: 'Dave' }).deleteOne();
+await users.delete({ active: false }).deleteMany();
 ```
 
 ---
 
-## Aggregation Pipelines
+## Aggregation
 
-MongoDB-compatible aggregation for data processing:
+```typescript
+collection.aggregate(pipeline: object[]): Aggregation
+
+aggregation.exec(): Promise<SuccessInterface | ErrorInterface>
+```
 
 ```javascript
 const stats = await users.aggregate([
   { $match: { active: true } },
   { $group: { _id: '$role', count: { $sum: 1 }, avgAge: { $avg: '$age' } } },
   { $sort: { count: -1 } },
-  { $project: { role: '$_id', count: 1, avgAge: 1 } },
-  { $limit: 10 }
-]);
+  { $project: { role: 1, count: 1 } },
+  { $limit: 10 },
+]).exec();
 ```
 
-Supported aggregation stages: $match, $group, $sort, $project, $limit, $skip, $count
+**Hard requirement:** the pipeline's first stage must contain a `$match` key (even `{ $match: {} }` for "match everything") — a pipeline that doesn't start with `$match` throws `Pipeline must have a $match operator at top`.
+
+Supported stages, in the order they're applied within a pipeline:
+
+- **`$match`** — filters documents. Its operator set is **narrower** than `.query()`'s: exact equality (string/number/boolean), a `RegExp` instance or `{ $regex, $options }`, `$gte`, `$gt`, `$lte`, `$lt`, `$ne`, `$in`, `$nin`. No `$exists`, `$or`, `$and`, `$nor`, `$elemMatch`, `$not`, `$type`, `$size`, `$all`, or `$eq` inside `$match` — those are `.query()`-only.
+- **`$group`** — groups by `_id` (a literal value, `'$fieldName'`, or an object of field-path expressions). Accumulators: `$sum` and `$avg` only (no `$min`, `$max`, `$push`, `$first`, `$last`).
+- **`$sort`** — `{ field: 1 | -1 }`, single field per stage.
+- **`$project`** — inclusion-only: `{ field: 1 }` keeps `field`; there's no exclusion (`0`) or computed/renamed fields.
+- **`$limit`** — `{ $limit: n }`.
+- **`$skip`** — `{ $skip: n }`.
+- **`$unwind`** — `{ $unwind: '$arrayField' }`, deconstructs an array field into one document per element.
+- **`$addFields`** — `{ $addFields: { field: literalValue } }`, a plain merge — not expression-evaluated.
 
 ---
 
-## Transactions (ACID)
+## Transactions
 
-Full ACID-compliant transaction support with savepoints, rollback, and Write-Ahead Logging:
+Transactions are ACID and scoped to a single collection, with savepoints, rollback, and Write-Ahead Logging for crash recovery.
+
+```typescript
+collection.beginTransaction(): Transaction
+
+transaction.insert(data: object): Transaction               // chainable, queues the op
+transaction.update(query: object, data: object): Transaction
+transaction.delete(query: object): Transaction
+transaction.savepoint(name: string): Transaction
+transaction.rollbackTo(name: string): Transaction
+transaction.releaseSavepoint(name: string): Transaction
+transaction.commit(): Promise<SuccessInterface | ErrorInterface>
+transaction.rollback(): Promise<SuccessInterface | ErrorInterface>
+```
+
+Same flat-merge caveat as regular `Update`: `transaction.update(query, data)` shallow-merges `data` onto the existing document — no `$inc`/`$set` operators here either.
 
 ```javascript
-const session = users.startSession({ timeout: 5000 });
-
-// Simple withTransaction (auto-commit/rollback)
-await session.withTransaction(async (tx) => {
-  await tx.insert({ name: 'Alice', balance: 1000 });
-  await tx.update({ name: 'Bob' }, { $inc: { balance: -100 } });
-  // Auto-commits on success, auto-rollbacks on error
-});
-
-// Manual transaction control
-const tx = session.startTransaction();
+const tx = collection.beginTransaction();
 try {
-  await tx.insert({ name: 'Charlie' });
-  await tx.savepoint('checkpoint1');
-  await tx.update({ name: 'Alice' }, { active: false });
-  await tx.commit();
+  tx.insert({ name: 'Charlie', balance: 500 });
+  tx.savepoint('checkpoint1');
+  tx.update({ name: 'Alice' }, { active: false });
+  const result = await tx.commit();
 } catch (err) {
   await tx.rollback();
 }
 ```
 
-Transaction methods: insert, update, delete, savepoint, rollbackToSavepoint, commit, rollback
+`commit()`'s success payload includes `documentIds: string[]` — the documentId(s) of any `insert()` operations in that transaction.
 
-Note: Transactions are scoped to a single collection. Cross-collection transactions are not supported.
+---
+
+## Session
+
+MongoDB-like session wrapper around `Transaction`, adding automatic retry.
+
+```typescript
+collection.startSession(options?: {
+  defaultTimeout?: number;  // ms, default 60000
+  retryWrites?: boolean;    // default true
+  maxRetries?: number;      // default 3
+}): Session
+
+session.getSessionId(): string
+session.isSessionActive(): boolean
+session.startTransaction(): Transaction   // only one active transaction per session at a time
+session.withTransaction(callback: (txn: Transaction) => Promise<void>): Promise<SuccessInterface | ErrorInterface>
+session.commitTransaction(): Promise<SuccessInterface | ErrorInterface>
+session.abortTransaction(): Promise<SuccessInterface | ErrorInterface>
+session.endSession(): Promise<void>
+```
+
+```javascript
+const session = collection.startSession();
+await session.withTransaction(async (tx) => {
+  tx.insert({ name: 'Alice', balance: 1000 });
+  tx.update({ name: 'Bob' }, { active: true });
+  // Auto-commits on success, auto-rolls-back on error
+});
+```
+
+`withTransaction` automatically retries (exponential backoff, up to `maxRetries`) when the failure looks transient — its message contains `timeout`, `lock`, `deadlock`, `conflict`, `busy`, `temporary`, `EBUSY`, or `EAGAIN` (case-insensitive). Anything else fails immediately, no retry.
 
 ---
 
 ## Indexing
 
 ```javascript
-// Create custom index on a field
-await users.createIndex('email');
-await users.createIndex('age');
-
-// Multi-field index
-await users.newIndex('email', 'age', 'role');
-
-// Drop index
+await users.newIndex('email');                  // single field
+await users.newIndex('email', 'age', 'role');    // multiple fields, one call
 await users.dropIndex('email');
+await users.getIndexes();
 ```
 
-Auto-indexing: AxioDB automatically indexes documentId for O(1) lookups.
-Custom indexes dramatically speed up queries on frequently-filtered fields.
+`documentId` is always indexed automatically — no setup needed, O(1) lookups. Every index is dual-written (in-memory cache + disk); the in-memory copy has a randomized 5–15 minute TTL (staggered on purpose, to avoid a cache-stampede when many entries would otherwise expire at once) and reloads from disk on a cold start or cache miss. A query that isn't an indexed exact match, or whose index misses, falls back to a full collection scan.
 
 ---
 
 ## Encryption
 
 ```javascript
-// Create encrypted collection
-const payments = await db.createCollection('Payments', true, process.env.ENCRYPTION_KEY);
+// Auto-generated key
+const secure = await db.createCollection('SecureData', true);
 
-// Encryption uses AES-256
-// Data is stored in .axiodb files with file-level isolation
-// Cache entries for encrypted collections are also encrypted
+// Custom key (recommended: from an environment variable)
+const payments = await db.createCollection('Payments', true, process.env.ENCRYPTION_KEY);
 ```
 
-Best practices:
-- Never hardcode encryption keys — use environment variables
-- Use strong, unique keys per collection
-- Implement regular key rotation
+AES-256, per collection. Documents are stored one-per-file with file-level isolation; cache entries for encrypted collections are also encrypted. Never hardcode keys — use environment variables or a secrets manager, and rotate them regularly.
 
 ---
 
-## Built-in Web GUI
+## Built-in Web GUI & RBAC
 
 ```javascript
-// Enable GUI at http://localhost:27018
-const db = new AxioDB({ GUI: true });
+const db = new AxioDB({ GUI: true }); // http://localhost:27018
 ```
 
-GUI features:
-- Visual database and collection browser
-- Real-time data inspection
-- Query execution interface
-- Performance monitoring
-- No external dependencies required
-- Built-in login and role-based access control (RBAC): default `admin`/`admin` account (forced password
-  change on first login), predefined Super Admin/Admin/View roles, and a user/role management page for
-  Super Admins. Sessions live only in server memory and are lost on restart.
+Features: visual database/collection browser, real-time data inspection, query execution UI, performance monitoring, index management API (`GET /api/index/list`, `POST /api/index/create`, `DELETE /api/index/delete`).
+
+On first start (`GUI: true` or `TCP: true` + `TCPAuth: true`), AxioDB seeds a reserved `config` database (hidden from the normal database list, and blocked from being read/written directly — `403 "This is a reserved system database"`) with a default account:
+
+```
+Username: admin
+Password: admin
+```
+
+Forced password change on first login, for every account, not just the default one — no way around it other than completing it via the GUI. Predefined roles:
+
+| Role | Access |
+|------|--------|
+| Super Admin | Full access, including user/role management |
+| Admin | Full database/collection/document access, no user/role management |
+| View | Read-only |
+
+Login rate limiting: 5 failed attempts from one IP within a trailing 15-minute window → 15-minute lockout (`429`), shared between the GUI and TCP `AUTHENTICATE`. Sessions live only in server memory (never persisted) — restarting the server logs everyone out.
 
 ---
 
-## AxioDBCloud — Remote Database Access
+## AxioDBCloud — Remote TCP Access
 
-Connect to AxioDB from multiple clients over TCP protocol:
+Same API as embedded AxioDB, over a TCP connection — 35+ commands (full CRUD, aggregation, indexing).
 
-### Server Setup (Docker)
+### Server
+
+```javascript
+const { AxioDB } = require('axiodb');
+const db = new AxioDB({ TCP: true, RootName: 'MyDB', CustomPath: '.' });          // plaintext, no auth
+const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'MyDB', CustomPath: '.' }); // auth required, shares GUI's RBAC
+const db = new AxioDB({ TCP: true, TLS: true, TLSCertPath: './cert.pem', TLSKeyPath: './key.pem' }); // TLS-encrypted
+```
+
+### Client
+
+```typescript
+new AxioDBCloud(connectionString: string, options?: {
+  timeout?: number;              // request timeout, ms (default: 30000)
+  reconnectAttempts?: number;    // default: 10
+  reconnectDelay?: number;       // initial backoff, ms (default: 1000)
+  heartbeatInterval?: number;    // PING/PONG interval, ms (default: 30000)
+  username?: string;             // if server has TCPAuth: true
+  password?: string;
+  maxPoolSize?: number;          // concurrent pooled connections (default: 10, mirrors MongoDB driver option)
+  tls?: boolean;                 // must match server's TLS setting
+  tlsCAPath?: string;            // CA/self-signed cert to validate server against, when tls: true
+  tlsRejectUnauthorized?: boolean; // default true - only disable for local/dev, never production
+})
+
+client.connect(): Promise<void>          // must be awaited before any other call
+client.disconnect(): Promise<void>
+client.login(username: string, password: string): Promise<AuthenticatedUser>
+client.authenticatedUser: AuthenticatedUser | undefined   // getter
+client.sendCommand(command: string, params: any): Promise<any>  // low-level escape hatch
+client.createDB(name: string): Promise<DatabaseProxy>
+client.deleteDatabase(name: string): Promise<void>
+client.isDatabaseExists(name: string): Promise<boolean>
+client.getInstanceInfo(): Promise<any>
+client.on('poolDegraded', (event: { requested, connected, failed, errors }) => {})
+client.on('error', (err) => {})
+```
+
+```javascript
+const { AxioDBCloud } = require('axiodb');
+
+const client = new AxioDBCloud('axiodb://localhost:27019', { username: 'admin', password: 'admin' });
+await client.connect(); // auto-authenticates since credentials were passed in the constructor
+
+const db = await client.createDB('ProductionDB');
+const users = await db.createCollection('Users');
+await users.insert({ name: 'Alice' });
+const results = await users.query({ role: 'admin' }).Limit(10).exec();
+
+await client.disconnect();
+```
+
+`connect()` resolves even if the pool comes up smaller than `maxPoolSize` requested (emits `poolDegraded`) — as long as at least one pool member connected. If the very first connection fails, `connect()` rejects outright.
+
+**DoS protections (server-side, not configurable at runtime):** max 1,000 total concurrent connections; max 100 concurrent connections per IP (`429`); max 300 connection attempts per IP per 10s, else 30s cooldown (`429`).
+
+**TLS:** off by default, plaintext wire protocol otherwise. You must supply your own cert/key (AxioDB never generates one). Self-signed certs need `tlsCAPath` on the client to be trusted, or the client refuses to connect by default.
+
+---
+
+## Docker Deployment
 
 ```bash
 docker run -d \
   --name axiodb-server \
-  -p 27018:27018 \
-  -p 27019:27019 \
+  -p 27018:27018 -p 27019:27019 \
   -e AXIODB_TCP_AUTH=true \
   -v axiodb-data:/app \
   theankansaha/axiodb
 ```
 
-Ports: 27018 = HTTP GUI, 27019 = TCP remote access. Env vars (all optional, defaults shown):
-`AXIODB_GUI=true`, `AXIODB_TCP=true`, `AXIODB_TCP_AUTH=true`, `AXIODB_ROOT_NAME=AxioDB`, `AXIODB_CUSTOM_PATH` (defaults to the container's working directory).
-See the Docker Deployment page (https://axiodb.in/docker) for volumes and Docker Compose.
+| Variable | Default | Description |
+|---|---|---|
+| `AXIODB_GUI` | `true` | HTTP GUI on port 27018 |
+| `AXIODB_TCP` | `true` | AxioDBCloud TCP server on port 27019 |
+| `AXIODB_TCP_AUTH` | `true` | Require TCP authentication (shared RBAC with GUI) |
+| `AXIODB_TLS` | `false` | Encrypt TCP with TLS |
+| `AXIODB_TLS_CERT_PATH` | *(none)* | In-container path to PEM cert — required if `AXIODB_TLS=true` |
+| `AXIODB_TLS_KEY_PATH` | *(none)* | In-container path to PEM key — required if `AXIODB_TLS=true` |
+| `AXIODB_ROOT_NAME` | `AxioDB` | Root storage folder name |
+| `AXIODB_CUSTOM_PATH` | container's working dir | Storage path inside the container |
+| `AXIODB_MCP` | `false` | Enable the MCP server on port 27020 |
+| `AXIODB_MCP_PORT` | `27020` | MCP server port |
 
-### Server Setup (Node.js)
+Ports (27018/27019) aren't env-configurable — remap at the Docker layer (`-p host:container`). TCP auth is **on by default** in the published image; complete the `admin`/`admin` forced password change via the GUI before connecting over TCP.
 
-```javascript
-const db = new AxioDB({ GUI: false, RootName: 'MyDB', CustomPath: '.', TCP: true });
+`UV_THREADPOOL_SIZE` matters under concurrent disk I/O — the published image auto-computes it from the container's actual CPU allotment (`4 × allotted CPUs`, clamped `[4, 64]`); override with `-e UV_THREADPOOL_SIZE=16` if needed.
+
+---
+
+## MCP Server — AI Agent Integration
+
+```bash
+docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
+  -p 27018:27018 -p 27019:27019 -p 27020:27020 \
+  -v axiodb-data:/app theankansaha/axiodb
 ```
 
-### TCP Authentication (TCPAuth)
-
-Opt in with `TCPAuth: true` to require a username/password on every TCP connection, reusing the exact same RBAC accounts/roles as the GUI:
-
-```javascript
-const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'MyDB', CustomPath: '.' });
-```
-
-```javascript
-const client = new AxioDBCloud("axiodb://localhost:27019", { username: 'admin', password: 'admin' });
-await client.connect(); // authenticates automatically
-```
-
-Enforcement: every command except PING/DISCONNECT/AUTHENTICATE requires a prior login; the same role permissions as the GUI apply per command; a shared per-IP rate limiter locks an IP out for 15 minutes after 5 failed attempts in a trailing 15-minute window (shared with the GUI); accounts still flagged for a forced password change are rejected outright (403) until that's completed via the GUI (no TCP command for it exists yet); an admin-triggered password reset/role change/deletion immediately forces an open TCP connection to re-authenticate. The TCP protocol itself is unencrypted (no TLS) — use a private network, VPN, or your own TLS termination.
-
-### Client Connection
-
-```javascript
-const { AxioDBCloud } = require('axiodb');
-
-const client = new AxioDBCloud('axiodb://localhost:27019');
-await client.connect();
-
-// Exact same API as embedded AxioDB
-const db = await client.createDB('ProductionDB');
-const users = await db.createCollection('Users');
-await users.insert({ name: 'Alice' });
-
-await client.disconnect();
-```
-
-AxioDBCloud features:
-- 35+ commands — full CRUD, aggregation, indexing
-- Optional authentication (TCPAuth) — shared RBAC with the GUI, per-IP rate limiting
-- Auto-reconnect with exponential backoff (up to 10 retries)
-- Heartbeat monitoring (PING/PONG every 30 seconds)
-- UUID-based request/response correlation
-- Connection pooling — supports 1,000+ concurrent connections
-- Full TypeScript support
-- Zero breaking changes from embedded API
+32 tools at `http://localhost:27020/mcp` covering databases, collections, documents, aggregation, indexes, dashboard stats, and user/role management — gated by the same RBAC as the GUI (a View-role session gets a real `403` on write tools). Every tool except `axiodb_login` requires a `sessionId` from logging in first. Compatible with Claude Code, Codex CLI, opencode, GitHub Copilot CLI, Cursor, Windsurf, and Google Antigravity — see https://axiodb.in/mcp-server for exact registration commands per tool.
 
 ---
 
 ## Troubleshooting
 
-- "Not connected to server": `client.connect()` is async and must be awaited before use — it only resolves once the TCP handshake (and, with TCPAuth on, the AUTHENTICATE round-trip) completes.
-- 401 "Authentication required": a command was sent before a successful AUTHENTICATE. Pass `{ username, password }` in the AxioDBCloud constructor, or call `await client.login(username, password)` first.
-- 403 "This account must change its password before it can be used over TCP": the account is correct but still flagged for a forced password change (true for the default admin/admin, and any newly created user). Complete it via the GUI at http://localhost:27018, then reconnect.
-- 429 "Too many failed login attempts": 5 failed logins from one IP within 15 minutes triggers a 15-minute lockout, shared between TCP and the GUI.
-- 403 "This is a reserved system database": the `config` database is reserved for AxioDB's own RBAC storage and is blocked on both GUI and TCP, authenticated or not.
-- Connection refused/timeout: confirm the server was started with `TCP: true` (or `AXIODB_TCP=true` in Docker, the default) and the port is published/reachable.
-- Full guide: https://axiodb.in/troubleshooting — Docker-specific issues: https://axiodb.in/docker and Docker/README.md in the GitHub repository.
+- **"Not connected to server" right after `connect()`:** `connect()` is async — always `await` it before using the client.
+- **`401` Authentication required:** a command was sent before a successful `AUTHENTICATE`. Pass `{ username, password }` in the constructor, or call `client.login(...)` first.
+- **`403` must change password before TCP use:** applies to every account on first use, including a freshly created one. Complete it via the GUI, then reconnect.
+- **`429` too many failed logins:** 5 failures/IP/15min → 15-minute lockout, shared between GUI and TCP.
+- **`429` too many concurrent connections:** per-IP cap is 100 concurrent sockets, independent of authentication.
+- **`429` too many connection attempts:** per-IP churn guard, 300 attempts/10s → 30s cooldown.
+- **`403` reserved system database:** the `config` database is AxioDB's own RBAC storage — use a different name.
+- **Connection refused/timeout:** confirm `TCP: true` (or `AXIODB_TCP=true`) and the port is published/reachable; a protocol error mentioning "HTTP data on TCP port" usually means you're pointed at 27018 (GUI) instead of 27019 (TCP).
+- **`EMFILE`/`ENFILE` at high concurrency:** each client opens `maxPoolSize` sockets; raise `ulimit -n` (bare-metal) or `--ulimit nofile=65536:65536` (Docker) — the published image already raises its own soft limit.
 
 ---
 
-## Performance Benchmarks
+## Performance (10,000-document benchmark, illustrative — not a guarantee)
 
-Tested on Ubuntu Linux, Node.js v20+, 10,000 document dataset (March 2026):
-
-**Insert Operations:**
-- Single insert: ~3ms
-- InsertMany (10 docs): ~87ms
-- Schema validation: <1ms
-
-**Read/Query Operations (10K docs):**
-- documentId lookup (indexed): ~1ms
-- findOne: ~1ms
-- Query with $gt: ~469ms
-- Query with $in: ~401ms
-- Sort: ~382ms
-- Full scan: ~2.6s
-- Regex scan: ~2.8s
-
-**Update Operations:**
-- UpdateOne: ~8ms
-- UpdateMany (full collection): ~466ms
-
-**Delete Operations:**
-- DeleteOne: ~3ms
-- DeleteMany: ~446ms
-
-**Transaction Operations:**
-- TX Insert: ~23ms
-- TX Update: ~14ms
-- TX Delete: ~15ms
-- Rollback: ~3ms
-- withTransaction: ~10ms
+- Single insert: ~3ms · InsertMany (10 docs): ~87ms
+- `documentId` lookup (indexed): ~1ms · `findOne`: ~1ms
+- Query with `$gt`: ~469ms · Query with `$in`: ~401ms · Sort: ~382ms · Full scan: ~2.6s
+- `UpdateOne`: ~8ms · `UpdateMany` (full collection): ~466ms
+- `deleteOne`: ~3ms · `deleteMany`: ~446ms
+- Transaction insert: ~23ms · Transaction update: ~14ms · Rollback: ~3ms
 
 ---
 
-## Comparison with Alternatives
+## Comparisons
 
-### AxioDB vs SQLite / better-sqlite3
+### vs SQLite / better-sqlite3
 
-| Feature | SQLite / better-sqlite3 | AxioDB |
-|---------|------------------------|--------|
-| Native dependencies | Yes (C bindings) | No — pure JavaScript |
-| Query language | SQL strings | JavaScript objects |
-| Schema migrations | Required (ALTER TABLE) | Optional (schema-less) |
-| Built-in caching | No | Yes (InMemoryCache) |
-| Multi-core processing | No | Yes (Worker Threads) |
-| Built-in GUI | No | Yes (localhost:27018) |
-| Electron compatibility | Requires electron-rebuild | Works out of the box |
-| Best for | 10M+ records, relational | 10K–500K documents, embedded |
+| | SQLite / better-sqlite3 | AxioDB |
+|---|---|---|
+| Native dependencies | Yes (C bindings) | None |
+| Query language | SQL strings | JS objects |
+| Schema migrations | Required | Schema-less |
+| Built-in caching | No | Yes |
+| Multi-core | No | Worker Threads |
+| Built-in GUI | No | Yes |
+| Best for | 10M+ records, relational | 10K–500K docs, embedded |
 
-### AxioDB vs lowdb / nedb
+### vs lowdb / nedb
 
-| Feature | lowdb | nedb | AxioDB |
-|---------|-------|------|--------|
+| | lowdb | nedb | AxioDB |
+|---|---|---|---|
 | Maintained | Yes | No (abandoned) | Yes |
-| Storage | Single JSON file | Single file / in-memory | File-per-document |
-| Caching | None | None | InMemoryCache |
-| Indexing | None | Basic | Auto + custom |
-| Performance at 10K docs | Slow (O(n)) | Medium | Fast (O(1) by ID) |
-| ACID Transactions | No | No | Yes |
+| Native bindings | None | None | None |
+| Storage | Single JSON file | Single file/in-memory | File-per-document |
+| Query language | JS/Lodash | JS objects | JS objects (MongoDB-style) |
+| Built-in caching | No | No | Yes |
 | Worker Threads | No | No | Yes |
-| TypeScript support | Yes | Partial | Yes (full) |
+| ACID transactions | No | No | Yes |
+| AES-256 encryption | No | No | Yes |
+| TypeScript | Yes | Partial | Full |
+| Sweet spot | <5K docs | <100K docs | 10K–500K docs |
+| Built-in GUI | No | No | Yes |
 
-### AxioDB vs MongoDB
+### vs MongoDB
 
-| Feature | MongoDB | AxioDB |
-|---------|---------|--------|
-| Server required | Yes (mongod) | No — embedded |
-| Installation | Complex | npm install |
+| | MongoDB | AxioDB |
+|---|---|---|
+| Server required | Yes | No — embedded |
 | Network access | Yes | Optional (AxioDBCloud) |
-| Scale | Unlimited, distributed | 10K–500K docs, single node |
-| Best for | Production multi-user apps | Desktop apps, CLI tools |
-
-**When to use AxioDB:** Desktop apps (Electron, Tauri), CLI tools, local-first applications, rapid prototyping, embedded systems with 10K–500K documents.
-
-**When NOT to use AxioDB:** 1M+ documents, multi-user concurrent web applications, distributed systems, complex relational data with JOINs.
-
----
-
-## API Reference
-
-### AxioDB (class)
-
-```typescript
-new AxioDB(options?: {
-  GUI?: boolean;        // Enable web GUI (default: false)
-  RootName?: string;   // Root folder name (default: 'AxioDB')
-  CustomPath?: string; // Custom storage path
-  TCP?: boolean;       // Enable TCP server for AxioDBCloud (default: false)
-})
-
-db.createDB(dbName: string, schemaValidation?: boolean): Promise<Database>
-db.deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>
-```
-
-### Database (class)
-
-```typescript
-db.createCollection(
-  name: string,
-  isEncrypted?: boolean,
-  encryptionKey?: string
-): Promise<Collection>
-
-db.deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>
-db.getCollectionInfo(): Promise<SuccessInterface>
-```
-
-### Collection (class)
-
-```typescript
-collection.insert(document: object): Promise<SuccessInterface | ErrorInterface>
-collection.insertMany(documents: object[]): Promise<SuccessInterface | ErrorInterface>
-collection.query(filter: object): Reader
-collection.update(filter: object): Updater
-collection.delete(filter: object): Deleter
-collection.aggregate(pipeline: object[]): Promise<SuccessInterface | ErrorInterface>
-collection.findAll(): Promise<any[]>
-collection.createIndex(fieldName: string): Promise<SuccessInterface>
-collection.dropIndex(indexName: string): Promise<SuccessInterface | ErrorInterface>
-collection.newIndex(...fields: string[]): Promise<SuccessInterface>
-collection.startSession(options?: { timeout?: number }): Session
-```
-
-### Reader (chainable)
-
-```typescript
-reader.Limit(n: number): Reader
-reader.Skip(n: number): Reader
-reader.Sort(sort: object): Reader          // { field: 1 } or { field: -1 }
-reader.setCount(count: boolean): Reader
-reader.setProject(fields: object): Reader
-reader.exec(): Promise<SuccessInterface | ErrorInterface>
-reader.findOne(): Promise<SuccessInterface | ErrorInterface>
-```
-
-### Session & Transaction
-
-```typescript
-session.withTransaction(callback: (tx: Transaction) => Promise<any>): Promise<any>
-session.startTransaction(): Transaction
-
-transaction.insert(document: object): Transaction
-transaction.update(filter: object, update: object): Transaction
-transaction.delete(filter: object): Transaction
-transaction.savepoint(name: string): Transaction
-transaction.rollbackToSavepoint(name: string): Transaction
-transaction.commit(): Promise<SuccessInterface>
-transaction.rollback(): Promise<void>
-```
-
-### AxioDBCloud (class)
-
-```typescript
-new AxioDBCloud(connectionString: string)  // "axiodb://host:port"
-client.connect(): Promise<void>
-client.disconnect(): Promise<void>
-// All AxioDB, Database, Collection methods available after connect()
-```
-
----
-
-## FAQ
-
-**Q: Is AxioDB a replacement for MongoDB?**
-No. AxioDB is embedded — it runs inside your app with no server. MongoDB is a client-server database. Use AxioDB for desktop apps, CLI tools, and local-first apps. Use MongoDB when you need a shared, networked, multi-user database.
-
-**Q: Does AxioDB work with Electron?**
-Yes — it was built for this use case. Zero native dependencies means no electron-rebuild, no platform-specific .node files, no node-gyp. Just npm install axiodb.
-
-**Q: What is the difference between AxioDB and better-sqlite3?**
-better-sqlite3 uses C native bindings and requires compilation. AxioDB is pure JavaScript — installs without compilation in any Node.js environment. AxioDB also uses NoSQL/JSON documents instead of SQL strings.
-
-**Q: What is the difference between AxioDB and lowdb?**
-lowdb stores everything in a single JSON file and gets slow above 1,000 records. AxioDB uses file-per-document tree storage with InMemoryCache, Worker Threads, and auto-indexing — designed for 10K–500K documents with fast queries.
-
-**Q: What is the difference between AxioDB and nedb?**
-NeDB is abandoned (no maintenance since 2016). AxioDB is actively maintained, supports TypeScript, ACID transactions, Worker Threads, AES-256 encryption, and AxioDBCloud remote access.
-
-**Q: How many documents can AxioDB handle?**
-Optimized for 10,000–500,000 documents. For 1M+ documents, use PostgreSQL or MongoDB.
-
-**Q: Does AxioDB support TypeScript?**
-Yes. Full TypeScript type definitions are included out of the box.
-
-**Q: Does AxioDB work in the browser?**
-No. AxioDB requires Node.js (v20+) and uses the filesystem. It is server-side / desktop only.
-
-**Q: What is AxioDBCloud?**
-AxioDBCloud is a TCP-based client that connects to a remote AxioDB instance. Deploy AxioDB in Docker, connect from multiple clients with the exact same API. Supports 1,000+ concurrent connections with auto-reconnect.
-
-**Q: Is there a web GUI?**
-Yes. Enable with `new AxioDB({ GUI: true })`. The GUI runs at http://localhost:27018 and provides a visual database browser, query interface, and performance monitoring. It requires login (default `admin`/`admin`, forced password change on first use) and enforces role-based access control (Super Admin/Admin/View).
-
-**Q: What encryption does AxioDB use?**
-AES-256 encryption per collection, with optional custom encryption keys. Store keys in environment variables, never hardcode them.
+| Scale | Distributed, unlimited | Single node, 10K–500K docs |
+| Best for | Multi-user production | Desktop apps, CLI tools |
 
 ---
 
 ## Limitations
 
-- Dataset size: Optimized for 10K–500K documents. For 10M+, use PostgreSQL, MongoDB, or SQLite.
-- Concurrency: Single-instance architecture. Not suitable for hundreds of concurrent web connections.
-- Relational data: Document-based NoSQL. No JOIN operations or foreign key constraints.
-- Distributed systems: Single-node only. No replication, sharding, or clustering.
-- Cross-collection transactions: ACID transactions are scoped to a single collection.
+- Optimized for 10K–500K documents — use PostgreSQL/MongoDB/SQLite beyond that.
+- Single-instance architecture — not for hundreds of concurrent web connections.
+- Document-based, no JOINs or foreign keys.
+- Single-node only — no replication, sharding, clustering.
+- Transactions are scoped to a single collection.
+
+None of this is a shortcoming to apologize for — it's a deliberately scoped embedded/local-first niche. Outgrowing it is a sign to migrate, not a bug.
 
 ---
 
-## Security Policy
+## FAQ
 
-Report vulnerabilities: See SECURITY.md in the GitHub repository.
-Do not open public issues for security vulnerabilities.
+**Is AxioDB a MongoDB replacement?** No — AxioDB is embedded (runs inside your app), MongoDB is client-server. Use AxioDB for desktop/CLI/local-first up to ~500K documents.
+
+**Does it work with Electron?** Yes, it's the primary use case — zero native deps means no electron-rebuild, no `.node` files.
+
+**Does update support `$inc`/`$set`/other MongoDB update operators?** No. Update data is a flat, shallow merge onto the existing document. See the Update section above.
+
+**How many documents can it handle?** Optimized for 10K–500K. Use PostgreSQL/MongoDB for 1M+.
+
+**TypeScript support?** Full, built-in — no separate `@types` package.
+
+**Browser support?** No — Node.js (v20+) and filesystem access only.
+
+**What is AxioDBCloud?** TCP-based remote client with the exact same API as embedded AxioDB — 1,000+ concurrent connections, auto-reconnect, optional TLS and shared-RBAC authentication.
 
 ---
 
 ## License
 
-MIT License — free for commercial and personal use.
-Author: Ankan Saha (https://github.com/AnkanSaha)
-Organization: Nexoral (https://github.com/nexoral)
+MIT. Author: Ankan Saha (https://github.com/AnkanSaha). Organization: Nexoral (https://github.com/nexoral).
+Security issues: see SECURITY.md in the GitHub repository — do not open public issues for vulnerabilities.
