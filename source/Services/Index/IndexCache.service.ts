@@ -34,18 +34,23 @@ interface CachedIndex {
  *
  * @example
  * ```typescript
- * const indexCache = new IndexCache('/path/to/collection');
+ * const indexCache = IndexCache.getInstance('/path/to/collection');
  * await indexCache.loadAllIndexes();  // Eager load
  * const indexData = await indexCache.getIndex('email');  // O(1) memory access
  * ```
  */
 export class IndexCache {
+  // One IndexCache per collection path - shared across Insert/Read/Delete/Collection
+  // so the lock and the memory cache actually serialize/coordinate across operations
+  // instead of each call site racing on its own private state.
+  private static instances: Map<string, IndexCache> = new Map();
+
   private cache: Map<string, CachedIndex>;
   private readonly indexFolderPath: string;
   private readonly indexMetaPath: string;
   private readonly fileManager: FileManager;
   private readonly converter: Converter;
-  private locks: Map<string, Promise<void>>;  // Simple lock mechanism
+  private lockChains: Map<string, Promise<void>>;  // Per-field mutex queue
   private cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
   // TTL constants (5-15 minutes in milliseconds)
@@ -53,14 +58,57 @@ export class IndexCache {
   private static readonly MAX_TTL_MS = 15 * 60 * 1000;  // 15 minutes
   private static readonly CLEANUP_INTERVAL_MS = 60 * 1000; // Check every 1 minute
 
-  constructor(collectionPath: string) {
+  private constructor(collectionPath: string) {
     this.cache = new Map();
     this.indexFolderPath = `${collectionPath}/indexes`;
     this.indexMetaPath = `${this.indexFolderPath}/index.meta.json`;
     this.fileManager = new FileManager();
     this.converter = new Converter();
-    this.locks = new Map();
+    this.lockChains = new Map();
     this.startCleanupInterval();
+  }
+
+  /**
+   * Returns the shared IndexCache for a collection path, creating it on first use.
+   * All index services (Insert/Read/Delete/Collection) must go through this instead of
+   * constructing their own instance, otherwise locking and caching are per-call and
+   * provide no real coordination.
+   *
+   * @param collectionPath - Absolute path of the collection this cache belongs to
+   */
+  public static getInstance(collectionPath: string): IndexCache {
+    let instance = IndexCache.instances.get(collectionPath);
+    if (!instance) {
+      instance = new IndexCache(collectionPath);
+      IndexCache.instances.set(collectionPath, instance);
+    }
+    return instance;
+  }
+
+  /**
+   * Releases the shared IndexCache for a collection path (e.g. when the collection
+   * itself is deleted), stopping its cleanup timer and dropping it from the registry.
+   *
+   * @param collectionPath - Absolute path of the collection whose cache should be released
+   */
+  public static releaseInstance(collectionPath: string): void {
+    const instance = IndexCache.instances.get(collectionPath);
+    if (instance) {
+      instance.dispose();
+      IndexCache.instances.delete(collectionPath);
+    }
+  }
+
+  /**
+   * Stops the cleanup timer and clears cached state. Called via releaseInstance().
+   */
+  public dispose(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+    this.cache.clear();
+    this.lockChains.clear();
   }
 
   /**
@@ -219,7 +267,7 @@ export class IndexCache {
    */
   public async updateIndex(fieldName: string, indexData: IndexData): Promise<boolean> {
     // Acquire lock for this field to prevent concurrent writes
-    await this.acquireLock(fieldName);
+    const release = await this.acquireLock(fieldName);
 
     try {
       const indexPath = `${this.indexFolderPath}/${fieldName}${General.DBMS_File_EXT}`;
@@ -244,7 +292,7 @@ export class IndexCache {
 
       return true;
     } finally {
-      this.releaseLock(fieldName);
+      release();
     }
   }
 
@@ -268,35 +316,30 @@ export class IndexCache {
   }
 
   /**
-   * Simple lock acquisition for thread safety
-   * Waits if another operation is currently holding the lock
+   * Acquires a per-field mutex, queuing behind any in-flight holder for the same key.
+   *
+   * Implemented as a chained promise queue: each call captures the current tail of the
+   * chain, awaits it (so it truly blocks until every earlier holder has released), then
+   * appends its own pending promise as the new tail. The caller MUST invoke the returned
+   * release function exactly once (typically in a `finally` block) to hand the lock to
+   * the next queued waiter.
    *
    * @param key - The lock key (typically field name)
+   * @returns A release function that unblocks the next waiter for this key
    * @private
    */
-  private async acquireLock(key: string): Promise<void> {
-    const existingLock = this.locks.get(key);
-    if (existingLock) {
-      await existingLock;
-    }
+  private async acquireLock(key: string): Promise<() => void> {
+    const previousTail = this.lockChains.get(key) ?? Promise.resolve();
 
-    // Create new lock promise for this operation
-    let releaseFn: () => void;
-    const lockPromise = new Promise<void>((resolve) => {
-      releaseFn = resolve;
+    let release: () => void;
+    const currentLock = new Promise<void>((resolve) => {
+      release = resolve;
     });
 
-    this.locks.set(key, lockPromise);
-  }
+    this.lockChains.set(key, previousTail.then(() => currentLock));
 
-  /**
-   * Releases the lock for a specific key
-   *
-   * @param key - The lock key to release
-   * @private
-   */
-  private releaseLock(key: string): void {
-    this.locks.delete(key);
+    await previousTail;
+    return release!;
   }
 
   /**

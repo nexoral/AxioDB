@@ -7,7 +7,7 @@ export class ReadIndex extends IndexManager {
 
   constructor (path: string){
     super(path);
-    this.indexCache = new IndexCache(path);
+    this.indexCache = IndexCache.getInstance(path);
   }
 
   /**

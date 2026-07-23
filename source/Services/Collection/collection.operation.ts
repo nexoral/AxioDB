@@ -59,7 +59,7 @@ export default class Collection {
     this.IndexManager = new InsertIndex(this.path);
 
     // Initialize and eagerly load index cache for maximum query performance
-    this.indexCache = new IndexCache(this.path);
+    this.indexCache = IndexCache.getInstance(this.path);
     this.indexCache.loadAllIndexes().catch(() => {
       // Silent failure - indexes will load on demand from disk (cold start recovery)
     });
