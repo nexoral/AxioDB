@@ -2,6 +2,7 @@
 import { General } from "../../config/Keys/Keys";
 import { IndexManager } from "./Index.service";
 import { IndexCache } from "./IndexCache.service";
+import SortedIndexValues from "../../Helper/SortedIndexValues.helper";
 
 export default class InsertIndex extends IndexManager {
   private indexCache: IndexCache;
@@ -75,6 +76,11 @@ export default class InsertIndex extends IndexManager {
 
         const fieldValue = document[indexName];
 
+        // Lazily backfill sortedValues for indexes written before range support existed
+        if (!indexData.sortedValues) {
+          indexData.sortedValues = SortedIndexValues.backfillFromKeys(Object.keys(indexData.indexEntries));
+        }
+
         // Add document to index entries
         const alreadyhave = Object.keys(indexData.indexEntries).some(keys => keys == fieldValue);
         if (alreadyhave){
@@ -82,6 +88,11 @@ export default class InsertIndex extends IndexManager {
         }
         else {
           indexData.indexEntries[fieldValue] = [documentFileName];
+
+          const numericValue = Number(fieldValue);
+          if (!Number.isNaN(numericValue)) {
+            SortedIndexValues.insertSorted(indexData.sortedValues, numericValue);
+          }
         }
 
         // Update both memory cache and disk atomically

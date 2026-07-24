@@ -195,6 +195,103 @@ class ReadOptimizationTests extends TestRunner {
       });
     });
 
+    // Range Query Index Correctness (sorted-index range lookup: $gt/$gte/$lt/$lte)
+    await this.describe('Range Query Index Correctness', async () => {
+      await this.test('$gt excludes boundary, $gte includes boundary', async () => {
+        const exclusive = await this.collection.query({ age: { $gt: 30 } }).Limit(20000).exec();
+        const inclusive = await this.collection.query({ age: { $gte: 30 } }).Limit(20000).exec();
+
+        assert.isSuccess(exclusive);
+        assert.isSuccess(inclusive);
+        assert.ok(
+          exclusive.data.documents.every(doc => doc.age > 30),
+          '$gt should never include age === 30'
+        );
+        assert.ok(
+          inclusive.data.documents.some(doc => doc.age === 30),
+          '$gte should include age === 30'
+        );
+        assert.equal(
+          inclusive.data.documents.length - exclusive.data.documents.length,
+          inclusive.data.documents.filter(doc => doc.age === 30).length,
+          '$gte result should exceed $gt result by exactly the count of boundary-value docs'
+        );
+      });
+
+      await this.test('$lt excludes boundary, $lte includes boundary', async () => {
+        const exclusive = await this.collection.query({ age: { $lt: 40 } }).Limit(20000).exec();
+        const inclusive = await this.collection.query({ age: { $lte: 40 } }).Limit(20000).exec();
+
+        assert.isSuccess(exclusive);
+        assert.isSuccess(inclusive);
+        assert.ok(
+          exclusive.data.documents.every(doc => doc.age < 40),
+          '$lt should never include age === 40'
+        );
+        assert.ok(
+          inclusive.data.documents.some(doc => doc.age === 40),
+          '$lte should include age === 40'
+        );
+      });
+
+      await this.test('Combined range matches manual full-scan filter exactly', async () => {
+        const indexed = await this.collection.query({ age: { $gte: 33, $lte: 37 } }).Limit(20000).exec();
+        const fullScan = await this.collection.query({}).Limit(20000).exec();
+
+        assert.isSuccess(indexed);
+        assert.isSuccess(fullScan);
+
+        const expectedIds = fullScan.data.documents
+          .filter(doc => doc.age >= 33 && doc.age <= 37)
+          .map(doc => doc.documentId)
+          .sort();
+        const actualIds = indexed.data.documents.map(doc => doc.documentId).sort();
+
+        assert.deepEqual(actualIds, expectedIds, 'Indexed range query must return the same documents as a manual full-scan filter');
+      });
+
+      await this.test('Newly inserted unique value becomes queryable via range', async () => {
+        const insertResult = await this.collection.insert({
+          name: 'RangeProbeHigh',
+          email: 'rangeprobehigh@example.com',
+          age: 999,
+          active: true,
+        });
+        assert.isSuccess(insertResult);
+
+        const result = await this.collection.query({ age: { $gt: 900 } }).Limit(20000).exec();
+        assert.isSuccess(result);
+        assert.ok(
+          result.data.documents.some(doc => doc.documentId === insertResult.data.documentId),
+          'A brand-new unique indexed value should be reachable by a range query right after insert'
+        );
+      });
+
+      await this.test('Deleted document no longer matches range query', async () => {
+        const insertResult = await this.collection.insert({
+          name: 'RangeProbeLow',
+          email: 'rangeprobelow@example.com',
+          age: 1000,
+          active: true,
+        });
+        assert.isSuccess(insertResult);
+
+        const beforeDelete = await this.collection.query({ age: { $gt: 990 } }).Limit(20000).exec();
+        assert.ok(
+          beforeDelete.data.documents.some(doc => doc.documentId === insertResult.data.documentId),
+          'Document should be visible via range query before deletion'
+        );
+
+        await this.collection.delete({ documentId: insertResult.data.documentId }).deleteOne();
+
+        const afterDelete = await this.collection.query({ age: { $gt: 990 } }).Limit(20000).exec();
+        assert.ok(
+          afterDelete.data.documents.every(doc => doc.documentId !== insertResult.data.documentId),
+          'Deleted document must not reappear in range queries afterwards'
+        );
+      });
+    });
+
     // $in Operator Tests
     await this.describe('$in Operator Performance', async () => {
       await this.test('$in with small array', async () => {

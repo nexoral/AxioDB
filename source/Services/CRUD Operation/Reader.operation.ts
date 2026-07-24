@@ -157,6 +157,10 @@ export default class Reader {
               indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
             }
           }
+          // OPTIMIZED: Use sorted-index range lookup for $gt/$gte/$lt/$lte (O(log U + K) vs O(N))
+          else if ('$gt' in fieldValue || '$gte' in fieldValue || '$lt' in fieldValue || '$lte' in fieldValue) {
+            indexedFileNames = await indexReader.getFilesForRangeOperator(fieldName, fieldValue);
+          }
           // Other operators - use standard lookup
           else {
             indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
