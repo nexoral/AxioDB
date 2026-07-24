@@ -12,12 +12,10 @@ export default class DatabaseProxy {
     this.dbName = dbName;
   }
 
-  async createCollection(name: string, crypto?: boolean, key?: string): Promise<CollectionProxy> {
+  async createCollection(name: string): Promise<CollectionProxy> {
     await this.client.sendCommand(CommandType.CREATE_COLLECTION, {
       dbName: this.dbName,
       collectionName: name,
-      crypto,
-      key,
     });
 
     return new CollectionProxy(this.client, this.dbName, name);

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import fs from "fs/promises";
+import fs, { open as fsOpen } from "fs/promises";
 import ResponseHelper from "../../Helper/response.helper";
 import {
   ErrorInterface,
@@ -22,6 +22,30 @@ export default class FileManager {
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       await fs.writeFile(path, data, "utf-8");
+      return this.responseHelper.Success("File written successfully.");
+    } catch (error) {
+      return this.responseHelper.Error(error);
+    }
+  }
+
+  /**
+   * Writes a file and fsyncs it before returning, so the write is guaranteed on disk
+   * (not just sitting in the OS page cache) once this resolves. Use for anything a
+   * crash-recovery path depends on finding - e.g. transaction registry state - where
+   * a plain `WriteFile` can silently vanish on power loss even though the call succeeded.
+   */
+  public async WriteFileDurable(
+    path: string,
+    data: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      const fileHandle = await fsOpen(path, "w");
+      try {
+        await fileHandle.write(data, 0, "utf-8");
+        await fileHandle.sync();
+      } finally {
+        await fileHandle.close();
+      }
       return this.responseHelper.Success("File written successfully.");
     } catch (error) {
       return this.responseHelper.Error(error);

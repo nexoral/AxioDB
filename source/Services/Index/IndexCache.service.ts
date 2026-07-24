@@ -10,6 +10,13 @@ import Converter from "../../Helper/Converter.helper";
 interface IndexData {
   fieldName: string;
   indexEntries: { [value: string]: string[] };
+  /**
+   * Sorted, de-duplicated numeric values for this field - enables O(log U + M)
+   * range queries ($gt/$gte/$lt/$lte) instead of a full collection scan.
+   * Optional for backward compatibility with indexes written before range
+   * support existed; those are lazily backfilled on first insert/delete.
+   */
+  sortedValues?: number[];
 }
 
 /**

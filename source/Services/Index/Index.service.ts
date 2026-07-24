@@ -81,6 +81,7 @@ export class IndexManager {
       const DemoIndexHash = {
         fieldName: indexName,
         indexEntries: {},
+        sortedValues: [],
       }
       const exists = await this.fileManager.FileExists(indexFilePath);
       if (!exists.status) {

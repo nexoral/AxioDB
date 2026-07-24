@@ -31,7 +31,6 @@ export class {FeatureName}Helper {
 **Common Helper Types:**
 - **Data transformation**: `Converter.helper.ts`
 - **Validation**: `Validator.helper.ts`
-- **Encryption**: `Crypto.helper.ts`
 - **Formatting**: `Formatter.helper.ts`
 - **Query matching**: `QueryMatcher.helper.ts`
 

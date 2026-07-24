@@ -84,8 +84,6 @@ There is no schema-validation parameter on `createDB` or `createCollection` — 
 ```typescript
 database.createCollection(
   name: string,
-  isEncrypted?: boolean,   // default: false
-  encryptionKey?: string   // auto-generated if isEncrypted is true and this is omitted
 ): Promise<Collection>
 
 database.deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>
@@ -352,20 +350,6 @@ await users.getIndexes();
 
 ---
 
-## Encryption
-
-```javascript
-// Auto-generated key
-const secure = await db.createCollection('SecureData', true);
-
-// Custom key (recommended: from an environment variable)
-const payments = await db.createCollection('Payments', true, process.env.ENCRYPTION_KEY);
-```
-
-AES-256, per collection. Documents are stored one-per-file with file-level isolation; cache entries for encrypted collections are also encrypted. Never hardcode keys — use environment variables or a secrets manager, and rotate them regularly.
-
----
-
 ## Built-in Web GUI & RBAC
 
 ```javascript
@@ -549,7 +533,6 @@ docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
 | Built-in caching | No | No | Yes |
 | Worker Threads | No | No | Yes |
 | ACID transactions | No | No | Yes |
-| AES-256 encryption | No | No | Yes |
 | TypeScript | Yes | Partial | Full |
 | Sweet spot | <5K docs | <100K docs | 10K–500K docs |
 | Built-in GUI | No | No | Yes |

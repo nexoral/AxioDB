@@ -20,7 +20,6 @@ npm install axiodb@latest
 
 AxioDB includes several security features to protect your data:
 
-- **AES-256 Encryption**: Optional encryption for sensitive collections
 - **File Isolation**: Each document stored in separate files with proper permissions
 - **Secure Defaults**: Security-first configuration out of the box
 - **No External Dependencies**: Reduces attack surface (pure JavaScript)
@@ -88,33 +87,7 @@ We use the following severity levels for security issues:
 
 When using AxioDB in production:
 
-### 1. Use Encryption for Sensitive Data
-
-```javascript
-const sensitiveCollection = await db.createCollection(
-  'users',
-  true,                         // Enable encryption
-  process.env.ENCRYPTION_KEY    // Use environment variable
-);
-```
-
-### 2. Never Hardcode Encryption Keys
-
-❌ **Bad:**
-```javascript
-const collection = await db.createCollection('data', true, 'myKey123');
-```
-
-✅ **Good:**
-```javascript
-const collection = await db.createCollection(
-  'data',
-  true,
-  process.env.AXIODB_ENCRYPTION_KEY
-);
-```
-
-### 3. Validate Input Data
+### 1. Validate Input Data
 
 AxioDB is schema-less and does not validate document structure — validate and
 sanitize untrusted input in your application code *before* calling `insert()`:
@@ -133,7 +106,7 @@ if (isValidUser(userInput)) {
 }
 ```
 
-### 4. Implement Access Controls
+### 2. Implement Access Controls
 
 Restrict file system access to the AxioDB data directory:
 
@@ -142,7 +115,7 @@ Restrict file system access to the AxioDB data directory:
 chmod 700 ./AxioDB
 ```
 
-### 5. Keep AxioDB Updated
+### 3. Keep AxioDB Updated
 
 Regularly update to the latest version:
 
@@ -150,7 +123,7 @@ Regularly update to the latest version:
 npm update axiodb
 ```
 
-### 6. Monitor for Security Advisories
+### 4. Monitor for Security Advisories
 
 - Watch the [GitHub repository](https://github.com/nexoral/AxioDB)
 - Subscribe to npm security advisories
@@ -174,7 +147,6 @@ AxioDB stores data in the file system:
 
 - Ensure proper file permissions on the data directory
 - Do not expose the data directory via web servers
-- Use encryption for sensitive data
 - Implement regular backups
 
 ### GUI and TCP Security (RBAC)

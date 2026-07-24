@@ -16,7 +16,7 @@ source/
 ├── server/              # HTTP GUI (Fastify, port 27018)
 ├── tcp/                 # TCP server (AxioDBCloud, port 27019)
 ├── client/              # AxioDBCloud TCP client + Proxies
-├── Helper/              # Converter, Crypto, Response
+├── Helper/              # Converter, Response
 ├── Memory/              # InMemoryCache
 └── utility/             # General utils
 
@@ -59,7 +59,7 @@ collection.query({ age: { $gt: 25 } })
 
 - **AxioDB**: Root singleton, manages DB map, starts GUI/TCP
 - **Database**: Manages collections map, methods: createCollection, deleteCollection
-- **Collection**: Document collection, encryption support, methods: insert, query, update, delete, aggregate
+- **Collection**: Document collection, methods: insert, query, update, delete, aggregate
 - **CRUD Ops**: Reader, Create, Update, Delete in `Services/CRUD Operation/`
 - **Index System**: IndexCache (memory, TTL 5-15min), InsertIndex, ReadIndex, DeleteIndex
 - **Transactions**: Session, Transaction, WAL, LockManager, TransactionRegistry
@@ -85,7 +85,6 @@ collection.query({ age: { $gt: 25 } })
 3. File-per-document: O(1) access by ID
 4. Index cache: Random TTL prevents stampede
 5. Lazy loading: Load only when needed
-6. Two-pointer search: Efficient ranges
 
 ## When Adding Features
 - New service → `Services/{FeatureName}/`

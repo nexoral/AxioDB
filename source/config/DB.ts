@@ -1,6 +1,5 @@
 import { InMemoryCache } from "../Memory/memory.operation";
 import Converter from "../Helper/Converter.helper";
-import { CryptoHelper } from "../Helper/Crypto.helper";
 import ResponseHelper from "../Helper/response.helper";
 import Aggregation from "../Services/Aggregation/Aggregation.Operation";
 import Collection from "../Services/Collection/collection.operation";
@@ -17,7 +16,6 @@ const InstanceTypes = {
   FileManager,
   FolderManager,
   Converter,
-  CryptoHelper,
   ResponseHelper,
   InMemoryCache,
 };

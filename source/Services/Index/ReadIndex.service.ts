@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IndexManager } from "./Index.service";
 import { IndexCache } from "./IndexCache.service";
+import SortedIndexValues from "../../Helper/SortedIndexValues.helper";
 
 export class ReadIndex extends IndexManager {
   private indexCache: IndexCache;
@@ -146,6 +147,55 @@ export class ReadIndex extends IndexManager {
       }
     }
 
+    return Array.from(fileSet);
+  }
+
+  /**
+   * Retrieve file paths from an index for documents whose field value falls within
+   * a numeric range ($gt/$gte/$lt/$lte).
+   *
+   * OPTIMIZED: Binary-searches the index's sorted value array for the matching bounds,
+   * then unions only the file lists for values inside that range - avoids the full
+   * collection scan that unindexed range queries require.
+   *
+   * @param fieldName - The field name to query (must have an index)
+   * @param range - Range operators to apply, e.g. `{ $gt: 25 }` or `{ $gte: 18, $lte: 65 }`
+   *
+   * @returns Promise resolving to an array of unique file paths matching the range,
+   *          or an empty array if the field has no index, the index predates range
+   *          support (not yet backfilled), or no values fall in range.
+   *
+   * @remarks
+   * - O(log U) to find the bounds + O(K) to union file lists, where U = unique indexed
+   *   values and K = unique values within the range - independent of collection size.
+   * - Only numeric values participate (matches `Searcher.matchesQuery`, which already
+   *   rejects range comparisons against non-numbers).
+   *
+   * @example
+   * // For query: { age: { $gt: 25 } }
+   * const files = await readIndex.getFilesForRangeOperator('age', { $gt: 25 });
+   */
+  public async getFilesForRangeOperator(
+    fieldName: string,
+    range: { $gt?: number; $gte?: number; $lt?: number; $lte?: number },
+  ): Promise<string[]> {
+    const indexData = await this.indexCache.getIndex(fieldName);
+    if (!indexData || !indexData.sortedValues || indexData.sortedValues.length === 0) {
+      return [];
+    }
+
+    const bounds = SortedIndexValues.resolveRange(indexData.sortedValues, range);
+    if (!bounds) {
+      return [];
+    }
+
+    const fileSet = new Set<string>();
+    for (let i = bounds.startIndex; i <= bounds.endIndex; i++) {
+      const files = indexData.indexEntries[indexData.sortedValues[i]];
+      if (files) {
+        files.forEach(f => fileSet.add(f));
+      }
+    }
     return Array.from(fileSet);
   }
 

@@ -1,4 +1,4 @@
-import { Code, Database, GitBranch, Lock, RefreshCw, Rocket } from "lucide-react";
+import { Code, Database, GitBranch, RefreshCw, Rocket } from "lucide-react";
 import React, { useState } from "react";
 import Button from "../ui/Button";
 import CodeBlock from "../ui/CodeBlock";
@@ -17,10 +17,8 @@ const setup = async () => {
   // Create database
   const UserDB = await Instance.createDB("MyDB");
 
-  // Create different types of collections
+  // Create a collection
   const UserCollection = await UserDB.createCollection("Users");
-  const CollectionWithCrypto = await UserDB.createCollection("UsersWithCrypto", true);
-  const CollectionWithCryptoKey = await UserDB.createCollection("UsersWithCryptoKey", true, "secretKey123");
 
   // Insert data with insertMany - no schema required
   await UserCollection.insertMany([
@@ -71,18 +69,6 @@ const complexAggregation = await UserCollection.aggregate([
 ]);
 
 console.log("Complex Aggregation:", complexAggregation);`,
-    encryption: `const encryptedCollection = await DB1.createCollection(
-  "secureCollection",
-  true,        // Enable encryption
-  "mySecretKey",  // Custom encryption key
-);
-
-// Insert encrypted data
-await encryptedCollection.insert({ name: "Encrypted User", age: 25 });
-
-// Query encrypted data
-const encryptedResult = await encryptedCollection.query({ age: 25 }).exec();
-console.log("Encrypted Query Result:", encryptedResult);`,
     operations: `// Update operations with proper syntax
 await UserCollection.update({name: "John Doe"}).UpdateOne({name: "Ankan"});
 await UserCollection.update({name: "John Doe"}).UpdateMany({name: "Ankan", isActive: true});
@@ -105,39 +91,6 @@ const updateResult = await UserCollection.update({ age: { $gte: 18 } }).UpdateMa
   lastUpdated: new Date().toISOString() 
 });
 console.log("Updated documents:", updateResult);`,
-    "collection-types": `// Comprehensive guide to different collection types
-const { AxioDB } = require("axiodb");
-
-const Instance = new AxioDB({ GUI: true }); // Enable GUI
-
-const setup = async () => {
-  const UserDB = await Instance.createDB("MyDB");
-
-  // 1. Basic Collection (no encryption)
-  const BasicCollection = await UserDB.createCollection("Users");
-
-  // 2. Collection with Auto-Generated Encryption Key
-  const CryptoCollection = await UserDB.createCollection("UsersWithCrypto", true);
-
-  // 3. Collection with Custom Encryption Key
-  const CustomCryptoCollection = await UserDB.createCollection("UsersWithCryptoKey", true, "myCustomKey");
-
-  // Insert data to different collection types - no schema required
-  const userData = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    age: 30
-  };
-
-  // All collections support the same operations
-  await BasicCollection.insert(userData);
-  await CryptoCollection.insert(userData); // Auto-encrypted
-  await CustomCryptoCollection.insert(userData); // Encrypted with custom key
-
-  console.log("All collection types created and populated successfully!");
-};
-
-setup();`,
     indexing: `// Create indexes to dramatically improve query performance
 const { AxioDB } = require("axiodb");
 
@@ -239,7 +192,7 @@ console.log("Transaction completed successfully!");`,
     <section id="advanced-features" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB Advanced Features - Aggregation, Multi-DB & Optimization"
-        description="Advanced AxioDB features: encryption, aggregation pipelines, multi-database architecture, ACID transactions, and performance optimization."
+        description="Advanced AxioDB features: aggregation pipelines, multi-database architecture, ACID transactions, and performance optimization."
         path="/advanced-features"
       />
       {/* Hero Header */}
@@ -264,8 +217,8 @@ console.log("Transaction completed successfully!");`,
             Harness the full power of AxioDB with advanced features designed for
             enterprise applications. Our comprehensive suite includes
             multi-database management, sophisticated aggregation pipelines,
-            military-grade encryption, and optimized CRUD operations that scale
-            with your business requirements.
+            and optimized CRUD operations that scale with your business
+            requirements.
           </p>
         </div>
       </div>
@@ -288,28 +241,12 @@ console.log("Transaction completed successfully!");`,
           Aggregation Pipelines
         </Button>
         <Button
-          variant={activeFeature === "encryption" ? "primary" : "outline"}
-          onClick={() => setActiveFeature("encryption")}
-          className="group transition-all duration-200 hover:scale-105"
-        >
-          <Lock className="h-4 w-4 mr-2" />
-          Data Encryption
-        </Button>
-        <Button
           variant={activeFeature === "operations" ? "primary" : "outline"}
           onClick={() => setActiveFeature("operations")}
           className="group transition-all duration-200 hover:scale-105"
         >
           <Code className="h-4 w-4 mr-2" />
           CRUD Operations
-        </Button>
-        <Button
-          variant={activeFeature === "collection-types" ? "primary" : "outline"}
-          onClick={() => setActiveFeature("collection-types")}
-          className="group transition-all duration-200 hover:scale-105"
-        >
-          <Database className="h-4 w-4 mr-2" />
-          Collection Types
         </Button>
         <Button
           variant={activeFeature === "indexing" ? "primary" : "outline"}
@@ -335,10 +272,7 @@ console.log("Transaction completed successfully!");`,
             "Multi-Database Architecture & Collection Management"}
           {activeFeature === "aggregation" &&
             "Advanced Data Aggregation Pipelines"}
-          {activeFeature === "encryption" && "Enterprise-Grade Data Encryption"}
           {activeFeature === "operations" && "Sophisticated CRUD Operations"}
-          {activeFeature === "collection-types" &&
-            "Flexible Collection Configurations"}
           {activeFeature === "indexing" &&
             "High-Performance Field Indexing"}
           {activeFeature === "transactions" &&
@@ -350,12 +284,8 @@ console.log("Transaction completed successfully!");`,
             "Architect scalable applications with multiple databases and collections, each configured with independent security protocols and performance optimizations to meet diverse business requirements."}
           {activeFeature === "aggregation" &&
             "Execute complex data processing workflows using MongoDB-compatible aggregation pipelines, enabling sophisticated filtering, grouping, sorting, and transformation operations for business intelligence and analytics."}
-          {activeFeature === "encryption" &&
-            "Protect sensitive business data with military-grade AES-256 encryption, featuring both auto-generated and custom encryption keys for maximum security flexibility and regulatory compliance."}
           {activeFeature === "operations" &&
             "Implement robust data manipulation strategies with advanced update and delete operations, supporting complex queries, batch processing, and atomic transactions for data consistency."}
-          {activeFeature === "collection-types" &&
-            "Choose from specialized collection configurations designed for different use cases, from basic storage to fully encrypted collections for enterprise applications."}
           {activeFeature === "indexing" &&
             "Dramatically boost query performance by creating custom indexes on frequently queried fields. Supports single and multi-field indexes for optimized lookups, range queries, sorting, and complex filtering operations—essential for large datasets and high-traffic applications."}
           {activeFeature === "transactions" &&
@@ -628,11 +558,11 @@ console.log("Transaction completed successfully!");`,
             </h3>
             <p className="text-slate-300 leading-relaxed">
               Maximize AxioDB's potential by strategically combining features:
-              implement encryption for sensitive data collections, utilize
-              aggregation pipelines for complex analytics, and leverage
-              multi-database architecture for microservices. This integrated
-              approach ensures scalable, secure, and high-performance database
-              operations that meet enterprise standards.
+              utilize aggregation pipelines for complex analytics, and
+              leverage multi-database architecture for microservices. This
+              integrated approach ensures scalable, secure, and
+              high-performance database operations that meet enterprise
+              standards.
             </p>
           </div>
         </div>

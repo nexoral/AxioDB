@@ -2,6 +2,7 @@
 import { General } from "../../config/Keys/Keys";
 import { IndexManager } from "./Index.service";
 import { IndexCache } from "./IndexCache.service";
+import SortedIndexValues from "../../Helper/SortedIndexValues.helper";
 
 /**
  * Service for removing documents from indexes
@@ -79,6 +80,13 @@ export default class DeleteIndex extends IndexManager {
           // Remove the key entirely if array is now empty
           if (indexData.indexEntries[fieldValue].length === 0) {
             delete indexData.indexEntries[fieldValue];
+
+            if (indexData.sortedValues) {
+              const numericValue = Number(fieldValue);
+              if (!Number.isNaN(numericValue)) {
+                SortedIndexValues.removeSorted(indexData.sortedValues, numericValue);
+              }
+            }
           }
 
           // Update disk first (must await for data integrity)

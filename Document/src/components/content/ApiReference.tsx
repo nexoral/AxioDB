@@ -86,23 +86,10 @@ console.log(info.data);
       methods: [
         {
           name: "createCollection",
-          signature: "createCollection(collectionName: string, isEncrypted?: boolean, encryptionKey?: string): Promise<Collection>",
-          description: "Creates a new collection within the database. Collections store documents (JSON objects). Supports optional AES-256 encryption. If encryption is enabled, all documents are encrypted at rest. No schema validation required - store any JSON structure.",
-          example: `// Basic collection
-const users = await myDB.createCollection('users');
-
-// With encryption (auto-generated key)
-const secureData = await myDB.createCollection(
-  'sensitive',
-  true // enable encryption with auto-generated key
-);
-
-// With encryption (custom key)
-const vaultData = await myDB.createCollection(
-  'vault',
-  true, // enable encryption
-  'your-secret-key-here' // custom encryption key
-);`,
+          signature: "createCollection(collectionName: string): Promise<Collection>",
+          description: "Creates a new collection within the database. Collections store documents (JSON objects). No schema validation required - store any JSON structure.",
+          example: `// Create a collection
+const users = await myDB.createCollection('users');`,
           returns: "Promise<Collection>: A promise that resolves to a Collection instance.",
         },
         {
@@ -1115,10 +1102,6 @@ await transaction.commit();`,
             </li>
             <li className="flex items-start gap-2">
               <span className="text-purple-400 mt-0.5">✓</span>
-              <span className="text-sm">Enable AES-256 encryption for collections holding sensitive data</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-purple-400 mt-0.5">✓</span>
               <span className="text-sm">Use <code className="bg-purple-900 px-1 rounded">setCount(true)</code> instead of loading all docs when you only need the count</span>
             </li>
             <li className="flex items-start gap-2">
@@ -1128,10 +1111,6 @@ await transaction.commit();`,
             <li className="flex items-start gap-2">
               <span className="text-purple-400 mt-0.5">✓</span>
               <span className="text-sm">Use <code className="bg-purple-900 px-1 rounded">documentId</code> queries for fastest lookups</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-purple-400 mt-0.5">✓</span>
-              <span className="text-sm">Enable encryption for sensitive data collections</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-purple-400 mt-0.5">✓</span>

@@ -7,7 +7,6 @@ import {
 // Import All helpers
 import InMemoryCache from "../../Memory/memory.operation";
 import Converter from "../../Helper/Converter.helper";
-import { CryptoHelper } from "../../Helper/Crypto.helper";
 import responseHelper from "../../Helper/response.helper";
 import PathSanitizer from "../../Helper/PathSanitizer.helper";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
@@ -28,9 +27,6 @@ export default class Reader {
   private limit: number | undefined;
   private skip: number | undefined;
   private sort: object | any;
-  private isEncrypted: boolean;
-  private encryptionKey: string | undefined;
-  private cryptoInstance?: CryptoHelper;
   private totalCount: boolean;
   private FindOneStatus: boolean;
   private project: object | any;
@@ -42,33 +38,24 @@ export default class Reader {
    * @param {string} collectionName - The name of the collection.
    * @param {string} path - The data to be read.
    * @param {object} baseQuery - The base query to be used.
-   * @param {boolean} isEncrypted - The encryption status.
-   * @param {string} encryptionKey - The encryption key.
    */
   constructor(
     collectionName: string,
     path: string,
     baseQuery: object | any,
-    isEncrypted: boolean = false,
-    encryptionKey?: string,
   ) {
     this.collectionName = collectionName;
     this.path = path;
     this.limit = 10;
     this.skip = 0;
     this.FindOneStatus = false; // Default value for FindOneStatus
-    this.isEncrypted = isEncrypted;
     this.sort = {};
     this.project = {};
     this.baseQuery = baseQuery;
     this.Converter = new Converter();
-    this.encryptionKey = encryptionKey;
     this.ResponseHelper = new responseHelper();
     this.totalCount = false;
     this.AllData = [];
-    if (this.isEncrypted === true) {
-      this.cryptoInstance = new CryptoHelper(this.encryptionKey);
-    }
   }
 
   /**
@@ -156,6 +143,10 @@ export default class Reader {
               // Non-prefix regex - use standard lookup (will likely fall back to full scan)
               indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
             }
+          }
+          // OPTIMIZED: Use sorted-index range lookup for $gt/$gte/$lt/$lte (O(log U + K) vs O(N))
+          else if ('$gt' in fieldValue || '$gte' in fieldValue || '$lt' in fieldValue || '$lte' in fieldValue) {
+            indexedFileNames = await indexReader.getFilesForRangeOperator(fieldName, fieldValue);
           }
           // Other operators - use standard lookup
           else {
@@ -344,8 +335,8 @@ export default class Reader {
    * This method performs the following steps:
    * 1. Checks if the directory is locked.
    * 2. If the directory is not locked, it lists all files in the directory.
-   * 3. Reads each file and decrypts the data if encryption is enabled.
-   * 4. Stores the decrypted data in the `AllData` array.
+   * 3. Reads each file.
+   * 4. Stores the data in the `AllData` array.
    * 5. If the directory is locked, it unlocks the directory, reads the files, and then locks the directory again.
    *
    * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves to a success or error response.
@@ -358,8 +349,6 @@ export default class Reader {
     // Use shared DocumentLoader helper (DRY - consolidates duplicated code)
     const result = await DocumentLoader.loadDocuments(
       this.path,
-      this.encryptionKey,
-      this.isEncrypted,
       documentIdDirectFile,
       false  // Don't include fileName for Reader
     );

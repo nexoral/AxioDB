@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { randomUUID } from "crypto";
 import FileManager from "../../engine/Filesystem/FileManager";
 
 import UniqueGenerator from "../../Helper/UniqueGenerator.helper";
@@ -48,13 +49,24 @@ export default class Insertion {
       const sanitizedDocumentId = PathSanitizer.sanitizePathComponent(documentId);
       const filePath = PathSanitizer.safePath(this.path, `${sanitizedDocumentId}${General.DBMS_File_EXT}`);
 
-      // Directly write data to file (no lock/unlock system)
-      const WriteResponse = await new FileManager().WriteFile(
-        filePath,
+      // Write to a temp file, then atomically rename it over the target path.
+      // `rename()` replaces an existing destination in a single filesystem operation
+      // (same pattern Transaction.applyChanges() already uses), so a concurrent
+      // unlocked reader of filePath always sees either the old file or the new one -
+      // never a transient "file doesn't exist" gap, which a plain overwrite (or the
+      // old delete-then-recreate update path) could expose.
+      const fileManager = new FileManager();
+      const tempFilePath = `${filePath}.tmp-${randomUUID()}`;
+      const WriteResponse = await fileManager.WriteFile(
+        tempFilePath,
         this.Converter.ToString(data),
       );
 
       if (WriteResponse.status) {
+        const moveResponse = await fileManager.MoveFile(tempFilePath, filePath);
+        if (!moveResponse.status) {
+          return new responseHelper().Error("Failed to save data");
+        }
         return new responseHelper().Success({
           Message: "Data Inserted Successfully",
           documentId: documentId,

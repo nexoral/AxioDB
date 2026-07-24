@@ -184,8 +184,7 @@ await session.withTransaction(async (tx) => {
 - **Async, Non-blocking Updates:** cache writes don't block the response path
 - **Collection-Scoped Keys:** cache keys include the collection path, so there's no cross-collection collision
 
-### Encryption & Security
-- **AES-256 Encryption:** optional per collection, with an auto-generated or custom key
+### Security
 - **File-level Isolation:** each document lives in its own `.axiodb` file with locking
 - See [Built-in Web GUI & Authentication](#-built-in-web-gui--authentication-rbac) for RBAC/login and [Security Best Practices](#-best-practices) below
 
@@ -648,8 +647,6 @@ A Super Admin can create additional roles from the predefined permission catalog
 ```javascript
 createCollection(
   name: string,           // Name of the collection (required)
-  isEncrypted?: boolean,  // Whether to encrypt the collection (default: false)
-  encryptionKey?: string  // Custom encryption key (optional, auto-generated if not provided)
 )
 ```
 
@@ -661,15 +658,8 @@ const db = new AxioDB();
 
 const userDB = await db.createDB("MyDB");
 
-// Create a basic collection
+// Create a collection
 const userCollection = await userDB.createCollection("Users");
-
-// Create an encrypted collection with a custom key
-const secureCollection = await userDB.createCollection(
-  "SecureUsers",
-  true,
-  "mySecretKey",
-);
 
 await userCollection.insert({
   name: "John Doe",
@@ -708,25 +698,6 @@ const electronics = await products
   .exec();
 ```
 
-### Worked example: encrypted user records
-
-```javascript
-const users = await db.createCollection(
-  'users',
-  true,                              // encrypted
-  process.env.USER_ENCRYPTION_KEY,   // custom key from env — see Best Practices below
-);
-
-await users.insert({
-  username: 'johndoe',
-  email: 'john@example.com',
-  passwordHash: hashedPassword,
-  createdAt: new Date(),
-});
-
-const user = await users.query({ username: 'johndoe' }).exec();
-```
-
 ---
 
 ## 🌟 Advanced Features
@@ -747,7 +718,7 @@ const user = await users.query({ username: 'johndoe' }).exec();
 
 ### Database
 
-- `createCollection(name: string, isEncrypted?: boolean, encryptionKey?: string): Promise<Collection>`
+- `createCollection(name: string): Promise<Collection>`
 - `deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>`
 - `getCollectionInfo(): Promise<SuccessInterface>`
 
@@ -814,18 +785,20 @@ await collection.delete({ status: 'inactive' }).deleteMany();
 
 ## ✅ Best Practices
 
-**Use environment variables for encryption keys and TCP credentials — never hardcode them:**
+**Use environment variables for TCP credentials — never hardcode them:**
 
 ```javascript
 // ❌ Bad
-const collection = await db.createCollection('data', true, 'myKey123');
+const client = new AxioDBCloud("axiodb://localhost:27019", {
+  username: 'admin',
+  password: 'myPassword123',
+});
 
 // ✅ Good
-const collection = await db.createCollection(
-  'data',
-  true,
-  process.env.AXIODB_ENCRYPTION_KEY,
-);
+const client = new AxioDBCloud("axiodb://localhost:27019", {
+  username: process.env.AXIODB_TCP_USERNAME,
+  password: process.env.AXIODB_TCP_PASSWORD,
+});
 ```
 
 **Use `documentId` for the fastest possible lookups** — it's the one field that's always indexed automatically, backed by `InMemoryCache`:
@@ -851,9 +824,8 @@ await database.deleteCollection('tempCollection');
 await db.deleteDatabase('tempDB');
 ```
 
-**Encryption & access control:**
-- Use strong, unique encryption keys
-- Never hardcode keys — use environment variables or a secrets manager
+**Access control:**
+- Never hardcode credentials — use environment variables or a secrets manager
 - Implement proper access controls and take regular backups
 - For AxioDBCloud/GUI, rotate the default `admin` password immediately (see [Authentication & Access Control](#-built-in-web-gui--authentication-rbac))
 
@@ -865,7 +837,6 @@ For vulnerability reporting, see [SECURITY.md](SECURITY.md).
 
 - **Tree Structure for Fast Data Retrieval:** hierarchical storage enables O(1) document lookups and efficient indexing. Each document is isolated in its own file, supporting selective loading and easy backup.
 - **Worker Threads for Parallel Processing:** leverages Node.js Worker Threads for non-blocking I/O, multi-core utilization, and scalable performance — especially for read operations.
-- **Two-Pointer Searching Algorithm:** optimized for range queries and filtered searches, minimizing memory usage and computational overhead.
 - **`InMemoryCache` System:** automatic eviction policies, TTL support, and memory optimization, delivering sub-millisecond response times for frequently accessed data.
 - **Query Processing Pipeline:** intelligent caching, parallelized processing, lazy evaluation, and just-in-time query optimization.
 - **Single Instance Architecture:** ensures ACID compliance, strong data consistency, and simplified deployment — one `AxioDB` instance manages all databases and collections.
@@ -911,7 +882,6 @@ For vulnerability reporting, see [SECURITY.md](SECURITY.md).
 | **Built-in caching** | ❌ | ❌ | ❌ | ✅ InMemoryCache |
 | **Worker Threads** | ❌ | ❌ | ❌ | ✅ |
 | **ACID Transactions** | ❌ | ❌ | ✅ | ✅ |
-| **AES-256 Encryption** | ❌ | ❌ | ❌ | ✅ |
 | **Aggregation Pipelines** | ❌ | Partial | ❌ | ✅ MongoDB-compatible |
 | **TypeScript support** | ✅ | Partial | ✅ | ✅ Full |
 | **Electron compatible** | ✅ | ✅ | ❌ (requires rebuild) | ✅ |
@@ -944,7 +914,7 @@ No. AxioDB is embedded (runs inside your app); MongoDB is a client-server databa
 Yes — this is the primary use case it was built for. Zero native dependencies means no `electron-rebuild`, no platform-specific `.node` files, no compilation step.
 
 **Q: How does AxioDB compare to better-sqlite3 / lowdb / nedb?**
-See the [Comparisons](#-comparisons) tables above for the full breakdown — in short: no native bindings (unlike better-sqlite3), no single-file bottleneck (unlike lowdb), and actively maintained with TypeScript/transactions/encryption (unlike the abandoned nedb).
+See the [Comparisons](#-comparisons) tables above for the full breakdown — in short: no native bindings (unlike better-sqlite3), no single-file bottleneck (unlike lowdb), and actively maintained with TypeScript/transactions (unlike the abandoned nedb).
 
 **Q: How many documents can AxioDB handle?**
 Optimized for 10,000–500,000 documents. For 1M+, use PostgreSQL or MongoDB. `documentId` lookups take ~1ms on 10K documents with `InMemoryCache`.

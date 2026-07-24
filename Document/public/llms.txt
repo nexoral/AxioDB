@@ -15,7 +15,6 @@ Sweet spot: 10K–500K documents. Perfect for Electron apps, CLI tools, local-fi
 - Built-in InMemoryCache with automatic TTL and selective invalidation
 - Worker Threads for multi-core parallel processing
 - ACID-compliant transactions with savepoints, rollback, and WAL (crash recovery covers plain `insert()` too, not just explicit transactions)
-- AES-256 encryption per collection
 - Built-in web GUI at localhost:27018, with role-based login (Super Admin/Admin/View roles)
 - AxioDBCloud: TCP remote access for Docker/Cloud deployments, with optional shared-RBAC authentication (TCPAuth) and optional TLS encryption
 - MCP Server: 32 tools for AI agent integration (Claude Code, Cursor, Windsurf, etc.), same RBAC as the GUI

@@ -64,7 +64,7 @@ npm run build && npm test && npm run lint
 **Functionality**: Works as specified, edge cases handled, no regressions
 **Code Quality**: SOLID, DRY, clear names, modular
 **Performance**: No regressions, efficient algorithms, proper caching
-**Security**: Input validation, no injections, encrypted if sensitive
+**Security**: Input validation, no injections, no sensitive data logged
 **TypeScript**: No `any`, proper interfaces, strict mode
 **Documentation**: README/Document/Dockerfile updated if needed
 **Testing**: Existing tests pass, new tests written

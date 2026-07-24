@@ -13,8 +13,6 @@ import Aggregation from "../Aggregation/Aggregation.Operation";
 import Transaction from "../Transaction/Transaction.service";
 import Session from "../Transaction/Session.service";
 
-import { StatusCodes } from "../../config/Keys/StatusCode";
-import { CryptoHelper } from "../../Helper/Crypto.helper";
 import { General } from "../../config/Keys/Keys";
 
 // Converter
@@ -31,27 +29,18 @@ export default class Collection {
   private readonly name: string;
   private readonly path: string;
   private readonly updatedAt: string;
-  private readonly isEncrypted: boolean;
-  private readonly cryptoInstance?: CryptoHelper;
   private Converter: Converter;
-  private readonly encryptionKey: string | undefined;
   private readonly IndexManager: InsertIndex;
   private readonly indexCache: IndexCache;
 
   constructor(
     name: string,
     path: string,
-    isEncrypted = false,
-    cryptoInstance?: CryptoHelper,
-    encryptionKey?: string,
   ) {
     this.name = name;
     this.path = path;
-    this.isEncrypted = isEncrypted;
-    this.cryptoInstance = cryptoInstance;
     this.Converter = new Converter();
     this.updatedAt = new Date().toISOString();
-    this.encryptionKey = encryptionKey;
     this.IndexManager = new InsertIndex(this.path);
 
     // Initialize and eagerly load index cache for maximum query performance
@@ -174,34 +163,47 @@ export default class Collection {
   /**
    * Inserts one or multiple documents into the collection.
    *
+   * Routed through a single Transaction covering every document, so the whole batch
+   * is staged and committed as one atomic unit: each indexed field is read, updated
+   * in memory for all documents, and written back to disk exactly once - instead of
+   * once per document (the previous per-document Transaction approach turned every
+   * indexed insert into an O(N) full index-file rewrite for N documents).
+   *
    * @param data - A single document object or an array of document objects to be inserted.
    * @returns A promise that resolves to a `SuccessInterface` containing the total number of documents inserted and their IDs,
-   *          or an `ErrorInterface` if the operation fails.
+   *          or an `ErrorInterface` if the operation fails or is rolled back.
    */
   public async insertMany(data: object[] | object): Promise<SuccessInterface | ErrorInterface> {
-    let totalDocumentsInserted: number = 0;
-    const documentIds: string[] = [];
+    const documents: object[] = Array.isArray(data) ? data : [data];
 
-    if (typeof data === "object" && !Array.isArray(data)) {
-      const result = await this.insert(data);
-      if (result?.statusCode == StatusCodes.OK) {
-        documentIds.push(result.data.documentId);
-        totalDocumentsInserted++;
+    for (const doc of documents) {
+      if (!doc || typeof doc !== "object") {
+        throw new Error("Data must be an object.");
       }
-    } else if (Array.isArray(data)) {
-      for (const doc of data) {
-        const result = await this.insert(doc);
-        if (result?.statusCode == StatusCodes.OK) {
-          documentIds.push(result.data.documentId);
-          totalDocumentsInserted++;
-        }
-      }
+    }
+
+    if (documents.length === 0) {
+      return new ResponseHelper().Success({
+        message: "Total Documents Inserted",
+        total: 0,
+        id: [],
+      });
+    }
+
+    const txn = this.beginTransaction();
+    for (const doc of documents) {
+      txn.insert(doc);
+    }
+    const commitResult = await txn.commit();
+
+    if (!("data" in commitResult) || !commitResult.data.documentIds?.length) {
+      return commitResult;
     }
 
     return new ResponseHelper().Success({
       message: "Total Documents Inserted",
-      total: totalDocumentsInserted,
-      id: documentIds,
+      total: commitResult.data.documentIds.length,
+      id: commitResult.data.documentIds,
     });
   }
 
@@ -220,8 +222,6 @@ export default class Collection {
       this.name,
       this.path,
       query,
-      this.isEncrypted,
-      this.encryptionKey,
     );
   }
 
@@ -245,8 +245,6 @@ export default class Collection {
       this.name,
       this.path,
       PipelineQuerySteps,
-      this.isEncrypted,
-      this.encryptionKey,
     );
   }
 
@@ -273,8 +271,6 @@ export default class Collection {
       this.name,
       this.path,
       query,
-      this.isEncrypted,
-      this.encryptionKey,
     );
   }
 
@@ -286,8 +282,6 @@ export default class Collection {
       this.name,
       this.path,
       query,
-      this.isEncrypted,
-      this.encryptionKey,
     );
   }
 
@@ -300,11 +294,7 @@ export default class Collection {
       throw new Error("Collection path cannot be empty");
     }
 
-    return new Transaction(
-      this.path,
-      this.isEncrypted,
-      this.encryptionKey
-    );
+    return new Transaction(this.path);
   }
 
   /**
@@ -333,11 +323,6 @@ export default class Collection {
       throw new Error("Collection path cannot be empty");
     }
 
-    return new Session(
-      this.path,
-      this.isEncrypted,
-      this.encryptionKey,
-      options
-    );
+    return new Session(this.path, options);
   }
 }

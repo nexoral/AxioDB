@@ -15,8 +15,6 @@ import Transaction from "./Transaction.service";
 export default class Session {
   private readonly sessionId: string;
   private readonly collectionPath: string;
-  private readonly isEncrypted: boolean;
-  private readonly encryptionKey?: string;
   private readonly options: Required<SessionOptions>;
   private readonly ResponseHelper: ResponseHelper;
   private readonly startTime: number;
@@ -25,14 +23,10 @@ export default class Session {
 
   constructor(
     collectionPath: string,
-    isEncrypted: boolean = false,
-    encryptionKey?: string,
     options: SessionOptions = {}
   ) {
     this.sessionId = new UniqueGenerator(20).RandomWord(true);
     this.collectionPath = collectionPath;
-    this.isEncrypted = isEncrypted;
-    this.encryptionKey = encryptionKey;
     this.startTime = Date.now();
     this.ResponseHelper = new ResponseHelper();
 
@@ -79,11 +73,7 @@ export default class Session {
       throw new Error("A transaction is already active in this session. Commit or rollback first.");
     }
 
-    this.currentTransaction = new Transaction(
-      this.collectionPath,
-      this.isEncrypted,
-      this.encryptionKey
-    );
+    this.currentTransaction = new Transaction(this.collectionPath);
 
     return this.currentTransaction;
   }
