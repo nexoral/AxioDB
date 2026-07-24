@@ -16,6 +16,7 @@
  *   node Test/run.js tcp-auth  # Run only TCP (AxioDBCloud) RBAC tests
  *   node Test/run.js tcp-noauth  # Run only TCP zero-auth backward-compat tests
  *   node Test/run.js tcp-tls   # Run only TCP TLS tests
+ *   node Test/run.js crash-recovery  # Run only real-SIGKILL crash-recovery tests
  */
 
 const { spawn } = require('child_process');
@@ -40,7 +41,8 @@ const testModules = {
   auth: './modules/auth.test.js',
   'tcp-auth': './modules/tcp-auth.test.js',
   'tcp-noauth': './modules/tcp-noauth.test.js',
-  'tcp-tls': './modules/tcp-tls.test.js'
+  'tcp-tls': './modules/tcp-tls.test.js',
+  'crash-recovery': './modules/crash-recovery.test.js'
 };
 
 /**

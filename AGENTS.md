@@ -315,6 +315,11 @@ npm test                   # All tests (separate processes)
 npm test crud              # CRUD tests only
 npm test transaction       # Transaction tests only
 npm test read              # Read optimization tests
+npm test auth              # GUI RBAC tests only
+npm test tcp-auth          # TCP (AxioDBCloud) RBAC tests only
+npm test tcp-noauth        # TCP zero-auth backward-compat tests only
+npm test tcp-tls           # TCP TLS tests only
+npm test crash-recovery    # Real-SIGKILL crash-recovery tests only
 npm run lint               # ESLint
 
 # Development

@@ -232,6 +232,59 @@ class CRUDTests extends TestRunner {
         assert.isSuccess(untouched);
         assert.ok(!untouched.data.documents[0].marked, 'age=78 document should be excluded by $ne and stay untouched');
       });
+
+      await this.test('UpdateOne/UpdateMany on a query matching nothing return an error, not a false success', async () => {
+        const oneResult = await this.collection
+          .update({ name: 'NoSuchUserAtAll' })
+          .UpdateOne({ marked: true });
+        assert.isError(oneResult, 'UpdateOne with no matching document should return an error');
+
+        const manyResult = await this.collection
+          .update({ name: 'NoSuchUserAtAll' })
+          .UpdateMany({ marked: true });
+        assert.isError(manyResult, 'UpdateMany with no matching documents should return an error');
+      });
+
+      await this.test('Updating one document does not disturb an unrelated one sharing the same indexed value', async () => {
+        // Regression test: two documents sharing an indexed field's value used to have
+        // their shared index bucket silently reordered on every update to either one -
+        // even when the update never touched that field - because the index-sync step
+        // did an unconditional remove+re-append regardless of whether the value changed.
+        // That could make a later "first match" query resolve to the wrong document.
+        const insertResult = await this.collection.insertMany([
+          { name: 'DupName', age: 40, marker: 'first' },
+          { name: 'DupName', age: 41, marker: 'second' }
+        ]);
+        assert.isSuccess(insertResult);
+        const [firstId, secondId] = insertResult.data.id;
+
+        // Update only the FIRST document, touching a field ('marker') that is not
+        // itself indexed, but 'name' (shared, unchanged) and 'age' (indexed, unchanged
+        // for this doc) both still get processed by index staging.
+        const updateResult = await this.collection
+          .update({ documentId: firstId })
+          .UpdateOne({ marker: 'first-updated' });
+        assert.isSuccess(updateResult);
+        assert.equal(updateResult.data.documentId, firstId, 'UpdateOne should report the document it actually targeted');
+
+        // The untouched document must be provably untouched, found by its own ID -
+        // not by relying on array position from a shared-value query.
+        const secondCheck = await this.collection.query({ documentId: secondId }).exec();
+        assert.isSuccess(secondCheck);
+        assert.equal(secondCheck.data.documents[0].marker, 'second', 'Untouched document must keep its original marker');
+        assert.equal(secondCheck.data.documents[0].age, 41, 'Untouched document must keep its original age');
+
+        // The updated document, found by its own ID, must reflect the change.
+        const firstCheck = await this.collection.query({ documentId: firstId }).exec();
+        assert.isSuccess(firstCheck);
+        assert.equal(firstCheck.data.documents[0].marker, 'first-updated', 'Updated document must reflect the change');
+
+        // A plain query on the shared 'name' value must still return both documents,
+        // regardless of internal bucket order.
+        const both = await this.collection.query({ name: 'DupName' }).exec();
+        assert.isSuccess(both);
+        assert.equal(both.data.documents.length, 2, 'Both documents sharing the indexed value must still be findable');
+      });
     });
 
     // CONCURRENT UPDATE Tests - ACID Compliance
@@ -475,6 +528,41 @@ class CRUDTests extends TestRunner {
 
         this.log(`✅ File integrity verified: version=${doc.version}, updateNumber=${doc.updateNumber}`, 'success');
       });
+
+      await this.test('Concurrent UpdateOne and deleteOne on the same document - no corruption either way', async () => {
+        const insertResult = await this.collection.insert({ name: 'UpdateDeleteRace', counter: 0 });
+        assert.isSuccess(insertResult);
+        const targetId = insertResult.data.documentId;
+
+        // Race an update against a delete on the exact same document. Whichever
+        // wins the lock first should complete cleanly; whichever loses should
+        // either serialize behind it (finding the doc already gone, if delete won)
+        // or complete normally (if update won and delete found nothing to remove
+        // afterwards) - either outcome is acceptable, but neither should throw an
+        // unhandled error, hang, or leave a corrupted/partial file.
+        const [updateResult, deleteResult] = await Promise.all([
+          this.collection.update({ documentId: targetId }).UpdateOne({ counter: 1 }),
+          this.collection.delete({ documentId: targetId }).deleteOne()
+        ]);
+
+        this.log(`     Update: ${'data' in updateResult ? 'succeeded' : 'failed'}, Delete: ${'data' in deleteResult ? 'succeeded' : 'failed'}`, 'gray');
+
+        // At least one of the two must have observed a real, non-crashing outcome.
+        assert.ok('data' in updateResult || 'data' in deleteResult, 'At least one of update/delete should complete');
+
+        // Whatever the final state is, it must be internally consistent: either the
+        // document is gone, or it exists as valid, uncorrupted data.
+        const finalState = await this.collection.query({ documentId: targetId }).exec();
+        assert.isSuccess(finalState);
+        if (finalState.data.documents.length > 0) {
+          const doc = finalState.data.documents[0];
+          assert.equal(doc.documentId, targetId, 'Surviving document must have the correct documentId');
+          assert.exists(doc.name, 'Surviving document must have an intact name field');
+          assert.equal(doc.name, 'UpdateDeleteRace', 'Surviving document must not be corrupted');
+        } else {
+          this.log('     Document was deleted - acceptable outcome of the race', 'gray');
+        }
+      });
     });
 
     // DELETE Tests
@@ -531,6 +619,18 @@ class CRUDTests extends TestRunner {
           .exec();
         assert.isSuccess(remaining);
         assert.equal(remaining.data.documents.length, 2, 'The two excluded documents (status x, y) should remain');
+      });
+
+      await this.test('deleteOne/deleteMany on a query matching nothing return an error, not a false success', async () => {
+        const oneResult = await this.collection
+          .delete({ name: 'NoSuchUserAtAll' })
+          .deleteOne();
+        assert.isError(oneResult, 'deleteOne with no matching document should return an error');
+
+        const manyResult = await this.collection
+          .delete({ name: 'NoSuchUserAtAll' })
+          .deleteMany();
+        assert.isError(manyResult, 'deleteMany with no matching documents should return an error');
       });
     });
 

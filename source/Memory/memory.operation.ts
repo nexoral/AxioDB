@@ -259,7 +259,7 @@ export class InMemoryCache {
 
   /** Periodically evicts expired cache entries and old search-query tracking. */
   private async autoResetCache(): Promise<void> {
-    setInterval(
+    const interval = setInterval(
       () => {
         if (this.cacheObject.size === 0) {
           return;
@@ -284,6 +284,13 @@ export class InMemoryCache {
       },
       parseInt(String(this.ttl)),
     );
+
+    // Background housekeeping must never be the reason a short-lived script or CLI
+    // tool (a stated core use case) can't exit on its own - same reasoning as
+    // IndexCache's cleanup interval.
+    if (interval.unref) {
+      interval.unref();
+    }
   }
 }
 export default new InMemoryCache(86400); // 24 hours

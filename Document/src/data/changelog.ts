@@ -12,6 +12,17 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "13.1.3",
+    date: "2026-07-24",
+    title: "Fixed a process-exit hang; added real crash-recovery test coverage",
+    changes: [
+      "Fixed: InMemoryCache's background eviction interval had no unref(), so any short-lived script or CLI process using AxioDB (a stated core use case) would never exit on its own without an explicit process.exit() call - it now unrefs the same way IndexCache's cleanup interval already did",
+      "Added a real crash-recovery test suite (npm test crash-recovery): spawns a child process hammering inserts/updates, SIGKILLs it mid-write with no graceful shutdown, then verifies from a fresh process that every recovered document is complete and valid, and the WAL is cleaned up - this is the one guarantee this project had only reasoned about, never actually tested, until now",
+      "Added regression tests for this release's index-reordering fix, the cache-invalidation-scope fix, and the \"no match\" error contract for UpdateOne/UpdateMany/deleteOne/deleteMany",
+      "Wired the new crash-recovery suite into CI (Push.yml and auto_ci.yml Gate 4, alongside crud/transaction/read); synced the npm test command reference across CLAUDE.md, AGENTS.md, .claude/rules/commands.md, .github/copilot/instructions.md, and the axiodb-development skill, which had all drifted to list only crud/transaction/read",
+    ],
+  },
+  {
     version: "13.1.1",
     date: "2026-07-24",
     title: "Update and delete are now WAL-backed (full ACID coverage)",

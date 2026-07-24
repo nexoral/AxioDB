@@ -106,6 +106,39 @@ class TransactionTests extends TestRunner {
 
         const afterCount = await this.collection.totalDocuments();
         assert.equal(afterCount.data.total, beforeCount.data.total);
+
+        // Stronger than a count check: the specific document must not be findable
+        // by any of its indexed fields either - a rollback that undid the file but
+        // left a stale index entry would still "work" by count but corrupt lookups.
+        const byName = await this.collection.query({ name: 'RollbackUser' }).exec();
+        assert.equal(byName.data.documents.length, 0, 'Rolled-back document must not be findable by name');
+        const byEmail = await this.collection.query({ email: 'rollback@test.com' }).exec();
+        assert.equal(byEmail.data.documents.length, 0, 'Rolled-back document must not be findable by its indexed email either');
+      });
+
+      await this.test('Rollback on a mixed insert+update+delete transaction undoes all three', async () => {
+        // The classic atomicity check: several different operation types in one
+        // transaction, rolled back instead of committed - every single one of them
+        // must revert, not just the last one or the first one.
+        await this.collection.insert({ name: 'RB_ToUpdate', email: 'rb-update@test.com', age: 60, status: 'original' });
+        await this.collection.insert({ name: 'RB_ToDelete', email: 'rb-delete@test.com', age: 61 });
+
+        const txn = this.collection.beginTransaction();
+        txn
+          .insert({ name: 'RB_NewInsert', email: 'rb-new@test.com', age: 62 })
+          .update({ name: 'RB_ToUpdate' }, { status: 'changed' })
+          .delete({ name: 'RB_ToDelete' });
+        await txn.rollback();
+
+        const newInsert = await this.collection.query({ name: 'RB_NewInsert' }).exec();
+        assert.equal(newInsert.data.documents.length, 0, 'Rolled-back insert must not exist');
+
+        const updated = await this.collection.query({ name: 'RB_ToUpdate' }).exec();
+        assert.equal(updated.data.documents.length, 1, 'Document targeted by rolled-back update must still exist');
+        assert.equal(updated.data.documents[0].status, 'original', 'Rolled-back update must restore the original field value, not the attempted new one');
+
+        const deleted = await this.collection.query({ name: 'RB_ToDelete' }).exec();
+        assert.equal(deleted.data.documents.length, 1, 'Document targeted by rolled-back delete must still exist');
       });
 
       await this.test('Empty transaction throws error', async () => {

@@ -142,6 +142,69 @@ class ReadOptimizationTests extends TestRunner {
         );
       });
 
+      await this.test('Deleting one document evicts only its own cached queries', async () => {
+        // Same guarantee as the update test above, but for deleteOne - regression
+        // coverage for Transaction.commit() invalidating the whole collection's
+        // cache on every write instead of just the deleted document's entries.
+        const insertResult = await this.collection.insert({ name: 'CacheDeleteTarget', age: 500 });
+        const targetId = insertResult.data.documentId;
+
+        const queryA = { name: 'CacheDeleteTarget' };
+        const queryB = { age: { $gt: 55, $lt: 60 } }; // disjoint - shares no documents with queryA
+
+        await this.collection.query(queryA).exec();
+        await this.collection.query(queryB).exec();
+
+        const bBeforeStart = Date.now();
+        await this.collection.query(queryB).exec();
+        const bBeforeDuration = Date.now() - bBeforeStart;
+
+        await this.collection.delete({ documentId: targetId }).deleteOne();
+
+        const bAfterStart = Date.now();
+        await this.collection.query(queryB).exec();
+        const bAfterDuration = Date.now() - bAfterStart;
+
+        this.log(`     queryB cache hit before: ${bBeforeDuration}ms, after unrelated delete: ${bAfterDuration}ms`, 'gray');
+        assert.ok(bAfterDuration < 100, 'Unrelated cached query should remain a fast cache hit after an unrelated document is deleted');
+      });
+
+      await this.test('UpdateMany evicts only the cached queries for documents it actually touched', async () => {
+        const queryA = { age: { $gt: 30, $lt: 35 } };
+        const queryB = { age: { $gt: 55, $lt: 60 } }; // disjoint - UpdateMany below never touches these documents
+
+        await this.collection.query(queryA).exec();
+        await this.collection.query(queryB).exec();
+
+        const bBeforeStart = Date.now();
+        await this.collection.query(queryB).exec();
+        const bBeforeDuration = Date.now() - bBeforeStart;
+
+        await this.collection.update(queryA).UpdateMany({ batchMarked: true });
+
+        const bAfterStart = Date.now();
+        await this.collection.query(queryB).exec();
+        const bAfterDuration = Date.now() - bAfterStart;
+
+        this.log(`     queryB cache hit before: ${bBeforeDuration}ms, after disjoint UpdateMany: ${bAfterDuration}ms`, 'gray');
+        assert.ok(bAfterDuration < 100, 'Unrelated cached query should remain a fast cache hit after an UpdateMany that never matched it');
+      });
+
+      await this.test('A cached "no results" query is correctly invalidated after an insert that would now match', async () => {
+        // Inserts can't be selectively targeted (a brand-new documentId has no
+        // existing cache entry to evict) - they must broadly invalidate the whole
+        // collection, otherwise a cached empty/stale result set would stay wrong
+        // indefinitely instead of just until the next unrelated write.
+        const uniqueMarker = `insert-cache-check-${Date.now()}`;
+        const before = await this.collection.query({ name: uniqueMarker }).exec();
+        assert.equal(before.data.documents.length, 0, 'Should find nothing before the document exists');
+
+        await this.collection.insert({ name: uniqueMarker, age: 999 });
+
+        const after = await this.collection.query({ name: uniqueMarker }).exec();
+        assert.equal(after.data.documents.length, 1, 'Previously-cached empty result must be invalidated by the insert, not served stale');
+      });
+
       await this.test('DocumentId queries are cached', async () => {
         // Get a documentId first
         const firstResult = await this.collection.query({ name: 'Alice0' }).exec();
