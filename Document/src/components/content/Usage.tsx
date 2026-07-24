@@ -390,10 +390,8 @@ const main = async () => {
   // Create database
   const UserDB = await Instance.createDB("MyDB");
 
-  // Create different types of collections
+  // Create a collection
   const UserCollection = await UserDB.createCollection("Users"); // Basic collection
-  const CollectionWithCrypto = await UserDB.createCollection("UsersWithCrypto", true); // With auto-generated key
-  const CollectionWithCryptoKey = await UserDB.createCollection("UsersWithCryptoKey", true, "secretKey123"); // With custom key
 
   // Insert single document - no schema required, store any JSON
   await UserCollection.insert({
@@ -503,10 +501,8 @@ const main = async () => {
   // Create database
   const UserDB = await Instance.createDB("MyDB");
 
-  // Create different types of collections
+  // Create a collection
   const UserCollection = await UserDB.createCollection("Users"); // Basic collection
-  const CollectionWithCrypto = await UserDB.createCollection("UsersWithCrypto", true); // With auto-generated key
-  const CollectionWithCryptoKey = await UserDB.createCollection("UsersWithCryptoKey", true, "secretKey123"); // With custom key
 
   // Insert single document - no schema required, store any JSON
   await UserCollection.insert({
