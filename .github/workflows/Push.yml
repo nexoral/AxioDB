@@ -200,6 +200,9 @@ jobs:
       - name: Run Read Optimization tests
         run: npm test read
 
+      - name: Run Crash Recovery tests
+        run: npm test crash-recovery
+
   publish_to_npm:
     needs: [detect_changes, test]
     if: needs.detect_changes.outputs.run_npm_github == 'true'

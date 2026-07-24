@@ -182,6 +182,9 @@ jobs:
       - name: Run Read Optimization tests
         run: npm test read
 
+      - name: Run Crash Recovery tests
+        run: npm test crash-recovery
+
   auto-merge:
     name: "auto-merge"
     needs: [detect_changes, test]  # Wait for change detection and all test matrix jobs to complete
