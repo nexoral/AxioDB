@@ -18,7 +18,7 @@ import { General } from "../../config/Keys/Keys";
 // Converter
 import Converter from "../../Helper/Converter.helper";
 import FolderManager from "../../engine/Filesystem/FolderManager";
-import InsertIndex from "../Index/InsertIndex.service";
+import { IndexManager } from "../Index/Index.service";
 import { IndexCache } from "../Index/IndexCache.service";
 import InMemoryCache from "../../Memory/memory.operation";
 
@@ -30,7 +30,7 @@ export default class Collection {
   private readonly path: string;
   private readonly updatedAt: string;
   private Converter: Converter;
-  private readonly IndexManager: InsertIndex;
+  private readonly IndexManager: IndexManager;
   private readonly indexCache: IndexCache;
 
   constructor(
@@ -41,7 +41,7 @@ export default class Collection {
     this.path = path;
     this.Converter = new Converter();
     this.updatedAt = new Date().toISOString();
-    this.IndexManager = new InsertIndex(this.path);
+    this.IndexManager = new IndexManager(this.path);
 
     // Initialize and eagerly load index cache for maximum query performance
     this.indexCache = IndexCache.getInstance(this.path);

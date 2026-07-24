@@ -34,7 +34,7 @@ export default class TransactionIndexManager {
     this.Converter = new Converter();
     this.ResponseHelper = new ResponseHelper();
     this.ReadIndexService = new ReadIndex(collectionPath);
-    // Same shared cache InsertIndex/DeleteIndex/ReadIndex use - staging reads and
+    // Same shared cache ReadIndex uses - staging reads and
     // committing writes through it (instead of raw file I/O) keeps transactional
     // index changes visible to every other index consumer instead of leaving the
     // cache holding a stale pre-transaction copy.
@@ -110,6 +110,16 @@ export default class TransactionIndexManager {
             const oldFieldValue = (op.oldData as any)[fieldName];
             const newFieldValue = (op.data as any)[fieldName];
             const fileName = `${op.documentId}${General.DBMS_File_EXT}`;
+
+            // Field value didn't actually change (the common case - e.g. updating
+            // `status` shouldn't touch the `name`/`age`/documentId indexes at all).
+            // Skipping this avoids a pointless remove+re-add that reorders the
+            // bucket's file array for every other document sharing this same value -
+            // which would silently change which document a later "first match" query
+            // (e.g. UpdateOne, or a plain query with no .Sort()) resolves to.
+            if (oldFieldValue === newFieldValue) {
+              continue;
+            }
 
             if (oldFieldValue !== undefined && indexEntries[oldFieldValue]) {
               indexEntries[oldFieldValue] = indexEntries[oldFieldValue].filter(

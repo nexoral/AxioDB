@@ -6,17 +6,13 @@ import {
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import ResponseHelper from "../../Helper/response.helper";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
-import FileManager from "../../engine/Filesystem/FileManager";
-import { randomUUID } from "crypto";
 
 // Import All Utility
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
-import InMemoryCache from "../../Memory/memory.operation";
 import { General } from "../../config/Keys/Keys";
 import { ReadIndex } from "../Index/ReadIndex.service";
-import DeleteIndex from "../Index/DeleteIndex.service";
-import LockManager from "../Transaction/LockManager.service";
+import Transaction from "../Transaction/Transaction.service";
 /**
  * The DeleteOperation class is used to delete a document from a collection.
  * This class provides methods to delete a single document that matches the base query.
@@ -27,7 +23,6 @@ export default class DeleteOperation {
   private readonly baseQuery: object | any;
   private readonly path: string;
   private readonly ResponseHelper: ResponseHelper;
-  private readonly fileManager: FileManager;
   private allDataWithFileName: any[] = [];
   private sort: object | any;
 
@@ -41,7 +36,6 @@ export default class DeleteOperation {
     this.baseQuery = baseQuery;
     this.sort = {};
     this.ResponseHelper = new ResponseHelper();
-    this.fileManager = new FileManager();
     this.allDataWithFileName = []; // To store all data with file name
   }
 
@@ -49,254 +43,152 @@ export default class DeleteOperation {
   /**
    * Deletes a single document that matches the base query.
    *
-   * This method with ACID compliance:
-   * 1. Loads all raw data from buffers
-   * 2. Searches for documents matching the base query
-   * 3. Selects the first matching document (applying sort if provided)
-   * 4. Acquires lock on the document
-   * 5. Deletes the file associated with the selected document
-   * 6. Releases lock
+   * Routed through a single-operation Transaction, so the delete is WAL-backed:
+   * locking, the fresh re-read under lock, and index sync are all handled by
+   * Transaction/TransactionIndexManager. This method's own job is just picking
+   * *which* document to target (honoring .Sort()), since Transaction.delete()
+   * removes every document a query matches.
    *
    * @returns {Promise<object>} A response object containing either:
    *   - Success: { message: "Data deleted successfully", deleteData: object }
    *   - Error: An error message if no data found or deletion fails
-   *
-   * @throws Will propagate any errors from underlying operations
    */
   public async deleteOne(): Promise<SuccessInterface | ErrorInterface> {
-    const lockManager = LockManager.getInstance(this.path);
-    const operationId = randomUUID();
-    const timestamp = Date.now();
-    let documentId: string | null = null;
-
     try {
-      // STEP 1: Find the document first
-      let ReadResponse; // Read Response Holder
-      if (this.baseQuery?.documentId !== undefined) {
-        const FilePath = [
-          `${this.baseQuery.documentId}${General.DBMS_File_EXT}`,
-        ];
-        ReadResponse = await this.LoadAllBufferRawData(FilePath);
-      } else {
-        const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery)
-        if (fileNames.length > 0) {
-          // Load File Names from Index
-          ReadResponse = await this.LoadAllBufferRawData(fileNames);
-        } else {
-          ReadResponse = await this.LoadAllBufferRawData();
-        }
-      }
-
-      if (!("data" in ReadResponse)) {
-        return this.ResponseHelper.Error(ReadResponse);
-      }
-
-      const SearchedData = await new Searcher(ReadResponse.data, true).find(
-        this.baseQuery,
-        "data",
-      );
-
-      if (SearchedData.length === 0) {
+      const documentId = await this.resolveTargetDocumentId();
+      if (!documentId) {
         return this.ResponseHelper.Error(
           "No data found with the specified query",
         );
       }
 
-      let selectedFirstData = SearchedData[0]; // Select the first data
-      let fileName: string = selectedFirstData?.fileName; // Get the file name
+      const txn = new Transaction(this.path);
+      txn.delete({ documentId });
+      const commitResult = await txn.commit();
 
-      // Sort the data if sort is provided then select the first data for deletion
-      if (Object.keys(this.sort).length !== 0) {
-        const Sorter: Sorting = new Sorting(SearchedData, this.sort);
-        const SortedData: any[] = await Sorter.sort("data"); // Sort the data
-        selectedFirstData = SortedData[0]; // Select the first data
-        fileName = selectedFirstData?.fileName; // Get the file name
+      if (!("data" in commitResult)) {
+        return commitResult;
       }
 
-      documentId = fileName.split('.')[0];
-
-      // STEP 2: Acquire lock on the document (ACID: Isolation)
-      const lockResult = await lockManager.acquireLock(documentId, operationId, timestamp);
-      if (!("data" in lockResult)) {
-        return this.ResponseHelper.Error("Lock acquisition failed");
-      }
-
-      // STEP 3: Re-read under lock. The Step 1 snapshot's field values can be stale if
-      // another writer updated this document while we waited for the lock - deleting
-      // the file is unaffected by that, but cleaning up the index with stale field
-      // values would remove the wrong index entry and leave a dangling one behind.
-      const freshRead = await DocumentLoader.loadDocuments(
-        this.path,
-        [fileName],
-        true,
+      const deleteOp = (commitResult.data.resolvedOperations ?? []).find(
+        (op: any) => op.type === "DELETE" && op.documentId === documentId,
       );
-      if (!("data" in freshRead) || freshRead.data.length === 0) {
+      if (!deleteOp) {
         return this.ResponseHelper.Error("Document no longer exists");
       }
-      const currentData = freshRead.data[0].data;
-
-      // STEP 4: Delete the file (now safe - locked)
-      const deleteResponse = await this.deleteFile(fileName);
-      if (!("data" in deleteResponse)) {
-        return this.ResponseHelper.Error("Failed to delete data");
-      }
-
-      // Fire-and-forget: Remove from indexes and invalidate cache asynchronously for faster response
-      const isDeleted = await new DeleteIndex(this.path).RemoveFromIndex(documentId, currentData).catch(() => {});
-
-      if (isDeleted){ await InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
 
       return this.ResponseHelper.Success({
         message: "Data deleted successfully",
-        deleteData: currentData,
+        deleteData: deleteOp.oldData,
       });
-    } 
-    else {
-      return this.ResponseHelper.Error("Failed to remove from index & invalidate cache");
-    }
-
-    } finally {
-      // STEP 4: Always release lock (ACID: ensures no deadlock)
-      if (documentId) {
-        await lockManager.releaseLock(documentId).catch(() => {});
-      }
+    } catch (error) {
+      return this.ResponseHelper.Error("Failed to delete data");
     }
   }
 
   /**
    * Deletes multiple documents that match the base query.
    *
-   * This method with ACID compliance:
-   * 1. Searches for documents matching the base query
-   * 2. Acquires locks on ALL matching documents (ensures atomicity)
-   * 3. Deletes each matching file
-   * 4. Releases all locks
-   * 5. Returns success with the deleted data or an error
+   * Routed through a single Transaction covering the whole query, so the batch
+   * is WAL-backed: locking, fresh re-reads, and index sync (one rewrite per
+   * affected index field, not one per document) are all handled by
+   * Transaction/TransactionIndexManager.
    *
    * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves to either:
    *   - Success with a success message and the deleted data
-   *   - Error if:
-   *     - No matching data is found
-   *     - Lock acquisition fails
-   *     - Any file deletion operation fails
-   *     - The initial buffer data loading fails
+   *   - Error if no matching data is found or the transaction failed
    */
   public async deleteMany(): Promise<SuccessInterface | ErrorInterface> {
-    const lockManager = LockManager.getInstance(this.path);
-    const operationId = randomUUID();
-    const timestamp = Date.now();
-    const acquiredLocks: string[] = [];
-
     try {
-      // STEP 1: Find all matching documents
-      let response;
-      const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery)
-      if (fileNames.length > 0) {
-        // Load File Names from Index
-        response = await this.LoadAllBufferRawData(fileNames);
-      } else {
-        response = await this.LoadAllBufferRawData();
+      const txn = new Transaction(this.path);
+      txn.delete(this.baseQuery);
+      const commitResult = await txn.commit();
+
+      if (!("data" in commitResult)) {
+        return commitResult;
       }
 
-      if (!("data" in response)) {
-        return this.ResponseHelper.Error(response);
-      }
-
-      const SearchedData = await new Searcher(response.data, true).find(
-        this.baseQuery,
-        "data",
+      const deleteOps = (commitResult.data.resolvedOperations ?? []).filter(
+        (op: any) => op.type === "DELETE",
       );
 
-      if (SearchedData.length === 0) {
+      if (deleteOps.length === 0) {
         return this.ResponseHelper.Error(
           "No data found with the specified query",
         );
       }
 
-      // STEP 2: Extract all document IDs and acquire locks on ALL documents
-      const documentIds = SearchedData.map((data) => data.fileName.split('.')[0]);
+      return this.ResponseHelper.Success({
+        message: "Data deleted successfully",
+        deleteData: deleteOps.map((op: any) => op.oldData),
+      });
+    } catch (error) {
+      return this.ResponseHelper.Error("Failed to delete data");
+    }
+  }
 
-      for (const docId of documentIds) {
-        const lockResult = await lockManager.acquireLock(docId, operationId, timestamp);
-        if (!("data" in lockResult)) {
-          // Lock acquisition failed - rollback
-          return this.ResponseHelper.Error(`Lock acquisition failed for document ${docId}`);
-        }
-        acquiredLocks.push(docId);
-      }
+  /**
+   * to be sorted to the query
+   * @param {object} sort - The sort to be set.
+   * @returns {DeleteOperation} - An instance of the DeleteOperation class.
+   */
+  public Sort(sort: object | any): DeleteOperation {
+    this.sort = sort;
+    return this;
+  }
 
-      // STEP 3: All locks acquired - re-read current data under lock. The Step 1
-      // snapshot can be stale for any document another writer touched while we were
-      // queued behind its lock (see UpdateOne for the full race) - deleting the file
-      // is unaffected, but stale field values would clean up the wrong index entry.
-      const fileNamesToRefresh = SearchedData.map((d) => d.fileName);
-      const freshRead = await DocumentLoader.loadDocuments(
-        this.path,
-        fileNamesToRefresh,
-        true,
-      );
-      if (!("data" in freshRead)) {
-        return this.ResponseHelper.Error("Failed to re-read documents under lock");
-      }
-      const freshDataByFileName = new Map<string, any>(
-        freshRead.data.map((d: any) => [d.fileName, d.data]),
-      );
-
-      // STEP 4: All locks acquired - now perform deletions safely
-      const deleteIndexService = new DeleteIndex(this.path);
-      for (let i = 0; i < SearchedData.length; i++) {
-        const fileName = SearchedData[i].fileName;
-        const currentData = freshDataByFileName.get(fileName);
-        if (!currentData) {
-          return this.ResponseHelper.Error(`Document ${fileName} no longer exists`);
-        }
-
-        const deleteResponse = await this.deleteFile(fileName);
-        if (!("data" in deleteResponse)) {
-          return this.ResponseHelper.Error("Failed to delete data");
-        }
-
-        // Fire-and-forget: Remove from indexes asynchronously
-        await deleteIndexService.RemoveFromIndex(
-          fileName.split('.')[0],
-          currentData
-        ).catch(() => {});
-      }
-
-      // Fire-and-forget: Invalidate cache asynchronously
-      const isRemoved = await InMemoryCache.invalidateByDocuments(this.path, documentIds).catch(() => {});
-
-      if (isRemoved){
-        return this.ResponseHelper.Success({
-          message: "Data deleted successfully",
-          deleteData: SearchedData.map((data) => freshDataByFileName.get(data.fileName)),
-        });
-      }
-      else {
-        return this.ResponseHelper.Error("Failed to invalidate cache after deletion");
-      }
-
-    } finally {
-      // STEP 4: Always release ALL acquired locks (ACID: ensures no deadlock)
-      if (acquiredLocks.length > 0) {
-        await lockManager.releaseAllLocks(acquiredLocks).catch(() => {});
+  /**
+   * Resolves the single document deleteOne should target: runs the same
+   * index-or-full-scan search deleteMany's Transaction path uses internally,
+   * then applies .Sort() (if set) and picks the first match - matching the
+   * "one specific document" semantics deleteOne has always had.
+   *
+   * @returns The target document's ID, or null if nothing matched.
+   */
+  private async resolveTargetDocumentId(): Promise<string | null> {
+    let ReadResponse: SuccessInterface | ErrorInterface;
+    if (this.baseQuery?.documentId !== undefined) {
+      const FilePath = [
+        `${this.baseQuery.documentId}${General.DBMS_File_EXT}`,
+      ];
+      ReadResponse = await this.LoadAllBufferRawData(FilePath);
+    } else {
+      const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery);
+      if (fileNames.length > 0) {
+        ReadResponse = await this.LoadAllBufferRawData(fileNames);
+      } else {
+        ReadResponse = await this.LoadAllBufferRawData();
       }
     }
+
+    if (!("data" in ReadResponse)) {
+      return null;
+    }
+
+    const SearchedData = await new Searcher(ReadResponse.data, true).find(
+      this.baseQuery,
+      "data",
+    );
+
+    if (SearchedData.length === 0) {
+      return null;
+    }
+
+    let selectedFirstData = SearchedData[0];
+    if (Object.keys(this.sort).length !== 0) {
+      const Sorter: Sorting = new Sorting(SearchedData, this.sort);
+      const SortedData: any[] = await Sorter.sort("data");
+      selectedFirstData = SortedData[0];
+    }
+
+    const fileName: string = selectedFirstData?.fileName;
+    return fileName ? fileName.split(".")[0] : null;
   }
 
   /**
    * Loads all buffer raw data from the specified directory.
    *
-   * This method performs the following steps:
-   * 1. Checks if the directory is locked.
-   * 2. If the directory is not locked, it lists all files in the directory.
-   * 3. Reads each file.
-   * 4. Stores the data in the `AllData` array.
-   * 5. If the directory is locked, it unlocks the directory, reads the files, and then locks the directory again.
-   *
    * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves to a success or error response.
-   *
-   * @throws {Error} Throws an error if any operation fails.
    */
   private async LoadAllBufferRawData(
     documentIdDirectFile?: string[] | undefined,
@@ -314,28 +206,5 @@ export default class DeleteOperation {
     }
 
     return result;
-  }
-
-  /**
-   * Deletes a file from the specified path.
-   *
-   * @param fileName - The name of the file to be deleted
-   * @returns A response object indicating success or failure
-   *          Success response: { status: true, message: "File deleted successfully" }
-   *          Error response: { status: false, message: <error message> }
-   * @private
-   */
-  private async deleteFile(fileName: string) {
-    return await this.fileManager.DeleteFileWithLock(this.path, fileName);
-  }
-
-  /**
-   * to be sorted to the query
-   * @param {object} sort - The sort to be set.
-   * @returns {DeleteOperation} - An instance of the DeleteOperation class.
-   */
-  public Sort(sort: object | any): DeleteOperation {
-    this.sort = sort;
-    return this;
   }
 }

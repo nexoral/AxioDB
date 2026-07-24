@@ -12,6 +12,20 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "13.1.1",
+    date: "2026-07-24",
+    title: "Update and delete are now WAL-backed (full ACID coverage)",
+    changes: [
+      "UpdateOne/UpdateMany/deleteOne/deleteMany now route through the same Transaction/WAL machinery insert() already used, instead of a separate ad-hoc lock-and-write path",
+      "Fixed: a failed index-sync after a successful document write used to be silently swallowed (fire-and-forget), leaving the index out of sync with no way to recover on crash - it's now staged and committed atomically with the document change, with WAL redo/undo on failure",
+      "Removed the now-redundant per-call LockManager/DocumentLoader-reread/DeleteIndex/InsertIndex wiring from UpdateOperation and DeleteOperation - Transaction already does locking, the fresh re-read under lock, and index staging correctly",
+      "insertMany's earlier index-rewrite batching win (Document/src/data/changelog.ts 13.0.0) now applies to UpdateMany/deleteMany too: one index-file rewrite per affected field for the whole batch, not one per document",
+      "Fixed: TransactionIndexManager.stageIndexUpdates was removing and re-appending a document's file entry in an index bucket even when that field's value hadn't changed, silently reordering the bucket - for documents sharing an indexed value (e.g. duplicate names), this could make a later query's \"first match\" resolve to a different document than the one just written. It now skips a field's index entirely when its value is unchanged.",
+      "Removed InsertIndex.service.ts and DeleteIndex.service.ts - both were only used by the old ad-hoc update/delete path this release replaced, leaving them with zero live callers; Collection now constructs the shared IndexManager base class directly for createIndex/dropIndex/listIndexes",
+      "Fixed: routing update/delete through Transaction.commit() had it invalidate the whole collection's cache on every write (the behavior insert() always needed) instead of only the affected documents' cache entries - an update to one document was evicting unrelated cached queries that never matched it. commit() now only does the broad invalidation when the transaction contains an INSERT; update/delete-only transactions evict just the specific documents that changed.",
+    ],
+  },
+  {
     version: "13.0.0",
     date: "2026-07-24",
     title: "Encryption removed; sorted-index range queries; batched inserts",

@@ -205,8 +205,23 @@ export default class Transaction {
 
       await this.LockManager.releaseAllLocks(this.lockedDocuments);
 
-      // Selective cache invalidation: only clear cache for this collection
-      await InMemoryCache.invalidateByCollection(this.collectionPath);
+      // Invalidate cache: an INSERT's new document could match a previously-cached
+      // list/filter query that has no existing entry to selectively target, so any
+      // transaction containing one must invalidate the whole collection. A
+      // transaction of only UPDATE/DELETE ops knows exactly which documents
+      // changed, so it only evicts cache entries that actually referenced them -
+      // leaving unrelated cached queries (e.g. a disjoint range) untouched.
+      const hasInsert = this.resolvedOperations.some((op) => op.type === 'INSERT');
+      if (hasInsert) {
+        await InMemoryCache.invalidateByCollection(this.collectionPath);
+      } else {
+        const affectedDocumentIds = this.resolvedOperations
+          .map((op) => op.documentId)
+          .filter((id): id is string => Boolean(id));
+        if (affectedDocumentIds.length > 0) {
+          await InMemoryCache.invalidateByDocuments(this.collectionPath, affectedDocumentIds);
+        }
+      }
 
       await this.WAL.deleteWAL();
       await this.Registry.removeTransaction(this.transactionId);
@@ -218,6 +233,15 @@ export default class Transaction {
         documentIds: this.resolvedOperations
           .filter((op) => op.type === 'INSERT' && op.documentId)
           .map((op) => op.documentId as string),
+        // Per-document before/after data for UPDATE/DELETE ops, so callers (e.g.
+        // UpdateOperation/DeleteOperation) can build their response without a
+        // second disk read - this is already computed internally in executeOperations().
+        resolvedOperations: this.resolvedOperations.map((op) => ({
+          type: op.type,
+          documentId: op.documentId,
+          oldData: op.oldData,
+          data: op.data,
+        })),
       });
     } catch (error) {
       await this.rollback();
