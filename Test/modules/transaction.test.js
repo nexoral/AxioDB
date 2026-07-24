@@ -26,7 +26,7 @@ class TransactionTests extends TestRunner {
 
     this.dbInstance = new AxioDB({ GUI: false, RootName: 'TransactionTestDB', CustomPath: this.testDir });
     this.testDB = await this.dbInstance.createDB('TestDB');
-    this.collection = await this.testDB.createCollection('Users', false);
+    this.collection = await this.testDB.createCollection('Users');
     await this.collection.newIndex('email', 'age', 'name');
 
     this.log('Test environment ready', 'success');
