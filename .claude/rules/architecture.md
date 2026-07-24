@@ -85,7 +85,6 @@ collection.query({ age: { $gt: 25 } })
 3. File-per-document: O(1) access by ID
 4. Index cache: Random TTL prevents stampede
 5. Lazy loading: Load only when needed
-6. Two-pointer search: Efficient ranges
 
 ## When Adding Features
 - New service → `Services/{FeatureName}/`

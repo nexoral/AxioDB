@@ -865,7 +865,6 @@ For vulnerability reporting, see [SECURITY.md](SECURITY.md).
 
 - **Tree Structure for Fast Data Retrieval:** hierarchical storage enables O(1) document lookups and efficient indexing. Each document is isolated in its own file, supporting selective loading and easy backup.
 - **Worker Threads for Parallel Processing:** leverages Node.js Worker Threads for non-blocking I/O, multi-core utilization, and scalable performance — especially for read operations.
-- **Two-Pointer Searching Algorithm:** optimized for range queries and filtered searches, minimizing memory usage and computational overhead.
 - **`InMemoryCache` System:** automatic eviction policies, TTL support, and memory optimization, delivering sub-millisecond response times for frequently accessed data.
 - **Query Processing Pipeline:** intelligent caching, parallelized processing, lazy evaluation, and just-in-time query optimization.
 - **Single Instance Architecture:** ensures ACID compliance, strong data consistency, and simplified deployment — one `AxioDB` instance manages all databases and collections.
