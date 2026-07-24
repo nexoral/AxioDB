@@ -8,7 +8,6 @@ import { TransactionMetadata, TransactionOperation, WALEntry, Savepoint } from "
 import { General } from "../../config/Keys/Keys";
 import FileManager from "../../engine/Filesystem/FileManager";
 import Converter from "../../Helper/Converter.helper";
-import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
 import InMemoryCache from "../../Memory/memory.operation";
 import LockManager from "./LockManager.service";
@@ -24,12 +23,9 @@ export default class Transaction {
   private readonly LockManager: LockManager;
   private readonly Registry: TransactionRegistry;
   private readonly IndexManager: TransactionIndexManager;
-  private readonly isEncrypted: boolean;
   private readonly ResponseHelper: ResponseHelper;
   private readonly Converter: Converter;
   private readonly FileManager: FileManager;
-  private readonly cryptoInstance?: CryptoHelper;
-  private readonly encryptionKey?: string;
   private readonly startTime: number;
   private readonly timeoutMs: number = 30000;
   private lockedDocuments: string[] = [];
@@ -37,33 +33,19 @@ export default class Transaction {
   private pendingWALEntries: WALEntry[] = [];
   private resolvedOperations: TransactionOperation[] = [];
 
-  constructor(
-    collectionPath: string,
-    isEncrypted: boolean = false,
-    encryptionKey?: string
-  ) {
+  constructor(collectionPath: string) {
     this.transactionId = new UniqueGenerator(15).RandomWord(true);
     this.collectionPath = collectionPath;
-    this.isEncrypted = isEncrypted;
-    this.encryptionKey = encryptionKey;
     this.startTime = Date.now();
 
-    this.WAL = new WriteAheadLog(collectionPath, this.transactionId, isEncrypted, encryptionKey);
+    this.WAL = new WriteAheadLog(collectionPath, this.transactionId);
     this.LockManager = LockManager.getInstance(collectionPath);
     this.Registry = new TransactionRegistry(collectionPath);
-    this.IndexManager = new TransactionIndexManager(
-      collectionPath,
-      isEncrypted,
-      encryptionKey
-    );
+    this.IndexManager = new TransactionIndexManager(collectionPath);
 
     this.ResponseHelper = new ResponseHelper();
     this.Converter = new Converter();
     this.FileManager = new FileManager();
-
-    if (this.isEncrypted && encryptionKey) {
-      this.cryptoInstance = new CryptoHelper(encryptionKey);
-    }
   }
 
   /**
@@ -330,12 +312,7 @@ export default class Transaction {
             continue;
           }
 
-          let oldDataStr = readResult.data;
-          if (this.isEncrypted && this.cryptoInstance) {
-            oldDataStr = await this.cryptoInstance.decrypt(oldDataStr);
-          }
-
-          const oldData = this.Converter.ToObject(oldDataStr);
+          const oldData = this.Converter.ToObject(readResult.data);
 
           const newData = { ...oldData, ...op.data };
 
@@ -364,12 +341,7 @@ export default class Transaction {
             continue;
           }
 
-          let oldDataStr = readResult.data;
-          if (this.isEncrypted && this.cryptoInstance) {
-            oldDataStr = await this.cryptoInstance.decrypt(oldDataStr);
-          }
-
-          const oldData = this.Converter.ToObject(oldDataStr);
+          const oldData = this.Converter.ToObject(readResult.data);
 
           resolvedOperations.push({
             type: 'DELETE',
@@ -401,9 +373,6 @@ export default class Transaction {
       let afterData: string | undefined;
       if ((op.type === 'INSERT' || op.type === 'UPDATE') && op.data) {
         afterData = this.Converter.ToString(op.data);
-        if (this.isEncrypted && this.cryptoInstance) {
-          afterData = await this.cryptoInstance.encrypt(afterData);
-        }
       }
 
       const walEntry: WALEntry = {

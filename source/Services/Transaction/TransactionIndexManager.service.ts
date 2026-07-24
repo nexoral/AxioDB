@@ -25,14 +25,8 @@ export default class TransactionIndexManager {
   private readonly indexCache: IndexCache;
   // Keyed by fieldName (not file path) - IndexCache.updateIndex() takes the field name
   private stagedIndexUpdates: Map<string, any> = new Map();
-  private readonly isEncrypted: boolean;
-  private readonly encryptionKey?: string;
 
-  constructor(
-    collectionPath: string,
-    isEncrypted: boolean = false,
-    encryptionKey?: string
-  ) {
+  constructor(collectionPath: string) {
     this.collectionPath = collectionPath;
     this.indexFolderPath = `${collectionPath}/indexes`;
     this.indexMetaPath = `${this.indexFolderPath}/index.meta.json`;
@@ -45,8 +39,6 @@ export default class TransactionIndexManager {
     // index changes visible to every other index consumer instead of leaving the
     // cache holding a stale pre-transaction copy.
     this.indexCache = IndexCache.getInstance(collectionPath);
-    this.isEncrypted = isEncrypted;
-    this.encryptionKey = encryptionKey;
   }
 
   public async resolveQueryToDocumentIds(query: object): Promise<string[]> {
@@ -54,26 +46,14 @@ export default class TransactionIndexManager {
       const fileNames = await this.ReadIndexService.getFileFromIndex(query);
 
       if (fileNames && fileNames.length > 0) {
-        const dataList = await ReaderWithWorker(
-          fileNames,
-          this.encryptionKey,
-          this.collectionPath,
-          this.isEncrypted,
-          true
-        );
+        const dataList = await ReaderWithWorker(fileNames, this.collectionPath, true);
 
         const searchedData = await new Searcher(dataList, true).find(query, "data");
         return searchedData.map((item: any) => item.data.documentId);
       }
 
       const allFiles = await this.getAllDocumentFiles();
-      const allData = await ReaderWithWorker(
-        allFiles,
-        this.encryptionKey,
-        this.collectionPath,
-        this.isEncrypted,
-        true
-      );
+      const allData = await ReaderWithWorker(allFiles, this.collectionPath, true);
 
       const searchedData = await new Searcher(allData, true).find(query, "data");
       return searchedData.map((item: any) => item.data.documentId);

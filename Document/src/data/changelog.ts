@@ -12,6 +12,20 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "13.0.0",
+    date: "2026-07-24",
+    title: "Encryption removed; sorted-index range queries; batched inserts",
+    changes: [
+      "BREAKING: removed per-collection AES-256 encryption (isEncrypted/encryptionKey params on createCollection and every downstream API) - unnecessary overhead for an embedded database; existing encrypted collections will not be readable after upgrading",
+      "CryptoHelper/CryptoGraphy helpers, and every isEncrypted/encryptionKey parameter across Collection, Reader, Update, Delete, Aggregation, Transaction, Session, and the HTTP/TCP APIs, removed",
+      "Range queries ($gt/$gte/$lt/$lte) on indexed fields now resolve via a sorted-value binary search instead of a full collection scan",
+      "insertMany now batches every document into a single Transaction (one index-file rewrite per field instead of one per document) instead of committing a separate Transaction per document",
+      "Fixed: UpdateOne/UpdateMany/deleteOne/deleteMany now re-read the target document under the lock instead of trusting the pre-lock snapshot, closing a lost-update race under concurrent writers",
+      "Fixed: document rewrites during update are now an atomic temp-file-plus-rename instead of delete-then-recreate, so a concurrent unlocked read can no longer observe a transiently missing file",
+      "Fixed: the transaction registry (txn-meta.json) is now fsynced on every write, so recovery can no longer lose track of a committed WAL entry on crash",
+    ],
+  },
+  {
     version: "12.10.20+",
     date: "2026-07-12",
     title: "MCP Server for AI agent integration",

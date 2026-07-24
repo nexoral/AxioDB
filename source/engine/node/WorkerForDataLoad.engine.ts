@@ -4,21 +4,16 @@ import { parentPort, workerData } from "worker_threads";
 import FileManager from "../Filesystem/FileManager";
 import Converter from "../../Helper/Converter.helper";
 import { SuccessInterface } from "../../config/Interfaces/Helper/response.helper.interface";
-import { CryptoHelper } from "../../Helper/Crypto.helper";
 
 interface ErrorInterface {
   error: string;
   [key: string]: any;
 }
 
-const { chunk, encryptionKey, path, isEncrypted, storeFileName } = workerData;
+const { chunk, path, storeFileName } = workerData;
 const result: unknown[] = [];
 
-const cryptoInstance = encryptionKey
-  ? new CryptoHelper(encryptionKey)
-  : undefined;
-
-/** Reads all files in `chunk` concurrently via Promise.all, decrypting them if `cryptoInstance` is set. */
+/** Reads all files in `chunk` concurrently via Promise.all. */
 async function processFiles() {
   try {
     const filePromises = chunk.map(async (fileName: string) => {
@@ -27,27 +22,13 @@ async function processFiles() {
           await new FileManager().ReadFile(`${path}/${fileName}`);
 
         if ("data" in ReadFileResponse) {
-          if (isEncrypted === true && cryptoInstance) {
-            const ContentResponse = await cryptoInstance.decrypt(
-              new Converter().ToObject(ReadFileResponse.data),
-            );
-            if (storeFileName == true) {
-              return {
-                fileName: fileName,
-                data: new Converter().ToObject(ContentResponse),
-              };
-            } else {
-              return new Converter().ToObject(ContentResponse);
-            }
+          if (storeFileName == true) {
+            return {
+              fileName: fileName,
+              data: new Converter().ToObject(ReadFileResponse.data),
+            };
           } else {
-            if (storeFileName == true) {
-              return {
-                fileName: fileName,
-                data: new Converter().ToObject(ReadFileResponse.data),
-              };
-            } else {
-              return new Converter().ToObject(ReadFileResponse.data);
-            }
+            return new Converter().ToObject(ReadFileResponse.data);
           }
         } else {
           console.error(`Failed to read file: ${fileName}`);

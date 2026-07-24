@@ -19,7 +19,7 @@ const Features: React.FC = () => {
     <section id="features" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB Features - Production-Ready NoSQL Database for Node.js"
-        description="Explore AxioDB's caching, indexing, transactions, encryption, and GUI features for embedded Node.js applications."
+        description="Explore AxioDB's caching, indexing, transactions, and GUI features for embedded Node.js applications."
         path="/features"
       />
       {/* Hero Header */}
@@ -134,9 +134,9 @@ const Features: React.FC = () => {
               </h3>
             </div>
             <p className="text-slate-300 leading-relaxed text-lg">
-              Enterprise-grade encryption for sensitive cached data including
-              user sessions, API responses, and confidential application state
-              with automatic key rotation.
+              In-memory caching reduces disk reads for user sessions, API
+              responses, and application state, minimizing exposure of
+              sensitive data to unnecessary I/O.
             </p>
           </div>
         </div>
@@ -311,9 +311,8 @@ const Features: React.FC = () => {
               </h3>
             </div>
             <p className="text-slate-300 leading-relaxed text-lg">
-              Create collections with versatile configurations: basic
-              collections, or encrypted collections with auto-generated or
-              custom encryption keys.
+              Create collections with a single call - schema-less by default,
+              or with optional schema validation when you need structure.
             </p>
           </div>
         </div>

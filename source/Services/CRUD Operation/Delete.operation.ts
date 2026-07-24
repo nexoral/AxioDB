@@ -4,8 +4,6 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-import Converter from "../../Helper/Converter.helper";
-import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
 import FileManager from "../../engine/Filesystem/FileManager";
@@ -28,11 +26,7 @@ export default class DeleteOperation {
   protected readonly collectionName: string;
   private readonly baseQuery: object | any;
   private readonly path: string;
-  private readonly isEncrypted: boolean;
-  private readonly encryptionKey: string | undefined;
   private readonly ResponseHelper: ResponseHelper;
-  private readonly cryptoInstance?: CryptoHelper;
-  private readonly Converter: Converter;
   private readonly fileManager: FileManager;
   private allDataWithFileName: any[] = [];
   private sort: object | any;
@@ -41,26 +35,13 @@ export default class DeleteOperation {
     collectionName: string,
     path: string,
     baseQuery: object | any,
-    isEncrypted: boolean = false,
-    encryptionKey?: string,
   ) {
     this.collectionName = collectionName;
     this.path = path;
     this.baseQuery = baseQuery;
-    this.isEncrypted = isEncrypted;
-    this.encryptionKey = encryptionKey;
     this.sort = {};
     this.ResponseHelper = new ResponseHelper();
-    this.Converter = new Converter();
     this.fileManager = new FileManager();
-    if (this.isEncrypted === true) {
-      if (!this.encryptionKey) {
-        throw new Error(
-          "Encryption key must be provided when isEncrypted is true.",
-        );
-      }
-      this.cryptoInstance = new CryptoHelper(this.encryptionKey);
-    }
     this.allDataWithFileName = []; // To store all data with file name
   }
 
@@ -146,8 +127,6 @@ export default class DeleteOperation {
       // values would remove the wrong index entry and leave a dangling one behind.
       const freshRead = await DocumentLoader.loadDocuments(
         this.path,
-        this.encryptionKey,
-        this.isEncrypted,
         [fileName],
         true,
       );
@@ -253,8 +232,6 @@ export default class DeleteOperation {
       const fileNamesToRefresh = SearchedData.map((d) => d.fileName);
       const freshRead = await DocumentLoader.loadDocuments(
         this.path,
-        this.encryptionKey,
-        this.isEncrypted,
         fileNamesToRefresh,
         true,
       );
@@ -313,8 +290,8 @@ export default class DeleteOperation {
    * This method performs the following steps:
    * 1. Checks if the directory is locked.
    * 2. If the directory is not locked, it lists all files in the directory.
-   * 3. Reads each file and decrypts the data if encryption is enabled.
-   * 4. Stores the decrypted data in the `AllData` array.
+   * 3. Reads each file.
+   * 4. Stores the data in the `AllData` array.
    * 5. If the directory is locked, it unlocks the directory, reads the files, and then locks the directory again.
    *
    * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves to a success or error response.
@@ -327,8 +304,6 @@ export default class DeleteOperation {
     // Use shared DocumentLoader helper (DRY - consolidates duplicated code)
     const result = await DocumentLoader.loadDocuments(
       this.path,
-      this.encryptionKey,
-      this.isEncrypted,
       documentIdDirectFile,
       true  // Include fileName for Delete operations
     );

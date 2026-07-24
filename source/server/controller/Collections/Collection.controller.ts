@@ -17,11 +17,9 @@ export default class CollectionController {
   public async createCollection(
     request: FastifyRequest,
   ): Promise<ResponseBuilder> {
-    const { dbName, collectionName, crypto, key } = request.body as {
+    const { dbName, collectionName } = request.body as {
       dbName: string;
       collectionName: string;
-      crypto?: boolean;
-      key?: string;
     };
 
     if (!dbName || typeof dbName !== "string") {
@@ -42,7 +40,7 @@ export default class CollectionController {
       return buildResponse(StatusCodes.CONFLICT, "Collection already exists");
     }
     try {
-      await databaseInstance.createCollection(collectionName, crypto, key);
+      await databaseInstance.createCollection(collectionName);
       return buildResponse(
         StatusCodes.CREATED,
         "Collection created successfully",

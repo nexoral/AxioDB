@@ -1,4 +1,4 @@
-import { AlertTriangle, Database, Key, Lock, ShieldCheck, Users, Zap } from "lucide-react";
+import { AlertTriangle, Database, Lock, ShieldCheck, Users, Zap } from "lucide-react";
 import React from "react";
 import Seo from "../ui/Seo";
 
@@ -6,8 +6,8 @@ const Security: React.FC = () => {
   return (
     <section id="security" className="pt-12 scroll-mt-20">
       <Seo
-        title="AxioDB Security - AES-256 Encryption & Data Protection"
-        description="AES-256 encryption, RBAC authentication, and security best practices for AxioDB's GUI and AxioDBCloud TCP server."
+        title="AxioDB Security - RBAC & Data Protection"
+        description="RBAC authentication and security best practices for AxioDB's GUI and AxioDBCloud TCP server."
         path="/security"
       />
       <div className="relative overflow-hidden bg-gradient-to-br from-green-900/20 via-slate-800 to-blue-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-green-800 shadow-xl animate-fade-in">
@@ -25,20 +25,7 @@ const Security: React.FC = () => {
       </div>
 
       {/* Animated Security Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-        <div className="group relative bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-green-800 hover:border-blue-600 transform hover:-translate-y-1 animate-fade-in-up">
-          <div className="flex items-center gap-2 mb-4">
-            <Key className="h-8 w-8 text-blue-500" />
-            <h3 className="text-lg font-bold text-blue-300">
-              Encryption
-            </h3>
-          </div>
-          <p className="text-gray-300">
-            Optional AES-256 encryption for collections. Data is encrypted
-            before being written to disk and decrypted when read, keeping
-            sensitive data protected at rest.
-          </p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
         <div className="group relative bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-green-800 hover:border-blue-600 transform hover:-translate-y-1 animate-fade-in-up">
           <div className="flex items-center gap-2 mb-4">
             <Database className="h-8 w-8 text-purple-500" />
@@ -80,48 +67,10 @@ const Security: React.FC = () => {
           className="w-64 h-64 object-contain mb-4"
         />
         <ul className="list-disc pl-6 text-lg text-slate-300 space-y-2">
-          <li>Encrypted at rest and in transit</li>
           <li>File-level isolation and locking</li>
           <li>Configurable access controls</li>
           <li>Automatic cache invalidation for stale data</li>
         </ul>
-      </div>
-
-      {/* Secure Collections Example */}
-      <div className="bg-gray-800 rounded-2xl p-8 shadow-lg border border-green-800 mb-8 animate-fade-in-up">
-        <h3 className="text-xl font-bold mb-4 text-green-300">
-          Implementing Secure Collections
-        </h3>
-        <p className="text-gray-300 mb-4">
-          To create a secure, encrypted collection, simply pass the encryption
-          parameter as{" "}
-          <code className="bg-gray-900 px-1 py-0.5 rounded">
-            true
-          </code>{" "}
-          and provide a secret key when creating the collection:
-        </p>
-        <pre className="bg-gray-900 p-4 rounded-md overflow-x-auto mb-4">
-          <code className="text-sm font-mono">
-            {`// Create an encrypted collection with auto-generated key
-const secureCollection = await db1.createCollection(
-  "users",
-  true        // Enable encryption (key auto-generated)
-);
-
-// Create an encrypted collection with custom key
-const customKeyCollection = await db1.createCollection(
-  "sensitiveData",
-  true,       // Enable encryption
-  "your-strong-secret-key"  // Custom encryption key
-);`}
-          </code>
-        </pre>
-
-        <p className="text-gray-300 mb-4">
-          Once created, all operations on the collection (insert, query, update,
-          delete) will automatically handle encryption and decryption, making
-          the process transparent to your application.
-        </p>
       </div>
 
       {/* Control Server Authentication (RBAC) */}
@@ -192,16 +141,14 @@ const customKeyCollection = await db1.createCollection(
         </div>
 
         <ul className="space-y-2 list-disc pl-6 text-gray-300">
+          <li>Use strong, unique credentials for each Control Server account</li>
+          <li>Never hardcode passwords or secrets in your application code</li>
           <li>
-            Use strong, unique encryption keys for each sensitive collection
-          </li>
-          <li>Never hardcode encryption keys in your application code</li>
-          <li>
-            Consider using environment variables or a secure key management
+            Consider using environment variables or a secure secret management
             system
           </li>
           <li>Implement proper application-level access controls</li>
-          <li>Regularly backup your encrypted databases</li>
+          <li>Regularly backup your databases</li>
           <li>
             Keep your AxioDB version updated to benefit from security patches
           </li>

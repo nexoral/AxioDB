@@ -571,7 +571,7 @@ file: [database.tar.gz file]`,
         {
           method: "POST",
           path: "/api/collection/create-collection",
-          description: "Creates a new collection within a specified database. Optionally enables encryption with AES-256 for sensitive data.",
+          description: "Creates a new collection within a specified database.",
           parameters: [
             {
               name: "dbName",
@@ -587,33 +587,10 @@ file: [database.tar.gz file]`,
               required: true,
               description: "The name of the collection to create",
             },
-            {
-              name: "crypto",
-              type: "body",
-              dataType: "boolean",
-              required: false,
-              description: "Enable encryption for this collection (default: false)",
-            },
-            {
-              name: "key",
-              type: "body",
-              dataType: "string",
-              required: false,
-              description: "Encryption key (required if crypto is true)",
-            },
           ],
           requestBody: `{
   "dbName": "UserDB",
-  "collectionName": "users",
-  "crypto": false
-}
-
-// With encryption
-{
-  "dbName": "SecureDB",
-  "collectionName": "sensitive_data",
-  "crypto": true,
-  "key": "your-secret-encryption-key"
+  "collectionName": "users"
 }`,
           responseExample: `{
   "statusCode": 201,
@@ -1586,10 +1563,6 @@ file: [database.tar.gz file]`,
             <li className="flex items-start gap-2">
               <span className="text-blue-400 mt-0.5">✓</span>
               <span className="text-sm">Use documentId queries for fastest lookups</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-blue-400 mt-0.5">✓</span>
-              <span className="text-sm">Enable encryption when creating sensitive collections</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-blue-400 mt-0.5">✓</span>

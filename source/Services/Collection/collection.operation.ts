@@ -13,7 +13,6 @@ import Aggregation from "../Aggregation/Aggregation.Operation";
 import Transaction from "../Transaction/Transaction.service";
 import Session from "../Transaction/Session.service";
 
-import { CryptoHelper } from "../../Helper/Crypto.helper";
 import { General } from "../../config/Keys/Keys";
 
 // Converter
@@ -30,27 +29,18 @@ export default class Collection {
   private readonly name: string;
   private readonly path: string;
   private readonly updatedAt: string;
-  private readonly isEncrypted: boolean;
-  private readonly cryptoInstance?: CryptoHelper;
   private Converter: Converter;
-  private readonly encryptionKey: string | undefined;
   private readonly IndexManager: InsertIndex;
   private readonly indexCache: IndexCache;
 
   constructor(
     name: string,
     path: string,
-    isEncrypted = false,
-    cryptoInstance?: CryptoHelper,
-    encryptionKey?: string,
   ) {
     this.name = name;
     this.path = path;
-    this.isEncrypted = isEncrypted;
-    this.cryptoInstance = cryptoInstance;
     this.Converter = new Converter();
     this.updatedAt = new Date().toISOString();
-    this.encryptionKey = encryptionKey;
     this.IndexManager = new InsertIndex(this.path);
 
     // Initialize and eagerly load index cache for maximum query performance
@@ -232,8 +222,6 @@ export default class Collection {
       this.name,
       this.path,
       query,
-      this.isEncrypted,
-      this.encryptionKey,
     );
   }
 
@@ -257,8 +245,6 @@ export default class Collection {
       this.name,
       this.path,
       PipelineQuerySteps,
-      this.isEncrypted,
-      this.encryptionKey,
     );
   }
 
@@ -285,8 +271,6 @@ export default class Collection {
       this.name,
       this.path,
       query,
-      this.isEncrypted,
-      this.encryptionKey,
     );
   }
 
@@ -298,8 +282,6 @@ export default class Collection {
       this.name,
       this.path,
       query,
-      this.isEncrypted,
-      this.encryptionKey,
     );
   }
 
@@ -312,11 +294,7 @@ export default class Collection {
       throw new Error("Collection path cannot be empty");
     }
 
-    return new Transaction(
-      this.path,
-      this.isEncrypted,
-      this.encryptionKey
-    );
+    return new Transaction(this.path);
   }
 
   /**
@@ -345,11 +323,6 @@ export default class Collection {
       throw new Error("Collection path cannot be empty");
     }
 
-    return new Session(
-      this.path,
-      this.isEncrypted,
-      this.encryptionKey,
-      options
-    );
+    return new Session(this.path, options);
   }
 }

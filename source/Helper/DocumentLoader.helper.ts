@@ -13,8 +13,6 @@ export default class DocumentLoader {
 
   static async loadDocuments(
     collectionPath: string,
-    encryptionKey?: string,
-    isEncrypted: boolean = false,
     documentFiles?: string[],
     includeFileName: boolean = false
   ): Promise<SuccessInterface | ErrorInterface> {
@@ -39,9 +37,7 @@ export default class DocumentLoader {
       // Loaded via worker threads for parallelism
       const resultData = await ReaderWithWorker(
         dataFilesList,
-        encryptionKey,
         collectionPath,
-        isEncrypted,
         includeFileName
       );
 

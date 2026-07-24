@@ -3,9 +3,6 @@ import Collection from "../Collection/collection.operation";
 import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import path from "path";
-
-// Crypto for hashing
-import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
 import PathSanitizer from "../../Helper/PathSanitizer.helper";
 import { StatusCodes } from "../../config/Keys/StatusCode";
@@ -21,8 +18,6 @@ import { IndexCache } from "../Index/IndexCache.service";
 type CollectionMetadata = {
   name: string;
   path: string;
-  isEncrypted?: boolean;
-  encryptionKey?: string;
 };
 
 /**
@@ -47,14 +42,10 @@ export default class Database {
   /**
    * Creates a new collection inside the specified database.
    * @param {string} collectionName - Name of the collection.
-   * @param {boolean} crypto - Enable crypto for the collection.
-   * @param {string} key - Key for crypto.
    * @returns {Promise<AxioDB>} - Returns the instance of AxioDB.
    */
   public async createCollection(
     collectionName: string,
-    crypto: boolean = false,
-    key?: string | undefined,
   ): Promise<Collection> {
     // Sanitize collection name to prevent directory traversal attacks
     const sanitizedCollectionName = PathSanitizer.sanitizePathComponent(collectionName);
@@ -64,15 +55,6 @@ export default class Database {
       PathSanitizer.safePath(this.path, sanitizedCollectionName),
     );
     const collectionPath = PathSanitizer.safePath(this.path, sanitizedCollectionName);
-
-    const CollectionMeta = await this.getCollectionMetaDetails(collectionName);
-
-    if (CollectionMeta) {
-      crypto = CollectionMeta.isEncrypted
-        ? Boolean(CollectionMeta.isEncrypted)
-        : false;
-      key = CollectionMeta.encryptionKey ? CollectionMeta.encryptionKey : key;
-    }
 
     // If the collection does not exist, create it
     if (collectionExists.statusCode !== StatusCodes.OK) {
@@ -84,38 +66,13 @@ export default class Database {
     const Index = new IndexManager(collectionPath);
     await Index.generateIndexMeta();
 
-    // if crypto is enabled, hash the collection name
-    if (crypto === true) {
-      const newCryptoInstance = new CryptoHelper(key);
-      const collection = new Collection(
-        collectionName,
-        collectionPath,
-        crypto,
-        newCryptoInstance,
-        key,
-      );
-      // Store collection metadata in the collectionMap
-      await this.AddCollectionMetadata({
-        name: collectionName,
-        path: collectionPath,
-        encryptionKey: key === undefined ? "" : key,
-        isEncrypted: crypto === undefined ? false : crypto,
-      });
-      return collection;
-    } else {
-      const collection = new Collection(
-        collectionName,
-        collectionPath,
-      );
-      // Store collection metadata in the collectionMap
-      await this.AddCollectionMetadata({
-        name: collectionName,
-        path: collectionPath,
-        encryptionKey: key === undefined ? "" : key,
-        isEncrypted: crypto === undefined ? false : crypto,
-      });
-      return collection;
-    }
+    const collection = new Collection(collectionName, collectionPath);
+    // Store collection metadata in the collectionMap
+    await this.AddCollectionMetadata({
+      name: collectionName,
+      path: collectionPath,
+    });
+    return collection;
   }
 
   /**
@@ -182,17 +139,6 @@ export default class Database {
       ),
     );
 
-    // Never surface the raw encryption key outside the engine - getCollectionMetaDetails()
-    // itself must keep returning it (createCollection() needs the real key to re-open an
-    // existing encrypted collection), this response is the only place it gets redacted.
-    const RedactedCollectionStatus = CollectionStatus.map((meta) => {
-      if (!meta) {
-        return meta;
-      }
-      const { encryptionKey: _encryptionKey, ...safeMeta } = meta;
-      return safeMeta;
-    });
-
     if ("data" in collections && "data" in totalSize) {
       const FinalCollections: FinalCollectionsInfo = {
         CurrentPath: this.path,
@@ -201,7 +147,7 @@ export default class Database {
         TotalCollections: `${collections.data.length} Collections`,
         TotalSize: parseInt((totalSize.data / 1024 / 1024).toFixed(4)),
         ListOfCollections: collections.data,
-        collectionMetaStatus: RedactedCollectionStatus,
+        collectionMetaStatus: CollectionStatus,
         AllCollectionsPaths: collections.data.map((collection: string) =>
           path.join(this.path, collection),
         ),

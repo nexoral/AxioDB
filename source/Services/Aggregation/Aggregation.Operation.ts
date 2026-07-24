@@ -1,11 +1,9 @@
 import ResponseHelper from "../../Helper/response.helper";
-import { CryptoHelper } from "../../Helper/Crypto.helper";
 import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
-import Converter from "../../Helper/Converter.helper";
 import Console from "../../Helper/Console.helper";
 import { ReadIndex } from "../Index/ReadIndex.service";
 
@@ -29,7 +27,6 @@ interface AggregationStage {
  * It supports various stages including $match, $group, $sort, $project, $limit, $skip,
  * $unwind, and $addFields.
  *
- * The class can handle both encrypted and non-encrypted data collections.
  */
 export default class Aggregation {
   // property to store the data
@@ -38,27 +35,17 @@ export default class Aggregation {
   private path: string;
   private readonly collectionName: string;
   private readonly ResponseHelper: ResponseHelper;
-  private isEncrypted: boolean;
-  private encryptionKey?: string;
-  private cryptoInstance?: CryptoHelper;
-  private readonly Converter: Converter;
 
   constructor(
     collectionName: string,
     path: string,
     Pipeline: object[] | any,
-    isEncrypted: boolean = false,
-    encryptionKey?: string,
   ) {
     this.collectionName = collectionName;
     this.path = path;
-    this.isEncrypted = isEncrypted;
-    this.encryptionKey = encryptionKey;
     this.AllData = [];
     this.Pipeline = Pipeline;
     this.ResponseHelper = new ResponseHelper();
-    this.Converter = new Converter();
-    this.cryptoInstance = new CryptoHelper(this.encryptionKey);
   }
 
   /**
@@ -288,8 +275,8 @@ export default class Aggregation {
    * This method performs the following steps:
    * 1. Checks if the directory is locked.
    * 2. If the directory is not locked, it lists all files in the directory.
-   * 3. Reads each file and decrypts the data if encryption is enabled.
-   * 4. Stores the decrypted data in the `AllData` array.
+   * 3. Reads each file.
+   * 4. Stores the data in the `AllData` array.
    * 5. If the directory is locked, it unlocks the directory, reads the files, and then locks the directory again.
    *
    * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves to a success or error response.
@@ -302,8 +289,6 @@ export default class Aggregation {
     // Use shared DocumentLoader helper (DRY - consolidates duplicated code)
     const result = await DocumentLoader.loadDocuments(
       this.path,
-      this.encryptionKey,
-      this.isEncrypted,
       documentIdDirectFile,
       false  // Don't include fileName for Aggregation
     );

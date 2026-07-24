@@ -10,7 +10,6 @@ import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
-import { CryptoHelper } from "../../Helper/Crypto.helper";
 
 export default class WriteAheadLog {
   private readonly walPath: string;
@@ -19,10 +18,8 @@ export default class WriteAheadLog {
   private readonly FolderManager: FolderManager;
   private readonly Converter: Converter;
   private readonly ResponseHelper: ResponseHelper;
-  private readonly isEncrypted: boolean;
-  private readonly cryptoInstance?: CryptoHelper;
   private readonly collectionPath: string;
-  
+
   // Batch write buffer for optimized I/O
   private pendingEntries: WALEntry[] = [];
   private batchSize: number = 10;
@@ -32,8 +29,6 @@ export default class WriteAheadLog {
   constructor(
     collectionPath: string,
     transactionId: string,
-    isEncrypted: boolean = false,
-    encryptionKey?: string
   ) {
     this.collectionPath = collectionPath;
     this.transactionDir = `${collectionPath}/.transactions`;
@@ -42,10 +37,6 @@ export default class WriteAheadLog {
     this.FolderManager = new FolderManager();
     this.Converter = new Converter();
     this.ResponseHelper = new ResponseHelper();
-    this.isEncrypted = isEncrypted;
-    if (this.isEncrypted && encryptionKey) {
-      this.cryptoInstance = new CryptoHelper(encryptionKey);
-    }
   }
 
   public async createWAL(): Promise<SuccessInterface | ErrorInterface> {
@@ -74,12 +65,7 @@ export default class WriteAheadLog {
       const checksum = this.calculateChecksum(entry);
       const entryWithChecksum = { ...entry, checksum };
 
-      let logLine = this.Converter.ToString(entryWithChecksum) + '\n';
-
-      if (this.isEncrypted && this.cryptoInstance) {
-        logLine = await this.cryptoInstance.encrypt(logLine);
-        logLine += '\n';
-      }
+      const logLine = this.Converter.ToString(entryWithChecksum) + '\n';
 
       const fileHandle = await fsOpen(this.walPath, 'a');
       try {
@@ -114,12 +100,7 @@ export default class WriteAheadLog {
         const checksum = this.calculateChecksum(entry);
         const entryWithChecksum = { ...entry, checksum };
 
-        let logLine = this.Converter.ToString(entryWithChecksum) + '\n';
-
-        if (this.isEncrypted && this.cryptoInstance) {
-          logLine = await this.cryptoInstance.encrypt(logLine);
-          logLine += '\n';
-        }
+        const logLine = this.Converter.ToString(entryWithChecksum) + '\n';
 
         lines.push(logLine);
       }
@@ -207,12 +188,7 @@ export default class WriteAheadLog {
 
       for (const line of lines) {
         try {
-          let decryptedLine = line;
-          if (this.isEncrypted && this.cryptoInstance) {
-            decryptedLine = await this.cryptoInstance.decrypt(line);
-          }
-
-          const entry = this.Converter.ToObject(decryptedLine) as WALEntry;
+          const entry = this.Converter.ToObject(line) as WALEntry;
 
           const calculatedChecksum = this.calculateChecksum(entry);
           if (calculatedChecksum === entry.checksum) {

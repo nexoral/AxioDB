@@ -397,7 +397,6 @@ url = "http://localhost:27020/mcp"`}
           <ul className="list-disc list-inside text-slate-300 space-y-2">
             <li>Every write/read tool is permission-checked against the caller&apos;s actual role on every call, not just at login</li>
             <li>An invalid, expired, or missing <code className="px-1 py-0.5 bg-slate-900 rounded">sessionId</code> is rejected before it ever reaches a database operation</li>
-            <li>Collection metadata responses (<code className="px-1 py-0.5 bg-slate-900 rounded">axiodb_get_collection_info</code>) never include the raw AES encryption key — only whether a collection is encrypted</li>
             <li>Expose port 27020 only to trusted networks/agents, same guidance as the TCP port — the MCP server carries the same authority as the GUI, just a different transport</li>
           </ul>
         </div>

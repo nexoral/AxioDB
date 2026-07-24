@@ -21,12 +21,12 @@ export default class CollectionHandler {
    * Note: This is idempotent - returns collection whether it exists or not
    */
   async handleCreateCollection(requestId: string, params: any): Promise<TCPResponse> {
-    const { dbName, collectionName, crypto, key } = params;
+    const { dbName, collectionName } = params;
 
     try {
       // Use AxioDB instance directly for idempotent behavior
       const databaseInstance = await this.axioDB.createDB(dbName);
-      await databaseInstance.createCollection(collectionName, crypto, key);
+      await databaseInstance.createCollection(collectionName);
 
       return {
         id: requestId,
