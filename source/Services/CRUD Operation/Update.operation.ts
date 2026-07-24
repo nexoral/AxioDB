@@ -8,7 +8,6 @@ import Converter from "../../Helper/Converter.helper";
 import { CryptoHelper } from "../../Helper/Crypto.helper";
 import ResponseHelper from "../../Helper/response.helper";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
-import FileManager from "../../engine/Filesystem/FileManager";
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
 import { randomUUID } from "crypto";
@@ -32,7 +31,6 @@ export default class UpdateOperation {
   private readonly ResponseHelper: ResponseHelper;
   private readonly cryptoInstance?: CryptoHelper;
   private readonly Converter: Converter;
-  private readonly fileManager: FileManager;
   private allDataWithFileName: any[] = [];
   private sort: object | any;
   private updatedAt: string;
@@ -55,7 +53,6 @@ export default class UpdateOperation {
     this.Insertion = new Insertion(this.collectionName, this.path);
     this.ResponseHelper = new ResponseHelper();
     this.Converter = new Converter();
-    this.fileManager = new FileManager();
     if (this.isEncrypted === true) {
       this.cryptoInstance = new CryptoHelper(this.encryptionKey);
     }
@@ -149,8 +146,24 @@ export default class UpdateOperation {
         return this.ResponseHelper.Error("Lock acquisition failed");
       }
 
-      // STEP 3: Perform update operation (now safe - locked)
-      const documentOldData = selectedFirstData.data; // Get the old data
+      // STEP 3: Re-read the document now that we hold the lock. The Step 1 snapshot
+      // can be stale: Wait-Die queues an older transaction behind the lock instead of
+      // aborting it, so by the time we acquire the lock, whoever held it may already
+      // have committed a change - merging against the pre-lock snapshot would silently
+      // overwrite that change (lost update).
+      const freshRead = await DocumentLoader.loadDocuments(
+        this.path,
+        this.encryptionKey,
+        this.isEncrypted,
+        [fileName],
+        true,
+      );
+      if (!("data" in freshRead) || freshRead.data.length === 0) {
+        return this.ResponseHelper.Error("Document no longer exists");
+      }
+
+      // STEP 4: Perform update operation (now safe - locked, and on current data)
+      const documentOldData = freshRead.data[0].data; // Current data, read under lock
       const dataForRest: object | any = { ...documentOldData }; // Get the data for rest of the fields
 
       // Update All new Fields in the old data
@@ -160,13 +173,9 @@ export default class UpdateOperation {
         documentOldData.updatedAt = this.updatedAt;
       }
 
-      // Delete the file
-      const deleteResponse = await this.deleteFileUpdate(fileName);
-      if (!("data" in deleteResponse)) {
-        return this.ResponseHelper.Error("Failed to delete file");
-      }
-
-      // Insert the new Data in the file
+      // Atomically replace the file's content in place (Create.operation.ts's Save()
+      // writes to a temp file and renames over the target - no unlink step, so a
+      // concurrent unlocked reader never observes a "file missing" gap here).
       const InsertResponse = await this.insertUpdate(
         documentOldData,
         documentId,
@@ -293,13 +302,34 @@ export default class UpdateOperation {
         acquiredLocks.push(docId);
       }
 
-      // STEP 4: All locks acquired - now perform updates safely
+      // STEP 4: All locks acquired - re-read current data for every document under lock.
+      // The Step 1 snapshot can be stale for any document another writer committed to
+      // while we were queued behind its lock (see UpdateOne for the full race).
+      const fileNamesToRefresh = SearchedData.map((d) => d.fileName);
+      const freshRead = await DocumentLoader.loadDocuments(
+        this.path,
+        this.encryptionKey,
+        this.isEncrypted,
+        fileNamesToRefresh,
+        true,
+      );
+      if (!("data" in freshRead)) {
+        return this.ResponseHelper.Error("Failed to re-read documents under lock");
+      }
+      const freshDataByFileName = new Map<string, any>(
+        freshRead.data.map((d: any) => [d.fileName, d.data]),
+      );
+
+      // STEP 5: All locks acquired - now perform updates safely
       const deleteIndexService = new DeleteIndex(this.path);
       const insertIndexService = new InsertIndex(this.path);
       for (let i = 0; i < SearchedData.length; i++) {
         let selectedData = SearchedData[i];
         let fileName: string = selectedData?.fileName;
-        const documentOldData = selectedData.data;
+        const documentOldData = freshDataByFileName.get(fileName);
+        if (!documentOldData) {
+          return this.ResponseHelper.Error(`Document ${fileName} no longer exists`);
+        }
         const previousData = { ...documentOldData };
 
         // Sort the data if sort is provided
@@ -318,13 +348,8 @@ export default class UpdateOperation {
           documentOldData.updatedAt = newData.updatedAt;
         }
 
-        // Delete the file
-        const deleteResponse = await this.deleteFileUpdate(fileName);
-        if (!("data" in deleteResponse)) {
-          return this.ResponseHelper.Error(`Failed to delete file for document ${documentId}`);
-        }
-
-        // Insert the new Data in the file
+        // Atomically replace the file's content in place (see UpdateOne for why -
+        // no unlink step, so concurrent unlocked readers never see a missing file).
         const InsertResponse = await this.insertUpdate(
           documentOldData,
           documentId,
@@ -412,19 +437,6 @@ export default class UpdateOperation {
     }
 
     return result;
-  }
-
-  /**
-   * Deletes a file from the specified path.
-   *
-   * @param fileName - The name of the file to be deleted
-   * @returns A response object indicating success or failure
-   *          Success response: { status: true, message: "File deleted successfully" }
-   *          Error response: { status: false, message: <error message> }
-   * @private
-   */
-  private async deleteFileUpdate(fileName: string) {
-    return await this.fileManager.DeleteFileWithLock(this.path, fileName);
   }
 
   /**

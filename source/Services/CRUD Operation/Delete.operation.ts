@@ -140,20 +140,36 @@ export default class DeleteOperation {
         return this.ResponseHelper.Error("Lock acquisition failed");
       }
 
-      // STEP 3: Delete the file (now safe - locked)
+      // STEP 3: Re-read under lock. The Step 1 snapshot's field values can be stale if
+      // another writer updated this document while we waited for the lock - deleting
+      // the file is unaffected by that, but cleaning up the index with stale field
+      // values would remove the wrong index entry and leave a dangling one behind.
+      const freshRead = await DocumentLoader.loadDocuments(
+        this.path,
+        this.encryptionKey,
+        this.isEncrypted,
+        [fileName],
+        true,
+      );
+      if (!("data" in freshRead) || freshRead.data.length === 0) {
+        return this.ResponseHelper.Error("Document no longer exists");
+      }
+      const currentData = freshRead.data[0].data;
+
+      // STEP 4: Delete the file (now safe - locked)
       const deleteResponse = await this.deleteFile(fileName);
       if (!("data" in deleteResponse)) {
         return this.ResponseHelper.Error("Failed to delete data");
       }
 
       // Fire-and-forget: Remove from indexes and invalidate cache asynchronously for faster response
-      const isDeleted = await new DeleteIndex(this.path).RemoveFromIndex(documentId, selectedFirstData?.data).catch(() => {});
-      
+      const isDeleted = await new DeleteIndex(this.path).RemoveFromIndex(documentId, currentData).catch(() => {});
+
       if (isDeleted){ await InMemoryCache.invalidateByDocument(this.path, documentId).catch(() => {});
 
       return this.ResponseHelper.Success({
         message: "Data deleted successfully",
-        deleteData: selectedFirstData?.data,
+        deleteData: currentData,
       });
     } 
     else {
@@ -230,18 +246,43 @@ export default class DeleteOperation {
         acquiredLocks.push(docId);
       }
 
-      // STEP 3: All locks acquired - now perform deletions safely
+      // STEP 3: All locks acquired - re-read current data under lock. The Step 1
+      // snapshot can be stale for any document another writer touched while we were
+      // queued behind its lock (see UpdateOne for the full race) - deleting the file
+      // is unaffected, but stale field values would clean up the wrong index entry.
+      const fileNamesToRefresh = SearchedData.map((d) => d.fileName);
+      const freshRead = await DocumentLoader.loadDocuments(
+        this.path,
+        this.encryptionKey,
+        this.isEncrypted,
+        fileNamesToRefresh,
+        true,
+      );
+      if (!("data" in freshRead)) {
+        return this.ResponseHelper.Error("Failed to re-read documents under lock");
+      }
+      const freshDataByFileName = new Map<string, any>(
+        freshRead.data.map((d: any) => [d.fileName, d.data]),
+      );
+
+      // STEP 4: All locks acquired - now perform deletions safely
       const deleteIndexService = new DeleteIndex(this.path);
       for (let i = 0; i < SearchedData.length; i++) {
-        const deleteResponse = await this.deleteFile(SearchedData[i].fileName);
+        const fileName = SearchedData[i].fileName;
+        const currentData = freshDataByFileName.get(fileName);
+        if (!currentData) {
+          return this.ResponseHelper.Error(`Document ${fileName} no longer exists`);
+        }
+
+        const deleteResponse = await this.deleteFile(fileName);
         if (!("data" in deleteResponse)) {
           return this.ResponseHelper.Error("Failed to delete data");
         }
 
         // Fire-and-forget: Remove from indexes asynchronously
         await deleteIndexService.RemoveFromIndex(
-          SearchedData[i].fileName.split('.')[0],
-          SearchedData[i].data
+          fileName.split('.')[0],
+          currentData
         ).catch(() => {});
       }
 
@@ -251,7 +292,7 @@ export default class DeleteOperation {
       if (isRemoved){
         return this.ResponseHelper.Success({
           message: "Data deleted successfully",
-          deleteData: SearchedData.map((data) => data.data),
+          deleteData: SearchedData.map((data) => freshDataByFileName.get(data.fileName)),
         });
       }
       else {
