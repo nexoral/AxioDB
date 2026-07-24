@@ -12,6 +12,17 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "13.1.1",
+    date: "2026-07-24",
+    title: "Update and delete are now WAL-backed (full ACID coverage)",
+    changes: [
+      "UpdateOne/UpdateMany/deleteOne/deleteMany now route through the same Transaction/WAL machinery insert() already used, instead of a separate ad-hoc lock-and-write path",
+      "Fixed: a failed index-sync after a successful document write used to be silently swallowed (fire-and-forget), leaving the index out of sync with no way to recover on crash - it's now staged and committed atomically with the document change, with WAL redo/undo on failure",
+      "Removed the now-redundant per-call LockManager/DocumentLoader-reread/DeleteIndex/InsertIndex wiring from UpdateOperation and DeleteOperation - Transaction already does locking, the fresh re-read under lock, and index staging correctly",
+      "insertMany's earlier index-rewrite batching win (Document/src/data/changelog.ts 13.0.0) now applies to UpdateMany/deleteMany too: one index-file rewrite per affected field for the whole batch, not one per document",
+    ],
+  },
+  {
     version: "13.0.0",
     date: "2026-07-24",
     title: "Encryption removed; sorted-index range queries; batched inserts",

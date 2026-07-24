@@ -218,6 +218,15 @@ export default class Transaction {
         documentIds: this.resolvedOperations
           .filter((op) => op.type === 'INSERT' && op.documentId)
           .map((op) => op.documentId as string),
+        // Per-document before/after data for UPDATE/DELETE ops, so callers (e.g.
+        // UpdateOperation/DeleteOperation) can build their response without a
+        // second disk read - this is already computed internally in executeOperations().
+        resolvedOperations: this.resolvedOperations.map((op) => ({
+          type: op.type,
+          documentId: op.documentId,
+          oldData: op.oldData,
+          data: op.data,
+        })),
       });
     } catch (error) {
       await this.rollback();
