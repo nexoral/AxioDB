@@ -118,13 +118,13 @@ if (typeof data === 'object' && data !== null) {
 class FileManager {
   readFile(), writeFile(), deleteFile()
 }
-class CryptoHelper {
-  encrypt(), decrypt()
+class Converter {
+  ToString(), ToObject()
 }
 
 // ❌ BAD: Multiple responsibilities
 class DataManager {
-  readFile(), encrypt(), validateUser(), sendEmail()
+  readFile(), validateUser(), sendEmail()
 }
 ```
 
@@ -161,7 +161,7 @@ source/
 ├── server/          # HTTP GUI (Fastify, port 27018)
 ├── tcp/             # TCP server (AxioDBCloud, port 27019)
 ├── client/          # TCP client + Proxies
-├── Helper/          # Utilities (Converter, Crypto, Response)
+├── Helper/          # Utilities (Converter, Response)
 └── Memory/          # InMemoryCache
 
 Test/modules/        # Tests (separate processes)
@@ -255,12 +255,8 @@ function getDocumentPath(collectionPath: string, documentId: string): string {
 }
 ```
 
-### 3. Encrypt Sensitive Data
+### 3. Never Log Sensitive Data
 ```typescript
-// Use AES-256 for sensitive collections
-const users = await db.createCollection('Users', true, process.env.ENCRYPTION_KEY);
-
-// NEVER log sensitive data
 logger.info('User auth', { userId: user.id });  // ✅
 logger.info('User auth', { password: user.password });  // ❌
 ```

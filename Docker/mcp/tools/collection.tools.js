@@ -11,17 +11,15 @@ module.exports = function registerCollectionTools(server, axioDBInstance) {
   server.registerTool(
     'axiodb_create_collection',
     {
-      description: 'Create a new collection inside a database, optionally with AES-256 encryption.',
+      description: 'Create a new collection inside a database.',
       inputSchema: {
         ...sessionIdField,
         dbName: z.string().min(1),
         collectionName: z.string().min(1),
-        crypto: z.boolean().optional(),
-        key: z.string().optional(),
       },
     },
-    withAuth(PERMISSIONS.COLLECTION_CREATE, ({ dbName, collectionName, crypto, key }) =>
-      collectionController.createCollection({ body: { dbName, collectionName, crypto, key } }),
+    withAuth(PERMISSIONS.COLLECTION_CREATE, ({ dbName, collectionName }) =>
+      collectionController.createCollection({ body: { dbName, collectionName } }),
     ),
   );
 

@@ -161,7 +161,7 @@ source/
 ├── server/                    # HTTP GUI (Fastify, port 27018)
 ├── tcp/                       # TCP server (AxioDBCloud, port 27019)
 ├── client/                    # AxioDBCloud TCP client
-├── Helper/                    # Converter, Crypto, Response
+├── Helper/                    # Converter, Response
 └── Memory/                    # InMemoryCache
 ```
 
@@ -224,9 +224,6 @@ return path.join(collectionPath, `${sanitized}.axiodb`);
 
 ### 3. Handle Sensitive Data
 ```typescript
-// Encrypt collections with sensitive data
-const users = await db.createCollection('Users', true, process.env.KEY);
-
 // Never log passwords
 logger.info('Auth', { userId }); // ✅
 logger.info('Auth', { password }); // ❌

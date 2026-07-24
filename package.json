@@ -23,8 +23,6 @@
     "no-native-bindings",
     "in-memory-cache",
     "caching",
-    "encryption",
-    "aes-256",
     "schema-validation",
     "aggregation",
     "aggregation-pipeline",

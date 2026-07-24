@@ -42,25 +42,27 @@ Before creating bug reports, please check the [existing issues](https://github.c
 **Example Bug Report:**
 
 ```markdown
-## Bug: Collection encryption fails with custom keys
+## Bug: Range query returns stale results after index creation
 
 **Environment:**
-- AxioDB: 3.31.104
+- AxioDB: 13.0.0
 - Node.js: 20.10.0
 - OS: Ubuntu 22.04
 
 **Steps to Reproduce:**
 1. Create AxioDB instance
-2. Create encrypted collection with custom key
-3. Insert document
-4. Error occurs
+2. Insert documents, then create an index on a field
+3. Query with a range operator ($gt/$lt) on that field
+4. Results don't match a full collection scan
 
-**Expected:** Document should be encrypted and saved
-**Actual:** Error: "Encryption failed: Invalid key length"
+**Expected:** Range query should return the same documents as an unindexed scan
+**Actual:** Some matching documents are missing from the result
 
 **Code:**
 \`\`\`javascript
-const collection = await db.createCollection('test', true, 'short');
+await collection.insertMany([{ age: 20 }, { age: 30 }]);
+await collection.newIndex('age');
+const result = await collection.query({ age: { $gt: 25 } }).exec();
 \`\`\`
 ```
 
@@ -228,10 +230,10 @@ Closes #123
 ```
 
 ```bash
-fix(encryption): resolve key length validation issue
+fix(index): resolve stale results on range queries
 
-Fixed encryption key validation to properly check AES-256 requirements.
-Minimum key length is now enforced at 32 bytes.
+Range queries ($gt/$lt) now re-validate against the sorted index bounds
+instead of trusting a cached full-scan result.
 
 Fixes #456
 ```

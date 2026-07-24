@@ -13,10 +13,10 @@
 ```typescript
 // ✅ GOOD: One responsibility
 class FileManager { readFile(), writeFile(), deleteFile() }
-class CryptoHelper { encrypt(), decrypt() }
+class Converter { ToString(), ToObject() }
 
 // ❌ BAD: Multiple responsibilities
-class DataManager { readFile(), encrypt(), validateUser(), sendEmail() }
+class DataManager { readFile(), validateUser(), sendEmail() }
 ```
 
 ### Open/Closed
@@ -234,7 +234,6 @@ return `${collectionPath}/${docId}.axiodb`; // Vulnerable to ../../../
 ### 3. Sensitive Data
 ```typescript
 // ✅ GOOD
-const users = await db.createCollection('Users', true, process.env.KEY);
 logger.info('User auth', { userId: user.id }); // Don't log passwords
 return error('Auth failed', UNAUTHORIZED); // No stack traces to users
 ```
@@ -278,5 +277,5 @@ class Collection {
 - Type safety: Use TypeScript properly
 - Modular: Feature-based, clear separation
 - Performance: Cache, batch, avoid I/O
-- Security: Validate, sanitize, encrypt
+- Security: Validate, sanitize, never log secrets
 - Testable: Dependency injection

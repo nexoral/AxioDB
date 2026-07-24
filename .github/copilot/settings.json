@@ -79,8 +79,7 @@
   "security": [
     "Validate all input - check types, reject arrays as documents",
     "Sanitize paths using documentId.replace(/[^a-zA-Z0-9-_]/g, '_')",
-    "Use AES-256 encryption for sensitive collections",
-    "Never log sensitive data (passwords, encryption keys)",
+    "Never log sensitive data (passwords, credentials)",
     "Return generic error messages to users, log detailed errors"
   ],
 

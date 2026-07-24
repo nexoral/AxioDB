@@ -51,7 +51,7 @@ source/
 ├── server/        # HTTP GUI (port 27018, Fastify)
 ├── tcp/           # TCP server (port 27019, AxioDBCloud)
 ├── client/        # AxioDBCloud TCP client
-├── Helper/        # Utils: Converter, Crypto, Response
+├── Helper/        # Utils: Converter, Response
 ├── Memory/        # InMemoryCache
 └── config/        # Entry point: DB.ts exports AxioDB, AxioDBCloud
 

@@ -105,7 +105,7 @@ const result = await collection.insert({ name: 'John', age: 30 });
 - **Description**: Interactive web interface for managing databases, collections, and documents
 - **Features**:
   - Database creation and management
-  - Collection operations (create, encrypt, delete)
+  - Collection operations (create, delete)
   - Document CRUD operations
   - Real-time statistics and monitoring
 
@@ -144,7 +144,7 @@ npm install axiodb@latest --save
 - **Better Performance**: Direct in-process database operations
 - **No Network Overhead**: Eliminate HTTP request latency
 - **Type Safety**: Full TypeScript support with IntelliSense
-- **Advanced Features**: Access to all AxioDB features including encryption, caching, and aggregation
+- **Advanced Features**: Access to all AxioDB features including caching and aggregation
 - **Easier Development**: No need to manage Docker containers during development
 
 #### NPM Package Usage Example
@@ -156,9 +156,9 @@ const { AxioDB } = require("axiodb");
 const db = new AxioDB();
 
 const main = async () => {
-  // Create database and an encrypted collection (auto-generated key)
+  // Create database and a collection
   const database = await db.createDB("myApp");
-  const collection = await database.createCollection("users", true);
+  const collection = await database.createCollection("users");
 
   // Insert document
   const result = await collection.insert({
@@ -285,7 +285,7 @@ Register the endpoint (`http://localhost:27020/mcp`) with whichever AI tool you 
 
 - **Session**: `axiodb_login`, `axiodb_logout`, `axiodb_whoami`, `axiodb_change_own_password`
 - **Database**: create/delete/exists/instance-info
-- **Collection**: create (plain or AES-256 encrypted)/delete/exists/info
+- **Collection**: create/delete/exists/info
 - **Documents & Aggregation**: insert/insert-many/query/update/delete/count/aggregate
 - **Index**: create/drop/list
 - **Dashboard**: stats

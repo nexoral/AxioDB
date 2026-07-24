@@ -108,7 +108,7 @@ source/
 ├── server/           # HTTP GUI (Fastify, port 27018)
 ├── tcp/              # TCP server (AxioDBCloud, port 27019)
 ├── client/           # TCP client + Proxies
-├── Helper/           # Converter, Crypto, Response
+├── Helper/           # Converter, Response
 └── Memory/           # InMemoryCache
 
 Test/modules/         # crud.test.js, transaction.test.js, read.test.js
@@ -200,12 +200,8 @@ function getDocumentPath(collectionPath: string, documentId: string): string {
 }
 ```
 
-### 3. Encrypt Sensitive Data
+### 3. Never Log Sensitive Data
 ```typescript
-// Use AES-256 for collections with sensitive data
-const users = await db.createCollection('Users', true, process.env.ENCRYPTION_KEY);
-
-// Don't log sensitive data
 logger.info('User auth', { userId: user.id }); // ✅
 logger.info('User auth', { password: user.password }); // ❌
 ```

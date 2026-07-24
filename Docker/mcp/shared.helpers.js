@@ -85,6 +85,5 @@ function withSession(handler) {
     }
     return handler(args, session);
   });
-}
-
+};
 module.exports = { sessionIdField, NOOP_REPLY, withAuth, withSession };
