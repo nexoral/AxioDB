@@ -10,6 +10,7 @@ import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
 import { ReadIndex } from "../Index/ReadIndex.service";
 import { IndexCache } from "../Index/IndexCache.service";
+import SortedIndexValues from "../../Helper/SortedIndexValues.helper";
 import Searcher from "../../utility/Searcher.utils";
 import ReaderWithWorker from "../../utility/BufferLoaderWithWorker.utils";
 
@@ -102,6 +103,12 @@ export default class TransactionIndexManager {
 
         const indexEntries = indexData.indexEntries || {};
 
+        // Lazily backfill sortedValues for indexes written before range support existed
+        if (!indexData.sortedValues) {
+          indexData.sortedValues = SortedIndexValues.backfillFromKeys(Object.keys(indexEntries));
+        }
+        const sortedValues = indexData.sortedValues;
+
         for (const op of operations) {
           if (op.type === 'INSERT' && op.data && op.documentId) {
             if (Object.prototype.hasOwnProperty.call(op.data, fieldName)) {
@@ -110,6 +117,10 @@ export default class TransactionIndexManager {
 
               if (!indexEntries[fieldValue]) {
                 indexEntries[fieldValue] = [];
+                const numericValue = Number(fieldValue);
+                if (!Number.isNaN(numericValue)) {
+                  SortedIndexValues.insertSorted(sortedValues, numericValue);
+                }
               }
               if (!indexEntries[fieldValue].includes(fileName)) {
                 indexEntries[fieldValue].push(fileName);
@@ -126,12 +137,20 @@ export default class TransactionIndexManager {
               );
               if (indexEntries[oldFieldValue].length === 0) {
                 delete indexEntries[oldFieldValue];
+                const numericValue = Number(oldFieldValue);
+                if (!Number.isNaN(numericValue)) {
+                  SortedIndexValues.removeSorted(sortedValues, numericValue);
+                }
               }
             }
 
             if (newFieldValue !== undefined) {
               if (!indexEntries[newFieldValue]) {
                 indexEntries[newFieldValue] = [];
+                const numericValue = Number(newFieldValue);
+                if (!Number.isNaN(numericValue)) {
+                  SortedIndexValues.insertSorted(sortedValues, numericValue);
+                }
               }
               if (!indexEntries[newFieldValue].includes(fileName)) {
                 indexEntries[newFieldValue].push(fileName);
@@ -148,6 +167,10 @@ export default class TransactionIndexManager {
                 );
                 if (indexEntries[fieldValue].length === 0) {
                   delete indexEntries[fieldValue];
+                  const numericValue = Number(fieldValue);
+                  if (!Number.isNaN(numericValue)) {
+                    SortedIndexValues.removeSorted(sortedValues, numericValue);
+                  }
                 }
               }
             }
@@ -155,6 +178,7 @@ export default class TransactionIndexManager {
         }
 
         indexData.indexEntries = indexEntries;
+        indexData.sortedValues = sortedValues;
         this.stagedIndexUpdates.set(fieldName, indexData);
       }
     } catch {

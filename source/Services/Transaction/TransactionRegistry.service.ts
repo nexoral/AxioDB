@@ -40,7 +40,7 @@ export default class TransactionRegistry {
       const transactions = await this.getAllTransactions();
       transactions.push(metadata);
 
-      const writeResult = await this.FileManager.WriteFile(
+      const writeResult = await this.FileManager.WriteFileDurable(
         this.registryPath,
         this.Converter.ToString(transactions)
       );
@@ -72,7 +72,7 @@ export default class TransactionRegistry {
 
       transactions[txnIndex].status = status;
 
-      const writeResult = await this.FileManager.WriteFile(
+      const writeResult = await this.FileManager.WriteFileDurable(
         this.registryPath,
         this.Converter.ToString(transactions)
       );
@@ -107,7 +107,7 @@ export default class TransactionRegistry {
       const transactions = await this.getAllTransactions();
       const filteredTransactions = transactions.filter((t) => t.transactionId !== txnId);
 
-      const writeResult = await this.FileManager.WriteFile(
+      const writeResult = await this.FileManager.WriteFileDurable(
         this.registryPath,
         this.Converter.ToString(filteredTransactions)
       );
