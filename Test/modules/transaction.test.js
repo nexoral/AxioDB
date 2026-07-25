@@ -253,6 +253,25 @@ class TransactionTests extends TestRunner {
         assert.equal(findTmp(this.testDir), false, 'Rollback must clean the orphaned .tmp file from the already-staged op');
       });
 
+      await this.test('Recovery sweeps orphaned WAL files that have no registry entry', async () => {
+        // A crash between createWAL() and registerTransaction() leaves a .wal with no
+        // registry entry. The registry-driven recovery loop never sees it, so without
+        // an explicit sweep it survives forever (the flaky crash-recovery failure).
+        // This reproduces that state deterministically - no SIGKILL timing needed.
+        const Transaction = require('../../lib/Services/Transaction/Transaction.service.js').default;
+        const collectionPath = this.collection.path;
+        const txnDir = `${collectionPath}/.transactions`;
+        fs.mkdirSync(txnDir, { recursive: true });
+
+        const orphanWal = `${txnDir}/ORPHANTXNNOREG01.wal`;
+        fs.writeFileSync(orphanWal, ''); // empty, exactly like a crash-before-register orphan
+        assert.equal(fs.existsSync(orphanWal), true, 'Precondition: orphan WAL exists');
+
+        await Transaction.recoverTransactions(collectionPath);
+
+        assert.equal(fs.existsSync(orphanWal), false, 'Recovery must sweep an orphan WAL with no registry entry');
+      });
+
       await this.test('Empty transaction throws error', async () => {
         const txn = this.collection.beginTransaction();
         const result = await txn.commit();
