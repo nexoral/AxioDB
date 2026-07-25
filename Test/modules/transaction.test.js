@@ -152,9 +152,9 @@ class TransactionTests extends TestRunner {
           .insert({ name: 'WAL_NewInsert', email: 'wal-new@test.com', age: 71 })
           .update({ name: 'WAL_Existing' }, { status: 'changed' });
 
-        // Inject a WAL write failure - appendLog returns an error result (it does
+        // Inject a WAL write failure - appendLogBatch returns an error result (it does
         // not throw), exactly like a real disk failure would.
-        txn.WAL.appendLog = async () => ({ status: false, message: 'injected WAL failure' });
+        txn.WAL.appendLogBatch = async () => ({ status: false, message: 'injected WAL failure' });
 
         const result = await txn.commit();
         assert.isError(result);

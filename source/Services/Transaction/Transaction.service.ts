@@ -400,6 +400,8 @@ export default class Transaction {
     // Store resolved operations for use in applyChanges
     this.resolvedOperations = resolvedOperations;
 
+    const walEntries: WALEntry[] = [];
+
     for (const op of resolvedOperations) {
       const fileName = op.fileName || `${op.documentId}${General.DBMS_File_EXT}`;
       const filePath = `${this.collectionPath}/${fileName}`;
@@ -417,7 +419,7 @@ export default class Transaction {
         afterData = this.Converter.ToString(op.data);
       }
 
-      const walEntry: WALEntry = {
+      walEntries.push({
         transactionId: this.transactionId,
         timestamp: new Date().toISOString(),
         operationType: op.type,
@@ -426,19 +428,7 @@ export default class Transaction {
         beforeData,
         afterData,
         checksum: '',
-      };
-
-      // The WAL entry is the durable record of intent - it MUST be persisted
-      // before we stage/apply the change. appendLog() returns an Error result
-      // instead of throwing, so an unchecked failure (disk full, EIO) would let
-      // the commit proceed and mutate a document with no log to recover from.
-      // Throwing here routes into commit()'s catch, which rolls the transaction back.
-      const appendResult = await this.WAL.appendLog(walEntry);
-      if (!appendResult.status) {
-        throw new Error(
-          `WAL append failed for document ${op.documentId} - aborting commit: ${(appendResult as ErrorInterface).message ?? ""}`,
-        );
-      }
+      });
 
       const tempFilePath = `${filePath}.tmp-${this.transactionId}`;
       if (op.type === 'INSERT' || op.type === 'UPDATE') {
@@ -449,6 +439,21 @@ export default class Transaction {
           );
         }
       }
+    }
+
+    // Persist every WAL entry in a single fsync'd batch instead of one fsync per
+    // operation - a 1000-doc insertMany goes from 1000 WAL fsyncs to 1. The WAL is
+    // the durable record of intent and only has to be durable before applyChanges()
+    // (which runs after this method, post-COMMITTED); the .tmp files staged above are
+    // not the live documents, so ordering the batch after staging is still crash-safe:
+    // a crash before this append leaves an empty/partial WAL that recovery treats as
+    // "nothing committed". appendLogBatch() returns an Error result instead of
+    // throwing, so we check it and throw to route into commit()'s rollback.
+    const appendResult = await this.WAL.appendLogBatch(walEntries);
+    if (!appendResult.status) {
+      throw new Error(
+        `WAL batch append failed - aborting commit: ${(appendResult as ErrorInterface).message ?? ""}`,
+      );
     }
   }
 
