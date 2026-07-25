@@ -195,9 +195,16 @@ export default class TransactionIndexManager {
   }
 
   public async rollbackIndexUpdates(): Promise<void> {
-    // Staged updates only ever lived in memory (this.stagedIndexUpdates) until
-    // commitIndexUpdates() wrote them - nothing was persisted, so rolling back is
-    // just discarding the staged map.
+    // stageIndexUpdates() reads the index via IndexCache.getIndex(), which returns
+    // the LIVE cached object (not a copy), and mutates its indexEntries/sortedValues
+    // in place - so the shared in-memory cache is already polluted by the time we
+    // roll back. Discarding the staged map alone would leave those mutations visible
+    // (e.g. a phantom entry pointing at a document the aborted transaction never
+    // wrote). Invalidate the touched fields so the next read reloads the clean copy
+    // from disk - disk is untouched on this path because commitIndexUpdates() never ran.
+    for (const fieldName of this.stagedIndexUpdates.keys()) {
+      await this.indexCache.invalidateIndex(fieldName);
+    }
     this.stagedIndexUpdates.clear();
   }
 

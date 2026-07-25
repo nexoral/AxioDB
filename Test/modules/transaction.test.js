@@ -141,6 +141,118 @@ class TransactionTests extends TestRunner {
         assert.equal(deleted.data.documents.length, 1, 'Document targeted by rolled-back delete must still exist');
       });
 
+      await this.test('WAL append failure aborts the commit and rolls back', async () => {
+        // The WAL entry is the durable record of intent: if appendLog() fails
+        // (disk full, EIO) the commit must NOT proceed to mutate documents, and
+        // must leave no orphaned .tmp staging files behind.
+        await this.collection.insert({ name: 'WAL_Existing', email: 'wal-existing@test.com', age: 70, status: 'original' });
+
+        const txn = this.collection.beginTransaction();
+        txn
+          .insert({ name: 'WAL_NewInsert', email: 'wal-new@test.com', age: 71 })
+          .update({ name: 'WAL_Existing' }, { status: 'changed' });
+
+        // Inject a WAL write failure - appendLog returns an error result (it does
+        // not throw), exactly like a real disk failure would.
+        txn.WAL.appendLog = async () => ({ status: false, message: 'injected WAL failure' });
+
+        const result = await txn.commit();
+        assert.isError(result);
+
+        // Query WAL_NewInsert (the rolled-back insert) under the spy: this is the query
+        // that resolves the phantom index entry staged in the shared in-memory cache and
+        // points at the never-written file, so it must produce no "Failed to read file".
+        const originalError = console.error;
+        let phantomRead = false;
+        console.error = (...args) => {
+          if (args.some((a) => String(a).includes('Failed to read file'))) phantomRead = true;
+        };
+        let newInsert, existing;
+        try {
+          newInsert = await this.collection.query({ name: 'WAL_NewInsert' }).exec();
+          existing = await this.collection.query({ name: 'WAL_Existing' }).exec();
+        } finally {
+          console.error = originalError;
+        }
+        assert.equal(newInsert.data.documents.length, 0, 'Insert must not be applied when the WAL write failed');
+        assert.equal(existing.data.documents.length, 1, 'Update target must still exist');
+        assert.equal(existing.data.documents[0].status, 'original', 'Update must not be applied when the WAL write failed');
+        assert.equal(phantomRead, false, 'Rollback must clean the in-memory index so no phantom (never-written) file is read');
+
+        // No orphaned .tmp staging file may remain anywhere in the data dir.
+        const findTmp = (dir) => {
+          let found = false;
+          for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+            const full = `${dir}/${entry.name}`;
+            if (entry.isDirectory()) {
+              found = findTmp(full) || found;
+            } else if (entry.name.includes('.tmp-')) {
+              found = true;
+            }
+          }
+          return found;
+        };
+        assert.equal(findTmp(this.testDir), false, 'A failed commit must not leak .tmp staging files');
+      });
+
+      await this.test('Staging (.tmp) write failure aborts the commit and cleans orphaned .tmp files', async () => {
+        // Fix #2 + #3: if a .tmp staging write fails partway through a multi-op
+        // transaction, the commit must abort AND rollback must remove the .tmp file
+        // that the earlier, already-staged op left behind.
+        const txn = this.collection.beginTransaction();
+        txn
+          .insert({ name: 'STAGE_First', email: 'stage-first@test.com', age: 80 })
+          .insert({ name: 'STAGE_Second', email: 'stage-second@test.com', age: 81 });
+
+        // Let the WAL append succeed (real), but fail the SECOND .tmp staging write,
+        // so the first op's .tmp is a genuine orphan that rollback must clean up.
+        let stageCalls = 0;
+        const originalWriteFile = txn.FileManager.WriteFile.bind(txn.FileManager);
+        txn.FileManager.WriteFile = async (filePath, data) => {
+          if (String(filePath).includes('.tmp-')) {
+            stageCalls++;
+            if (stageCalls >= 2) {
+              return { status: false, message: 'injected staging failure on 2nd op' };
+            }
+          }
+          return originalWriteFile(filePath, data);
+        };
+
+        const result = await txn.commit();
+        assert.isError(result);
+        assert.ok(stageCalls >= 2, 'The second staging write should have been attempted');
+
+        const originalError = console.error;
+        let phantomRead = false;
+        console.error = (...args) => {
+          if (args.some((a) => String(a).includes('Failed to read file'))) phantomRead = true;
+        };
+        let first, second;
+        try {
+          first = await this.collection.query({ name: 'STAGE_First' }).exec();
+          second = await this.collection.query({ name: 'STAGE_Second' }).exec();
+        } finally {
+          console.error = originalError;
+        }
+        assert.equal(first.data.documents.length, 0, 'First op must not be applied when a later staging write failed');
+        assert.equal(second.data.documents.length, 0, 'Second op must not be applied when its staging write failed');
+        assert.equal(phantomRead, false, 'Rollback must clean the in-memory index so no phantom (never-written) file is read');
+
+        // The first op DID write a .tmp file before the second failed - rollback must have removed it.
+        const findTmp = (dir) => {
+          for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+            const full = `${dir}/${entry.name}`;
+            if (entry.isDirectory()) {
+              if (findTmp(full)) return true;
+            } else if (entry.name.includes('.tmp-')) {
+              return true;
+            }
+          }
+          return false;
+        };
+        assert.equal(findTmp(this.testDir), false, 'Rollback must clean the orphaned .tmp file from the already-staged op');
+      });
+
       await this.test('Empty transaction throws error', async () => {
         const txn = this.collection.beginTransaction();
         const result = await txn.commit();
