@@ -129,7 +129,7 @@ export default class Transaction {
       throw new Error("Data must be a valid object");
     }
 
-    const documentId = new UniqueGenerator(15).RandomWord(true);
+    const documentId = new UniqueGenerator(General.DocumentId_Length).RandomWord(true, true);
     const operation: TransactionOperation = {
       type: 'INSERT',
       documentId,
@@ -327,7 +327,7 @@ export default class Transaction {
         let documentId = op.documentId!;
         let filePath = `${this.collectionPath}/${documentId}${General.DBMS_File_EXT}`;
         while ((await this.FileManager.FileExists(filePath)).status) {
-          documentId = new UniqueGenerator(15).RandomWord(true);
+          documentId = new UniqueGenerator(General.DocumentId_Length).RandomWord(true, true);
           filePath = `${this.collectionPath}/${documentId}${General.DBMS_File_EXT}`;
         }
         if (documentId !== op.documentId) {

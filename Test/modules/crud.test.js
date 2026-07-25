@@ -57,6 +57,14 @@ class CRUDTests extends TestRunner {
         this.documentIds.push(result.data.documentId);
       });
 
+      await this.test('Generated documentId is 30-char uppercase alphanumeric', async () => {
+        const result = await this.collection.insert(fixtures.sampleUser());
+        const id = result.data.documentId;
+        assert.equal(id.length, 30, 'documentId should be 30 characters');
+        assert.ok(/^[A-Z0-9]+$/.test(id), 'documentId should contain only uppercase letters and digits');
+        this.documentIds.push(id);
+      });
+
       await this.test('Insert multiple documents', async () => {
         const users = fixtures.generateUsers(100);
         const result = await this.collection.insertMany(users);
