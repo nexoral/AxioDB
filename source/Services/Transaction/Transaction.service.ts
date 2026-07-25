@@ -7,6 +7,7 @@ import {
 import { TransactionMetadata, TransactionOperation, WALEntry, Savepoint } from "../../config/Interfaces/Transaction/transaction.interface";
 import { General } from "../../config/Keys/Keys";
 import FileManager from "../../engine/Filesystem/FileManager";
+import FolderManager from "../../engine/Filesystem/FolderManager";
 import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
 import InMemoryCache from "../../Memory/memory.operation";
@@ -14,6 +15,9 @@ import LockManager from "./LockManager.service";
 import TransactionIndexManager from "./TransactionIndexManager.service";
 import TransactionRegistry from "./TransactionRegistry.service";
 import WriteAheadLog from "./WriteAheadLog.service";
+
+// WAL files are named `${transactionId}.wal` (see WriteAheadLog.service.ts).
+const WAL_FILE_EXT = ".wal";
 
 export default class Transaction {
   private readonly collectionPath: string;
@@ -396,6 +400,8 @@ export default class Transaction {
     // Store resolved operations for use in applyChanges
     this.resolvedOperations = resolvedOperations;
 
+    const walEntries: WALEntry[] = [];
+
     for (const op of resolvedOperations) {
       const fileName = op.fileName || `${op.documentId}${General.DBMS_File_EXT}`;
       const filePath = `${this.collectionPath}/${fileName}`;
@@ -413,7 +419,7 @@ export default class Transaction {
         afterData = this.Converter.ToString(op.data);
       }
 
-      const walEntry: WALEntry = {
+      walEntries.push({
         transactionId: this.transactionId,
         timestamp: new Date().toISOString(),
         operationType: op.type,
@@ -422,19 +428,7 @@ export default class Transaction {
         beforeData,
         afterData,
         checksum: '',
-      };
-
-      // The WAL entry is the durable record of intent - it MUST be persisted
-      // before we stage/apply the change. appendLog() returns an Error result
-      // instead of throwing, so an unchecked failure (disk full, EIO) would let
-      // the commit proceed and mutate a document with no log to recover from.
-      // Throwing here routes into commit()'s catch, which rolls the transaction back.
-      const appendResult = await this.WAL.appendLog(walEntry);
-      if (!appendResult.status) {
-        throw new Error(
-          `WAL append failed for document ${op.documentId} - aborting commit: ${(appendResult as ErrorInterface).message ?? ""}`,
-        );
-      }
+      });
 
       const tempFilePath = `${filePath}.tmp-${this.transactionId}`;
       if (op.type === 'INSERT' || op.type === 'UPDATE') {
@@ -445,6 +439,21 @@ export default class Transaction {
           );
         }
       }
+    }
+
+    // Persist every WAL entry in a single fsync'd batch instead of one fsync per
+    // operation - a 1000-doc insertMany goes from 1000 WAL fsyncs to 1. The WAL is
+    // the durable record of intent and only has to be durable before applyChanges()
+    // (which runs after this method, post-COMMITTED); the .tmp files staged above are
+    // not the live documents, so ordering the batch after staging is still crash-safe:
+    // a crash before this append leaves an empty/partial WAL that recovery treats as
+    // "nothing committed". appendLogBatch() returns an Error result instead of
+    // throwing, so we check it and throw to route into commit()'s rollback.
+    const appendResult = await this.WAL.appendLogBatch(walEntries);
+    if (!appendResult.status) {
+      throw new Error(
+        `WAL batch append failed - aborting commit: ${(appendResult as ErrorInterface).message ?? ""}`,
+      );
     }
   }
 
@@ -474,7 +483,15 @@ export default class Transaction {
   public static async recoverTransactions(collectionPath: string): Promise<void> {
     try {
       const registry = new TransactionRegistry(collectionPath);
+
+      // Snapshot the WAL files present when recovery starts. Recovery runs at
+      // collection init, so these all predate any transaction THIS process will
+      // create - sweeping orphans from this snapshot (below) can't race a live
+      // transaction that creates its WAL after startup.
+      const orphanCandidates = await this.listWALFiles(collectionPath);
+
       const activeTransactions = await registry.getActiveTransactions();
+      const handled = new Set<string>();
 
       for (const txnMeta of activeTransactions) {
         const wal = new WriteAheadLog(collectionPath, txnMeta.transactionId);
@@ -489,9 +506,40 @@ export default class Transaction {
         await lockManager.releaseAllLocks(txnMeta.lockedDocuments);
         await wal.deleteWAL();
         await registry.removeTransaction(txnMeta.transactionId);
+        handled.add(`${txnMeta.transactionId}${WAL_FILE_EXT}`);
+      }
+
+      // Sweep orphaned WALs: a crash between createWAL() and registerTransaction()
+      // leaves a .wal with no registry entry, which the registry-driven loop above
+      // never sees. Such a WAL was created before any document mutation (WAL entries
+      // are only appended after registration), so it is empty - or, in the rare case
+      // a post-commit deleteWAL() failed, a stale leftover whose changes are already
+      // durable on disk. In both cases the correct action is to reclaim the file,
+      // never redo/undo it.
+      for (const walFile of orphanCandidates) {
+        if (handled.has(walFile)) {
+          continue;
+        }
+        const transactionId = walFile.slice(0, -WAL_FILE_EXT.length);
+        await new WriteAheadLog(collectionPath, transactionId).deleteWAL();
+        await registry.removeTransaction(transactionId);
       }
     } catch {
       return;
     }
+  }
+
+  private static async listWALFiles(collectionPath: string): Promise<string[]> {
+    const folderManager = new FolderManager();
+    const transactionDir = `${collectionPath}/.transactions`;
+    const dirExists = await folderManager.DirectoryExists(transactionDir);
+    if (!dirExists.status) {
+      return [];
+    }
+    const listing = await folderManager.ListDirectory(transactionDir);
+    if (!listing.status || !Array.isArray(listing.data)) {
+      return [];
+    }
+    return (listing.data as string[]).filter((name) => name.endsWith(WAL_FILE_EXT));
   }
 }

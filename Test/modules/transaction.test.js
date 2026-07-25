@@ -152,9 +152,9 @@ class TransactionTests extends TestRunner {
           .insert({ name: 'WAL_NewInsert', email: 'wal-new@test.com', age: 71 })
           .update({ name: 'WAL_Existing' }, { status: 'changed' });
 
-        // Inject a WAL write failure - appendLog returns an error result (it does
+        // Inject a WAL write failure - appendLogBatch returns an error result (it does
         // not throw), exactly like a real disk failure would.
-        txn.WAL.appendLog = async () => ({ status: false, message: 'injected WAL failure' });
+        txn.WAL.appendLogBatch = async () => ({ status: false, message: 'injected WAL failure' });
 
         const result = await txn.commit();
         assert.isError(result);
@@ -251,6 +251,25 @@ class TransactionTests extends TestRunner {
           return false;
         };
         assert.equal(findTmp(this.testDir), false, 'Rollback must clean the orphaned .tmp file from the already-staged op');
+      });
+
+      await this.test('Recovery sweeps orphaned WAL files that have no registry entry', async () => {
+        // A crash between createWAL() and registerTransaction() leaves a .wal with no
+        // registry entry. The registry-driven recovery loop never sees it, so without
+        // an explicit sweep it survives forever (the flaky crash-recovery failure).
+        // This reproduces that state deterministically - no SIGKILL timing needed.
+        const Transaction = require('../../lib/Services/Transaction/Transaction.service.js').default;
+        const collectionPath = this.collection.path;
+        const txnDir = `${collectionPath}/.transactions`;
+        fs.mkdirSync(txnDir, { recursive: true });
+
+        const orphanWal = `${txnDir}/ORPHANTXNNOREG01.wal`;
+        fs.writeFileSync(orphanWal, ''); // empty, exactly like a crash-before-register orphan
+        assert.equal(fs.existsSync(orphanWal), true, 'Precondition: orphan WAL exists');
+
+        await Transaction.recoverTransactions(collectionPath);
+
+        assert.equal(fs.existsSync(orphanWal), false, 'Recovery must sweep an orphan WAL with no registry entry');
       });
 
       await this.test('Empty transaction throws error', async () => {
