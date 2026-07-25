@@ -255,6 +255,20 @@ export default class Transaction {
 
       await this.IndexManager.rollbackIndexUpdates();
 
+      // Remove any staged .tmp files an aborted executeOperations may have left
+      // behind (e.g. a mid-loop WAL/stage failure throws before applyChanges
+      // renames them into place), so aborted commits don't leak temp files.
+      for (const op of this.resolvedOperations) {
+        if (op.type === 'INSERT' || op.type === 'UPDATE') {
+          const fileName = op.fileName || `${op.documentId}${General.DBMS_File_EXT}`;
+          const tempFilePath = `${this.collectionPath}/${fileName}.tmp-${this.transactionId}`;
+          const tempExists = await this.FileManager.FileExists(tempFilePath);
+          if (tempExists.status) {
+            await this.FileManager.DeleteFile(tempFilePath);
+          }
+        }
+      }
+
       await this.LockManager.releaseAllLocks(this.lockedDocuments);
 
       await this.WAL.deleteWAL();
@@ -410,11 +424,26 @@ export default class Transaction {
         checksum: '',
       };
 
-      await this.WAL.appendLog(walEntry);
+      // The WAL entry is the durable record of intent - it MUST be persisted
+      // before we stage/apply the change. appendLog() returns an Error result
+      // instead of throwing, so an unchecked failure (disk full, EIO) would let
+      // the commit proceed and mutate a document with no log to recover from.
+      // Throwing here routes into commit()'s catch, which rolls the transaction back.
+      const appendResult = await this.WAL.appendLog(walEntry);
+      if (!appendResult.status) {
+        throw new Error(
+          `WAL append failed for document ${op.documentId} - aborting commit: ${(appendResult as ErrorInterface).message ?? ""}`,
+        );
+      }
 
       const tempFilePath = `${filePath}.tmp-${this.transactionId}`;
       if (op.type === 'INSERT' || op.type === 'UPDATE') {
-        await this.FileManager.WriteFile(tempFilePath, afterData!);
+        const tempWrite = await this.FileManager.WriteFile(tempFilePath, afterData!);
+        if (!tempWrite.status) {
+          throw new Error(
+            `Failed to stage document ${op.documentId} - aborting commit`,
+          );
+        }
       }
     }
   }
