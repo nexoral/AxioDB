@@ -87,7 +87,7 @@ export default class Insertion {
     let isExist = true;
     let ID;
     do {
-      ID = new UniqueGenerator(15).RandomWord(true);
+      ID = new UniqueGenerator(General.DocumentId_Length).RandomWord(true, true);
       // Sanitize ID to ensure safe file path
       const sanitizedID = PathSanitizer.sanitizePathComponent(ID);
       const response = await new FileManager().FileExists(
