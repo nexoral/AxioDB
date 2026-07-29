@@ -19,7 +19,6 @@ docker-compose.yml
 .devcontainer/
 
 # AI Assistant configurations (non-essential for npm users)
-.agents/
 .claude/
 .codex/
 .cursor/
