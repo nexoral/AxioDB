@@ -1,0 +1,4 @@
+# Compiled TypeScript output (tsc outDir) - duplicates every source/*.ts as
+# .js plus __awaiter polyfill internals (adopt/fulfilled/rejected/step) in
+# each file. Already git-ignored; indexing it doubles the graph with noise.
+/lib/
