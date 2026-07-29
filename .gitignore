@@ -25,3 +25,8 @@ GUI/.vite
 GUI/dist
 AllFeature.js
 TestCRUD/
+
+# Agent tooling and generated knowledge graph
+graphify-out/
+.claude/
+.agents/
