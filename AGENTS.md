@@ -320,6 +320,7 @@ npm test tcp-auth          # TCP (AxioDBCloud) RBAC tests only
 npm test tcp-noauth        # TCP zero-auth backward-compat tests only
 npm test tcp-tls           # TCP TLS tests only
 npm test crash-recovery    # Real-SIGKILL crash-recovery tests only
+npm test mcp-confirm       # MCP destructive-tool human confirmation tests only
 npm run lint               # ESLint
 
 # Development

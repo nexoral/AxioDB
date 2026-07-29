@@ -18,7 +18,7 @@ npm test        # Run all tests (separate processes)
 npm run lint    # ESLint check
 
 # Test specific module
-npm test crud | transaction | read | auth | tcp-auth | tcp-noauth | tcp-tls | crash-recovery
+npm test crud | transaction | read | auth | tcp-auth | tcp-noauth | tcp-tls | crash-recovery | mcp-confirm
 node Test/modules/crud.test.js
 ```
 

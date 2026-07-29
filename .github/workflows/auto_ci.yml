@@ -185,6 +185,9 @@ jobs:
       - name: Run Crash Recovery tests
         run: npm test crash-recovery
 
+      - name: Run MCP Confirmation tests
+        run: npm test mcp-confirm
+
   auto-merge:
     name: "auto-merge"
     needs: [detect_changes, test]  # Wait for change detection and all test matrix jobs to complete

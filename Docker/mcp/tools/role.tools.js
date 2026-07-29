@@ -4,6 +4,7 @@ const { z } = require('zod');
 const RoleManagementController = require('../../lib/server/controller/Auth/RoleManagement.controller').default;
 const { PERMISSIONS } = require('../../lib/config/Keys/Permissions');
 const { sessionIdField, NOOP_REPLY, withAuth } = require('../shared.helpers');
+const { withConfirmation, READ_ONLY, ADDITIVE, DESTRUCTIVE } = require('../confirmation.helper');
 
 module.exports = function registerRoleTools(server) {
   server.registerTool(
@@ -11,6 +12,7 @@ module.exports = function registerRoleTools(server) {
     {
       description: '[Super Admin] List all roles and their permissions.',
       inputSchema: { ...sessionIdField },
+      annotations: READ_ONLY,
     },
     withAuth(PERMISSIONS.ROLE_VIEW, () =>
       new RoleManagementController().listRoles({}, NOOP_REPLY),
@@ -26,6 +28,7 @@ module.exports = function registerRoleTools(server) {
         roleName: z.string().min(1),
         permissions: z.array(z.string()).min(1),
       },
+      annotations: ADDITIVE,
     },
     withAuth(PERMISSIONS.ROLE_CREATE, ({ roleName, permissions }) =>
       new RoleManagementController().createRole(
@@ -40,9 +43,15 @@ module.exports = function registerRoleTools(server) {
     {
       description: '[Super Admin] Delete a custom role. Predefined system roles (Super Admin, Admin, View) and roles still assigned to a user cannot be deleted.',
       inputSchema: { ...sessionIdField, roleName: z.string().min(1) },
+      annotations: { ...DESTRUCTIVE, idempotentHint: true },
     },
-    withAuth(PERMISSIONS.ROLE_DELETE, ({ roleName }) =>
-      new RoleManagementController().deleteRole({ params: { roleName } }, NOOP_REPLY),
+    withAuth(
+      PERMISSIONS.ROLE_DELETE,
+      withConfirmation(
+        server,
+        ({ roleName }) => `Delete the role "${roleName}"? Its permission set is permanently removed.`,
+        ({ roleName }) => new RoleManagementController().deleteRole({ params: { roleName } }, NOOP_REPLY),
+      ),
     ),
   );
 
@@ -51,6 +60,7 @@ module.exports = function registerRoleTools(server) {
     {
       description: '[Super Admin] List the full permission catalogue available for custom roles.',
       inputSchema: { ...sessionIdField },
+      annotations: READ_ONLY,
     },
     withAuth(PERMISSIONS.ROLE_VIEW, () =>
       new RoleManagementController().listPermissions({}, NOOP_REPLY),

@@ -7,6 +7,7 @@ const PermissionChecker = require('../../lib/Services/Auth/PermissionChecker.hel
 const LoginRateLimiter = require('../../lib/Services/Auth/LoginRateLimiter.service').default;
 const AuthEvents = require('../../lib/Services/Auth/AuthEvents.service').default;
 const { sessionIdField, withAuth, withSession } = require('../shared.helpers');
+const { READ_ONLY, ADDITIVE } = require('../confirmation.helper');
 
 module.exports = function registerAuthTools(server) {
   const authService = new AuthService();
@@ -16,6 +17,7 @@ module.exports = function registerAuthTools(server) {
     {
       description: 'Log in with an AxioDB username/password and obtain a sessionId required by every other tool. Default seeded account: admin/admin (forces a password change on first login, same as the web GUI).',
       inputSchema: { username: z.string().min(1), password: z.string().min(1) },
+      annotations: ADDITIVE,
     },
     withAuth(null, async ({ username, password }) => {
       const cooldownRemaining = LoginRateLimiter.getCooldownRemaining('mcp');
@@ -57,6 +59,7 @@ module.exports = function registerAuthTools(server) {
     {
       description: 'Log out and invalidate a session. Sessions live in server memory only (24h TTL) - always call this when finished with a session to free it early rather than waiting for expiry.',
       inputSchema: { ...sessionIdField },
+      annotations: { ...ADDITIVE, idempotentHint: true },
     },
     withSession((args, session) => {
       SessionStore.revokeSession(session.sid);
@@ -69,6 +72,7 @@ module.exports = function registerAuthTools(server) {
     {
       description: 'Get the identity, role, and effective permissions of the currently logged-in session.',
       inputSchema: { ...sessionIdField },
+      annotations: READ_ONLY,
     },
     withSession((args, session) => ({
       statusCode: 200,
@@ -91,6 +95,9 @@ module.exports = function registerAuthTools(server) {
         currentPassword: z.string().min(1),
         newPassword: z.string().min(4),
       },
+      // Self-service, and requiring `currentPassword` already proves human intent - so no
+      // elicitation gate, but it does invalidate the caller's own credential, hence not additive.
+      annotations: { readOnlyHint: false, destructiveHint: true },
     },
     withSession(async ({ currentPassword, newPassword }, session) => {
       const result = await authService.changeOwnPassword(

@@ -5,7 +5,8 @@
 // this image already ships - no extra `axiodb` package install, no second AxioDB instance.
 // It exposes the exact same data-plane + control-plane operations the HTTP GUI does, gated
 // by the exact same RBAC (login -> session -> PermissionChecker), just as MCP tools instead
-// of Fastify routes. Each feature area's tools live in mcp/tools/ (see architecture.md's
+// of Fastify routes. Destructive tools additionally ask a human through the client before they
+// run (see mcp/confirmation.helper.js) - the one gate the HTTP GUI gets from having a UI. Each feature area's tools live in mcp/tools/ (see architecture.md's
 // "feature-based, one responsibility per file" convention); this file only wires them up and
 // runs the Streamable HTTP transport.
 

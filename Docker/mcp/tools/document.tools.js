@@ -4,6 +4,20 @@ const { z } = require('zod');
 const CRUDController = require('../../lib/server/controller/Operation/CRUD.controller').default;
 const { PERMISSIONS } = require('../../lib/config/Keys/Permissions');
 const { sessionIdField, withAuth } = require('../shared.helpers');
+const { withConfirmation, READ_ONLY, ADDITIVE, DESTRUCTIVE } = require('../confirmation.helper');
+
+/** Keeps a confirmation prompt readable when an agent passes a large update payload. */
+function preview(value) {
+  const json = JSON.stringify(value);
+  return json.length > 200 ? `${json.slice(0, 200)}... (truncated)` : json;
+}
+
+/** Human-readable blast radius for a confirmation prompt: one known doc, one match, or all matches. */
+function describeTarget(documentId, query, many) {
+  if (documentId) return `document "${documentId}"`;
+  const filter = preview(query || {});
+  return many ? `EVERY document matching ${filter}` : `the first document matching ${filter}`;
+}
 
 module.exports = function registerDocumentTools(server, axioDBInstance) {
   const crudController = new CRUDController(axioDBInstance);
@@ -18,6 +32,7 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
         collectionName: z.string().min(1),
         document: z.record(z.string(), z.any()),
       },
+      annotations: ADDITIVE,
     },
     withAuth(PERMISSIONS.DOCUMENT_CREATE, ({ dbName, collectionName, document }) =>
       crudController.createNewDocument({ query: { dbName, collectionName }, body: document }),
@@ -34,6 +49,7 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
         collectionName: z.string().min(1),
         documents: z.array(z.record(z.string(), z.any())).min(1),
       },
+      annotations: ADDITIVE,
     },
     withAuth(PERMISSIONS.DOCUMENT_CREATE, ({ dbName, collectionName, documents }) =>
       crudController.createManyNewDocument({ query: { dbName, collectionName }, body: documents }),
@@ -52,6 +68,7 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
         query: z.record(z.string(), z.any()).optional(),
         page: z.number().int().min(1).optional(),
       },
+      annotations: READ_ONLY,
     },
     withAuth(PERMISSIONS.DOCUMENT_QUERY, ({ dbName, collectionName, documentId, query, page }) => {
       if (documentId) {
@@ -80,19 +97,28 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
         update: z.record(z.string(), z.any()),
         many: z.boolean().optional(),
       },
+      annotations: DESTRUCTIVE,
     },
-    withAuth(PERMISSIONS.DOCUMENT_UPDATE, ({ dbName, collectionName, documentId, query, update, many }) => {
-      if (documentId) {
-        return crudController.updateDocumentById({
-          query: { dbName, collectionName, documentId },
-          body: update,
-        });
-      }
-      return crudController.updateDocumentByQuery({
-        query: { dbName, collectionName, isMany: !!many },
-        body: { query: query || {}, update },
-      });
-    }),
+    withAuth(
+      PERMISSIONS.DOCUMENT_UPDATE,
+      withConfirmation(
+        server,
+        ({ dbName, collectionName, documentId, query, update, many }) =>
+          `Overwrite ${describeTarget(documentId, query, many)} in "${dbName}.${collectionName}" with ${preview(update)}? The previous field values are not recoverable.`,
+        ({ dbName, collectionName, documentId, query, update, many }) => {
+          if (documentId) {
+            return crudController.updateDocumentById({
+              query: { dbName, collectionName, documentId },
+              body: update,
+            });
+          }
+          return crudController.updateDocumentByQuery({
+            query: { dbName, collectionName, isMany: !!many },
+            body: { query: query || {}, update },
+          });
+        },
+      ),
+    ),
   );
 
   server.registerTool(
@@ -107,16 +133,25 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
         query: z.record(z.string(), z.any()).optional(),
         many: z.boolean().optional(),
       },
+      annotations: DESTRUCTIVE,
     },
-    withAuth(PERMISSIONS.DOCUMENT_DELETE, ({ dbName, collectionName, documentId, query, many }) => {
-      if (documentId) {
-        return crudController.deleteDocumentById({ query: { dbName, collectionName, documentId } });
-      }
-      return crudController.deleteDocumentByQuery({
-        query: { dbName, collectionName, isMany: !!many },
-        body: { query: query || {} },
-      });
-    }),
+    withAuth(
+      PERMISSIONS.DOCUMENT_DELETE,
+      withConfirmation(
+        server,
+        ({ dbName, collectionName, documentId, query, many }) =>
+          `Delete ${describeTarget(documentId, query, many)} from "${dbName}.${collectionName}"? This cannot be undone.`,
+        ({ dbName, collectionName, documentId, query, many }) => {
+          if (documentId) {
+            return crudController.deleteDocumentById({ query: { dbName, collectionName, documentId } });
+          }
+          return crudController.deleteDocumentByQuery({
+            query: { dbName, collectionName, isMany: !!many },
+            body: { query: query || {} },
+          });
+        },
+      ),
+    ),
   );
 
   server.registerTool(
@@ -124,6 +159,9 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
     {
       description: 'Get the total document count in a collection.',
       inputSchema: { ...sessionIdField, dbName: z.string().min(1), collectionName: z.string().min(1) },
+      // Not readOnly: createDB()/createCollection() create-if-missing, so counting documents in
+      // an unknown collection leaves an empty database/collection behind.
+      annotations: { ...ADDITIVE, idempotentHint: true },
     },
     withAuth(PERMISSIONS.DOCUMENT_VIEW, async ({ dbName, collectionName }) => {
       const databaseInstance = await axioDBInstance.createDB(dbName);
@@ -143,6 +181,7 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
         collectionName: z.string().min(1),
         aggregation: z.array(z.record(z.string(), z.any())).min(1),
       },
+      annotations: READ_ONLY,
     },
     withAuth(PERMISSIONS.DOCUMENT_AGGREGATE, ({ dbName, collectionName, aggregation }) =>
       crudController.runAggregation({ query: { dbName, collectionName }, body: { aggregation } }),

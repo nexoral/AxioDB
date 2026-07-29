@@ -4,6 +4,7 @@ const { z } = require('zod');
 const DatabaseController = require('../../lib/server/controller/Database/Databse.controller').default;
 const { PERMISSIONS } = require('../../lib/config/Keys/Permissions');
 const { sessionIdField, withAuth } = require('../shared.helpers');
+const { withConfirmation, READ_ONLY, ADDITIVE, DESTRUCTIVE } = require('../confirmation.helper');
 
 module.exports = function registerDatabaseTools(server, axioDBInstance) {
   const dbController = new DatabaseController(axioDBInstance);
@@ -13,6 +14,7 @@ module.exports = function registerDatabaseTools(server, axioDBInstance) {
     {
       description: 'Create a new AxioDB database.',
       inputSchema: { ...sessionIdField, name: z.string().min(1) },
+      annotations: { ...ADDITIVE, idempotentHint: true },
     },
     withAuth(PERMISSIONS.DB_CREATE, ({ name }) =>
       dbController.createDatabase({ body: { name } }),
@@ -24,9 +26,15 @@ module.exports = function registerDatabaseTools(server, axioDBInstance) {
     {
       description: 'Delete an AxioDB database.',
       inputSchema: { ...sessionIdField, dbName: z.string().min(1) },
+      annotations: { ...DESTRUCTIVE, idempotentHint: true },
     },
-    withAuth(PERMISSIONS.DB_DELETE, ({ dbName }) =>
-      dbController.deleteDatabase({ query: { dbName } }),
+    withAuth(
+      PERMISSIONS.DB_DELETE,
+      withConfirmation(
+        server,
+        ({ dbName }) => `Delete the database "${dbName}"? Every collection, document and index inside it is permanently removed. This cannot be undone.`,
+        ({ dbName }) => dbController.deleteDatabase({ query: { dbName } }),
+      ),
     ),
   );
 
@@ -35,6 +43,7 @@ module.exports = function registerDatabaseTools(server, axioDBInstance) {
     {
       description: 'Check whether a database exists.',
       inputSchema: { ...sessionIdField, name: z.string().min(1) },
+      annotations: READ_ONLY,
     },
     withAuth(PERMISSIONS.DB_VIEW, async ({ name }) => {
       const exists = await axioDBInstance.isDatabaseExists(name);
@@ -47,6 +56,7 @@ module.exports = function registerDatabaseTools(server, axioDBInstance) {
     {
       description: 'Get the list of databases and instance-level storage info.',
       inputSchema: { ...sessionIdField },
+      annotations: READ_ONLY,
     },
     withAuth(PERMISSIONS.DB_VIEW, () => dbController.getDatabases()),
   );

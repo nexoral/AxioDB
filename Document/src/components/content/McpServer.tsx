@@ -9,9 +9,22 @@ import {
   Database,
   Layers,
   Users,
+  UserCheck,
   ArrowRight,
   ExternalLink,
 } from "lucide-react";
+
+const confirmedTools: { tool: string; why: string }[] = [
+  { tool: "axiodb_delete_database", why: "drops every collection, document and index inside it" },
+  { tool: "axiodb_delete_collection", why: "drops every document and index inside it" },
+  { tool: "axiodb_delete_document", why: "irreversible; many: true deletes every match" },
+  { tool: "axiodb_update_document", why: "overwrites unrecoverable field values; many: true hits every match" },
+  { tool: "axiodb_drop_index", why: "queries fall back to full scans until it is rebuilt" },
+  { tool: "axiodb_delete_user", why: "removes the account and all of its sessions" },
+  { tool: "axiodb_delete_role", why: "removes the role's permission set" },
+  { tool: "axiodb_update_user_role", why: "changes what that account may do across GUI, TCP and MCP" },
+  { tool: "axiodb_reset_user_password", why: "invalidates the current password and every session" },
+];
 
 const toolGroups: { title: string; permissionNote: string; tools: string[] }[] = [
   {
@@ -358,6 +371,72 @@ url = "http://localhost:27020/mcp"`}
         </div>
       </section>
 
+      {/* Human in the loop */}
+      <section>
+        <h2 className="text-3xl font-bold mb-6 text-white flex items-center gap-3">
+          <UserCheck className="h-8 w-8 text-amber-500" />
+          Human in the Loop on Destructive Tools
+        </h2>
+        <p className="text-slate-300 mb-6 max-w-3xl">
+          Nine tools destroy or overwrite existing state, and each one asks a human before it
+          runs — through your MCP client&apos;s own confirmation prompt (the protocol&apos;s{" "}
+          <code className="px-1 py-0.5 bg-slate-900 rounded">elicitation/create</code> request),
+          naming the exact target. Declining, cancelling, or leaving the box unchecked aborts with{" "}
+          <code className="px-1 py-0.5 bg-slate-900 rounded">409</code> and the operation never
+          reaches the database. Inserts, creates and index builds are never prompted — they only
+          ever add.
+        </p>
+
+        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 mb-6">
+          <CodeBlock
+            language="text"
+            code={`Agent: axiodb_delete_collection({ sessionId, dbName: "shop", collectionName: "orders" })
+
+  -> your MCP client prompts YOU:
+     "Delete the collection "orders" from database "shop"? Every document and
+      index inside it is permanently removed. This cannot be undone."   [ ] Confirm
+
+  Declined ->  { "statusCode": 409, "message": "Aborted: this destructive operation
+                  was not confirmed by a human reviewer." }
+  Confirmed -> collection deleted`}
+          />
+        </div>
+
+        <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-x-auto mb-6">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-700">
+                <th className="text-left p-4 text-slate-300 font-semibold">Tool</th>
+                <th className="text-left p-4 text-slate-300 font-semibold">Prompted because</th>
+              </tr>
+            </thead>
+            <tbody>
+              {confirmedTools.map(({ tool, why }) => (
+                <tr key={tool} className="border-b border-slate-700/50 last:border-0">
+                  <td className="p-4 font-mono text-fuchsia-300 whitespace-nowrap">{tool}</td>
+                  <td className="p-4 text-slate-400">{why}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/30">
+          <p className="text-sm text-slate-300">
+            <strong className="text-amber-400">Annotations, and the one hard guarantee:</strong>{" "}
+            every tool also ships MCP annotations (
+            <code className="px-1 py-0.5 bg-slate-900 rounded">readOnlyHint</code>,{" "}
+            <code className="px-1 py-0.5 bg-slate-900 rounded">destructiveHint</code>,{" "}
+            <code className="px-1 py-0.5 bg-slate-900 rounded">idempotentHint</code>) so clients
+            can auto-approve reads while holding writes for review. A client that doesn&apos;t
+            support elicitation can&apos;t show the prompt, and the call then proceeds on the
+            annotations alone — so for an agent that must never write, hand it a{" "}
+            <code className="px-1 py-0.5 bg-slate-900 rounded">View</code>-role login: that is
+            enforced server-side in RBAC and needs no client cooperation.
+          </p>
+        </div>
+      </section>
+
       {/* Example */}
       <section>
         <h2 className="text-3xl font-bold mb-6 text-white flex items-center gap-3">
@@ -397,6 +476,7 @@ url = "http://localhost:27020/mcp"`}
           <ul className="list-disc list-inside text-slate-300 space-y-2">
             <li>Every write/read tool is permission-checked against the caller&apos;s actual role on every call, not just at login</li>
             <li>An invalid, expired, or missing <code className="px-1 py-0.5 bg-slate-900 rounded">sessionId</code> is rejected before it ever reaches a database operation</li>
+            <li>The nine destructive tools require an explicit human confirmation through the client before they touch data — see <strong>Human in the Loop</strong> above; a <code className="px-1 py-0.5 bg-slate-900 rounded">View</code>-role login is the server-side way to make an agent read-only</li>
             <li>Expose port 27020 only to trusted networks/agents, same guidance as the TCP port — the MCP server carries the same authority as the GUI, just a different transport</li>
           </ul>
         </div>

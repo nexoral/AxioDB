@@ -203,6 +203,9 @@ jobs:
       - name: Run Crash Recovery tests
         run: npm test crash-recovery
 
+      - name: Run MCP Confirmation tests
+        run: npm test mcp-confirm
+
   publish_to_npm:
     needs: [detect_changes, test]
     if: needs.detect_changes.outputs.run_npm_github == 'true'
