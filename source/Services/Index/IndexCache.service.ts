@@ -36,10 +36,9 @@ interface CachedIndex {
  * Features:
  * - Eagerly loads all indexes on collection initialization
  * - Keeps indexes in both memory (speed) and disk (persistence) as JSONL
- * - Cold start recovery: Loads from disk (streaming) on cache miss
+ * - Cold start recovery: Streams from disk on cache miss
  * - Thread-safe with simple lock mechanism
  * - Dual-write: Updates both memory and disk atomically
- * - Backward compatible: auto-migrates old .axiodb + index.meta.json formats
  *
  * @example
  * ```typescript
@@ -230,23 +229,7 @@ export class IndexCache {
         }
       }
 
-      // Fallback: stream old .axiodb file if it exists (migration not yet run)
-      const oldIndexPath = `${this.indexFolderPath}/${fieldName}${General.DBMS_File_EXT}`;
-      const oldContent = await this.fileManager.ReadFile(oldIndexPath);
-      if (oldContent.status) {
-        try {
-          const indexData = this.converter.ToObject(oldContent.data);
-          if (indexData && indexData.fieldName) {
-            this.cache.set(fieldName, {
-              data: indexData,
-              loadedAt: new Date(),
-              expiresAt: Date.now() + this.generateRandomTTL(),
-              path: oldIndexPath,
-            });
-            return indexData;
-          }
-        } catch { /* parse error */ }
-      }
+      // Streaming read failed — index file may not exist (normal for unindexed fields)
     } catch { /* index doesn't exist */ }
 
     return null;
