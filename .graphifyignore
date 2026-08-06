@@ -1,0 +1,12 @@
+# Compiled TypeScript output (tsc outDir) - duplicates every source/*.ts as
+# .js plus __awaiter polyfill internals (adopt/fulfilled/rejected/step) in
+# each file. Already git-ignored; indexing it doubles the graph with noise.
+/lib/
+
+# graphify's own outputs - GRAPH_REPORT.md/graph.json are generated FROM the graph;
+# indexing them feeds the graph its own summary back as source material.
+/graphify-out/
+
+# Built docs site (vite-react-ssg output) - duplicates Document/src + Document/public
+# as pre-rendered HTML plus llms.txt/llms-full.txt concatenations of the same content.
+/Document/AxioDB_Docs/

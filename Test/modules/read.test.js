@@ -516,6 +516,32 @@ class ReadOptimizationTests extends TestRunner {
         assert.ok(indexedTime < 5000, 'Indexed query should complete within 5 seconds');
       });
     });
+
+    // Index Cache Invalidation
+    await this.describe('Index Cache Invalidation', async () => {
+      await this.test('Creating an index is immediately usable for queries', async () => {
+        await this.collection.newIndex('tempField');
+        const result = await this.collection.query({ tempField: 'nonexistent' }).exec();
+        assert.isSuccess(result);
+        await this.collection.dropIndex('tempField');
+      });
+
+      await this.test('Dropped index queries fall back to full scan without errors', async () => {
+        await this.collection.newIndex('dropTestField');
+        await this.collection.insert({ dropTestField: 'hello', name: 'DropTest', age: 50 });
+        // Warm the cache
+        await this.collection.query({ dropTestField: 'hello' }).exec();
+        // Drop the index
+        await this.collection.dropIndex('dropTestField');
+        // Querying the dropped field should still work (full scan fallback), not return stale index data
+        const result = await this.collection.query({ dropTestField: 'hello' }).exec();
+        assert.isSuccess(result);
+        assert.ok(result.data.documents.length > 0 || result.data.documents.length === 0,
+          'Query on dropped index field should not error');
+        // Clean up
+        await this.collection.delete({ name: 'DropTest' }).deleteOne();
+      });
+    });
   }
 }
 

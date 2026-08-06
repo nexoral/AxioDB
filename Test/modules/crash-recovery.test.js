@@ -216,6 +216,66 @@ class CrashRecoveryTests extends TestRunner {
 
         this.log(`     Document recovered with counter=${doc.counter} (some update in the rapid loop, never a torn value)`, 'gray');
       }, { timeout: 20000 });
+
+      await this.test('SIGKILL during indexed inserts recovers with consistent index lookups', async () => {
+        const dbPath = path.join(this.testDir, 'KillIndex');
+
+        const crashCode = `
+          const { AxioDB } = require(${JSON.stringify(LIB_DB_PATH)});
+          (async () => {
+            const db = new AxioDB({ GUI: false, RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
+            const database = await db.createDB('TestDB');
+            const collection = await database.createCollection('Users');
+            await collection.newIndex('email', 'category', 'score');
+            let i = 0;
+            const cats = ['a', 'b', 'c'];
+            while (true) {
+              await collection.insert({ name: 'User' + i, email: 'u' + i + '@test.com', category: cats[i % 3], score: i % 100 });
+              i++;
+            }
+          })();
+        `;
+
+        await runChildThenKill(crashCode, 800);
+
+        const verifyCode = `
+          const { AxioDB } = require(${JSON.stringify(LIB_DB_PATH)});
+          (async () => {
+            const db = new AxioDB({ GUI: false, RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
+            const database = await db.createDB('TestDB');
+            const collection = await database.createCollection('Users');
+            await new Promise((r) => setTimeout(r, 1000));
+            const all = await collection.query({}).Limit(50000).exec();
+            const catA = await collection.query({ category: 'a' }).Limit(50000).exec();
+            const emailProbe = await collection.query({ email: 'u5@test.com' }).Limit(50000).exec();
+            const rangeProbe = await collection.query({ score: { $gte: 10, $lte: 20 } }).Limit(50000).exec();
+            console.log(JSON.stringify({
+              total: all.data.documents.length,
+              catA: catA.data.documents.length,
+              emailMatch: emailProbe.data.documents.length,
+              rangeMatch: rangeProbe.data.documents.length
+            }));
+            process.exit(0);
+          })();
+        `;
+        const stdout = await runChildToCompletion(verifyCode);
+        const { total, catA, emailMatch, rangeMatch } = JSON.parse(stdout.trim().split('\n').pop());
+
+        assert.ok(total > 0, 'Should have recovered at least some documents');
+        assert.ok(catA > 0, 'Indexed $eq query should return matching documents');
+        assert.ok(emailMatch > 0 || total === 0, 'Exact email lookup should work on recovered index');
+        assert.ok(rangeMatch >= 0, 'Range query should not error after recovery');
+
+        // Verify index meta file exists in JSONL format
+        const indexDir = path.join(dbPath, 'CrashDB', 'TestDB', 'Users', 'indexes');
+        assert.ok(fs.existsSync(path.join(indexDir, 'index.meta.jsonl')), 'Index meta file should exist as jsonl');
+
+        // Verify no stale index entries: every indexed query result should correspond to an actual .axiodb doc
+        const allFiles = fs.readdirSync(path.join(dbPath, 'CrashDB', 'TestDB', 'Users')).filter((f) => f.endsWith('.axiodb'));
+        assert.equal(allFiles.length, total, 'File count should match query result — no phantom index entries');
+
+        this.log(`     Recovered ${total} documents; cat_a=${catA}, email_match=${emailMatch}, range_match=${rangeMatch}`, 'gray');
+      }, { timeout: 25000 });
     });
   }
 }

@@ -12,6 +12,7 @@ npm test tcp-auth          # Only TCP (AxioDBCloud) RBAC tests
 npm test tcp-noauth        # Only TCP zero-auth backward-compat tests
 npm test tcp-tls           # Only TCP TLS tests
 npm test crash-recovery    # Only real-SIGKILL crash-recovery tests
+npm test mcp-confirm       # Only MCP destructive-tool human confirmation tests
 npm run lint               # ESLint
 npx tsc --noEmit          # Type check without emit
 ```

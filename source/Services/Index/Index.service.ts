@@ -12,6 +12,8 @@ export interface IndexMetaEntry {
   path: string;
 }
 
+const INDEX_EXT = General.Index_File_EXT; // ".jsonl"
+
 export class IndexManager {
   // Properties
   public readonly path: string;
@@ -25,84 +27,107 @@ export class IndexManager {
   constructor(path: string) {
     this.path = path;
     this.indexFolderPath = `${this.path}/indexes`;
-    this.indexMetaPath = `${this.indexFolderPath}/index.meta.json`;
+    this.indexMetaPath = `${this.indexFolderPath}/${General.Index_Meta_File}`;
     this.fileManager = new FileManager();
     this.folderManager = new FolderManager();
     this.converter = new Converter();
     this.ResponseHelper = new ResponseHelper();
   }
 
+  /**
+   * Serialize IndexData shape for JSONL file storage.
+   * Line 1 = header (fieldName + sortedValues), remaining lines = one per indexEntries key.
+   *
+   * Example output:
+   *   {"h":1,"f":"email","s":[]}
+   *   {"k":"alice@x.com","v":["abc123.axiodb"]}
+   */
+  public static serializeIndexData(indexData: { fieldName: string; indexEntries: Record<string, string[]>; sortedValues?: number[] }): string {
+    const lines: string[] = [];
+    const header: any = { h: 1, f: indexData.fieldName, s: indexData.sortedValues ?? [] };
+    lines.push(JSON.stringify(header));
+    for (const [key, files] of Object.entries(indexData.indexEntries)) {
+      lines.push(JSON.stringify({ k: key, v: files }));
+    }
+    return lines.join("\n") + "\n";
+  }
+
+  /**
+   * Deserialize JSONL lines back into an IndexData object.
+   * Expects first line to be the header: { h:1, f, s }.
+   */
+  public static deserializeIndexData(lines: string[]): { fieldName: string; indexEntries: Record<string, string[]>; sortedValues: number[] } | null {
+    if (lines.length === 0) return null;
+    const decoder = new TextDecoder();
+    try {
+      const headerStr = typeof lines[0] === 'string' ? lines[0] : decoder.decode(lines[0] as any);
+      const header = JSON.parse(headerStr);
+      if (!header || header.h !== 1) return null;
+      const indexEntries: Record<string, string[]> = {};
+      for (let i = 1; i < lines.length; i++) {
+        const lineStr = typeof lines[i] === 'string' ? lines[i] : decoder.decode(lines[i] as any);
+        try {
+          const entry = JSON.parse(lineStr);
+          if (entry && entry.k !== undefined && entry.v !== undefined) {
+            indexEntries[String(entry.k)] = entry.v;
+          }
+        } catch { /* skip corrupt lines */ }
+      }
+      return {
+        fieldName: header.f,
+        indexEntries,
+        sortedValues: header.s ?? [],
+      };
+    } catch {
+      return null;
+    }
+  }
 
   /**
    * Create one or more index files and register them in the index metadata.
    *
    * For each supplied field name this method:
-   * 1. Determines the index file path as `${indexName}.axiodb` inside the configured index folder.
+   * 1. Determines the index file path as `${indexName}.jsonl` inside the configured index folder.
    * 2. Checks whether the index file already exists. If it does not, creates the file with an empty
-   *    index structure ({ fieldName, indexEntries: [] }).
-   * 3. Reads the index metadata file (index.meta.json), parses it, and if an entry for the index
-   *    field does not already exist, appends a metadata record `{ indexFieldName, fileName, path }`
-   *    and writes the metadata file back.
+   *    JSONL index structure (header + no entries).
+   * 3. Appends a JSONL line to `index.meta.jsonl` for each new index — no read-modify-rewrite.
    *
-   * Side effects:
-   * - Writes new index files to disk via `fileManager.WriteFile`.
-   * - Reads and updates the index metadata file via `fileManager.ReadFile` / `WriteFile`.
-   * - Uses the configured `converter` to serialize/deserialize index and metadata content.
-   *
-   * Notes:
-   * - The operation is not atomic: some indexes may be created while others fail. The method will
-   *   collect created and failed index names and include them in the returned response.
-   * - A failure is recorded for a field when the index file already exists, when the index already
-   *   exists in the metadata, or when reading/writing the metadata file fails.
-   * - The method relies on `indexFolderPath`, `indexMetaPath`, `fileManager`, and `converter`
-   *   being correctly configured and available on the instance.
-   *
-   * @param fieldNames - One or more field names for which to create indexes.
-   * @returns A promise that resolves to either:
-   *   - SuccessInterface: indicates which indexes were created and which already existed / failed,
-   *     typically containing a human-readable message listing affected and existing indexes.
-   *   - ErrorInterface: returned when underlying file/IO operations fail in a way that prevents
-   *     producing the expected success response.
-   *
-   * @example
-   * // Create a single index
-   * await service.createIndex('email');
-   *
-   * @example
-   * // Create multiple indexes
-   * await service.createIndex('email', 'username', 'createdAt');
+   * Creates are now O(1) appends instead of O(N) full-file rewrites for meta.
    */
   public async createIndex(...fieldNames: string[]): Promise<SuccessInterface | undefined> {
     const EffectedIndexes: string[] = [];
     const FailedIndexes: string[] = [];
     for (const fieldName of fieldNames) {
       const indexName = fieldName;
-      const indexFilePath = `${this.indexFolderPath}/${indexName}${General.DBMS_File_EXT}`;
+      const indexFilePath = `${this.indexFolderPath}/${indexName}${INDEX_EXT}`;
       const DemoIndexHash = {
         fieldName: indexName,
         indexEntries: {},
         sortedValues: [],
-      }
+      };
       const exists = await this.fileManager.FileExists(indexFilePath);
       if (!exists.status) {
-        // create empty index file
-        await this.fileManager.WriteFile(indexFilePath, this.converter.ToString(DemoIndexHash));
-        // Update index.meta.json
-        const indexMetaContent = await this.fileManager.ReadFile(this.indexMetaPath);
-        if (indexMetaContent.status) {
-          const indexMeta = this.converter.ToObject(indexMetaContent.data);
-          // check if index already exists in meta
-          const indexExists = indexMeta.find((index: any) => index.indexFieldName === indexName);
+        // create empty index file in JSONL format
+        await this.fileManager.WriteFile(indexFilePath, IndexManager.serializeIndexData(DemoIndexHash));
+        // Append to index.meta.jsonl (O(1) — no read-modify-rewrite)
+        const metaEntry = {
+          indexFieldName: indexName,
+          fileName: `${indexName}${INDEX_EXT}`,
+          path: indexFilePath,
+        };
+        const existsMeta = await this.fileManager.FileExists(this.indexMetaPath);
+        if (!existsMeta.status) {
+          // First index — write the initial meta file
+          await this.fileManager.WriteFile(this.indexMetaPath, this.converter.ToString(metaEntry) + "\n");
+          EffectedIndexes.push(indexName);
+        } else {
+          // Check for duplicate by streaming meta lines (stop on first match)
+          const existingMeta = await this.listMetaEntries();
+          const indexExists = existingMeta.some((entry: any) => entry.indexFieldName === indexName);
           if (!indexExists) {
-            indexMeta.push({
-              indexFieldName: indexName,
-              fileName: `${indexName}${General.DBMS_File_EXT}`,
-              path: indexFilePath,
-            });
-            await this.fileManager.WriteFile(this.indexMetaPath, this.converter.ToString(indexMeta));
+            await this.fileManager.AppendFile(this.indexMetaPath, this.converter.ToString(metaEntry) + "\n");
             EffectedIndexes.push(indexName);
-          }
-          else {
+          } else {
             FailedIndexes.push(indexName);
           }
         }
@@ -122,102 +147,47 @@ export class IndexManager {
 
   /**
    * Deletes an index file and removes its entry from the index metadata.
-   *
-   * This asynchronous method attempts to delete the index file located at
-   * `${this.indexFolderPath}/${indexName}.axiodb`. If the file exists it is removed,
-   * and the index metadata file at `this.indexMetaPath` is read and updated by
-   * filtering out the metadata entry whose `indexFieldName` matches `indexName`.
-   * The metadata update is performed only if the metadata file can be read successfully.
-   *
-   * @param indexName - The name of the index to delete (without extension).
-   * @returns A Promise that resolves to a SuccessInterface when the index was deleted
-   *          (and metadata updated when possible), or an ErrorInterface when the
-   *          specified index does not exist.
-   *
-   * @async
-   * @remarks
-   * - Side effects: removes a file from the file system and may modify the index metadata file.
-   * - Uses injected helpers: `fileManager` for filesystem operations, `converter` for
-   *   (de)serialization of metadata, and `ResponseHelper` to construct the returned result.
-   * - If the metadata file cannot be read, the method still succeeds after deleting the index file.
-   *
-   * @throws {Error} May propagate errors from underlying file operations if those utilities throw.
    */
   public async dropIndex(indexName: string): Promise<SuccessInterface | ErrorInterface> {
-    const indexFilePath = `${this.indexFolderPath}/${indexName}${General.DBMS_File_EXT}`;
+    const indexFilePath = `${this.indexFolderPath}/${indexName}${INDEX_EXT}`;
     // check if index file exists
     const exists = await this.fileManager.FileExists(indexFilePath);
     if (exists.status === true) {
       // delete index file
       await this.fileManager.DeleteFile(indexFilePath);
-      // update index.meta.json
-      const indexMetaContent = await this.fileManager.ReadFile(this.indexMetaPath);
-      if (indexMetaContent.status) {
-        let indexMeta = this.converter.ToObject(indexMetaContent.data);
-        indexMeta = indexMeta.filter((index: any) => index.indexFieldName !== indexName);
-        await this.fileManager.WriteFile(this.indexMetaPath, this.converter.ToString(indexMeta));
+      // update index.meta.jsonl — stream-filter instead of full parse+rewrite
+      const existingMeta = await this.listMetaEntries();
+      const filtered = existingMeta.filter((entry: any) => entry.indexFieldName !== indexName);
+      if (filtered.length === 0) {
+        await this.fileManager.DeleteFile(this.indexMetaPath);
+      } else {
+        const lines = filtered.map((e: any) => this.converter.ToString(e)).join("\n") + "\n";
+        await this.fileManager.WriteFile(this.indexMetaPath, lines);
       }
       return this.ResponseHelper.Success(`Index: ${indexName} deleted successfully`);
-    }
-    else {
+    } else {
       return this.ResponseHelper.Error(`Index: ${indexName} does not exist`);
     }
   }
 
   /**
    * Lists all indexes currently registered for this collection.
-   *
-   * Reads the index metadata file (`index.meta.json`) and returns its parsed entries as-is —
-   * this is a pure read of the same metadata `createIndex`/`dropIndex` already maintain, no new
-   * storage format is introduced.
-   *
-   * @returns A promise that resolves to a SuccessInterface containing the list of index metadata
-   *          entries (`{ indexFieldName, fileName, path }`), or an ErrorInterface if the metadata
-   *          file could not be read.
-   *
-   * @example
-   * const result = await service.listIndexes();
+   * Now uses streaming ReadLines for memory efficiency.
    */
   public async listIndexes(): Promise<SuccessInterface | ErrorInterface> {
-    const indexMetaContent = await this.fileManager.ReadFile(this.indexMetaPath);
-    if (indexMetaContent.status) {
-      const indexMeta: IndexMetaEntry[] = this.converter.ToObject(indexMetaContent.data);
+    try {
+      const indexMeta: IndexMetaEntry[] = await this.listMetaEntries();
       return this.ResponseHelper.Success(indexMeta);
+    } catch {
+      return this.ResponseHelper.Error("Failed to read index metadata");
     }
-    return this.ResponseHelper.Error("Failed to read index metadata");
   }
 
   /**
    * Ensures the index folder and the index metadata file exist, creating them if necessary.
-   *
-   * This asynchronous method performs the following steps:
-   * 1. Checks whether the index folder at `this.indexFolderPath` exists; if not, creates it.
-   * 2. Checks whether the index metadata file at `this.indexMetaPath` exists; if not:
-   *    a. Constructs a default index metadata entry for a unique "documentId" index:
-   *       - indexFieldName: "documentId"
-   *       - fileName: "documentId.axiodb"
-   *       - path: `${this.indexFolderPath}/documentId.axiodb`
-   *       - unique: true
-   *    b. Calls `this.createIndex("documentId")` to create the underlying index file/structure.
-   *    c. Writes the metadata array to `this.indexMetaPath` using `this.converter.ToString(...)`.
-   *
-   * The operation is idempotent: if the folder or metadata file already exist, no changes are made.
-   *
-   * @remarks
-   * - This method performs filesystem modifications via `folderManager` and `fileManager`.
-   * - Any errors thrown by `folderManager`, `fileManager`, `converter`, or `createIndex` will propagate to the caller.
-   * - Callers should `await` this method to ensure the initialization is complete before proceeding.
-   *
-   * @returns A Promise that resolves when initialization is complete.
-   *
-   * @throws Will reject if directory creation, file checks/writes, conversion, or index creation fails.
-   *
-   * @example
-   * // Ensure index folder and metadata exist before using the index service
-   * await indexService.generateIndexMeta();
    */
   public async generateIndexMeta(): Promise<void> {
-    // check is index.meta.json exists or not
+    // check if index.meta.jsonl exists or not
     const folderExists = await this.folderManager.DirectoryExists(this.indexFolderPath);
 
     if (!folderExists.status) {
@@ -226,42 +196,39 @@ export class IndexManager {
 
     const exists = await this.fileManager.FileExists(this.indexMetaPath);
     if (!exists.status) {
-      // create index.meta.json
-      const indexMeta  : object[]= [
-        {
-          indexFieldName: "documentId",
-          path: `${this.indexFolderPath}/documentId${General.DBMS_File_EXT}`,
-          fileName: `documentId${General.DBMS_File_EXT}`
-        }
-      ];
-      await this.createIndex("documentId")
-      await this.fileManager.WriteFile(this.indexMetaPath, this.converter.ToString(indexMeta));
+      // create index.meta.jsonl + documentId index file
+      const metaEntry = {
+        indexFieldName: "documentId",
+        path: `${this.indexFolderPath}/documentId${INDEX_EXT}`,
+        fileName: `documentId${INDEX_EXT}`,
+      };
+      await this.fileManager.WriteFile(this.indexMetaPath, this.converter.ToString(metaEntry) + "\n");
+      await this.createIndex("documentId");
     }
   }
 
+  /**
+   * Streams index.meta.jsonl lines into an array of IndexMetaEntry objects.
+   */
+  private async listMetaEntries(): Promise<IndexMetaEntry[]> {
+    const lines = await this.fileManager.ReadLines(this.indexMetaPath);
+    return lines.map(line => this.converter.ToObject(line));
+  }
 
   /**
    * Finds index metadata entries that correspond to properties present on the provided document.
-   *
-   * Reads the index metadata file at `this.indexMetaPath`, converts its content into an object,
-   * and returns the subset of metadata entries whose `indexFieldName` is an own property of `doc`.
-   *
-   * @param doc - The document to check for matching index fields. The function tests own properties
-   *              (via `Object.prototype.hasOwnProperty.call`) rather than inherited properties.
-   * @returns A Promise that resolves to an array of matching index metadata entries, or `undefined`
-   *          if the index metadata file could not be successfully read. The array may be empty if
-   *          no metadata entries match.
-   *
-   * @throws May propagate errors from `fileManager.ReadFile` or `converter.ToObject` if those
-   *         operations throw or reject.
+   * Streams meta file, returns first match (doesn't parse the entire file).
    */
   protected async findMatchingIndexMeta (doc: any): Promise<any[] | undefined> {
-    const indexMetaContent = await this.fileManager.ReadFile(this.indexMetaPath);
-    if (indexMetaContent.status) {
-      const indexMeta = this.converter.ToObject(indexMetaContent.data);
-      return indexMeta.filter((meta: { indexFieldName: any; }) =>
+    try {
+      const lines = await this.fileManager.ReadLines(this.indexMetaPath);
+      if (lines.length === 0) return undefined;
+      const entries = lines.map(line => this.converter.ToObject(line));
+      return entries.filter((meta: { indexFieldName: any; }) =>
         Object.prototype.hasOwnProperty.call(doc, meta.indexFieldName)
       );
+    } catch {
+      return undefined;
     }
   }
 }

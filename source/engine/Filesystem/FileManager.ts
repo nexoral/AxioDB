@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import fs, { open as fsOpen } from "fs/promises";
+import { createReadStream } from "fs";
+import { createInterface } from "readline";
 import ResponseHelper from "../../Helper/response.helper";
 import {
   ErrorInterface,
@@ -71,6 +73,50 @@ export default class FileManager {
     try {
       const data = await fs.readFile(path, "utf-8");
       return this.responseHelper.Success(data);
+    } catch (error) {
+      return this.responseHelper.Error(error);
+    }
+  }
+
+  /**
+   * Streams a file line-by-line — memory-efficient for large files.
+   * Returns each non-empty line as a string element in the resolved array.
+   *
+   * @param path - Absolute path to the file.
+   * @returns Array of trimmed non-empty lines, or empty array on error.
+   */
+  public async ReadLines(path: string): Promise<string[]> {
+    const lines: string[] = [];
+    try {
+      const stream = createReadStream(path, { encoding: "utf-8" });
+      const rl = createInterface({ input: stream, crlfDelay: Infinity });
+      for await (const line of rl) {
+        const trimmed = line.trim();
+        if (trimmed) {
+          lines.push(trimmed);
+        }
+      }
+      rl.close();
+    } catch {
+      return []; // Return empty array on error (e.g., file not found)
+    }
+    return lines;
+  }
+
+  /**
+   * Appends data to a file without reading or rewriting existing content (O(1)).
+   * Creates the file and parent directories if they don't already exist.
+   *
+   * @param path - Absolute path to the file.
+   * @param data - String to append (caller should include trailing newline if needed).
+   */
+  public async AppendFile(
+    path: string,
+    data: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      await fs.appendFile(path, data, "utf-8");
+      return this.responseHelper.Success("File appended successfully.");
     } catch (error) {
       return this.responseHelper.Error(error);
     }

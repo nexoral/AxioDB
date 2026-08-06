@@ -297,6 +297,32 @@ HTTP API. Nothing is gated by a static container environment variable. `AXIODB_M
 has RBAC to serve once it's actually seeded, i.e. `AXIODB_GUI=true` (default) or
 `AXIODB_TCP=true` + `AXIODB_TCP_AUTH=true`.
 
+### Human-in-the-loop on destructive tools
+
+Nine tools destroy or overwrite existing state, and each one asks a human before it runs -
+through your MCP client's own confirmation prompt (`elicitation/create`), naming the exact
+target ("Delete the collection `users` from database `Sales`? ..."). Declining, cancelling, or
+leaving the box unchecked aborts with `409` and the operation never reaches the database:
+
+| Tool | Prompted because |
+| --- | --- |
+| `axiodb_delete_database` | drops every collection, document and index in it |
+| `axiodb_delete_collection` | drops every document and index in it |
+| `axiodb_delete_document` | irreversible; `many: true` deletes every match |
+| `axiodb_update_document` | overwrites unrecoverable field values; `many: true` hits every match |
+| `axiodb_drop_index` | queries fall back to full scans |
+| `axiodb_delete_user` / `axiodb_delete_role` | removes the account / permission set |
+| `axiodb_update_user_role` | changes what an account may do across GUI, TCP and MCP |
+| `axiodb_reset_user_password` | invalidates the current password and all their sessions |
+
+Inserts, creates and index builds are not prompted - they only ever add.
+
+Every tool also ships MCP annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`),
+so clients can auto-approve reads while holding writes for review. If your client doesn't
+support elicitation, the confirmation prompt cannot be shown and the call proceeds on the
+annotations alone - **give an agent you don't want writing a `View`-role login**, which is
+read-only at the RBAC layer and needs no client cooperation at all.
+
 Transactions and database export/import are intentionally not exposed as MCP tools.
 
 Full tool catalogue, request/response examples, and security notes:

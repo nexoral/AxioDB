@@ -320,6 +320,7 @@ npm test tcp-auth          # TCP (AxioDBCloud) RBAC tests only
 npm test tcp-noauth        # TCP zero-auth backward-compat tests only
 npm test tcp-tls           # TCP TLS tests only
 npm test crash-recovery    # Real-SIGKILL crash-recovery tests only
+npm test mcp-confirm       # MCP destructive-tool human confirmation tests only
 npm run lint               # ESLint
 
 # Development
@@ -376,3 +377,13 @@ Before marking ANY task complete, verify:
 - **Follow patterns** - Consistency is key
 - **Test everything** - Update Test/modules/ for features
 - **Document thoroughly** - Future you will thank you
+
+## graphify
+
+This project has a graphify knowledge graph at `graphify-out/`.
+
+Rules:
+- Use `graphify query "<question>"` as the DEFAULT codebase search: run it before any grep/glob/file-read, and fall back to raw search only when the graph returns nothing
+- Before answering architecture or codebase questions, read `graphify-out/GRAPH_REPORT.md` for god nodes and community structure
+- If `graphify-out/wiki/index.md` exists, navigate it instead of reading raw files
+- After modifying code files in this session, run `python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))"` to keep the graph current

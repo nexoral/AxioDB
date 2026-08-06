@@ -29,7 +29,7 @@ export default class TransactionIndexManager {
   constructor(collectionPath: string) {
     this.collectionPath = collectionPath;
     this.indexFolderPath = `${collectionPath}/indexes`;
-    this.indexMetaPath = `${this.indexFolderPath}/index.meta.json`;
+    this.indexMetaPath = `${this.indexFolderPath}/${General.Index_Meta_File}`;
     this.FileManager = new FileManager();
     this.Converter = new Converter();
     this.ResponseHelper = new ResponseHelper();
@@ -64,14 +64,12 @@ export default class TransactionIndexManager {
 
   public async stageIndexUpdates(operations: TransactionOperation[]): Promise<void> {
     try {
-      const indexMetaContent = await this.FileManager.ReadFile(this.indexMetaPath);
-      if (!indexMetaContent.status) {
-        return;
-      }
+      // Stream meta file line-by-line instead of full-file read
+      const metaLines = await this.FileManager.ReadLines(this.indexMetaPath);
+      if (metaLines.length === 0) return;
 
-      const indexMeta = this.Converter.ToObject(indexMetaContent.data);
-
-      for (const indexMetaEntry of indexMeta) {
+      for (const line of metaLines) {
+        const indexMetaEntry = this.Converter.ToObject(line);
         const fieldName = indexMetaEntry.indexFieldName;
 
         // Read through the shared cache (memory hit, or disk on cold start) so

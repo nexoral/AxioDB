@@ -3,6 +3,7 @@
 import { General } from "../../config/Keys/Keys";
 import FileManager from "../../engine/Filesystem/FileManager";
 import Converter from "../../Helper/Converter.helper";
+import { IndexManager } from "./Index.service";
 
 /**
  * Structure of index data stored in index files
@@ -34,22 +35,21 @@ interface CachedIndex {
  *
  * Features:
  * - Eagerly loads all indexes on collection initialization
- * - Keeps indexes in both memory (speed) and disk (persistence)
- * - Cold start recovery: Loads from disk on cache miss
+ * - Keeps indexes in both memory (speed) and disk (persistence) as JSONL
+ * - Cold start recovery: Loads from disk (streaming) on cache miss
  * - Thread-safe with simple lock mechanism
  * - Dual-write: Updates both memory and disk atomically
+ * - Backward compatible: auto-migrates old .axiodb + index.meta.json formats
  *
  * @example
  * ```typescript
  * const indexCache = IndexCache.getInstance('/path/to/collection');
- * await indexCache.loadAllIndexes();  // Eager load
+ * await indexCache.loadAllIndexes();  // Eager load (streamed)
  * const indexData = await indexCache.getIndex('email');  // O(1) memory access
  * ```
  */
 export class IndexCache {
   // One IndexCache per collection path - shared across Insert/Read/Delete/Collection
-  // so the lock and the memory cache actually serialize/coordinate across operations
-  // instead of each call site racing on its own private state.
   private static instances: Map<string, IndexCache> = new Map();
 
   private cache: Map<string, CachedIndex>;
@@ -68,7 +68,7 @@ export class IndexCache {
   private constructor(collectionPath: string) {
     this.cache = new Map();
     this.indexFolderPath = `${collectionPath}/indexes`;
-    this.indexMetaPath = `${this.indexFolderPath}/index.meta.json`;
+    this.indexMetaPath = `${this.indexFolderPath}/${General.Index_Meta_File}`;
     this.fileManager = new FileManager();
     this.converter = new Converter();
     this.lockChains = new Map();
@@ -77,11 +77,6 @@ export class IndexCache {
 
   /**
    * Returns the shared IndexCache for a collection path, creating it on first use.
-   * All index services (Insert/Read/Delete/Collection) must go through this instead of
-   * constructing their own instance, otherwise locking and caching are per-call and
-   * provide no real coordination.
-   *
-   * @param collectionPath - Absolute path of the collection this cache belongs to
    */
   public static getInstance(collectionPath: string): IndexCache {
     let instance = IndexCache.instances.get(collectionPath);
@@ -93,10 +88,7 @@ export class IndexCache {
   }
 
   /**
-   * Releases the shared IndexCache for a collection path (e.g. when the collection
-   * itself is deleted), stopping its cleanup timer and dropping it from the registry.
-   *
-   * @param collectionPath - Absolute path of the collection whose cache should be released
+   * Releases the shared IndexCache for a collection path.
    */
   public static releaseInstance(collectionPath: string): void {
     const instance = IndexCache.instances.get(collectionPath);
@@ -107,7 +99,7 @@ export class IndexCache {
   }
 
   /**
-   * Stops the cleanup timer and clears cached state. Called via releaseInstance().
+   * Stops the cleanup timer and clears cached state.
    */
   public dispose(): void {
     if (this.cleanupInterval) {
@@ -119,8 +111,7 @@ export class IndexCache {
   }
 
   /**
-   * Generates a random TTL between 5-15 minutes
-   * Randomization prevents cache stampede (thundering herd problem)
+   * Generates a random TTL between 5-15 minutes.
    */
   private generateRandomTTL(): number {
     return Math.floor(
@@ -129,7 +120,7 @@ export class IndexCache {
   }
 
   /**
-   * Starts periodic cleanup of expired cache entries
+   * Starts periodic cleanup of expired cache entries.
    */
   private startCleanupInterval(): void {
     if (this.cleanupInterval) return;
@@ -138,14 +129,13 @@ export class IndexCache {
       this.cleanupExpiredEntries();
     }, IndexCache.CLEANUP_INTERVAL_MS);
 
-    // Ensure cleanup doesn't prevent process exit
     if (this.cleanupInterval.unref) {
       this.cleanupInterval.unref();
     }
   }
 
   /**
-   * Removes all expired entries from cache
+   * Removes all expired entries from cache.
    */
   private cleanupExpiredEntries(): void {
     const now = Date.now();
@@ -157,43 +147,37 @@ export class IndexCache {
   }
 
   /**
-   * Checks if a cached entry is expired
+   * Checks if a cached entry is expired.
    */
   private isExpired(cached: CachedIndex): boolean {
     return Date.now() >= cached.expiresAt;
   }
 
   /**
-   * Eagerly loads all indexes into memory
-   * Called during collection initialization for maximum query performance
+   * Eagerly loads all indexes into memory using streaming reads.
+   * Called during collection initialization for maximum query performance.
    *
    * @returns Promise that resolves when all indexes are loaded
    */
   public async loadAllIndexes(): Promise<void> {
     try {
-      // Check if index metadata exists
-      const metaExists = await this.fileManager.FileExists(this.indexMetaPath);
-      if (!metaExists.status) {
-        return; // No indexes created yet
-      }
+      const metaLines = await this.fileManager.ReadLines(this.indexMetaPath);
+      if (metaLines.length === 0) return;
 
-      // Read index metadata file
-      const metaContent = await this.fileManager.ReadFile(this.indexMetaPath);
-      if (!metaContent.status) {
-        return;
-      }
-
-      const indexMeta = this.converter.ToObject(metaContent.data);
-
-      // Load each index file into memory in parallel
-      const loadPromises = indexMeta.map(async (meta: any) => {
+      // Load each index file in parallel
+      const loadPromises = metaLines.map(async (line) => {
         try {
+          const meta = this.converter.ToObject(line);
           const indexPath = meta.path;
-          const indexContent = await this.fileManager.ReadFile(indexPath);
+          const fieldName = meta.indexFieldName;
 
-          if (indexContent.status) {
-            const indexData = this.converter.ToObject(indexContent.data);
-            this.cache.set(meta.indexFieldName, {
+          // Stream the JSONL index file line-by-line
+          const indexLines = await this.fileManager.ReadLines(indexPath);
+          if (indexLines.length === 0) return;
+
+          const indexData = IndexManager.deserializeIndexData(indexLines);
+          if (indexData) {
+            this.cache.set(fieldName, {
               data: indexData,
               loadedAt: new Date(),
               expiresAt: Date.now() + this.generateRandomTTL(),
@@ -202,88 +186,85 @@ export class IndexCache {
           }
         } catch (error) {
           // Silent per-index failure - continue loading other indexes
-          console.error(`Failed to load index ${meta.indexFieldName}:`, error);
+          console.error(`Failed to load index ${line}:`, error);
         }
       });
 
       await Promise.all(loadPromises);
     } catch (error) {
-      // Silent failure - indexes will load from disk on demand (cold start recovery)
       console.error("Failed to load indexes into memory:", error);
     }
   }
 
   /**
-   * Gets index data for a specific field
-   * Returns from memory if available, loads from disk if not (cold start recovery)
-   *
-   * @param fieldName - The indexed field name (e.g., 'email', 'age')
-   * @returns Index data or null if index doesn't exist
+   * Gets index data for a specific field.
+   * Returns from memory if available, loads from disk via streaming if not (cold start recovery).
    */
   public async getIndex(fieldName: string): Promise<IndexData | null> {
     // Try memory cache first (O(1) fast path)
     const cached = this.cache.get(fieldName);
     if (cached) {
-      // Check if entry is expired
       if (this.isExpired(cached)) {
         this.cache.delete(fieldName);
-        // Fall through to reload from disk
       } else {
         return cached.data;
       }
     }
 
-    // Cache miss or expired - load from disk (cold start recovery)
+    // Cache miss or expired - stream from disk (cold start recovery)
     try {
-      const indexPath = `${this.indexFolderPath}/${fieldName}${General.DBMS_File_EXT}`;
-      const indexContent = await this.fileManager.ReadFile(indexPath);
+      const indexPath = `${this.indexFolderPath}/${fieldName}${General.Index_File_EXT}`;
 
-      if (indexContent.status) {
-        try {
-          const indexData = this.converter.ToObject(indexContent.data);
-
-          // Populate cache for future reads with random TTL
+      // Attempt streaming read first (JSONL)
+      const lines = await this.fileManager.ReadLines(indexPath);
+      if (lines.length > 0) {
+        const indexData = IndexManager.deserializeIndexData(lines);
+        if (indexData) {
           this.cache.set(fieldName, {
             data: indexData,
             loadedAt: new Date(),
             expiresAt: Date.now() + this.generateRandomTTL(),
             path: indexPath,
           });
-
           return indexData;
-        } catch (parseError) {
-          // JSON parse failed - index file may be corrupted, return null
-          console.error(`Index file corrupted for ${fieldName}, skipping cache`);
-          return null;
         }
       }
-    } catch (error) {
-      // Index doesn't exist - this is normal for unindexed fields
-    }
+
+      // Fallback: stream old .axiodb file if it exists (migration not yet run)
+      const oldIndexPath = `${this.indexFolderPath}/${fieldName}${General.DBMS_File_EXT}`;
+      const oldContent = await this.fileManager.ReadFile(oldIndexPath);
+      if (oldContent.status) {
+        try {
+          const indexData = this.converter.ToObject(oldContent.data);
+          if (indexData && indexData.fieldName) {
+            this.cache.set(fieldName, {
+              data: indexData,
+              loadedAt: new Date(),
+              expiresAt: Date.now() + this.generateRandomTTL(),
+              path: oldIndexPath,
+            });
+            return indexData;
+          }
+        } catch { /* parse error */ }
+      }
+    } catch { /* index doesn't exist */ }
 
     return null;
   }
 
   /**
-   * Updates an index in both memory and disk atomically
-   * Thread-safe with simple lock mechanism
-   *
-   * @param fieldName - The indexed field name
-   * @param indexData - The updated index data
-   * @returns True if update successful, false otherwise
+   * Updates an index in both memory and disk atomically.
+   * Writes in JSONL format.
    */
   public async updateIndex(fieldName: string, indexData: IndexData): Promise<boolean> {
-    // Acquire lock for this field to prevent concurrent writes
     const release = await this.acquireLock(fieldName);
 
     try {
-      const indexPath = `${this.indexFolderPath}/${fieldName}${General.DBMS_File_EXT}`;
+      const indexPath = `${this.indexFolderPath}/${fieldName}${General.Index_File_EXT}`;
 
-      // Write to disk first for durability (disk = source of truth)
-      const writeResult = await this.fileManager.WriteFile(
-        indexPath,
-        this.converter.ToString(indexData)
-      );
+      // Write to disk first for durability (JSONL format)
+      const jsonlContent = IndexManager.serializeIndexData(indexData);
+      const writeResult = await this.fileManager.WriteFile(indexPath, jsonlContent);
 
       if (!writeResult.status) {
         return false;
@@ -304,36 +285,21 @@ export class IndexCache {
   }
 
   /**
-   * Invalidates a specific index (removes from memory)
-   * Disk copy remains for persistence and recovery
-   *
-   * @param fieldName - The indexed field name to invalidate
+   * Invalidates a specific index (removes from memory).
    */
   public async invalidateIndex(fieldName: string): Promise<void> {
     this.cache.delete(fieldName);
   }
 
   /**
-   * Invalidates all indexes (removes all from memory)
-   * Used when indexes are dropped or collection is cleared
-   * Disk copies remain for recovery
+   * Invalidates all indexes (removes all from memory).
    */
   public async invalidateAll(): Promise<void> {
     this.cache.clear();
   }
 
   /**
-   * Acquires a per-field mutex, queuing behind any in-flight holder for the same key.
-   *
-   * Implemented as a chained promise queue: each call captures the current tail of the
-   * chain, awaits it (so it truly blocks until every earlier holder has released), then
-   * appends its own pending promise as the new tail. The caller MUST invoke the returned
-   * release function exactly once (typically in a `finally` block) to hand the lock to
-   * the next queued waiter.
-   *
-   * @param key - The lock key (typically field name)
-   * @returns A release function that unblocks the next waiter for this key
-   * @private
+   * Acquires a per-field mutex.
    */
   private async acquireLock(key: string): Promise<() => void> {
     const previousTail = this.lockChains.get(key) ?? Promise.resolve();
@@ -350,9 +316,7 @@ export class IndexCache {
   }
 
   /**
-   * Gets current cache statistics for monitoring
-   *
-   * @returns Object containing cache size and loaded index count
+   * Gets current cache statistics for monitoring.
    */
   public getCacheStats(): { indexCount: number; fieldNames: string[] } {
     return {
