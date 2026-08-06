@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { General } from "../../config/Keys/Keys";
 import { IndexManager } from "./Index.service";
 import { IndexCache } from "./IndexCache.service";
 import SortedIndexValues from "../../Helper/SortedIndexValues.helper";
@@ -53,17 +54,22 @@ export class ReadIndex extends IndexManager {
         return finalValueFiles || [];
       }
 
-      // Cache miss - fall back to disk read (cold start recovery)
-      const metaContent = this.converter.ToObject((await this.fileManager.ReadFile(matchedIndexFile.path)).data);
-      const queryValue = query[metaContent.fieldName];
+      // Cache miss - fall back to disk read (cold start recovery), stream JSONL
+      const indexPath = `${this.indexFolderPath}/${matchedIndexFile.indexFieldName}${General.Index_File_EXT}`;
+      try {
+        const lines = await this.fileManager.ReadLines(indexPath);
+        const indexData = IndexManager.deserializeIndexData(lines);
+        if (indexData) {
+          const queryValue = query[indexData.fieldName];
+          if (typeof queryValue === 'object' && queryValue !== null) {
+            return [];
+          }
+          const finalValueFiles = indexData.indexEntries[queryValue];
+          return finalValueFiles || [];
+        }
+      } catch { /* stream failed */ }
 
-      // Skip index lookup for complex query operators
-      if (typeof queryValue === 'object' && queryValue !== null) {
-        return [];
-      }
-
-      const finalValueFiles = metaContent.indexEntries[queryValue];
-      return finalValueFiles || [];
+      return [];
     }
     else {
       return [];
@@ -215,12 +221,11 @@ export class ReadIndex extends IndexManager {
  *         operations throw or reject.
  */
   protected async findMatchingIndexMeta(document: any): Promise<any | undefined> {
-    const indexMetaContent = await this.fileManager.ReadFile(this.indexMetaPath);
-    if (indexMetaContent.status) {
-      const indexMeta = this.converter.ToObject(indexMetaContent.data);
-      return indexMeta.find((meta: { indexFieldName: any; }) =>
-        Object.prototype.hasOwnProperty.call(document, meta.indexFieldName)
-      );
-    }
+    const lines = await this.fileManager.ReadLines(this.indexMetaPath);
+    if (lines.length === 0) return undefined;
+    const entries = lines.map(line => this.converter.ToObject(line));
+    return entries.find((meta: { indexFieldName: any; }) =>
+      Object.prototype.hasOwnProperty.call(document, meta.indexFieldName)
+    );
   }
 }
