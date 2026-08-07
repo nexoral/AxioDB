@@ -75,5 +75,4 @@ if (parseBoolean(process.env.AXIODB_MCP, false)) {
   require('./mcpServer.js')(axioDBInstance);
 }
 
-
 module.exports = axioDBInstance;
