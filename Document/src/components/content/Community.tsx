@@ -19,7 +19,7 @@ const Community: React.FC = () => {
       />
       <section id="contributing" className="pt-12 scroll-mt-20">
         {/* Contributing Hero Header */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-blue-900/20 via-slate-800 to-indigo-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-blue-800 shadow-xl">
+        <div className="relative overflow-hidden bg-gradient-to-br from-blue-900/20 via-slate-800 to-indigo-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 mb-16 border border-blue-800 shadow-xl">
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
 
           <div className="relative z-10">
@@ -28,7 +28,7 @@ const Community: React.FC = () => {
                 <GitPullRequest className="h-10 w-10 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-200 via-indigo-300 to-purple-200 bg-clip-text text-transparent">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-200 via-indigo-300 to-purple-200 bg-clip-text text-transparent">
                   Join Our Community
                 </h1>
                 <p className="text-xl text-slate-300 font-light mt-2">
@@ -193,7 +193,7 @@ const Community: React.FC = () => {
 
       <section id="license" className="pt-12 scroll-mt-20">
         {/* License Hero Header */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-green-900/20 via-slate-800 to-emerald-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-green-800 shadow-xl">
+        <div className="relative overflow-hidden bg-gradient-to-br from-green-900/20 via-slate-800 to-emerald-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 mb-16 border border-green-800 shadow-xl">
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-green-400/10 to-emerald-400/10 rounded-full blur-3xl"></div>
 
           <div className="relative z-10">
@@ -202,7 +202,7 @@ const Community: React.FC = () => {
                 <Scale className="h-10 w-10 text-white" />
               </div>
               <div>
-                <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-green-200 via-emerald-300 to-teal-200 bg-clip-text text-transparent">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-green-200 via-emerald-300 to-teal-200 bg-clip-text text-transparent">
                   Open Source License
                 </h2>
                 <p className="text-xl text-slate-300 font-light mt-2">
@@ -221,11 +221,11 @@ const Community: React.FC = () => {
         <div className="group relative bg-slate-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 lg:p-10 mb-12 border border-slate-700">
           <div className="absolute inset-0 bg-gradient-to-br from-green-900/10 to-emerald-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
-            <div className="flex items-start gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 mb-6">
               <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg">
                 <Scale className="h-8 w-8 text-white" />
               </div>
-              <div>
+              <div className="w-full min-w-0">
                 <h3 className="text-2xl font-bold text-slate-100 mb-2">
                   MIT License Overview
                 </h3>
@@ -239,7 +239,7 @@ const Community: React.FC = () => {
             </div>
 
             <div className="bg-gradient-to-r from-slate-900 to-green-900 rounded-xl p-6 shadow-inner">
-              <pre className="text-green-300 text-sm font-mono overflow-x-auto">
+              <pre className="text-green-300 text-xs sm:text-sm font-mono overflow-x-auto overscroll-x-contain">
                 {`MIT License
 
 Copyright (c) 2023 AxioDB Contributors
@@ -282,7 +282,7 @@ SOFTWARE.`}
 
       <section id="acknowledgments" className="pt-12 scroll-mt-20">
         {/* Acknowledgments Hero Header */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-purple-900/20 via-slate-800 to-violet-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-purple-800 shadow-xl">
+        <div className="relative overflow-hidden bg-gradient-to-br from-purple-900/20 via-slate-800 to-violet-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 mb-16 border border-purple-800 shadow-xl">
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-purple-400/10 to-violet-400/10 rounded-full blur-3xl"></div>
 
           <div className="relative z-10">
@@ -291,7 +291,7 @@ SOFTWARE.`}
                 <Heart className="h-10 w-10 text-white" />
               </div>
               <div>
-                <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-200 via-violet-300 to-pink-200 bg-clip-text text-transparent">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-200 via-violet-300 to-pink-200 bg-clip-text text-transparent">
                   Community & Contributors
                 </h2>
                 <p className="text-xl text-slate-300 font-light mt-2">

@@ -49,7 +49,7 @@ const ServerApiReference: React.FC = () => {
         path="/server-api"
       />
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-900/20 via-slate-800 to-purple-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-indigo-800 shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-900/20 via-slate-800 to-purple-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 mb-12 border border-indigo-800 shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
 
         <div className="relative z-10">
@@ -58,7 +58,7 @@ const ServerApiReference: React.FC = () => {
               <Globe className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-200 via-purple-300 to-pink-200 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-indigo-200 via-purple-300 to-pink-200 bg-clip-text text-transparent">
                 HTTP Server API Reference
               </h1>
               <p className="text-xl text-slate-300 font-light mt-2">
@@ -209,7 +209,7 @@ const ServerApiReference: React.FC = () => {
                               <h4 className="text-sm font-semibold text-slate-400 mb-2">
                                 Request Body Example
                               </h4>
-                              <pre className="bg-slate-950 p-4 rounded-lg overflow-x-auto">
+                              <pre className="bg-slate-950 p-3 sm:p-4 rounded-lg text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
                                 <code className="text-sm font-mono text-green-400">
                                   {endpoint.requestBody}
                                 </code>
@@ -223,7 +223,7 @@ const ServerApiReference: React.FC = () => {
                               <h4 className="text-sm font-semibold text-slate-400 mb-2">
                                 Response Example
                               </h4>
-                              <pre className="bg-slate-950 p-4 rounded-lg overflow-x-auto">
+                              <pre className="bg-slate-950 p-3 sm:p-4 rounded-lg text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
                                 <code className="text-sm font-mono text-cyan-400">
                                   {endpoint.responseExample}
                                 </code>
@@ -280,7 +280,7 @@ const ServerApiReference: React.FC = () => {
           <p className="text-red-300 mb-3">
             All error responses follow this consistent format:
           </p>
-          <pre className="bg-red-950 p-4 rounded-lg overflow-x-auto">
+          <pre className="bg-red-950 p-3 sm:p-4 rounded-lg text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
             <code className="text-sm font-mono text-red-200">{`{
   "statusCode": 400,
   "status": "error",

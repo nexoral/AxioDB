@@ -856,7 +856,7 @@ await transaction.commit();`,
         path="/api-reference"
       />
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-900/20 via-slate-800 to-indigo-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-blue-800 shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-br from-blue-900/20 via-slate-800 to-indigo-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 mb-12 border border-blue-800 shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
 
         <div className="relative z-10">
@@ -865,7 +865,7 @@ await transaction.commit();`,
               <BookOpen className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-200 via-indigo-300 to-purple-200 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-200 via-indigo-300 to-purple-200 bg-clip-text text-transparent">
                 Complete API Reference
               </h1>
               <p className="text-xl text-slate-300 font-light mt-2">
@@ -971,7 +971,7 @@ await transaction.commit();`,
                           <h4 className="text-sm font-semibold text-gray-400 mb-1">
                             Signature
                           </h4>
-                          <pre className="bg-gray-900 p-2 rounded-md overflow-x-auto">
+                          <pre className="bg-gray-900 p-2 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
                             <code className="text-sm font-mono">
                               {method.signature}
                             </code>
@@ -992,7 +992,7 @@ await transaction.commit();`,
                             <h4 className="text-sm font-semibold text-gray-400 mb-1">
                               Example
                             </h4>
-                            <pre className="bg-gray-900 p-2 rounded-md overflow-x-auto">
+                            <pre className="bg-gray-900 p-2 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
                               <code className="text-sm font-mono">
                                 {method.example}
                               </code>
@@ -1063,7 +1063,7 @@ await transaction.commit();`,
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div>
               <h4 className="font-semibold text-green-300 mb-2">Success Response</h4>
-              <pre className="bg-green-900/50 p-3 rounded-md text-sm overflow-x-auto">
+              <pre className="bg-green-900/50 p-2 sm:p-3 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
                 <code className="text-green-300">{`{
   statusCode: 200,
   status: 'success',
@@ -1074,7 +1074,7 @@ await transaction.commit();`,
             </div>
             <div>
               <h4 className="font-semibold text-green-300 mb-2">Error Response</h4>
-              <pre className="bg-green-900/50 p-3 rounded-md text-sm overflow-x-auto">
+              <pre className="bg-green-900/50 p-2 sm:p-3 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
                 <code className="text-green-300">{`{
   statusCode: 400,
   status: 'error',

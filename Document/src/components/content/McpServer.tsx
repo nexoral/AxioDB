@@ -103,7 +103,7 @@ const McpServer: React.FC = () => {
       />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-fuchsia-900/20 via-slate-800 to-purple-900/20 rounded-2xl p-8 lg:p-12 border border-fuchsia-700 shadow-xl">
+      <section className="relative overflow-hidden bg-gradient-to-br from-fuchsia-900/20 via-slate-800 to-purple-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 border border-fuchsia-700 shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-fuchsia-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
         <div className="relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-fuchsia-900/40 to-purple-900/40 rounded-full border border-fuchsia-600 mb-6">
@@ -113,7 +113,7 @@ const McpServer: React.FC = () => {
             </span>
           </div>
 
-          <h1 className="text-5xl lg:text-6xl font-extrabold mb-6 bg-gradient-to-r from-fuchsia-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 bg-gradient-to-r from-fuchsia-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
             MCP Server
           </h1>
 

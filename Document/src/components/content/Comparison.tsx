@@ -10,10 +10,10 @@ const Comparison: React.FC = () => {
         description="Feature and performance comparison of AxioDB against SQLite, JSON files, lowdb, nedb, and better-sqlite3."
         path="/comparison"
       />
-      <div className="relative overflow-hidden bg-gradient-to-br from-purple-900/20 via-slate-800 to-blue-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-purple-800 shadow-xl animate-fade-in">
+      <div className="relative overflow-hidden bg-gradient-to-br from-purple-900/20 via-slate-800 to-blue-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 mb-12 border border-purple-800 shadow-xl animate-fade-in">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-purple-400/10 to-blue-400/10 rounded-full blur-3xl animate-float"></div>
         <div className="relative z-10">
-          <h1 className="text-4xl font-extrabold mb-6 flex items-center gap-2 bg-gradient-to-r from-purple-700 via-blue-600 to-pink-700 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-6 flex items-center gap-2 bg-gradient-to-r from-purple-700 via-blue-600 to-pink-700 bg-clip-text text-transparent">
             <GitCompare className="h-10 w-10 text-purple-500" /> Performance
             Comparison
           </h1>

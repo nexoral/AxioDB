@@ -8,3 +8,31 @@
     display: none;
   }
 }
+
+/*
+ * Flex items default to `min-width: auto`, which means they refuse to shrink
+ * below their content's intrinsic width. A single wide child (a code block, a
+ * table, a long unbroken string) therefore pushed the whole page wider than the
+ * phone viewport instead of scrolling inside its own container - the page went
+ * to 859px on a 404px screen and everything on the right was cut off.
+ *
+ * `min-width: 0` restores normal shrinking, so wide content stays inside the
+ * `overflow-x-auto` wrapper it already has. Scoped to page content so the
+ * header and sidebar keep their intended sizing.
+ */
+main,
+main .flex-1 {
+  min-width: 0;
+}
+
+/*
+ * Long unbroken tokens (URLs, connection strings, hashes) in prose - not in
+ * code blocks, which scroll on their own.
+ */
+main p,
+main li,
+main h1,
+main h2,
+main h3 {
+  overflow-wrap: break-word;
+}
