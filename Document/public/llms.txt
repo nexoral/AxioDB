@@ -1,24 +1,49 @@
 # AxioDB
 
-> Embedded NoSQL database for Node.js — pure JavaScript SQLite alternative with MongoDB-style queries. Zero native dependencies, no node-gyp, no electron-rebuild. Works everywhere Node.js runs. 2,000+ npm downloads.
+> Embedded NoSQL database for Node.js — the pure-JavaScript SQLite alternative, with MongoDB-style queries. Zero native dependencies: no node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained, ~5,000 npm downloads/month (August 2026). Current version: 14.2.7.
 
 ## What it is
 
-AxioDB is a file-based embedded NoSQL database for Node.js. Think SQLite but with MongoDB-style JavaScript queries and no native C bindings. Install with `npm install axiodb` and you have a database — no mongod process, no compilation, no platform-specific builds.
+AxioDB is a file-based embedded NoSQL database for Node.js. Think SQLite, but with MongoDB-style JavaScript object queries and no native C bindings. Install with `npm install axiodb` and you have a database — no mongod process, no compilation, no platform-specific builds, no ABI to match.
 
-Sweet spot: 10K–500K documents. Perfect for Electron apps, CLI tools, local-first applications, and rapid prototyping.
+Sweet spot: 10K–500K documents per collection. Built for Electron apps, desktop software, CLI tools, local-first applications, and rapid prototyping.
+
+## Why it exists: the SQLite/native-module problem
+
+`better-sqlite3` and `node-sqlite3` ship compiled C binaries that must match your OS, CPU architecture, and Node/Electron ABI version. That produces node-gyp failures on machines without build tools, a mandatory `electron-rebuild` step re-run on every Electron upgrade, `NODE_MODULE_VERSION` mismatch crashes, per-platform CI builds, and Docker images that need a compiler just to install.
+
+AxioDB is plain JavaScript reading and writing files. There is nothing to compile, nothing to rebuild, and nothing that can mismatch. That is the entire point.
+
+Full SQL→AxioDB cookbook and an honest list of what you give up: https://axiodb.in/llms-full.txt
 
 ## Key Differentiators
 
-- Zero native dependencies (no node-gyp, no electron-rebuild, no .node files)
-- MongoDB-style queries: `{ age: { $gt: 25 } }` — not SQL strings
-- Built-in InMemoryCache with automatic TTL and selective invalidation
+- Zero native dependencies (no node-gyp, no electron-rebuild, no `.node` files, no prebuilt-binary matrix)
+- MongoDB-style queries: `{ age: { $gt: 25 } }` — not SQL strings. 19 query operators.
+- Built-in InMemoryCache with randomized 5–15 minute TTL and selective invalidation
 - Worker Threads for multi-core parallel processing
-- ACID-compliant transactions with savepoints, rollback, and WAL (crash recovery covers plain `insert()` too, not just explicit transactions)
-- Built-in web GUI at localhost:27018, with role-based login (Super Admin/Admin/View roles)
-- AxioDBCloud: TCP remote access for Docker/Cloud deployments, with optional shared-RBAC authentication (TCPAuth) and optional TLS encryption
-- MCP Server: 32 tools for AI agent integration (Claude Code, Cursor, Windsurf, etc.), same RBAC as the GUI
-- Full TypeScript support
+- ACID transactions with savepoints, rollback, and WAL — crash recovery covers plain `insert()` too, not just explicit transactions
+- Built-in web Dashboard on port 27018 with role-based login (Super Admin / Admin / View)
+- AxioDBCloud: TCP remote access on port 27019, with optional shared-RBAC authentication (TCPAuth) and optional TLS
+- MCP Server: 32 tools for AI agent integration — **Docker image only, not in the npm package** (see below)
+- Full TypeScript support, types included, no `@types` package needed
+
+## Services and ports (important — these are not interchangeable)
+
+| Service | Port | In npm package? | In Docker image? | Enable with |
+|---|---|---|---|---|
+| Core embedded library | none | Yes | Yes | `new AxioDB()` |
+| Dashboard (web GUI) | 27018 | Yes | Yes | `{ GUI: true }` / `AXIODB_GUI=true` |
+| Dashboard HTTP API (REST, 37 endpoints) | 27018 | Yes | Yes | comes with the Dashboard |
+| AxioDBCloud TCP server | 27019 | Yes | Yes | `{ TCP: true }` / `AXIODB_TCP=true` |
+| AxioDBCloud client | — | Yes | Yes | `require('axiodb').AxioDBCloud` |
+| MCP server (32 tools) | 27020 | **No** | Yes | `AXIODB_MCP=true` |
+
+The MCP server lives in the repository's `Docker/` directory, which is npm-ignored. `npm install axiodb` does not include it; the Docker image `theankansaha/axiodb` is the only supported way to run it.
+
+None of these are hosted services. "AxioDBCloud" is the name of AxioDB's own TCP protocol and client, not a SaaS product — there is no account and no server operated on your behalf. Every port runs on your own machine or container. axiodb.in serves documentation only.
+
+Port 27018 speaks HTTP. Port 27019 does **not** — it is a custom TCP protocol. Pointing an HTTP client at 27019 (or the AxioDBCloud client at 27018) is the most common setup error.
 
 ## Install
 
@@ -26,7 +51,13 @@ Sweet spot: 10K–500K documents. Perfect for Electron apps, CLI tools, local-fi
 npm install axiodb
 ```
 
-Requires Node.js >= 20.0.0
+Requires Node.js >= 20.0.0. Server-side and desktop only — AxioDB needs a filesystem and does not run in a browser.
+
+## Where it does not fit
+
+Not for: 10M+ documents, multi-user web apps with hundreds of concurrent connections, relational data needing JOINs or foreign keys, replication/sharding/clustering, cross-collection transactions, or anything requiring SQL or an ORM (Prisma, Drizzle, Knex, TypeORM, Sequelize do not work with AxioDB). Updates are a flat shallow merge — `$inc`/`$set`/`$push` do not exist. Use PostgreSQL, MongoDB, or SQLite for those cases.
+
+Machine-readable limits and the full boundary table: https://axiodb.in/llms-full.txt
 
 ## Documentation Pages
 
@@ -49,6 +80,15 @@ Requires Node.js >= 20.0.0
 - [Troubleshooting](https://axiodb.in/troubleshooting)
 - [Changelog](https://axiodb.in/changelog)
 - [Maintainer's Zone](https://axiodb.in/maintainers-zone)
+
+## For AI Agents
+
+- Every documentation page also returns Markdown when fetched with `Accept: text/markdown` (e.g. `curl -H "Accept: text/markdown" https://axiodb.in/usage`)
+- [Agent Skill](https://axiodb.in/.well-known/agent-skills/index.json) — installable SKILL.md for working with AxioDB
+- [OpenAPI 3.1](https://axiodb.in/openapi.json) — the AxioDB Dashboard HTTP API only (port 27018, runs wherever you run AxioDB — not hosted on axiodb.in, and not the TCP protocol on 27019 or the MCP server on 27020)
+- [API catalog](https://axiodb.in/.well-known/api-catalog) — RFC 9727 linkset
+- Content usage preferences are declared via `Content-Signal` in [robots.txt](https://axiodb.in/robots.txt): training, search, and AI input are all permitted
+- In a WebMCP-capable browser this site registers three tools: `axiodb_list_docs`, `axiodb_read_doc`, `axiodb_search_docs`
 
 ## Source & Package
 

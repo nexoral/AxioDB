@@ -2,10 +2,14 @@ import React, { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import { useWebMcp } from "../../hooks/useWebMcp";
 
 const Layout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("introduction");
+
+  // Expose the docs as browser-side agent tools where WebMCP is supported.
+  useWebMcp();
 
   // Mark the document as JS-capable so CSS-driven scroll-reveal animations
   // (gated behind `.js-enabled` in global.css) only ever apply once React has

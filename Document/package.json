@@ -7,6 +7,7 @@
     "dev": "vite --host",
     "prebuild": "tsx scripts/generate-seo-files.ts",
     "build": "vite-react-ssg build",
+    "postbuild": "tsx scripts/generate-markdown.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -24,6 +25,7 @@
     "@types/node": "^26.1.1",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
+    "@types/turndown": "^5.0.6",
     "@vitejs/plugin-react": "^4.4.1",
     "autoprefixer": "^10.4.18",
     "eslint": "^9.9.1",
@@ -33,6 +35,7 @@
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.23.0",
+    "turndown": "^7.2.4",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
     "vite": "^6.3.6"

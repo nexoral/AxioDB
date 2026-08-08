@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 12.11.27 | License: MIT | Node.js >= 20.0.0
+Version: 14.2.7 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -18,6 +18,29 @@ AxioDB is an embedded NoSQL database for Node.js with MongoDB-style queries. It 
 **Sweet spot:** 10,000–500,000 documents per collection, single process.
 
 **Not a fit for:** 10M+ documents, multi-user web apps with hundreds of concurrent connections, relational data with JOINs, distributed/replicated/sharded systems, or cross-collection ACID transactions (AxioDB's transactions are scoped to a single collection).
+
+---
+
+## Services, Ports & Where Each One Lives
+
+AxioDB is one package with several distinct surfaces. They are **not interchangeable**, and they are **not all distributed the same way**. Getting this wrong is the single most common mistake made when describing AxioDB.
+
+| Service | What it is | Available in npm package? | Available in Docker image? | How to enable | Port |
+|---|---|---|---|---|---|
+| **Core embedded library** | The database itself, running in your process | ✅ Yes | ✅ Yes | `new AxioDB()` | none |
+| **Dashboard (Web GUI)** | Browser UI to browse/edit data, with login + roles | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ GUI: true })` / `AXIODB_GUI=true` | **27018** |
+| **Dashboard HTTP API** | REST API behind that GUI (37 endpoints) | ✅ Yes | ✅ Yes | comes with the Dashboard | **27018** |
+| **AxioDBCloud TCP server** | Lets other processes/machines use this database | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ TCP: true })` / `AXIODB_TCP=true` | **27019** |
+| **AxioDBCloud client** | Connects to that TCP server, same API as embedded | ✅ Yes | ✅ Yes | `const { AxioDBCloud } = require('axiodb')` | — |
+| **MCP server (32 tools)** | Lets an AI agent operate the database | ❌ **NO** | ✅ Yes | `AXIODB_MCP=true` | **27020** |
+
+**The MCP server is Docker-only.** It lives in `Docker/` in the repository, which is listed in `.npmignore`. Running `npm install axiodb` does **not** give you an MCP server. The only supported way to run it is the `theankansaha/axiodb` Docker image with `AXIODB_MCP=true`.
+
+**Nothing here is a hosted/cloud service.** "AxioDBCloud" is the name of AxioDB's own TCP protocol and client — it is not a SaaS product, there is no account to sign up for, and Nexoral hosts no database for you. Every port above is on whatever machine or container *you* run AxioDB on. `https://axiodb.in` serves documentation only.
+
+**Port summary:** `27018` = Dashboard + its HTTP API (HTTP). `27019` = AxioDBCloud TCP (custom binary-framed protocol, **not** HTTP). `27020` = MCP server (Streamable HTTP at `/mcp`, Docker only). 27018 and 27019 are hard-coded and not env-configurable — remap at the Docker layer (`-p host:container`). Only the MCP port is configurable, via `AXIODB_MCP_PORT`.
+
+**Shared authentication:** the Dashboard, AxioDBCloud (when `TCPAuth: true`), and the MCP server all read the same user/role store in the reserved `config` database. One `admin` account, one forced-password-change, one lockout policy across all three.
 
 ---
 
@@ -379,7 +402,11 @@ Login rate limiting: 5 failed attempts from one IP within a trailing 15-minute w
 
 ## AxioDBCloud — Remote TCP Access
 
-Same API as embedded AxioDB, over a TCP connection — 35+ commands (full CRUD, aggregation, indexing).
+Same API as embedded AxioDB, over a TCP connection. The wire protocol has exactly **27 commands** (`source/tcp/types/command.types.ts`):
+
+`PING`, `DISCONNECT`, `AUTHENTICATE`, `CREATE_DB`, `DELETE_DB`, `DB_EXISTS`, `GET_INSTANCE_INFO`, `CREATE_COLLECTION`, `DELETE_COLLECTION`, `COLLECTION_EXISTS`, `GET_COLLECTION_INFO`, `INSERT_DOCUMENT`, `INSERT_MANY_DOCUMENTS`, `QUERY_DOCUMENTS`, `QUERY_BY_ID`, `UPDATE_DOCUMENT_BY_ID`, `UPDATE_DOCUMENTS_BY_QUERY`, `DELETE_DOCUMENT_BY_ID`, `DELETE_DOCUMENTS_BY_QUERY`, `AGGREGATE`, `TOTAL_DOCUMENTS`, `CREATE_INDEX`, `DROP_INDEX`, `LIST_INDEXES`, `BEGIN_TRANSACTION`, `COMMIT_TRANSACTION`, `ROLLBACK_TRANSACTION`
+
+You normally never send these by hand — the `AxioDBCloud` client wraps them behind the same `createDB`/`createCollection`/`query` API as the embedded library. `client.sendCommand()` is the escape hatch if you need one directly.
 
 ### Server
 
@@ -473,6 +500,8 @@ Ports (27018/27019) aren't env-configurable — remap at the Docker layer (`-p h
 
 ## MCP Server — AI Agent Integration
 
+**Availability: Docker image only.** The MCP server lives in the repository's `Docker/` directory, which is listed in `.npmignore`, so it is not published to npm. `npm install axiodb` gives you the database, not the MCP server. The only supported way to run it is the `theankansaha/axiodb` image with `AXIODB_MCP=true`.
+
 ```bash
 docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
   -p 27018:27018 -p 27019:27019 -p 27020:27020 \
@@ -548,13 +577,272 @@ docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
 
 ---
 
+## Using AxioDB as a SQLite Alternative in Node.js
+
+This is AxioDB's primary positioning: **the database you reach for when you wanted SQLite, but do not want a native module.**
+
+### Why people replace SQLite/better-sqlite3 with AxioDB
+
+`better-sqlite3` and `node-sqlite3` are C libraries with Node bindings. That means a compiled `.node` binary that must match the exact combination of OS, CPU architecture, and Node/Electron ABI version. In practice that produces:
+
+- `node-gyp` builds failing on machines without Python/build tools
+- `electron-rebuild` as a mandatory extra step, re-run on every Electron upgrade
+- `NODE_MODULE_VERSION xx does not match yy` at runtime
+- separate CI matrix builds per platform for prebuilt binaries
+- Docker images that need `build-essential` just to `npm install`
+- Alpine/musl vs glibc mismatches
+
+AxioDB has **zero native dependencies**. It is plain JavaScript reading and writing files. `npm install axiodb` is the whole install on every platform, every Node version ≥ 20, and every Electron version. There is no build step, no rebuild step, no prebuilt-binary matrix, and no ABI to match.
+
+### Concept mapping
+
+| SQLite | AxioDB |
+|---|---|
+| Database file (`app.db`) | A directory tree under `RootName`/`CustomPath` |
+| `TABLE` | Collection |
+| Row | Document (a JSON object, one file per document) |
+| Column | Field (no fixed set — schema-less) |
+| `INTEGER PRIMARY KEY` / `rowid` | `documentId` (auto-generated string, always indexed) |
+| `CREATE TABLE` + migrations | `database.createCollection(name)` — no schema, no migrations |
+| `CREATE INDEX` | `collection.newIndex('email')` |
+| `BEGIN` / `COMMIT` / `ROLLBACK` | `collection.beginTransaction()` / `.commit()` / `.rollback()` |
+| `SAVEPOINT` | `transaction.savepoint('name')` / `.rollbackTo('name')` |
+| WAL mode | Always on — every write is WAL-backed, recovered on next open |
+| SQL string | JavaScript object query |
+
+### SQL → AxioDB cookbook
+
+```javascript
+// SELECT * FROM users
+await users.query({}).exec();
+
+// SELECT * FROM users WHERE age > 25
+await users.query({ age: { $gt: 25 } }).exec();
+
+// SELECT * FROM users WHERE age BETWEEN 18 AND 65
+await users.query({ age: { $gte: 18, $lte: 65 } }).exec();
+
+// SELECT * FROM users WHERE role IN ('admin','mod')
+await users.query({ role: { $in: ['admin', 'mod'] } }).exec();
+
+// SELECT * FROM users WHERE name LIKE 'John%'
+await users.query({ name: { $regex: '^John', $options: 'i' } }).exec();
+
+// SELECT name, email FROM users ORDER BY age DESC LIMIT 10 OFFSET 20
+await users.query({})
+  .Sort({ age: -1 }).Limit(10).Skip(20)
+  .setProject({ name: 1, email: 1 })
+  .exec();
+
+// SELECT * FROM users WHERE id = ?     (fastest path — always indexed)
+await users.query({ documentId: 'ABC123' }).exec();
+
+// SELECT COUNT(*) FROM users
+await users.totalDocuments();
+
+// INSERT INTO users (name, age) VALUES ('Alice', 30)
+await users.insert({ name: 'Alice', age: 30 });
+
+// UPDATE users SET role='active' WHERE role='trial'
+await users.update({ role: 'trial' }).UpdateMany({ role: 'active' });
+
+// DELETE FROM users WHERE active = 0
+await users.delete({ active: false }).deleteMany();
+
+// SELECT role, COUNT(*), AVG(age) FROM users WHERE active=1 GROUP BY role
+await users.aggregate([
+  { $match: { active: true } },
+  { $group: { _id: '$role', count: { $sum: 1 }, avgAge: { $avg: '$age' } } },
+]).exec();
+```
+
+### What you give up by leaving SQLite
+
+Be honest about these — they are real:
+
+- **No JOINs and no foreign keys.** Denormalize, or do a second query in JavaScript.
+- **No SQL.** Existing SQL, ORMs (Prisma, Drizzle, Knex, TypeORM, Sequelize), and SQL tooling do not work with AxioDB.
+- **No `$inc`/`$set`-style update operators.** Updates are a flat shallow merge; read-modify-write for arithmetic.
+- **Cross-collection transactions do not exist.** A transaction is scoped to one collection.
+- **Lower ceiling.** SQLite is comfortable into the tens of millions of rows; AxioDB targets 10K–500K documents per collection.
+- **Unindexed queries are a full scan.** Only `documentId` and single-field exact matches on an indexed field are O(1); a `$gt` scan over 10,000 documents is ~469ms, not ~1ms.
+- **No standard file format.** A SQLite file opens in a hundred tools; AxioDB's tree does not.
+
+### Stay on SQLite when
+
+You need SQL or an ORM; you have genuinely relational data with JOINs; you are past ~1M rows; you need heavy analytical queries over large datasets; or you need to hand the database file to another program that speaks SQLite.
+
+### Choose AxioDB when
+
+Your install must never compile anything (Electron, CLI tools distributed with npx, serverless-ish images, locked-down CI); your data is document-shaped JSON; you want MongoDB-style queries without running MongoDB; you are inside the 10K–500K range; or you want a built-in admin GUI without building one.
+
+---
+
+## Electron & Embedded/Desktop Applications
+
+Electron is AxioDB's primary target. The entire value proposition is that **there is no `electron-rebuild` step, ever** — no `.node` file to match against Electron's V8/ABI version, so upgrading Electron cannot break your database layer.
+
+### Correct setup
+
+Run AxioDB in the **main process** only. It needs filesystem access, and the singleton must live in exactly one process.
+
+```javascript
+// main.js (Electron main process)
+const { app, ipcMain } = require('electron');
+const path = require('path');
+const { AxioDB } = require('axiodb');
+
+// Store data in Electron's per-user data directory, NOT inside the app bundle
+// (app.asar is read-only, and app directories get replaced on update).
+const db = new AxioDB({
+  RootName: 'AppData',
+  CustomPath: app.getPath('userData'),
+  GUI: false,           // keep the dashboard off in a shipped desktop app
+});
+
+let users;
+app.whenReady().then(async () => {
+  const appDB = await db.createDB('AppDB');
+  users = await appDB.createCollection('users');
+  await users.newIndex('email');
+});
+
+// Renderer talks to the database over IPC — never directly.
+ipcMain.handle('users:find', async (_event, query) => {
+  const result = await users.query(query).Limit(100).exec();
+  return result.data.documents;
+});
+```
+
+```javascript
+// preload.js
+const { contextBridge, ipcRenderer } = require('electron');
+contextBridge.exposeInMainWorld('db', {
+  findUsers: (query) => ipcRenderer.invoke('users:find', query),
+});
+```
+
+### Electron rules
+
+- **Main process only.** Do not enable `nodeIntegration` to use AxioDB from a renderer. Use `ipcMain.handle` + `contextBridge`, as above.
+- **`CustomPath: app.getPath('userData')`.** Never write inside the app directory or `app.asar` — asar is read-only and app contents are replaced on update, which would delete user data.
+- **One instance.** `new AxioDB()` twice throws. Create it once in `main.js` and export/reuse it.
+- **`GUI: false` in production.** The dashboard opens port 27018; a shipped desktop app should not listen on a port unless you intend it to.
+- **Validate IPC input.** A renderer is untrusted input. Do not pass a raw renderer-supplied object straight into `.query()` if the renderer can be compromised.
+- **No rebuild in packaging.** `electron-builder` / `electron-forge` need no special configuration for AxioDB — no `buildDependenciesFromSource`, no `npmRebuild`, no native-module unpacking rules.
+
+Same reasoning applies to other embedded/desktop contexts: Tauri sidecars running Node, NW.js, VS Code extensions, CLI tools shipped via `npx`, Raspberry Pi / ARM boards (no cross-compilation), and container images that must stay free of build toolchains.
+
+---
+
+## Source Code Structure
+
+Repository: https://github.com/nexoral/AxioDB. TypeScript in `source/`, compiled to CommonJS in `lib/`.
+
+```
+source/
+├── config/
+│   ├── DB.ts                       Entry point — exports AxioDB, AxioDBCloud, InstanceTypes
+│   ├── Keys/Permissions.ts         RBAC permission catalogue, session cookie name, rate-limit constants
+│   └── Interfaces/                 Shared TypeScript interfaces
+├── Services/                       Core database engine
+│   ├── Indexation.operation.ts     The AxioDB singleton; starts the Dashboard and/or TCP server
+│   ├── Database/                   createCollection, deleteCollection, collection registry
+│   ├── Collection/                 insert, query, update, delete, aggregate, index, transaction entry points
+│   ├── CRUD Operation/             Create / Reader / Update / Delete operations
+│   ├── Index/Index.service.ts      Index storage (JSONL, append-only) + metadata
+│   ├── Aggregation/                Pipeline stages ($match, $group, $sort, $project, $limit, $skip, $unwind, $addFields)
+│   ├── Transaction/                Transaction, Session, WAL, LockManager, TransactionRegistry
+│   └── Auth/                       SessionStore (memory-only), LoginRateLimiter, RBAC checks
+├── engine/Filesystem/              FileManager, FolderManager — all low-level disk I/O
+├── Memory/memory.operation.ts      InMemoryCache, randomized 5–15 minute TTL per entry
+├── utility/Searcher.utils.ts       Query operator evaluation ($gt, $in, $regex, $elemMatch, ...)
+├── Helper/                         Converter, Response builders
+├── server/                         Dashboard + HTTP API (Fastify, port 27018)
+│   ├── router/                     Route definitions
+│   ├── controller/                 Auth, Database, Collection, Index, Operation controllers
+│   └── middleware/auth.middleware.ts   Session cookie + permission enforcement
+├── tcp/                            AxioDBCloud TCP server (port 27019)
+│   ├── types/command.types.ts      The 27-command CommandType enum
+│   ├── handler/CommandHandler.ts   Command dispatch
+│   └── handler/handlers/           Auth, DB, Collection, Operation handlers
+└── client/                         AxioDBCloud client + Database/Collection proxies
+
+Docker/                             NOT published to npm (.npmignore)
+├── Dockerfile                      EXPOSE 27018 27019 27020
+├── runner.js                       Reads AXIODB_* env vars, boots the instance
+├── mcpServer.js                    MCP server, Streamable HTTP on port 27020 at /mcp
+└── mcp/tools/                      The 32 MCP tools, one file per feature area
+
+Test/modules/                       crud, transaction, read, auth, tcp-auth, tcp-noauth,
+                                    tcp-tls, crash-recovery, mcp-confirm
+Document/                           This documentation site (React + Vite, deployed to axiodb.in)
+```
+
+### On-disk layout
+
+```
+{CustomPath}/{RootName}/
+└── {DatabaseName}/
+    └── {CollectionName}/
+        ├── {documentId}.axiodb          one file per document
+        ├── indexes/
+        │   ├── index.meta.jsonl         index registry (append-only)
+        │   └── {fieldName}.jsonl        one JSONL index file per indexed field
+        └── (WAL files for crash recovery)
+```
+
+One file per document is what makes `documentId` lookups O(1) — the path is computed, not searched. It is also why the sweet spot tops out around 500K documents per collection: at some point you are asking a filesystem to hold a lot of small files.
+
+---
+
+## The 32 MCP Tools (Docker only)
+
+Available **only** via the Docker image with `AXIODB_MCP=true`, at `http://localhost:27020/mcp` (Streamable HTTP). Every tool except `axiodb_login` requires a `sessionId` returned by `axiodb_login`. Destructive tools additionally prompt the human through the MCP client before running.
+
+- **Auth (4):** `axiodb_login`, `axiodb_logout`, `axiodb_whoami`, `axiodb_change_own_password`
+- **Database (4):** `axiodb_create_database`, `axiodb_delete_database`, `axiodb_database_exists`, `axiodb_get_instance_info`
+- **Collection (4):** `axiodb_create_collection`, `axiodb_delete_collection`, `axiodb_collection_exists`, `axiodb_get_collection_info`
+- **Document (7):** `axiodb_insert_document`, `axiodb_insert_many_documents`, `axiodb_query_documents`, `axiodb_update_document`, `axiodb_delete_document`, `axiodb_aggregate`, `axiodb_total_documents`
+- **Index (3):** `axiodb_create_index`, `axiodb_drop_index`, `axiodb_list_indexes`
+- **Dashboard (1):** `axiodb_get_dashboard_stats`
+- **User (5):** `axiodb_create_user`, `axiodb_delete_user`, `axiodb_list_users`, `axiodb_update_user_role`, `axiodb_reset_user_password`
+- **Role (4):** `axiodb_create_role`, `axiodb_delete_role`, `axiodb_list_roles`, `axiodb_list_permissions`
+
+---
+
 ## Limitations
 
-- Optimized for 10K–500K documents — use PostgreSQL/MongoDB/SQLite beyond that.
-- Single-instance architecture — not for hundreds of concurrent web connections.
-- Document-based, no JOINs or foreign keys.
-- Single-node only — no replication, sharding, clustering.
-- Transactions are scoped to a single collection.
+### Hard boundaries (not tunable)
+
+| Boundary | Value | Where enforced |
+|---|---|---|
+| AxioDB instances per process | **1** — a second `new AxioDB()` throws | `Indexation.operation.ts` |
+| Transaction scope | single collection — no cross-collection ACID | `Services/Transaction/` |
+| Total concurrent TCP connections | **1,000** | `tcp/config/keys.ts` |
+| Concurrent TCP connections per IP | **100** → `429` | `tcp/config/keys.ts` |
+| TCP connection attempts per IP | **300 per 10s** → 30s cooldown | `tcp/config/keys.ts` |
+| Failed logins per IP | **5 per 15 min** → 15-minute lockout | `config/Keys/Permissions.ts` |
+| Dashboard port | **27018**, not configurable | remap via Docker `-p` |
+| TCP port | **27019**, not configurable | remap via Docker `-p` |
+| MCP port | 27020, configurable via `AXIODB_MCP_PORT` | Docker only |
+| Node.js | **>= 20.0.0** | `package.json` engines |
+
+### Design limits
+
+- **Scale:** optimized for 10K–500K documents per collection. Beyond ~1M, migrate to PostgreSQL, MongoDB, or SQLite.
+- **Concurrency:** single-instance, single-node. Fine for a desktop app or a modest service; not for hundreds of concurrent web users.
+- **No JOINs, no foreign keys, no referential integrity.** Denormalize or join in JavaScript.
+- **No replication, sharding, or clustering.** One node, one copy. Back it up yourself.
+- **No MongoDB update operators.** `$inc`, `$set`, `$push`, `$pull`, `$unset` do not exist — update data is a flat shallow merge.
+- **`$match` in aggregation is narrower than `.query()`.** No `$exists`, `$or`, `$and`, `$nor`, `$elemMatch`, `$not`, `$type`, `$size`, `$all`, `$eq` inside a pipeline `$match`.
+- **Aggregation accumulators are `$sum` and `$avg` only.** No `$min`, `$max`, `$push`, `$first`, `$last`.
+- **`$project` is inclusion-only.** No exclusion (`0`), no computed or renamed fields.
+- **Unindexed queries are full scans.** Only `documentId` and single-field exact matches on an indexed field are O(1).
+- **No browser support.** Node.js and a real filesystem are required.
+- **Sessions are memory-only.** Restarting the server logs every Dashboard/TCP user out.
+- **Sorting/filtering happens in memory** after the candidate set is read — memory use scales with result size, not with the collection.
+- **The `config` database name is reserved** for AxioDB's own RBAC storage (`403` if you try to use it).
 
 None of this is a shortcoming to apologize for — it's a deliberately scoped embedded/local-first niche. Outgrowing it is a sign to migrate, not a bug.
 
@@ -574,7 +862,21 @@ None of this is a shortcoming to apologize for — it's a deliberately scoped em
 
 **Browser support?** No — Node.js (v20+) and filesystem access only.
 
-**What is AxioDBCloud?** TCP-based remote client with the exact same API as embedded AxioDB — 1,000+ concurrent connections, auto-reconnect, optional TLS and shared-RBAC authentication.
+**What is AxioDBCloud?** AxioDB's own TCP protocol and client on port 27019, with the exact same API as embedded AxioDB — up to 1,000 concurrent connections, auto-reconnect, optional TLS and shared-RBAC authentication. It is **not** a hosted service: you run the server, there is no account, and Nexoral stores none of your data.
+
+**Is AxioDB a drop-in replacement for SQLite?** Not drop-in — the query language is different (JavaScript objects, not SQL) and there are no JOINs. But it is a direct replacement in the sense that matters most for Node.js and Electron: same embedded, single-file-tree, no-server model, without any native module. See the "Using AxioDB as a SQLite Alternative" section for a full SQL→AxioDB cookbook.
+
+**Do I need node-gyp, a compiler, or electron-rebuild?** No. There is no native code at all, so nothing compiles and nothing can mismatch your Node/Electron ABI.
+
+**Is the MCP server included in `npm install axiodb`?** No. It is Docker-image-only (`theankansaha/axiodb` with `AXIODB_MCP=true`, port 27020). This is the single most commonly mis-stated fact about AxioDB.
+
+**Which ports does AxioDB open?** None by default. 27018 with `GUI: true` (Dashboard + HTTP API). 27019 with `TCP: true` (AxioDBCloud). 27020 in Docker with `AXIODB_MCP=true` (MCP). 27018/27019 are fixed in code — remap with Docker `-p`.
+
+**Can two parts of my app each create an AxioDB instance?** No — `new AxioDB()` twice in one process throws. Create it once and export it.
+
+**Are transactions cross-collection?** No. A transaction is scoped to a single collection.
+
+**Where is my data stored?** `{CustomPath}/{RootName}/{Database}/{Collection}/`, one `.axiodb` file per document, plus an `indexes/` folder of `.jsonl` index files.
 
 ---
 

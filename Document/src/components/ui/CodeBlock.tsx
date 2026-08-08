@@ -51,8 +51,15 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
     <div
       ref={typewriterRef}
       className="relative group rounded-lg overflow-hidden my-6 border border-slate-700 shadow-sm"
+      // Structural hooks for scripts/generate-markdown.ts, which rebuilds fenced
+      // code blocks from this prerendered markup: it needs the language and it
+      // needs to skip the chrome (language chip + copy button) around the code.
+      data-code-language={language}
     >
-      <div className="flex items-center justify-between px-4 py-2 bg-[#252526] text-gray-400 border-b border-slate-700">
+      <div
+        data-code-header
+        className="flex items-center justify-between px-4 py-2 bg-[#252526] text-gray-400 border-b border-slate-700"
+      >
         <span className="text-sm font-mono">{language}</span>
         <button
           onClick={handleCopy}
@@ -83,7 +90,10 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
                   const lineProps = getLineProps({ line });
                   return (
                     <div key={lineIndex} {...lineProps}>
-                      <span className="inline-block w-8 select-none text-right pr-3 text-slate-600">
+                      <span
+                        data-line-number
+                        className="inline-block w-8 select-none text-right pr-3 text-slate-600"
+                      >
                         {lineIndex + 1}
                       </span>
                       {line.map((token, tokenIndex) => {

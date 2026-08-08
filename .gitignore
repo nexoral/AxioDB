@@ -17,6 +17,7 @@ Docker/AxioDB_Central_Information
 Document/node_modules
 Document/AxioDB_Docs
 Document/.vite
+Document/.wrangler
 
 # Ignore the following directories and files for the Web Client
 GUI/node_modules

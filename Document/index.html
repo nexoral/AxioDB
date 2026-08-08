@@ -59,9 +59,9 @@
       "url": "https://axiodb.in",
       "downloadUrl": "https://www.npmjs.com/package/axiodb",
       "installUrl": "https://www.npmjs.com/package/axiodb",
-      "softwareVersion": "9.6.6",
+      "softwareVersion": "14.2.7",
       "datePublished": "2023-01-01",
-      "dateModified": "2026-06-16",
+      "dateModified": "2026-08-09",
       "license": "https://opensource.org/licenses/MIT",
       "isAccessibleForFree": true,
       "author": {
@@ -113,7 +113,7 @@
       "description": "Complete documentation for AxioDB: installation, CRUD operations, queries, transactions, aggregation pipelines, AxioDBCloud, and API reference.",
       "url": "https://axiodb.in",
       "datePublished": "2023-01-01",
-      "dateModified": "2026-06-16",
+      "dateModified": "2026-08-09",
       "author": {
         "@type": "Person",
         "name": "Ankan Saha",
@@ -218,7 +218,63 @@
           "name": "What is AxioDBCloud?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "AxioDBCloud is a TCP-based remote access layer for AxioDB. Deploy AxioDB in Docker or Cloud, then connect from multiple clients using the exact same API as embedded AxioDB — zero code changes. Supports 1,000+ concurrent connections, auto-reconnect with exponential backoff, and heartbeat monitoring."
+            "text": "AxioDBCloud is AxioDB's own TCP remote-access layer on port 27019 — a protocol and client, not a hosted service. You run the server yourself with new AxioDB({ TCP: true }) or the Docker image, then connect from other processes using the exact same API as embedded AxioDB, with zero code changes. There is no account to create and Nexoral hosts no database for you. Limits: 1,000 total concurrent connections, 100 per IP. Optional shared-RBAC authentication (TCPAuth) and optional TLS."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I replace SQLite with AxioDB in a Node.js project?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Install with 'npm install axiodb' and map concepts directly: a SQLite table becomes a collection, a row becomes a JSON document, INTEGER PRIMARY KEY becomes the auto-generated documentId, CREATE INDEX becomes collection.newIndex('field'), and BEGIN/COMMIT/ROLLBACK become collection.beginTransaction()/.commit()/.rollback(). SQL strings become JavaScript objects: SELECT * FROM users WHERE age > 25 becomes users.query({ age: { $gt: 25 } }).exec(). There are no schemas and no migrations. What you give up: JOINs, foreign keys, SQL itself, ORMs like Prisma and Drizzle, and scale beyond roughly 500,000 documents per collection."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does AxioDB need node-gyp, electron-rebuild, or a build step?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. AxioDB is pure JavaScript with zero native dependencies — there is no C code, no .node binary, no node-gyp compilation, and no electron-rebuild step. Nothing has to match your OS, CPU architecture, or Node/Electron ABI version, so NODE_MODULE_VERSION mismatch errors are impossible. 'npm install axiodb' is the entire installation on every platform and every Node.js version 20 or newer."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I use AxioDB in an Electron app?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Create the AxioDB instance in Electron's main process only, storing data in the per-user data directory: new AxioDB({ RootName: 'AppData', CustomPath: app.getPath('userData'), GUI: false }). Never write inside the app bundle or app.asar — asar is read-only and app contents are replaced on update. Expose database operations to the renderer through ipcMain.handle plus contextBridge rather than enabling nodeIntegration. No electron-rebuild step and no packaging configuration for native modules is required."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does AxioDB have an MCP server for AI agents?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes — 32 MCP tools covering databases, collections, documents, aggregation, indexes, dashboard stats, and user/role management. Important: the MCP server ships only in the Docker image theankansaha/axiodb, not in the npm package. Enable it with AXIODB_MCP=true and connect over Streamable HTTP at http://localhost:27020/mcp. Every tool except axiodb_login requires a sessionId from logging in, and destructive tools ask the human for confirmation through the MCP client first."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What ports does AxioDB use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Port 27018 is the web Dashboard and its REST HTTP API, enabled with GUI: true. Port 27019 is the AxioDBCloud TCP server, enabled with TCP: true — it is a custom TCP protocol, not HTTP. Port 27020 is the MCP server, available only in the Docker image with AXIODB_MCP=true. Ports 27018 and 27019 are not configurable in code; remap them at the Docker layer. Only the MCP port can be changed, via AXIODB_MCP_PORT. By default the embedded library opens no ports at all."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does AxioDB support MongoDB update operators like $inc and $set?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. AxioDB updates are a flat shallow merge of your data object onto the existing document. Writing .UpdateOne({ $inc: { balance: -100 } }) does not increment anything — it literally stores a field named '$inc'. To change a numeric value, read the document, compute the new value in JavaScript, and write it back. Query operators are a separate thing and are fully supported: $gt, $gte, $lt, $lte, $eq, $ne, $in, $nin, $exists, $regex, $not, $type, $size, $all, $elemMatch, $or, $and, and $nor."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are AxioDB's limitations?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "AxioDB targets 10,000 to 500,000 documents per collection on a single node. It has no JOINs, no foreign keys, no SQL, no replication, no sharding, and no clustering. Transactions are scoped to one collection — there are no cross-collection transactions. Only one AxioDB instance may exist per process. Aggregation supports only $sum and $avg accumulators, and its $match stage accepts fewer operators than query() does. Queries that are not an exact match on an indexed field fall back to a full collection scan. It does not run in browsers."
           }
         }
       ]

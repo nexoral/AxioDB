@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "axiodb",
+      "type": "skill-md",
+      "description": "Use AxioDB, an embedded NoSQL database for Node.js with MongoDB-style queries and zero native dependencies.",
+      "url": "https://axiodb.in/.well-known/agent-skills/axiodb/SKILL.md",
+      "digest": "sha256:4c98a2ce6a878ceaf17c8e864780c3507f910cfc25a777b56633dea63a20de8a",
+      "license": "MIT",
+      "homepage": "https://axiodb.in"
+    }
+  ]
+}

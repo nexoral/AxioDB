@@ -1,0 +1,25 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://axiodb.in/server-api",
+      "service-desc": [
+        {
+          "href": "https://axiodb.in/openapi.json",
+          "type": "application/json"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://axiodb.in/server-api",
+          "type": "text/html"
+        }
+      ],
+      "service-meta": [
+        {
+          "href": "https://axiodb.in/llms.txt",
+          "type": "text/plain"
+        }
+      ]
+    }
+  ]
+}
