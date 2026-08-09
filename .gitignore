@@ -5,6 +5,7 @@ lib
 AxioDB
 test.js
 a.js
+a.txt
 /TestDB
 ./Docker/node_modules
 
