@@ -1,302 +1,132 @@
 # GitHub Copilot CLI Instructions for AxioDB
 
-## Project Overview
+**AxioDB** - embedded NoSQL database for Node.js, zero native dependencies.
+TypeScript strict → CommonJS · Node.js ≥20 · singleton, file-per-document storage ·
+InMemoryCache, Worker Threads, ACID transactions, Web GUI, TCP remote access.
 
-**AxioDB** - Embedded NoSQL database for Node.js. Pure TypeScript/JavaScript, zero native dependencies.
+## Core rules (NON-NEGOTIABLE)
 
-- **Stack**: TypeScript (strict) → CommonJS, Node.js ≥20.0.0
-- **Pattern**: Singleton, file-per-document storage
-- **Features**: InMemoryCache, Worker Threads, ACID transactions, Web GUI, TCP remote access
+1. **Build after every change**: `npm run build`. Catch TypeScript errors now, not in production.
+2. **Test every feature change**: `Test/modules/` (`crud`, `transaction`, `read`, `auth`,
+   `tcp-auth`, `tcp-noauth`, `tcp-tls`, `crash-recovery`, `mcp-confirm`). Separate processes -
+   the singleton forbids sharing one.
+3. **Never leave work incomplete** - see the Done checklist at the bottom.
+4. **SOLID + DRY** - one responsibility per class/module; duplicated logic moves to
+   `source/Helper/`. Production-grade only, no hacks or temporary fixes.
+5. **TypeScript strict** - no `any`. Use interfaces, or `unknown` plus a type guard.
 
-## Core Rules (NON-NEGOTIABLE)
+## Architecture patterns
 
-### 1. ALWAYS Build
-```bash
-npm run build  # After EVERY code change
+- **Singleton**: one `AxioDB` per process; a second constructor call throws. Tests must run in
+  separate child processes.
+- **Dual-write (indexes)**: memory (speed) *and* disk (durability); reload from disk on cold start.
+- **Random cache TTL**: 5-15 min randomised, to prevent a stampede when keys expire together.
+- **File-per-document**: O(1) access by ID.
+
+### On-disk layout
+
 ```
-**Why**: Catch TypeScript errors immediately, not in production.
-
-### 2. ALWAYS Test
-- **Location**: `Test/modules/`
-- **Files**: `crud.test.js`, `transaction.test.js`, `read.test.js`
-- **Requirement**: Update tests for ANY feature change
-- **Run**: `npm test` (tests run in separate processes due to singleton)
-
-### 3. NEVER Incomplete
-**Definition of "Done"**:
-- ✅ Code follows standards
-- ✅ `npm run build` passes
-- ✅ Tests added/updated in `Test/modules/`
-- ✅ `npm test` passes
-- ✅ `npm run lint` passes
-- ✅ Docs updated (README.md, Document/, Dockerfile)
-- ✅ AI artifacts updated + regenerated (`Document/public/`)
-- ✅ Knowledge graph rebuilt if graphify is installed (see the graphify section; skip silently if not)
-- ✅ No breaking changes (unless approved)
-- ✅ Security validated
-- ✅ Performance acceptable
-
-### 4. SOLID + DRY
-- Single responsibility per class/module
-- Extract duplicated logic to `Helper/`
-- No hacky solutions or temporary fixes
-- Production-grade code only
-
-### 5. TypeScript Strict
-```typescript
-// ❌ NEVER
-const data: any = complexObject;
-
-// ✅ ALWAYS
-interface ComplexObject { field1: string; field2: number; }
-const data: ComplexObject = complexObject;
-
-// ✅ When unknown
-const data: unknown = complexObject;
-if (typeof data === 'object' && data !== null) { /* type guard */ }
+{RootPath}/{DatabaseName}/
+├── collection.meta.jsonl               collection registry (append-only)
+└── {CollectionName}/
+    ├── {documentId}.axiodb             documents - the only non-JSONL files
+    ├── indexes/
+    │   ├── index.meta.jsonl            index registry (append-only)
+    │   └── {indexName}.jsonl
+    └── .transactions/
+        ├── txn-meta.jsonl              in-flight transaction registry
+        └── {transactionId}.wal.jsonl
 ```
 
-## Architecture Patterns
+Every registry/log is append-only JSONL, folded last-line-wins on read, truncated when empty.
+Filenames live in `General` in `source/config/Keys/Keys.ts` - never hardcode them.
 
-### Singleton Pattern
-```typescript
-export class AxioDB {
-  private static _instance: AxioDB;
-
-  constructor() {
-    if (AxioDB._instance) {
-      throw new Error("Only one instance of AxioDB is allowed.");
-    }
-    AxioDB._instance = this;
-  }
-}
-```
-**Implication**: Tests MUST run in separate child processes.
-
-### Dual-Write (Indexes)
-```typescript
-// ALWAYS write to BOTH memory (speed) and disk (durability)
-await this.indexCache.set(indexKey, data, TTL);
-await this.fileManager.writeFile(indexPath, JSON.stringify(data));
-
-// On cold start: reload from disk
-const diskData = await this.fileManager.readFile(indexPath);
-this.indexCache.set(indexKey, JSON.parse(diskData), TTL);
-```
-
-### Random Cache TTL
-```typescript
-// 5-15 minutes random TTL (prevent cache stampede)
-const TTL = Math.floor(Math.random() * (15 - 5 + 1) + 5) * 60 * 1000;
-```
-
-### File Structure
-```
-{RootPath}/
-└── {DatabaseName}/
-    └── {CollectionName}/
-        ├── {documentId}.axiodb          documents - the only non-JSONL files
-        ├── {documentId2}.axiodb
-        ├── indexes/
-        │   ├── index.meta.jsonl         index registry (append-only)
-        │   └── {indexName}.jsonl
-        └── .transactions/
-            ├── txn-meta.jsonl           in-flight transaction registry
-            └── {transactionId}.wal.jsonl
-```
-
-## Module Organization
+## Module organization
 
 ```
 source/
-├── Services/          # Database, Collection, CRUD, Index, Transaction, Aggregation
-├── engine/           # FileManager, FolderManager (low-level)
-├── server/           # HTTP GUI (Fastify, port 27018)
-├── tcp/              # TCP server (AxioDBCloud, port 27019)
-├── client/           # TCP client + Proxies
-├── Helper/           # Converter, Response
-└── Memory/           # InMemoryCache
-
-Test/modules/         # crud.test.js, transaction.test.js, read.test.js
-Document/             # React docs site
+├── Services/   Database, Collection, CRUD, Index, Transaction, Aggregation
+├── engine/     FileManager, FolderManager (low-level)
+├── server/     HTTP GUI + REST API (Fastify, 27018)
+├── tcp/        TCP server (AxioDBCloud, 27019)
+├── client/     TCP client + Proxies
+├── Helper/     Converter, Response, PathSanitizer
+└── Memory/     InMemoryCache
 ```
 
-## Naming Conventions
+## Conventions
 
-- **Files**: `{Feature}.operation.ts`, `{Feature}.service.ts`, `{Feature}.helper.ts`
-- **Classes**: PascalCase - `FileManager`, `QueryMatcher`, `Collection`
-- **Methods**: camelCase verbs - `createDatabase()`, `insertDocument()`, `isValidDocument()`
-- **Variables**: camelCase descriptive - `documentId`, `collectionPath`, `indexCache`
+- **Naming**: files `{Feature}.{operation|service|helper}.ts` · classes PascalCase ·
+  methods camelCase verbs · variables camelCase descriptive.
+- **Error handling**: try-catch every async op; log the detailed error with context; return a
+  specific user-friendly message via `ResponseHelper` - never expose internals, never
+  "Error occurred".
+- **Performance**: check InMemoryCache before disk; `Promise.all` for independent work; `Map` for
+  lookups instead of `Array.find`.
+- **Security**: validate every input (reject non-objects and arrays); sanitize path components
+  (`replace(/[^a-zA-Z0-9-_]/g, '_')` + `path.join`) against traversal; never log passwords or
+  tokens.
 
-## Error Handling
+## Documentation - update with the code, same commit
 
-```typescript
-async function operation(): Promise<SuccessInterface | ErrorInterface> {
-  try {
-    const result = await this.execute();
-    return this.ResponseHelper.success(result);
-  } catch (error) {
-    this.logger.error('Operation failed', error);
-    return this.ResponseHelper.error(
-      'Specific error message',
-      StatusCodes.ERROR
-    );
-  }
-}
-```
-
-**Always**:
-- Use try-catch for async operations
-- Log detailed errors with context
-- Return user-friendly error messages
-- Use specific error messages (not generic "Error occurred")
-
-## Performance Best Practices
-
-### 1. Use InMemoryCache
-```typescript
-const cacheKey = `${this.collectionPath}:${documentId}`;
-const cached = this.cache.get(cacheKey);
-if (cached) return cached;
-
-const data = await this.readFromDisk(documentId);
-this.cache.set(cacheKey, data, TTL);
-```
-
-### 2. Batch Operations
-```typescript
-// ✅ GOOD: Parallel
-const results = await Promise.all(documents.map(d => this.insert(d)));
-
-// ❌ BAD: Sequential
-for (const doc of documents) {
-  await this.insert(doc);
-}
-```
-
-### 3. Use Map for O(1) Lookups
-```typescript
-// ✅ GOOD
-const map = new Map<string, Document>();
-const found = map.get(id); // O(1)
-
-// ❌ BAD
-const found = documents.find(d => d.id === id); // O(n)
-```
-
-## Security
-
-### 1. Validate Input
-```typescript
-if (!document || typeof document !== 'object') {
-  return this.ResponseHelper.error('Invalid document', StatusCodes.BAD_REQUEST);
-}
-if (Array.isArray(document)) {
-  return this.ResponseHelper.error('Document cannot be array', StatusCodes.BAD_REQUEST);
-}
-```
-
-### 2. Sanitize Paths
-```typescript
-import path from 'path';
-
-function getDocumentPath(collectionPath: string, documentId: string): string {
-  const sanitized = documentId.replace(/[^a-zA-Z0-9-_]/g, '_');
-  return path.join(collectionPath, `${sanitized}.axiodb`);
-}
-```
-
-### 3. Never Log Sensitive Data
-```typescript
-logger.info('User auth', { userId: user.id }); // ✅
-logger.info('User auth', { password: user.password }); // ❌
-```
-
-## Documentation Requirements
-
-Update when features change:
-
-1. **README.md** - Public API, features, quick start examples
+1. **README.md** - public API, features, quick start
 2. **Document/** - React docs site (`cd Document && npm run dev`)
-3. **Dockerfile** - If ports, env vars, or commands change
-4. **JSDoc** - All public methods with examples
-5. **Changelog** - `Document/src/data/changelog.ts`, for major/breaking changes only
-6. **AI discovery artifacts** - `Document/public/`, in the same commit as the human docs. These
-   are what AI assistants read to decide whether to recommend AxioDB, so stale content there
-   teaches models something false.
-   - Edit by hand: `llms.txt`, `llms-full.txt`,
-     `.well-known/agent-skills/axiodb/SKILL.md`, JSON-LD in `Document/index.html`
-   - Never hand-edit, regenerate instead: `openapi.json`, `.well-known/api-catalog`,
-     `sitemap.xml`, `.well-known/agent-skills/index.json` (sha256 digest of SKILL.md)
+3. **Dockerfile** - ports, env vars, commands
+4. **JSDoc** - every public method, with a working `@example`
+5. **Changelog** - `Document/src/data/changelog.ts`, major/breaking changes only
+6. **AI discovery artifacts** - `Document/public/`. These are what AI assistants read to decide
+   whether to recommend AxioDB; stale content teaches models something false.
+   - Edit by hand: `llms.txt`, `llms-full.txt`, `.well-known/agent-skills/axiodb/SKILL.md`,
+     JSON-LD in `Document/index.html`
+   - Never hand-edit, regenerate instead: `openapi.json`, `.well-known/api-catalog`, `sitemap.xml`,
+     `.well-known/agent-skills/index.json` (sha256 digest of SKILL.md)
      → `cd Document && npx tsx scripts/generate-seo-files.ts`
-   - Keep the version identical in package.json, changelog, llms.txt, llms-full.txt, index.html
-   - Keep the surfaces distinct: core library, Dashboard, Dashboard HTTP API (27018),
-     AxioDBCloud TCP (27019), MCP server (27020, Docker only)
-
-## Common Anti-Patterns to AVOID
-
-❌ Using `any` types
-❌ Duplicating code (extract to helpers)
-❌ Sequential operations when parallel is possible
-❌ Ignoring build errors
-❌ Skipping tests
-❌ Missing documentation
-❌ Leaving the AI artifacts in `Document/public/` stale, or editing a generated one by hand
-❌ Magic strings (use enums/const objects)
-❌ Hacky solutions or setTimeout hacks
-❌ Unclear variable names
+   - Version identical in package.json, changelog, llms.txt, llms-full.txt, index.html
+   - Keep the surfaces distinct: core library · Dashboard · Dashboard HTTP API (27018) ·
+     AxioDBCloud TCP (27019) · MCP server (27020, Docker only)
 
 ## Commands
 
 ```bash
-# Build & Test
-npm run build              # TypeScript → lib/ (MANDATORY)
-npm test                   # All tests
-npm test crud              # CRUD tests only
-npm test transaction       # Transaction tests only
-npm test read              # Read optimization tests
-npm test auth              # GUI RBAC tests only
-npm test tcp-auth          # TCP (AxioDBCloud) RBAC tests only
-npm test tcp-noauth        # TCP zero-auth backward-compat tests only
-npm test tcp-tls           # TCP TLS tests only
-npm test crash-recovery    # Real-SIGKILL crash-recovery tests only
-npm test mcp-confirm       # MCP destructive-tool human confirmation tests only
+npm run build              # TypeScript → lib/ (MANDATORY after every change)
+npm test                   # All suites (separate processes)
+npm test <suite>           # crud | transaction | read | auth | tcp-auth | tcp-noauth
+                           # tcp-tls | crash-recovery | mcp-confirm
 npm run lint               # ESLint
-
-# Development
-node Test/modules/crud.test.js  # Run specific test
+node Test/modules/crud.test.js  # Run one suite directly
 cd Document && npm run dev      # Docs site (localhost:5173)
 ```
 
-## Success Criteria
-
-Every task must meet ALL:
-- ✅ Builds successfully (`npm run build`)
-- ✅ Tests pass (`npm test`)
-- ✅ Lint passes (`npm run lint`)
-- ✅ Docs updated (including `Document/public/` AI artifacts, regenerated)
-- ✅ Knowledge graph rebuilt if graphify is installed
-- ✅ No regressions
-- ✅ Follows patterns
-- ✅ Security validated
-- ✅ Performance acceptable
-
 ## graphify
 
-This project has a graphify knowledge graph at `graphify-out/`.
+Knowledge graph at `graphify-out/`.
 
-Rules:
-- Use `graphify query "<question>"` as the DEFAULT codebase search: run it before any grep/glob/file-read, and fall back to raw search only when the graph returns nothing
-- Before answering architecture or codebase questions, read `graphify-out/GRAPH_REPORT.md` for god nodes and community structure
-- If `graphify-out/wiki/index.md` exists, navigate it instead of reading raw files
-- **After changing any file, rebuild the graph - but check that graphify is installed first.**
-  It is optional local tooling, not a dependency: if the import fails, skip silently and carry
-  on. Never fail or block a task because graphify is missing.
+- `graphify query "<question>"` is the DEFAULT codebase search - before any grep/glob/file-read,
+  falling back to raw search only when it returns nothing.
+- For architecture questions read `graphify-out/GRAPH_REPORT.md` first; if
+  `graphify-out/wiki/index.md` exists, navigate that instead of raw files.
+- **After changing any file, rebuild - checking graphify is installed first.** Optional local
+  tooling, not a dependency: if the import fails, skip silently, never fail the task.
   ```bash
   python3 -c "import graphify" 2>/dev/null \
     && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" \
     || echo "graphify not installed - skipping graph rebuild"
   ```
-  Run it from the repo root, once, after the change is finished - not after every edit. A stale
-  graph is worse than no graph: it points the next search at symbols and line numbers that have
-  already moved. `graphify-out/` is gitignored, so this never affects what you commit.
+  Once, from the repo root, after the change is finished. A stale graph is worse than no graph.
+  `graphify-out/` is gitignored.
+
+## Anti-patterns to AVOID
+
+`any` types · duplicated code · sequential work that could be parallel · ignoring build errors ·
+skipping tests · missing docs · stale or hand-edited AI artifacts · magic strings ·
+`setTimeout`/`eval` hacks · unclear names · nesting deeper than 3 levels.
+
+## Done checklist - ALL must pass
+
+- [ ] `npm run build` passes
+- [ ] Tests added/updated, `npm test` passes
+- [ ] `npm run lint` passes
+- [ ] Docs updated (README, Document/, Dockerfile, JSDoc) + changelog if major/breaking
+- [ ] AI artifacts updated **and regenerated**; version identical everywhere
+- [ ] Knowledge graph rebuilt if graphify is installed
+- [ ] Security validated · no performance regressions · no unapproved breaking changes

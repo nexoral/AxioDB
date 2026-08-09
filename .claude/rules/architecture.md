@@ -3,43 +3,36 @@
 ## Directory Structure
 ```
 source/
-├── config/              # DB.ts (main exports), Keys/, Interfaces/
-├── Services/            # Core operations
-│   ├── Indexation.operation.ts    # AxioDB main class (singleton)
-│   ├── Database/                  # Database ops
-│   ├── Collection/                # Collection ops
-│   ├── CRUD Operation/            # Create, Reader, Update, Delete
-│   ├── Index/                     # Index management (cache + disk)
-│   ├── Aggregation/               # MongoDB-style pipelines
-│   └── Transaction/               # ACID, WAL, sessions
-├── engine/Filesystem/   # FileManager, FolderManager (low-level)
-├── server/              # HTTP GUI (Fastify, port 27018)
-├── tcp/                 # TCP server (AxioDBCloud, port 27019)
-├── client/              # AxioDBCloud TCP client + Proxies
-├── Helper/              # Converter, Response
-├── Memory/              # InMemoryCache
-└── utility/             # General utils
+├── config/              DB.ts (main exports), Keys/, Interfaces/
+├── Services/            Indexation.operation.ts (AxioDB singleton), Database/, Collection/,
+│                        CRUD Operation/, Index/, Aggregation/, Transaction/
+├── engine/Filesystem/   FileManager, FolderManager (low-level)
+├── server/              HTTP GUI + REST API (Fastify, 27018)
+├── tcp/                 TCP server (AxioDBCloud, 27019)
+├── client/              AxioDBCloud TCP client + Proxies
+├── Helper/              Converter, Response, PathSanitizer
+├── Memory/              InMemoryCache
+└── utility/             General utils
 
-lib/                     # Compiled output (git-ignored)
-Test/modules/            # crud.test.js, transaction.test.js, read.test.js
-Document/                # React docs site
+lib/                     Compiled output (git-ignored)
+Test/modules/            Test suites (separate processes)
+Document/                React docs site
 ```
 
 ## Key Patterns
 
-### Singleton
-```typescript
-export class AxioDB {
-  private static _instance: AxioDB;
-  constructor() {
-    if (AxioDB._instance) throw new Error("Only one instance allowed");
-    AxioDB._instance = this;
-  }
-}
-```
-**Implication**: Tests must run in separate processes.
+**Singleton** - `AxioDB` throws on a second construction (`Only one instance allowed`).
+*Implication*: tests must run in separate processes.
 
-### File Structure
+**Dual-write (indexes)** - memory (speed) + disk (durability); reload from disk on cold start.
+
+**Chainable query API** - nothing runs until the terminal call:
+```typescript
+collection.query({ age: { $gt: 25 } }).Limit(10).Skip(5).Sort({ age: -1 }).exec();
+```
+
+## On-Disk Layout
+
 - Database: `{RootPath}/{DatabaseName}/`
 - Collection registry: `{DatabasePath}/collection.meta.jsonl`
 - Collection: `{DatabasePath}/{CollectionName}/`
@@ -49,59 +42,41 @@ export class AxioDB {
 - Transaction registry: `{CollectionPath}/.transactions/txn-meta.jsonl`
 - WAL: `{CollectionPath}/.transactions/{transactionId}.wal.jsonl`
 
-Documents are the only non-JSONL files. Every registry and log is append-only (one JSON
-object per line), folded to current state on read with last-line-wins per key, and truncated
-when nothing is left to track. Filenames live in `General` in `source/config/Keys/Keys.ts` —
-never hardcode them. WAL files keep the `.wal.jsonl` suffix because recovery scans
-`.transactions/` by suffix and a bare `.jsonl` would also match `txn-meta.jsonl`.
-
-### Dual-Write (Indexes)
-- Write to memory (speed) + disk (durability)
-- Cold start: reload from disk on restart
-
-### Chainable Query API
-```typescript
-collection.query({ age: { $gt: 25 } })
-  .Limit(10).Skip(5).Sort({ age: -1 }).exec();
-```
+Documents are the only non-JSONL files. Every registry and log is append-only (one JSON object per
+line), folded to current state on read with last-line-wins per key, and truncated when nothing is
+left to track. Filenames live in `General` in `source/config/Keys/Keys.ts` - never hardcode them.
+WAL files keep the `.wal.jsonl` suffix because recovery scans `.transactions/` by suffix, and a
+bare `.jsonl` would also match `txn-meta.jsonl`.
 
 ## Core Components
 
-- **AxioDB**: Root singleton, manages DB map, starts GUI/TCP
-- **Database**: Manages collections map, methods: createCollection, deleteCollection
-- **Collection**: Document collection, methods: insert, query, update, delete, aggregate
-- **CRUD Ops**: Reader, Create, Update, Delete in `Services/CRUD Operation/`
-- **Index System**: IndexCache (memory, TTL 5-15min), InsertIndex, ReadIndex, DeleteIndex
-- **Transactions**: Session, Transaction, WAL, LockManager, TransactionRegistry
-- **Cache**: Random TTL, selective invalidation, collection-scoped keys
+- **AxioDB** - root singleton, manages the DB map, starts GUI/TCP
+- **Database** - manages the collections map; `createCollection`, `deleteCollection`
+- **Collection** - `insert`, `query`, `update`, `delete`, `aggregate`
+- **CRUD Ops** - Reader, Create, Update, Delete in `Services/CRUD Operation/`
+- **Index System** - IndexCache (memory, 5-15 min random TTL), InsertIndex, ReadIndex, DeleteIndex
+- **Transactions** - Session, Transaction, WAL, LockManager, TransactionRegistry
+- **Cache** - random TTL, selective invalidation, collection-scoped keys
 
-## Data Flow Examples
+## Data Flow
 
-**Insert**: Collection → Create.operation → FileManager (disk) → InsertIndex (memory+disk) → Cache invalidation → Response
+- **Insert**: Collection → Create.operation → FileManager (disk) → InsertIndex (memory + disk) →
+  cache invalidation → response
+- **Query**: Collection → Reader.operation → cache check → disk read on miss → filter/sort/limit →
+  cache update → response
+- **Transaction**: startSession → withTransaction → WAL entry → operations →
+  commit (apply WAL) | rollback (revert)
 
-**Query**: Collection → Reader.operation → Check cache → Read disk (if miss) → Filter/sort/limit → Update cache → Response
+## Performance Levers
 
-**Transaction**: startSession → withTransaction → WAL entry → operations → commit (apply WAL) | rollback (revert)
+InMemoryCache (sub-ms lookups) · Worker Threads (parallel reads) · file-per-document (O(1) by ID) ·
+index cache with random TTL (no stampede) · lazy loading.
 
-## Module Organization
+## Where New Code Goes
 
-- **Feature-based**: All DB ops in `Services/Database/`, all Collection ops in `Services/Collection/`
-- **Type-based**: All helpers in `Helper/`, all file ops in `engine/Filesystem/`
-- **Operation-based**: All index ops in `Services/Index/`, all CRUD in `Services/CRUD Operation/`
+New service → `Services/{FeatureName}/` · helper → `Helper/{feature}.helper.ts` · engine op →
+`engine/{category}/` · API endpoint → `server/router/` + `server/controller/` · TCP command →
+`tcp/handler/` · interface → `config/Interfaces/{category}/`.
 
-## Performance Optimizations
-1. InMemoryCache: Sub-ms lookups
-2. Worker Threads: Parallel reads
-3. File-per-document: O(1) access by ID
-4. Index cache: Random TTL prevents stampede
-5. Lazy loading: Load only when needed
-
-## When Adding Features
-- New service → `Services/{FeatureName}/`
-- New helper → `Helper/{feature}.helper.ts`
-- New engine op → `engine/{category}/`
-- New API endpoint → `server/router/` + `server/controller/`
-- New TCP command → `tcp/handler/`
-- New interface → `config/Interfaces/{category}/`
-
-Keep modules cohesive - one responsibility per file.
+Organization is feature-based within `Services/`, type-based elsewhere (`Helper/`,
+`engine/Filesystem/`). Keep modules cohesive - one responsibility per file.
