@@ -511,7 +511,7 @@ Content-Disposition: attachment; filename="MyDatabase.tar.gz"`,
         {
           method: "POST",
           path: "/api/db/import-database/",
-          description: "Imports a database from a .tar.gz file. Use multipart/form-data to upload the compressed database file.",
+          description: "Imports a database from a .tar.gz produced by Export. The upload is staged outside the data directory and validated as a genuine AxioDB export before anything is promoted into place, so a rejected archive leaves nothing behind. The database name is read from the archive's contents, not its filename. Concurrent imports of different databases run in parallel; two imports of the same database conflict and the second is refused.",
           parameters: [
             {
               name: "file",
@@ -526,16 +526,16 @@ Content-Type: multipart/form-data
 
 file: [database.tar.gz file]`,
           responseExample: `{
-  "statusCode": 201,
-  "status": "success",
   "message": "Database imported successfully",
-  "data": {
-    "Database_Name": "ImportedDatabase"
-  }
+  "database": "ImportedDatabase",
+  "file": "ImportedDatabase.tar.gz"
 }`,
           statusCodes: [
-            { code: 201, description: "Created - Database imported successfully" },
-            { code: 400, description: "Bad Request - Invalid file or file missing" },
+            { code: 200, description: "Success - Database imported" },
+            { code: 400, description: "Bad Request - No file, unreadable archive, not an AxioDB export, or an archive that expands past the 100:1 ratio limit" },
+            { code: 403, description: "Forbidden - The archive holds a reserved system database" },
+            { code: 409, description: "Conflict - That database already exists, or is being imported by someone else right now" },
+            { code: 413, description: "Payload Too Large - The upload was truncated before it finished" },
             { code: 500, description: "Internal Server Error - Import failed" },
           ],
         },

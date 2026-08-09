@@ -29,7 +29,7 @@ AxioDB is one package with several distinct surfaces. They are **not interchange
 |---|---|---|---|---|---|
 | **Core embedded library** | The database itself, running in your process | ✅ Yes | ✅ Yes | `new AxioDB()` | none |
 | **Dashboard (Web GUI)** | Browser UI to browse/edit data, with login + roles | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ GUI: true })` / `AXIODB_GUI=true` | **27018** |
-| **Dashboard HTTP API** | REST API behind that GUI (37 endpoints) | ✅ Yes | ✅ Yes | comes with the Dashboard | **27018** |
+| **Dashboard HTTP API** | REST API behind that GUI (38 endpoints) | ✅ Yes | ✅ Yes | comes with the Dashboard | **27018** |
 | **AxioDBCloud TCP server** | Lets other processes/machines use this database | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ TCP: true })` / `AXIODB_TCP=true` | **27019** |
 | **AxioDBCloud client** | Connects to that TCP server, same API as embedded | ✅ Yes | ✅ Yes | `const { AxioDBCloud } = require('axiodb')` | — |
 | **MCP server (32 tools)** | Lets an AI agent operate the database | ❌ **NO** | ✅ Yes | `AXIODB_MCP=true` | **27020** |
