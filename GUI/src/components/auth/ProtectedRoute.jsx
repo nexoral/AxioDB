@@ -3,8 +3,8 @@ import { useAuthStore } from '../../store/authStore'
 
 const ForbiddenNotice = () => (
   <div className='max-w-3xl mx-auto px-4 py-16 text-center'>
-    <h1 className='text-2xl font-bold text-gray-900 mb-2'>Access Denied</h1>
-    <p className='text-gray-600'>
+    <h1 className='text-2xl font-bold text-ink-900 mb-2'>Access Denied</h1>
+    <p className='text-ink-600'>
       Your role does not have permission to view this page.
     </p>
   </div>

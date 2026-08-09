@@ -17,6 +17,7 @@ Docker/AxioDB_Central_Information
 Document/node_modules
 Document/AxioDB_Docs
 Document/.vite
+Document/.wrangler
 
 # Ignore the following directories and files for the Web Client
 GUI/node_modules
@@ -28,4 +29,8 @@ TestCRUD/
 
 # Agent tooling and generated knowledge graph
 graphify-out/
-.claude/
+
+# Local Claude Code settings only - .claude/rules/ and .claude/commands/ are shared
+# project instructions and must stay tracked.
+.claude/settings.json
+.claude/settings.local.json

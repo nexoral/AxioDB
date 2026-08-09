@@ -1,4 +1,12 @@
+# Content Signals (https://contentsignals.org/) - our preferences for how this
+# documentation may be used once it has been fetched. AxioDB is open source and
+# we want assistants to be able to teach people how to use it, so all three
+# signals are "yes":
+#   ai-train  = use for training/fine-tuning generative AI models
+#   search    = use to build a search index and link back here
+#   ai-input  = use as retrieval input for a generative AI answer (RAG)
 User-agent: *
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
 Allow: /
 
 # AI crawlers and assistants (explicitly allowed)
@@ -51,3 +59,10 @@ User-agent: Meta-ExternalAgent
 Allow: /
 
 Sitemap: https://axiodb.in/sitemap.xml
+
+# Machine-readable entry points for AI agents
+# llms.txt / llms-full.txt        - condensed and full documentation as plain text
+# /openapi.json                   - OpenAPI 3.1 description of the AxioDB Dashboard HTTP API (port 27018)
+# /.well-known/api-catalog        - RFC 9727 catalogue of the above
+# /.well-known/agent-skills/      - installable Agent Skill for working with AxioDB
+# Any page also returns Markdown when requested with "Accept: text/markdown".

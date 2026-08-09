@@ -39,7 +39,7 @@ console.log("Collection created:", collection);
           </code>{" "}
           method supports the following format:
         </p>
-        <pre className="bg-gray-900 p-3 rounded-md mt-2 text-sm overflow-x-auto">
+        <pre className="bg-gray-900 p-2 sm:p-3 rounded-md mt-2 text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
           {`createCollection(name: string);`}
         </pre>
       </div>

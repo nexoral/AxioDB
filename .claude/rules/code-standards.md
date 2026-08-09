@@ -2,280 +2,68 @@
 
 ## Core Principles
 
-1. **Respect Existing Code**: Read before modifying, follow patterns, maintain consistency
-2. **SOLID Principles**: Single responsibility, Open/Closed, Liskov, Interface segregation, Dependency inversion
-3. **DRY**: Don't Repeat Yourself - extract common logic
-4. **No Hacks**: Production-grade only, no temporary fixes
+1. **Respect existing code** - read before modifying, follow the patterns already there
+2. **SOLID** - single responsibility, open/closed, Liskov, interface segregation, dependency inversion
+3. **DRY** - logic appearing in 2+ files moves to `source/Helper/{Feature}.helper.ts`
+4. **No hacks** - production-grade only, no temporary fixes
 
-## SOLID Examples
+**SOLID in practice here**: `FileManager` does file I/O and `Converter` does conversion - never one
+class doing both. Extend behaviour through an interface (e.g. a `QueryOperator` with an `evaluate`
+method) rather than editing a switch. Depend on the abstraction (`IFileManager`) and inject it,
+rather than constructing a concrete `new FileManager()` inside the consumer - that is also what
+makes a class testable.
 
-### Single Responsibility
-```typescript
-// ✅ GOOD: One responsibility
-class FileManager { readFile(), writeFile(), deleteFile() }
-class Converter { ToString(), ToObject() }
+## TypeScript
 
-// ❌ BAD: Multiple responsibilities
-class DataManager { readFile(), validateUser(), sendEmail() }
-```
+- **No `any`.** Define an interface. When the type is genuinely unknown use `unknown` plus a type
+  guard (`typeof x === 'object' && x !== null`) before touching it.
+- **Type both sides**: parameters and return types, including options objects.
+- **Strict null checks**: return `T | null` and force the caller to handle it (`?? null`); never
+  return `T` from a lookup that can miss.
+- **Magic strings** → `enum` or an `as const` object.
 
-### Open/Closed
-```typescript
-// ✅ GOOD: Extend without modifying
-interface QueryOperator { evaluate(value, operand): boolean }
-class GreaterThanOperator implements QueryOperator { evaluate() { return value > operand } }
-class RegexOperator implements QueryOperator { evaluate() { return new RegExp(operand).test(value) } }
-```
+## Naming
 
-### Dependency Inversion
-```typescript
-// ✅ GOOD: Depend on abstraction
-interface IFileManager { readFile(), writeFile() }
-class Collection { constructor(private fileManager: IFileManager) {} }
-
-// ❌ BAD: Depend on concrete
-class Collection { private fileManager = new FileManager(); }
-```
-
-## DRY Principle
-
-```typescript
-// ❌ BAD: Duplicated
-// Reader.operation.ts - 50 lines filtering
-// Update.operation.ts - Same 50 lines
-
-// ✅ GOOD: Shared utility
-// Helper/QueryMatcher.helper.ts
-export class QueryMatcher {
-  static matchDocument(doc, query): boolean { /* logic */ }
-  static filterDocuments(docs, query) { return docs.filter(d => this.matchDocument(d, query)); }
-}
-// Import in Reader and Update
-```
-
-## No Hacky Solutions
-
-```typescript
-// ❌ NEVER
-setTimeout(() => { /* hope this works */ }, 1000);
-eval(userInput);
-try { risky(); } catch (e) { /* ignore */ }
-const data: any = complexObject;
-
-// ✅ ALWAYS
-await properAsyncOperation();
-const sanitized = validateAndSanitize(userInput);
-try { await risky(); } catch (error) {
-  logger.error('Failed', error);
-  return ResponseHelper.error('Failed', StatusCodes.ERROR);
-}
-interface ComplexObject { field1: string; field2: number; }
-const data: ComplexObject = complexObject;
-```
-
-## TypeScript Standards
-
-### Type Safety
-```typescript
-// ✅ GOOD
-interface InsertOptions { documentId?: string; skipValidation?: boolean; }
-function insert(doc: object, opts: InsertOptions): Promise<SuccessInterface> {}
-
-// ❌ BAD
-function insert(doc: any, opts?: any): Promise<any> {}
-```
-
-### Avoid `any`
-```typescript
-// ✅ GOOD
-interface OperationResult { success: boolean; data: DocumentData; }
-const result: OperationResult = await op();
-
-// Use unknown when truly unknown
-const result: unknown = await op();
-if (typeof result === 'object' && result !== null) { /* type guard */ }
-
-// ❌ BAD
-const result: any = await op();
-```
-
-### Enums/Const Objects
-```typescript
-// ✅ GOOD
-enum OperationType { INSERT = 'insert', UPDATE = 'update', DELETE = 'delete' }
-// Or
-const OperationType = { INSERT: 'insert', UPDATE: 'update' } as const;
-
-// ❌ BAD: Magic strings
-if (operation === 'insert') {}
-```
-
-### Strict Null Checks
-```typescript
-// ✅ GOOD
-function getDocument(id: string): Document | null {
-  return this.cache.get(id) ?? null;
-}
-const doc = getDocument('123');
-if (doc !== null) { console.log(doc.name); }
-
-// ❌ BAD
-function getDocument(id: string): Document {
-  return this.cache.get(id); // Might be undefined!
-}
-```
-
-## Module Organization
-
-### Naming Conventions
 - **Files**: `{Feature}.operation.ts`, `{Feature}.service.ts`, `{Feature}.helper.ts`
-- **Classes**: PascalCase: `FileManager`, `QueryMatcher` (descriptive, nouns)
-- **Methods**: camelCase: `createDatabase()`, `isValidDocument()` (verbs)
-- **Variables**: camelCase: `documentId`, `collectionPath` (descriptive)
-- **Constants**: `UPPER_SNAKE_CASE` or `camelCase const`
+- **Classes**: PascalCase nouns - `FileManager`, `QueryMatcher`
+- **Methods**: camelCase verbs - `createDatabase()`, `isValidDocument()`
+- **Variables**: camelCase descriptive - `documentId`, `collectionPath`
+- **Constants**: `UPPER_SNAKE_CASE`, or camelCase `const`
 
 ## Error Handling
 
-```typescript
-// ✅ GOOD
-async function readDocument(id: string): Promise<SuccessInterface | ErrorInterface> {
-  try {
-    const content = await this.fileManager.readFile(path);
-    const doc = JSON.parse(content);
-    return this.ResponseHelper.success(doc);
-  } catch (error) {
-    this.logger.error(`Failed to read ${id}`, error);
-    return this.ResponseHelper.error(`Document not found: ${id}`, StatusCodes.NOT_FOUND);
-  }
-}
+Wrap every async operation in try-catch. Log the detailed error with context, return a
+user-friendly one through `ResponseHelper` with the right `StatusCodes` - never leak internals or
+stack traces to callers, and never swallow an error silently.
 
-// ❌ BAD
-async function readDocument(id: string): Promise<any> {
-  const content = await this.fileManager.readFile(path); // Unhandled
-  return JSON.parse(content); // Unhandled parse error
-}
-```
-
-### Specific Error Messages
-```typescript
-// ✅ GOOD
-if (!doc.name) throw new Error('Validation failed: "name" field required');
-
-// ❌ BAD
-if (!doc.name) throw new Error('Invalid document');
-```
+Messages must be specific: `'Validation failed: "name" field required'`, not `'Invalid document'`.
 
 ## Performance
 
-### 1. Use Cache
-```typescript
-// ✅ GOOD
-const cached = this.cache.get(key);
-if (cached) return cached;
-const data = await this.readFromDisk(id);
-this.cache.set(key, data);
-```
-
-### 2. Batch Operations
-```typescript
-// ✅ GOOD
-const results = await Promise.all(docs.map(d => this.insert(d)));
-
-// ❌ BAD
-for (const d of docs) { await this.insert(d); } // Sequential
-```
-
-### 3. Avoid Unnecessary I/O
-```typescript
-// ✅ GOOD
-const docs = await this.loadAll();
-const filtered = docs.filter(d => d.age > 25);
-const sorted = filtered.sort((a,b) => a.name.localeCompare(b.name));
-
-// ❌ BAD
-const filtered = await this.filter({ age: { $gt: 25 } }); // Read
-const sorted = await this.sort(filtered, { name: 1 }); // Read again
-```
-
-### 4. Data Structures
-```typescript
-// ✅ GOOD: Map for O(1)
-const map = new Map<string, Document>();
-const found = map.get(id); // O(1)
-
-// ❌ BAD: Array for lookups
-const found = docs.find(d => d.id === id); // O(n)
-```
+- Check `InMemoryCache` before reading disk; populate it after a miss.
+- `Promise.all` for independent operations - never `await` in a loop.
+- Load once, then filter/sort/limit in memory - don't re-read per stage.
+- `Map` for lookups (O(1)); never `Array.find` inside a loop (O(n)).
 
 ## Security
 
-### 1. Validate Input
-```typescript
-function insert(doc: object): Promise<SuccessInterface | ErrorInterface> {
-  if (!doc || typeof doc !== 'object') return error('Invalid document', BAD_REQUEST);
-  if (Array.isArray(doc)) return error('Cannot be array', BAD_REQUEST);
-  // ...
-}
-```
-
-### 2. Sanitize Paths
-```typescript
-// ✅ GOOD: Prevent traversal
-import path from 'path';
-function getPath(collectionPath: string, docId: string): string {
-  const sanitized = docId.replace(/[^a-zA-Z0-9-_]/g, '_');
-  return path.join(collectionPath, `${sanitized}.axiodb`);
-}
-
-// ❌ BAD
-return `${collectionPath}/${docId}.axiodb`; // Vulnerable to ../../../
-```
-
-### 3. Sensitive Data
-```typescript
-// ✅ GOOD
-logger.info('User auth', { userId: user.id }); // Don't log passwords
-return error('Auth failed', UNAUTHORIZED); // No stack traces to users
-```
+- **Validate input**: reject anything that isn't an object, and reject arrays, before use.
+- **Sanitize paths**: `docId.replace(/[^a-zA-Z0-9-_]/g, '_')` then `path.join` - never interpolate
+  a caller-supplied id straight into a path, that is a `../../../` traversal.
+- **Never log secrets** - passwords, tokens, keys. Return `error('Auth failed', UNAUTHORIZED)`
+  without detail.
 
 ## Testing
 
-```typescript
-// ✅ GOOD: Testable (dependency injection)
-class Collection {
-  constructor(private fileManager: FileManager, private cache: Cache) {}
-}
+Inject dependencies through the constructor so they can be replaced in tests.
 
-// ❌ BAD: Hard to test
-class Collection {
-  private fileManager = new FileManager();
-  private cache = new Cache();
-}
-```
-
-**Test coverage**: Happy path, empty input, null/undefined, large data, invalid data, concurrent ops, errors
+**Cover**: happy path, empty input, null/undefined, large data, invalid data, concurrent
+operations, error paths.
 
 ## Review Checklist
 
-- [ ] SOLID principles
-- [ ] DRY (no duplication)
-- [ ] Proper error handling
-- [ ] Type-safe (no `any`)
-- [ ] Performance considered
-- [ ] Security validated
-- [ ] Modular
-- [ ] Clear naming
-- [ ] Tests written/updated
-- [ ] Docs updated
-- [ ] Build passes
-- [ ] Lint passes
-
-## Summary
-- SOLID: Single responsibility, Open/Closed, Liskov, Interface segregation, Dependency inversion
-- DRY: Extract common logic
-- No hacks: Production-grade only
-- Type safety: Use TypeScript properly
-- Modular: Feature-based, clear separation
-- Performance: Cache, batch, avoid I/O
-- Security: Validate, sanitize, never log secrets
-- Testable: Dependency injection
+- [ ] SOLID · DRY · modular · clear naming
+- [ ] Type-safe (no `any`), proper error handling
+- [ ] Performance considered · security validated
+- [ ] Tests written/updated · docs updated
+- [ ] Build passes · lint passes

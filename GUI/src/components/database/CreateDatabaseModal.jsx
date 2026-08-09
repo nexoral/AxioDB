@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import axios from 'axios'
 import { BASE_API_URL } from '../../config/key'
+import Modal from '../ui/Modal'
+import Button from '../ui/Button'
+import { Input } from '../ui/Field'
 
 const CreateDatabaseModal = ({ isOpen, onClose, onDatabaseCreated }) => {
   const [databaseName, setDatabaseName] = useState('')
@@ -62,83 +65,47 @@ const CreateDatabaseModal = ({ isOpen, onClose, onDatabaseCreated }) => {
       setIsSubmitting(false)
     }
   }
-  if (!isOpen) return null
+  const DatabaseIcon = (
+    <svg className='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
+      <ellipse cx='12' cy='6' rx='8' ry='3' />
+      <path d='M4 6v12c0 1.66 3.58 3 8 3s8-1.34 8-3V6' />
+    </svg>
+  )
 
   return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn'>
-      <div className='bg-white rounded-lg max-w-md w-full p-6'>
-        <h3 className='text-xl font-bold text-gray-900 mb-4'>
-          Create New Database
-        </h3>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title='Create database'
+      icon={DatabaseIcon}
+      size='md'
+      footer={
+        <>
+          <Button variant='secondary' onClick={handleClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} loading={isSubmitting} disabled={!databaseName.trim()}>
+            Create database
+          </Button>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit}>
+        <Input
+          label='Database name'
+          value={databaseName}
+          onChange={(event) => setDatabaseName(event.target.value)}
+          placeholder='AppDB'
+          mono
+          autoFocus
+          error={error || undefined}
+          hint='Letters, numbers and underscores only. The name "config" is reserved by AxioDB.'
+        />
 
-        <form onSubmit={handleSubmit}>
-          <div className='mb-4'>
-            <label
-              htmlFor='databaseName'
-              className='block text-sm font-medium text-gray-700 mb-1'
-            >
-              Database Name
-            </label>
-            <input
-              type='text'
-              id='databaseName'
-              value={databaseName}
-              onChange={(e) => setDatabaseName(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-              placeholder='Enter database name'
-              disabled={isSubmitting}
-            />
-            {error && <p className='mt-2 text-sm text-red-600'>{error}</p>}
-          </div>
-
-          <div className='flex justify-end space-x-4 mt-6'>
-            <button
-              type='button'
-              onClick={handleClose}
-              className='px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors'
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type='submit'
-              className={`px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center ${isSubmitting ? 'opacity-75 cursor-not-allowed' : ''}`}
-              disabled={isSubmitting}
-            >
-              {isSubmitting
-                ? (
-                  <>
-                    <svg
-                      className='animate-spin -ml-1 mr-2 h-4 w-4 text-white'
-                      xmlns='http://www.w3.org/2000/svg'
-                      fill='none'
-                      viewBox='0 0 24 24'
-                    >
-                      <circle
-                        className='opacity-25'
-                        cx='12'
-                        cy='12'
-                        r='10'
-                        stroke='currentColor'
-                        strokeWidth='4'
-                      />
-                      <path
-                        className='opacity-75'
-                        fill='currentColor'
-                        d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
-                      />
-                    </svg>
-                    Creating...
-                  </>
-                  )
-                : (
-                    'Create Database'
-                  )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {/* Lets Enter submit the form without rendering a second visible button. */}
+        <button type='submit' className='hidden' aria-hidden='true' tabIndex={-1} />
+      </form>
+    </Modal>
   )
 }
 

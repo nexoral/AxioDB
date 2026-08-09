@@ -1,0 +1,2446 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AxioDB Dashboard HTTP API (Control Server)",
+    "description": "REST API behind the AxioDB Dashboard - the web GUI AxioDB starts on port 27018 - for managing databases, collections, indexes, documents, users, and roles.\n\nThis is not a hosted service. It runs inside your own AxioDB process: enable it with `new AxioDB({ GUI: true })`, or with `AXIODB_GUI=true` on the `theankansaha/axiodb` Docker image. https://axiodb.in serves documentation only.\n\nThis API is one of several AxioDB surfaces and is not interchangeable with the others:\n- Embedded library (`npm install axiodb`) - in-process, no HTTP at all. https://axiodb.in/api-reference\n- AxioDBCloud TCP server/client on port 27019 - its own wire protocol, not HTTP. https://axiodb.in/cloud\n- MCP server on port 27020 (Docker image only) - Streamable HTTP at /mcp, 32 tools. https://axiodb.in/mcp-server\n\nThe Dashboard, AxioDBCloud authentication, and the MCP server share one user and role store.\n\nHuman-readable reference: https://axiodb.in/server-api",
+    "version": "1.0.0",
+    "license": {
+      "name": "MIT",
+      "identifier": "MIT"
+    },
+    "contact": {
+      "name": "AxioDB",
+      "url": "https://axiodb.in"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:27018",
+      "description": "AxioDB Dashboard on the machine running AxioDB (port is fixed; remap at the Docker layer if needed)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "System & Health",
+      "description": "Basic system information, health checks, and available routes"
+    },
+    {
+      "name": "Authentication & Access Control",
+      "description": "Login, session, and RBAC-gated user/role management endpoints"
+    },
+    {
+      "name": "Database Management",
+      "description": "Create, list, delete, import, and export databases"
+    },
+    {
+      "name": "Collection Management",
+      "description": "Create, list, and delete collections within databases"
+    },
+    {
+      "name": "Index Management",
+      "description": "List, create, and drop custom field indexes on a collection - gated by the index:view / index:create / index:delete permissions (View role gets view-only; Admin and Super Admin get all three)"
+    },
+    {
+      "name": "Document Operations (CRUD)",
+      "description": "Create, read, update, and delete documents with advanced query support"
+    }
+  ],
+  "paths": {
+    "/api/info": {
+      "get": {
+        "tags": [
+          "System & Health"
+        ],
+        "summary": "Retrieves system information including package name, version, author details, and license information.",
+        "description": "Retrieves system information including package name, version, author details, and license information.",
+        "operationId": "getApiInfo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success - Returns system information",
+            "content": {
+              "application/json": {
+                "example": "{\n  \"statusCode\": 200,\n  \"status\": \"success\",\n  \"message\": \"AxioDB Information\",\n  \"data\": {\n    \"Package_Name\": \"axiodb\",\n    \"AxioDB_Version\": \"3.31.105\",\n    \"Author_Name\": \"Ankan Saha\",\n    \"License\": \"MIT\",\n    \"AuthorDetails\": { /* author info */ }\n  }\n}"
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": [
+          "System & Health"
+        ],
+        "summary": "Liveness probe",
+        "description": "Liveness probe. Unauthenticated, and deliberately minimal - it is what the Docker healthcheck calls. Host details live on /api/system instead.",
+        "operationId": "getApiHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success - Server is operational",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "Server is healthy",
+                  "data": {
+                    "status": "ok",
+                    "timestamp": "2025-10-31T12:00:00.000Z",
+                    "uptimeSeconds": 86400
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/system": {
+      "get": {
+        "tags": [
+          "System & Health"
+        ],
+        "summary": "Operational detail for the Status page: process, memory, cache, instance and service ports",
+        "description": "Operational detail for the Status page: process, memory, cache, instance and service ports. Requires authentication and the dashboard:view permission, because it reports host characteristics that should not be exposed anonymously.",
+        "operationId": "getApiSystem",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success - Returns system information",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "System information",
+                  "data": {
+                    "process": {
+                      "uptimeSeconds": 86400,
+                      "startedAt": "2025-10-30T12:00:00.000Z",
+                      "pid": 4821,
+                      "nodeVersion": "v20.11.0",
+                      "platform": "linux",
+                      "arch": "x64",
+                      "cpuCount": 8
+                    },
+                    "memory": {
+                      "rss": 92.4,
+                      "heapUsed": 41.2,
+                      "heapTotal": 63.5,
+                      "external": 2.1,
+                      "unit": "MB"
+                    },
+                    "cache": {
+                      "used": 3.42,
+                      "max": 512,
+                      "unit": "MB"
+                    },
+                    "instance": {
+                      "version": "15.0.0",
+                      "rootName": "AxioDB",
+                      "path": "/app/AxioDB",
+                      "totalDatabases": 3
+                    },
+                    "services": [
+                      {
+                        "name": "Dashboard + HTTP API",
+                        "port": 27018,
+                        "running": true
+                      },
+                      {
+                        "name": "AxioDBCloud TCP",
+                        "port": 27019,
+                        "running": false
+                      },
+                      {
+                        "name": "MCP server",
+                        "port": 27020,
+                        "running": false,
+                        "note": "Docker image only"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Role lacks dashboard:view"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/routes": {
+      "get": {
+        "tags": [
+          "System & Health"
+        ],
+        "summary": "Returns a list of all available API routes and their descriptions",
+        "description": "Returns a list of all available API routes and their descriptions. Useful for API discovery.",
+        "operationId": "getApiRoutes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success - Returns available routes",
+            "content": {
+              "application/json": {
+                "example": "{\n  \"statusCode\": 200,\n  \"status\": \"success\",\n  \"message\": \"Available routes\",\n  \"data\": [ /* array of route objects */ ]\n}"
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/dashboard-stats": {
+      "get": {
+        "tags": [
+          "System & Health"
+        ],
+        "summary": "Retrieves dashboard statistics including total databases, collections, documents, and storage usage",
+        "description": "Retrieves dashboard statistics including total databases, collections, documents, and storage usage. Perfect for admin dashboards.",
+        "operationId": "getApiDashboardStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success - Returns dashboard statistics",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "Dashboard statistics",
+                  "data": {
+                    "totalDatabases": 5,
+                    "totalCollections": 12,
+                    "totalDocuments": 1245,
+                    "totalSize": "15.4 MB"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Authenticates with username/password and starts a server-side session, returning the session as an httpOnly cookie",
+        "description": "Authenticates with username/password and starts a server-side session, returning the session as an httpOnly cookie. On first login (including the seeded default admin), the response signals that a password change is required before any other action is allowed.",
+        "operationId": "postApiAuthLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "Account username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Account password"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password"
+                ]
+              },
+              "example": {
+                "username": "admin",
+                "password": "admin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Login successful, session cookie set",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Login successful",
+                  "data": {
+                    "username": "admin",
+                    "role": "Super Admin",
+                    "permissions": [
+                      "db:view",
+                      "db:create",
+                      "..."
+                    ],
+                    "mustChangePassword": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Missing username or password"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid username or password"
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Revokes the current session (server-side) and clears the session cookie.",
+        "description": "Revokes the current session (server-side) and clears the session cookie.",
+        "operationId": "postApiAuthLogout",
+        "parameters": [],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Session revoked",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Logged out successfully"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - No valid session"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Returns the currently authenticated user's username, role, resolved permissions, and whether a password change is still required",
+        "description": "Returns the currently authenticated user's username, role, resolved permissions, and whether a password change is still required. This is the endpoint the GUI calls on load to restore session state.",
+        "operationId": "getApiAuthMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success - Returns the authenticated user",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "OK",
+                  "data": {
+                    "username": "admin",
+                    "role": "Super Admin",
+                    "mustChangePassword": false,
+                    "permissions": [
+                      "db:view",
+                      "user:create",
+                      "..."
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/change-password": {
+      "patch": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Changes the caller's own password",
+        "description": "Changes the caller's own password. Requires the current password. Rotates the session, so any previously issued cookie for this account becomes invalid.",
+        "operationId": "patchApiAuthChangePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "description": "The account's current password"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "description": "The new password (min 4 characters)"
+                  }
+                },
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ]
+              },
+              "example": {
+                "currentPassword": "admin",
+                "newPassword": "a-much-stronger-password"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Password changed, session rotated",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Password changed successfully",
+                  "data": {
+                    "username": "admin",
+                    "role": "Super Admin",
+                    "permissions": [
+                      "..."
+                    ],
+                    "mustChangePassword": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Wrong current password or weak new password"
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/users": {
+      "get": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Lists all users (Super Admin only - requires the `user:view` permission)",
+        "description": "Lists all users (Super Admin only - requires the `user:view` permission). Password hashes are never included in the response.",
+        "operationId": "getApiAuthUsers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success - Returns the user list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "List of Users",
+                  "data": [
+                    {
+                      "username": "admin",
+                      "role": "Super Admin",
+                      "mustChangePassword": false,
+                      "isActive": true,
+                      "createdAt": "2026-01-01T00:00:00.000Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing user:view permission"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Creates a new user with a temporary password and an assigned role (Super Admin only - requires `user:create`)",
+        "description": "Creates a new user with a temporary password and an assigned role (Super Admin only - requires `user:create`). The new user is forced to change their password on first login.",
+        "operationId": "postApiAuthUsers",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "New account's username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Temporary password"
+                  },
+                  "role": {
+                    "type": "string",
+                    "description": "One of the existing role names"
+                  }
+                },
+                "required": [
+                  "username",
+                  "password",
+                  "role"
+                ]
+              },
+              "example": {
+                "username": "jane",
+                "password": "TempPass123",
+                "role": "Admin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created - User created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 201,
+                  "message": "User created successfully",
+                  "data": {
+                    "username": "jane",
+                    "role": "Admin"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid username/password or unknown role"
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing user:create permission"
+          },
+          "409": {
+            "description": "Conflict - Username already exists"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/users/{username}/role": {
+      "patch": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Changes a user's assigned role (Super Admin only - requires `user:update-role`)",
+        "description": "Changes a user's assigned role (Super Admin only - requires `user:update-role`). Revokes that user's existing sessions immediately.",
+        "operationId": "patchApiAuthUsersUsernameRole",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "description": "New role name to assign"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              },
+              "example": {
+                "role": "View"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Role updated, target user's sessions revoked",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Role updated successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Unknown role, user not found, or would remove the last Super Admin"
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing user:update-role permission"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "username",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/api/auth/users/{username}/reset-password": {
+      "patch": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Admin-forced password reset (Super Admin only - requires `user:reset-password`)",
+        "description": "Admin-forced password reset (Super Admin only - requires `user:reset-password`). Sets a new password and flags the account to require a password change on next login. Revokes that user's existing sessions immediately.",
+        "operationId": "patchApiAuthUsersUsernameResetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newPassword": {
+                    "type": "string",
+                    "description": "New temporary password"
+                  }
+                },
+                "required": [
+                  "newPassword"
+                ]
+              },
+              "example": {
+                "newPassword": "NewTempPass1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Password reset, target user's sessions revoked",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Password reset successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - User not found or weak password"
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing user:reset-password permission"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "username",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/api/auth/users/{username}": {
+      "delete": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Deletes a user (Super Admin only - requires `user:delete`)",
+        "description": "Deletes a user (Super Admin only - requires `user:delete`). Rejected if the target is the last remaining Super Admin account.",
+        "operationId": "deleteApiAuthUsersUsername",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success - User deleted",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "User deleted successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - User not found or is the last remaining Super Admin"
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing user:delete permission"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "username",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/api/auth/roles": {
+      "get": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Lists all roles, including custom roles created from the permission catalogue (Super Admin only - requires `role:view`).",
+        "description": "Lists all roles, including custom roles created from the permission catalogue (Super Admin only - requires `role:view`).",
+        "operationId": "getApiAuthRoles",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success - Returns the role list",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "List of Roles",
+                  "data": [
+                    {
+                      "roleName": "Super Admin",
+                      "permissions": [
+                        "..."
+                      ],
+                      "isSystemRole": true,
+                      "createdAt": "2026-01-01T00:00:00.000Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing role:view permission"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Creates a new role from the predefined permission catalogue (Super Admin only - requires `role:create`)",
+        "description": "Creates a new role from the predefined permission catalogue (Super Admin only - requires `role:create`). Every permission key must exist in the catalogue returned by GET /api/auth/roles/permissions.",
+        "operationId": "postApiAuthRoles",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "roleName": {
+                    "type": "string",
+                    "description": "Unique name for the new role"
+                  },
+                  "permissions": {
+                    "type": "array",
+                    "items": {},
+                    "description": "Array of permission keys from the catalogue"
+                  }
+                },
+                "required": [
+                  "roleName",
+                  "permissions"
+                ]
+              },
+              "example": {
+                "roleName": "Auditor",
+                "permissions": [
+                  "document:view",
+                  "document:query",
+                  "dashboard:view"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created - Role created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 201,
+                  "message": "Role created successfully",
+                  "data": {
+                    "roleName": "Auditor",
+                    "permissions": [
+                      "document:view",
+                      "document:query",
+                      "dashboard:view"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Unknown permission key(s)"
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing role:create permission"
+          },
+          "409": {
+            "description": "Conflict - Role name already exists"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/roles/permissions": {
+      "get": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Returns the full predefined permission catalogue, grouped by category - used to render the permission picker when creating a custom role.",
+        "description": "Returns the full predefined permission catalogue, grouped by category - used to render the permission picker when creating a custom role.",
+        "operationId": "getApiAuthRolesPermissions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success - Returns the permission catalogue",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Permission catalogue",
+                  "data": [
+                    {
+                      "key": "db:view",
+                      "group": "Database",
+                      "description": "View the list of databases and dashboard database counts"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing role:view permission"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/db/databases": {
+      "get": {
+        "tags": [
+          "Database Management"
+        ],
+        "summary": "Retrieves a list of all databases in the AxioDB instance with their metadata, including size, path, and creation date.",
+        "description": "Retrieves a list of all databases in the AxioDB instance with their metadata, including size, path, and creation date.",
+        "operationId": "getApiDbDatabases",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success - Returns list of databases",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "List of Databases",
+                  "data": {
+                    "CurrentPath": "/path/to/AxioDB",
+                    "RootName": "AxioDB",
+                    "TotalSize": 52428800,
+                    "TotalDatabases": "5 Databases",
+                    "Databases": [
+                      "UserDB",
+                      "ProductsDB",
+                      "OrdersDB"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/db/create-database": {
+      "post": {
+        "tags": [
+          "Database Management"
+        ],
+        "summary": "Creates a new database with the specified name",
+        "description": "Creates a new database with the specified name. Database names must be unique and follow naming conventions (alphanumeric and underscores).",
+        "operationId": "postApiDbCreateDatabase",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the database to create"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              },
+              "example": {
+                "name": "MyNewDatabase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created - Database created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 201,
+                  "status": "success",
+                  "message": "Database Created",
+                  "data": {
+                    "Database_Name": "MyNewDatabase"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid database name or name is missing"
+          },
+          "409": {
+            "description": "Conflict - Database already exists"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to create database"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/db/delete-database": {
+      "delete": {
+        "tags": [
+          "Database Management"
+        ],
+        "summary": "Permanently deletes a database and all its collections",
+        "description": "Permanently deletes a database and all its collections. This operation cannot be undone. Use with extreme caution in production.",
+        "operationId": "deleteApiDbDeleteDatabase",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database to delete",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Database deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "Database Deleted",
+                  "data": {
+                    "Database_Name": "MyDatabase"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Database does not exist"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to delete database"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/db/export-database/": {
+      "get": {
+        "tags": [
+          "Database Management"
+        ],
+        "summary": "Exports a database as a compressed .tar.gz file for backup or migration",
+        "description": "Exports a database as a compressed .tar.gz file for backup or migration. The file is streamed to the client as a downloadable attachment.",
+        "operationId": "getApiDbExportDatabase",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database to export",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Database exported as tar.gz file",
+            "content": {
+              "application/json": {
+                "example": "// Binary file stream (database.tar.gz)\nContent-Type: application/gzip\nContent-Disposition: attachment; filename=\"MyDatabase.tar.gz\""
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Database name is required"
+          },
+          "404": {
+            "description": "Not Found - Database does not exist"
+          },
+          "500": {
+            "description": "Internal Server Error - Export failed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/db/import-database/": {
+      "post": {
+        "tags": [
+          "Database Management"
+        ],
+        "summary": "Imports a database from a .tar.gz produced by Export",
+        "description": "Imports a database from a .tar.gz produced by Export. The upload is staged outside the data directory and validated as a genuine AxioDB export before anything is promoted into place, so a rejected archive leaves nothing behind. The database name is read from the archive's contents, not its filename. Concurrent imports of different databases run in parallel; two imports of the same database conflict and the second is refused.",
+        "operationId": "postApiDbImportDatabase",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "description": "The .tar.gz file containing the database to import"
+                  }
+                },
+                "required": [
+                  "file"
+                ]
+              },
+              "example": "// Multipart form data with file upload\nContent-Type: multipart/form-data\n\nfile: [database.tar.gz file]"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Database imported",
+            "content": {
+              "application/json": {
+                "example": {
+                  "message": "Database imported successfully",
+                  "database": "ImportedDatabase",
+                  "file": "ImportedDatabase.tar.gz"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - No file, unreadable archive, not an AxioDB export, or an archive that expands past the 100:1 ratio limit"
+          },
+          "403": {
+            "description": "Forbidden - The archive holds a reserved system database"
+          },
+          "409": {
+            "description": "Conflict - That database already exists, or is being imported by someone else right now"
+          },
+          "413": {
+            "description": "Payload Too Large - The upload was truncated before it finished"
+          },
+          "500": {
+            "description": "Internal Server Error - Import failed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/collection/all/": {
+      "get": {
+        "tags": [
+          "Collection Management"
+        ],
+        "summary": "Retrieves all collections in a specified database with their metadata, including document counts, size, and paths.",
+        "description": "Retrieves all collections in a specified database with their metadata, including document counts, size, and paths.",
+        "operationId": "getApiCollectionAll",
+        "parameters": [
+          {
+            "name": "databaseName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database to query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Returns list of collections",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "Collections retrieved successfully",
+                  "data": {
+                    "DatabaseName": "UserDB",
+                    "TotalCollections": 3,
+                    "AllCollectionsPaths": [
+                      "/path/to/users",
+                      "/path/to/sessions"
+                    ],
+                    "CollectionSizeMap": [
+                      {
+                        "folderPath": "/path/to/users",
+                        "fileCount": 150
+                      },
+                      {
+                        "folderPath": "/path/to/sessions",
+                        "fileCount": 45
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Database name is required"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to retrieve collections"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/collection/create-collection": {
+      "post": {
+        "tags": [
+          "Collection Management"
+        ],
+        "summary": "Creates a new collection within a specified database.",
+        "description": "Creates a new collection within a specified database.",
+        "operationId": "postApiCollectionCreateCollection",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "dbName": {
+                    "type": "string",
+                    "description": "The name of the database"
+                  },
+                  "collectionName": {
+                    "type": "string",
+                    "description": "The name of the collection to create"
+                  }
+                },
+                "required": [
+                  "dbName",
+                  "collectionName"
+                ]
+              },
+              "example": {
+                "dbName": "UserDB",
+                "collectionName": "users"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created - Collection created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 201,
+                  "status": "success",
+                  "message": "Collection created successfully",
+                  "data": {
+                    "dbName": "UserDB",
+                    "collectionName": "users"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid database or collection name"
+          },
+          "409": {
+            "description": "Conflict - Collection already exists"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to create collection"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/collection/delete-collection/": {
+      "delete": {
+        "tags": [
+          "Collection Management"
+        ],
+        "summary": "Permanently deletes a collection and all its documents",
+        "description": "Permanently deletes a collection and all its documents. This operation is irreversible.",
+        "operationId": "deleteApiCollectionDeleteCollection",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection to delete",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Collection deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "Collection deleted successfully",
+                  "data": {
+                    "dbName": "UserDB",
+                    "collectionName": "old_users"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid parameters"
+          },
+          "404": {
+            "description": "Not Found - Collection does not exist"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to delete collection"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/index/list": {
+      "get": {
+        "tags": [
+          "Index Management"
+        ],
+        "summary": "Lists every index currently registered on a collection, including the automatic documentId index.",
+        "description": "Lists every index currently registered on a collection, including the automatic documentId index.",
+        "operationId": "getApiIndexList",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Returns list of index metadata entries",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "Indexes retrieved successfully",
+                  "data": [
+                    {
+                      "indexFieldName": "documentId",
+                      "fileName": "documentId.axiodb",
+                      "path": "/path/to/indexes/documentId.axiodb"
+                    },
+                    {
+                      "indexFieldName": "email",
+                      "fileName": "email.axiodb",
+                      "path": "/path/to/indexes/email.axiodb"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid database or collection name"
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions, or the reserved config database"
+          },
+          "404": {
+            "description": "Not Found - Collection does not exist"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to retrieve indexes"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/index/create": {
+      "post": {
+        "tags": [
+          "Index Management"
+        ],
+        "summary": "Creates one or more indexes on a collection, one per field name",
+        "description": "Creates one or more indexes on a collection, one per field name. Safe to call again for a field that's already indexed - it's a no-op for that field.",
+        "operationId": "postApiIndexCreate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "dbName": {
+                    "type": "string",
+                    "description": "The name of the database"
+                  },
+                  "collectionName": {
+                    "type": "string",
+                    "description": "The name of the collection"
+                  },
+                  "fieldNames": {
+                    "type": "array",
+                    "items": {},
+                    "description": "One or more field names to index (non-empty array)"
+                  }
+                },
+                "required": [
+                  "dbName",
+                  "collectionName",
+                  "fieldNames"
+                ]
+              },
+              "example": {
+                "dbName": "UserDB",
+                "collectionName": "users",
+                "fieldNames": [
+                  "email",
+                  "age"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created - Index(es) created (or already existed)",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 201,
+                  "status": "success",
+                  "message": "Indexes: email, age created Indexes: ",
+                  "data": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - fieldNames must be a non-empty array"
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions, or the reserved config database"
+          },
+          "404": {
+            "description": "Not Found - Collection does not exist"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to create index"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/index/delete": {
+      "delete": {
+        "tags": [
+          "Index Management"
+        ],
+        "summary": "Removes an index from a collection by field name.",
+        "description": "Removes an index from a collection by field name.",
+        "operationId": "deleteApiIndexDelete",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "indexName",
+            "in": "query",
+            "required": true,
+            "description": "The indexed field name to drop",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Index deleted successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "Index deleted successfully",
+                  "data": null
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid parameters"
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions, or the reserved config database"
+          },
+          "404": {
+            "description": "Not Found - Collection or index does not exist"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to delete index"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/all/": {
+      "get": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Retrieves all documents from a collection with pagination support",
+        "description": "Retrieves all documents from a collection with pagination support. Returns 10 documents per page, sorted by most recent updates first.",
+        "operationId": "getApiOperationAll",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "description": "Page number (starts from 1)",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Returns documents",
+            "content": {
+              "application/json": {
+                "example": "{\n  \"statusCode\": 200,\n  \"status\": \"success\",\n  \"message\": \"Documents retrieved successfully\",\n  \"data\": [\n    {\n      \"documentId\": \"abc123\",\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\",\n      \"updatedAt\": \"2025-10-31T12:00:00.000Z\"\n    }\n    // ... more documents\n  ]\n}"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid parameters"
+          },
+          "404": {
+            "description": "Not Found - No documents found"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/all/by-query/": {
+      "post": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Retrieves documents matching a MongoDB-style query with pagination",
+        "description": "Retrieves documents matching a MongoDB-style query with pagination. Supports operators like $gt, $gte, $lt, $lte, $ne, $in, $regex.",
+        "operationId": "postApiOperationAllByQuery",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "description": "Page number (starts from 1)",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "object",
+                    "description": "MongoDB-style query object"
+                  }
+                },
+                "required": [
+                  "query"
+                ]
+              },
+              "example": "{\n  \"query\": {\n    \"age\": { \"$gte\": 18 },\n    \"status\": \"active\"\n  }\n}\n\n// Complex query with regex\n{\n  \"query\": {\n    \"email\": { \"$regex\": \"@gmail.com$\", \"$options\": \"i\" },\n    \"age\": { \"$gt\": 25, \"$lt\": 50 }\n  }\n}"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Returns matching documents",
+            "content": {
+              "application/json": {
+                "example": "{\n  \"statusCode\": 200,\n  \"status\": \"success\",\n  \"message\": \"Documents retrieved successfully\",\n  \"data\": [ /* array of matching documents */ ]\n}"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid query or parameters"
+          },
+          "404": {
+            "description": "Not Found - No documents match the query"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/all/by-id/": {
+      "get": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Retrieves a specific document by its unique documentId",
+        "description": "Retrieves a specific document by its unique documentId. Fastest way to fetch a single document.",
+        "operationId": "getApiOperationAllById",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentId",
+            "in": "query",
+            "required": true,
+            "description": "The unique document ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Returns the document",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "Document retrieved successfully",
+                  "data": {
+                    "documentId": "abc123",
+                    "name": "John Doe",
+                    "email": "john@example.com",
+                    "age": 30,
+                    "updatedAt": "2025-10-31T12:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid parameters"
+          },
+          "404": {
+            "description": "Not Found - Document does not exist"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/create/": {
+      "post": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Creates a new document in the collection",
+        "description": "Creates a new document in the collection. AxioDB automatically adds a unique documentId and updatedAt timestamp.",
+        "operationId": "postApiOperationCreate",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "description": "The document data to insert"
+                  }
+                },
+                "required": [
+                  "data"
+                ]
+              },
+              "example": {
+                "data": {
+                  "name": "Jane Smith",
+                  "email": "jane@example.com",
+                  "age": 28,
+                  "active": true
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created - Document created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 201,
+                  "status": "success",
+                  "message": "Document created successfully",
+                  "data": {
+                    "documentId": "xyz789",
+                    "name": "Jane Smith",
+                    "email": "jane@example.com",
+                    "age": 28,
+                    "active": true,
+                    "updatedAt": "2025-10-31T12:00:00.000Z"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid data or parameters"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to create document"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/create-many/": {
+      "post": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Creates multiple documents in a single operation",
+        "description": "Creates multiple documents in a single operation. Efficient for bulk inserts.",
+        "operationId": "postApiOperationCreateMany",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "array",
+                    "items": {},
+                    "description": "Array of documents to insert"
+                  }
+                },
+                "required": [
+                  "data"
+                ]
+              },
+              "example": {
+                "data": [
+                  {
+                    "name": "User 1",
+                    "email": "user1@example.com"
+                  },
+                  {
+                    "name": "User 2",
+                    "email": "user2@example.com"
+                  },
+                  {
+                    "name": "User 3",
+                    "email": "user3@example.com"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created - Documents created successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 201,
+                  "status": "success",
+                  "message": "Documents created successfully",
+                  "data": {
+                    "total": 3,
+                    "documentIds": [
+                      "id1",
+                      "id2",
+                      "id3"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid data or parameters"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to create documents"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/update/by-id/": {
+      "put": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Updates a specific document by its documentId",
+        "description": "Updates a specific document by its documentId. Only provided fields are updated; others remain unchanged.",
+        "operationId": "putApiOperationUpdateById",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentId",
+            "in": "query",
+            "required": true,
+            "description": "The unique document ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "object",
+                    "description": "Fields to update"
+                  }
+                },
+                "required": [
+                  "data"
+                ]
+              },
+              "example": {
+                "data": {
+                  "age": 31,
+                  "status": "premium"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Document updated successfully",
+            "content": {
+              "application/json": {
+                "example": "{\n  \"statusCode\": 200,\n  \"status\": \"success\",\n  \"message\": \"Document updated successfully\",\n  \"data\": {\n    \"newData\": { /* updated document */ },\n    \"previousData\": { /* old document */ },\n    \"documentId\": \"abc123\"\n  }\n}"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid data or parameters"
+          },
+          "404": {
+            "description": "Not Found - Document does not exist"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to update document"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/update/by-query/": {
+      "put": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Updates all documents matching a query",
+        "description": "Updates all documents matching a query. Useful for bulk status changes or field updates.",
+        "operationId": "putApiOperationUpdateByQuery",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "query": {
+                    "type": "object",
+                    "description": "Query to match documents"
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Fields to update"
+                  }
+                },
+                "required": [
+                  "query",
+                  "data"
+                ]
+              },
+              "example": {
+                "query": {
+                  "status": "pending"
+                },
+                "data": {
+                  "status": "active"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Documents updated successfully",
+            "content": {
+              "application/json": {
+                "example": "{\n  \"statusCode\": 200,\n  \"status\": \"success\",\n  \"message\": \"Documents updated successfully\",\n  \"data\": {\n    \"total\": 15,\n    \"documentIds\": [\"id1\", \"id2\", ...]\n  }\n}"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid query or data"
+          },
+          "404": {
+            "description": "Not Found - No documents match the query"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to update documents"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/delete/by-id/": {
+      "delete": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Deletes a specific document by its documentId",
+        "description": "Deletes a specific document by its documentId. This operation is irreversible.",
+        "operationId": "deleteApiOperationDeleteById",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "documentId",
+            "in": "query",
+            "required": true,
+            "description": "The unique document ID to delete",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Document deleted successfully",
+            "content": {
+              "application/json": {
+                "example": "{\n  \"statusCode\": 200,\n  \"status\": \"success\",\n  \"message\": \"Document deleted successfully\",\n  \"data\": {\n    \"deleteData\": { /* deleted document */ }\n  }\n}"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid parameters"
+          },
+          "404": {
+            "description": "Not Found - Document does not exist"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to delete document"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/delete/by-query/": {
+      "delete": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Deletes all documents matching a query",
+        "description": "Deletes all documents matching a query. Use with caution as this operation cannot be undone.",
+        "operationId": "deleteApiOperationDeleteByQuery",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Documents deleted successfully",
+            "content": {
+              "application/json": {
+                "example": "{\n  \"statusCode\": 200,\n  \"status\": \"success\",\n  \"message\": \"Documents deleted successfully\",\n  \"data\": {\n    \"deleteData\": [ /* array of deleted documents */ ]\n  }\n}"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid query"
+          },
+          "404": {
+            "description": "Not Found - No documents match the query"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to delete documents"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/aggregate/": {
+      "post": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Runs MongoDB-style aggregation pipeline for complex data analysis",
+        "description": "Runs MongoDB-style aggregation pipeline for complex data analysis. Supports $match, $group, $sort, $project, $limit, $skip, $unwind, $addFields.",
+        "operationId": "postApiOperationAggregate",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pipeline": {
+                    "type": "array",
+                    "items": {},
+                    "description": "Aggregation pipeline stages"
+                  }
+                },
+                "required": [
+                  "pipeline"
+                ]
+              },
+              "example": {
+                "pipeline": [
+                  {
+                    "$match": {
+                      "status": "active"
+                    }
+                  },
+                  {
+                    "$group": {
+                      "_id": "$city",
+                      "count": {
+                        "$sum": 1
+                      },
+                      "avgAge": {
+                        "$avg": "$age"
+                      }
+                    }
+                  },
+                  {
+                    "$sort": {
+                      "count": -1
+                    }
+                  },
+                  {
+                    "$limit": 10
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Returns aggregation results",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "Aggregation completed",
+                  "data": [
+                    {
+                      "_id": "New York",
+                      "count": 150,
+                      "avgAge": 32.5
+                    },
+                    {
+                      "_id": "Los Angeles",
+                      "count": 120,
+                      "avgAge": 29.8
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid pipeline"
+          },
+          "500": {
+            "description": "Internal Server Error - Aggregation failed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "axiodb_session",
+        "description": "httpOnly session cookie issued by POST /api/auth/login. RBAC-enforced per endpoint."
+      }
+    }
+  }
+}

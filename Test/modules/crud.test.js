@@ -5,6 +5,7 @@ const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 const fixtures = require('../helpers/fixtures');
 const fs = require('fs');
+const path = require('path');
 
 const { AxioDB } = require('../../lib/config/DB.js');
 
@@ -671,6 +672,45 @@ class CRUDTests extends TestRunner {
           !result.data.some((entry) => entry.indexFieldName === 'city'),
           'Dropped index should not appear in the list'
         );
+      });
+    });
+
+    // Document Counting - the collection folder also holds indexes/ and
+    // .transactions/, none of which are documents.
+    await this.describe('Document Counting', async () => {
+      const collectionPath = path.join(
+        this.testDir,
+        'CRUDTestDB',
+        'TestDatabase',
+        'CountCollection'
+      );
+      let countCollection = null;
+
+      await this.test('totalDocuments counts only documents, not index files', async () => {
+        countCollection = await this.testDB.createCollection('CountCollection');
+        await countCollection.newIndex('name', 'age');
+        await countCollection.insertMany([
+          { name: 'A', age: 1 },
+          { name: 'B', age: 2 },
+          { name: 'C', age: 3 }
+        ]);
+
+        const result = await countCollection.totalDocuments();
+        assert.isSuccess(result);
+        assert.equal(result.data.total, 3, 'totalDocuments should report 3');
+      });
+
+      await this.test('Dashboard collection list counts match the real document count', async () => {
+        // Same helper the GUI's /api/collection/all endpoint uses - it used to
+        // count every file recursively and reported 9 for these 3 documents.
+        const countDocumentsInFolder =
+          require('../../lib/server/helper/documentCounterInFolder.helper.js').default;
+
+        assert.ok(
+          fs.existsSync(path.join(collectionPath, 'indexes')),
+          'Collection folder should contain an indexes/ subfolder for this test to be meaningful'
+        );
+        assert.equal(await countDocumentsInFolder(collectionPath), 3);
       });
     });
   }

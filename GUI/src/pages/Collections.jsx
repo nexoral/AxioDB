@@ -6,6 +6,9 @@ import CreateCollectionModal from '../components/collection/CreateCollectionModa
 import DeleteCollectionModal from '../components/collection/DeleteCollectionModal'
 import { BASE_API_URL } from '../config/key'
 import { DBInfoStore } from '../store/store'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import { Badge, EmptyState, Skeleton } from '../components/ui/Feedback'
 
 const Collections = () => {
   const [searchParams] = useSearchParams()
@@ -108,117 +111,115 @@ const Collections = () => {
   }
 
   return (
-    <div className='container mx-auto px-4 py-6'>
-      <div className='flex justify-between items-center mb-6'>
-        <div>
-          <div className='flex items-center mb-2'>
-            <button
-              onClick={handleBackToDatabases}
-              className='text-blue-600 hover:text-blue-800 mr-3'
-            >
-              ← Back to Databases
-            </button>
-          </div>
-          <h1 className='text-2xl font-bold text-gray-900'>Collections</h1>
-          <p className='text-gray-600'>
-            Collections in database:{' '}
-            <span className='font-medium'>{databaseName}</span>
-          </p>
-        </div>
+    <div className='mx-auto w-full max-w-[120rem] px-4 py-8 sm:px-6 lg:px-8'>
+      <header className='mb-8'>
         <button
-          onClick={() => setShowCreateModal(true)}
-          className='bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center transition-colors'
+          onClick={handleBackToDatabases}
+          className='mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-ink-500 transition-colors hover:text-brand-700'
         >
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            className='h-5 w-5 mr-2'
-            viewBox='0 0 20 20'
-            fill='currentColor'
-          >
-            <path
-              fillRule='evenodd'
-              d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z'
-              clipRule='evenodd'
-            />
+          <svg className='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
+            <path strokeLinecap='round' strokeLinejoin='round' d='M15 19l-7-7 7-7' />
           </svg>
-          Create Collection
+          Databases
         </button>
-      </div>
-
-      <div className='bg-white rounded-lg shadow-md overflow-hidden'>
-        <div className='border-b border-gray-200 bg-gray-50 px-6 py-4'>
-          <h3 className='text-lg font-medium text-gray-900'>
-            Collections in {databaseName}
-          </h3>
-          <p className='text-sm text-gray-500'>
-            Total:{' '}
-            {loading
-              ? 'Loading...'
-              : collections.length > 0
-                ? `${collections.length} Collections`
-                : '0 Collections'}
-          </p>
+        <div className='flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
+          <div>
+            <h1 className='text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl'>Collections</h1>
+            <p className='mt-1 text-sm text-ink-500'>
+              Inside <span className='font-medium text-ink-700'>{databaseName}</span>
+            </p>
+          </div>
+          <Button
+            size='lg'
+            onClick={() => setShowCreateModal(true)}
+            icon={
+              <svg className='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
+                <path strokeLinecap='round' strokeLinejoin='round' d='M12 4v16m8-8H4' />
+              </svg>
+            }
+          >
+            Create Collection
+          </Button>
         </div>
+      </header>
 
-        {loading ? (
-          <div className='p-6'>
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className='animate-pulse flex items-center justify-between py-4 border-b border-gray-100'
-              >
-                <div>
-                  <div className='h-6 bg-gray-200 rounded w-48 mb-2' />
-                  <div className='h-4 bg-gray-100 rounded w-32' />
+      {loading
+        ? (
+          <div className='grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3'>
+            {[0, 1, 2].map((i) => (
+              <Card key={i} className='p-5'>
+                <div className='flex items-start gap-3'>
+                  <Skeleton className='h-12 w-12 rounded-xl' />
+                  <div className='flex-1 space-y-2'>
+                    <Skeleton className='h-5 w-2/3' />
+                    <Skeleton className='h-3 w-1/3' />
+                  </div>
                 </div>
-                <div className='h-8 bg-gray-200 rounded w-24' />
-              </div>
+                <Skeleton className='mt-5 h-9 w-full' />
+              </Card>
             ))}
           </div>
-        ) : (
-          <ul className='divide-y divide-gray-200'>
-            {collections.length > 0 ? (
-              collections.map((collection) => (
-                <li
-                  key={collection.name}
-                  className='px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors'
-                >
-                  <div>
-                    <h4 className='text-lg font-medium text-gray-900 flex items-center'>
-                      {collection.name}
-                    </h4>
-                    <p className='text-sm text-gray-500'>
-                      {collection.documentCount} documents
-                    </p>
+          )
+        : collections.length === 0
+          ? (
+            <Card>
+              <EmptyState
+                icon={
+                  <svg className='h-6 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={1.8}>
+                    <path strokeLinecap='round' strokeLinejoin='round' d='M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z' />
+                  </svg>
+                }
+                title='No collections yet'
+                description={`A collection holds documents, like a table holds rows. Create the first one in ${databaseName}.`}
+                action={<Button onClick={() => setShowCreateModal(true)}>Create Collection</Button>}
+              />
+            </Card>
+            )
+          : (
+            <div className='stagger grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3'>
+              {collections.map((collection) => (
+                <Card key={collection.name} className='flex flex-col p-5'>
+                  <div className='flex items-start gap-3'>
+                    <span className='flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600'>
+                      <svg className='h-6 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={1.8}>
+                        <path strokeLinecap='round' strokeLinejoin='round' d='M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z' />
+                      </svg>
+                    </span>
+                    <div className='min-w-0 flex-1'>
+                      <h3 className='truncate text-base font-semibold text-ink-900'>
+                        {collection.name}
+                      </h3>
+                      <Badge tone='neutral' className='mt-1.5'>
+                        {collection.documentCount.toLocaleString()}{' '}
+                        {collection.documentCount === 1 ? 'document' : 'documents'}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className='flex space-x-2'>
-                    <button
+
+                  <div className='mt-5 flex gap-2 border-t border-ink-100 pt-4'>
+                    <Button
+                      size='sm'
+                      className='flex-1'
                       onClick={() =>
                         navigate(
-                          `/collections/documents?database=${databaseName}&collection=${collection.name}`
+                          `/collections/documents?database=${encodeURIComponent(databaseName)}&collection=${encodeURIComponent(collection.name)}`
                         )}
-                      className='text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-400 transition-colors'
                     >
-                      View Documents
-                    </button>
-                    <button
+                      Documents
+                    </Button>
+                    <Button
+                      size='sm'
+                      variant='dangerGhost'
                       onClick={() => handleDeleteClick(collection.name)}
-                      className='text-red-600 hover:text-red-800 px-3 py-1 rounded border border-red-200 hover:border-red-400 transition-colors'
+                      aria-label={`Delete collection ${collection.name}`}
                     >
                       Delete
-                    </button>
+                    </Button>
                   </div>
-                </li>
-              ))
-            ) : (
-              <li className='px-6 py-8 text-center text-gray-500'>
-                No collections found in this database. Click "Create Collection"
-                to add one.
-              </li>
+                </Card>
+              ))}
+            </div>
             )}
-          </ul>
-        )}
-      </div>
 
       {/* Create Collection Modal */}
       {showCreateModal && (

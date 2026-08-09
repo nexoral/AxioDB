@@ -93,7 +93,11 @@ module.exports = function registerUserTools(server) {
       withConfirmation(
         server,
         ({ username }) => `Delete the user "${username}"? The account and its sessions are permanently removed.`,
-        ({ username }) => new UserManagementController().deleteUser({ params: { username } }, NOOP_REPLY),
+        ({ username }, session) =>
+          new UserManagementController().deleteUser(
+            { params: { username }, authUser: { username: session.username, role: session.role } },
+            NOOP_REPLY,
+          ),
       ),
     ),
   );

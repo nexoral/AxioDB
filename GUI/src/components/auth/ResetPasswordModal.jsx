@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import authApi from '../../api/authApi'
+import Modal from '../ui/Modal'
+import Button from '../ui/Button'
+import { Input } from '../ui/Field'
+import { Alert } from '../ui/Feedback'
 
 const MIN_PASSWORD_LENGTH = 4
 
@@ -36,59 +40,50 @@ const ResetPasswordModal = ({ isOpen, username, onClose, onPasswordReset }) => {
     }
   }
 
-  if (!isOpen) return null
+  const KeyIcon = (
+    <svg className='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
+      <path strokeLinecap='round' strokeLinejoin='round' d='M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z' />
+    </svg>
+  )
 
   return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn'>
-      <div className='bg-white rounded-lg max-w-md w-full p-6'>
-        <h3 className='text-xl font-bold text-gray-900 mb-4'>Reset Password for {username}</h3>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title='Reset password'
+      subtitle={username}
+      icon={KeyIcon}
+      size='md'
+      footer={
+        <>
+          <Button variant='secondary' onClick={handleClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} loading={isSubmitting} disabled={!newPassword}>
+            Reset password
+          </Button>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit}>
+        <Input
+          label='New password'
+          type='password'
+          value={newPassword}
+          onChange={(event) => setNewPassword(event.target.value)}
+          autoComplete='new-password'
+          autoFocus
+          error={error || undefined}
+          hint={`At least ${MIN_PASSWORD_LENGTH} characters.`}
+        />
+        <button type='submit' className='hidden' aria-hidden='true' tabIndex={-1} />
+      </form>
 
-        <form onSubmit={handleSubmit}>
-          <div className='mb-4'>
-            <label
-              htmlFor='resetNewPassword'
-              className='block text-sm font-medium text-gray-700 mb-1'
-            >
-              New Password
-            </label>
-            <input
-              type='password'
-              id='resetNewPassword'
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-              placeholder='Enter a new temporary password'
-              disabled={isSubmitting}
-            />
-            <p className='mt-1 text-xs text-gray-500'>
-              The user will be required to change this on their next login.
-            </p>
-          </div>
-
-          {error && <p className='mt-2 text-sm text-red-600'>{error}</p>}
-
-          <div className='flex justify-end space-x-4 mt-6'>
-            <button
-              type='button'
-              onClick={handleClose}
-              className='px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors'
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type='submit'
-              className={`px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors ${
-                isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
-              }`}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Resetting...' : 'Reset Password'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <Alert tone='warn' className='mt-4'>
+        Every active session for <strong>{username}</strong> is revoked immediately, and they
+        must change this password at next sign-in.
+      </Alert>
+    </Modal>
   )
 }
 

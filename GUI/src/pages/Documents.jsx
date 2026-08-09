@@ -7,7 +7,8 @@ import { DBInfoStore } from '../store/store'
 import InsertDocumentModal from '../components/document/InsertDocumentModal'
 import UpdateDocumentModal from '../components/document/UpdateDocumentModal'
 import DeleteDocumentModal from '../components/document/DeleteDocumentModal'
-import AggregateModal from '../components/document/AggregateModal'
+import QueryModal from '../components/document/QueryModal'
+import ObjectView from '../components/query/ObjectView'
 
 const Documents = () => {
   const [searchParams] = useSearchParams()
@@ -24,7 +25,7 @@ const Documents = () => {
   const [showInsertModal, setShowInsertModal] = useState(false)
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [showAggregateModal, setShowAggregateModal] = useState(false)
+  const [showQueryModal, setShowQueryModal] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState(null)
 
   // Add new state for aggregation
@@ -37,7 +38,6 @@ const Documents = () => {
   const [isSearchMode, setIsSearchMode] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [documentIdInput, setDocumentIdInput] = useState('')
-  const searchTimeoutRef = useRef(null)
   const documentIdTimeoutRef = useRef(null)
 
   // Fetch documents function - regular API
@@ -132,9 +132,6 @@ const Documents = () => {
     setDocumentIdInput('')
 
     // Clear any pending timeouts
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
     if (documentIdTimeoutRef.current) {
       clearTimeout(documentIdTimeoutRef.current)
     }
@@ -180,9 +177,6 @@ const Documents = () => {
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
-      }
       if (documentIdTimeoutRef.current) {
         clearTimeout(documentIdTimeoutRef.current)
       }
@@ -281,19 +275,16 @@ const Documents = () => {
     }
   }
 
-  // Debounced search functionality
-  const handleSearchInputChange = (value) => {
-    setSearchInput(value)
-
-    // Clear existing timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
-
-    // Set new timeout for debounced search
-    searchTimeoutRef.current = setTimeout(() => {
-      performSearch(value)
-    }, 500) // 500ms debounce
+  // Run a filter chosen in the Query Console. The console has already validated and parsed
+  // it, so this only has to switch the view over.
+  const handleQueryResults = (parsedQuery) => {
+    setSearchInput(JSON.stringify(parsedQuery))
+    setSearchQuery(parsedQuery)
+    setIsSearchMode(true)
+    setIsAggregationView(false)
+    setPage(1)
+    setDocuments([])
+    fetchDocumentsByQuery(parsedQuery, 1, true)
   }
 
   // Debounced document ID search
@@ -311,34 +302,6 @@ const Documents = () => {
     }, 300) // 300ms debounce for ID search
   }
 
-  // Perform search based on query input
-  const performSearch = (input) => {
-    try {
-      if (!input.trim()) {
-        // If search input is empty, switch to regular mode
-        setIsSearchMode(false)
-        setSearchQuery('')
-        setIsAggregationView(false)
-        setPage(1)
-        setDocuments([])
-        fetchDocuments(1, true)
-        return
-      }
-
-      // Parse search input as JSON query
-      const parsedQuery = JSON.parse(input)
-      setSearchQuery(parsedQuery)
-      setIsSearchMode(true)
-      setIsAggregationView(false) // Clear aggregation view when searching
-      setPage(1)
-      setDocuments([])
-      fetchDocumentsByQuery(parsedQuery, 1, true)
-    } catch (error) {
-      // If JSON parsing fails, treat as regular text and search in all fields
-      console.warn('Invalid JSON query, treating as text search:', error)
-      // You could implement a text search fallback here if needed
-    }
-  }
 
   // Perform document ID search
   const performDocumentIdSearch = (documentId) => {
@@ -405,14 +368,14 @@ const Documents = () => {
   }
 
   return (
-    <div className='container mx-auto px-4 py-6 max-w-7xl'>
+    <div className='mx-auto w-full max-w-[120rem] px-4 py-8 sm:px-6 lg:px-8'>
       <div className='bg-white rounded-lg shadow-lg overflow-hidden mb-8'>
-        <div className='flex justify-between items-center p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200'>
+        <div className='flex justify-between items-center p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-ink-200'>
           <div>
             <div className='flex items-center mb-2'>
               <button
                 onClick={handleBackToCollections}
-                className='text-blue-600 hover:text-blue-800 flex items-center transition-colors font-medium'
+                className='text-brand-700 hover:text-brand-800 flex items-center transition-colors font-medium'
               >
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
@@ -429,8 +392,8 @@ const Documents = () => {
                 Back to Collections
               </button>
             </div>
-            <h1 className='text-2xl font-bold text-gray-900'>Documents</h1>
-            <div className='flex items-center mt-1 text-gray-600'>
+            <h1 className='text-2xl font-bold text-ink-900'>Documents</h1>
+            <div className='flex items-center mt-1 text-ink-600'>
               <svg
                 xmlns='http://www.w3.org/2000/svg'
                 className='h-5 w-5 mr-2 text-indigo-500'
@@ -454,26 +417,29 @@ const Documents = () => {
           </div>
           <div className='flex space-x-3'>
             <button
-              onClick={() => setShowAggregateModal(true)}
-              className='bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-5 rounded-lg flex items-center transition-colors shadow-md'
+              onClick={() => setShowQueryModal(true)}
+              className='inline-flex h-11 items-center gap-2 rounded-xl bg-ink-800 px-5 text-sm font-medium text-white shadow-sm transition-all hover:bg-ink-900 active:scale-[0.98]'
             >
               <svg
                 xmlns='http://www.w3.org/2000/svg'
                 className='h-5 w-5 mr-2'
-                viewBox='0 0 20 20'
-                fill='currentColor'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
               >
                 <path
-                  fillRule='evenodd'
-                  d='M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z'
-                  clipRule='evenodd'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M8 9l3 3-3 3m5 0h3'
                 />
+                <rect x='3' y='4' width='18' height='16' rx='2' strokeWidth={2} />
               </svg>
-              Run Aggregate
+              Query
             </button>
             <button
               onClick={() => setShowInsertModal(true)}
-              className='bg-green-600 hover:bg-green-700 text-white py-2 px-5 rounded-lg flex items-center transition-colors shadow-md'
+              className='inline-flex h-11 items-center gap-2 rounded-xl bg-brand-600 px-5 text-sm font-medium text-white shadow-sm transition-all hover:bg-brand-700 active:scale-[0.98]'
             >
               <svg
                 xmlns='http://www.w3.org/2000/svg'
@@ -493,19 +459,22 @@ const Documents = () => {
         </div>
 
         {/* Advanced Search Bar */}
-        <div className='px-6 py-4 border-b border-gray-200 bg-gray-50'>
+        <div className='border-b border-ink-200 bg-ink-50 px-6 py-4'>
           <div className='max-w-6xl'>
             <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
-              {/* JSON Query Search */}
+              {/* Query Console launcher */}
               <div className='lg:col-span-2'>
-                <label
-                  htmlFor='search-query'
-                  className='block text-sm font-medium text-gray-700 mb-2'
+                <span className='block text-sm font-medium text-ink-700 mb-2'>
+                  Query
+                </span>
+                <button
+                  onClick={() => setShowQueryModal(true)}
+                  className='group flex w-full items-center justify-between rounded-md border border-ink-300 bg-white px-3 py-2.5 text-left shadow-sm transition-colors hover:border-emerald-400 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500'
                 >
-                  <span className='flex items-center'>
+                  <span className='flex min-w-0 items-center'>
                     <svg
                       xmlns='http://www.w3.org/2000/svg'
-                      className='h-4 w-4 mr-1 text-gray-500'
+                      className='mr-2 h-4 w-4 flex-shrink-0 text-ink-400 group-hover:text-emerald-600'
                       fill='none'
                       viewBox='0 0 24 24'
                       stroke='currentColor'
@@ -514,23 +483,23 @@ const Documents = () => {
                         strokeLinecap='round'
                         strokeLinejoin='round'
                         strokeWidth={2}
-                        d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+                        d='M8 9l3 3-3 3m5 0h3'
                       />
+                      <rect x='3' y='4' width='18' height='16' rx='2' strokeWidth={2} />
                     </svg>
-                    JSON Query Search
+                    <span className='truncate font-mono text-sm text-ink-500 group-hover:text-emerald-800'>
+                      {isSearchMode && searchQuery
+                        ? `${collectionName}.query(${JSON.stringify(searchQuery)}).exec()`
+                        : `${collectionName}.query({}).exec() — click to open the console`}
+                    </span>
                   </span>
-                </label>
-                <input
-                  type='text'
-                  id='search-query'
-                  value={searchInput}
-                  onChange={(e) => handleSearchInputChange(e.target.value)}
-                  placeholder='e.g., {"name": "John"}, {"age": {"$gte": 18}}, or {} for all'
-                  className='w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-mono transition-colors'
-                />
-                <div className='mt-1 text-xs text-gray-500'>
-                  Auto-searches as you type • MongoDB-style syntax • Leave empty
-                  to show all
+                  <span className='ml-3 flex-shrink-0 rounded bg-ink-100 px-2 py-1 text-xs font-medium text-ink-600 group-hover:bg-emerald-100 group-hover:text-emerald-700'>
+                    Open
+                  </span>
+                </button>
+                <div className='mt-1 text-xs text-ink-500'>
+                  Syntax highlighting, suggestions, and live validation for queries and
+                  aggregation pipelines
                 </div>
               </div>
 
@@ -538,12 +507,12 @@ const Documents = () => {
               <div>
                 <label
                   htmlFor='document-id-search'
-                  className='block text-sm font-medium text-gray-700 mb-2'
+                  className='block text-sm font-medium text-ink-700 mb-2'
                 >
                   <span className='flex items-center'>
                     <svg
                       xmlns='http://www.w3.org/2000/svg'
-                      className='h-4 w-4 mr-1 text-gray-500'
+                      className='h-4 w-4 mr-1 text-ink-500'
                       fill='none'
                       viewBox='0 0 24 24'
                       stroke='currentColor'
@@ -564,9 +533,9 @@ const Documents = () => {
                   value={documentIdInput}
                   onChange={(e) => handleDocumentIdInputChange(e.target.value)}
                   placeholder='Enter document ID'
-                  className='w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-mono transition-colors'
+                  className='w-full px-3 py-2.5 border border-ink-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-mono transition-colors'
                 />
-                <div className='mt-1 text-xs text-gray-500'>
+                <div className='mt-1 text-xs text-ink-500'>
                   Find by specific ID
                 </div>
               </div>
@@ -576,15 +545,15 @@ const Documents = () => {
             {isSearchMode && (
               <div className='mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md'>
                 <div className='flex items-center justify-between'>
-                  <div className='text-sm text-blue-800'>
+                  <div className='text-sm text-info-700'>
                     <span className='font-medium'>Active Search:</span>{' '}
-                    <code className='bg-blue-100 px-2 py-1 rounded text-xs ml-1'>
+                    <code className='bg-info-50 px-2 py-1 rounded text-xs ml-1'>
                       {JSON.stringify(searchQuery)}
                     </code>
                   </div>
                   <button
                     onClick={clearAllSearch}
-                    className='text-blue-600 hover:text-blue-800 text-sm flex items-center transition-colors'
+                    className='text-brand-700 hover:text-brand-800 text-sm flex items-center transition-colors'
                   >
                     <svg
                       xmlns='http://www.w3.org/2000/svg'
@@ -662,18 +631,18 @@ const Documents = () => {
         <div className='p-6'>
           {/* When loading and no documents */}
           {loading && documents.length === 0 && !isAggregationView ? (
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+            <div className='stagger grid grid-cols-1 gap-6 xl:grid-cols-2'>
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div
                   key={i}
-                  className='animate-pulse bg-white rounded-lg border border-gray-200 shadow-sm p-4'
+                  className='animate-pulse bg-white rounded-lg border border-ink-200 shadow-sm p-4'
                 >
-                  <div className='h-4 bg-gray-200 rounded w-3/4 mb-3' />
-                  <div className='h-3 bg-gray-100 rounded w-1/2 mb-2' />
-                  <div className='h-20 bg-gray-100 rounded mb-3' />
+                  <div className='h-4 bg-ink-200 rounded w-3/4 mb-3' />
+                  <div className='h-3 bg-ink-100 rounded w-1/2 mb-2' />
+                  <div className='h-20 bg-ink-100 rounded mb-3' />
                   <div className='flex justify-end'>
-                    <div className='h-8 bg-gray-200 rounded w-16 mr-2' />
-                    <div className='h-8 bg-gray-200 rounded w-16' />
+                    <div className='h-8 bg-ink-200 rounded w-16 mr-2' />
+                    <div className='h-8 bg-ink-200 rounded w-16' />
                   </div>
                 </div>
               ))}
@@ -681,38 +650,25 @@ const Documents = () => {
           ) : isAggregationView ? (
             // Aggregation Results View
             aggregationResults.length > 0 ? (
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              <div className='stagger grid grid-cols-1 gap-6 xl:grid-cols-2'>
                 {aggregationResults.map((doc, index) => (
                   <div
                     key={index}
-                    className='bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden'
+                    className='bg-white rounded-lg border border-ink-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden'
                   >
                     <div className='p-4'>
-                      <div className='flex items-center justify-between mb-3'>
-                        <div className='flex items-center'>
-                          <svg
-                            xmlns='http://www.w3.org/2000/svg'
-                            className='h-5 w-5 text-indigo-500 mr-2'
-                            viewBox='0 0 20 20'
-                            fill='currentColor'
-                          >
-                            <path
-                              fillRule='evenodd'
-                              d='M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z'
-                              clipRule='evenodd'
-                            />
-                          </svg>
-                          <div className='font-mono text-indigo-700 font-semibold'>
-                            <span className='text-sm'>
-                              {doc.documentId
-                                ? `ID: ${doc.documentId}`
-                                : `Result #${index + 1}`}
-                            </span>
-                          </div>
+                      <div className='mb-3 flex items-start justify-between gap-3'>
+                        <div className='min-w-0 flex-1'>
+                          <p className='text-[10px] font-semibold uppercase tracking-wide text-ink-400'>
+                            {doc.documentId ? 'Document ID' : 'Result'}
+                          </p>
+                          <p className='break-all font-mono text-sm font-semibold text-ink-800'>
+                            {doc.documentId ?? `#${index + 1}`}
+                          </p>
                         </div>
                         {doc.updatedAt && (
                           <span
-                            className='text-xs text-gray-500'
+                            className='shrink-0 whitespace-nowrap text-xs text-ink-500'
                             title={doc.updatedAt}
                           >
                             {formatDate(doc.updatedAt)}
@@ -720,33 +676,28 @@ const Documents = () => {
                         )}
                       </div>
 
-                      <div className='bg-gray-50 rounded p-3 mb-3 h-48 overflow-y-auto'>
-                        <pre className='text-xs font-mono whitespace-pre-wrap break-words text-gray-800'>
-                          {JSON.stringify(
-                            Object.fromEntries(
-                              Object.entries(doc).filter(
-                                ([key]) =>
-                                  !['documentId', 'updatedAt'].includes(key)
-                              )
-                            ),
-                            null,
-                            2
-                          )}
-                        </pre>
-                      </div>
+                      <ObjectView
+                        className='mb-3'
+                        maxHeight={200}
+                        value={Object.fromEntries(
+                          Object.entries(doc).filter(
+                            ([key]) => !['documentId', 'updatedAt'].includes(key)
+                          )
+                        )}
+                      />
 
                       {/* Add Update and Delete buttons if documentId exists */}
                       {doc.documentId && (
-                        <div className='flex justify-end space-x-2'>
+                        <div className='flex justify-end gap-2 border-t border-ink-100 pt-3'>
                           <button
                             onClick={() => handleUpdateClick(doc)}
-                            className='text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md text-sm transition-colors'
+                            className='rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-ink-50'
                           >
                             Update
                           </button>
                           <button
                             onClick={() => handleDeleteClick(doc)}
-                            className='text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm transition-colors'
+                            className='rounded-lg border border-danger-200 px-3 py-1.5 text-sm font-medium text-danger-600 transition-colors hover:bg-danger-50'
                           >
                             Delete
                           </button>
@@ -760,7 +711,7 @@ const Documents = () => {
               <div className='text-center py-12'>
                 <svg
                   xmlns='http://www.w3.org/2000/svg'
-                  className='h-16 w-16 text-gray-300 mx-auto mb-4'
+                  className='h-16 w-16 text-ink-300 mx-auto mb-4'
                   fill='none'
                   viewBox='0 0 24 24'
                   stroke='currentColor'
@@ -772,7 +723,7 @@ const Documents = () => {
                     d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
                   />
                 </svg>
-                <p className='text-gray-500 mb-2'>
+                <p className='text-ink-500 mb-2'>
                   No documents match your aggregation pipeline
                 </p>
                 <button
@@ -786,7 +737,7 @@ const Documents = () => {
           ) // Normal Document View
             : documents.length > 0
               ? (
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+                <div className='stagger grid grid-cols-1 gap-6 xl:grid-cols-2'>
                   {documents.map((doc, index) => (
                     <div
                       key={doc.documentId}
@@ -795,63 +746,49 @@ const Documents = () => {
                       ? lastDocumentElementRef
                       : null
                   }
-                      className='bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden'
+                      className='bg-white rounded-lg border border-ink-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden'
                     >
                       <div className='p-4'>
-                        <div className='flex items-center justify-between mb-3'>
-                          <div className='flex items-center'>
-                            <svg
-                              xmlns='http://www.w3.org/2000/svg'
-                              className='h-5 w-5 text-yellow-500 mr-2'
-                              viewBox='0 0 20 20'
-                              fill='currentColor'
-                            >
-                              <path
-                  fillRule='evenodd'
-                  d='M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z'
-                  clipRule='evenodd'
-                />
-                            </svg>
-                            <div
-                              className='font-mono text-indigo-700 font-semibold'
+                        <div className='mb-3 flex items-start justify-between gap-3'>
+                          <div className='min-w-0 flex-1'>
+                            <p className='text-[10px] font-semibold uppercase tracking-wide text-ink-400'>
+                              Document ID
+                            </p>
+                            <p
+                              className='break-all font-mono text-sm font-semibold text-ink-800'
                               title={doc.documentId}
                             >
-                              <span className='text-sm'>ID: {doc.documentId}</span>
-                            </div>
+                              {doc.documentId}
+                            </p>
                           </div>
                           <span
-                            className='text-xs text-gray-500'
+                            className='shrink-0 whitespace-nowrap text-xs text-ink-500'
                             title={doc.updatedAt}
                           >
                             {formatDate(doc.updatedAt)}
                           </span>
                         </div>
 
-                        <div className='bg-gray-50 rounded p-3 mb-3 h-48 overflow-y-auto'>
-                          <pre className='text-xs font-mono whitespace-pre-wrap break-words text-gray-800'>
-                            {JSON.stringify(
-                              Object.fromEntries(
-                                Object.entries(doc).filter(
-                                  ([key]) =>
-                                    !['documentId', 'updatedAt'].includes(key)
-                                )
-                              ),
-                              null,
-                              2
-                            )}
-                          </pre>
-                        </div>
+                        <ObjectView
+                          className='mb-3'
+                          maxHeight={200}
+                          value={Object.fromEntries(
+                            Object.entries(doc).filter(
+                              ([key]) => !['documentId', 'updatedAt'].includes(key)
+                            )
+                          )}
+                        />
 
-                        <div className='flex justify-end space-x-2'>
+                        <div className='flex justify-end gap-2 border-t border-ink-100 pt-3'>
                           <button
                             onClick={() => handleUpdateClick(doc)}
-                            className='text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-md text-sm transition-colors'
+                            className='rounded-lg border border-ink-300 bg-white px-3 py-1.5 text-sm font-medium text-ink-700 transition-colors hover:bg-ink-50'
                           >
                             Update
                           </button>
                           <button
                             onClick={() => handleDeleteClick(doc)}
-                            className='text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md text-sm transition-colors'
+                            className='rounded-lg border border-danger-200 px-3 py-1.5 text-sm font-medium text-danger-600 transition-colors hover:bg-danger-50'
                           >
                             Delete
                           </button>
@@ -865,7 +802,7 @@ const Documents = () => {
                 <div className='text-center py-12'>
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
-                    className='h-16 w-16 text-gray-300 mx-auto mb-4'
+                    className='h-16 w-16 text-ink-300 mx-auto mb-4'
                     fill='none'
                     viewBox='0 0 24 24'
                     stroke='currentColor'
@@ -877,7 +814,7 @@ const Documents = () => {
                       d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'
                     />
                   </svg>
-                  <p className='text-gray-500 mb-4'>
+                  <p className='text-ink-500 mb-4'>
                     {isSearchMode
                       ? 'No documents match your search query'
                       : 'No documents found in this collection'}
@@ -891,7 +828,7 @@ const Documents = () => {
                         >
                           Clear Search & Show All Documents
                         </button>
-                        <p className='text-xs text-gray-400'>
+                        <p className='text-xs text-ink-400'>
                           Try adjusting your query or use {} to show all documents
                         </p>
                       </div>
@@ -938,14 +875,14 @@ const Documents = () => {
             !hasMore &&
             documents.length > 0 &&
             !isAggregationView && (
-              <div className='text-center py-4 text-gray-500 text-sm border-t border-gray-100 mt-6'>
+              <div className='text-center py-4 text-ink-500 text-sm border-t border-ink-100 mt-6'>
                 You've reached the end of the results.
               </div>
           )}
 
           {/* Show count of aggregation results when in aggregation view */}
           {isAggregationView && aggregationResults.length > 0 && (
-            <div className='text-center py-4 text-gray-500 text-sm border-t border-gray-100 mt-6'>
+            <div className='text-center py-4 text-ink-500 text-sm border-t border-ink-100 mt-6'>
               Showing all {aggregationResults.length} aggregation results.
             </div>
           )}
@@ -988,13 +925,14 @@ const Documents = () => {
         />
       )}
 
-      {/* Aggregate Modal - Updated to pass results back to parent */}
-      {showAggregateModal && (
-        <AggregateModal
-          isOpen={showAggregateModal}
-          onClose={() => setShowAggregateModal(false)}
+      {/* Query Console - handles both query() and aggregate() */}
+      {showQueryModal && (
+        <QueryModal
+          isOpen={showQueryModal}
+          onClose={() => setShowQueryModal(false)}
           databaseName={databaseName}
           collectionName={collectionName}
+          onQueryResults={handleQueryResults}
           onAggregationResults={handleAggregationResults}
         />
       )}

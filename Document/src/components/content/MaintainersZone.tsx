@@ -110,7 +110,7 @@ const MaintainersZone = () => {
           <FaCode />
         </div>
 
-        <div className="relative z-10 p-8 lg:p-12">
+        <div className="relative z-10 p-5 sm:p-8 lg:p-12">
           <div className="flex flex-col lg:flex-row items-center gap-8">
             <div className="relative">
               {loading ? (
@@ -132,7 +132,7 @@ const MaintainersZone = () => {
             <div className="flex-1 text-center lg:text-left">
               <div className="flex items-center gap-3 mb-4 justify-center lg:justify-start">
                 <FaTerminal className="text-2xl text-green-400" />
-                <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                   Ankan Saha
                 </h1>
               </div>

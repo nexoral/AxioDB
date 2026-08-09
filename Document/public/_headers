@@ -1,0 +1,29 @@
+# Cloudflare Pages custom headers.
+#
+# This is the mechanism Pages actually reads - the [[pages.headers]] blocks in
+# wrangler.toml are not a supported Pages configuration key and were never
+# applied, so the security headers below live here instead.
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# RFC 8288 / RFC 9727 Link headers: point agents at the machine-readable
+# representations of this site without needing to parse any HTML first.
+/
+  Link: </.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"
+  Link: </openapi.json>; rel="service-desc"; type="application/json"
+  Link: </server-api>; rel="service-doc"; type="text/html"
+  Link: </llms.txt>; rel="describedby"; type="text/plain"
+  Link: </.well-known/agent-skills/index.json>; rel="describedby"; type="application/json"
+
+# Served extension-less, so Pages cannot infer the type from the filename.
+/.well-known/api-catalog
+  Content-Type: application/linkset+json
+
+/*.md
+  Content-Type: text/markdown; charset=utf-8
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

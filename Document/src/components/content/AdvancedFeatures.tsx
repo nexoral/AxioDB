@@ -196,7 +196,7 @@ console.log("Transaction completed successfully!");`,
         path="/advanced-features"
       />
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-purple-900/20 via-slate-800 to-indigo-900/20 rounded-2xl p-8 lg:p-12 mb-16 border border-purple-800 shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-br from-purple-900/20 via-slate-800 to-indigo-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 mb-16 border border-purple-800 shadow-xl">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-purple-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
 
         <div className="relative z-10">
@@ -205,7 +205,7 @@ console.log("Transaction completed successfully!");`,
               <Rocket className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-200 via-indigo-300 to-blue-200 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-200 via-indigo-300 to-blue-200 bg-clip-text text-transparent">
                 Advanced Database Features
               </h1>
               <p className="text-xl text-slate-300 font-light mt-2">

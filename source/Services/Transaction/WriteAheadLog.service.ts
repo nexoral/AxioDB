@@ -10,6 +10,7 @@ import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
+import { General } from "../../config/Keys/Keys";
 
 export default class WriteAheadLog {
   private readonly walPath: string;
@@ -32,7 +33,7 @@ export default class WriteAheadLog {
   ) {
     this.collectionPath = collectionPath;
     this.transactionDir = `${collectionPath}/.transactions`;
-    this.walPath = `${this.transactionDir}/${transactionId}.wal`;
+    this.walPath = `${this.transactionDir}/${transactionId}${General.WAL_File_EXT}`;
     this.FileManager = new FileManager();
     this.FolderManager = new FolderManager();
     this.Converter = new Converter();
@@ -168,22 +169,8 @@ export default class WriteAheadLog {
 
   public async getLogEntries(): Promise<WALEntry[]> {
     try {
-      const fileExists = await this.FileManager.FileExists(this.walPath);
-      if (!fileExists.status) {
-        return [];
-      }
-
-      const readResult = await this.FileManager.ReadFile(this.walPath);
-      if (!readResult.status) {
-        return [];
-      }
-
-      const content = readResult.data;
-      if (!content || content.trim().length === 0) {
-        return [];
-      }
-
-      const lines = content.split('\n').filter((line: string) => line.trim().length > 0);
+      // Streamed line-by-line: a large transaction's log never lands in memory whole.
+      const lines = await this.FileManager.ReadLines(this.walPath);
       const entries: WALEntry[] = [];
 
       for (const line of lines) {

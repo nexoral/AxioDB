@@ -16,8 +16,9 @@ import TransactionIndexManager from "./TransactionIndexManager.service";
 import TransactionRegistry from "./TransactionRegistry.service";
 import WriteAheadLog from "./WriteAheadLog.service";
 
-// WAL files are named `${transactionId}.wal` (see WriteAheadLog.service.ts).
-const WAL_FILE_EXT = ".wal";
+// WAL files are named `${transactionId}.wal.jsonl` (see WriteAheadLog.service.ts). The
+// suffix is what keeps this scan from matching the registry's own txn-meta.jsonl.
+const WAL_FILE_EXT = General.WAL_File_EXT;
 
 export default class Transaction {
   private readonly collectionPath: string;

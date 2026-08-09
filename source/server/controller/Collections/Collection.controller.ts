@@ -5,7 +5,7 @@ import buildResponse, {
   ResponseBuilder,
 } from "../../helper/responseBuilder.helper";
 import { FastifyRequest } from "fastify";
-import countFilesRecursive from "../../helper/filesCounterInFolder.helper";
+import countDocumentsInFolder from "../../helper/documentCounterInFolder.helper";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
 export default class CollectionController {
   private AxioDBInstance: AxioDB;
@@ -77,17 +77,14 @@ export default class CollectionController {
       const collections = await (
         await this.AxioDBInstance.createDB(databaseName)
       ).getCollectionInfo();
-
-      let FolderPaths = collections?.data?.AllCollectionsPaths;
-      FolderPaths = FolderPaths.filter( // exclude .meta files
-        (path: string) => !path.endsWith(".meta"),
-      );
+      
+      const FolderPaths = collections?.data?.AllCollectionsPaths;
       const mainData = collections?.data;
       mainData.CollectionSizeMap = [];
 
       await Promise.all([
         ...FolderPaths.map(async (folderPath: string) => {
-          const fileCount = await countFilesRecursive(folderPath);
+          const fileCount = await countDocumentsInFolder(folderPath);
           mainData.CollectionSizeMap.push({ folderPath, fileCount });
         }),
       ]);

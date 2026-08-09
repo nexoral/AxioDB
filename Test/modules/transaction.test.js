@@ -7,6 +7,7 @@ const fixtures = require('../helpers/fixtures');
 const fs = require('fs');
 
 const { AxioDB } = require('../../lib/config/DB.js');
+const { General } = require('../../lib/config/Keys/Keys.js');
 
 class TransactionTests extends TestRunner {
   constructor() {
@@ -263,7 +264,7 @@ class TransactionTests extends TestRunner {
         const txnDir = `${collectionPath}/.transactions`;
         fs.mkdirSync(txnDir, { recursive: true });
 
-        const orphanWal = `${txnDir}/ORPHANTXNNOREG01.wal`;
+        const orphanWal = `${txnDir}/ORPHANTXNNOREG01${General.WAL_File_EXT}`;
         fs.writeFileSync(orphanWal, ''); // empty, exactly like a crash-before-register orphan
         assert.equal(fs.existsSync(orphanWal), true, 'Precondition: orphan WAL exists');
 
@@ -418,6 +419,104 @@ class TransactionTests extends TestRunner {
 
         assert.equal(byEmail.data.documents.length, 1);
         assert.equal(byName.data.documents.length, 1);
+      });
+    });
+
+    // JSONL on-disk format. The registry and WAL only exist while commit() is running, so
+    // these drive the services directly rather than through the collection API.
+    await this.describe('Transaction registry & WAL JSONL format', async () => {
+      const TransactionRegistry =
+        require('../../lib/Services/Transaction/TransactionRegistry.service.js').default;
+      const WriteAheadLog =
+        require('../../lib/Services/Transaction/WriteAheadLog.service.js').default;
+
+      const registryPath = () =>
+        `${this.collection.path}/.transactions/${General.Transaction_Registry_File}`;
+      const metadataFor = (transactionId) => ({
+        transactionId,
+        collectionPath: this.collection.path,
+        status: 'ACTIVE',
+        startTime: new Date().toISOString(),
+        lockedDocuments: [],
+        isolationLevel: 'READ_COMMITTED',
+      });
+
+      await this.test('Registry is JSONL - one parseable JSON object per line', async () => {
+        const registry = new TransactionRegistry(this.collection.path);
+        await registry.registerTransaction(metadataFor('JSONLSHAPETXN0001'));
+        await registry.registerTransaction(metadataFor('JSONLSHAPETXN0002'));
+
+        const lines = fs
+          .readFileSync(registryPath(), 'utf-8')
+          .split('\n')
+          .filter((line) => line.trim().length > 0);
+
+        assert.equal(lines.length, 2, 'One line per registered transaction');
+        for (const line of lines) {
+          // Throws if the registry is still a single pretty JSON array.
+          assert.ok(JSON.parse(line).transactionId, 'Every line is one transaction record');
+        }
+
+        await registry.removeTransaction('JSONLSHAPETXN0001');
+        await registry.removeTransaction('JSONLSHAPETXN0002');
+      });
+
+      await this.test('A status change appends and leaves earlier bytes untouched', async () => {
+        const registry = new TransactionRegistry(this.collection.path);
+        await registry.registerTransaction(metadataFor('APPENDONLYTXN0001'));
+        const afterRegister = fs.readFileSync(registryPath(), 'utf-8');
+
+        await registry.updateTransactionStatus('APPENDONLYTXN0001', 'COMMITTED');
+        const afterStatus = fs.readFileSync(registryPath(), 'utf-8');
+
+        assert.equal(
+          afterStatus.startsWith(afterRegister),
+          true,
+          'Existing records must be left byte-identical - append, never rewrite'
+        );
+        assert.isAbove(afterStatus.length, afterRegister.length);
+
+        // Replay still resolves to the newest record for that transaction.
+        const active = await registry.getActiveTransactions();
+        assert.equal(active.length, 1);
+        assert.equal(active[0].status, 'COMMITTED');
+
+        await registry.removeTransaction('APPENDONLYTXN0001');
+      });
+
+      await this.test('Registry is truncated once no transaction is left in flight', async () => {
+        const registry = new TransactionRegistry(this.collection.path);
+        await registry.registerTransaction(metadataFor('TRUNCATETXN000001'));
+        await registry.removeTransaction('TRUNCATETXN000001');
+
+        assert.equal(
+          fs.readFileSync(registryPath(), 'utf-8').trim(),
+          '',
+          'An append-only log must reset to empty when nothing is in flight'
+        );
+        assert.equal((await registry.getActiveTransactions()).length, 0);
+      });
+
+      await this.test('WAL files are JSONL and cannot collide with the registry', async () => {
+        assert.equal(General.WAL_File_EXT, '.wal.jsonl');
+
+        const wal = new WriteAheadLog(this.collection.path, 'WALEXTTXN00000001');
+        await wal.createWAL();
+
+        const txnDir = `${this.collection.path}/.transactions`;
+        const walFiles = fs
+          .readdirSync(txnDir)
+          .filter((f) => f.endsWith(General.WAL_File_EXT));
+        assert.includes(walFiles, `WALEXTTXN00000001${General.WAL_File_EXT}`);
+
+        // Recovery scans .transactions/ by this suffix - the registry must not match it,
+        // or it would be replayed as if it were a transaction's WAL.
+        assert.ok(
+          !General.Transaction_Registry_File.endsWith(General.WAL_File_EXT),
+          'Registry filename must not match the WAL suffix filter'
+        );
+
+        await wal.deleteWAL();
       });
     });
   }

@@ -7,6 +7,7 @@ import ResetPasswordModal from '../components/auth/ResetPasswordModal'
 
 const UserManagement = () => {
   const permissions = useAuthStore((state) => state.permissions)
+  const currentUsername = useAuthStore((state) => state.username)
   const [users, setUsers] = useState([])
   const [roles, setRoles] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -59,18 +60,18 @@ const UserManagement = () => {
   }
 
   return (
-    <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-      <h1 className='text-2xl font-bold text-gray-900 mb-6'>User & Role Management</h1>
+    <div className='mx-auto w-full max-w-[120rem] px-4 py-8 sm:px-6 lg:px-8'>
+      <h1 className='text-2xl font-bold text-ink-900 mb-6'>User & Role Management</h1>
 
-      {error && <p className='mb-4 text-sm text-red-600'>{error}</p>}
+      {error && <p className='mb-4 text-sm text-danger-600'>{error}</p>}
 
       <div className='bg-white rounded-lg shadow-md p-6 mb-8'>
         <div className='flex items-center justify-between mb-4'>
-          <h2 className='text-lg font-semibold text-gray-900'>Users</h2>
+          <h2 className='text-lg font-semibold text-ink-900'>Users</h2>
           {canCreateUser && (
             <button
               onClick={() => setIsCreateUserOpen(true)}
-              className='px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm'
+              className='px-4 py-2 bg-brand-600 text-white rounded hover:bg-brand-700 transition-colors text-sm'
             >
               + Create User
             </button>
@@ -80,40 +81,40 @@ const UserManagement = () => {
         {isLoading
           ? (
             <div className='animate-pulse space-y-3'>
-              <div className='h-10 bg-gray-200 rounded' />
-              <div className='h-10 bg-gray-200 rounded' />
+              <div className='h-10 bg-ink-200 rounded' />
+              <div className='h-10 bg-ink-200 rounded' />
             </div>
             )
           : (
             <div className='overflow-x-auto'>
-              <table className='min-w-full divide-y divide-gray-200'>
+              <table className='min-w-full divide-y divide-ink-200'>
                 <thead>
                   <tr>
-                    <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase'>
+                    <th className='px-4 py-2 text-left text-xs font-medium text-ink-500 uppercase'>
                       Username
                     </th>
-                    <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase'>
+                    <th className='px-4 py-2 text-left text-xs font-medium text-ink-500 uppercase'>
                       Role
                     </th>
-                    <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase'>
+                    <th className='px-4 py-2 text-left text-xs font-medium text-ink-500 uppercase'>
                       Status
                     </th>
-                    <th className='px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase'>
+                    <th className='px-4 py-2 text-right text-xs font-medium text-ink-500 uppercase'>
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className='divide-y divide-gray-100'>
+                <tbody className='divide-y divide-ink-100'>
                   {users.map((u) => (
                     <tr key={u.username}>
-                      <td className='px-4 py-3 text-sm text-gray-900'>{u.username}</td>
+                      <td className='px-4 py-3 text-sm text-ink-900'>{u.username}</td>
                       <td className='px-4 py-3 text-sm'>
                         {canUpdateUserRole
                           ? (
                             <select
                               value={u.role}
                               onChange={(e) => handleRoleChange(u.username, e.target.value)}
-                              className='border border-gray-300 rounded-md px-2 py-1 text-sm'
+                              className='border border-ink-300 rounded-md px-2 py-1 text-sm'
                             >
                               {roles.map((r) => (
                                 <option key={r.roleName} value={r.roleName}>
@@ -123,7 +124,7 @@ const UserManagement = () => {
                             </select>
                             )
                           : (
-                            <span className='inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded'>
+                            <span className='inline-block px-2 py-1 text-xs font-medium bg-info-50 text-info-700 rounded'>
                               {u.role}
                             </span>
                             )}
@@ -131,12 +132,12 @@ const UserManagement = () => {
                       <td className='px-4 py-3 text-sm'>
                         {u.mustChangePassword
                           ? (
-                            <span className='inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded'>
+                            <span className='inline-block px-2 py-1 text-xs font-medium bg-warn-50 text-warn-700 rounded'>
                               Must change password
                             </span>
                             )
                           : (
-                            <span className='inline-block px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded'>
+                            <span className='inline-block px-2 py-1 text-xs font-medium bg-brand-100 text-brand-800 rounded'>
                               Active
                             </span>
                             )}
@@ -145,15 +146,15 @@ const UserManagement = () => {
                         {canResetPassword && (
                           <button
                             onClick={() => setResetPasswordTarget(u.username)}
-                            className='text-blue-600 hover:text-blue-800'
+                            className='text-brand-700 hover:text-brand-800'
                           >
                             Reset Password
                           </button>
                         )}
-                        {canDeleteUser && (
+                        {canDeleteUser && u.username !== currentUsername && (
                           <button
                             onClick={() => handleDelete(u.username)}
-                            className='text-red-600 hover:text-red-800'
+                            className='text-danger-600 hover:text-danger-700'
                           >
                             Delete
                           </button>
@@ -169,11 +170,11 @@ const UserManagement = () => {
 
       <div className='bg-white rounded-lg shadow-md p-6'>
         <div className='flex items-center justify-between mb-4'>
-          <h2 className='text-lg font-semibold text-gray-900'>Roles</h2>
+          <h2 className='text-lg font-semibold text-ink-900'>Roles</h2>
           {canCreateRole && (
             <button
               onClick={() => setIsCreateRoleOpen(true)}
-              className='px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors text-sm'
+              className='px-4 py-2 bg-brand-600 text-white rounded hover:bg-brand-700 transition-colors text-sm'
             >
               + Create Role
             </button>
@@ -181,31 +182,31 @@ const UserManagement = () => {
         </div>
 
         <div className='overflow-x-auto'>
-          <table className='min-w-full divide-y divide-gray-200'>
+          <table className='min-w-full divide-y divide-ink-200'>
             <thead>
               <tr>
-                <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase'>
+                <th className='px-4 py-2 text-left text-xs font-medium text-ink-500 uppercase'>
                   Role Name
                 </th>
-                <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase'>
+                <th className='px-4 py-2 text-left text-xs font-medium text-ink-500 uppercase'>
                   Permissions
                 </th>
-                <th className='px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase'>
+                <th className='px-4 py-2 text-left text-xs font-medium text-ink-500 uppercase'>
                   Type
                 </th>
               </tr>
             </thead>
-            <tbody className='divide-y divide-gray-100'>
+            <tbody className='divide-y divide-ink-100'>
               {roles.map((r) => (
                 <tr key={r.roleName}>
-                  <td className='px-4 py-3 text-sm text-gray-900 font-medium'>{r.roleName}</td>
-                  <td className='px-4 py-3 text-sm text-gray-600'>
+                  <td className='px-4 py-3 text-sm text-ink-900 font-medium'>{r.roleName}</td>
+                  <td className='px-4 py-3 text-sm text-ink-600'>
                     {r.permissions.length} permissions
                   </td>
                   <td className='px-4 py-3 text-sm'>
                     {r.isSystemRole
                       ? (
-                        <span className='inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded'>
+                        <span className='inline-block px-2 py-1 text-xs font-medium bg-ink-100 text-ink-700 rounded'>
                           System
                         </span>
                         )

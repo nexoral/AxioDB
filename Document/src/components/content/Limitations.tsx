@@ -10,7 +10,7 @@ const Limitations: React.FC = () => {
         description="Understand AxioDB's design scope: optimized for 10K-500K documents, single-instance, single-collection transactions - and when to use PostgreSQL or MongoDB instead."
         path="/limitations"
       />
-      <div className="relative overflow-hidden bg-gradient-to-br from-orange-900/20 via-slate-800 to-red-900/20 rounded-2xl p-8 lg:p-12 mb-12 border border-orange-800 shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-br from-orange-900/20 via-slate-800 to-red-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 mb-12 border border-orange-800 shadow-xl">
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-orange-400/10 to-red-400/10 rounded-full blur-3xl"></div>
 
         <div className="relative z-10">
@@ -19,7 +19,7 @@ const Limitations: React.FC = () => {
               <FilterX className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-200 via-red-300 to-pink-200 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-orange-200 via-red-300 to-pink-200 bg-clip-text text-transparent">
                 Limitations & Scale Considerations
               </h1>
               <p className="text-xl text-slate-300 font-light mt-2">

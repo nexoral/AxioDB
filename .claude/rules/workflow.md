@@ -3,158 +3,96 @@
 ## Critical Rules
 
 ### 1. ALWAYS Build After Changes
-```bash
-npm run build  # MANDATORY after every code change
-```
-Why: Catch TypeScript errors immediately, not in production.
+`npm run build` after every code change - catch TypeScript errors immediately, not in production.
+Never ignore a build error; fix it before moving on.
 
-### 2. NEVER Leave Incomplete
-❌ "I've implemented 80%..."
-❌ "Code written but not tested..."
+### 2. ALWAYS Update Tests
+**Location**: `Test/modules/` - `crud`, `transaction`, `read`, `auth`, `tcp-auth`, `tcp-noauth`,
+`tcp-tls`, `crash-recovery`, `mcp-confirm`.
+
+New feature → add cases. Modified feature → update them. Bug fix → add a regression test.
+API change → update every affected test. New module → new test file (register it in `Test/run.js`).
+
+### 3. Rebuild the Knowledge Graph (if graphify is installed)
+
+`graphify query "<question>"` is the default codebase search here, so the graph has to match the
+code. Once, from the repo root, after the change is finished - not after every edit:
+
+```bash
+python3 -c "import graphify" 2>/dev/null \
+  && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" \
+  || echo "graphify not installed - skipping graph rebuild"
+```
+
+graphify is optional local tooling, not a project dependency - if the import fails, skip it and
+carry on, never fail or block a task over it. A stale graph is worse than no graph: it points the
+next search at symbols and line numbers that have already moved. `graphify-out/` is gitignored, so
+this never changes what you commit.
+
+### 4. NEVER Leave Incomplete
+
+❌ "I've implemented 80%..." ❌ "Code written but not tested..."
 ✅ "Feature complete. Build passes. Tests pass."
 
-**"Done" means**:
-1. Code follows standards
+**"Done" means all of**:
+1. Code follows standards (SOLID, DRY, no `any`)
 2. `npm run build` ✓
-3. **Tests added/updated in `Test/modules/`** ✓
+3. Tests added/updated in `Test/modules/` ✓
 4. `npm test` ✓
 5. `npm run lint` ✓
-6. Docs updated (README, Document/, Dockerfile) ✓
-7. No breaking changes (or noted) ✓
-8. Self-reviewed (performance, security) ✓
+6. Docs updated (README, `Document/`, Dockerfile) ✓
+7. AI artifacts updated + regenerated (`Document/public/`) ✓ - see `documentation.md`
+8. Knowledge graph rebuilt if graphify is installed ✓
+9. No breaking changes (or noted) ✓
+10. Self-reviewed (performance, security) ✓
 
-### 3. ALWAYS Update Tests
-**Location**: `Test/modules/` - `crud.test.js`, `transaction.test.js`, `read.test.js`
+### 5. Plan Mode
+Create plan → get approval → execute EVERY step → build + test each step → update docs → verify.
+Do not leave a plan half-finished.
 
-**When**:
-- New feature → Add test cases
-- Modified feature → Update tests
-- Bug fix → Add regression test
-- API change → Update affected tests
-- New module → Create new test file
+### 6. Incremental Verification
 
-**Example**:
-```javascript
-// Test/modules/crud.test.js
-async testNewFeature() {
-  await this.collection.insert({ name: 'Alice', age: 25 });
-  const result = await this.collection.query({ age: { $gt: 20 } }).exec();
-  this.assertEqual(result.length, 1);
-}
-```
-
-### 4. Plan Mode Execution
-- Create plan → Get approval → Execute EVERY step → Build+test each step → Update docs → Verify → Complete
-- DO NOT leave plan incomplete
-
-### 5. Incremental Verification
 ```bash
-# After each logical unit
-npm run build
+npm run build                              # after each logical unit
+npm test                                   # after related changes
+npm run build && npm test && npm run lint  # before commit
 
-# After related changes
-npm test
-
-# Before final commit
-npm run build && npm test && npm run lint
-```
-
-## Self-Review Checklist
-
-**Functionality**: Works as specified, edge cases handled, no regressions
-**Code Quality**: SOLID, DRY, clear names, modular
-**Performance**: No regressions, efficient algorithms, proper caching
-**Security**: Input validation, no injections, no sensitive data logged
-**TypeScript**: No `any`, proper interfaces, strict mode
-**Documentation**: README/Document/Dockerfile updated if needed
-**Testing**: Existing tests pass, new tests written
-**Build**: `npm run build` succeeds, no warnings
-
-## Common Pitfalls
-
-### ❌ BAD: Any types
-```typescript
-const temp: any = someObject;
-```
-### ✅ GOOD: Proper types
-```typescript
-interface ProperType { field1: string; field2: number; }
-const temp: ProperType = someObject;
-```
-
-### ❌ BAD: Duplicated logic
-```typescript
-// Same logic in 3 files
-function process1() { /* logic */ }
-function process2() { /* same logic */ }
-```
-### ✅ GOOD: DRY
-```typescript
-// Helper/utility.helper.ts
-export function process() { /* logic */ }
-// Imported where needed
-```
-
-### ❌ BAD: Ignoring build errors
-```bash
-npm run build  # Sees errors, ignores
-```
-### ✅ GOOD: Fix immediately
-```bash
-npm run build  # Fix all errors until passes
+# then refresh the knowledge graph, if graphify is installed
+python3 -c "import graphify" 2>/dev/null \
+  && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" \
+  || true
 ```
 
 ## Feature Development Flow
 
-1. **Understand** → Read spec, clarify ambiguities
-2. **Design** → Choose pattern, identify affected files
-3. **Implement** → Write code, build after logical units
-4. **Test** → Add tests in `Test/modules/`, verify pass
-5. **Document** → Update README/Document/Dockerfile
-6. **Verify** → Build ✓ Test ✓ Lint ✓ Self-review ✓
-7. **Complete** → Commit with proper message
+**Understand** (read spec, clarify ambiguities) → **Design** (choose pattern, identify affected
+files) → **Implement** (build after logical units) → **Test** (`Test/modules/`) →
+**Document** (README, `Document/`, Dockerfile, AI artifacts) → **Verify** (build, test, lint,
+self-review) → **Complete** (commit).
+
+## Self-Review Checklist
+
+- **Functionality**: works as specified, edge cases handled, no regressions
+- **Code quality**: SOLID, DRY, clear names, modular
+- **Performance**: no regressions, efficient algorithms, proper caching
+- **Security**: input validated, no injection, no sensitive data logged
+- **TypeScript**: no `any`, proper interfaces, strict mode
+- **Documentation**: README / `Document/` / Dockerfile / AI artifacts updated
+- **Testing**: existing tests pass, new tests written
+- **Build**: `npm run build` succeeds with no warnings
 
 ## Commit Standards
 
-**Before commit**:
-```bash
-npm run build && npm test && npm run lint
+```
+<type>: <subject>     # feat, fix, docs, refactor, perf, test, chore
+
+<body>                # what changed, bullet per item
+<footer>              # Closes #123
 ```
 
-**Message format**:
-```
-<type>: <subject>
-
-<body>
-
-<footer>
-```
-Types: feat, fix, docs, refactor, perf, test, chore
-
-**Example**:
-```
-feat: Add bulk upsert operation
-
-- Implemented upsertMany with atomic operations
-- Added transaction support
-- Updated cache invalidation
-- Tests in Test/modules/crud.test.js
-
-Closes #123
-```
+Run `npm run build && npm test && npm run lint` before committing.
 
 ## Performance Testing
-```javascript
-const start = performance.now();
-// ... operation ...
-const end = performance.now();
-console.log(`Took ${end - start}ms`);
-```
-No performance regressions allowed.
 
-## Summary
-- Build always: After every change
-- Test always: Update `Test/modules/` for features
-- Complete fully: No partial implementations
-- Document properly: README, Document/, Dockerfile
-- Review critically: Production-grade only
+Measure with `performance.now()` around the operation and compare before/after. No performance
+regressions are allowed.

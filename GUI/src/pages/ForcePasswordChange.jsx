@@ -47,8 +47,8 @@ const ForcePasswordChange = () => {
   return (
     <div className='min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-700 to-indigo-800 px-4'>
       <div className='bg-white rounded-lg shadow-lg max-w-md w-full p-8 animate-fadeIn'>
-        <h1 className='text-xl font-bold text-gray-900 mb-1'>Change Your Password</h1>
-        <p className='text-sm text-gray-500 mb-6'>
+        <h1 className='text-xl font-bold text-ink-900 mb-1'>Change Your Password</h1>
+        <p className='text-sm text-ink-500 mb-6'>
           For security, you must set a new password before continuing.
         </p>
 
@@ -56,7 +56,7 @@ const ForcePasswordChange = () => {
           <div className='mb-4'>
             <label
               htmlFor='currentPassword'
-              className='block text-sm font-medium text-gray-700 mb-1'
+              className='block text-sm font-medium text-ink-700 mb-1'
             >
               Current Password
             </label>
@@ -65,14 +65,14 @@ const ForcePasswordChange = () => {
               id='currentPassword'
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              className='w-full px-3 py-2 border border-ink-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
               disabled={isSubmitting}
               autoFocus
             />
           </div>
 
           <div className='mb-4'>
-            <label htmlFor='newPassword' className='block text-sm font-medium text-gray-700 mb-1'>
+            <label htmlFor='newPassword' className='block text-sm font-medium text-ink-700 mb-1'>
               New Password
             </label>
             <input
@@ -80,7 +80,7 @@ const ForcePasswordChange = () => {
               id='newPassword'
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              className='w-full px-3 py-2 border border-ink-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
               disabled={isSubmitting}
             />
           </div>
@@ -88,7 +88,7 @@ const ForcePasswordChange = () => {
           <div className='mb-4'>
             <label
               htmlFor='confirmPassword'
-              className='block text-sm font-medium text-gray-700 mb-1'
+              className='block text-sm font-medium text-ink-700 mb-1'
             >
               Confirm New Password
             </label>
@@ -97,12 +97,12 @@ const ForcePasswordChange = () => {
               id='confirmPassword'
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              className='w-full px-3 py-2 border border-ink-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
               disabled={isSubmitting}
             />
           </div>
 
-          {error && <p className='mb-4 text-sm text-red-600'>{error}</p>}
+          {error && <p className='mb-4 text-sm text-danger-600'>{error}</p>}
 
           <button
             type='submit'

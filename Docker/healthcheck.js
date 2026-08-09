@@ -5,7 +5,7 @@ const http = require('http');
 function parseBoolean(value, fallback) {
   if (value === undefined || value === '') return fallback;
   return ['true', '1', 'yes'].includes(String(value).trim().toLowerCase());
-}
+};
 
 const guiEnabled = parseBoolean(process.env.AXIODB_GUI, true);
 const tcpEnabled = parseBoolean(process.env.AXIODB_TCP, true);

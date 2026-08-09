@@ -19,7 +19,18 @@ export default async function dbRouter(
   options: RouterOptions,
 ): Promise<void> {
   const { AxioDBInstance } = options;
-  fastify.register(fastifyMultipart);
+  // No fileSize cap: a database export is legitimately as large as the database, and any
+  // number chosen here would either reject a real import or fail to stop a bomb - the size
+  // of an archive says nothing about how far it expands. Expansion ratio and free disk
+  // space are enforced during extraction instead (see ZipUnzip.utils).
+  //
+  // `files` and `fieldSize` are still bounded: those cost nothing legitimate to constrain.
+  fastify.register(fastifyMultipart, {
+    limits: {
+      files: 1,
+      fieldSize: 1024 * 1024,
+    },
+  });
 
   fastify.get(
     "/databases",

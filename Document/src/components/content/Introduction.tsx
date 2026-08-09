@@ -106,7 +106,7 @@ const Introduction: React.FC = () => {
         path="/"
       />
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-8 lg:p-12 mb-12 border border-slate-700 shadow-xl animate-fade-in">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 rounded-2xl p-5 sm:p-8 lg:p-12 mb-12 border border-slate-700 shadow-xl animate-fade-in">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-blob-drift"></div>
         <div
           className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-indigo-400/10 to-cyan-400/10 rounded-full blur-3xl animate-blob-drift"
@@ -138,11 +138,11 @@ const Introduction: React.FC = () => {
               </span>
             </div>
           </div>
-          <h1 className="text-5xl lg:text-7xl xl:text-8xl font-extrabold mb-8 bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent leading-tight tracking-tight animate-gradient-flow">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold mb-8 bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent leading-tight tracking-tight animate-gradient-flow">
             AxioDB
           </h1>
           <div className="space-y-4 mb-10">
-            <p className="text-2xl lg:text-3xl xl:text-4xl text-slate-200 font-medium leading-tight">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-slate-200 font-medium leading-tight">
               The Pure JavaScript Alternative to SQLite
             </p>
             <p className="text-lg lg:text-xl text-slate-400 font-light leading-relaxed max-w-4xl">
@@ -518,7 +518,7 @@ const Introduction: React.FC = () => {
             {/* TRANSACTION Operations */}
             <div className="mb-4">
               <p className="text-xs font-semibold text-violet-400 uppercase tracking-wider mb-2 px-1">🔄 Transaction Operations</p>
-              <div ref={transactionReveal.ref} className="grid grid-cols-4 md:grid-cols-8 gap-2 reveal-stagger-grid">
+              <div ref={transactionReveal.ref} className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2 reveal-stagger-grid">
                 <div className={`relative bg-gradient-to-br from-violet-900/30 to-purple-900/30 px-2 py-2 rounded-lg border border-violet-700 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
                     <span className="text-lg font-black text-violet-400">~23ms</span>
@@ -601,13 +601,13 @@ const Introduction: React.FC = () => {
 
           {/* Hello World Code Example */}
           <div className="bg-gradient-to-r from-gray-800 to-gray-700 text-white rounded-xl p-6 mb-8 shadow-lg border border-gray-700">
-            <div className="flex items-start gap-4">
+            <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
               <div className="flex-shrink-0">
                 <div className="p-2 bg-green-600 rounded-lg">
                   <Code className="h-6 w-6" />
                 </div>
               </div>
-              <div className="flex-1">
+              <div className="flex-1 w-full min-w-0">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="bg-green-600 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
                     🚀 Quick Start
@@ -623,7 +623,7 @@ const Introduction: React.FC = () => {
                   </div>
                 </div>
                 <CodeBlock code={HELLO_WORLD_CODE} language="javascript" />
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                   <a
                     href="/installation"
                     className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200"
@@ -662,7 +662,7 @@ const Introduction: React.FC = () => {
                     <Sparkles className="h-3 w-3" />
                     NEW FEATURE
                   </div>
-                  <h3 className="text-3xl lg:text-4xl font-extrabold text-white mb-3">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3">
                     Introducing AxioDBCloud
                   </h3>
                   <p className="text-xl text-blue-100 mb-4 leading-relaxed">
@@ -746,10 +746,10 @@ const Introduction: React.FC = () => {
       {/* Executive Overview */}
       <div
         ref={whyAxioDBReveal.ref}
-        className={`relative bg-gradient-to-br from-slate-800/50 to-blue-900/20 rounded-3xl p-8 lg:p-12 mb-16 border border-slate-700/50 shadow-lg reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}
+        className={`relative bg-gradient-to-br from-slate-800/50 to-blue-900/20 rounded-3xl p-5 sm:p-8 lg:p-12 mb-16 border border-slate-700/50 shadow-lg reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}
       >
         <div className="max-w-5xl">
-          <h2 className="text-3xl lg:text-4xl font-bold text-slate-100 mb-6">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-slate-100 mb-6">
             Why AxioDB?
           </h2>
           <div className="prose prose-xl prose-invert max-w-none">
@@ -894,7 +894,7 @@ const Introduction: React.FC = () => {
       {/* Honest Positioning Section */}
       <div
         ref={quoteReveal.ref}
-        className={`relative bg-gradient-to-r from-slate-800 to-blue-800 rounded-2xl p-8 lg:p-12 mb-16 overflow-hidden reveal-on-scroll ${quoteReveal.isVisible ? "is-visible animate-scale-in" : ""}`}
+        className={`relative bg-gradient-to-r from-slate-800 to-blue-800 rounded-2xl p-5 sm:p-8 lg:p-12 mb-16 overflow-hidden reveal-on-scroll ${quoteReveal.isVisible ? "is-visible animate-scale-in" : ""}`}
       >
         <div className="absolute top-0 left-0 w-full h-full opacity-10">
           <div className="absolute top-4 left-4 text-6xl text-blue-400">"</div>
