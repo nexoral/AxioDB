@@ -43,6 +43,7 @@ node Test/modules/crud.test.js
 - ✅ Changelog updated (`Document/src/data/changelog.ts`) if the change is major/breaking
 - ✅ AI artifacts updated + regenerated (`llms.txt`, `llms-full.txt`, `SKILL.md`, JSON-LD; then `npx tsx scripts/generate-seo-files.ts`)
 - ✅ Version identical across package.json, changelog, llms.txt, llms-full.txt, index.html
+- ✅ Knowledge graph rebuilt if graphify is installed (see the graphify section; skip silently if not)
 - ✅ No breaking changes (unless approved)
 
 ## Structure
@@ -104,4 +105,14 @@ Rules:
 - Use `graphify query "<question>"` as the DEFAULT codebase search: run it before any grep/glob/file-read, and fall back to raw search only when the graph returns nothing
 - Before answering architecture or codebase questions, read `graphify-out/GRAPH_REPORT.md` for god nodes and community structure
 - If `graphify-out/wiki/index.md` exists, navigate it instead of reading raw files
-- After modifying code files in this session, run `python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))"` to keep the graph current
+- **After changing any file, rebuild the graph - but check that graphify is installed first.**
+  It is optional local tooling, not a dependency: if the import fails, skip silently and carry
+  on. Never fail or block a task because graphify is missing.
+  ```bash
+  python3 -c "import graphify" 2>/dev/null \
+    && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" \
+    || echo "graphify not installed - skipping graph rebuild"
+  ```
+  Run it from the repo root, once, after the change is finished - not after every edit. A stale
+  graph is worse than no graph: it points the next search at symbols and line numbers that have
+  already moved. `graphify-out/` is gitignored, so this never affects what you commit.

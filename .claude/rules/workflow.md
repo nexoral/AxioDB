@@ -20,8 +20,26 @@ Why: Catch TypeScript errors immediately, not in production.
 4. `npm test` ✓
 5. `npm run lint` ✓
 6. Docs updated (README, Document/, Dockerfile) ✓
-7. No breaking changes (or noted) ✓
-8. Self-reviewed (performance, security) ✓
+7. AI artifacts updated + regenerated (`Document/public/`) ✓ - see `documentation.md`
+8. Knowledge graph rebuilt if graphify is installed ✓ - see below
+9. No breaking changes (or noted) ✓
+10. Self-reviewed (performance, security) ✓
+
+### 2a. Rebuild the Knowledge Graph (if graphify is installed)
+
+`graphify query "<question>"` is the default codebase search here, so the graph has to match
+the code. After the change is finished - once, from the repo root, not after every edit:
+
+```bash
+python3 -c "import graphify" 2>/dev/null \
+  && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" \
+  || echo "graphify not installed - skipping graph rebuild"
+```
+
+graphify is optional local tooling, not a project dependency. If the import fails, skip it and
+carry on - never fail or block a task over it. A stale graph is worse than no graph: it points
+the next search at symbols and line numbers that have already moved. `graphify-out/` is
+gitignored, so this never changes what you commit.
 
 ### 3. ALWAYS Update Tests
 **Location**: `Test/modules/` - `crud.test.js`, `transaction.test.js`, `read.test.js`
@@ -57,6 +75,11 @@ npm test
 
 # Before final commit
 npm run build && npm test && npm run lint
+
+# Then refresh the knowledge graph, if graphify is installed
+python3 -c "import graphify" 2>/dev/null \
+  && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" \
+  || true
 ```
 
 ## Self-Review Checklist

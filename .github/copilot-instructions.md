@@ -31,6 +31,7 @@ npm run build  # After EVERY code change
 - ✅ `npm run lint` passes
 - ✅ Docs updated (README.md, Document/, Dockerfile)
 - ✅ AI artifacts updated + regenerated (`Document/public/`)
+- ✅ Knowledge graph rebuilt if graphify is installed (see the graphify section; skip silently if not)
 - ✅ No breaking changes (unless approved)
 - ✅ Security validated
 - ✅ Performance acceptable
@@ -94,10 +95,14 @@ const TTL = Math.floor(Math.random() * (15 - 5 + 1) + 5) * 60 * 1000;
 {RootPath}/
 └── {DatabaseName}/
     └── {CollectionName}/
-        ├── {documentId}.axiodb
+        ├── {documentId}.axiodb          documents - the only non-JSONL files
         ├── {documentId2}.axiodb
-        └── indexes/
-            └── {indexName}.json
+        ├── indexes/
+        │   ├── index.meta.jsonl         index registry (append-only)
+        │   └── {indexName}.jsonl
+        └── .transactions/
+            ├── txn-meta.jsonl           in-flight transaction registry
+            └── {transactionId}.wal.jsonl
 ```
 
 ## Module Organization
@@ -270,6 +275,7 @@ Every task must meet ALL:
 - ✅ Tests pass (`npm test`)
 - ✅ Lint passes (`npm run lint`)
 - ✅ Docs updated (including `Document/public/` AI artifacts, regenerated)
+- ✅ Knowledge graph rebuilt if graphify is installed
 - ✅ No regressions
 - ✅ Follows patterns
 - ✅ Security validated
@@ -283,4 +289,14 @@ Rules:
 - Use `graphify query "<question>"` as the DEFAULT codebase search: run it before any grep/glob/file-read, and fall back to raw search only when the graph returns nothing
 - Before answering architecture or codebase questions, read `graphify-out/GRAPH_REPORT.md` for god nodes and community structure
 - If `graphify-out/wiki/index.md` exists, navigate it instead of reading raw files
-- After modifying code files in this session, run `python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))"` to keep the graph current
+- **After changing any file, rebuild the graph - but check that graphify is installed first.**
+  It is optional local tooling, not a dependency: if the import fails, skip silently and carry
+  on. Never fail or block a task because graphify is missing.
+  ```bash
+  python3 -c "import graphify" 2>/dev/null \
+    && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" \
+    || echo "graphify not installed - skipping graph rebuild"
+  ```
+  Run it from the repo root, once, after the change is finished - not after every edit. A stale
+  graph is worse than no graph: it points the next search at symbols and line numbers that have
+  already moved. `graphify-out/` is gitignored, so this never affects what you commit.
