@@ -1,155 +1,129 @@
-import { DatabaseIcon, FolderIcon } from '@heroicons/react/outline'
-import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/solid'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import Card, { CardHeader } from '../ui/Card'
+import { Badge, EmptyState, Skeleton } from '../ui/Feedback'
 
 /**
- * Component to display a tree view of databases and collections
+ * Expandable database → collection tree.
+ *
+ * Loading is now driven by the caller's `loading` prop. The previous version ran its own
+ * `setTimeout(500)` "to simulate loading" over data it already had in props, which just made
+ * the dashboard feel half a second slower than it was.
  */
-const DatabaseTreeView = ({ treeDB }) => {
-  const [loading, setLoading] = useState(true)
+const DatabaseTreeView = ({ treeDB = [], loading = false }) => {
   const [expanded, setExpanded] = useState({})
-  const [databaseTree, setDatabaseTree] = useState([])
 
-  // Toggle expansion of a tree node
-  const toggleExpand = (id) => {
-    setExpanded((prev) => ({
-      ...prev,
-      [id]: !prev[id]
-    }))
-  }
-
-  useEffect(() => {
-    const processTreeData = () => {
-      if (!treeDB || !Array.isArray(treeDB)) {
-        setDatabaseTree([])
-        setLoading(false)
-        return
-      }
-
-      // Transform treeDB into the expected format
-      const formattedData = treeDB.map((db, dbIndex) => {
-        const dbId = `db${dbIndex + 1}`
-        return {
-          id: dbId,
-          name: db.name,
-          type: 'database',
-          children: Array.isArray(db.collections)
-            ? db.collections.map((collection, colIndex) => ({
-              id: `${dbId}_col${colIndex + 1}`,
-              name: collection.name || collection, // Handle both new (object) and old (string) formats
-              type: 'collection',
-              documentCount: collection.documentCount || 0,
-              size: '0 MB'
+  const tree = useMemo(
+    () =>
+      (Array.isArray(treeDB) ? treeDB : []).map((db, dbIndex) => ({
+        id: `db${dbIndex + 1}`,
+        name: db.name,
+        collections: Array.isArray(db.collections)
+          ? db.collections.map((collection, colIndex) => ({
+              id: `db${dbIndex + 1}_col${colIndex + 1}`,
+              // Handles both the current object shape and the older bare-string form.
+              name: collection.name ?? collection,
+              documentCount: collection.documentCount ?? 0
             }))
-            : []
-        }
-      })
+          : []
+      })),
+    [treeDB]
+  )
 
-      // Expand the first database by default if it exists
-      if (formattedData.length > 0) {
-        setExpanded({ [formattedData[0].id]: true })
-      }
+  // Open the first database so the panel never reads as empty when data exists.
+  useEffect(() => {
+    if (tree.length > 0) setExpanded((current) => ({ [tree[0].id]: true, ...current }))
+  }, [tree])
 
-      setDatabaseTree(formattedData)
-      setLoading(false)
-    }
-
-    // Short timeout to simulate loading (can be removed if not needed)
-    setTimeout(() => {
-      processTreeData()
-    }, 500)
-  }, [treeDB])
-
-  // Render a tree node (database or collection)
-  const renderTreeNode = (node) => {
-    const isExpanded = expanded[node.id]
-
-    return (
-      <div key={node.id}>
-        <div
-          className={`flex items-center py-2 px-3 ${
-            node.type === 'database'
-              ? 'bg-blue-50 hover:bg-blue-100 border-b border-blue-100'
-              : 'hover:bg-gray-50 pl-10'
-          } cursor-pointer transition-colors`}
-          onClick={() => node.children && toggleExpand(node.id)}
-        >
-          {node.children
-            ? (
-              <div className='mr-1'>
-                {isExpanded
-                  ? (
-                    <ChevronDownIcon className='h-4 w-4 text-gray-500' />
-                    )
-                  : (
-                    <ChevronRightIcon className='h-4 w-4 text-gray-500' />
-                    )}
-              </div>
-              )
-            : (
-              <div className='w-4 mr-1' />
-              )}
-
-          {node.type === 'database'
-            ? (
-              <DatabaseIcon className='h-5 w-5 text-blue-600 mr-2' />
-              )
-            : (
-              <FolderIcon className='h-5 w-5 text-yellow-600 mr-2' />
-              )}
-
-          <div className='flex-grow'>
-            <span className='font-medium'>{node.name}</span>
-          </div>
-
-          {node.type === 'collection' && (
-            <div className='text-xs text-gray-500'>
-              <span className='mr-2'>{node.documentCount} docs</span>
-            </div>
-          )}
-        </div>
-
-        {node.children && isExpanded && (
-          <div className='border-l border-gray-200 ml-5'>
-            {node.children.map(renderTreeNode)}
-          </div>
-        )}
-      </div>
-    )
-  }
+  const toggle = (id) => setExpanded((current) => ({ ...current, [id]: !current[id] }))
 
   return (
-    <div className='bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow'>
-      <div className='border-b border-gray-200 py-4 px-6'>
-        <h3 className='text-lg font-medium text-gray-900'>
-          Database Structure
-        </h3>
-        <p className='text-sm text-gray-500 mt-1'>
-          Overview of databases and collections
-        </p>
-      </div>
+    <Card className='flex flex-col'>
+      <CardHeader
+        title='Database structure'
+        subtitle={`${tree.length} database${tree.length === 1 ? '' : 's'}`}
+      />
 
-      <div className='overflow-y-auto' style={{ maxHeight: '400px' }}>
+      <div className='max-h-[19rem] flex-1 overflow-y-auto'>
         {loading
           ? (
-            <div className='p-6 space-y-3'>
-              {[1, 2, 3].map((i) => (
-                <div key={i} className='animate-pulse'>
-                  <div className='h-6 bg-gray-200 rounded w-3/4 mb-2' />
-                  <div className='pl-6 space-y-2'>
-                    <div className='h-5 bg-gray-100 rounded w-2/3' />
-                    <div className='h-5 bg-gray-100 rounded w-2/3' />
-                    <div className='h-5 bg-gray-100 rounded w-2/3' />
+            <div className='space-y-3 p-5'>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className='space-y-2'>
+                  <Skeleton className='h-7 w-3/5' />
+                  <div className='space-y-1.5 pl-8'>
+                    <Skeleton className='h-5 w-2/3' />
+                    <Skeleton className='h-5 w-1/2' />
                   </div>
                 </div>
               ))}
             </div>
             )
-          : (
-            <div>{databaseTree.map(renderTreeNode)}</div>
-            )}
+          : tree.length === 0
+            ? (
+              <EmptyState
+                className='py-10'
+                title='No databases yet'
+                description='Databases you create will appear here with their collections.'
+              />
+              )
+            : (
+              <ul className='divide-y divide-ink-100'>
+                {tree.map((db) => {
+                  const isOpen = Boolean(expanded[db.id])
+
+                  return (
+                    <li key={db.id}>
+                      <button
+                        type='button'
+                        onClick={() => toggle(db.id)}
+                        aria-expanded={isOpen}
+                        className='flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-ink-50'
+                      >
+                        <svg
+                          className={`h-4 w-4 shrink-0 text-ink-400 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+                          fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2} aria-hidden='true'
+                        >
+                          <path strokeLinecap='round' strokeLinejoin='round' d='M9 5l7 7-7 7' />
+                        </svg>
+                        <svg className='h-4 w-4 shrink-0 text-brand-600' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2} aria-hidden='true'>
+                          <ellipse cx='12' cy='6' rx='8' ry='3' />
+                          <path d='M4 6v12c0 1.66 3.58 3 8 3s8-1.34 8-3V6' />
+                        </svg>
+                        <span className='min-w-0 flex-1 truncate text-sm font-semibold text-ink-900'>
+                          {db.name}
+                        </span>
+                        <Badge tone='neutral'>{db.collections.length}</Badge>
+                      </button>
+
+                      {isOpen && (
+                        <ul className='ml-[1.6rem] space-y-0.5 border-l border-ink-200 pb-2 pl-3'>
+                          {db.collections.length === 0
+                            ? <li className='py-2 pl-3 text-xs text-ink-400'>No collections</li>
+                            : db.collections.map((collection) => (
+                              <li
+                                key={collection.id}
+                                className='animate-fadeIn flex items-center gap-2 rounded-md px-3 py-1.5 transition-colors hover:bg-ink-50'
+                              >
+                                <svg className='h-4 w-4 shrink-0 text-amber-500' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2} aria-hidden='true'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' d='M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z' />
+                                </svg>
+                                <span className='min-w-0 flex-1 truncate text-sm text-ink-700'>
+                                  {collection.name}
+                                </span>
+                                <span className='shrink-0 text-xs tabular-nums text-ink-500'>
+                                  {collection.documentCount.toLocaleString()} docs
+                                </span>
+                              </li>
+                            ))}
+                        </ul>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+              )}
       </div>
-    </div>
+    </Card>
   )
 }
 

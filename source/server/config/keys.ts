@@ -329,7 +329,7 @@ export const AuthorInfo: AuthorInfoType = {
   name: "Ankan Saha",
   Designation: "Software Engineer",
   Country: "India",
-  Email: "ankansahaofficial@gmail.com",
+  Email: "connect@ankan.in",
   LinkedIn: "https://www.linkedin.com/in/theankansaha/",
   github: "https://github.com/AnkanSaha",
 };

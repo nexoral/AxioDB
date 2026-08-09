@@ -606,3 +606,99 @@ export function getAllSuggestions (text, caret, collectionName) {
     prefix: ''
   }
 }
+
+/** Bare `{ key: ... }` is legal only for a valid JS identifier; everything else needs quotes. */
+const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/
+
+/**
+ * Renders a value as a JavaScript object literal - the inverse of {@link parseLiteral}.
+ *
+ * Unquoted keys where legal and single-quoted strings, so what the editor shows is what you
+ * would type in a .js file. `JSON.stringify` cannot do this: it always quotes keys and always
+ * uses double quotes.
+ *
+ * @param {*} value
+ * @param {number} [indent] - spaces per level
+ * @returns {string}
+ */
+export function formatLiteral (value, indent = 2) {
+  const pad = (depth) => ' '.repeat(indent * depth)
+
+  const render = (node, depth) => {
+    if (node === null) return 'null'
+    if (node === undefined) return 'undefined'
+
+    const type = typeof node
+    if (type === 'number' || type === 'boolean') return String(node)
+    if (type === 'string') {
+      // Prefer single quotes; fall back to double when the value itself contains one.
+      const escaped = node.replace(/\\/g, '\\\\').replace(/\n/g, '\\n')
+      return escaped.includes("'")
+        ? `"${escaped.replace(/"/g, '\\"')}"`
+        : `'${escaped}'`
+    }
+
+    if (Array.isArray(node)) {
+      if (node.length === 0) return '[]'
+      const items = node.map((item) => `${pad(depth + 1)}${render(item, depth + 1)}`)
+      return `[\n${items.join(',\n')}\n${pad(depth)}]`
+    }
+
+    if (type === 'object') {
+      const entries = Object.entries(node)
+      if (entries.length === 0) return '{}'
+      const rendered = entries.map(([key, item]) => {
+        const safeKey = IDENTIFIER.test(key) ? key : `'${key}'`
+        return `${pad(depth + 1)}${safeKey}: ${render(item, depth + 1)}`
+      })
+      return `{\n${rendered.join(',\n')}\n${pad(depth)}}`
+    }
+
+    return String(node)
+  }
+
+  return render(value, 0)
+}
+
+/**
+ * Validates a standalone document literal - what the insert/update editors need.
+ * Returns the same diagnostic shape {@link validate} produces.
+ *
+ * @param {string} text
+ * @returns {Array<{start: number, end: number, message: string, severity: 'error'|'warning'}>}
+ */
+export function validateDocument (text) {
+  if (!text.trim()) {
+    return [{ start: 0, end: 0, message: 'Document is empty.', severity: 'error' }]
+  }
+
+  let value
+  try {
+    value = parseLiteral(text)
+  } catch (error) {
+    const start = Math.min(error.offset ?? 0, Math.max(text.length - 1, 0))
+    return [{ start, end: start + 1, message: error.message, severity: 'error' }]
+  }
+
+  if (Array.isArray(value) || typeof value !== 'object' || value === null) {
+    return [{
+      start: 0,
+      end: text.length,
+      message: 'A document must be an object, for example { name: \'Ankan\' }.',
+      severity: 'error'
+    }]
+  }
+
+  // documentId/updatedAt are assigned by AxioDB; sending them back is a silent no-op at best.
+  return ['documentId', 'updatedAt']
+    .filter((field) => Object.prototype.hasOwnProperty.call(value, field))
+    .map((field) => {
+      const at = Math.max(text.indexOf(field), 0)
+      return {
+        start: at,
+        end: at + field.length,
+        message: `"${field}" is managed by AxioDB and is ignored here.`,
+        severity: 'warning'
+      }
+    })
+}

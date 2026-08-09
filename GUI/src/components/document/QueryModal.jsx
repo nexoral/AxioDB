@@ -86,7 +86,7 @@ const QueryModal = ({
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-slate-900/5 p-4 backdrop-blur-md'>
       <div className='flex max-h-[92vh] w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/10'>
         {/* Header */}
-        <div className='flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-4'>
+        <div className='flex items-center justify-between border-b border-ink-200 bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-4'>
           <div className='flex items-center gap-3'>
             <span className='flex h-9 w-9 items-center justify-center rounded-lg bg-white/10'>
               <svg className='h-5 w-5 text-emerald-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
@@ -122,24 +122,24 @@ const QueryModal = ({
             onSubmit={hasErrors ? undefined : handleRun}
           />
 
-          <div className='mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500'>
-            <kbd className='rounded border border-gray-300 bg-gray-50 px-1.5 py-0.5 font-mono'>Ctrl</kbd>
+          <div className='mt-3 flex flex-wrap items-center gap-2 text-xs text-ink-500'>
+            <kbd className='rounded border border-ink-300 bg-ink-50 px-1.5 py-0.5 font-mono'>Ctrl</kbd>
             <span>+</span>
-            <kbd className='rounded border border-gray-300 bg-gray-50 px-1.5 py-0.5 font-mono'>Space</kbd>
+            <kbd className='rounded border border-ink-300 bg-ink-50 px-1.5 py-0.5 font-mono'>Space</kbd>
             <span className='mr-2'>suggestions</span>
-            <kbd className='rounded border border-gray-300 bg-gray-50 px-1.5 py-0.5 font-mono'>Ctrl</kbd>
+            <kbd className='rounded border border-ink-300 bg-ink-50 px-1.5 py-0.5 font-mono'>Ctrl</kbd>
             <span>+</span>
-            <kbd className='rounded border border-gray-300 bg-gray-50 px-1.5 py-0.5 font-mono'>Enter</kbd>
+            <kbd className='rounded border border-ink-300 bg-ink-50 px-1.5 py-0.5 font-mono'>Enter</kbd>
             <span className='mr-2'>run</span>
             <span>
-              Type <code className='font-mono text-gray-700'>{collectionName}.</code> or{' '}
-              <code className='font-mono text-gray-700'>$</code> to see what fits.
+              Type <code className='font-mono text-ink-700'>{collectionName}.</code> or{' '}
+              <code className='font-mono text-ink-700'>$</code> to see what fits.
             </span>
           </div>
 
           {/* Examples */}
           <div className='mt-5'>
-            <p className='mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500'>
+            <p className='mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500'>
               Examples
             </p>
             <div className='flex flex-wrap gap-2'>
@@ -149,7 +149,7 @@ const QueryModal = ({
                   type='button'
                   onClick={() => setSource(example.code)}
                   title={example.code}
-                  className='rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700'
+                  className='rounded-full border border-ink-200 bg-ink-50 px-3 py-1.5 text-xs font-medium text-ink-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700'
                 >
                   {example.label}
                 </button>
@@ -165,21 +165,21 @@ const QueryModal = ({
         </div>
 
         {/* Footer */}
-        <div className='flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4'>
-          <p className='text-xs text-gray-500'>
+        <div className='flex items-center justify-between border-t border-ink-200 bg-ink-50 px-6 py-4'>
+          <p className='text-xs text-ink-500'>
             Suggestions cover syntax only - never your data.
           </p>
           <div className='flex gap-3'>
             <button
               onClick={onClose}
-              className='rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100'
+              className='rounded-lg border border-ink-300 bg-white px-4 py-2 text-sm font-medium text-ink-700 transition-colors hover:bg-ink-100'
             >
               Cancel
             </button>
             <button
               onClick={handleRun}
               disabled={loading || hasErrors}
-              className='flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-gray-300'
+              className='flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-ink-300'
             >
               {loading
                 ? (

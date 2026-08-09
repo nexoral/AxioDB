@@ -64,18 +64,58 @@ export const apiCategories: ApiCategory[] = [
         {
           method: "GET",
           path: "/api/health",
-          description: "Health check endpoint to verify server status. Use this for monitoring and uptime checks.",
+          description: "Liveness probe. Unauthenticated, and deliberately minimal - it is what the Docker healthcheck calls. Host details live on /api/system instead.",
           responseExample: `{
   "statusCode": 200,
   "status": "success",
   "message": "Server is healthy",
   "data": {
     "status": "ok",
-    "timestamp": "2025-10-31T12:00:00.000Z"
+    "timestamp": "2025-10-31T12:00:00.000Z",
+    "uptimeSeconds": 86400
   }
 }`,
           statusCodes: [
             { code: 200, description: "Success - Server is operational" },
+          ],
+        },
+        {
+          method: "GET",
+          path: "/api/system",
+          description: "Operational detail for the Status page: process, memory, cache, instance and service ports. Requires authentication and the dashboard:view permission, because it reports host characteristics that should not be exposed anonymously.",
+          responseExample: `{
+  "statusCode": 200,
+  "status": "success",
+  "message": "System information",
+  "data": {
+    "process": {
+      "uptimeSeconds": 86400,
+      "startedAt": "2025-10-30T12:00:00.000Z",
+      "pid": 4821,
+      "nodeVersion": "v20.11.0",
+      "platform": "linux",
+      "arch": "x64",
+      "cpuCount": 8
+    },
+    "memory": { "rss": 92.4, "heapUsed": 41.2, "heapTotal": 63.5, "external": 2.1, "unit": "MB" },
+    "cache": { "used": 3.42, "max": 512, "unit": "MB" },
+    "instance": {
+      "version": "15.0.0",
+      "rootName": "AxioDB",
+      "path": "/app/AxioDB",
+      "totalDatabases": 3
+    },
+    "services": [
+      { "name": "Dashboard + HTTP API", "port": 27018, "running": true },
+      { "name": "AxioDBCloud TCP", "port": 27019, "running": false },
+      { "name": "MCP server", "port": 27020, "running": false, "note": "Docker image only" }
+    ]
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Returns system information" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Role lacks dashboard:view" },
           ],
         },
         {

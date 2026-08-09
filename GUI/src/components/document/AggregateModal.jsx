@@ -67,13 +67,13 @@ const AggregateModal = ({
     <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4'>
       <div className='bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col'>
         {/* Modal Header */}
-        <div className='px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-blue-50'>
-          <h3 className='text-lg font-medium text-gray-900'>
+        <div className='px-6 py-4 border-b border-ink-200 flex justify-between items-center bg-gradient-to-r from-indigo-50 to-blue-50'>
+          <h3 className='text-lg font-medium text-ink-900'>
             Run Aggregation Pipeline
           </h3>
           <button
             onClick={handleClose}
-            className='text-gray-500 hover:text-gray-700 focus:outline-none'
+            className='text-ink-500 hover:text-ink-700 focus:outline-none'
           >
             <svg
               className='h-6 w-6'
@@ -94,25 +94,25 @@ const AggregateModal = ({
         {/* Modal Body */}
         <div className='flex-1 overflow-auto p-6'>
           <div className='mb-4'>
-            <p className='text-sm text-gray-600 mb-2'>
+            <p className='text-sm text-ink-600 mb-2'>
               Enter your MongoDB aggregation pipeline as a JSON array. Example:
             </p>
-            <div className='bg-gray-50 p-3 rounded-md text-xs font-mono mb-4 border border-gray-200'>
+            <div className='bg-ink-50 p-3 rounded-md text-xs font-mono mb-4 border border-ink-200'>
               [&#123; "$match": &#123; "field": "value" &#125; &#125;, &#123;
               "$sort": &#123; "field": 1 &#125; &#125;]
             </div>
-            <p className='text-sm text-gray-600 mb-4'>
+            <p className='text-sm text-ink-600 mb-4'>
               Running on <span className='font-semibold'>{collectionName}</span>{' '}
               in database <span className='font-semibold'>{databaseName}</span>
             </p>
           </div>
 
           <div className='mb-4'>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
+            <label className='block text-sm font-medium text-ink-700 mb-2'>
               Aggregation Pipeline
             </label>
             <textarea
-              className='w-full h-64 px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm'
+              className='w-full h-64 px-3 py-2 text-ink-700 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm'
               value={aggregationPipeline}
               onChange={(e) => setAggregationPipeline(e.target.value)}
               placeholder='[{ "$match": {} }]'
@@ -144,10 +144,10 @@ const AggregateModal = ({
         </div>
 
         {/* Modal Footer */}
-        <div className='px-6 py-4 border-t border-gray-200 flex justify-end'>
+        <div className='px-6 py-4 border-t border-ink-200 flex justify-end'>
           <button
             onClick={handleClose}
-            className='px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md mr-3'
+            className='px-4 py-2 text-sm font-medium text-ink-700 bg-ink-100 hover:bg-ink-200 rounded-md mr-3'
           >
             Cancel
           </button>

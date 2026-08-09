@@ -22,12 +22,12 @@ const TotalCollectionsCard = ({ totalCollections }) => {
     <div className='bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow'>
       <div className='flex justify-between'>
         <div>
-          {/* <h3 className="text-lg font-medium text-gray-900">
+          {/* <h3 className="text-lg font-medium text-ink-900">
             Total Collections
           </h3> */}
           {loading
             ? (
-              <div className='h-8 mt-2 bg-gray-200 rounded animate-pulse w-16' />
+              <div className='h-8 mt-2 bg-ink-200 rounded animate-pulse w-16' />
               )
             : (
               <p className='text-2xl font-bold text-indigo-600 mt-2'>

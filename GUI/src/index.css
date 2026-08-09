@@ -1,39 +1,201 @@
 @import "tailwindcss";
 
-/* Custom animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+/*
+ * AxioDB Control Hub - design tokens.
+ *
+ * Deep slate chrome, emerald as the single action colour. Every component reads from these
+ * variables rather than picking a Tailwind shade directly, so the palette can move in one
+ * place. Before this, "the primary button" was blue on one page, indigo on another and green
+ * on a third.
+ *
+ * @theme exposes them to Tailwind v4 as real utilities (bg-brand-600, text-ink-500, ...).
+ */
+@theme {
+  /* Brand - emerald. Actions, active states, positive metrics. */
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-200: #a7f3d0;
+  --color-brand-300: #6ee7b7;
+  --color-brand-400: #34d399;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+  --color-brand-800: #065f46;
+  --color-brand-900: #064e3b;
+
+  /* Ink - slate. Chrome, text, borders. */
+  --color-ink-50: #f8fafc;
+  --color-ink-100: #f1f5f9;
+  --color-ink-200: #e2e8f0;
+  --color-ink-300: #cbd5e1;
+  --color-ink-400: #94a3b8;
+  --color-ink-500: #64748b;
+  --color-ink-600: #475569;
+  --color-ink-700: #334155;
+  --color-ink-800: #1e293b;
+  --color-ink-900: #0f172a;
+  --color-ink-950: #020617;
+
+  /* Data-visualisation ramp. Ordered for adjacent-series contrast, not for prettiness. */
+  --color-viz-1: #10b981;
+  --color-viz-2: #6366f1;
+  --color-viz-3: #f59e0b;
+  --color-viz-4: #ec4899;
+  --color-viz-5: #06b6d4;
+  --color-viz-6: #8b5cf6;
+
+  /* Status */
+  --color-danger-50: #fef2f2;
+  --color-danger-200: #fecaca;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+  --color-warn-50: #fffbeb;
+  --color-warn-200: #fde68a;
+  --color-warn-500: #f59e0b;
+  --color-warn-700: #b45309;
+  --color-info-50: #eff6ff;
+  --color-info-200: #bfdbfe;
+  --color-info-500: #3b82f6;
+  --color-info-700: #1d4ed8;
+
+  /* Elevation - one soft ambient layer plus a tighter contact shadow, so cards sit on the
+     page instead of floating off it. */
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+  --shadow-raised: 0 4px 6px -1px rgb(15 23 42 / 0.07), 0 2px 4px -2px rgb(15 23 42 / 0.05);
+  --shadow-float: 0 10px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -4px rgb(15 23 42 / 0.06);
+  --shadow-modal: 0 25px 50px -12px rgb(15 23 42 / 0.25);
+
+  --radius-card: 0.75rem;
+
+  /* Motion. Short, and eased so movement decelerates into place. */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@layer base {
+  body {
+    background-color: var(--color-ink-50);
+    color: var(--color-ink-800);
+    -webkit-font-smoothing: antialiased;
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  /* Visible focus for keyboard users, invisible for mouse users. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
   }
+
+  /* Tabular figures stop metric counters from jittering as digits change. */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ---------------------------------------------------------------- animations */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.animate-fadeIn { animation: fadeIn 0.3s var(--ease-out-soft) both; }
+
+/*
+ * Page-level enter animation. Opacity only, and deliberately so: `transform` (even the
+ * identity transform left behind by animation-fill-mode: both) makes an element the
+ * containing block for its `position: fixed` descendants. Putting a transform on the routed
+ * <main> made every modal centre inside the full page height instead of the viewport, so
+ * dialogs opened below the fold and had to be scrolled to.
+ */
+@keyframes pageIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-pageIn { animation: pageIn 0.25s var(--ease-out-soft) both; }
+.animate-slideIn { animation: slideIn 0.3s var(--ease-out-soft) both; }
+.animate-riseIn { animation: riseIn 0.4s var(--ease-out-soft) both; }
+.animate-popIn { animation: popIn 0.22s var(--ease-spring) both; }
+
+/*
+ * Stagger helper: children enter in sequence rather than all at once, which reads as one
+ * deliberate movement instead of a flash. Capped at 12 - past that the last item feels late.
+ */
+.stagger > * { animation: riseIn 0.4s var(--ease-out-soft) both; }
+.stagger > *:nth-child(1) { animation-delay: 0ms; }
+.stagger > *:nth-child(2) { animation-delay: 40ms; }
+.stagger > *:nth-child(3) { animation-delay: 80ms; }
+.stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(5) { animation-delay: 160ms; }
+.stagger > *:nth-child(6) { animation-delay: 200ms; }
+.stagger > *:nth-child(7) { animation-delay: 240ms; }
+.stagger > *:nth-child(8) { animation-delay: 280ms; }
+.stagger > *:nth-child(9) { animation-delay: 320ms; }
+.stagger > *:nth-child(10) { animation-delay: 360ms; }
+.stagger > *:nth-child(11) { animation-delay: 400ms; }
+.stagger > *:nth-child(n + 12) { animation-delay: 440ms; }
+
+/* Skeletons sweep rather than blink - a pulse at the same rate as a spinner reads as broken. */
+.skeleton {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-ink-200) 0%,
+    var(--color-ink-100) 40%,
+    var(--color-ink-200) 80%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/*
+ * Honour the OS setting. Motion here is decoration; for anyone who has asked for less of it,
+ * every animation collapses to an instant state change rather than a fast one.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+}
 
-  to {
-    opacity: 1;
-    transform: translateX(0);
+/* Scrollbars, restrained so they don't fight the chrome. */
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink-300);
+    border: 2px solid var(--color-ink-50);
+    border-radius: 9999px;
   }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-ink-400); }
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.animate-slideIn {
-  animation: slideIn 0.3s ease-out;
-}
-
-/* Toggle Switch Styling */
+/* Toggle switch - kept from the previous stylesheet, still used by Import. */
 .toggle-checkbox {
   right: 0;
   z-index: 5;

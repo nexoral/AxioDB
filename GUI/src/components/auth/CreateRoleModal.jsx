@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import authApi from '../../api/authApi'
+import Modal from '../ui/Modal'
+import Button from '../ui/Button'
+import { Input } from '../ui/Field'
+import { Alert, Badge, Skeleton } from '../ui/Feedback'
 
 const CreateRoleModal = ({ isOpen, onClose, onRoleCreated }) => {
   const [roleName, setRoleName] = useState('')
@@ -74,103 +78,111 @@ const CreateRoleModal = ({ isOpen, onClose, onRoleCreated }) => {
     }
   }
 
-  if (!isOpen) return null
+  const ShieldIcon = (
+    <svg className='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
+      <path strokeLinecap='round' strokeLinejoin='round' d='M9 12l2 2 4-4M12 3l7 4v5c0 4.42-3.05 8.56-7 9.75C8.05 20.56 5 16.42 5 12V7l7-4z' />
+    </svg>
+  )
 
   return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn'>
-      <div className='bg-white rounded-lg max-w-lg w-full p-6 max-h-[85vh] overflow-y-auto'>
-        <h3 className='text-xl font-bold text-gray-900 mb-4'>Create New Role</h3>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title='Create role'
+      subtitle={`${selectedPermissions.length} permission${selectedPermissions.length === 1 ? '' : 's'} selected`}
+      icon={ShieldIcon}
+      size='lg'
+      footer={
+        <>
+          <Button variant='secondary' onClick={handleClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            loading={isSubmitting}
+            disabled={!roleName.trim() || selectedPermissions.length === 0}
+          >
+            Create role
+          </Button>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className='space-y-5'>
+        <Input
+          label='Role name'
+          value={roleName}
+          onChange={(event) => setRoleName(event.target.value)}
+          placeholder='Auditor'
+          autoFocus
+          autoComplete='off'
+          hint='Shown wherever roles are assigned. Choose something that describes the job, not the person.'
+        />
 
-        <form onSubmit={handleSubmit}>
-          <div className='mb-4'>
-            <label htmlFor='roleName' className='block text-sm font-medium text-gray-700 mb-1'>
-              Role Name
-            </label>
-            <input
-              type='text'
-              id='roleName'
-              value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
-              placeholder='e.g. Auditor'
-              disabled={isSubmitting}
-            />
-          </div>
+        <div>
+          <p className='mb-2 text-sm font-medium text-ink-700'>Permissions</p>
 
-          <div className='mb-4'>
-            <span className='block text-sm font-medium text-gray-700 mb-2'>Permissions</span>
-            {isLoadingPermissions
-              ? (
-                <div className='animate-pulse space-y-2'>
-                  <div className='h-4 bg-gray-200 rounded w-3/4' />
-                  <div className='h-4 bg-gray-200 rounded w-2/3' />
-                </div>
-                )
-              : (
-                <div className='space-y-3'>
-                  {Object.entries(groupedPermissions).map(([group, perms]) => {
-                    const groupKeys = perms.map((p) => p.key)
-                    const allSelected = groupKeys.every((key) => selectedPermissions.includes(key))
-                    return (
-                      <div key={group} className='border border-gray-200 rounded-md p-3'>
-                        <div className='flex items-center justify-between mb-2'>
-                          <span className='text-sm font-semibold text-gray-800'>{group}</span>
-                          <button
-                            type='button'
-                            onClick={() => toggleGroup(groupKeys, allSelected)}
-                            className='text-xs text-blue-600 hover:text-blue-800'
-                          >
-                            {allSelected ? 'Clear all' : 'Select all'}
-                          </button>
-                        </div>
-                        <div className='grid grid-cols-1 sm:grid-cols-2 gap-1'>
-                          {perms.map((perm) => (
-                            <label
-                              key={perm.key}
-                              className='flex items-center space-x-2 text-sm text-gray-700'
-                              title={perm.description}
-                            >
-                              <input
-                                type='checkbox'
-                                checked={selectedPermissions.includes(perm.key)}
-                                onChange={() => togglePermission(perm.key)}
-                                className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
-                              />
-                              <span>{perm.key}</span>
-                            </label>
-                          ))}
-                        </div>
+          {isLoadingPermissions
+            ? (
+              <div className='space-y-2'>
+                {[0, 1, 2].map((i) => <Skeleton key={i} className='h-20 w-full' />)}
+              </div>
+              )
+            : (
+              <div className='space-y-3'>
+                {Object.entries(groupedPermissions).map(([group, permissions]) => {
+                  const groupKeys = permissions.map((permission) => permission.key)
+                  const allSelected = groupKeys.every((key) => selectedPermissions.includes(key))
+
+                  return (
+                    <div key={group} className='rounded-lg border border-ink-200 bg-white'>
+                      <div className='flex items-center justify-between border-b border-ink-100 px-4 py-2.5'>
+                        <span className='text-sm font-semibold text-ink-900'>{group}</span>
+                        <button
+                          type='button'
+                          onClick={() => toggleGroup(groupKeys, allSelected)}
+                          className='text-xs font-medium text-brand-700 transition-colors hover:text-brand-800'
+                        >
+                          {allSelected ? 'Clear all' : 'Select all'}
+                        </button>
                       </div>
-                    )
-                  })}
-                </div>
-                )}
-          </div>
+                      <div className='grid gap-1 p-2 sm:grid-cols-2'>
+                        {permissions.map((permission) => (
+                          <label
+                            key={permission.key}
+                            className='flex cursor-pointer items-start gap-2.5 rounded-md px-2 py-1.5 transition-colors hover:bg-ink-50'
+                          >
+                            <input
+                              type='checkbox'
+                              checked={selectedPermissions.includes(permission.key)}
+                              onChange={() => togglePermission(permission.key)}
+                              className='mt-0.5 h-4 w-4 shrink-0 rounded border-ink-300 text-brand-600 focus:ring-brand-500'
+                            />
+                            <span className='min-w-0'>
+                              <span className='block truncate text-sm text-ink-800'>
+                                {permission.description}
+                              </span>
+                              <span className='block truncate font-mono text-[11px] text-ink-400'>
+                                {permission.key}
+                              </span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              )}
+        </div>
 
-          {error && <p className='mt-2 text-sm text-red-600'>{error}</p>}
+        {selectedPermissions.length > 0 && (
+          <Badge tone='brand'>{selectedPermissions.length} selected</Badge>
+        )}
 
-          <div className='flex justify-end space-x-4 mt-6'>
-            <button
-              type='button'
-              onClick={handleClose}
-              className='px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors'
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type='submit'
-              className={`px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors ${
-                isSubmitting ? 'opacity-75 cursor-not-allowed' : ''
-              }`}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Creating...' : 'Create Role'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {error && <Alert tone='danger'>{error}</Alert>}
+        <button type='submit' className='hidden' aria-hidden='true' tabIndex={-1} />
+      </form>
+    </Modal>
   )
 }
 

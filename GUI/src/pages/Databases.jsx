@@ -2,37 +2,46 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { BASE_API_URL } from '../config/key'
 import { DBInfoStore } from '../store/store'
-
-// Import our components
 import CreateDatabaseModal from '../components/database/CreateDatabaseModal'
 import DeleteDatabaseModal from '../components/database/DeleteDatabaseModal'
 import DatabaseList from '../components/database/DatabaseList'
+import Button from '../components/ui/Button'
+import { Alert } from '../components/ui/Feedback'
+
+const PlusIcon = (
+  <svg className='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
+    <path strokeLinecap='round' strokeLinejoin='round' d='M12 4v16m8-8H4' />
+  </svg>
+)
 
 const Databases = () => {
   const [loading, setLoading] = useState(true)
   const [databases, setDatabases] = useState([])
+  const [error, setError] = useState(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [dbToDelete, setDbToDelete] = useState('')
   const { Rootname } = DBInfoStore((state) => state)
 
   useEffect(() => {
-    // Fetch data from the real API
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`${BASE_API_URL}/api/db/databases`)
-        if (response.status === 200) {
-          setDatabases(response.data.data)
-          setLoading(false)
-        }
-      } catch (error) {
-        console.error('Error fetching databases:', error)
-        setLoading(false)
-        setDatabases([])
-      }
-    }
+    let cancelled = false
 
-    fetchData()
+    axios
+      .get(`${BASE_API_URL}/api/db/databases`)
+      .then((response) => {
+        if (cancelled) return
+        setDatabases(response.data.data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        console.error('Error fetching databases:', err)
+        setError(err.response?.data?.message || 'Could not load databases.')
+        setDatabases([])
+        setLoading(false)
+      })
+
+    return () => { cancelled = true }
   }, [])
 
   const handleDeleteClick = (dbName) => {
@@ -41,73 +50,53 @@ const Databases = () => {
   }
 
   const handleConfirmDelete = () => {
-    setDatabases((prevState) => ({
-      ...prevState,
-      ListOfDatabases: prevState.ListOfDatabases.filter(
-        (db) => db !== dbToDelete
-      ),
-      TotalDatabases: `${prevState.ListOfDatabases.length - 1} Databases`
+    setDatabases((prev) => ({
+      ...prev,
+      ListOfDatabases: prev.ListOfDatabases.filter((db) => db !== dbToDelete),
+      TotalDatabases: `${prev.ListOfDatabases.length - 1} Databases`
     }))
-
     setShowDeleteModal(false)
     setDbToDelete('')
   }
 
   const handleCreateDatabase = (newDbName) => {
-    // Update the UI with the new database
-    setDatabases((prevState) => ({
-      ...prevState,
-      ListOfDatabases: [...prevState.ListOfDatabases, newDbName],
-      TotalDatabases: `${prevState.ListOfDatabases.length + 1} Databases`,
-      AllDatabasesPaths: [
-        ...prevState.AllDatabasesPaths,
-        `${prevState.CurrentPath}/${newDbName}`
-      ]
+    setDatabases((prev) => ({
+      ...prev,
+      ListOfDatabases: [...prev.ListOfDatabases, newDbName],
+      TotalDatabases: `${prev.ListOfDatabases.length + 1} Databases`,
+      AllDatabasesPaths: [...prev.AllDatabasesPaths, `${prev.CurrentPath}/${newDbName}`]
     }))
   }
 
   return (
-    <div className='container mx-auto px-4 py-6'>
-      <div className='flex justify-between items-center mb-6'>
+    <div className='mx-auto w-full max-w-[120rem] px-4 py-8 sm:px-6 lg:px-8'>
+      <header className='mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between'>
         <div>
-          <h1 className='text-2xl font-bold text-gray-900'>Databases</h1>
-          <p className='text-gray-600'>Manage your {Rootname} databases</p>
+          <h1 className='text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl'>Databases</h1>
+          <p className='mt-1 text-sm text-ink-500'>
+            Every database inside <span className='font-medium text-ink-700'>{Rootname}</span>.
+          </p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className='bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center transition-colors'
-        >
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            className='h-5 w-5 mr-2'
-            viewBox='0 0 20 20'
-            fill='currentColor'
-          >
-            <path
-              fillRule='evenodd'
-              d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z'
-              clipRule='evenodd'
-            />
-          </svg>
+        <Button size='lg' icon={PlusIcon} onClick={() => setShowCreateModal(true)}>
           Create Database
-        </button>
-      </div>
+        </Button>
+      </header>
 
-      {/* Database List Component */}
+      {error && <Alert tone='danger' title='Could not load databases' className='mb-6'>{error}</Alert>}
+
       <DatabaseList
         databases={databases}
         onDeleteClick={handleDeleteClick}
+        onCreateClick={() => setShowCreateModal(true)}
         loading={loading}
       />
 
-      {/* Create Database Modal */}
       <CreateDatabaseModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onDatabaseCreated={handleCreateDatabase}
       />
 
-      {/* Delete Confirmation Modal */}
       <DeleteDatabaseModal
         isOpen={showDeleteModal}
         dbName={dbToDelete}

@@ -44,9 +44,10 @@ function MainConfig () {
   }, [])
 
   return (
-    <div className='min-h-screen bg-gray-50 flex flex-col'>
+    <div className='flex min-h-screen flex-col bg-ink-50'>
       {showLayout && <Header />}
-      <main className='flex-grow'>
+      {/* Keyed on pathname so every route change replays the enter animation. */}
+      <main key={location.pathname} className='animate-pageIn flex-grow'>
         <Routes>
           <Route path='/login' element={<Login />} />
           <Route path='/force-password-change' element={<ForcePasswordChange />} />

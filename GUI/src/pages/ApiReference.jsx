@@ -56,20 +56,20 @@ const ApiReference = () => {
       case 'GET':
         return 'bg-blue-600'
       case 'POST':
-        return 'bg-green-600'
+        return 'bg-brand-600'
       case 'PUT':
         return 'bg-amber-600'
       case 'DELETE':
         return 'bg-red-600'
       default:
-        return 'bg-gray-600'
+        return 'bg-ink-600'
     }
   }
 
   // Render JSON payload with basic formatting
   const renderPayload = (payload) => {
     return (
-      <pre className='mt-2 p-3 bg-gray-800 text-gray-200 rounded-md overflow-x-auto text-sm'>
+      <pre className='mt-2 p-3 bg-ink-800 text-ink-200 rounded-md overflow-x-auto text-sm'>
         {JSON.stringify(payload, null, 2)}
       </pre>
     )
@@ -77,7 +77,7 @@ const ApiReference = () => {
 
   if (loading) {
     return (
-      <div className='container mx-auto px-4 py-8'>
+      <div className='mx-auto w-full max-w-[120rem] px-4 py-8 sm:px-6 lg:px-8'>
         <h1 className='text-2xl font-bold mb-6'>API Reference</h1>
         <div className='flex justify-center items-center py-12'>
           <div className='animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500' />
@@ -88,7 +88,7 @@ const ApiReference = () => {
 
   if (error) {
     return (
-      <div className='container mx-auto px-4 py-8'>
+      <div className='mx-auto w-full max-w-[120rem] px-4 py-8 sm:px-6 lg:px-8'>
         <h1 className='text-2xl font-bold mb-6'>API Reference</h1>
         <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded'>
           <p>{error}</p>
@@ -98,15 +98,15 @@ const ApiReference = () => {
   }
 
   return (
-    <div className='container mx-auto px-4 py-8'>
+    <div className='mx-auto w-full max-w-[120rem] px-4 py-8 sm:px-6 lg:px-8'>
       <h1 className='text-2xl font-bold mb-2'>API Reference</h1>
-      <p className='text-gray-600 mb-6'>
+      <p className='text-ink-600 mb-6'>
         Complete documentation for the AxioDB REST API
       </p>
 
       {apiRoutes.length === 0 && !loading && !error
         ? (
-          <div className='bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded'>
+          <div className='bg-warn-50 border border-yellow-400 text-yellow-700 px-4 py-3 rounded'>
             <p>
               No API routes found. The server might not have returned any routes.
             </p>
@@ -117,19 +117,19 @@ const ApiReference = () => {
             {apiRoutes.map((group) => (
               <div
                 key={group.groupName}
-                className='border border-gray-200 rounded-lg overflow-hidden'
+                className='border border-ink-200 rounded-lg overflow-hidden'
               >
                 <div
-                  className='bg-gray-50 px-4 py-3 flex justify-between items-center cursor-pointer'
+                  className='bg-ink-50 px-4 py-3 flex justify-between items-center cursor-pointer'
                   onClick={() => toggleGroup(group.groupName)}
                 >
                   <div>
-                    <h2 className='text-lg font-medium text-gray-900'>
+                    <h2 className='text-lg font-medium text-ink-900'>
                       {group.groupName}
                     </h2>
-                    <p className='text-sm text-gray-500'>{group.description}</p>
+                    <p className='text-sm text-ink-500'>{group.description}</p>
                   </div>
-                  <div className='text-gray-500'>
+                  <div className='text-ink-500'>
                     {expandedGroups[group.groupName]
                       ? (
                         <svg
@@ -163,9 +163,9 @@ const ApiReference = () => {
                 </div>
 
                 {expandedGroups[group.groupName] && (
-                  <div className='divide-y divide-gray-200'>
+                  <div className='divide-y divide-ink-200'>
                     {group.Paths.map((path, index) => (
-                      <div key={index} className='p-4 hover:bg-gray-50'>
+                      <div key={index} className='p-4 hover:bg-ink-50'>
                         <div className='flex items-start'>
                   <span
                           className={`${getMethodColor(path.method)} text-white text-xs font-bold px-2 py-1 rounded mr-3 min-w-16 text-center`}
@@ -173,16 +173,16 @@ const ApiReference = () => {
                           {path.method}
                         </span>
                   <div className='flex-1'>
-                          <div className='font-mono text-sm bg-gray-100 p-2 rounded mb-2 overflow-x-auto'>
+                          <div className='font-mono text-sm bg-ink-100 p-2 rounded mb-2 overflow-x-auto'>
                             {path.path}
                           </div>
-                          <p className='text-gray-700 mb-2'>
+                          <p className='text-ink-700 mb-2'>
                             {path.description}
                           </p>
 
                           {path.payload && (
                             <div>
-                              <h4 className='text-sm font-semibold text-gray-700 mt-2 mb-1'>
+                              <h4 className='text-sm font-semibold text-ink-700 mt-2 mb-1'>
                                 Payload:
                               </h4>
                               {renderPayload(path.payload)}
