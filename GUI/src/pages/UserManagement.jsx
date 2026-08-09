@@ -7,6 +7,7 @@ import ResetPasswordModal from '../components/auth/ResetPasswordModal'
 
 const UserManagement = () => {
   const permissions = useAuthStore((state) => state.permissions)
+  const currentUsername = useAuthStore((state) => state.username)
   const [users, setUsers] = useState([])
   const [roles, setRoles] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -150,7 +151,7 @@ const UserManagement = () => {
                             Reset Password
                           </button>
                         )}
-                        {canDeleteUser && (
+                        {canDeleteUser && u.username !== currentUsername && (
                           <button
                             onClick={() => handleDelete(u.username)}
                             className='text-red-600 hover:text-red-800'

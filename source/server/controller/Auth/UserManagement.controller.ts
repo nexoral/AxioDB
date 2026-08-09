@@ -97,7 +97,15 @@ export default class UserManagementController {
   public async deleteUser(request: FastifyRequest, reply: FastifyReply): Promise<ResponseBuilder> {
     const { username } = request.params as { username: string };
 
-    const result = await this.authService.deleteUser(username);
+    const actorUsername = request.authUser?.username;
+    if (!actorUsername) {
+      return sendResponse(
+        reply,
+        buildResponse(StatusCodes.UNAUTHORIZED, "Session invalid or expired"),
+      );
+    }
+
+    const result = await this.authService.deleteUser(username, actorUsername);
     if (!result.success) {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, result.message));
     }

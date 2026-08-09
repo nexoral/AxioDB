@@ -346,13 +346,55 @@ class AuthTests extends TestRunner {
       });
     });
 
-    await this.describe('Last remaining Super Admin guard', async () => {
-      await this.test('Cannot delete the only Super Admin account', async () => {
+    await this.describe('Self-deletion guard', async () => {
+      await this.test('A user cannot delete their own account', async () => {
         const res = await fetch(`${BASE_URL}/auth/users/admin`, {
           method: 'DELETE',
           headers: { Cookie: this.adminCookie },
         });
+        const body = await res.json();
         assert.equal(res.status, 400);
+        assert.includes(body.message, 'cannot delete your own account');
+      });
+
+      await this.test('Deleting somebody else is still allowed', async () => {
+        await fetch(`${BASE_URL}/auth/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ username: 'disposable', password: 'Disposable1', role: 'View' }),
+        });
+
+        const res = await fetch(`${BASE_URL}/auth/users/disposable`, {
+          method: 'DELETE',
+          headers: { Cookie: this.adminCookie },
+        });
+        assert.equal(res.status, 200);
+      });
+    });
+
+    await this.describe('Last remaining Super Admin guard', async () => {
+      await this.test('A delegated role cannot delete the only Super Admin', async () => {
+        // Reachable only from a non-Super-Admin holder of user:delete - a Super Admin
+        // deleting the last Super Admin would be deleting itself, which is refused above.
+        await fetch(`${BASE_URL}/auth/roles`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ roleName: 'UserRemover', permissions: ['user:delete'] }),
+        });
+        await fetch(`${BASE_URL}/auth/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ username: 'remover', password: 'Remover1', role: 'UserRemover' }),
+        });
+        const removerCookie = await this.loginFlow('remover', 'Remover1', 'Remover1New');
+
+        const res = await fetch(`${BASE_URL}/auth/users/admin`, {
+          method: 'DELETE',
+          headers: { Cookie: removerCookie },
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.includes(body.message.toLowerCase(), 'super admin');
       });
     });
   }

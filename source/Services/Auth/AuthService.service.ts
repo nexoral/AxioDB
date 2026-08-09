@@ -177,7 +177,26 @@ export default class AuthService {
     return { success: true, message: "Role updated successfully" };
   }
 
-  public async deleteUser(username: string): Promise<{ success: boolean; message: string }> {
+  /**
+   * Deletes a user account.
+   *
+   * @param username - The account to delete.
+   * @param actorUsername - The authenticated user performing the deletion. Required so
+   *   self-deletion can be refused: an account that removes itself loses its own session
+   *   mid-request, and a Super Admin doing it can strand the instance with no way back in.
+   * @returns Result of the deletion, or the reason it was refused.
+   */
+  public async deleteUser(
+    username: string,
+    actorUsername: string,
+  ): Promise<{ success: boolean; message: string }> {
+    if (username === actorUsername) {
+      return {
+        success: false,
+        message: "You cannot delete your own account. Ask another admin to remove it.",
+      };
+    }
+
     const user = await this.findUserByUsername(username);
     if (!user) {
       return { success: false, message: "User not found" };
