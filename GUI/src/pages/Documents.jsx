@@ -7,7 +7,7 @@ import { DBInfoStore } from '../store/store'
 import InsertDocumentModal from '../components/document/InsertDocumentModal'
 import UpdateDocumentModal from '../components/document/UpdateDocumentModal'
 import DeleteDocumentModal from '../components/document/DeleteDocumentModal'
-import AggregateModal from '../components/document/AggregateModal'
+import QueryModal from '../components/document/QueryModal'
 
 const Documents = () => {
   const [searchParams] = useSearchParams()
@@ -24,7 +24,7 @@ const Documents = () => {
   const [showInsertModal, setShowInsertModal] = useState(false)
   const [showUpdateModal, setShowUpdateModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [showAggregateModal, setShowAggregateModal] = useState(false)
+  const [showQueryModal, setShowQueryModal] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState(null)
 
   // Add new state for aggregation
@@ -37,7 +37,6 @@ const Documents = () => {
   const [isSearchMode, setIsSearchMode] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [documentIdInput, setDocumentIdInput] = useState('')
-  const searchTimeoutRef = useRef(null)
   const documentIdTimeoutRef = useRef(null)
 
   // Fetch documents function - regular API
@@ -132,9 +131,6 @@ const Documents = () => {
     setDocumentIdInput('')
 
     // Clear any pending timeouts
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
     if (documentIdTimeoutRef.current) {
       clearTimeout(documentIdTimeoutRef.current)
     }
@@ -180,9 +176,6 @@ const Documents = () => {
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
-      }
       if (documentIdTimeoutRef.current) {
         clearTimeout(documentIdTimeoutRef.current)
       }
@@ -281,19 +274,16 @@ const Documents = () => {
     }
   }
 
-  // Debounced search functionality
-  const handleSearchInputChange = (value) => {
-    setSearchInput(value)
-
-    // Clear existing timeout
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current)
-    }
-
-    // Set new timeout for debounced search
-    searchTimeoutRef.current = setTimeout(() => {
-      performSearch(value)
-    }, 500) // 500ms debounce
+  // Run a filter chosen in the Query Console. The console has already validated and parsed
+  // it, so this only has to switch the view over.
+  const handleQueryResults = (parsedQuery) => {
+    setSearchInput(JSON.stringify(parsedQuery))
+    setSearchQuery(parsedQuery)
+    setIsSearchMode(true)
+    setIsAggregationView(false)
+    setPage(1)
+    setDocuments([])
+    fetchDocumentsByQuery(parsedQuery, 1, true)
   }
 
   // Debounced document ID search
@@ -311,34 +301,6 @@ const Documents = () => {
     }, 300) // 300ms debounce for ID search
   }
 
-  // Perform search based on query input
-  const performSearch = (input) => {
-    try {
-      if (!input.trim()) {
-        // If search input is empty, switch to regular mode
-        setIsSearchMode(false)
-        setSearchQuery('')
-        setIsAggregationView(false)
-        setPage(1)
-        setDocuments([])
-        fetchDocuments(1, true)
-        return
-      }
-
-      // Parse search input as JSON query
-      const parsedQuery = JSON.parse(input)
-      setSearchQuery(parsedQuery)
-      setIsSearchMode(true)
-      setIsAggregationView(false) // Clear aggregation view when searching
-      setPage(1)
-      setDocuments([])
-      fetchDocumentsByQuery(parsedQuery, 1, true)
-    } catch (error) {
-      // If JSON parsing fails, treat as regular text and search in all fields
-      console.warn('Invalid JSON query, treating as text search:', error)
-      // You could implement a text search fallback here if needed
-    }
-  }
 
   // Perform document ID search
   const performDocumentIdSearch = (documentId) => {
@@ -454,22 +416,25 @@ const Documents = () => {
           </div>
           <div className='flex space-x-3'>
             <button
-              onClick={() => setShowAggregateModal(true)}
-              className='bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-5 rounded-lg flex items-center transition-colors shadow-md'
+              onClick={() => setShowQueryModal(true)}
+              className='bg-slate-800 hover:bg-slate-900 text-white py-2 px-5 rounded-lg flex items-center transition-colors shadow-md'
             >
               <svg
                 xmlns='http://www.w3.org/2000/svg'
                 className='h-5 w-5 mr-2'
-                viewBox='0 0 20 20'
-                fill='currentColor'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
               >
                 <path
-                  fillRule='evenodd'
-                  d='M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z'
-                  clipRule='evenodd'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M8 9l3 3-3 3m5 0h3'
                 />
+                <rect x='3' y='4' width='18' height='16' rx='2' strokeWidth={2} />
               </svg>
-              Run Aggregate
+              Query
             </button>
             <button
               onClick={() => setShowInsertModal(true)}
@@ -496,16 +461,19 @@ const Documents = () => {
         <div className='px-6 py-4 border-b border-gray-200 bg-gray-50'>
           <div className='max-w-6xl'>
             <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
-              {/* JSON Query Search */}
+              {/* Query Console launcher */}
               <div className='lg:col-span-2'>
-                <label
-                  htmlFor='search-query'
-                  className='block text-sm font-medium text-gray-700 mb-2'
+                <span className='block text-sm font-medium text-gray-700 mb-2'>
+                  Query
+                </span>
+                <button
+                  onClick={() => setShowQueryModal(true)}
+                  className='group flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2.5 text-left shadow-sm transition-colors hover:border-emerald-400 hover:bg-emerald-50/40 focus:outline-none focus:ring-2 focus:ring-emerald-500'
                 >
-                  <span className='flex items-center'>
+                  <span className='flex min-w-0 items-center'>
                     <svg
                       xmlns='http://www.w3.org/2000/svg'
-                      className='h-4 w-4 mr-1 text-gray-500'
+                      className='mr-2 h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-emerald-600'
                       fill='none'
                       viewBox='0 0 24 24'
                       stroke='currentColor'
@@ -514,23 +482,23 @@ const Documents = () => {
                         strokeLinecap='round'
                         strokeLinejoin='round'
                         strokeWidth={2}
-                        d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+                        d='M8 9l3 3-3 3m5 0h3'
                       />
+                      <rect x='3' y='4' width='18' height='16' rx='2' strokeWidth={2} />
                     </svg>
-                    JSON Query Search
+                    <span className='truncate font-mono text-sm text-gray-500 group-hover:text-emerald-800'>
+                      {isSearchMode && searchQuery
+                        ? `${collectionName}.query(${JSON.stringify(searchQuery)}).exec()`
+                        : `${collectionName}.query({}).exec() — click to open the console`}
+                    </span>
                   </span>
-                </label>
-                <input
-                  type='text'
-                  id='search-query'
-                  value={searchInput}
-                  onChange={(e) => handleSearchInputChange(e.target.value)}
-                  placeholder='e.g., {"name": "John"}, {"age": {"$gte": 18}}, or {} for all'
-                  className='w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-mono transition-colors'
-                />
+                  <span className='ml-3 flex-shrink-0 rounded bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 group-hover:bg-emerald-100 group-hover:text-emerald-700'>
+                    Open
+                  </span>
+                </button>
                 <div className='mt-1 text-xs text-gray-500'>
-                  Auto-searches as you type • MongoDB-style syntax • Leave empty
-                  to show all
+                  Syntax highlighting, suggestions, and live validation for queries and
+                  aggregation pipelines
                 </div>
               </div>
 
@@ -988,13 +956,14 @@ const Documents = () => {
         />
       )}
 
-      {/* Aggregate Modal - Updated to pass results back to parent */}
-      {showAggregateModal && (
-        <AggregateModal
-          isOpen={showAggregateModal}
-          onClose={() => setShowAggregateModal(false)}
+      {/* Query Console - handles both query() and aggregate() */}
+      {showQueryModal && (
+        <QueryModal
+          isOpen={showQueryModal}
+          onClose={() => setShowQueryModal(false)}
           databaseName={databaseName}
           collectionName={collectionName}
+          onQueryResults={handleQueryResults}
           onAggregationResults={handleAggregationResults}
         />
       )}
