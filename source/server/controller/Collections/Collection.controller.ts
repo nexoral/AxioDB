@@ -5,7 +5,7 @@ import buildResponse, {
   ResponseBuilder,
 } from "../../helper/responseBuilder.helper";
 import { FastifyRequest } from "fastify";
-import countFilesRecursive from "../../helper/filesCounterInFolder.helper";
+import countDocumentsInFolder from "../../helper/documentCounterInFolder.helper";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
 export default class CollectionController {
   private AxioDBInstance: AxioDB;
@@ -87,7 +87,7 @@ export default class CollectionController {
 
       await Promise.all([
         ...FolderPaths.map(async (folderPath: string) => {
-          const fileCount = await countFilesRecursive(folderPath);
+          const fileCount = await countDocumentsInFolder(folderPath);
           mainData.CollectionSizeMap.push({ folderPath, fileCount });
         }),
       ]);

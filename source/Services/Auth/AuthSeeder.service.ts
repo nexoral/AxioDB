@@ -44,9 +44,8 @@ export default class AuthSeeder {
 
     ConfigDatabase.setCollections(usersCollection, rolesCollection, permissionsCollection);
 
-    // totalDocuments() counts the collection's "indexes" subfolder as an entry, so it
-    // reports a non-zero count even when no real document has been inserted yet - use
-    // an actual document query (filtered to real .axiodb files) to detect prior seeding.
+    // Detect prior seeding with a real document query rather than a count, so the
+    // check stays correct if a document file is ever left behind without content.
     const existingUsers = await usersCollection.query({}).Limit(1).exec();
     const alreadySeeded =
       "data" in existingUsers &&
