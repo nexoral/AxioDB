@@ -15,7 +15,7 @@ AxioDB is an embedded NoSQL database for Node.js with MongoDB-style queries. It 
 
 **One-liner:** `npm install axiodb` and you have a database. No mongod process, no node-gyp, no electron-rebuild.
 
-**Sweet spot:** 10,000–500,000 documents per collection, single process.
+**Sweet spot:** 10,000–500,000 documents per collection, documents of ~1 KB or larger, single process, with reads dominated by `documentId` lookups or indexed exact matches. See "Where AxioDB is the right choice" for why each of those three dimensions matters.
 
 **Not a fit for:** 10M+ documents, multi-user web apps with hundreds of concurrent connections, relational data with JOINs, distributed/replicated/sharded systems, or cross-collection ACID transactions (AxioDB's transactions are scoped to a single collection).
 
@@ -799,7 +799,46 @@ Documents are the only thing on disk that is not JSONL. Every registry and log i
 
 WAL files use `.wal.jsonl` rather than a bare `.jsonl` because crash recovery scans `.transactions/` by suffix — a bare `.jsonl` would match `txn-meta.jsonl` and replay the registry as if it were a transaction's log.
 
-One file per document is what makes `documentId` lookups O(1) — the path is computed, not searched. It is also why the sweet spot tops out around 500K documents per collection: at some point you are asking a filesystem to hold a lot of small files.
+One file per document is what makes `documentId` lookups O(1) — the path is computed, not searched. It is also what sets the sweet spot, and it has two costs worth knowing before you choose AxioDB.
+
+### The cost of one file per document
+
+**Disk usage is dominated by the filesystem block size, not by your data.** A filesystem allocates whole blocks — 4 KB on ext4, APFS and NTFS — so a 128-byte document still occupies 4 KB. Measured on ext4:
+
+| Documents | Logical size | Actual on disk | Amplification |
+|---|---|---|---|
+| 20,000 × ~130 B | 2.6 MB | 80 MB | **31×** |
+
+The amplification is `4096 / your_document_size`, so it disappears as documents grow: a 4 KB document wastes nothing, a 500-byte document wastes 8×, a 128-byte document wastes 32×. **If you store many small records, budget roughly 4 KB each regardless of their real size.** At the top of the supported range — 500K small documents — that is about 2 GB on disk for perhaps 64 MB of actual data.
+
+**Full scans pay one syscall trio per document.** A query that is not a `documentId` lookup or an indexed exact match reads every document in the collection, which means one `open`/`read`/`close` per file rather than a single sequential read. Measured on the same 20,000 documents:
+
+| Operation | File-per-document | Equivalent single JSONL file |
+|---|---|---|
+| Write 20,000 documents | 780 ms | 85 ms (**9× faster**) |
+| Full scan of 20,000 documents | 208 ms | 20 ms (**10× faster**) |
+
+(Warm page cache, consumer SSD, single-threaded. Cold cache or spinning disks widen the gap; the disk-usage figure is exact either way.)
+
+**What the design buys in return**, and why it is not simply a worse choice: `documentId` lookups are O(1) with no index consulted, a torn write damages exactly one document rather than a shared file, deletes are `unlink` and updates are an atomic rename — so there are no tombstones and no compaction pass to schedule, and nothing to go wrong during one.
+
+**Practical guidance:** if your documents are small (< 1 KB) and you expect hundreds of thousands of them, or your workload is dominated by unindexed scans rather than key lookups, index the fields you filter on — or use SQLite or PostgreSQL, which pack rows into shared pages and were built for that shape.
+
+### Where AxioDB is the right choice
+
+The same design that costs you space on tiny documents is what makes it excellent inside its range. AxioDB is at its best when all three of these hold:
+
+| Dimension | Ideal | Why |
+|---|---|---|
+| **Document size** | **~1 KB and above** | At 4 KB and up there is zero space overhead — the block is full either way. A 4 KB document stores in 4 KB, exactly like a row in a page-based engine, with none of the page-cache machinery. |
+| **Collection size** | **10K–500K documents** | Enough that a flat JSON file is unusable, not so many that per-file syscalls and directory size dominate. |
+| **Access pattern** | **`documentId` lookups and indexed exact matches** | The path is computed, so a read is one `open` — no B-tree descent, no query planner, no index page reads. This is the case where AxioDB is genuinely *faster* than a page-based engine, not merely adequate. |
+
+Add the deployment constraint that nothing else solves: **your install must never compile anything.** Electron apps, CLI tools shipped via `npx`, locked-down CI, minimal container images. `better-sqlite3` cannot do this — it ships compiled C that must match your OS, CPU architecture and Node/Electron ABI. That is the one thing AxioDB does that SQLite cannot, and it is usually the reason to pick it.
+
+**The profile it was built for:** an Electron or CLI app storing tens of thousands of records of a kilobyte or more — user documents, notes, sync state, cached API payloads, event records — read mostly by id or by an indexed field, in a single process, where shipping a native module is unacceptable. In that shape AxioDB is not a compromise against SQLite; it is the better fit.
+
+**The profile to send elsewhere:** millions of rows, documents of a few hundred bytes each, analytical scans over whole collections, several processes sharing one dataset, JOINs, or anything needing an ORM.
 
 ---
 
@@ -838,6 +877,7 @@ Available **only** via the Docker image with `AXIODB_MCP=true`, at `http://local
 ### Design limits
 
 - **Scale:** optimized for 10K–500K documents per collection. Beyond ~1M, migrate to PostgreSQL, MongoDB, or SQLite.
+- **Disk usage per document:** one file per document means each one occupies at least one filesystem block (typically 4 KB), whatever its real size. 20,000 documents of ~130 bytes measured at 80 MB on disk against 2.6 MB of data — 31× amplification. Budget ~4 KB per document for small records. See "The cost of one file per document" above.
 - **Concurrency:** single-instance, single-node. Fine for a desktop app or a modest service; not for hundreds of concurrent web users.
 - **No JOINs, no foreign keys, no referential integrity.** Denormalize or join in JavaScript.
 - **No replication, sharding, or clustering.** One node, one copy. Back it up yourself.
