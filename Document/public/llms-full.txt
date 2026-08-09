@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 14.2.7 | License: MIT | Node.js >= 20.0.0
+Version: 15.0.0 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -784,13 +784,20 @@ Document/                           This documentation site (React + Vite, deplo
 ```
 {CustomPath}/{RootName}/
 └── {DatabaseName}/
+    ├── collection.meta.jsonl            collection registry (append-only)
     └── {CollectionName}/
         ├── {documentId}.axiodb          one file per document
         ├── indexes/
         │   ├── index.meta.jsonl         index registry (append-only)
         │   └── {fieldName}.jsonl        one JSONL index file per indexed field
-        └── (WAL files for crash recovery)
+        └── .transactions/
+            ├── txn-meta.jsonl           in-flight transaction registry (append-only)
+            └── {transactionId}.wal.jsonl  write-ahead log, one per transaction
 ```
+
+Documents are the only thing on disk that is not JSONL. Every registry and log is append-only, one JSON object per line: adding an entry is an O(1) append rather than a read-parse-rewrite of the whole file, and reading streams line by line instead of loading the file whole. The registries fold to their current state on read (last line wins per key) and are truncated once nothing is left to track.
+
+WAL files use `.wal.jsonl` rather than a bare `.jsonl` because crash recovery scans `.transactions/` by suffix — a bare `.jsonl` would match `txn-meta.jsonl` and replay the registry as if it were a transaction's log.
 
 One file per document is what makes `documentId` lookups O(1) — the path is computed, not searched. It is also why the sweet spot tops out around 500K documents per collection: at some point you are asking a filesystem to hold a lot of small files.
 
@@ -876,7 +883,7 @@ None of this is a shortcoming to apologize for — it's a deliberately scoped em
 
 **Are transactions cross-collection?** No. A transaction is scoped to a single collection.
 
-**Where is my data stored?** `{CustomPath}/{RootName}/{Database}/{Collection}/`, one `.axiodb` file per document, plus an `indexes/` folder of `.jsonl` index files.
+**Where is my data stored?** `{CustomPath}/{RootName}/{Database}/{Collection}/`, one `.axiodb` file per document, plus an `indexes/` folder of `.jsonl` index files and a `.transactions/` folder holding the transaction registry and write-ahead logs. Documents are the only non-JSONL files on disk.
 
 ---
 

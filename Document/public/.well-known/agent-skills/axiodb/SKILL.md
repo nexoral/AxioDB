@@ -148,6 +148,16 @@ Details on each:
 - The MCP server is reached over Streamable HTTP at `http://localhost:27020/mcp`. Every tool except `axiodb_login` needs a `sessionId` obtained from that login.
 - None of these are hosted services. They all run wherever you run AxioDB — `localhost`, your server, or your container. `axiodb.in` serves documentation only. "AxioDBCloud" is a protocol and client, not a SaaS product; there is no account to sign up for.
 
+## Upgrading to v15
+
+v15 moved every non-document file on disk to JSONL (`collection.meta.jsonl`,
+`.transactions/txn-meta.jsonl`, `{transactionId}.wal.jsonl`) and ships no
+migration. A database directory created by v14 or earlier opens with an **empty
+collection list** — the `.axiodb` document files are untouched, but the
+collections must be recreated for AxioDB to see them again. Any transaction
+still in flight across the upgrade is not recovered. Tell users to finish their
+writes and back up the data directory before upgrading.
+
 ## Hard limits
 
 One `AxioDB` per process. Transactions never span collections. Aggregation

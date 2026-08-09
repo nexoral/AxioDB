@@ -12,6 +12,21 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "15.0.0",
+    date: "2026-08-09",
+    title: "Every non-document file is now JSONL, plus a self-deletion guard and a document-count fix",
+    changes: [
+      "Breaking, on-disk: the per-database collection registry moved from collection.meta (one JSON array) to collection.meta.jsonl (one appended line per collection). There is no migration - a database created before this release opens with an empty collection list until its collections are recreated. The .axiodb document files themselves are untouched.",
+      "Breaking, on-disk: the transaction registry moved from .transactions/txn-meta.json to .transactions/txn-meta.jsonl, and WAL files from {transactionId}.wal to {transactionId}.wal.jsonl. Any transaction still in flight across the upgrade is not recovered.",
+      "Performance: registering a transaction, changing its status, and removing it used to each read, parse, and rewrite the whole registry with an fsync - three full rewrites per transaction, each growing with the number of concurrent transactions. All three are now a single appended, fsync'd line, and the file is truncated whenever no transaction is left in flight.",
+      "Performance: adding a collection appends one line instead of rewriting the registry, and the WAL is now read with the same streaming line reader the indexes use, so a large transaction's log never lands in memory whole.",
+      "WAL files carry the .wal.jsonl suffix rather than a bare .jsonl: crash recovery scans the .transactions/ folder by suffix, and a bare .jsonl would make it pick up the registry and replay it as if it were a transaction log.",
+      "New FileManager.AppendFileDurable() - an O(1) append that fsyncs before returning, for append-only journals whose loss would break crash recovery.",
+      "Security: a user can no longer delete their own account, over the Dashboard HTTP API, the MCP server, or the GUI. Self-deletion destroyed the caller's own session mid-request, and a Super Admin doing it could strand an instance with no way back in. The refusal names who to ask instead.",
+      "Fixed: the Dashboard collection list reported the wrong document count - it counted every file under the collection folder, so a collection with 3 documents, 5 index files, and a transaction log showed 9. It now counts only .axiodb documents, matching the dashboard's own tree view.",
+    ],
+  },
+  {
     version: "14.1.5",
     date: "2026-07-30",
     title: "Human-in-the-loop confirmation for the MCP server's destructive tools",

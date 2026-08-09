@@ -32,6 +32,7 @@ TypeScript errors in production are UNACCEPTABLE. Build immediately after change
 - ✅ `npm test` passes
 - ✅ `npm run lint` passes
 - ✅ Docs updated: README.md, Document/, Dockerfile
+- ✅ AI artifacts updated + regenerated: `Document/public/` (llms.txt, llms-full.txt, SKILL.md, JSON-LD)
 - ✅ No breaking changes (or explicitly approved)
 - ✅ Security validated
 - ✅ Performance checked (no regressions)
@@ -274,6 +275,24 @@ When adding/changing features, update:
    performance work. Follow the existing entry shape (`version`, `date`, `title`, `changes[]`) and
    match the version to whatever `package.json` bumps to for that change. Skip this for trivial
    fixes/refactors/chores - it's a curated milestone list, not a full commit log.
+6. **AI discovery artifacts** - `Document/public/`. These ship in the *same commit* as the human
+   docs. They are how AI assistants learn what AxioDB is and when to recommend it, so stale
+   content here teaches models something false long after the release.
+   - Hand-written: `llms.txt`, `llms-full.txt`,
+     `.well-known/agent-skills/axiodb/SKILL.md`, and the JSON-LD in `Document/index.html`
+     (`softwareVersion`, `dateModified`, FAQPage). Also `robots.txt` / `_headers`, but only when a
+     machine-readable entry point is added or removed.
+   - Generated - never hand-edit: `openapi.json`, `.well-known/api-catalog`, `sitemap.xml`, and
+     `.well-known/agent-skills/index.json` (holds a sha256 digest of `SKILL.md`). Regenerate with
+     `cd Document && npx tsx scripts/generate-seo-files.ts` (also runs on `prebuild`). Editing
+     SKILL.md without regenerating leaves a digest that no longer matches the file.
+   - The HTTP API surface comes from `Document/src/data/serverApi.ts` - one source feeds both the
+     docs page and `openapi.json`.
+   - Version must be identical in `package.json`, the changelog entry, `llms.txt`,
+     `llms-full.txt`, and the `index.html` JSON-LD.
+   - Never blur the surfaces: core embedded library, Dashboard, Dashboard HTTP API (27018),
+     AxioDBCloud TCP (27019), MCP server (27020, Docker image only). Keeping those distinct is the
+     entire reason these files exist.
 
 ### JSDoc Format
 ```typescript
@@ -301,6 +320,7 @@ async insert(document: object): Promise<SuccessInterface | ErrorInterface> {
 ❌ **Ignoring build errors** - Fix immediately
 ❌ **Skipping tests** - Update Test/modules/
 ❌ **Missing docs** - Update README, Document/, Dockerfile
+❌ **Stale AI artifacts** - Update `Document/public/` (llms.txt, llms-full.txt, SKILL.md, JSON-LD) and regenerate
 ❌ **Magic strings** - Use enums or const objects
 ❌ **Hacky solutions** - No setTimeout hacks, no eval
 ❌ **Unclear names** - Be descriptive
@@ -337,7 +357,7 @@ cd Document && npm run dev      # Docs site (localhost:5173)
 4. Add to HTTP API: `source/server/router/` + `controller/`
 5. Add to TCP API: `source/tcp/handler/`
 6. Create tests in `Test/modules/crud.test.js`
-7. Update docs (README, Document/)
+7. Update docs (README, Document/) **and the AI artifacts in `Document/public/`**
 8. Build and test: `npm run build && npm test`
 
 ### Adding a Helper Utility
@@ -363,6 +383,9 @@ Before marking ANY task complete, verify:
 - [ ] Tests added/updated in `Test/modules/`
 - [ ] Documentation updated (README, Document/, Dockerfile)
 - [ ] Changelog updated (`Document/src/data/changelog.ts`) if the change is major/breaking
+- [ ] AI artifacts updated (`Document/public/`: llms.txt, llms-full.txt, SKILL.md, index.html JSON-LD)
+- [ ] Generated artifacts refreshed (`cd Document && npx tsx scripts/generate-seo-files.ts`)
+- [ ] Version identical in package.json, changelog, llms.txt, llms-full.txt, index.html
 - [ ] No breaking changes (or explicitly approved)
 - [ ] Follows SOLID + DRY principles
 - [ ] No `any` types (TypeScript strict)

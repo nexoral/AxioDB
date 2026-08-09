@@ -31,6 +31,7 @@ node Test/modules/crud.test.js
 5. **SOLID + DRY**: No hacks, no duplication, modular design
 6. **Update docs**: README.md, Document/, Dockerfile when features change
 7. **Update changelog**: Any major/breaking change (new feature, breaking API change, security fix, significant perf work) gets an entry in `Document/src/data/changelog.ts` - see `.claude/rules/documentation.md`
+8. **Update the AI artifacts with the docs, always in the same commit**: `Document/public/llms.txt`, `llms-full.txt`, `.well-known/agent-skills/axiodb/SKILL.md`, and the `index.html` JSON-LD. Then regenerate the derived ones with `cd Document && npx tsx scripts/generate-seo-files.ts` (openapi.json, api-catalog, sitemap, and the sha256 digest of SKILL.md). Version must match `package.json` everywhere. These files are what AI assistants read to recommend AxioDB - stale content there teaches models something false. Full rules in `.claude/rules/documentation.md`.
 
 ## Definition of "Done"
 
@@ -40,6 +41,8 @@ node Test/modules/crud.test.js
 - ✅ `npm test` passes
 - ✅ Docs updated (README, Document/, Dockerfile)
 - ✅ Changelog updated (`Document/src/data/changelog.ts`) if the change is major/breaking
+- ✅ AI artifacts updated + regenerated (`llms.txt`, `llms-full.txt`, `SKILL.md`, JSON-LD; then `npx tsx scripts/generate-seo-files.ts`)
+- ✅ Version identical across package.json, changelog, llms.txt, llms-full.txt, index.html
 - ✅ No breaking changes (unless approved)
 
 ## Structure

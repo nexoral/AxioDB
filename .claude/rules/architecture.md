@@ -41,9 +41,19 @@ export class AxioDB {
 
 ### File Structure
 - Database: `{RootPath}/{DatabaseName}/`
+- Collection registry: `{DatabasePath}/collection.meta.jsonl`
 - Collection: `{DatabasePath}/{CollectionName}/`
 - Document: `{CollectionPath}/{documentId}.axiodb`
-- Index: `{CollectionPath}/indexes/{indexName}.json`
+- Index: `{CollectionPath}/indexes/{indexName}.jsonl`
+- Index registry: `{CollectionPath}/indexes/index.meta.jsonl`
+- Transaction registry: `{CollectionPath}/.transactions/txn-meta.jsonl`
+- WAL: `{CollectionPath}/.transactions/{transactionId}.wal.jsonl`
+
+Documents are the only non-JSONL files. Every registry and log is append-only (one JSON
+object per line), folded to current state on read with last-line-wins per key, and truncated
+when nothing is left to track. Filenames live in `General` in `source/config/Keys/Keys.ts` —
+never hardcode them. WAL files keep the `.wal.jsonl` suffix because recovery scans
+`.transactions/` by suffix and a bare `.jsonl` would also match `txn-meta.jsonl`.
 
 ### Dual-Write (Indexes)
 - Write to memory (speed) + disk (durability)

@@ -30,6 +30,7 @@ npm run build  # After EVERY code change
 - ✅ `npm test` passes
 - ✅ `npm run lint` passes
 - ✅ Docs updated (README.md, Document/, Dockerfile)
+- ✅ AI artifacts updated + regenerated (`Document/public/`)
 - ✅ No breaking changes (unless approved)
 - ✅ Security validated
 - ✅ Performance acceptable
@@ -214,6 +215,18 @@ Update when features change:
 2. **Document/** - React docs site (`cd Document && npm run dev`)
 3. **Dockerfile** - If ports, env vars, or commands change
 4. **JSDoc** - All public methods with examples
+5. **Changelog** - `Document/src/data/changelog.ts`, for major/breaking changes only
+6. **AI discovery artifacts** - `Document/public/`, in the same commit as the human docs. These
+   are what AI assistants read to decide whether to recommend AxioDB, so stale content there
+   teaches models something false.
+   - Edit by hand: `llms.txt`, `llms-full.txt`,
+     `.well-known/agent-skills/axiodb/SKILL.md`, JSON-LD in `Document/index.html`
+   - Never hand-edit, regenerate instead: `openapi.json`, `.well-known/api-catalog`,
+     `sitemap.xml`, `.well-known/agent-skills/index.json` (sha256 digest of SKILL.md)
+     → `cd Document && npx tsx scripts/generate-seo-files.ts`
+   - Keep the version identical in package.json, changelog, llms.txt, llms-full.txt, index.html
+   - Keep the surfaces distinct: core library, Dashboard, Dashboard HTTP API (27018),
+     AxioDBCloud TCP (27019), MCP server (27020, Docker only)
 
 ## Common Anti-Patterns to AVOID
 
@@ -223,6 +236,7 @@ Update when features change:
 ❌ Ignoring build errors
 ❌ Skipping tests
 ❌ Missing documentation
+❌ Leaving the AI artifacts in `Document/public/` stale, or editing a generated one by hand
 ❌ Magic strings (use enums/const objects)
 ❌ Hacky solutions or setTimeout hacks
 ❌ Unclear variable names
@@ -255,7 +269,7 @@ Every task must meet ALL:
 - ✅ Builds successfully (`npm run build`)
 - ✅ Tests pass (`npm test`)
 - ✅ Lint passes (`npm run lint`)
-- ✅ Docs updated
+- ✅ Docs updated (including `Document/public/` AI artifacts, regenerated)
 - ✅ No regressions
 - ✅ Follows patterns
 - ✅ Security validated

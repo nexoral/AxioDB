@@ -29,4 +29,8 @@ TestCRUD/
 
 # Agent tooling and generated knowledge graph
 graphify-out/
-.claude/
+
+# Local Claude Code settings only - .claude/rules/ and .claude/commands/ are shared
+# project instructions and must stay tracked.
+.claude/settings.json
+.claude/settings.local.json
