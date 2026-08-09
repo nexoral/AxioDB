@@ -8,7 +8,25 @@ import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
+import { General } from "../../config/Keys/Keys";
 
+/**
+ * Marks a transaction as gone. Appended instead of rewriting the file, and folded away by
+ * {@link TransactionRegistry.getAllTransactions} - never surfaces to callers.
+ */
+const REMOVED_STATUS = "REMOVED";
+
+/**
+ * Append-only JSONL registry of in-flight transactions.
+ *
+ * Every mutation is one appended line; the live set is derived by replaying the file with
+ * last-write-wins per `transactionId`. This replaces a read-parse-rewrite-fsync of the whole
+ * registry on every register/status-change/remove - three full rewrites per transaction, each
+ * growing with the number of concurrent transactions.
+ *
+ * The file is truncated whenever the replay leaves nothing live, so an append-only log of a
+ * workload that always finishes its transactions stays at zero bytes.
+ */
 export default class TransactionRegistry {
   private readonly collectionPath: string;
   private readonly registryPath: string;
@@ -21,7 +39,7 @@ export default class TransactionRegistry {
   constructor(collectionPath: string) {
     this.collectionPath = collectionPath;
     this.transactionDir = `${collectionPath}/.transactions`;
-    this.registryPath = `${this.transactionDir}/txn-meta.json`;
+    this.registryPath = `${this.transactionDir}/${General.Transaction_Registry_File}`;
     this.FileManager = new FileManager();
     this.FolderManager = new FolderManager();
     this.Converter = new Converter();
@@ -37,13 +55,7 @@ export default class TransactionRegistry {
         await this.FolderManager.CreateDirectory(this.transactionDir);
       }
 
-      const transactions = await this.getAllTransactions();
-      transactions.push(metadata);
-
-      const writeResult = await this.FileManager.WriteFileDurable(
-        this.registryPath,
-        this.Converter.ToString(transactions)
-      );
+      const writeResult = await this.appendRecord(metadata);
 
       if (writeResult.status) {
         return this.ResponseHelper.Success({
@@ -64,18 +76,13 @@ export default class TransactionRegistry {
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const transactions = await this.getAllTransactions();
-      const txnIndex = transactions.findIndex((t) => t.transactionId === txnId);
+      const current = transactions.find((t) => t.transactionId === txnId);
 
-      if (txnIndex === -1) {
+      if (!current) {
         return this.ResponseHelper.Error("Transaction not found");
       }
 
-      transactions[txnIndex].status = status;
-
-      const writeResult = await this.FileManager.WriteFileDurable(
-        this.registryPath,
-        this.Converter.ToString(transactions)
-      );
+      const writeResult = await this.appendRecord({ ...current, status });
 
       if (writeResult.status) {
         return this.ResponseHelper.Success({
@@ -104,13 +111,16 @@ export default class TransactionRegistry {
 
   public async removeTransaction(txnId: string): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const transactions = await this.getAllTransactions();
-      const filteredTransactions = transactions.filter((t) => t.transactionId !== txnId);
-
-      const writeResult = await this.FileManager.WriteFileDurable(
-        this.registryPath,
-        this.Converter.ToString(filteredTransactions)
+      const remaining = (await this.getAllTransactions()).filter(
+        (t) => t.transactionId !== txnId,
       );
+      const writeResult =
+        remaining.length === 0
+          ? await this.FileManager.WriteFileDurable(this.registryPath, "")
+          : await this.appendRecord({
+              transactionId: txnId,
+              status: REMOVED_STATUS,
+            } as unknown as TransactionMetadata);
 
       if (writeResult.status) {
         return this.ResponseHelper.Success({
@@ -125,24 +135,41 @@ export default class TransactionRegistry {
     }
   }
 
+  /** Appends one durable JSONL record - O(1), no read and no rewrite of what came before. */
+  private async appendRecord(
+    record: TransactionMetadata,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    return this.FileManager.AppendFileDurable(
+      this.registryPath,
+      `${this.Converter.ToString(record)}\n`,
+    );
+  }
+
+  /**
+   * Replays the JSONL log into the current transaction set: last record wins per
+   * `transactionId`, and anything whose last record is a REMOVED tombstone is dropped.
+   * Streams line-by-line, so a long log never lands in memory whole.
+   */
   private async getAllTransactions(): Promise<TransactionMetadata[]> {
     try {
-      const fileExists = await this.FileManager.FileExists(this.registryPath);
-      if (!fileExists.status) {
-        return [];
+      const lines = await this.FileManager.ReadLines(this.registryPath);
+      const latest = new Map<string, TransactionMetadata>();
+
+      for (const line of lines) {
+        try {
+          const record = this.Converter.ToObject(line) as TransactionMetadata;
+          if (record?.transactionId) {
+            latest.set(record.transactionId, record);
+          }
+        } catch {
+          // A torn final line from a crash mid-append - every earlier record is intact.
+          continue;
+        }
       }
 
-      const readResult = await this.FileManager.ReadFile(this.registryPath);
-      if (!readResult.status) {
-        return [];
-      }
-
-      const content = readResult.data;
-      if (!content || content.trim().length === 0) {
-        return [];
-      }
-
-      return this.Converter.ToObject(content) as TransactionMetadata[];
+      return [...latest.values()].filter(
+        (record) => (record.status as string) !== REMOVED_STATUS,
+      );
     } catch {
       return [];
     }

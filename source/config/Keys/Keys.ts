@@ -4,6 +4,9 @@ export const General = {
   DBMS_File_EXT : ".axiodb",        // Document files (unchanged)
   Index_File_EXT : ".jsonl",        // Index data files (JSONL for append + streaming)
   Index_Meta_File : "index.meta.jsonl", // Index metadata
+  Collection_Meta_File : "collection.meta.jsonl", // Per-database collection registry
+  Transaction_Registry_File : "txn-meta.jsonl",   // In-flight transaction registry
+  WAL_File_EXT : ".wal.jsonl",
   DocumentId_Length : 30, // Length of auto-generated alphanumeric document IDs
 }
 

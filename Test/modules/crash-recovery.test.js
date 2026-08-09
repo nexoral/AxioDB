@@ -16,6 +16,7 @@ const { assert } = require('../helpers/assertions');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
+const { General } = require('../../lib/config/Keys/Keys.js');
 
 const LIB_DB_PATH = path.resolve(__dirname, '../../lib/config/DB.js');
 
@@ -150,8 +151,8 @@ class CrashRecoveryTests extends TestRunner {
         // a completed recovery pass.
         const txnDir = path.join(collectionPath, '.transactions');
         if (fs.existsSync(txnDir)) {
-          const walFiles = fs.readdirSync(txnDir).filter((f) => f.endsWith('.wal'));
-          assert.equal(walFiles.length, 0, 'No .wal files should survive a completed recovery pass');
+          const walFiles = fs.readdirSync(txnDir).filter((f) => f.endsWith(General.WAL_File_EXT));
+          assert.equal(walFiles.length, 0, 'No WAL files should survive a completed recovery pass');
         }
 
         // Informational only (not a hard failure): a temp file written just before

@@ -77,11 +77,8 @@ export default class CollectionController {
       const collections = await (
         await this.AxioDBInstance.createDB(databaseName)
       ).getCollectionInfo();
-
-      let FolderPaths = collections?.data?.AllCollectionsPaths;
-      FolderPaths = FolderPaths.filter( // exclude .meta files
-        (path: string) => !path.endsWith(".meta"),
-      );
+      
+      const FolderPaths = collections?.data?.AllCollectionsPaths;
       const mainData = collections?.data;
       mainData.CollectionSizeMap = [];
 

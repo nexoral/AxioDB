@@ -122,6 +122,33 @@ export default class FileManager {
     }
   }
 
+  /**
+   * Appends data and fsyncs before returning, so the appended line is guaranteed on disk
+   * even if the process dies immediately after. O(1) durable counterpart to
+   * {@link WriteFileDurable} - use it for append-only journals whose loss would break
+   * crash recovery.
+   *
+   * @param path - Absolute path to the file.
+   * @param data - String to append (caller should include trailing newline if needed).
+   */
+  public async AppendFileDurable(
+    path: string,
+    data: string,
+  ): Promise<SuccessInterface | ErrorInterface> {
+    try {
+      const fileHandle = await fsOpen(path, "a");
+      try {
+        await fileHandle.write(data, null, "utf-8");
+        await fileHandle.sync();
+      } finally {
+        await fileHandle.close();
+      }
+      return this.responseHelper.Success("File appended successfully.");
+    } catch (error) {
+      return this.responseHelper.Error(error);
+    }
+  }
+
   public async DeleteFile(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {

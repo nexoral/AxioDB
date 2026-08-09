@@ -13,6 +13,7 @@ import {
 import { FinalCollectionsInfo } from "../../config/Interfaces/Operation/database.operation.interface";
 import { IndexManager } from "../Index/Index.service";
 import { IndexCache } from "../Index/IndexCache.service";
+import { General } from "../../config/Keys/Keys";
 
 // Types
 type CollectionMetadata = {
@@ -27,6 +28,7 @@ type CollectionMetadata = {
 export default class Database {
   private name: string;
   private readonly path: string;
+  private readonly collectionMetaPath: string;
   private fileManager: FileManager;
   private folderManager: FolderManager;
   private ResponseHelper: ResponseHelper;
@@ -34,6 +36,7 @@ export default class Database {
   constructor(name: string, path: string) {
     this.name = name;
     this.path = path;
+    this.collectionMetaPath = `${path}/${General.Collection_Meta_File}`;
     this.fileManager = new FileManager();
     this.folderManager = new FolderManager();
     this.ResponseHelper = new ResponseHelper();
@@ -124,9 +127,9 @@ export default class Database {
    */
   public async getCollectionInfo(): Promise<SuccessInterface | undefined> {
     const collections = await this.folderManager.ListDirectory(this.path);
-    // Remove All .meta related things
+    // The registry file lives alongside the collection folders - it is not a collection.
     collections.data = collections.data.filter(
-      (collection: string) => !collection.endsWith(".meta"),
+      (collection: string) => collection !== General.Collection_Meta_File,
     );
     const totalSize = await this.folderManager.GetDirectorySize(
       path.resolve(this.path),
@@ -159,10 +162,9 @@ export default class Database {
   /**
    * Removes the metadata entry for a collection from the collection metadata file.
    *
-   * Reads the JSON file located at `${this.path}/collection.meta`, validates that the
-   * file exists and contains an array of collection metadata objects, removes any entry
-   * whose `name` matches the provided `collectionName`, and writes the updated array
-   * back to the same file.
+   * Replays `collection.meta.jsonl`, drops any entry whose `name` matches the provided
+   * `collectionName`, and rewrites the surviving entries as JSONL. This is the one path
+   * that rewrites the registry - additions are plain appends.
    *
    * The method returns a SuccessInterface on successful removal (even if no matching
    * collection was found) or an ErrorInterface describing the failure.
@@ -185,29 +187,44 @@ export default class Database {
     collectionName: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     const FileManagement: FileManager = new FileManager();
-    const isFileExist = await FileManagement.FileExists(
-      `${this.path}/collection.meta`,
-    );
+    const isFileExist = await FileManagement.FileExists(this.collectionMetaPath);
     if (isFileExist.status == false) {
       return this.ResponseHelper.Error("Collection metadata file does not exist");
-    } else {
-      const FullData = JSON.parse(
-        (await FileManagement.ReadFile(`${this.path}/collection.meta`)).data,
-      );
-      if (!Array.isArray(FullData)) {
-        return this.ResponseHelper.Error("Invalid collection metadata format");
-      }
-      const UpdatedData = FullData.filter(
-        (data: CollectionMetadata) => data.name !== collectionName,
-      );
-      await FileManagement.WriteFile(
-        `${this.path}/collection.meta`,
-        JSON.stringify(UpdatedData),
-      );
-      return this.ResponseHelper.Success(
-        `Collection metadata for ${collectionName} dropped successfully`,
-      );
     }
+
+    const remaining = (await this.readCollectionMetadata()).filter(
+      (data: CollectionMetadata) => data.name !== collectionName,
+    );
+    await FileManagement.WriteFile(
+      this.collectionMetaPath,
+      remaining.map((entry) => JSON.stringify(entry)).join("\n") +
+        (remaining.length > 0 ? "\n" : ""),
+    );
+    return this.ResponseHelper.Success(
+      `Collection metadata for ${collectionName} dropped successfully`,
+    );
+  }
+
+  /**
+   * Reads the JSONL collection registry, one entry per line, last-write-wins per name.
+   *
+   * Streams the file rather than parsing it whole, and tolerates a torn final line from a
+   * crash mid-append - every complete line before it still loads.
+   */
+  private async readCollectionMetadata(): Promise<CollectionMetadata[]> {
+    const lines = await new FileManager().ReadLines(this.collectionMetaPath);
+    const byName = new Map<string, CollectionMetadata>();
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line) as CollectionMetadata;
+        if (entry?.name) {
+          byName.set(entry.name, entry);
+        }
+      } catch {
+        continue;
+      }
+    }
+    return [...byName.values()];
   }
 
   /**
@@ -217,41 +234,19 @@ export default class Database {
    * @returns A Promise that resolves when the operation is complete, or rejects with an error if the collection metadata format is invalid
    * @private
    *
-   * This method performs the following operations:
-   * 1. Checks if the collection metadata file exists
-   * 2. If the file doesn't exist, creates it with the provided collection metadata
-   * 3. If the file exists, reads the existing metadata, adds the new collection metadata (if not already present), and writes back to the file
-   *
-   * @throws {Error} If the collection metadata format is invalid
+   * Appends one JSONL line for a collection that isn't registered yet - the entries already
+   * on disk are never rewritten. The existence check keeps `createCollection()` on an
+   * existing collection (which is idempotent) from growing the file on every call.
    */
   private async AddCollectionMetadata(collectionData: CollectionMetadata) {
-    const FileManagement: FileManager = new FileManager();
-    const isFileExist = await FileManagement.FileExists(
-      `${this.path}/collection.meta`,
-    );
-    if (isFileExist.status == false) {
-      await FileManagement.WriteFile(
-        `${this.path}/collection.meta`,
-        JSON.stringify([collectionData]),
-      );
-    } else {
-      const FullData = JSON.parse(
-        (await FileManagement.ReadFile(`${this.path}/collection.meta`)).data,
-      );
-      if (!Array.isArray(FullData)) {
-        return new ResponseHelper().Error("Invalid collection metadata format");
-      }
-      const isSameExist = FullData.filter(
-        (data: CollectionMetadata) => data.name === collectionData.name,
-      );
-      if (isSameExist.length == 0) {
-        FullData.push(collectionData);
-        await FileManagement.WriteFile(
-          `${this.path}/collection.meta`,
-          JSON.stringify(FullData),
-        );
-      }
+    const existing = await this.readCollectionMetadata();
+    if (existing.some((data) => data.name === collectionData.name)) {
+      return;
     }
+    await new FileManager().AppendFile(
+      this.collectionMetaPath,
+      `${JSON.stringify(collectionData)}\n`,
+    );
   }
 
   /**
@@ -261,31 +256,13 @@ export default class Database {
    * @returns A Promise that resolves to the collection's metadata if found, or undefined if not found
    * @private
    *
-   * This method:
-   * 1. Checks if the collection.meta file exists
-   * 2. Reads and parses the metadata file if it exists
-   * 3. Validates that the data is an array
-   * 4. Finds and returns the metadata for the specified collection
+   * Returns undefined when the registry has no line for that collection.
    */
   private async getCollectionMetaDetails(
     collectionName: string,
   ): Promise<CollectionMetadata | undefined> {
-    const FileManagement: FileManager = new FileManager();
-    const isFileExist = await FileManagement.FileExists(
-      `${this.path}/collection.meta`,
-    );
-    if (isFileExist.status == false) {
-      return undefined;
-    }
-    const FullData = JSON.parse(
-      (await FileManagement.ReadFile(`${this.path}/collection.meta`)).data,
-    );
-    if (!Array.isArray(FullData)) {
-      return undefined;
-    }
-    const collectionMeta = FullData.find(
+    return (await this.readCollectionMetadata()).find(
       (data: CollectionMetadata) => data.name === collectionName,
     );
-    return collectionMeta;
   }
 }
