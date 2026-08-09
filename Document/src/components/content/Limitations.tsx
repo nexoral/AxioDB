@@ -54,6 +54,37 @@ const Limitations: React.FC = () => {
             <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
             <div>
               <strong className="text-slate-200">
+                Disk Usage per Document:
+              </strong>{" "}
+              AxioDB stores one file per document, and a filesystem allocates whole
+              blocks &mdash; typically 4&nbsp;KB. A 128-byte document therefore occupies
+              4&nbsp;KB on disk. Measured on ext4, 20,000 documents of ~130 bytes used{" "}
+              <strong className="text-slate-200">80&nbsp;MB for 2.6&nbsp;MB of data</strong>{" "}
+              (31&times; amplification). The waste shrinks as documents grow and disappears
+              around 4&nbsp;KB each, so budget ~4&nbsp;KB per document when storing many
+              small records. In exchange, <code className="text-orange-300">documentId</code>{" "}
+              lookups are O(1) with no index consulted, and a torn write can only ever
+              damage one document.
+            </div>
+          </li>
+          <li className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
+            <div>
+              <strong className="text-slate-200">
+                Unindexed Scans:
+              </strong>{" "}
+              A query that is not a <code className="text-orange-300">documentId</code>{" "}
+              lookup or an exact match on an indexed field reads every document in the
+              collection &mdash; one file open per document rather than a single
+              sequential read. On the same 20,000 documents a full scan measured
+              208&nbsp;ms against 20&nbsp;ms for an equivalent single-file format. Index
+              the fields you filter on; the cost grows with collection size.
+            </div>
+          </li>
+          <li className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full mt-3"></div>
+            <div>
+              <strong className="text-slate-200">
                 Concurrency:
               </strong>{" "}
               Single-instance architecture. For multi-user web applications with
