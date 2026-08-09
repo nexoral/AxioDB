@@ -32,6 +32,20 @@ const Modal = ({
   const panelRef = useRef(null)
   const returnFocusRef = useRef(null)
 
+  /**
+   * Held in a ref rather than read from the closure so the effect below can depend on
+   * `isOpen` alone.
+   *
+   * Callers pass an inline arrow or a handler redefined each render, so `onClose` has a new
+   * identity on every render. With it in the dependency array the effect tore down and set
+   * up again on every keystroke - and its cleanup returns focus to the element that opened
+   * the dialog, so typing a single character threw focus out of the input.
+   */
+  const onCloseRef = useRef(onClose)
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
   useEffect(() => {
     if (!isOpen) return
 
@@ -40,7 +54,7 @@ const Modal = ({
     document.body.style.overflow = 'hidden'
 
     const onKeyDown = (event) => {
-      if (event.key === 'Escape') onClose?.()
+      if (event.key === 'Escape') onCloseRef.current?.()
     }
     document.addEventListener('keydown', onKeyDown)
 
@@ -54,7 +68,7 @@ const Modal = ({
       // Hand focus back to whatever opened the dialog.
       if (returnFocusRef.current instanceof HTMLElement) returnFocusRef.current.focus()
     }
-  }, [isOpen, onClose])
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -62,7 +76,7 @@ const Modal = ({
     <div
       className='fixed inset-0 z-50 flex items-center justify-center bg-ink-900/5 p-4 backdrop-blur-md'
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose?.()
+        if (event.target === event.currentTarget) onCloseRef.current?.()
       }}
     >
       <div

@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import { BASE_API_URL } from '../config/key'
+import { formatBytes } from '../utils/format'
 
 const Import = () => {
   const [file, setFile] = useState(null)
@@ -59,12 +60,10 @@ const Import = () => {
       return false
     }
 
-    if (file.size > 100 * 1024 * 1024) {
-      // 100MB limit
-      setErrorMessage('File size must be less than 100MB')
-      setUploadStatus('error')
-      return false
-    }
+    // No size cap here: a database export is legitimately as large as the database, and the
+    // server no longer caps it either. What the server rejects is an archive that *expands*
+    // past 100:1 (a decompression bomb) or that will not fit in free disk space - neither of
+    // which the browser can know in advance.
 
     return true
   }
@@ -255,7 +254,7 @@ const Import = () => {
                       Choose File
                     </label>
                     <p className='text-sm text-ink-500 mt-4'>
-                      Supports ZIP and TAR files (max 100MB)
+                      Supports .tar.gz archives produced by Export
                     </p>
                   </motion.div>
                   )
@@ -286,7 +285,7 @@ const Import = () => {
                       <div>
                         <p className='font-medium text-ink-900'>{file.name}</p>
                         <p className='text-sm text-ink-500'>
-                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                          {formatBytes(file.size)}
                         </p>
                       </div>
                     </div>

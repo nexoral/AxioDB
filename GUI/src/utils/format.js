@@ -41,3 +41,25 @@ export function formatStorage (megabytes, unit = 'MB') {
 
   return `${show(value)} MB / ${large}`
 }
+
+/**
+ * Formats a raw byte count with a unit that suits its magnitude.
+ *
+ * The upload picker previously divided by 1024 twice and appended "MB" unconditionally, so
+ * a 1 KB archive displayed as "0.00 MB" - which reads as an empty or broken file.
+ *
+ * @param {number} bytes
+ * @returns {string} e.g. "0 B", "1.2 KB", "48.6 MB", "2.10 GB"
+ */
+export function formatBytes (bytes) {
+  const value = Number(bytes)
+  if (!Number.isFinite(value) || value <= 0) return '0 B'
+
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  const exponent = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1)
+  const scaled = value / 1024 ** exponent
+
+  // Bytes are whole; larger units get one or two decimals so small files stay legible.
+  const decimals = exponent === 0 ? 0 : scaled < 10 ? 2 : 1
+  return `${scaled.toFixed(decimals)} ${units[exponent]}`
+}
