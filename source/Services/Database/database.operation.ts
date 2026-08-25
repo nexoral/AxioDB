@@ -11,9 +11,11 @@ import {
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import { FinalCollectionsInfo } from "../../config/Interfaces/Operation/database.operation.interface";
+import { CollectionResolver } from "../../config/Interfaces/Operation/aggregation.interface";
 import { IndexManager } from "../Index/Index.service";
 import { IndexCache } from "../Index/IndexCache.service";
 import { General } from "../../config/Keys/Keys";
+import DocumentLoader from "../../Helper/DocumentLoader.helper";
 
 // Types
 type CollectionMetadata = {
@@ -69,7 +71,8 @@ export default class Database {
     const Index = new IndexManager(collectionPath);
     await Index.generateIndexMeta();
 
-    const collection = new Collection(collectionName, collectionPath);
+    const resolver = this.createCollectionResolver();
+    const collection = new Collection(collectionName, collectionPath, resolver);
     // Store collection metadata in the collectionMap
     await this.AddCollectionMetadata({
       name: collectionName,
@@ -264,5 +267,44 @@ export default class Database {
     return (await this.readCollectionMetadata()).find(
       (data: CollectionMetadata) => data.name === collectionName,
     );
+  }
+
+  /**
+   * Creates a collection resolver function for cross-collection data access.
+   * Used by $lookup to load documents from sibling collections within the same database.
+   *
+   * @returns A CollectionResolver function that loads all documents from a named collection
+   * @private
+   */
+  private createCollectionResolver(): CollectionResolver {
+    return async (targetCollectionName: string, query?: Record<string, any>): Promise<any[]> => {
+      const sanitizedTarget = PathSanitizer.sanitizePathComponent(targetCollectionName);
+      const targetPath = PathSanitizer.safePath(this.path, sanitizedTarget);
+
+      const exists = await this.folderManager.DirectoryExists(targetPath);
+      if (exists.statusCode !== StatusCodes.OK) {
+        throw new Error(
+          `Collection "${targetCollectionName}" does not exist in database "${this.name}"`,
+        );
+      }
+
+      // Try index-optimized load when query is provided
+      if (query && Object.keys(query).length > 0) {
+        try {
+          const { ReadIndex } = await import("../Index/ReadIndex.service");
+          const fileNames = await new ReadIndex(targetPath).getFileFromIndex(query);
+          if (fileNames.length > 0) {
+            const result = await DocumentLoader.loadDocuments(targetPath, fileNames, false);
+            if ("data" in result) return result.data;
+          }
+        } catch {
+          // Index miss — fall through to full scan
+        }
+      }
+
+      const result = await DocumentLoader.loadDocuments(targetPath);
+      if ("data" in result) return result.data;
+      throw new Error(`Failed to load documents from collection "${targetCollectionName}"`);
+    };
   }
 }
