@@ -39,6 +39,7 @@ const testModules = {
   crud: './modules/crud.test.js',
   transaction: './modules/transaction.test.js',
   read: './modules/read.test.js',
+  aggregation: './modules/aggregation.test.js',
   auth: './modules/auth.test.js',
   'tcp-auth': './modules/tcp-auth.test.js',
   'tcp-noauth': './modules/tcp-noauth.test.js',

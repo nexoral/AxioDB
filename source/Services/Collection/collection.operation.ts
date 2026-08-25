@@ -4,6 +4,7 @@ import {
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import { SessionOptions } from "../../config/Interfaces/Transaction/transaction.interface";
+import { CollectionResolver } from "../../config/Interfaces/Operation/aggregation.interface";
 import ResponseHelper from "../../Helper/response.helper";
 // Operations
 import Reader from "../CRUD Operation/Reader.operation";
@@ -32,16 +33,19 @@ export default class Collection {
   private Converter: Converter;
   private readonly IndexManager: IndexManager;
   private readonly indexCache: IndexCache;
+  private readonly collectionResolver?: CollectionResolver;
 
   constructor(
     name: string,
     path: string,
+    collectionResolver?: CollectionResolver,
   ) {
     this.name = name;
     this.path = path;
     this.Converter = new Converter();
     this.updatedAt = new Date().toISOString();
     this.IndexManager = new IndexManager(this.path);
+    this.collectionResolver = collectionResolver;
 
     // Initialize and eagerly load index cache for maximum query performance
     this.indexCache = IndexCache.getInstance(this.path);
@@ -245,6 +249,7 @@ export default class Collection {
       this.name,
       this.path,
       PipelineQuerySteps,
+      this.collectionResolver,
     );
   }
 

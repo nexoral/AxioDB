@@ -277,18 +277,54 @@ const stats = await users.aggregate([
 ]).exec();
 ```
 
-**Hard requirement:** the pipeline's first stage must contain a `$match` key (even `{ $match: {} }` for "match everything") — a pipeline that doesn't start with `$match` throws `Pipeline must have a $match operator at top`.
+```javascript
+// Cross-collection join with $lookup
+const usersWithOrders = await users.aggregate([
+  { $lookup: {
+      from: 'Orders',
+      localField: 'userId',
+      foreignField: 'userId',
+      as: 'userOrders'
+  }},
+  { $unwind: '$userOrders' },
+  { $match: { 'userOrders.status': 'completed' } },
+  { $group: { _id: '$name', totalSpent: { $sum: '$userOrders.total' } } }
+]).exec();
+```
 
-Supported stages, in the order they're applied within a pipeline:
+```javascript
+// Custom operator registration
+import { OperatorRegistry } from 'axiodb';
 
-- **`$match`** — filters documents. Its operator set is **narrower** than `.query()`'s: exact equality (string/number/boolean), a `RegExp` instance or `{ $regex, $options }`, `$gte`, `$gt`, `$lte`, `$lt`, `$ne`, `$in`, `$nin`. No `$exists`, `$or`, `$and`, `$nor`, `$elemMatch`, `$not`, `$type`, `$size`, `$all`, or `$eq` inside `$match` — those are `.query()`-only.
-- **`$group`** — groups by `_id` (a literal value, `'$fieldName'`, or an object of field-path expressions). Accumulators: `$sum` and `$avg` only (no `$min`, `$max`, `$push`, `$first`, `$last`).
-- **`$sort`** — `{ field: 1 | -1 }`, single field per stage.
-- **`$project`** — inclusion-only: `{ field: 1 }` keeps `field`; there's no exclusion (`0`) or computed/renamed fields.
+OperatorRegistry.registerAccumulator('$median', (collection, expr) => {
+  const values = collection.map(doc => doc[expr.field]).sort((a, b) => a - b);
+  const mid = Math.floor(values.length / 2);
+  return values.length % 2 ? values[mid] : (values[mid - 1] + values[mid]) / 2;
+});
+```
+
+`$match` is no longer required as the first stage — the engine scans the entire pipeline for a `$match` and uses it for index optimization regardless of position.
+
+Supported stages:
+
+- **`$match`** — filters documents. Supports exact equality, `RegExp`, `$regex`/`$options`, `$gte`, `$gt`, `$lte`, `$lt`, `$ne`, `$in`, `$nin`, `$exists`, `$not`, `$elemMatch`, `$all`, `$size`, `$type`, `$mod`, and top-level logical operators `$and`, `$or`, `$nor`.
+- **`$group`** — groups by `_id` (literal, `'$fieldName'`, or composite object). Accumulators: `$sum`, `$avg`, `$min`, `$max`, `$first`, `$last`, `$push`, `$addToSet`, `$stdDevPop`, `$stdDevSamp`.
+- **`$sort`** — `{ field: 1 | -1, ... }`, multi-field support.
+- **`$project`** — inclusion (`1`), exclusion (`0`), and computed fields via expressions (`{ bonus: { $multiply: ['$salary', 0.1] } }`).
 - **`$limit`** — `{ $limit: n }`.
 - **`$skip`** — `{ $skip: n }`.
-- **`$unwind`** — `{ $unwind: '$arrayField' }`, deconstructs an array field into one document per element.
-- **`$addFields`** — `{ $addFields: { field: literalValue } }`, a plain merge — not expression-evaluated.
+- **`$unwind`** — string form `{ $unwind: '$field' }` or object form `{ $unwind: { path: '$field', includeArrayIndex: 'idx', preserveNullAndEmptyArrays: true } }`.
+- **`$addFields` / `$set`** — computed fields via expressions.
+- **`$unset`** — remove fields.
+- **`$lookup`** — cross-collection join. Equality form: `{ from, localField, foreignField, as }`. Pipeline form: `{ from, let, pipeline, as }`. Uses index optimization on foreign collection when indexes exist.
+- **`$facet`** — multi-facet aggregation with parallel sub-pipelines.
+- **`$bucket` / `$bucketAuto`** — bucket documents by boundaries or automatic distribution.
+- **`$count`** — count documents.
+- **`$sortByCount`** — group by expression, sort by count descending.
+- **`$sample`** — random sample of N documents.
+- **`$replaceRoot` / `$replaceWith`** — replace document with subdocument.
+
+Expression evaluator supports 80+ operators across arithmetic, string, comparison, logical, array, date, type, and set categories. Custom operators can be registered via `OperatorRegistry.registerStageOperator()`, `registerAccumulator()`, and `registerExpressionOperator()`.
 
 ---
 
@@ -751,7 +787,7 @@ source/
 │   ├── Collection/                 insert, query, update, delete, aggregate, index, transaction entry points
 │   ├── CRUD Operation/             Create / Reader / Update / Delete operations
 │   ├── Index/Index.service.ts      Index storage (JSONL, append-only) + metadata
-│   ├── Aggregation/                Pipeline stages ($match, $group, $sort, $project, $limit, $skip, $unwind, $addFields)
+│   ├── Aggregation/                Pipeline engine, 60+ stages, $lookup, expression evaluator, OperatorRegistry
 │   ├── Transaction/                Transaction, Session, WAL, LockManager, TransactionRegistry
 │   └── Auth/                       SessionStore (memory-only), LoginRateLimiter, RBAC checks
 ├── engine/Filesystem/              FileManager, FolderManager — all low-level disk I/O
@@ -882,9 +918,7 @@ Available **only** via the Docker image with `AXIODB_MCP=true`, at `http://local
 - **No JOINs, no foreign keys, no referential integrity.** Denormalize or join in JavaScript.
 - **No replication, sharding, or clustering.** One node, one copy. Back it up yourself.
 - **No MongoDB update operators.** `$inc`, `$set`, `$push`, `$pull`, `$unset` do not exist — update data is a flat shallow merge.
-- **`$match` in aggregation is narrower than `.query()`.** No `$exists`, `$or`, `$and`, `$nor`, `$elemMatch`, `$not`, `$type`, `$size`, `$all`, `$eq` inside a pipeline `$match`.
-- **Aggregation accumulators are `$sum` and `$avg` only.** No `$min`, `$max`, `$push`, `$first`, `$last`.
-- **`$project` is inclusion-only.** No exclusion (`0`), no computed or renamed fields.
+- **`$lookup` loads the entire foreign collection into memory.** No streaming join — large foreign collections can cause memory pressure.
 - **Unindexed queries are full scans.** Only `documentId` and single-field exact matches on an indexed field are O(1).
 - **No browser support.** Node.js and a real filesystem are required.
 - **Sessions are memory-only.** Restarting the server logs every Dashboard/TCP user out.

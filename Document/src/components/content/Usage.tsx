@@ -38,13 +38,19 @@ console.log(saveStatus);`,
 console.log(updatedDocuments);`,
       delete: `const deletedDocuments = await collection.delete({ name: { $regex: "Ankan" } }).deleteOne();
 console.log(deletedDocuments);`,
-      aggregate: `const response = await collection.aggregate([
-  { $match: { age: { $gt: 20 }, name: { $regex: "Ankan" } } }, // Filter documents
-  { $group: { _id: "$age", count: { $sum: 1 } } }, // Group by age and count occurrences
-  { $sort: { count: -1 } }, // Sort by count in descending order
-  { $project: { _id: 0, age: "$_id", count: 1 } }, // Project specific fields
-  { $limit: 10 }, // Limit the number of results
-  { $skip: 0 } // Skip a certain number of results
+      aggregate: `// Aggregation with $lookup cross-collection join
+const response = await collection.aggregate([
+  { $match: { age: { $gt: 20 } } },
+  { $lookup: {
+      from: "Orders",
+      localField: "userId",
+      foreignField: "userId",
+      as: "userOrders"
+  }},
+  { $unwind: "$userOrders" },
+  { $group: { _id: "$name", totalSpent: { $sum: "$userOrders.total" } } },
+  { $sort: { totalSpent: -1 } },
+  { $limit: 10 }
 ]).exec();
 console.log(response);`,
       fastRetrieval: `// Retrieve a single document by documentId
@@ -89,13 +95,19 @@ console.log(saveStatus);`,
 console.log(updatedDocuments);`,
       delete: `const deletedDocuments = await collection.delete({ name: { $regex: "Ankan" } }).deleteOne();
 console.log(deletedDocuments);`,
-      aggregate: `const response = await collection.aggregate([
-  { $match: { age: { $gt: 20 }, name: { $regex: "Ankan" } } }, // Filter documents
-  { $group: { _id: "$age", count: { $sum: 1 } } }, // Group by age and count occurrences
-  { $sort: { count: -1 } }, // Sort by count in descending order
-  { $project: { _id: 0, age: "$_id", count: 1 } }, // Project specific fields
-  { $limit: 10 }, // Limit the number of results
-  { $skip: 0 } // Skip a certain number of results
+      aggregate: `// Aggregation with $lookup cross-collection join
+const response = await collection.aggregate([
+  { $match: { age: { $gt: 20 } } },
+  { $lookup: {
+      from: "Orders",
+      localField: "userId",
+      foreignField: "userId",
+      as: "userOrders"
+  }},
+  { $unwind: "$userOrders" },
+  { $group: { _id: "$name", totalSpent: { $sum: "$userOrders.total" } } },
+  { $sort: { totalSpent: -1 } },
+  { $limit: 10 }
 ]).exec();
 console.log(response);`,
       fastRetrieval: `// Retrieve a single document by documentId

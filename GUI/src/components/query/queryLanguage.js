@@ -76,16 +76,33 @@ export const QUERY_OPERATORS = [
 
 /** Pipeline stages accepted by the aggregation engine (source/Services/Aggregation). */
 export const AGGREGATION_STAGES = [
-  { label: '$match', detail: 'filter stage', doc: 'Filters documents. Required as the first stage of every pipeline.', insert: '$match: {}' },
-  { label: '$group', detail: 'group stage', doc: 'Groups by _id. Accumulators available here are $sum and $avg.', insert: "$group: { _id: '$field' }" },
-  { label: '$project', detail: 'shape stage', doc: 'Chooses which fields to keep. Inclusion only.', insert: '$project: {}' },
-  { label: '$sort', detail: 'order stage', doc: 'Orders documents. 1 ascending, -1 descending.', insert: '$sort: {}' },
+  { label: '$match', detail: 'filter stage', doc: 'Filters documents. Supports $and, $or, $nor, $not, $exists, $elemMatch, $all, $size, $type, $mod.', insert: '$match: {}' },
+  { label: '$group', detail: 'group stage', doc: 'Groups by _id. Accumulators: $sum, $avg, $min, $max, $first, $last, $push, $addToSet, $stdDevPop, $stdDevSamp.', insert: "$group: { _id: '$field' }" },
+  { label: '$sort', detail: 'order stage', doc: 'Orders documents. Multi-field support. 1 ascending, -1 descending.', insert: '$sort: {}' },
+  { label: '$project', detail: 'shape stage', doc: 'Include (1), exclude (0), or compute fields via expressions.', insert: '$project: {}' },
   { label: '$limit', detail: 'cap stage', doc: 'Keeps at most N documents.', insert: '$limit: 10' },
   { label: '$skip', detail: 'offset stage', doc: 'Discards the first N documents.', insert: '$skip: 0' },
-  { label: '$unwind', detail: 'flatten stage', doc: 'Expands an array field into one document per element.', insert: "$unwind: '$field'" },
-  { label: '$addFields', detail: 'add fields stage', doc: 'Adds computed fields to each document.', insert: '$addFields: {}' },
+  { label: '$unwind', detail: 'flatten stage', doc: 'Expands an array field. Supports includeArrayIndex and preserveNullAndEmptyArrays.', insert: "$unwind: '$field'" },
+  { label: '$addFields', detail: 'add fields stage', doc: 'Adds computed fields via expressions.', insert: '$addFields: {}' },
+  { label: '$set', detail: 'alias for $addFields', doc: 'Alias for $addFields.', insert: '$set: {}' },
+  { label: '$unset', detail: 'remove fields', doc: 'Removes specified fields.', insert: "$unset: ['field']" },
+  { label: '$lookup', detail: 'join stage', doc: 'Cross-collection join. Equality: {from, localField, foreignField, as}. Pipeline: {from, let, pipeline, as}.', insert: "$lookup: { from: 'Collection', localField: 'id', foreignField: 'id', as: 'joined' }" },
+  { label: '$facet', detail: 'multi-pipeline', doc: 'Runs multiple sub-pipelines in parallel on the same input.', insert: '$facet: {}' },
+  { label: '$bucket', detail: 'bucket stage', doc: 'Groups documents into buckets defined by boundaries.', insert: '$bucket: { groupBy: "$field", boundaries: [] }' },
+  { label: '$bucketAuto', detail: 'auto bucket', doc: 'Automatically distributes documents into N buckets.', insert: '$bucketAuto: { groupBy: "$field", buckets: 5 }' },
+  { label: '$count', detail: 'count stage', doc: 'Counts documents and assigns to a named field.', insert: "$count: 'total'" },
+  { label: '$sortByCount', detail: 'group + sort', doc: 'Groups by expression, sorts by count descending.', insert: "$sortByCount: '$field'" },
+  { label: '$sample', detail: 'random sample', doc: 'Returns N random documents.', insert: '$sample: { size: 10 }' },
+  { label: '$replaceRoot', detail: 'replace doc', doc: 'Replaces document with a subdocument.', insert: '$replaceRoot: { newRoot: "$sub" }' },
+  { label: '$replaceWith', detail: 'alias for $replaceRoot', doc: 'Alias for $replaceRoot.', insert: '$replaceWith: "$sub"' },
   { label: '$sum', detail: 'accumulator', doc: 'Inside $group: totals a field, or counts with a literal 1.', insert: '$sum: 1' },
-  { label: '$avg', detail: 'accumulator', doc: 'Inside $group: averages a numeric field.', insert: "$avg: '$field'" }
+  { label: '$avg', detail: 'accumulator', doc: 'Inside $group: averages a numeric field.', insert: "$avg: '$field'" },
+  { label: '$min', detail: 'accumulator', doc: 'Inside $group: minimum value.', insert: "$min: '$field'" },
+  { label: '$max', detail: 'accumulator', doc: 'Inside $group: maximum value.', insert: "$max: '$field'" },
+  { label: '$first', detail: 'accumulator', doc: 'Inside $group: first value in the group.', insert: "$first: '$field'" },
+  { label: '$last', detail: 'accumulator', doc: 'Inside $group: last value in the group.', insert: "$last: '$field'" },
+  { label: '$push', detail: 'accumulator', doc: 'Inside $group: collects values into an array.', insert: "$push: '$field'" },
+  { label: '$addToSet', detail: 'accumulator', doc: 'Inside $group: collects unique values into an array.', insert: "$addToSet: '$field'" }
 ]
 
 const QUERY_OPERATOR_NAMES = new Set(QUERY_OPERATORS.map((o) => o.label))

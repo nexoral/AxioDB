@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import ResponseHelper from "../../Helper/response.helper";
 import {
   ErrorInterface,
@@ -6,298 +7,114 @@ import {
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
 import Console from "../../Helper/Console.helper";
 import { ReadIndex } from "../Index/ReadIndex.service";
+import { CollectionResolver } from "../../config/Interfaces/Operation/aggregation.interface";
+import { OperatorRegistry } from "./OperatorRegistry";
+import {
+  BUILT_IN_STAGE_OPERATORS,
+  executeLookup,
+  executeFacet,
+  executeBucket,
+  executeBucketAuto,
+  extractMatchFromPipeline,
+} from "./operators/stageOperators";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-interface AggregationStage {
-  $match?: Record<string, any>;
-  $group?: Record<string, any>;
-  $sort?: Record<string, any>;
-  $project?: Record<string, any>;
-  $limit?: number;
-  $skip?: number;
-  $unwind?: string;
-  $addFields?: Record<string, any>;
-}
-
-/**
- * Class that performs aggregation operations on data.
- *
- * This class allows for MongoDB-like aggregation pipeline operations on collection data.
- * It supports various stages including $match, $group, $sort, $project, $limit, $skip,
- * $unwind, and $addFields.
- *
- */
 export default class Aggregation {
-  // property to store the data
   private AllData: any[] = [];
-  private readonly Pipeline: AggregationStage;
-  private path: string;
+  private readonly Pipeline: any[];
+  private readonly path: string;
   private readonly collectionName: string;
   private readonly ResponseHelper: ResponseHelper;
+  private readonly collectionResolver?: CollectionResolver;
 
   constructor(
     collectionName: string,
     path: string,
     Pipeline: object[] | any,
+    collectionResolver?: CollectionResolver,
   ) {
     this.collectionName = collectionName;
     this.path = path;
     this.AllData = [];
     this.Pipeline = Pipeline;
     this.ResponseHelper = new ResponseHelper();
+    this.collectionResolver = collectionResolver;
   }
 
-  /**
-   * Executes the aggregation pipeline on the data.
-   *
-   * This method processes the aggregation pipeline stages in sequence:
-   * - $match: Filters documents based on specified conditions
-   * - $group: Groups documents by specified fields and applies aggregation operations
-   * - $sort: Sorts documents based on specified fields and order
-   * - $project: Reshapes documents by including specified fields
-   * - $limit: Limits the number of documents in the result
-   * - $skip: Skips a specified number of documents
-   * - $unwind: Deconstructs an array field from input documents
-   * - $addFields: Adds new fields to documents
-   *
-   * The method first validates if the pipeline is an array, loads all buffer data,
-   * and then processes each stage of the pipeline sequentially.
-   *
-   * @throws {Error} If the pipeline is not an array
-   * @returns {Array<any>} The result of the aggregation pipeline
-   */
   public async exec(): Promise<SuccessInterface | ErrorInterface> {
     if (!Array.isArray(this.Pipeline)) {
       throw new Error("Pipeline must be an array of aggregation stages.");
     }
-    if (!this.Pipeline[0] || !this.Pipeline[0].$match) {
-      throw new Error("Pipeline must have a $match operator at top")
-    }
 
-    if (this.Pipeline.$match) {
-      const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.Pipeline.$match)
-      if (fileNames.length > 0) {
-        // Load File Names from Index
-        await this.LoadAllBufferRawData(fileNames);
-      }
-      else {
-        // Load all buffer raw data from the specified directory
-        await this.LoadAllBufferRawData().then((response) => {
-          if ("data" in response) {
-            Console.green(
-              `${response?.data?.length} Documents Loaded for Aggregation`,
-            );
-          }
-        });
-      }
-    }
-    else {
-      // Load all buffer raw data from the specified directory
-      await this.LoadAllBufferRawData().then((response) => {
-        if ("data" in response) {
-          Console.green(
-            `${response?.data?.length} Documents Loaded for Aggregation`,
-          );
-        }
-      });
-    }
-
+    await this.loadSourceData();
 
     let result = [...this.AllData];
 
     for (const stage of this.Pipeline) {
-      if (stage.$match) {
-        result = result.filter((item) => {
-          return Object.entries(stage.$match).every(([key, value]) => {
-            const itemValue = item[key] ?? ""; // Ensure item[key] exists
+      if (!stage || typeof stage !== "object") continue;
 
-            if (
-              typeof value === "string" ||
-              typeof value === "number" ||
-              typeof value === "boolean"
-            ) {
-              return itemValue === value;
-            }
+      const opName = Object.keys(stage)[0];
+      if (!opName) continue;
 
-            if (typeof value === "object" && value !== null) {
-              if (value instanceof RegExp) {
-                return value.test(itemValue);
-              }
-              if ("$regex" in value) {
-                const regexPattern = value.$regex;
-                const regexOptions =
-                  "$options" in value ? (value.$options as string) : "";
-                try {
-                  const regex = new RegExp(String(regexPattern), regexOptions);
-                  return regex.test(itemValue);
-                } catch (error) {
-                  Console.red(
-                    `Invalid regex: ${regexPattern} with options: ${regexOptions}`,
-                    error,
-                  );
-                  return false;
-                }
-              }
-              // Comparison operators
-              if ("$gte" in value) {
-                return itemValue >= (value as any).$gte;
-              }
-              if ("$gt" in value) {
-                return itemValue > (value as any).$gt;
-              }
-              if ("$lte" in value) {
-                return itemValue <= (value as any).$lte;
-              }
-              if ("$lt" in value) {
-                return itemValue < (value as any).$lt;
-              }
-              if ("$ne" in value) {
-                return itemValue !== (value as any).$ne;
-              }
-              if ("$in" in value) {
-                return Array.isArray((value as any).$in) && (value as any).$in.includes(itemValue);
-              }
-              if ("$nin" in value) {
-                return Array.isArray((value as any).$nin) && !(value as any).$nin.includes(itemValue);
-              }
-            }
-            return false;
-          });
-        });
-      }
-      if (stage.$group) {
-        const groupedData: Record<string, any> = {};
-        for (const item of result) {
-          let groupKey;
+      const opExpr = (stage as any)[opName];
 
-          if (typeof stage.$group._id === "string") {
-            groupKey = stage.$group._id.startsWith("$")
-              ? item[stage.$group._id.substring(1)]
-              : stage.$group._id;
-          } else if (typeof stage.$group._id === "object") {
-            groupKey = JSON.stringify(
-              Object.entries(stage.$group._id).reduce(
-                (acc, [k, v]) => {
-                  const fieldPath = (v as string).replace("$", "");
-                  acc[k] = item[fieldPath];
-                  return acc;
-                },
-                {} as Record<string, any>,
-              ),
-            );
-          } else {
-            groupKey = "null";
-          }
+      if (opName === "$lookup") {
+        result = await executeLookup(result, opExpr, this.collectionResolver);
+        continue;
+      }
+      if (opName === "$facet") {
+        result = [executeFacet(result, opExpr)];
+        continue;
+      }
+      if (opName === "$bucket") {
+        result = executeBucket(result, opExpr);
+        continue;
+      }
+      if (opName === "$bucketAuto") {
+        result = executeBucketAuto(result, opExpr);
+        continue;
+      }
 
-          if (!groupedData[groupKey]) {
-            groupedData[groupKey] = { _id: groupKey };
-          }
+      const builtInOp = BUILT_IN_STAGE_OPERATORS[opName];
+      if (builtInOp) {
+        result = builtInOp(result, opExpr);
+        continue;
+      }
 
-          for (const [key, operation] of Object.entries(stage.$group) as [
-            string,
-            any,
-          ][]) {
-            if (key === "_id") continue;
-            if (operation.$avg !== undefined) {
-              const operand = operation.$avg;
-              const value =
-                typeof operand === "string" ? item[operand.replace("$", "")] : operand;
-              groupedData[groupKey][key] = groupedData[groupKey][key] || {
-                sum: 0,
-                count: 0,
-              };
-              groupedData[groupKey][key].sum += value;
-              groupedData[groupKey][key].count += 1;
-            }
-            if (operation.$sum !== undefined) {
-              const operand = operation.$sum;
-              const value =
-                typeof operand === "string" ? item[operand.replace("$", "")] : operand;
-              groupedData[groupKey][key] = (groupedData[groupKey][key] || 0) + value;
-            }
-          }
-        }
-        result = Object.values(groupedData).map((group) => {
-          for (const key in group) {
-            if (group[key] && group[key].sum !== undefined) {
-              group[key] = group[key].sum / group[key].count;
-            }
-          }
-          return group;
-        });
+      const registered = OperatorRegistry.getOperator(opName);
+      if (registered && registered.type === "stage") {
+        const customResult = (registered.fn as any)(result, opExpr, this.collectionResolver);
+        result = customResult instanceof Promise ? await customResult : customResult;
+        continue;
       }
-      if (stage.$sort) {
-        const [[key, order]] = Object.entries(stage.$sort);
-        const numOrder = Number(order);
-        result.sort((a, b) => {
-          if (a[key] < b[key]) return -numOrder;
-          if (a[key] > b[key]) return numOrder;
-          return 0;
-        });
-      }
-      if (stage.$project) {
-        result = result.map((item) => {
-          const projected: { [key: string]: any } = {};
-          for (const key in stage.$project) {
-            if (stage.$project[key] === 1) {
-              projected[key] = item[key];
-            }
-          }
-          return projected;
-        });
-      }
-      if (stage.$limit) {
-        result = result.slice(0, stage.$limit);
-      }
-      if (stage.$skip) {
-        result = result.slice(stage.$skip);
-      }
-      if (stage.$unwind) {
-        const field = stage.$unwind.replace("$", "");
-        result = result.flatMap((item) => {
-          return Array.isArray(item[field])
-            ? item[field].map((value) => ({ ...item, [field]: value }))
-            : [item];
-        });
-      }
-      if (stage.$addFields) {
-        result = result.map((item) => ({ ...item, ...stage.$addFields }));
-      }
+
+      Console.red(`Unknown aggregation stage operator: ${opName}`);
     }
 
     return this.ResponseHelper.Success(result);
   }
 
-  /**
-   * Loads all buffer raw data from the specified directory.
-   *
-   * This method performs the following steps:
-   * 1. Checks if the directory is locked.
-   * 2. If the directory is not locked, it lists all files in the directory.
-   * 3. Reads each file.
-   * 4. Stores the data in the `AllData` array.
-   * 5. If the directory is locked, it unlocks the directory, reads the files, and then locks the directory again.
-   *
-   * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves to a success or error response.
-   *
-   * @throws {Error} Throws an error if any operation fails.
-   */
-  private async LoadAllBufferRawData(documentIdDirectFile?: string[] | undefined): Promise<
-    SuccessInterface | ErrorInterface
-  > {
-    // Use shared DocumentLoader helper (DRY - consolidates duplicated code)
-    const result = await DocumentLoader.loadDocuments(
-      this.path,
-      documentIdDirectFile,
-      false  // Don't include fileName for Aggregation
-    );
-
-    // Store result in AllData if successful
-    if ("data" in result) {
-      this.AllData = result.data;
+  private async loadSourceData(): Promise<void> {
+    const matchExpr = extractMatchFromPipeline(this.Pipeline);
+    if (matchExpr) {
+      try {
+        const fileNames = await new ReadIndex(this.path).getFileFromIndex(matchExpr);
+        if (fileNames.length > 0) {
+          const result = await DocumentLoader.loadDocuments(this.path, fileNames, false);
+          if ("data" in result) {
+            this.AllData = result.data;
+            Console.green(`${this.AllData.length} Documents Loaded for Aggregation (index-optimized)`);
+            return;
+          }
+        }
+      } catch {
+        // Index miss - fall through to full scan
+      }
     }
 
-    return result;
+    const result = await DocumentLoader.loadDocuments(this.path, undefined, false);
+    if ("data" in result) {
+      this.AllData = result.data;
+      Console.green(`${this.AllData.length} Documents Loaded for Aggregation`);
+    }
   }
 }

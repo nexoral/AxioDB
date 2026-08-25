@@ -12,6 +12,29 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "15.1.0",
+    date: "2026-08-25",
+    title: "Aggregation engine rewrite: 60+ operators, $lookup cross-collection joins, custom operator registry",
+    changes: [
+      "New: $lookup stage for cross-collection joins — supports both equality join (localField/foreignField) and pipeline-based join with $let/$$var binding. Foreign collection data is loaded via a resolver function threaded from Database through Collection to Aggregation.",
+      "New: OperatorRegistry — static class for registering custom stage operators, accumulators, and expression operators. Custom operators integrate seamlessly with built-in operators in the pipeline execution loop.",
+      "New: Full expression evaluator supporting 80+ operators — arithmetic ($add, $subtract, $multiply, $divide, $mod, $abs, $ceil, $floor, $sqrt, $pow, $round), string ($concat, $substr, $toLower, $toUpper, $trim, $split, $replaceOne, $replaceAll, $regexMatch), comparison ($eq, $gt, $gte, $lt, $lte, $ne, $cmp), logical ($and, $or, $not, $cond, $ifNull, $switch), array ($filter, $map, $reduce, $arrayElemAt, $concatArrays, $size, $slice, $range, $sortArray, $reverseArray, $zip), date ($year, $month, $dayOfMonth, $hour, $minute, $second, $dayOfWeek, $dayOfYear, $week, $dateToString, $dateFromString, $dateDiff, $dateAdd, $dateSubtract), type ($type, $convert, $toString, $toInt, $toDouble, $toBool, $isNumber, $isArray), set ($setEquals, $setIntersection, $setUnion, $setDifference, $setIsSubset), and misc ($literal, $getField, $mergeObjects, $let).",
+      "New: $facet stage for multi-facet aggregation (parallel sub-pipelines on the same input).",
+      "New: $bucket and $bucketAuto stages for bucketing documents by boundaries or automatic distribution.",
+      "New: $count, $sortByCount, $sample, $replaceRoot/$replaceWith, $set (alias for $addFields), $unset stages.",
+      "New: Accumulator operators $min, $max, $first, $last, $push, $addToSet, $stdDevPop, $stdDevSamp (previously only $sum and $avg).",
+      "Enhanced: $match now supports top-level logical operators ($and, $or, $nor, $not), $exists, $elemMatch, $all, $size, $type, $mod.",
+      "Enhanced: $sort now supports multi-field sorting (e.g., { department: 1, salary: -1 }).",
+      "Enhanced: $project now supports exclusion mode ({ field: 0 }) and computed fields via expressions ({ bonus: { $multiply: ['$salary', 0.1] } }).",
+      "Enhanced: $addFields now supports computed expressions instead of only literal values.",
+      "Enhanced: $unwind now supports the object form with includeArrayIndex and preserveNullAndEmptyArrays options.",
+      "Enhanced: $match is no longer required as the first stage — the engine scans the entire pipeline for a $match stage and uses it for index optimization regardless of position.",
+      "Enhanced: $lookup uses index optimization on the foreign collection — equality joins pass distinct values as $in query hints, pipeline joins extract $match conditions as query hints.",
+      "Fixed: Index lookup in aggregation was broken (accessed this.Pipeline.$match instead of this.Pipeline[0].$match).",
+      "63 new test cases covering backward compatibility, enhanced operators, new stages, $lookup integration, expression evaluator, custom operators, edge cases, and pipeline flexibility.",
+    ],
+  },
+  {
     version: "15.0.0",
     date: "2026-08-09",
     title: "Every non-document file is now JSONL, plus a self-deletion guard and a document-count fix",

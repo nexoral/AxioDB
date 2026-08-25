@@ -564,7 +564,7 @@ await collection
         {
           name: "aggregate",
           signature: "aggregate(pipeline: object[]): Aggregation",
-          description: "Initiates an aggregation operation with a MongoDB-compatible pipeline. Aggregations allow complex data processing, grouping, filtering, and transformations. Supports stages: $match, $group, $sort, $project, $limit, $skip, $unwind, $addFields.",
+          description: "Initiates an aggregation operation with a MongoDB-compatible pipeline. Supports 60+ stages including $lookup (cross-collection joins), $facet, $bucket, $count, $sample, and full expression evaluator. Custom operators can be registered via OperatorRegistry.",
           example: `// Basic aggregation pipeline
 const result = await collection
   .aggregate([
@@ -572,97 +572,123 @@ const result = await collection
     { $group: { _id: '$city', count: { $sum: 1 } } },
     { $sort: { count: -1 } }
   ])
-  .exec();`,
+  .exec();
+
+// Cross-collection join with $lookup
+const usersWithOrders = await collection.aggregate([
+  { $lookup: {
+      from: 'Orders',
+      localField: 'userId',
+      foreignField: 'userId',
+      as: 'userOrders'
+  }},
+  { $unwind: '$userOrders' },
+  { $group: { _id: '$name', totalSpent: { $sum: '$userOrders.total' } } }
+]).exec();`,
           returns: "Aggregation: An aggregation operation instance.",
         },
         {
           name: "$match",
           signature: "{ $match: { field: value } }",
-          description: "Filters documents based on specified conditions. Similar to query() but used within aggregation pipelines. Should be placed early in the pipeline for better performance.",
-          example: `// Filter active users over 25
+          description: "Filters documents. Supports $and, $or, $nor, $not, $exists, $elemMatch, $all, $size, $type, $mod, $regex/$options, and comparison operators. No longer required as the first stage.",
+          example: `// Logical operators
 await collection.aggregate([
-  { $match: { status: 'active', age: { $gt: 25 } } },
-  // ... more stages
+  { $match: { $or: [{ status: 'active' }, { age: { $gt: 30 } }] } }
 ]).exec();
 
-// Multiple conditions with regex
+// $exists and $type
 await collection.aggregate([
-  { $match: {
-    email: { $regex: '@company.com$' },
-    department: { $in: ['IT', 'Engineering'] }
-  }}
+  { $match: { email: { $exists: true }, age: { $type: 'number' } } }
 ]).exec();`,
           returns: "Pipeline stage: Filtered documents.",
         },
         {
           name: "$group",
           signature: "{ $group: { _id: '$field', aggField: { $operator: '$field' } } }",
-          description: "Groups documents by specified field(s) and performs aggregation operations like $sum, $avg, $min, $max, $push. The _id field defines the grouping key. Supports nested grouping.",
-          example: `// Count users by city
+          description: "Groups documents by _id (literal, field path, or composite object). Accumulators: $sum, $avg, $min, $max, $first, $last, $push, $addToSet, $stdDevPop, $stdDevSamp.",
+          example: `// All accumulators
 await collection.aggregate([
   { $group: {
-    _id: '$city',
-    totalUsers: { $sum: 1 },
-    avgAge: { $avg: '$age' }
-  }}
-]).exec();
-
-// Group by multiple fields
-await collection.aggregate([
-  { $group: {
-    _id: { city: '$city', status: '$status' },
-    count: { $sum: 1 }
-  }}
-]).exec();
-
-// Revenue by product category
-await collection.aggregate([
-  { $group: {
-    _id: '$category',
-    totalRevenue: { $sum: '$price' },
-    avgPrice: { $avg: '$price' }
+    _id: '$department',
+    total: { $sum: '$salary' },
+    avg: { $avg: '$salary' },
+    min: { $min: '$salary' },
+    max: { $max: '$salary' },
+    names: { $push: '$name' },
+    uniqueRoles: { $addToSet: '$role' }
   }}
 ]).exec();`,
           returns: "Pipeline stage: Grouped documents with aggregated values.",
         },
         {
           name: "$sort",
-          signature: "{ $sort: { field: 1 | -1 } }",
-          description: "Sorts aggregated results. Use 1 for ascending, -1 for descending. Can sort by multiple fields. Often used after $group to sort aggregated results.",
-          example: `// Sort by count descending
-await collection.aggregate([
-  { $group: { _id: '$category', count: { $sum: 1 } } },
-  { $sort: { count: -1 } }
-]).exec();
-
-// Multi-field sort
-await collection.aggregate([
-  { $sort: { status: 1, createdAt: -1 } }
+          signature: "{ $sort: { field: 1 | -1, ... } }",
+          description: "Sorts documents. Multi-field support — first field wins on ties.",
+          example: `await collection.aggregate([
+  { $sort: { department: 1, salary: -1 } }
 ]).exec();`,
           returns: "Pipeline stage: Sorted documents.",
         },
         {
           name: "$project",
-          signature: "{ $project: { field: 1 | 0 } }",
-          description: "Reshapes documents by including or excluding fields. Use 1 to include, 0 to exclude. Can create computed fields and rename fields. Reduces data transfer size.",
-          example: `// Include specific fields only
+          signature: "{ $project: { field: 1 | 0 | expression } }",
+          description: "Reshapes documents. Inclusion (1), exclusion (0), or computed fields via expressions.",
+          example: `// Computed fields
 await collection.aggregate([
-  { $match: { age: { $gte: 18 } } },
-  { $project: { name: 1, email: 1, age: 1 } }
-]).exec();
-
-// Exclude sensitive fields
-await collection.aggregate([
-  { $project: { password: 0, ssn: 0 } }
+  { $project: {
+    name: 1,
+    bonus: { $multiply: ['$salary', 0.1] },
+    level: { $cond: { if: { $gte: ['$age', 35] }, then: 'Senior', else: 'Junior' } }
+  }}
 ]).exec();`,
           returns: "Pipeline stage: Projected documents.",
         },
         {
+          name: "$lookup",
+          signature: "{ $lookup: { from, localField, foreignField, as } }",
+          description: "Cross-collection join. Equality form joins on matching fields. Pipeline form supports $let/$$var binding and sub-pipeline filtering. Uses index optimization on foreign collection when indexes exist.",
+          example: `// Equality join
+await collection.aggregate([
+  { $lookup: {
+      from: 'Orders',
+      localField: 'userId',
+      foreignField: 'userId',
+      as: 'userOrders'
+  }}
+]).exec();
+
+// Pipeline join with conditions
+await collection.aggregate([
+  { $lookup: {
+      from: 'Orders',
+      let: { uid: '$userId' },
+      pipeline: [
+        { $match: { status: 'completed' } },
+        { $match: { $expr: { $eq: ['$userId', '$$uid'] } } }
+      ],
+      as: 'completedOrders'
+  }}
+]).exec();`,
+          returns: "Pipeline stage: Documents with joined array field.",
+        },
+        {
+          name: "$facet",
+          signature: "{ $facet: { key: [pipeline], ... } }",
+          description: "Runs multiple sub-pipelines in parallel on the same input.",
+          example: `await collection.aggregate([
+  { $facet: {
+    byDepartment: [{ $group: { _id: '$dept', count: { $sum: 1 } } }],
+    seniors: [{ $match: { age: { $gte: 35 } } }, { $count: 'count' }],
+    avgSalary: [{ $group: { _id: null, avg: { $avg: '$salary' } } }]
+  }}
+]).exec();`,
+          returns: "Single document with arrays for each facet.",
+        },
+        {
           name: "$limit",
           signature: "{ $limit: number }",
-          description: "Limits the number of documents in the aggregation pipeline. Should be used after filtering and sorting for best results. Useful for 'top N' queries.",
-          example: `// Get top 10 cities by user count
-await collection.aggregate([
+          description: "Limits the number of documents in the pipeline.",
+          example: `await collection.aggregate([
   { $group: { _id: '$city', count: { $sum: 1 } } },
   { $sort: { count: -1 } },
   { $limit: 10 }
@@ -672,10 +698,8 @@ await collection.aggregate([
         {
           name: "$skip",
           signature: "{ $skip: number }",
-          description: "Skips a specified number of documents in the pipeline. Used for pagination in aggregation results. Should be applied after sorting.",
-          example: `// Pagination in aggregation
-await collection.aggregate([
-  { $match: { status: 'active' } },
+          description: "Skips a specified number of documents. Used for pagination.",
+          example: `await collection.aggregate([
   { $sort: { createdAt: -1 } },
   { $skip: 20 },
   { $limit: 10 }
@@ -684,51 +708,75 @@ await collection.aggregate([
         },
         {
           name: "$unwind",
-          signature: "{ $unwind: '$arrayField' }",
-          description: "Deconstructs an array field from documents, creating a separate document for each array element. Useful for analyzing array data. Field name must start with '$'.",
-          example: `// Unwind tags array
-await collection.aggregate([
-  { $unwind: '$tags' },
-  { $group: { _id: '$tags', count: { $sum: 1 } } }
-]).exec();
-
-// Analyze product categories
-await collection.aggregate([
-  { $unwind: '$categories' },
-  { $match: { categories: 'electronics' } }
+          signature: "{ $unwind: '$field' | { path, includeArrayIndex, preserveNullAndEmptyArrays } }",
+          description: "Deconstructs an array field. Supports includeArrayIndex and preserveNullAndEmptyArrays options.",
+          example: `await collection.aggregate([
+  { $unwind: { path: '$tags', includeArrayIndex: 'tagIndex' } }
 ]).exec();`,
           returns: "Pipeline stage: Unwound documents.",
         },
         {
-          name: "$addFields",
-          signature: "{ $addFields: { newField: value } }",
-          description: "Adds new computed fields to documents without removing existing fields. Can create fields based on existing field values or constants.",
-          example: `// Add computed field
-await collection.aggregate([
+          name: "$addFields / $set",
+          signature: "{ $addFields: { field: expression } }",
+          description: "Adds computed fields via expressions. $set is an alias.",
+          example: `await collection.aggregate([
   { $addFields: {
-    fullName: { $concat: ['$firstName', ' ', '$lastName'] },
-    isAdult: { $gte: ['$age', 18] }
+    annualBonus: { $multiply: ['$salary', 0.1] },
+    fullName: { $concat: ['$firstName', ' ', '$lastName'] }
   }}
 ]).exec();`,
           returns: "Pipeline stage: Documents with added fields.",
         },
         {
+          name: "$count",
+          signature: "{ $count: 'fieldName' }",
+          description: "Counts documents and assigns the count to a named field.",
+          example: `await collection.aggregate([
+  { $match: { active: true } },
+  { $count: 'activeUsers' }
+]).exec();`,
+          returns: "Single document with the count.",
+        },
+        {
+          name: "$bucket / $bucketAuto",
+          signature: "{ $bucket: { groupBy, boundaries, output } }",
+          description: "Groups documents into buckets. $bucket uses explicit boundaries, $bucketAuto distributes evenly.",
+          example: `await collection.aggregate([
+  { $bucket: {
+    groupBy: '$age',
+    boundaries: [20, 30, 40, 50],
+    output: { count: { $sum: 1 }, names: { $push: '$name' } }
+  }}
+]).exec();`,
+          returns: "Array of bucket documents.",
+        },
+        {
+          name: "OperatorRegistry",
+          signature: "OperatorRegistry.registerStageOperator(name, fn)",
+          description: "Register custom stage operators, accumulators, and expression operators that extend the aggregation engine.",
+          example: `import { OperatorRegistry } from 'axiodb';
+
+OperatorRegistry.registerAccumulator('$median', (collection, expr) => {
+  const values = collection.map(doc => doc[expr.field]).sort((a, b) => a - b);
+  const mid = Math.floor(values.length / 2);
+  return values.length % 2 ? values[mid] : (values[mid - 1] + values[mid]) / 2;
+});
+
+await collection.aggregate([
+  { $group: { _id: '$dept', medianSalary: { $median: { field: 'salary' } } } }
+]).exec();`,
+          returns: "void",
+        },
+        {
           name: "exec (aggregation)",
           signature: "exec(): Promise<SuccessInterface | ErrorInterface>",
-          description: "Executes the aggregation pipeline and returns the results. This is the final method in the aggregation chain. Processes all pipeline stages sequentially.",
-          example: `// Complete aggregation example
-const stats = await collection.aggregate([
+          description: "Executes the aggregation pipeline and returns the results.",
+          example: `const stats = await collection.aggregate([
   { $match: { status: 'active' } },
-  { $group: {
-    _id: '$department',
-    count: { $sum: 1 },
-    avgSalary: { $avg: '$salary' }
-  }},
+  { $group: { _id: '$department', count: { $sum: 1 }, avgSalary: { $avg: '$salary' } } },
   { $sort: { avgSalary: -1 } },
   { $limit: 5 }
-]).exec();
-
-console.log('Top departments:', stats.data);`,
+]).exec();`,
           returns: "Promise<SuccessInterface>: Aggregation results or error.",
         },
       ],

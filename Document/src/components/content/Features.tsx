@@ -154,21 +154,24 @@ const Features: React.FC = () => {
             </div>
             <p className="text-slate-300 leading-relaxed text-lg mb-4">
               Execute sophisticated data processing workflows with
-              MongoDB-compatible aggregation operations for comprehensive
-              business intelligence and analytics.
+              60+ MongoDB-compatible aggregation stages including
+              cross-collection joins, multi-facet analysis, and custom operators.
             </p>
             <div className="flex flex-wrap gap-2">
               <code className="bg-gradient-to-r from-cyan-900/50 to-blue-900/50 px-3 py-1 rounded-lg text-cyan-300 font-semibold border border-cyan-800 text-sm">
-                $match
+                $lookup
+              </code>
+              <code className="bg-gradient-to-r from-cyan-900/50 to-blue-900/50 px-3 py-1 rounded-lg text-cyan-300 font-semibold border border-cyan-800 text-sm">
+                $facet
               </code>
               <code className="bg-gradient-to-r from-cyan-900/50 to-blue-900/50 px-3 py-1 rounded-lg text-cyan-300 font-semibold border border-cyan-800 text-sm">
                 $group
               </code>
               <code className="bg-gradient-to-r from-cyan-900/50 to-blue-900/50 px-3 py-1 rounded-lg text-cyan-300 font-semibold border border-cyan-800 text-sm">
-                $sort
+                $bucket
               </code>
               <code className="bg-gradient-to-r from-cyan-900/50 to-blue-900/50 px-3 py-1 rounded-lg text-cyan-300 font-semibold border border-cyan-800 text-sm">
-                $project
+                OperatorRegistry
               </code>
             </div>
           </div>

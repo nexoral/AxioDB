@@ -2,6 +2,7 @@ import { InMemoryCache } from "../Memory/memory.operation";
 import Converter from "../Helper/Converter.helper";
 import ResponseHelper from "../Helper/response.helper";
 import Aggregation from "../Services/Aggregation/Aggregation.Operation";
+import { OperatorRegistry } from "../Services/Aggregation/OperatorRegistry";
 import Collection from "../Services/Collection/collection.operation";
 import Database from "../Services/Database/database.operation";
 import { AxioDB } from "../Services/Indexation.operation";
@@ -13,6 +14,7 @@ const InstanceTypes = {
   Collection,
   Database,
   Aggregation,
+  OperatorRegistry,
   FileManager,
   FolderManager,
   Converter,
@@ -20,10 +22,11 @@ const InstanceTypes = {
   InMemoryCache,
 };
 
-export { AxioDB, AxioDBCloud, InstanceTypes };
+export { AxioDB, AxioDBCloud, InstanceTypes, OperatorRegistry };
 
 export default {
   AxioDB,
   AxioDBCloud,
   InstanceTypes,
+  OperatorRegistry,
 };

@@ -41,34 +41,33 @@ const setup = async () => {
 };
 
 setup();`,
-    aggregation: `// Advanced aggregation pipeline with multiple stages
-const aggregationResult = await UserCollection.aggregate([
-  {
-    $match: {
-      age: { $gt: 25 }
-    }
-  },
-  {
-    $group: {
-      _id: "$email",
-      avgAge: { $avg: "$age" }
-    }
-  }
-]);
+    aggregation: `// Aggregation pipeline with multiple stages
+const result = await UserCollection.aggregate([
+  { $match: { age: { $gt: 25 } } },
+  { $group: { _id: "$email", avgAge: { $avg: "$age" } } }
+]).exec();
 
-console.log("Aggregation Result:", aggregationResult);
+// Cross-collection join with $lookup
+const usersWithOrders = await UserCollection.aggregate([
+  { $lookup: {
+      from: "Orders",
+      localField: "userId",
+      foreignField: "userId",
+      as: "userOrders"
+  }},
+  { $unwind: "$userOrders" },
+  { $group: { _id: "$name", totalSpent: { $sum: "$userOrders.total" } } },
+  { $sort: { totalSpent: -1 } }
+]).exec();
 
-// More complex aggregation example
-const complexAggregation = await UserCollection.aggregate([
-  { $match: { age: { $gt: 20 }, name: { $regex: /^J/ } } },
-  { $group: { _id: "$age", count: { $sum: 1 }, names: { $push: "$name" } } },
-  { $sort: { count: -1 } },
-  { $project: { _id: 0, age: "$_id", count: 1, names: 1 } },
-  { $limit: 10 },
-  { $skip: 0 }
-]);
-
-console.log("Complex Aggregation:", complexAggregation);`,
+// Multi-facet aggregation
+const facets = await UserCollection.aggregate([
+  { $facet: {
+    byDept: [{ $group: { _id: "$dept", count: { $sum: 1 } } }],
+    seniors: [{ $match: { age: { $gte: 35 } } }, { $count: "count" }],
+    avgSalary: [{ $group: { _id: null, avg: { $avg: "$salary" } } }]
+  }}
+]).exec();`,
     operations: `// Update operations with proper syntax
 await UserCollection.update({name: "John Doe"}).UpdateOne({name: "Ankan"});
 await UserCollection.update({name: "John Doe"}).UpdateMany({name: "Ankan", isActive: true});
