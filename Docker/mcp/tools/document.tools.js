@@ -174,7 +174,7 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
   server.registerTool(
     'axiodb_aggregate',
     {
-      description: 'Run a MongoDB-style aggregation pipeline ($match, $group, $sort, etc.) against a collection.',
+      description: 'Run a MongoDB-style aggregation pipeline with 60+ stages ($match, $group, $sort, $project, $lookup for cross-collection joins, $facet, $bucket, $count, $sample, etc.), full expression evaluator, and custom operator support.',
       inputSchema: {
         ...sessionIdField,
         dbName: z.string().min(1),

@@ -155,7 +155,7 @@ const db = new AxioDB({
 ### Querying
 - **Chainable Query API:** `.query()`, `.Sort()`, `.Limit()`, `.Skip()`, `.setCount()`, `.setProject()`, `.exec()` / `.findOne()`
 - **MongoDB-style Query Operators:** `$gt`, `$gte`, `$lt`, `$lte`, `$ne`, `$in`, `$nin`, `$exists`, `$regex`, `$or`, `$and`
-- **Aggregation Pipelines:** MongoDB-compatible (`$match`, `$group`, `$sort`, `$project`, `$limit`, `$skip`, `$unwind`, `$addFields`, ...)
+- **Aggregation Pipelines:** 60+ MongoDB-compatible stages (`$match`, `$group`, `$sort`, `$project`, `$limit`, `$skip`, `$unwind`, `$addFields`, `$lookup`, `$facet`, `$bucket`, `$count`, `$sample`, ...) with full expression evaluator, cross-collection `$lookup` joins, and custom operator registration via `OperatorRegistry`
 - **Bulk Operations:** high-performance `insertMany`, `UpdateMany`, `deleteMany`
 
 ### Indexing
@@ -882,7 +882,7 @@ For vulnerability reporting, see [SECURITY.md](SECURITY.md).
 | **Built-in caching** | ❌ | ❌ | ❌ | ✅ InMemoryCache |
 | **Worker Threads** | ❌ | ❌ | ❌ | ✅ |
 | **ACID Transactions** | ❌ | ❌ | ✅ | ✅ |
-| **Aggregation Pipelines** | ❌ | Partial | ❌ | ✅ MongoDB-compatible |
+| **Aggregation Pipelines** | ❌ | Partial | ❌ | ✅ 60+ stages, $lookup, custom operators |
 | **TypeScript support** | ✅ | Partial | ✅ | ✅ Full |
 | **Electron compatible** | ✅ | ✅ | ❌ (requires rebuild) | ✅ |
 | **Sweet spot** | <5K docs | <100K docs | 10M+ (relational) | 10K–500K docs |

@@ -93,7 +93,7 @@ takes a schema argument.
 ## More of the core library
 
 - **Transactions** — `collection.beginTransaction()` or `collection.startSession()` for ACID work with savepoints, rollback, and a write-ahead log. Plain `insert()` is WAL-backed too, so a crash mid-write is recovered on next open.
-- **Aggregation** — `collection.aggregate([...])` with `$match`, `$group`, `$sort`, `$project`, `$limit`.
+- **Aggregation** — `collection.aggregate([...])` with 60+ stages including `$lookup` (cross-collection joins), `$facet`, `$bucket`, `$count`, `$sample`, and full expression evaluator. Custom operators via `OperatorRegistry`.
 - **Indexes** — `collection.newIndex("email")`, `getIndexes()`, `dropIndex()`.
 
 ## Coming from SQLite
@@ -190,10 +190,9 @@ can only damage one document - there is no compaction pass to schedule or to go 
 
 ## Hard limits
 
-One `AxioDB` per process. Transactions never span collections. Aggregation
-accumulators are `$sum` and `$avg` only, and `$project` is inclusion-only.
-Anything that isn't `documentId` or an exact match on an indexed field is a
-full collection scan. TCP caps: 1,000 total connections, 100 per IP, 300
+One `AxioDB` per process. Transactions never span collections. `$lookup`
+loads the entire foreign collection into memory. Anything that isn't
+`documentId` or an exact match on an indexed field is a full collection scan. TCP caps: 1,000 total connections, 100 per IP, 300
 connection attempts per IP per 10s. Logins: 5 failures per IP per 15 minutes →
 15-minute lockout. Ports 27018 and 27019 are fixed in code — remap with Docker
 `-p`. The database name `config` is reserved. Node.js >= 20.
