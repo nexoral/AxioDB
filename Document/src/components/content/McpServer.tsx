@@ -103,21 +103,21 @@ const McpServer: React.FC = () => {
       />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-fuchsia-900/20 via-slate-800 to-purple-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 border border-fuchsia-700 shadow-xl">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-fuchsia-400/10 to-purple-400/10 rounded-full blur-3xl"></div>
+      <section className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 border border-fuchsia-200 shadow-md">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-accent-100/40 rounded-full blur-3xl"></div>
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-fuchsia-900/40 to-purple-900/40 rounded-full border border-fuchsia-600 mb-6">
-            <Bot className="h-5 w-5 text-fuchsia-400" />
-            <span className="text-fuchsia-300 font-semibold">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent-50 rounded-full border border-fuchsia-200 mb-6">
+            <Bot className="h-5 w-5 text-fuchsia-600" />
+            <span className="text-fuchsia-600 font-semibold">
               AI AGENT INTEGRATION
             </span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 bg-gradient-to-r from-fuchsia-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-accent-600">
             MCP Server
           </h1>
 
-          <p className="text-lg text-slate-400 leading-relaxed max-w-3xl">
+          <p className="text-lg text-gray-600 leading-relaxed max-w-3xl">
             Spin up AxioDB in a container and let Claude (or any MCP-compatible AI agent) talk to
             it directly — create databases, query documents, run aggregations, manage users and
             roles, all through 32 tools that log in and enforce the exact same RBAC as the web
@@ -129,15 +129,15 @@ const McpServer: React.FC = () => {
 
       {/* Quick Start */}
       <section>
-        <h2 className="text-3xl font-bold mb-6 text-white flex items-center gap-3">
+        <h2 className="text-3xl font-bold mb-6 text-gray-900 flex items-center gap-3">
           <Terminal className="h-8 w-8 text-fuchsia-500" />
           Quick Start
         </h2>
 
-        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-4">
-          <p className="text-slate-300">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 space-y-4">
+          <p className="text-gray-600">
             The MCP server is <strong>opt-in</strong> and disabled by default — set{" "}
-            <code className="px-1.5 py-0.5 bg-slate-900 rounded">AXIODB_MCP=true</code>{" "}
+            <code className="px-1.5 py-0.5 bg-white rounded">AXIODB_MCP=true</code>{" "}
             on the same container you already run for the GUI/TCP server:
           </p>
           <CodeBlock
@@ -158,13 +158,13 @@ const McpServer: React.FC = () => {
 # 27020 - MCP Server (Streamable HTTP, path /mcp)`}
           />
 
-          <p className="text-slate-300">
-            Register the endpoint (<code className="px-1 py-0.5 bg-slate-900 rounded">http://localhost:27020/mcp</code>) with whichever AI tool you use:
+          <p className="text-gray-600">
+            Register the endpoint (<code className="px-1 py-0.5 bg-white rounded">http://localhost:27020/mcp</code>) with whichever AI tool you use:
           </p>
 
           <div className="space-y-4">
             <div>
-              <h4 className="font-semibold text-white mb-2">Claude Code</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Claude Code</h4>
               <CodeBlock
                 language="bash"
                 code={`claude mcp add --transport http axiodb http://localhost:27020/mcp
@@ -175,7 +175,7 @@ claude mcp add --transport http axiodb http://localhost:27020/mcp -s user`}
             </div>
 
             <div>
-              <h4 className="font-semibold text-white mb-2">OpenAI Codex CLI</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">OpenAI Codex CLI</h4>
               <CodeBlock
                 language="bash"
                 code={`codex mcp add axiodb --url http://localhost:27020/mcp
@@ -187,7 +187,7 @@ url = "http://localhost:27020/mcp"`}
             </div>
 
             <div>
-              <h4 className="font-semibold text-white mb-2">opencode</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">opencode</h4>
               <CodeBlock
                 language="bash"
                 code={`opencode mcp add
@@ -208,7 +208,7 @@ url = "http://localhost:27020/mcp"`}
             </div>
 
             <div>
-              <h4 className="font-semibold text-white mb-2">GitHub Copilot CLI</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">GitHub Copilot CLI</h4>
               <CodeBlock
                 language="bash"
                 code={`# Interactive: run copilot, then inside it type:
@@ -228,7 +228,7 @@ url = "http://localhost:27020/mcp"`}
             </div>
 
             <div>
-              <h4 className="font-semibold text-white mb-2">Cursor</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Cursor</h4>
               <CodeBlock
                 language="json"
                 code={`// .cursor/mcp.json (project) or ~/.cursor/mcp.json (global)
@@ -243,7 +243,7 @@ url = "http://localhost:27020/mcp"`}
             </div>
 
             <div>
-              <h4 className="font-semibold text-white mb-2">Windsurf</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Windsurf</h4>
               <CodeBlock
                 language="json"
                 code={`// ~/.codeium/windsurf/mcp_config.json
@@ -258,7 +258,7 @@ url = "http://localhost:27020/mcp"`}
             </div>
 
             <div>
-              <h4 className="font-semibold text-white mb-2">Google Antigravity (IDE &amp; CLI)</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Google Antigravity (IDE &amp; CLI)</h4>
               <CodeBlock
                 language="json"
                 code={`// ~/.gemini/config/mcp_config.json - note: serverUrl, not url
@@ -273,12 +273,12 @@ url = "http://localhost:27020/mcp"`}
             </div>
           </div>
 
-          <div className="p-4 bg-fuchsia-900/20 rounded-lg border border-fuchsia-700">
-            <p className="text-sm text-fuchsia-200">
+          <div className="p-4 bg-fuchsia-100/20 rounded-lg border border-fuchsia-200">
+            <p className="text-sm text-fuchsia-700">
               <strong>AXIODB_MCP=true</strong> only has something to serve once RBAC is actually
-              seeded — that requires <code className="px-1 py-0.5 bg-slate-800 rounded">AXIODB_GUI=true</code>{" "}
-              (the default) or <code className="px-1 py-0.5 bg-slate-800 rounded">AXIODB_TCP=true</code> +{" "}
-              <code className="px-1 py-0.5 bg-slate-800 rounded">AXIODB_TCP_AUTH=true</code>. See{" "}
+              seeded — that requires <code className="px-1 py-0.5 bg-gray-100 rounded">AXIODB_GUI=true</code>{" "}
+              (the default) or <code className="px-1 py-0.5 bg-gray-100 rounded">AXIODB_TCP=true</code> +{" "}
+              <code className="px-1 py-0.5 bg-gray-100 rounded">AXIODB_TCP_AUTH=true</code>. See{" "}
               <a href="/docker" className="underline font-medium">Docker Deployment</a> for every environment variable.
             </p>
           </div>
@@ -287,18 +287,18 @@ url = "http://localhost:27020/mcp"`}
 
       {/* Real login, real RBAC */}
       <section>
-        <h2 className="text-3xl font-bold mb-6 text-white flex items-center gap-3">
+        <h2 className="text-3xl font-bold mb-6 text-gray-900 flex items-center gap-3">
           <KeyRound className="h-8 w-8 text-purple-500" />
           Real Login, Real RBAC — Not a Docker Env Var
         </h2>
 
-        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 space-y-4">
-          <p className="text-slate-300">
-            Every tool except <code className="px-1.5 py-0.5 bg-slate-900 rounded">axiodb_login</code>{" "}
-            requires a <code className="px-1.5 py-0.5 bg-slate-900 rounded">sessionId</code>. Call{" "}
-            <code className="px-1.5 py-0.5 bg-slate-900 rounded">axiodb_login</code> first with the
-            seeded default account (<code className="px-1 py-0.5 bg-slate-900 rounded">admin</code>/
-            <code className="px-1 py-0.5 bg-slate-900 rounded">admin</code>, same as the GUI) or any
+        <div className="bg-white p-6 rounded-xl border border-gray-200 space-y-4">
+          <p className="text-gray-600">
+            Every tool except <code className="px-1.5 py-0.5 bg-white rounded">axiodb_login</code>{" "}
+            requires a <code className="px-1.5 py-0.5 bg-white rounded">sessionId</code>. Call{" "}
+            <code className="px-1.5 py-0.5 bg-white rounded">axiodb_login</code> first with the
+            seeded default account (<code className="px-1 py-0.5 bg-white rounded">admin</code>/
+            <code className="px-1 py-0.5 bg-white rounded">admin</code>, same as the GUI) or any
             other RBAC user, and every subsequent call is checked against{" "}
             <em>that logged-in user&apos;s actual role</em> — a View-role session gets a real 403 on
             write tools, exactly like the GUI would. Nothing is gated by a static container
@@ -319,10 +319,10 @@ url = "http://localhost:27020/mcp"`}
   }
 }`}
           />
-          <ul className="list-disc list-inside text-slate-300 space-y-1">
-            <li>Sessions live in server memory only, 24h sliding TTL — call <code className="px-1 py-0.5 bg-slate-900 rounded">axiodb_logout</code> when done rather than waiting it out</li>
-            <li><code className="px-1 py-0.5 bg-slate-900 rounded">axiodb_whoami</code> returns the identity/role/permissions behind a given session</li>
-            <li><code className="px-1 py-0.5 bg-slate-900 rounded">axiodb_change_own_password</code> rotates the session and returns a new <code className="px-1 py-0.5 bg-slate-900 rounded">sessionId</code></li>
+          <ul className="list-disc list-inside text-gray-600 space-y-1">
+            <li>Sessions live in server memory only, 24h sliding TTL — call <code className="px-1 py-0.5 bg-white rounded">axiodb_logout</code> when done rather than waiting it out</li>
+            <li><code className="px-1 py-0.5 bg-white rounded">axiodb_whoami</code> returns the identity/role/permissions behind a given session</li>
+            <li><code className="px-1 py-0.5 bg-white rounded">axiodb_change_own_password</code> rotates the session and returns a new <code className="px-1 py-0.5 bg-white rounded">sessionId</code></li>
             <li>Same login rate limiter as the GUI/TCP login (5 failed attempts / 15 min lockout)</li>
           </ul>
         </div>
@@ -330,11 +330,11 @@ url = "http://localhost:27020/mcp"`}
 
       {/* Tool catalogue */}
       <section>
-        <h2 className="text-3xl font-bold mb-6 text-white flex items-center gap-3">
-          <Layers className="h-8 w-8 text-indigo-500" />
+        <h2 className="text-3xl font-bold mb-6 text-gray-900 flex items-center gap-3">
+          <Layers className="h-8 w-8 text-fuchsia-500" />
           32 Tools, Mirroring the HTTP Control Server 1:1
         </h2>
-        <p className="text-slate-300 mb-6 max-w-3xl">
+        <p className="text-gray-600 mb-6 max-w-3xl">
           Every MCP tool maps to the exact same controller and permission check as its HTTP
           route counterpart — nothing was reimplemented, so behavior (validation, error
           messages, RBAC) never drifts between the GUI and the MCP surface.
@@ -344,17 +344,17 @@ url = "http://localhost:27020/mcp"`}
           {toolGroups.map((group) => (
             <div
               key={group.title}
-              className="bg-slate-800 p-6 rounded-xl border border-slate-700"
+              className="bg-white p-6 rounded-xl border border-gray-200"
             >
-              <h3 className="text-lg font-bold text-white mb-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
                 {group.title}
               </h3>
-              <p className="text-xs text-slate-400 mb-3 font-mono">
+              <p className="text-xs text-gray-600 mb-3 font-mono">
                 {group.permissionNote}
               </p>
               <ul className="space-y-1">
                 {group.tools.map((tool) => (
-                  <li key={tool} className="text-sm font-mono text-slate-300">
+                  <li key={tool} className="text-sm font-mono text-gray-600">
                     {tool}
                   </li>
                 ))}
@@ -363,8 +363,8 @@ url = "http://localhost:27020/mcp"`}
           ))}
         </div>
 
-        <div className="mt-6 p-4 bg-slate-900/40 rounded-lg border border-slate-700">
-          <p className="text-sm text-slate-400">
+        <div className="mt-6 p-4 bg-gray-100 rounded-lg border border-gray-200">
+          <p className="text-sm text-gray-600">
             <strong>Out of scope by design:</strong> transactions and database export/import are
             not exposed as MCP tools — kept out of this surface entirely rather than deferred.
           </p>
@@ -373,21 +373,21 @@ url = "http://localhost:27020/mcp"`}
 
       {/* Human in the loop */}
       <section>
-        <h2 className="text-3xl font-bold mb-6 text-white flex items-center gap-3">
+        <h2 className="text-3xl font-bold mb-6 text-gray-900 flex items-center gap-3">
           <UserCheck className="h-8 w-8 text-amber-500" />
           Human in the Loop on Destructive Tools
         </h2>
-        <p className="text-slate-300 mb-6 max-w-3xl">
+        <p className="text-gray-600 mb-6 max-w-3xl">
           Nine tools destroy or overwrite existing state, and each one asks a human before it
           runs — through your MCP client&apos;s own confirmation prompt (the protocol&apos;s{" "}
-          <code className="px-1 py-0.5 bg-slate-900 rounded">elicitation/create</code> request),
+          <code className="px-1 py-0.5 bg-white rounded">elicitation/create</code> request),
           naming the exact target. Declining, cancelling, or leaving the box unchecked aborts with{" "}
-          <code className="px-1 py-0.5 bg-slate-900 rounded">409</code> and the operation never
+          <code className="px-1 py-0.5 bg-white rounded">409</code> and the operation never
           reaches the database. Inserts, creates and index builds are never prompted — they only
           ever add.
         </p>
 
-        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 mb-6">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 mb-6">
           <CodeBlock
             language="text"
             code={`Agent: axiodb_delete_collection({ sessionId, dbName: "shop", collectionName: "orders" })
@@ -402,19 +402,19 @@ url = "http://localhost:27020/mcp"`}
           />
         </div>
 
-        <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-x-auto mb-6">
+        <div className="bg-gray-100 rounded-xl border border-gray-200 overflow-x-auto mb-6">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-700">
-                <th className="text-left p-4 text-slate-300 font-semibold">Tool</th>
-                <th className="text-left p-4 text-slate-300 font-semibold">Prompted because</th>
+              <tr className="border-b border-gray-200">
+                <th className="text-left p-4 text-gray-600 font-semibold">Tool</th>
+                <th className="text-left p-4 text-gray-600 font-semibold">Prompted because</th>
               </tr>
             </thead>
             <tbody>
               {confirmedTools.map(({ tool, why }) => (
-                <tr key={tool} className="border-b border-slate-700/50 last:border-0">
-                  <td className="p-4 font-mono text-fuchsia-300 whitespace-nowrap">{tool}</td>
-                  <td className="p-4 text-slate-400">{why}</td>
+                <tr key={tool} className="border-b border-gray-200/50 last:border-0">
+                  <td className="p-4 font-mono text-fuchsia-600 whitespace-nowrap">{tool}</td>
+                  <td className="p-4 text-gray-600">{why}</td>
                 </tr>
               ))}
             </tbody>
@@ -422,16 +422,16 @@ url = "http://localhost:27020/mcp"`}
         </div>
 
         <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/30">
-          <p className="text-sm text-slate-300">
-            <strong className="text-amber-400">Annotations, and the one hard guarantee:</strong>{" "}
+          <p className="text-sm text-gray-600">
+            <strong className="text-amber-700">Annotations, and the one hard guarantee:</strong>{" "}
             every tool also ships MCP annotations (
-            <code className="px-1 py-0.5 bg-slate-900 rounded">readOnlyHint</code>,{" "}
-            <code className="px-1 py-0.5 bg-slate-900 rounded">destructiveHint</code>,{" "}
-            <code className="px-1 py-0.5 bg-slate-900 rounded">idempotentHint</code>) so clients
+            <code className="px-1 py-0.5 bg-white rounded">readOnlyHint</code>,{" "}
+            <code className="px-1 py-0.5 bg-white rounded">destructiveHint</code>,{" "}
+            <code className="px-1 py-0.5 bg-white rounded">idempotentHint</code>) so clients
             can auto-approve reads while holding writes for review. A client that doesn&apos;t
             support elicitation can&apos;t show the prompt, and the call then proceeds on the
             annotations alone — so for an agent that must never write, hand it a{" "}
-            <code className="px-1 py-0.5 bg-slate-900 rounded">View</code>-role login: that is
+            <code className="px-1 py-0.5 bg-white rounded">View</code>-role login: that is
             enforced server-side in RBAC and needs no client cooperation.
           </p>
         </div>
@@ -439,11 +439,11 @@ url = "http://localhost:27020/mcp"`}
 
       {/* Example */}
       <section>
-        <h2 className="text-3xl font-bold mb-6 text-white flex items-center gap-3">
-          <Database className="h-8 w-8 text-blue-500" />
+        <h2 className="text-3xl font-bold mb-6 text-gray-900 flex items-center gap-3">
+          <Database className="h-8 w-8 text-accent-600" />
           Example: Insert &amp; Query From an Agent
         </h2>
-        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
+        <div className="bg-white p-6 rounded-xl border border-gray-200">
           <CodeBlock
             language="text"
             code={`1. axiodb_login({ username: "admin", password: "admin" })
@@ -468,22 +468,22 @@ url = "http://localhost:27020/mcp"`}
 
       {/* Security notes */}
       <section>
-        <h2 className="text-3xl font-bold mb-6 text-white flex items-center gap-3">
+        <h2 className="text-3xl font-bold mb-6 text-gray-900 flex items-center gap-3">
           <ShieldCheck className="h-8 w-8 text-emerald-500" />
           Security Notes
         </h2>
-        <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
-          <ul className="list-disc list-inside text-slate-300 space-y-2">
+        <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <ul className="list-disc list-inside text-gray-600 space-y-2">
             <li>Every write/read tool is permission-checked against the caller&apos;s actual role on every call, not just at login</li>
-            <li>An invalid, expired, or missing <code className="px-1 py-0.5 bg-slate-900 rounded">sessionId</code> is rejected before it ever reaches a database operation</li>
-            <li>The nine destructive tools require an explicit human confirmation through the client before they touch data — see <strong>Human in the Loop</strong> above; a <code className="px-1 py-0.5 bg-slate-900 rounded">View</code>-role login is the server-side way to make an agent read-only</li>
+            <li>An invalid, expired, or missing <code className="px-1 py-0.5 bg-white rounded">sessionId</code> is rejected before it ever reaches a database operation</li>
+            <li>The nine destructive tools require an explicit human confirmation through the client before they touch data — see <strong>Human in the Loop</strong> above; a <code className="px-1 py-0.5 bg-white rounded">View</code>-role login is the server-side way to make an agent read-only</li>
             <li>Expose port 27020 only to trusted networks/agents, same guidance as the TCP port — the MCP server carries the same authority as the GUI, just a different transport</li>
           </ul>
         </div>
       </section>
 
       {/* Next Steps */}
-      <section className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white p-8 rounded-xl">
+      <section className="bg-fuchsia-600 text-white p-8 rounded-xl">
         <h2 className="text-3xl font-bold mb-4">Give Your Agent a Database</h2>
         <p className="text-xl mb-6 text-fuchsia-100">
           Deploy the container, enable AXIODB_MCP, and register it with your MCP client.
@@ -500,14 +500,14 @@ url = "http://localhost:27020/mcp"`}
             href="https://github.com/nexoral/AxioDB/blob/main/Docker/README.md"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 border-2 border-white text-gray-900 rounded-lg font-semibold hover:bg-white/10 transition-colors"
           >
             Docker/README.md
             <ExternalLink className="h-5 w-5" />
           </a>
           <a
             href="/security"
-            className="inline-flex items-center gap-2 px-6 py-3 border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 border-2 border-white text-gray-900 rounded-lg font-semibold hover:bg-white/10 transition-colors"
           >
             Security &amp; RBAC
             <Users className="h-5 w-5" />

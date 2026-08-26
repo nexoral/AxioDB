@@ -153,24 +153,24 @@ console.log(paginatedDocuments);`,
         path="/usage"
       />
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-green-900/20 via-slate-800 to-emerald-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 mb-16 border border-green-800 shadow-xl">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-green-400/10 to-emerald-400/10 rounded-full blur-3xl"></div>
+      <div className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 mb-16 border border-green-200 shadow-md">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-accent-100/40 rounded-full blur-3xl"></div>
 
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg animate-glow">
+            <div className="p-3 bg-green-500 rounded-xl shadow-lg animate-glow">
               <BookOpen className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-green-200 via-emerald-300 to-teal-200 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-green-600">
                 Getting Started with AxioDB
               </h1>
-              <p className="text-xl text-slate-300 font-light mt-2">
+              <p className="text-xl text-gray-600 font-light mt-2">
                 Interactive examples and comprehensive usage guide
               </p>
             </div>
           </div>
-          <p className="text-lg text-slate-300 leading-relaxed">
+          <p className="text-lg text-gray-600 leading-relaxed">
             Explore AxioDB's powerful features through interactive examples.
             From basic CRUD operations to advanced aggregation pipelines, master
             every aspect of modern NoSQL database operations with our
@@ -180,25 +180,25 @@ console.log(paginatedDocuments);`,
       </div>
 
       {/* Important Note Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-amber-900/20 via-yellow-900/20 to-orange-900/20 rounded-2xl p-8 lg:p-10 border-l-4 border-yellow-500 shadow-xl mb-12">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/20 to-amber-400/20 rounded-full blur-2xl"></div>
+      <div className="relative overflow-hidden bg-amber-50 rounded-lg p-8 lg:p-10 border-l-4 border-amber-500 shadow-sm mb-12">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-accent-100/40 rounded-full blur-2xl"></div>
 
         <div className="relative z-10 flex items-start gap-4">
           <div className="flex-shrink-0">
-            <div className="p-3 bg-yellow-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-amber-500 rounded-xl shadow-sm">
               <AlertCircle className="h-8 w-8 text-white" />
             </div>
           </div>
           <div className="flex-1">
-            <h3 className="text-2xl font-bold text-yellow-100 mb-3">
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">
               Instance Management Architecture
             </h3>
-            <div className="space-y-4 text-lg text-yellow-200 leading-relaxed">
+            <div className="space-y-4 text-lg text-gray-700 leading-relaxed">
               <p>
                 AxioDB employs a <strong>single instance architecture</strong>{" "}
                 for optimal data consistency and security. Initialize one AxioDB
                 instance with the{" "}
-                <code className="bg-slate-800 px-3 py-1 rounded-lg text-yellow-300 font-semibold border border-yellow-800">
+                <code className="bg-white px-3 py-1 rounded-lg text-amber-700 font-semibold border border-amber-200">
                   new
                 </code>{" "}
                 keyword, enabling unlimited databases, collections, and
@@ -207,7 +207,7 @@ console.log(paginatedDocuments);`,
               <p>
                 Upon instance creation, AxioDB automatically launches a
                 comprehensive web-based management interface at{" "}
-                <code className="bg-slate-800 px-3 py-1 rounded-lg text-yellow-300 font-semibold border border-yellow-800">
+                <code className="bg-white px-3 py-1 rounded-lg text-amber-700 font-semibold border border-amber-200">
                   localhost:27018
                 </code>{" "}
                 for visual database administration and real-time monitoring.
@@ -218,18 +218,18 @@ console.log(paginatedDocuments);`,
       </div>
 
       {/* Interactive Examples Section */}
-      <div className="group relative bg-slate-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 lg:p-10 mb-16 border border-slate-700">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-indigo-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-8 lg:p-10 mb-16 border border-gray-200">
+        <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-8">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-accent-500 rounded-xl shadow-lg">
               <Play className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-slate-100">
+              <h3 className="text-2xl font-bold text-gray-900">
                 Interactive Code Examples
               </h3>
-              <p className="text-slate-300">
+              <p className="text-gray-600">
                 Explore different operations with live code samples
               </p>
             </div>
@@ -237,12 +237,12 @@ console.log(paginatedDocuments);`,
 
           {step === "selectCodeType" && (
             <div className="text-center">
-              <p className="text-lg text-slate-300 mb-8">
+              <p className="text-lg text-gray-600 mb-8">
                 Choose your preferred module system to get started:
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                 <button
-                  className="group relative w-full sm:w-auto bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
+                  className="group relative w-full sm:w-auto bg-accent-500 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
                   onClick={() => {
                     setCodeType("commonjs");
                     setStep("selectExampleType");
@@ -254,7 +254,7 @@ console.log(paginatedDocuments);`,
                   </div>
                 </button>
                 <button
-                  className="group relative w-full sm:w-auto bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
+                  className="group relative w-full sm:w-auto bg-purple-500 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
                   onClick={() => {
                     setCodeType("es6");
                     setStep("selectExampleType");
@@ -271,7 +271,7 @@ console.log(paginatedDocuments);`,
 
           {step === "selectExampleType" && (
             <div className="text-center">
-              <p className="text-lg text-slate-300 mb-8">
+              <p className="text-lg text-gray-600 mb-8">
                 Select the operation you want to explore:
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -286,7 +286,7 @@ console.log(paginatedDocuments);`,
                     key: "write",
                     label: "Write Operations",
                     icon: Database,
-                    color: "from-blue-500 to-cyan-500",
+                    color: "from-accent-500 to-cyan-500",
                   },
                   {
                     key: "update",
@@ -310,14 +310,14 @@ console.log(paginatedDocuments);`,
                     key: "fastRetrieval",
                     label: "Fast Retrieval",
                     icon: Zap,
-                    color: "from-indigo-500 to-blue-500",
+                    color: "from-fuchsia-500 to-accent-500",
                   },
                 ].map((example) => {
                   const Icon = example.icon;
                   return (
                     <button
                       key={example.key}
-                      className={`group relative bg-gradient-to-r ${example.color} text-white p-6 rounded-xl font-semibold shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300`}
+                      className={`group relative bg-gray-50 border border-gray-200 text-gray-900 p-6 rounded-xl hover:border-gray-300 font-semibold shadow-lg hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300`}
                       onClick={() => {
                         setExampleType(example.key as any);
                         setStep("showExample");
@@ -337,16 +337,16 @@ console.log(paginatedDocuments);`,
           {step === "showExample" && codeType && exampleType && (
             <div className="space-y-6">
               <div className="text-center">
-                <h4 className="text-xl font-bold text-slate-100 mb-2">
+                <h4 className="text-xl font-bold text-gray-900 mb-2">
                   {exampleType.charAt(0).toUpperCase() + exampleType.slice(1)}{" "}
                   Example (
                   {codeType === "commonjs" ? "CommonJS" : "ES6 Modules"})
                 </h4>
-                <p className="text-slate-300">
+                <p className="text-gray-600">
                   Production-ready code example for {exampleType} operations
                 </p>
               </div>
-              <div className="bg-gradient-to-r from-slate-900 to-blue-900 rounded-xl p-6 shadow-inner">
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                 <CodeBlock
                   code={examples[codeType][exampleType]}
                   language="javascript"
@@ -354,7 +354,7 @@ console.log(paginatedDocuments);`,
               </div>
               <div className="text-center">
                 <button
-                  className="bg-gradient-to-r from-slate-600 to-slate-700 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-300"
+                  className="bg-gray-100 text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transform hover:-translate-y-0.5 transition-all duration-300"
                   onClick={() => setStep("selectExampleType")}
                 >
                   ← Back to Examples
@@ -368,23 +368,23 @@ console.log(paginatedDocuments);`,
       {/* Complete Examples Section */}
       <div className="space-y-12">
         {/* CommonJS Example */}
-        <div className="group relative bg-slate-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 lg:p-10 border border-slate-700">
-          <div className="absolute inset-0 bg-gradient-to-br from-green-900/10 to-blue-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-8 lg:p-10 border border-gray-200">
+          <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-blue-500 rounded-xl shadow-lg">
+              <div className="p-3 bg-green-500 rounded-xl shadow-lg">
                 <Code2 className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-100">
+                <h3 className="text-2xl font-bold text-gray-900">
                   Complete CommonJS Implementation
                 </h3>
-                <p className="text-slate-300">
+                <p className="text-gray-600">
                   Production-ready example with all major features
                 </p>
               </div>
             </div>
-            <div className="bg-gradient-to-r from-slate-900 to-blue-900 rounded-xl p-6 shadow-inner">
+            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
               <CodeBlock
                 language="javascript"
                 code={`const { AxioDB } = require("axiodb");
@@ -479,23 +479,23 @@ main();`}
         </div>
 
         {/* ES6 Module Example */}
-        <div className="group relative bg-slate-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 lg:p-10 border border-slate-700">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 to-pink-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-8 lg:p-10 border border-gray-200">
+          <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl shadow-lg">
+              <div className="p-3 bg-purple-500 rounded-xl shadow-lg">
                 <Sparkles className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-100">
+                <h3 className="text-2xl font-bold text-gray-900">
                   Complete ES6 Module Implementation
                 </h3>
-                <p className="text-slate-300">
+                <p className="text-gray-600">
                   Modern JavaScript with import/export syntax
                 </p>
               </div>
             </div>
-            <div className="bg-gradient-to-r from-slate-900 to-purple-900 rounded-xl p-6 shadow-inner">
+            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
               <CodeBlock
                 language="javascript"
                 code={`import { AxioDB } from "axiodb";

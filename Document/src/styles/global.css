@@ -1,5 +1,33 @@
 /* Professional AxioDB Styling */
 
+/* Brand typography: Archivo for headings, system stack for body (Bun-style) */
+body {
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family:
+    "Archivo",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: -0.02em;
+}
+
 /* Smooth scrolling for better UX */
 html {
   scroll-behavior: smooth;
@@ -62,10 +90,10 @@ html {
 @keyframes glow {
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 20px rgba(255, 46, 151, 0.3);
   }
   50% {
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 30px rgba(255, 46, 151, 0.6);
   }
 }
 
@@ -114,7 +142,7 @@ html {
 .focus-ring:focus {
   outline: none;
   ring-width: 2px;
-  ring-color: rgb(59 130 246);
+  ring-color: rgb(255 46 151);
   ring-offset-width: 2px;
 }
 
@@ -125,9 +153,9 @@ html {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Professional gradient text effects */
+/* Professional gradient text effects (brand pink ramp) */
 .text-gradient-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+  background: linear-gradient(135deg, #ff2e97 0%, #d60066 50%, #ff5fa3 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -166,7 +194,7 @@ html {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(59, 130, 246, 0.4),
+    rgba(255, 46, 151, 0.4),
     transparent
   );
   transition: left 0.5s;
@@ -182,49 +210,50 @@ code {
   font-variant-ligatures: common-ligatures;
 }
 
-/* Professional scrollbar styling */
+/* Professional scrollbar styling (light track, pink hover) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgb(30 41 59);
+  background: #f3f4f6;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgb(71 85 105);
+  background: #d1d5db;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgb(148 163 184);
+  background: #ff2e97;
 }
 
 /* Professional typography */
 .text-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff2e97 0%, #b00054 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Enhanced button styles */
+/* Enhanced button styles (Bun-style: solid pink, sharp corners, no shadow) */
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ff2e97;
   border: none;
   color: white;
   font-weight: 600;
   padding: 12px 24px;
-  border-radius: 12px;
+  border-radius: 0px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
 }
 
 .btn-primary:hover {
+  background: #d60066;
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10px 25px rgba(255, 46, 151, 0.3);
 }
 
 .btn-primary:active {
@@ -262,8 +291,8 @@ code {
   bottom: 0;
   background: linear-gradient(
     135deg,
-    rgba(59, 130, 246, 0.1) 0%,
-    rgba(147, 51, 234, 0.1) 100%
+    rgba(255, 46, 151, 0.1) 0%,
+    rgba(255, 46, 151, 0.1) 100%
   );
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -359,13 +388,13 @@ code {
 
 @keyframes pulse-ring {
   0% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.45);
+    box-shadow: 0 0 0 0 rgba(255, 46, 151, 0.45);
   }
   70% {
-    box-shadow: 0 0 0 14px rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 14px rgba(255, 46, 151, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 0 rgba(255, 46, 151, 0);
   }
 }
 
@@ -394,10 +423,10 @@ code {
 @keyframes glow-once {
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 20px rgba(255, 46, 151, 0.3);
   }
   50% {
-    box-shadow: 0 0 34px rgba(59, 130, 246, 0.65);
+    box-shadow: 0 0 34px rgba(255, 46, 151, 0.65);
   }
 }
 

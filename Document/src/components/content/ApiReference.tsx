@@ -904,56 +904,56 @@ await transaction.commit();`,
         path="/api-reference"
       />
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-900/20 via-slate-800 to-indigo-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 mb-12 border border-blue-800 shadow-xl">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
+      <div className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 mb-12 border border-accent-200 shadow-md">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-accent-100/40 rounded-full blur-3xl"></div>
 
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-accent-500 rounded-xl shadow-lg">
               <BookOpen className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-200 via-indigo-300 to-purple-200 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-accent-600">
                 Complete API Reference
               </h1>
-              <p className="text-xl text-slate-300 font-light mt-2">
+              <p className="text-xl text-gray-600 font-light mt-2">
                 Comprehensive documentation with examples for every method
               </p>
             </div>
           </div>
 
           <div className="space-y-4">
-            <p className="text-lg text-slate-300 leading-relaxed">
+            <p className="text-lg text-gray-600 leading-relaxed">
               This API reference provides detailed documentation for all AxioDB classes, methods, and operations.
               Each method includes type signatures, descriptions, practical examples, and return value specifications.
             </p>
 
             {/* Quick Navigation Guide */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-              <div className="bg-blue-900/30 rounded-lg p-4 border border-blue-700">
-                <h3 className="font-semibold text-blue-200 mb-2 flex items-center gap-2">
+              <div className="bg-accent-100/30 rounded-lg p-4 border border-accent-200">
+                <h3 className="font-semibold text-accent-700 mb-2 flex items-center gap-2">
                   <span className="text-2xl">🚀</span> Getting Started
                 </h3>
-                <p className="text-sm text-blue-300">
-                  Start with <code className="bg-blue-800 px-1 rounded">AxioDB</code> and <code className="bg-blue-800 px-1 rounded">Database</code> sections
+                <p className="text-sm text-accent-600">
+                  Start with <code className="bg-accent-100 text-accent-800 px-1 rounded">AxioDB</code> and <code className="bg-accent-100 text-accent-800 px-1 rounded">Database</code> sections
                 </p>
               </div>
 
-              <div className="bg-green-900/30 rounded-lg p-4 border border-green-700">
-                <h3 className="font-semibold text-green-200 mb-2 flex items-center gap-2">
+              <div className="bg-green-100/30 rounded-lg p-4 border border-green-200">
+                <h3 className="font-semibold text-green-700 mb-2 flex items-center gap-2">
                   <span className="text-2xl">📝</span> CRUD Operations
                 </h3>
-                <p className="text-sm text-green-300">
-                  See <code className="bg-green-800 px-1 rounded">Insert</code>, <code className="bg-green-800 px-1 rounded">Query</code>, <code className="bg-green-800 px-1 rounded">Update</code>, <code className="bg-green-800 px-1 rounded">Delete</code> sections
+                <p className="text-sm text-green-700">
+                  See <code className="bg-green-100 text-green-800 px-1 rounded">Insert</code>, <code className="bg-green-100 text-green-800 px-1 rounded">Query</code>, <code className="bg-green-100 text-green-800 px-1 rounded">Update</code>, <code className="bg-green-100 text-green-800 px-1 rounded">Delete</code> sections
                 </p>
               </div>
 
-              <div className="bg-purple-900/30 rounded-lg p-4 border border-purple-700">
-                <h3 className="font-semibold text-purple-200 mb-2 flex items-center gap-2">
+              <div className="bg-purple-100/30 rounded-lg p-4 border border-purple-200">
+                <h3 className="font-semibold text-purple-700 mb-2 flex items-center gap-2">
                   <span className="text-2xl">📊</span> Advanced
                 </h3>
-                <p className="text-sm text-purple-300">
-                  Explore <code className="bg-purple-800 px-1 rounded">Aggregation</code> for complex data analysis
+                <p className="text-sm text-purple-700">
+                  Explore <code className="bg-purple-100 text-purple-800 px-1 rounded">Aggregation</code> for complex data analysis
                 </p>
               </div>
             </div>
@@ -966,24 +966,24 @@ await transaction.commit();`,
         {apiSections.map((section) => (
           <div
             key={section.title}
-            className="bg-gray-800 rounded-lg shadow-md border border-gray-700 overflow-hidden"
+            className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden"
           >
             <button
-              className="flex items-center justify-between w-full p-4 text-left bg-gray-700 hover:bg-gray-600"
+              className="flex items-center justify-between w-full p-4 text-left bg-gray-200 hover:bg-gray-300"
               onClick={() => toggleSection(section.title)}
             >
-              <h3 className="text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold text-gray-900">
                 {section.title}
               </h3>
               {expandedSections.includes(section.title) ? (
-                <ChevronDown size={20} className="text-gray-500" />
+                <ChevronDown size={20} className="text-gray-600" />
               ) : (
-                <ChevronRight size={20} className="text-gray-500" />
+                <ChevronRight size={20} className="text-gray-600" />
               )}
             </button>
 
             {expandedSections.includes(section.title) && (
-              <div className="divide-y divide-gray-700">
+              <div className="divide-y divide-gray-200">
                 {section.methods.map((method) => (
                   <div key={`${section.title}-${method.name}`} className="p-4">
                     <button
@@ -993,16 +993,16 @@ await transaction.commit();`,
                       }
                     >
                       <div className="flex items-center min-w-0 flex-1">
-                        <span className="font-mono text-blue-400 font-medium truncate">
+                        <span className="font-mono text-accent-600 font-medium truncate">
                           {method.name}
                         </span>
                       </div>
                       {expandedMethods.includes(
                         `${section.title}-${method.name}`,
                       ) ? (
-                        <ChevronDown size={16} className="text-gray-500 flex-shrink-0" />
+                        <ChevronDown size={16} className="text-gray-600 flex-shrink-0" />
                       ) : (
-                        <ChevronRight size={16} className="text-gray-500 flex-shrink-0" />
+                        <ChevronRight size={16} className="text-gray-600 flex-shrink-0" />
                       )}
                     </button>
 
@@ -1016,10 +1016,10 @@ await transaction.commit();`,
                     >
                       <div className="pt-2 space-y-3">
                         <div>
-                          <h4 className="text-sm font-semibold text-gray-400 mb-1">
+                          <h4 className="text-sm font-semibold text-gray-600 mb-1">
                             Signature
                           </h4>
-                          <pre className="bg-gray-900 p-2 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
+                          <pre className="bg-white p-2 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
                             <code className="text-sm font-mono">
                               {method.signature}
                             </code>
@@ -1027,20 +1027,20 @@ await transaction.commit();`,
                         </div>
 
                         <div>
-                          <h4 className="text-sm font-semibold text-gray-400 mb-1">
+                          <h4 className="text-sm font-semibold text-gray-600 mb-1">
                             Description
                           </h4>
-                          <p className="text-gray-300">
+                          <p className="text-gray-600">
                             {method.description}
                           </p>
                         </div>
 
                         {method.example && (
                           <div>
-                            <h4 className="text-sm font-semibold text-gray-400 mb-1">
+                            <h4 className="text-sm font-semibold text-gray-600 mb-1">
                               Example
                             </h4>
-                            <pre className="bg-gray-900 p-2 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
+                            <pre className="bg-white p-2 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
                               <code className="text-sm font-mono">
                                 {method.example}
                               </code>
@@ -1049,10 +1049,10 @@ await transaction.commit();`,
                         )}
 
                         <div>
-                          <h4 className="text-sm font-semibold text-gray-400 mb-1">
+                          <h4 className="text-sm font-semibold text-gray-600 mb-1">
                             Returns
                           </h4>
-                          <p className="text-gray-300">
+                          <p className="text-gray-600">
                             {method.returns}
                           </p>
                         </div>
@@ -1069,50 +1069,50 @@ await transaction.commit();`,
       {/* Enhanced Footer Section */}
       <div className="mt-12 space-y-6">
         {/* Query Operators Reference Card */}
-        <div className="bg-gradient-to-r from-amber-900/20 to-orange-900/20 rounded-lg p-6 border border-amber-800">
-          <h3 className="text-xl font-bold text-amber-200 mb-4 flex items-center gap-2">
+        <div className="bg-orange-50 rounded-lg p-6 border border-amber-200">
+          <h3 className="text-xl font-bold text-amber-700 mb-4 flex items-center gap-2">
             <span className="text-2xl">🔍</span> Query Operators Reference
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <h4 className="font-semibold text-amber-300 mb-2">Comparison</h4>
-              <ul className="text-sm text-amber-400 space-y-1">
-                <li><code className="bg-amber-900 px-2 py-0.5 rounded">$gt</code> - Greater than</li>
-                <li><code className="bg-amber-900 px-2 py-0.5 rounded">$gte</code> - Greater or equal</li>
-                <li><code className="bg-amber-900 px-2 py-0.5 rounded">$lt</code> - Less than</li>
-                <li><code className="bg-amber-900 px-2 py-0.5 rounded">$lte</code> - Less or equal</li>
-                <li><code className="bg-amber-900 px-2 py-0.5 rounded">$ne</code> - Not equal</li>
+              <h4 className="font-semibold text-amber-700 mb-2">Comparison</h4>
+              <ul className="text-sm text-amber-700 space-y-1">
+                <li><code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">$gt</code> - Greater than</li>
+                <li><code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">$gte</code> - Greater or equal</li>
+                <li><code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">$lt</code> - Less than</li>
+                <li><code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">$lte</code> - Less or equal</li>
+                <li><code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">$ne</code> - Not equal</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-amber-300 mb-2">Logical</h4>
-              <ul className="text-sm text-amber-400 space-y-1">
-                <li><code className="bg-amber-900 px-2 py-0.5 rounded">$in</code> - Match any value</li>
-                <li><code className="bg-amber-900 px-2 py-0.5 rounded">$nin</code> - Not in array</li>
-                <li><code className="bg-amber-900 px-2 py-0.5 rounded">$and</code> - All conditions</li>
-                <li><code className="bg-amber-900 px-2 py-0.5 rounded">$or</code> - Any condition</li>
+              <h4 className="font-semibold text-amber-700 mb-2">Logical</h4>
+              <ul className="text-sm text-amber-700 space-y-1">
+                <li><code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">$in</code> - Match any value</li>
+                <li><code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">$nin</code> - Not in array</li>
+                <li><code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">$and</code> - All conditions</li>
+                <li><code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">$or</code> - Any condition</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold text-amber-300 mb-2">String</h4>
-              <ul className="text-sm text-amber-400 space-y-1">
-                <li><code className="bg-amber-900 px-2 py-0.5 rounded">$regex</code> - Pattern matching</li>
-                <li><code className="bg-amber-900 px-2 py-0.5 rounded">$options</code> - Regex flags (i, g)</li>
+              <h4 className="font-semibold text-amber-700 mb-2">String</h4>
+              <ul className="text-sm text-amber-700 space-y-1">
+                <li><code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">$regex</code> - Pattern matching</li>
+                <li><code className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded">$options</code> - Regex flags (i, g)</li>
               </ul>
             </div>
           </div>
         </div>
 
         {/* Response Interface Info */}
-        <div className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 rounded-lg p-6 border border-green-800">
-          <h3 className="text-xl font-bold text-green-200 mb-4 flex items-center gap-2">
+        <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+          <h3 className="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
             <span className="text-2xl">📦</span> Response Interface Structure
           </h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div>
-              <h4 className="font-semibold text-green-300 mb-2">Success Response</h4>
-              <pre className="bg-green-900/50 p-2 sm:p-3 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
-                <code className="text-green-300">{`{
+              <h4 className="font-semibold text-green-700 mb-2">Success Response</h4>
+              <pre className="bg-green-100/50 p-2 sm:p-3 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
+                <code className="text-green-700">{`{
   statusCode: 200,
   status: 'success',
   message: 'Operation successful',
@@ -1121,9 +1121,9 @@ await transaction.commit();`,
               </pre>
             </div>
             <div>
-              <h4 className="font-semibold text-green-300 mb-2">Error Response</h4>
-              <pre className="bg-green-900/50 p-2 sm:p-3 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
-                <code className="text-green-300">{`{
+              <h4 className="font-semibold text-green-700 mb-2">Error Response</h4>
+              <pre className="bg-green-100/50 p-2 sm:p-3 rounded-md text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
+                <code className="text-green-700">{`{
   statusCode: 400,
   status: 'error',
   message: 'Error description',
@@ -1135,49 +1135,49 @@ await transaction.commit();`,
         </div>
 
         {/* Best Practices */}
-        <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-lg p-6 border border-purple-800">
-          <h3 className="text-xl font-bold text-purple-200 mb-4 flex items-center gap-2">
+        <div className="bg-accent-50 rounded-lg p-6 border border-purple-200">
+          <h3 className="text-xl font-bold text-purple-700 mb-4 flex items-center gap-2">
             <span className="text-2xl">💡</span> Best Practices & Tips
           </h3>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-purple-300">
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-purple-700">
             <li className="flex items-start gap-2">
-              <span className="text-purple-400 mt-0.5">✓</span>
-              <span className="text-sm">Always use <code className="bg-purple-900 px-1 rounded">try-catch</code> blocks for async operations</span>
+              <span className="text-purple-700 mt-0.5">✓</span>
+              <span className="text-sm">Always use <code className="bg-purple-100 text-purple-800 px-1 rounded">try-catch</code> blocks for async operations</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-400 mt-0.5">✓</span>
-              <span className="text-sm">Use <code className="bg-purple-900 px-1 rounded">setProject()</code> to limit returned fields for better performance</span>
+              <span className="text-purple-700 mt-0.5">✓</span>
+              <span className="text-sm">Use <code className="bg-purple-100 text-purple-800 px-1 rounded">setProject()</code> to limit returned fields for better performance</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-400 mt-0.5">✓</span>
-              <span className="text-sm">Use <code className="bg-purple-900 px-1 rounded">setCount(true)</code> instead of loading all docs when you only need the count</span>
+              <span className="text-purple-700 mt-0.5">✓</span>
+              <span className="text-sm">Use <code className="bg-purple-100 text-purple-800 px-1 rounded">setCount(true)</code> instead of loading all docs when you only need the count</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-400 mt-0.5">✓</span>
-              <span className="text-sm">Place <code className="bg-purple-900 px-1 rounded">$match</code> early in aggregation pipelines</span>
+              <span className="text-purple-700 mt-0.5">✓</span>
+              <span className="text-sm">Place <code className="bg-purple-100 text-purple-800 px-1 rounded">$match</code> early in aggregation pipelines</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-400 mt-0.5">✓</span>
-              <span className="text-sm">Use <code className="bg-purple-900 px-1 rounded">documentId</code> queries for fastest lookups</span>
+              <span className="text-purple-700 mt-0.5">✓</span>
+              <span className="text-sm">Use <code className="bg-purple-100 text-purple-800 px-1 rounded">documentId</code> queries for fastest lookups</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-purple-400 mt-0.5">✓</span>
-              <span className="text-sm">Use <code className="bg-purple-900 px-1 rounded">insertMany()</code> for bulk operations</span>
+              <span className="text-purple-700 mt-0.5">✓</span>
+              <span className="text-sm">Use <code className="bg-purple-100 text-purple-800 px-1 rounded">insertMany()</code> for bulk operations</span>
             </li>
           </ul>
         </div>
 
         {/* Footer Note */}
-        <div className="bg-blue-900/20 rounded-lg p-6 border border-blue-800">
-          <p className="text-gray-300 flex items-center gap-2">
-            <span className="text-blue-400 text-xl">ℹ️</span>
+        <div className="bg-accent-100/20 rounded-lg p-6 border border-accent-200">
+          <p className="text-gray-600 flex items-center gap-2">
+            <span className="text-accent-600 text-xl">ℹ️</span>
             <span>
               This API reference is continuously updated with the latest features. All methods return Promises and support
-              <code className="bg-blue-900 px-2 py-0.5 rounded mx-1">async/await</code>
+              <code className="bg-accent-100 text-accent-800 px-2 py-0.5 rounded mx-1">async/await</code>
               syntax. For more examples and tutorials, check the
-              <a href="/usage" className="text-blue-400 hover:underline mx-1 font-semibold">Usage Guide</a>
+              <a href="/usage" className="text-accent-600 hover:underline mx-1 font-semibold">Usage Guide</a>
               and
-              <a href="/advanced-features" className="text-blue-400 hover:underline mx-1 font-semibold">Advanced Features</a>
+              <a href="/advanced-features" className="text-accent-600 hover:underline mx-1 font-semibold">Advanced Features</a>
               sections.
             </span>
           </p>

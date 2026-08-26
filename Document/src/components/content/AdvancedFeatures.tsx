@@ -195,24 +195,24 @@ console.log("Transaction completed successfully!");`,
         path="/advanced-features"
       />
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-purple-900/20 via-slate-800 to-indigo-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 mb-16 border border-purple-800 shadow-xl">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-purple-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
+      <div className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 mb-16 border border-purple-200 shadow-md">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-accent-100/40 rounded-full blur-3xl"></div>
 
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-purple-500 rounded-xl shadow-lg">
               <Rocket className="h-10 w-10 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-200 via-indigo-300 to-blue-200 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-accent-600">
                 Advanced Database Features
               </h1>
-              <p className="text-xl text-slate-300 font-light mt-2">
+              <p className="text-xl text-gray-600 font-light mt-2">
                 Enterprise-grade capabilities for complex applications
               </p>
             </div>
           </div>
-          <p className="text-lg text-slate-300 leading-relaxed">
+          <p className="text-lg text-gray-600 leading-relaxed">
             Harness the full power of AxioDB with advanced features designed for
             enterprise applications. Our comprehensive suite includes
             multi-database management, sophisticated aggregation pipelines,
@@ -265,8 +265,8 @@ console.log("Transaction completed successfully!");`,
         </Button>
       </div>
 
-      <div className="bg-slate-800 rounded-2xl p-8 lg:p-10 shadow-xl border border-slate-700 mb-12 transition-all duration-300 hover:shadow-2xl">
-        <h3 className="font-bold text-2xl mb-6 text-slate-100">
+      <div className="bg-gray-100 rounded-lg p-8 lg:p-10 shadow-md border border-gray-200 mb-12 transition-all duration-300 hover:shadow-lg">
+        <h3 className="font-bold text-2xl mb-6 text-gray-900">
           {activeFeature === "multi-db" &&
             "Multi-Database Architecture & Collection Management"}
           {activeFeature === "aggregation" &&
@@ -278,7 +278,7 @@ console.log("Transaction completed successfully!");`,
             "ACID-Compliant Transactions"}
         </h3>
 
-        <p className="text-lg text-slate-300 mb-6 leading-relaxed">
+        <p className="text-lg text-gray-600 mb-6 leading-relaxed">
           {activeFeature === "multi-db" &&
             "Architect scalable applications with multiple databases and collections, each configured with independent security protocols and performance optimizations to meet diverse business requirements."}
           {activeFeature === "aggregation" &&
@@ -299,19 +299,19 @@ console.log("Transaction completed successfully!");`,
 
       {/* Feature Enhancement Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        <div className="group relative bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-700 hover:border-blue-600 transform hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-cyan-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-accent-600 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+              <div className="p-3 bg-accent-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
                 <Code className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-100">
+              <h3 className="text-2xl font-bold text-gray-900">
                 Custom Query Processing
               </h3>
             </div>
 
-            <p className="text-slate-300 mb-6 leading-relaxed text-lg">
+            <p className="text-gray-600 mb-6 leading-relaxed text-lg">
               Create sophisticated queries with advanced processing logic and
               MongoDB-compatible operators for precise data filtering and
               retrieval operations.
@@ -319,46 +319,46 @@ console.log("Transaction completed successfully!");`,
 
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                <div className="w-2 h-2 bg-accent-500 rounded-full mt-2"></div>
                 <div>
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-semibold text-gray-700">
                     Pattern Matching:
                   </span>
-                  <code className="ml-2 bg-gradient-to-r from-blue-900/50 to-cyan-900/50 px-2 py-1 rounded text-blue-300 font-semibold border border-blue-800 text-sm">
+                  <code className="ml-2 bg-accent-50 px-2 py-1 rounded text-accent-600 font-semibold border border-accent-200 text-sm">
                     $regex
                   </code>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                <div className="w-2 h-2 bg-accent-500 rounded-full mt-2"></div>
                 <div>
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-semibold text-gray-700">
                     Comparison Operators:
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    <code className="bg-gradient-to-r from-blue-900/50 to-cyan-900/50 px-2 py-1 rounded text-blue-300 font-semibold border border-blue-800 text-sm">
+                    <code className="bg-accent-50 px-2 py-1 rounded text-accent-600 font-semibold border border-accent-200 text-sm">
                       $gt
                     </code>
-                    <code className="bg-gradient-to-r from-blue-900/50 to-cyan-900/50 px-2 py-1 rounded text-blue-300 font-semibold border border-blue-800 text-sm">
+                    <code className="bg-accent-50 px-2 py-1 rounded text-accent-600 font-semibold border border-accent-200 text-sm">
                       $lt
                     </code>
-                    <code className="bg-gradient-to-r from-blue-900/50 to-cyan-900/50 px-2 py-1 rounded text-blue-300 font-semibold border border-blue-800 text-sm">
+                    <code className="bg-accent-50 px-2 py-1 rounded text-accent-600 font-semibold border border-accent-200 text-sm">
                       $in
                     </code>
                   </div>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                <div className="w-2 h-2 bg-accent-500 rounded-full mt-2"></div>
                 <div>
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-semibold text-gray-700">
                     Advanced Operations:
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    <code className="bg-gradient-to-r from-blue-900/50 to-cyan-900/50 px-2 py-1 rounded text-blue-300 font-semibold border border-blue-800 text-sm">
+                    <code className="bg-accent-50 px-2 py-1 rounded text-accent-600 font-semibold border border-accent-200 text-sm">
                       .setProject()
                     </code>
-                    <code className="bg-gradient-to-r from-blue-900/50 to-cyan-900/50 px-2 py-1 rounded text-blue-300 font-semibold border border-blue-800 text-sm">
+                    <code className="bg-accent-50 px-2 py-1 rounded text-accent-600 font-semibold border border-accent-200 text-sm">
                       .setCount()
                     </code>
                   </div>
@@ -368,19 +368,19 @@ console.log("Transaction completed successfully!");`,
           </div>
         </div>
 
-        <div className="group relative bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-700 hover:border-green-600 transform hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-green-900/10 to-emerald-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-green-200 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+              <div className="p-3 bg-green-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
                 <GitBranch className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-100">
+              <h3 className="text-2xl font-bold text-gray-900">
                 ACID Transactions
               </h3>
             </div>
 
-            <p className="text-slate-300 mb-6 leading-relaxed text-lg">
+            <p className="text-gray-600 mb-6 leading-relaxed text-lg">
               Full ACID compliance with atomic operations, commit/rollback
               support, and Write-Ahead Logging for crash recovery and data
               integrity.
@@ -390,14 +390,14 @@ console.log("Transaction completed successfully!");`,
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                 <div>
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-semibold text-gray-700">
                     Transaction Control:
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    <code className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 px-2 py-1 rounded text-green-300 font-semibold border border-green-800 text-sm">
+                    <code className="bg-green-50 px-2 py-1 rounded text-green-700 font-semibold border border-green-200 text-sm">
                       startTransaction()
                     </code>
-                    <code className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 px-2 py-1 rounded text-green-300 font-semibold border border-green-800 text-sm">
+                    <code className="bg-green-50 px-2 py-1 rounded text-green-700 font-semibold border border-green-200 text-sm">
                       commit()
                     </code>
                   </div>
@@ -406,10 +406,10 @@ console.log("Transaction completed successfully!");`,
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                 <div>
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-semibold text-gray-700">
                     Rollback Support:
                   </span>
-                  <code className="ml-2 bg-gradient-to-r from-green-900/50 to-emerald-900/50 px-2 py-1 rounded text-green-300 font-semibold border border-green-800 text-sm">
+                  <code className="ml-2 bg-green-50 px-2 py-1 rounded text-green-700 font-semibold border border-green-200 text-sm">
                     rollback()
                   </code>
                 </div>
@@ -417,10 +417,10 @@ console.log("Transaction completed successfully!");`,
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
                 <div>
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-semibold text-gray-700">
                     Crash Recovery:
                   </span>
-                  <code className="ml-2 bg-gradient-to-r from-green-900/50 to-emerald-900/50 px-2 py-1 rounded text-green-300 font-semibold border border-green-800 text-sm">
+                  <code className="ml-2 bg-green-50 px-2 py-1 rounded text-green-700 font-semibold border border-green-200 text-sm">
                     Write-Ahead Logging
                   </code>
                 </div>
@@ -429,19 +429,19 @@ console.log("Transaction completed successfully!");`,
           </div>
         </div>
 
-        <div className="group relative bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-700 hover:border-orange-600 transform hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-orange-900/10 to-amber-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-orange-200 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-orange-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-br from-orange-500 to-amber-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+              <div className="p-3 bg-orange-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
                 <RefreshCw className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-100">
+              <h3 className="text-2xl font-bold text-gray-900">
                 Performance Optimization
               </h3>
             </div>
 
-            <p className="text-slate-300 mb-6 leading-relaxed text-lg">
+            <p className="text-gray-600 mb-6 leading-relaxed text-lg">
               Maximize application performance with intelligent caching,
               optimized queries, and strategic data access patterns designed for
               high-throughput operations.
@@ -451,10 +451,10 @@ console.log("Transaction completed successfully!");`,
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
                 <div>
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-semibold text-gray-700">
                     Fast Lookups:
                   </span>
-                  <code className="ml-2 bg-gradient-to-r from-orange-900/50 to-amber-900/50 px-2 py-1 rounded text-orange-300 font-semibold border border-orange-800 text-sm">
+                  <code className="ml-2 bg-orange-50 px-2 py-1 rounded text-orange-300 font-semibold border border-orange-200 text-sm">
                     documentId
                   </code>
                 </div>
@@ -462,14 +462,14 @@ console.log("Transaction completed successfully!");`,
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
                 <div>
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-semibold text-gray-700">
                     Pagination:
                   </span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    <code className="bg-gradient-to-r from-orange-900/50 to-amber-900/50 px-2 py-1 rounded text-orange-300 font-semibold border border-orange-800 text-sm">
+                    <code className="bg-orange-50 px-2 py-1 rounded text-orange-300 font-semibold border border-orange-200 text-sm">
                       .Limit()
                     </code>
-                    <code className="bg-gradient-to-r from-orange-900/50 to-amber-900/50 px-2 py-1 rounded text-orange-300 font-semibold border border-orange-800 text-sm">
+                    <code className="bg-orange-50 px-2 py-1 rounded text-orange-300 font-semibold border border-orange-200 text-sm">
                       .Skip()
                     </code>
                   </div>
@@ -478,17 +478,17 @@ console.log("Transaction completed successfully!");`,
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
                 <div>
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-semibold text-gray-700">
                     Intelligent Caching:
                   </span>
-                  <code className="ml-2 bg-gradient-to-r from-orange-900/50 to-amber-900/50 px-2 py-1 rounded text-orange-300 font-semibold border border-orange-800 text-sm">
+                  <code className="ml-2 bg-orange-50 px-2 py-1 rounded text-orange-300 font-semibold border border-orange-200 text-sm">
                     InMemoryCache
                   </code>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                <span className="text-slate-300">
+                <span className="text-gray-600">
                   Optimized data structure design for query patterns
                 </span>
               </div>
@@ -496,19 +496,19 @@ console.log("Transaction completed successfully!");`,
           </div>
         </div>
 
-        <div className="group relative bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border border-slate-700 hover:border-purple-600 transform hover:-translate-y-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 to-violet-900/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-purple-200 transform hover:-translate-y-1">
+          <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-br from-purple-500 to-violet-500 rounded-xl shadow-lg group-hover:shadow-xl transition-shadow">
+              <div className="p-3 bg-purple-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
                 <Database className="h-8 w-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-100">
+              <h3 className="text-2xl font-bold text-gray-900">
                 Enterprise Data Management
               </h3>
             </div>
 
-            <p className="text-slate-300 mb-6 leading-relaxed text-lg">
+            <p className="text-gray-600 mb-6 leading-relaxed text-lg">
               Comprehensive data lifecycle management with bulk operations,
               conditional updates, and administrative functions for
               enterprise-scale database operations.
@@ -517,25 +517,25 @@ console.log("Transaction completed successfully!");`,
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <span className="text-slate-300">
+                <span className="text-gray-600">
                   High-performance bulk insert and update operations
                 </span>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <span className="text-slate-300">
+                <span className="text-gray-600">
                   Conditional updates with sophisticated query filters
                 </span>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <span className="text-slate-300">
+                <span className="text-gray-600">
                   Dynamic collection and database lifecycle management
                 </span>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <span className="text-slate-300">
+                <span className="text-gray-600">
                   Atomic operations ensuring data consistency
                 </span>
               </div>
@@ -544,18 +544,18 @@ console.log("Transaction completed successfully!");`,
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border-l-4 border-blue-500 p-6 rounded-r-xl shadow-sm">
+      <div className="bg-accent-50 border-l-4 border-accent-500 p-6 rounded-r-xl shadow-sm">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-bold">💡</span>
+            <div className="w-8 h-8 bg-accent-500 rounded-full flex items-center justify-center">
+              <span className="text-gray-900 text-sm font-bold">💡</span>
             </div>
           </div>
           <div>
-            <h3 className="font-semibold text-lg mb-3 text-blue-200">
+            <h3 className="font-semibold text-lg mb-3 text-accent-700">
               Best Practices for Enterprise Implementation
             </h3>
-            <p className="text-slate-300 leading-relaxed">
+            <p className="text-gray-600 leading-relaxed">
               Maximize AxioDB's potential by strategically combining features:
               utilize aggregation pipelines for complex analytics, and
               leverage multi-database architecture for microservices. This

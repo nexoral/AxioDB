@@ -161,7 +161,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
 
   return (
     <aside
-      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gray-900 shadow-lg transition-all duration-300 overflow-y-auto z-40 scrollbar-hide ${isOpen ? "w-[85vw] max-w-xs translate-x-0" : "w-[85vw] max-w-xs -translate-x-full md:translate-x-0 md:w-64" }`}
+      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 transition-all duration-300 overflow-y-auto z-40 scrollbar-hide ${isOpen ? "w-[85vw] max-w-xs translate-x-0" : "w-[85vw] max-w-xs -translate-x-full md:translate-x-0 md:w-64" }`}
       style={{
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
@@ -169,27 +169,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
     >
       <nav className="p-4">
         <div className="mb-6">
-          <div className="text-lg font-semibold text-white mb-2">
+          <div className="text-lg font-semibold text-gray-900 mb-2">
             Documentation
           </div>
-          <div className="bg-gradient-to-r from-blue-900/20 to-green-900/20 rounded-lg p-3 mb-4 border border-blue-700/50">
+          <div className="bg-accent-50 rounded-lg p-3 mb-4 border border-accent-200">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">👋</span>
-              <span className="text-sm font-semibold text-blue-300">
+              <span className="text-sm font-semibold text-accent-600">
                 Hey there, Dev!
               </span>
             </div>
-            <p className="text-xs text-blue-400 leading-relaxed">
-              Start with <span className="font-mono bg-blue-900/50 px-1 rounded">Hello World</span> or jump to any section you need!
+            <p className="text-xs text-accent-600 leading-relaxed">
+              Start with <span className="font-mono bg-accent-100/50 px-1 rounded">Hello World</span> or jump to any section you need!
             </p>
           </div>
-          <div className="border-b border-gray-700 mb-4"></div>
+          <div className="border-b border-gray-200 mb-4"></div>
         </div>
 
         {sidebarSections.map((section) => (
           <div key={section.title} className="mb-4">
             <button
-              className="flex items-center justify-between w-full text-left text-gray-300 hover:text-blue-400 font-medium"
+              className="flex items-center justify-between w-full text-left text-gray-600 hover:text-accent-600 font-medium"
               onClick={() => toggleSection(section.title)}
             >
               <span>{section.title}</span>
@@ -208,8 +208,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
                       to={item.path}
                       className={`block py-1 text-sm ${location.pathname === item.path ||
                         (location.hash && item.path.includes(location.hash))
-                        ? "text-blue-500 font-medium"
-                        : "text-gray-400 hover:text-blue-400"
+                        ? "text-accent-600 font-medium"
+                        : "text-gray-500 hover:text-accent-600"
                         }`}
                       onClick={() => handleNavClick(item.path, item.id)}
                     >

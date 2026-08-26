@@ -50,7 +50,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
   return (
     <div
       ref={typewriterRef}
-      className="relative group rounded-lg overflow-hidden my-4 sm:my-6 border border-slate-700 shadow-sm"
+      className="relative group rounded-[3px] overflow-hidden my-4 sm:my-6 border border-ink-700 shadow-sm"
       // Structural hooks for scripts/generate-markdown.ts, which rebuilds fenced
       // code blocks from this prerendered markup: it needs the language and it
       // needs to skip the chrome (language chip + copy button) around the code.
@@ -58,16 +58,16 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
     >
       <div
         data-code-header
-        className="flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 bg-[#252526] text-gray-400 border-b border-slate-700"
+        className="flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 bg-ink-800 text-gray-500 border-b border-ink-700"
       >
         <span className="text-xs sm:text-sm font-mono">{language}</span>
         <button
           onClick={handleCopy}
-          className="text-gray-400 hover:text-white transition-colors p-1 rounded"
+          className="text-gray-500 hover:text-gray-900 transition-colors p-1 rounded"
           aria-label="Copy code"
         >
           {copied ? (
-            <Check size={18} className="text-green-400" />
+            <Check size={18} className="text-green-600" />
           ) : (
             <Copy size={18} />
           )}
@@ -83,7 +83,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
           return (
             <pre
               className={`${className} overflow-x-auto overscroll-x-contain p-3 sm:p-4 text-xs sm:text-sm leading-relaxed`}
-              style={{ ...style, backgroundColor: "#1e1e1e" }}
+              style={{ ...style, backgroundColor: "#120E10" }}
             >
               <code className="font-mono">
                 {tokens.map((line, lineIndex) => {
