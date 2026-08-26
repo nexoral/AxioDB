@@ -400,29 +400,132 @@ jobs:
           cd cli
           mkdir -p bin
           VERSION=$(cat VERSION | tr -d '[:space:]')
-          GOOS=linux  GOARCH=amd64 go build -o bin/axiodb_linux_amd64 .
-          GOOS=linux  GOARCH=arm64 go build -o bin/axiodb_linux_arm64 .
-          GOOS=darwin  GOARCH=amd64 go build -o bin/axiodb_darwin_amd64 .
-          GOOS=darwin  GOARCH=arm64 go build -o bin/axiodb_darwin_arm64 .
-          GOOS=windows GOARCH=amd64 go build -o bin/axiodb_windows_amd64.exe .
+
+          GOOS=linux    GOARCH=amd64 go build -ldflags="-s -w" -o bin/axiodb_linux_amd64 .
+          GOOS=linux    GOARCH=arm64 go build -ldflags="-s -w" -o bin/axiodb_linux_arm64 .
+          GOOS=linux    GOARCH=386   go build -ldflags="-s -w" -o bin/axiodb_linux_386 .
+          GOOS=linux    GOARCH=arm   GOARM=7 go build -ldflags="-s -w" -o bin/axiodb_linux_arm .
+          GOOS=darwin   GOARCH=amd64 go build -ldflags="-s -w" -o bin/axiodb_darwin_amd64 .
+          GOOS=darwin   GOARCH=arm64 go build -ldflags="-s -w" -o bin/axiodb_darwin_arm64 .
+          GOOS=windows  GOARCH=amd64 go build -ldflags="-s -w" -o bin/axiodb_windows_amd64.exe .
+          GOOS=windows  GOARCH=arm64 go build -ldflags="-s -w" -o bin/axiodb_windows_arm64.exe .
+          GOOS=windows  GOARCH=386   go build -ldflags="-s -w" -o bin/axiodb_windows_386.exe .
+          GOOS=freebsd  GOARCH=amd64 go build -ldflags="-s -w" -o bin/axiodb_freebsd_amd64 .
+          GOOS=openbsd  GOARCH=amd64 go build -ldflags="-s -w" -o bin/axiodb_openbsd_amd64 .
+          GOOS=netbsd   GOARCH=amd64 go build -ldflags="-s -w" -o bin/axiodb_netbsd_amd64 .
+
+          cd bin
+          sha256sum axiodb_* > checksums.txt
+          cp ../Scripts/install.sh .
+          cp ../Scripts/install.ps1 .
 
       - name: Create GitHub Release
         if: steps.check.outputs.exists == 'false'
         run: |
           TAG="cli-v${{ steps.version.outputs.version }}"
-          COMMIT_HASH=$(git rev-parse HEAD)
-          COMMIT_MSG=$(git log -1 --pretty=%B)
+          VERSION="${{ steps.version.outputs.version }}"
 
-          NOTES="AxioDB CLI v${{ steps.version.outputs.version }}\n\nCommit: ${COMMIT_HASH}\n\n${COMMIT_MSG}"
+          BODY=$(cat << 'RELEASEBODY'
+          ## AxioDB CLI vVERSION_PLACEHOLDER
+
+          ### Quick Install
+
+          **Linux/macOS:**
+          ```bash
+          curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | bash
+          ```
+
+          **Windows (PowerShell):**
+          ```powershell
+          irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
+          ```
+
+          ---
+
+          ### Downloads
+
+          #### Windows
+          | File | Architecture |
+          |------|--------------|
+          | `axiodb_windows_amd64.exe` | x64 (most common) |
+          | `axiodb_windows_arm64.exe` | ARM64 (Surface Pro X) |
+          | `axiodb_windows_386.exe` | x86 (32-bit) |
+
+          #### macOS
+          | File | Architecture |
+          |------|--------------|
+          | `axiodb_darwin_arm64` | Apple Silicon (M1/M2/M3/M4) |
+          | `axiodb_darwin_amd64` | Intel |
+
+          #### Linux
+          | File | Architecture |
+          |------|--------------|
+          | `axiodb_linux_amd64` | x86_64 |
+          | `axiodb_linux_arm64` | ARM64 (Raspberry Pi 4+, AWS Graviton) |
+          | `axiodb_linux_386` | x86 (32-bit) |
+          | `axiodb_linux_arm` | ARMv7 (Raspberry Pi 3) |
+
+          #### BSD
+          | File | Architecture |
+          |------|--------------|
+          | `axiodb_freebsd_amd64` | FreeBSD x86_64 |
+          | `axiodb_openbsd_amd64` | OpenBSD x86_64 |
+          | `axiodb_netbsd_amd64` | NetBSD x86_64 |
+
+          ---
+
+          ### Manual Installation
+
+          **Linux/macOS/BSD:**
+          ```bash
+          chmod +x axiodb_<os>_<arch>
+          sudo mv axiodb_<os>_<arch> /usr/local/bin/axiodb
+          ```
+
+          **Windows:**
+          Move `axiodb_windows_<arch>.exe` to a folder in PATH and rename to `axiodb.exe`
+
+          ---
+
+          ### Verify Installation
+          ```bash
+          axiodb --version
+          axiodb connect
+          ```
+
+          ### Connect to AxioDB Server
+          ```bash
+          axiodb -c axiodb://127.0.0.1:27019 ping
+          axiodb -c axiodb://127.0.0.1:27019 connect
+          ```
+
+          ---
+
+          ### Checksums
+          Verify download: `sha256sum -c checksums.txt --ignore-missing`
+          RELEASEBODY
+          )
+
+          BODY=$(echo "$BODY" | sed "s/VERSION_PLACEHOLDER/$VERSION/g")
 
           gh release create "$TAG" \
             cli/bin/axiodb_linux_amd64 \
             cli/bin/axiodb_linux_arm64 \
+            cli/bin/axiodb_linux_386 \
+            cli/bin/axiodb_linux_arm \
             cli/bin/axiodb_darwin_amd64 \
             cli/bin/axiodb_darwin_arm64 \
             cli/bin/axiodb_windows_amd64.exe \
+            cli/bin/axiodb_windows_arm64.exe \
+            cli/bin/axiodb_windows_386.exe \
+            cli/bin/axiodb_freebsd_amd64 \
+            cli/bin/axiodb_openbsd_amd64 \
+            cli/bin/axiodb_netbsd_amd64 \
+            cli/bin/checksums.txt \
+            cli/bin/install.sh \
+            cli/bin/install.ps1 \
             --title "$TAG" \
-            --notes "$(echo -e "$NOTES")"
+            --notes "$BODY"
         env:
           GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN_FOR_RELEASE }}
 

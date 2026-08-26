@@ -15,6 +15,7 @@ import {
   Users,
   Zap,
   TrendingUp,
+  Command,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Seo from "../ui/Seo";
@@ -56,6 +57,7 @@ const Introduction: React.FC = () => {
   const transactionReveal = useScrollReveal<HTMLDivElement>();
   const terminalReveal = useScrollReveal<HTMLDivElement>();
   const mcpBannerReveal = useScrollReveal<HTMLAnchorElement>();
+  const cliBannerReveal = useScrollReveal<HTMLAnchorElement>();
   const cloudBannerReveal = useScrollReveal<HTMLDivElement>();
   const guiBannerReveal = useScrollReveal<HTMLDivElement>();
   const whyAxioDBReveal = useScrollReveal<HTMLDivElement>();
@@ -195,6 +197,34 @@ const Introduction: React.FC = () => {
               </p>
             </div>
             <ArrowRight className="h-6 w-6 text-fuchsia-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
+          </a>
+
+          {/* New Feature Banner: CLI */}
+          <a
+            ref={cliBannerReveal.ref}
+            href="https://github.com/nexoral/AxioDB/releases?q=cli-v&expanded=true"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-emerald-50 px-6 py-5 rounded-xl border-2 border-emerald-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${cliBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-center justify-center w-12 h-12 bg-emerald-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+              <Command className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
+                  NEW
+                </span>
+                <span className="text-lg font-black text-emerald-700">
+                  AxioDB CLI
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">
+                Go-based command line interface for AxioDB — interactive REPL with MongoDB shell syntax,
+                all 21 TCP commands, TLS support, and installers for 12 platforms.
+              </p>
+            </div>
+            <ArrowRight className="h-6 w-6 text-emerald-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
           </a>
 
           {/* NPM Download Stats */}

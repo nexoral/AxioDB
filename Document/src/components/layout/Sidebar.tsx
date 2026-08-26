@@ -59,6 +59,16 @@ const sidebarSections: SidebarSection[] = [
     ],
   },
   {
+    title: "CLI (Command Line)",
+    items: [
+      {
+        id: "cli",
+        label: "AxioDB CLI",
+        path: "/cli",
+      },
+    ],
+  },
+  {
     title: "Troubleshooting",
     items: [
       {
