@@ -30,6 +30,7 @@
   - [Simple: connect without authentication](#simple-connect-without-authentication)
   - [Advanced: TCP authentication](#advanced-tcp-authentication)
   - [Advanced: TLS encryption](#advanced-tls-encryption)
+- [AxioDB CLI — Command Line Interface](#-axiodb-cli--command-line-interface)
 - [Troubleshooting](#-troubleshooting)
 - [Docker Deployment](#-docker-deployment)
   - [Simple: run the container](#simple-run-the-container)
@@ -335,6 +336,79 @@ docker run -d --name axiodb-server \
 The rule: the `-e AXIODB_TLS_CERT_PATH=...` value must always match the *right-hand side* of the `-v` mount (`/certs/...`), never the real path on your machine (`/home/you/mycerts/...`) — the container can't see your machine's filesystem directly, only whatever you've explicitly mounted into it.
 
 👉 **[Full AxioDBCloud Documentation](https://axiodb.in/cloud)** — setup guides, API reference, Docker examples
+
+---
+
+## 💻 AxioDB CLI — Command Line Interface
+
+A Go-based CLI tool for interacting with AxioDB servers via the TCP protocol. Supports all database operations with both single-command and interactive REPL modes.
+
+### Quick Install
+
+**Linux/macOS:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
+```
+
+**Or download directly:** [GitHub Releases](https://github.com/nexoral/AxioDB/releases?q=cli-v&expanded=true)
+
+### Supported Platforms
+
+| OS | Architectures |
+|------|--------------|
+| Linux | amd64, arm64, 386, armv7 |
+| macOS | amd64 (Intel), arm64 (Apple Silicon) |
+| Windows | amd64, arm64, 386 |
+| FreeBSD | amd64 |
+| OpenBSD | amd64 |
+| NetBSD | amd64 |
+
+### Usage
+
+**Single commands:**
+```bash
+axiodb -c axiodb://127.0.0.1:27019 ping
+axiodb -c axiodb://127.0.0.1:27019 db list
+axiodb -c axiodb://127.0.0.1:27019 document insert '{"name":"Alice"}' --db mydb --collection users
+axiodb -c axiodb://127.0.0.1:27019 document query '{}' --db mydb --collection users
+```
+
+**Interactive REPL (MongoDB shell style):**
+```bash
+axiodb connect
+# axiodb> use mydb
+# axiodb:mydb> show collections
+# axiodb:mydb> use mydb.users
+# axiodb:mydb:users> db.users.find({})
+# axiodb:mydb:users> db.users.insert({name: "Bob"})
+# axiodb:mydb:users> exit
+```
+
+**With authentication:**
+```bash
+axiodb -c axiodb://127.0.0.1:27019 -u admin -p admin connect
+```
+
+**With TLS:**
+```bash
+axiodb -c axiodb://127.0.0.1:27019 --tls --tls-cert ./cert.pem connect
+```
+
+### Features
+
+- **All 21 TCP commands:** database, collection, document CRUD, aggregation, indexing
+- **Interactive REPL:** MongoDB shell syntax (`use`, `show dbs`, `db.coll.find()`)
+- **TLS support:** `--tls`, `--tls-cert`, `--tls-skip-verify`
+- **Auth support:** `-u` / `-p` flags
+- **JSON output:** `--output json` for scripting
+- **Tab autocomplete** in REPL mode
+
+👉 **[Full CLI Documentation](https://github.com/nexoral/AxioDB/tree/main/cli)**
 
 ---
 
