@@ -12,21 +12,21 @@ const Changelog: React.FC = () => {
         path="/changelog"
       />
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-violet-900/20 via-slate-800 to-indigo-900/20 rounded-2xl p-5 sm:p-8 lg:p-12 border border-violet-700 shadow-xl">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-violet-400/10 to-indigo-400/10 rounded-full blur-3xl"></div>
+      <section className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 border border-violet-200 shadow-md">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-accent-100/40 rounded-full blur-3xl"></div>
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-900/40 to-indigo-900/40 rounded-full border border-violet-600 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-50 rounded-full border border-violet-200 mb-6">
             <History className="h-5 w-5 text-violet-400" />
             <span className="text-violet-300 font-semibold">
               SEE HOW AXIODB HAS EVOLVED
             </span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 bg-gradient-to-r from-violet-400 via-indigo-400 to-blue-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 text-accent-600">
             Changelog
           </h1>
 
-          <p className="text-lg text-slate-400 leading-relaxed max-w-3xl">
+          <p className="text-lg text-gray-600 leading-relaxed max-w-3xl">
             Every major milestone in AxioDB's history, from the very first commit onward.
             This is a curated list of what actually changed - not every commit or patch bump,
             just the releases that shipped something meaningful.
@@ -39,27 +39,27 @@ const Changelog: React.FC = () => {
         {changelog.map((entry, index) => (
           <div
             key={`${entry.version}-${entry.date}-${index}`}
-            className="bg-slate-800 p-6 rounded-xl border border-slate-700"
+            className="bg-white p-6 rounded-xl border border-gray-200"
           >
             <div className="flex flex-wrap items-center gap-3 mb-3">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-violet-900/30 rounded-full">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-violet-100/30 rounded-full">
                 <Tag className="h-3.5 w-3.5 text-violet-400" />
                 <span className="text-sm font-semibold text-violet-300">
                   v{entry.version}
                 </span>
               </div>
-              <span className="text-sm text-slate-400">
+              <span className="text-sm text-gray-600">
                 {entry.date}
               </span>
             </div>
-            <h3 className="text-lg font-bold text-white mb-3">
+            <h3 className="text-lg font-bold text-gray-900 mb-3">
               {entry.title}
             </h3>
             <ul className="space-y-1.5">
               {entry.changes.map((change, changeIndex) => (
                 <li
                   key={changeIndex}
-                  className="text-slate-300 text-sm flex gap-2"
+                  className="text-gray-600 text-sm flex gap-2"
                 >
                   <span className="text-violet-400 mt-0.5">•</span>
                   <span>{change}</span>

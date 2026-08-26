@@ -27,24 +27,24 @@ console.log("Collection created:", collection);
       <h1 className="text-3xl font-bold mb-6">Create Collection</h1>
 
       {/* Parameter Block */}
-      <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-8">
-        <h3 className="flex items-center text-lg font-semibold text-blue-400 mb-2">
+      <div className="bg-accent-100/20 border-l-4 border-accent-500 p-4 rounded-r-lg mb-8">
+        <h3 className="flex items-center text-lg font-semibold text-accent-600 mb-2">
           <AlertCircle className="h-5 w-5 mr-2" />
           Collection Creation Parameters
         </h3>
-        <p className="text-gray-300">
+        <p className="text-gray-600">
           The{" "}
-          <code className="bg-gray-900 px-1 py-0.5 rounded">
+          <code className="bg-white px-1 py-0.5 rounded">
             createCollection
           </code>{" "}
           method supports the following format:
         </p>
-        <pre className="bg-gray-900 p-2 sm:p-3 rounded-md mt-2 text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
+        <pre className="bg-white p-2 sm:p-3 rounded-md mt-2 text-xs sm:text-sm overflow-x-auto overscroll-x-contain">
           {`createCollection(name: string);`}
         </pre>
       </div>
 
-      <p className="text-gray-300 mb-4">
+      <p className="text-gray-600 mb-4">
         Below is an example of creating a collection.
       </p>
 

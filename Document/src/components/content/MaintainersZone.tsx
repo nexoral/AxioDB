@@ -81,8 +81,8 @@ const MaintainersZone = () => {
         path="/maintainers-zone"
       />
       {/* Terminal-style Welcome */}
-      <div className="relative bg-gray-800 rounded-xl p-6 mb-8 shadow-lg border border-gray-700 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-4 bg-gray-700 flex items-center justify-start px-4 gap-2">
+      <div className="relative bg-ink-950 rounded-xl p-6 mb-8 shadow-lg border border-gray-200 overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-4 bg-gray-800 flex items-center justify-start px-4 gap-2">
           <div className="w-3 h-3 bg-red-500 rounded-full"></div>
           <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -92,9 +92,9 @@ const MaintainersZone = () => {
           <div className="text-green-400 mb-2">$ whoami</div>
           <div className="text-white mb-2">ankan-saha # AxioDB Creator & Maintainer 🚀</div>
           <div className="text-green-400 mb-2">$ cat about.txt</div>
-          <div className="text-blue-400 mb-2">Full-Stack Developer | Open Source Enthusiast | Problem Solver</div>
+          <div className="text-accent-400 mb-2">Full-Stack Developer | Open Source Enthusiast | Problem Solver</div>
           <div className="text-green-400 mb-2">$ git log --oneline --decorate</div>
-          <div className="text-yellow-400 mb-4">✨ Building AxioDB - Making Node.js data management simple</div>
+          <div className="text-yellow-300 mb-4">✨ Building AxioDB - Making Node.js data management simple</div>
           <div className="flex items-center">
             <span className="text-green-400">$</span>
             <span className="text-white ml-2 animate-pulse">Ready to collaborate...</span>
@@ -104,9 +104,9 @@ const MaintainersZone = () => {
       </div>
 
       {/* Developer Card */}
-      <div className="relative bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white rounded-2xl shadow-2xl mb-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
-        <div className="absolute top-4 right-4 text-6xl text-blue-400/20">
+      <div className="relative bg-white text-gray-900 rounded-lg shadow-sm mb-10 border border-gray-200 overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-2 bg-accent-500"></div>
+        <div className="absolute top-4 right-4 text-6xl text-accent-100">
           <FaCode />
         </div>
 
@@ -114,32 +114,32 @@ const MaintainersZone = () => {
           <div className="flex flex-col lg:flex-row items-center gap-8">
             <div className="relative">
               {loading ? (
-                <div className="w-32 h-32 rounded-xl border-4 border-blue-400/50 shadow-xl bg-gray-600 animate-pulse flex items-center justify-center">
-                  <FaSpinner className="animate-spin text-gray-500" />
+                <div className="w-32 h-32 rounded-xl border-4 border-accent-200 shadow-sm bg-gray-100 animate-pulse flex items-center justify-center">
+                  <FaSpinner className="animate-spin text-gray-400" />
                 </div>
               ) : (
                 <img
                   src={githubUser?.avatar_url || "https://avatars.githubusercontent.com/u/56942638?v=4"}
                   alt="Ankan Saha Avatar"
-                  className="w-32 h-32 rounded-xl border-4 border-blue-400/50 shadow-xl"
+                  className="w-32 h-32 rounded-xl border-4 border-accent-400/50 shadow-md"
                 />
               )}
-              <div className="absolute -bottom-2 -right-2 bg-green-500 w-8 h-8 rounded-full border-4 border-gray-900 flex items-center justify-center">
+              <div className="absolute -bottom-2 -right-2 bg-green-500 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center">
                 <span className="text-xs">🟢</span>
               </div>
             </div>
 
             <div className="flex-1 text-center lg:text-left">
               <div className="flex items-center gap-3 mb-4 justify-center lg:justify-start">
-                <FaTerminal className="text-2xl text-green-400" />
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                <FaTerminal className="text-2xl text-accent-600" />
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900">
                   Ankan Saha
                 </h1>
               </div>
 
-              <p className="text-xl text-gray-300 mb-4">@AnkanSaha</p>
+              <p className="text-xl text-gray-600 mb-4">@AnkanSaha</p>
 
-              <p className="text-lg text-gray-300 leading-relaxed mb-6 max-w-2xl">
+              <p className="text-lg text-gray-600 leading-relaxed mb-6 max-w-2xl">
                 🚀 Software Engineer 🚀 | Obsessed with Networking 🌐 | Computer Enthusiast 💻 | Building robust, scalable systems & exploring the depths of computer internals
               </p>
 
@@ -148,13 +148,13 @@ const MaintainersZone = () => {
                   href="https://github.com/AnkanSaha"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-105"
+                  className="inline-flex items-center gap-2 bg-white text-ink-900 px-6 py-3 rounded-lg font-semibold shadow-sm hover:bg-gray-100 transition-all duration-200"
                 >
                   <FaGithub /> View GitHub
                 </a>
                 <a
                   href="mailto:ankansahaofficial@gmail.com"
-                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
+                  className="inline-flex items-center gap-2 bg-accent-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-accent-700 transition-all duration-200 transform hover:scale-105"
                 >
                   <FaEnvelope /> Let's Chat
                 </a>
@@ -166,13 +166,13 @@ const MaintainersZone = () => {
 
 
       {/* Connect Section */}
-      <div className="bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 rounded-2xl p-8 shadow-2xl">
+      <div className="bg-white border border-gray-200 rounded-lg p-8 shadow-sm">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-4 text-white flex items-center justify-center gap-3">
-            <FaRocket className="text-blue-400" />
+          <h2 className="text-3xl font-bold mb-4 text-gray-900 flex items-center justify-center gap-3">
+            <FaRocket className="text-accent-600" />
             Let's Connect & Build Together
           </h2>
-          <p className="text-gray-300 text-lg">
+          <p className="text-gray-600 text-lg">
             Always open to collaborate on exciting projects and meet fellow developers! 🤝
           </p>
         </div>
@@ -181,12 +181,12 @@ const MaintainersZone = () => {
           {socialLinks.map((link) => {
             const getHoverColor = (name: string) => {
               switch (name) {
-                case 'GitHub': return 'hover:bg-gray-800';
-                case 'Dev.to': return 'hover:bg-gray-800';
+                case 'GitHub': return 'hover:bg-gray-100';
+                case 'Dev.to': return 'hover:bg-gray-100';
                 case 'YouTube': return 'hover:bg-red-600';
                 case 'X (Twitter)': return 'hover:bg-black';
                 case 'Gmail': return 'hover:bg-red-600';
-                default: return 'hover:bg-blue-600';
+                default: return 'hover:bg-accent-600';
               }
             };
 
@@ -196,12 +196,12 @@ const MaintainersZone = () => {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`group flex flex-col items-center p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 transition-all duration-300 transform hover:scale-105 ${getHoverColor(link.name)}`}
+                className={`group flex flex-col items-center p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-gray-200 transition-all duration-300 transform hover:scale-105 ${getHoverColor(link.name)}`}
               >
-                <span className="text-3xl mb-2 text-white group-hover:scale-110 transition-transform">
+                <span className="text-3xl mb-2 text-gray-900 group-hover:scale-110 transition-transform">
                   {link.icon}
                 </span>
-                <span className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors text-center">
+                <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors text-center">
                   {link.name}
                 </span>
               </a>
@@ -211,15 +211,15 @@ const MaintainersZone = () => {
 
         {/* Call to Action */}
         <div className="text-center">
-          <div className="inline-flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+          <div className="inline-flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-gray-200">
             <div className="text-4xl">💬</div>
             <div className="text-left">
-              <h3 className="text-xl font-bold text-white mb-1">Got an Idea?</h3>
-              <p className="text-gray-300 text-sm">Let's discuss your next project or contribution to AxioDB!</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-1">Got an Idea?</h3>
+              <p className="text-gray-600 text-sm">Let's discuss your next project or contribution to AxioDB!</p>
             </div>
             <a
               href="mailto:ankansahaofficial@gmail.com"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+              className="bg-accent-600 hover:bg-accent-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
               Say Hi! 👋
             </a>
