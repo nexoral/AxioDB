@@ -392,7 +392,7 @@ jobs:
             echo "exists=true" >> $GITHUB_OUTPUT
           fi
         env:
-          GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN_FOR_RELEASE }}
 
       - name: Build binaries
         if: steps.check.outputs.exists == 'false'
@@ -424,7 +424,7 @@ jobs:
             --title "$TAG" \
             --notes "$(echo -e "$NOTES")"
         env:
-          GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN_FOR_RELEASE }}
 
       - name: Cleanup old CLI releases
         if: steps.check.outputs.exists == 'false'
@@ -440,4 +440,4 @@ jobs:
             done
           fi
         env:
-          GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN_FOR_RELEASE }}
