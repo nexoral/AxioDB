@@ -12,6 +12,25 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "15.2.0",
+    date: "2026-08-27",
+    title: "AxioDB CLI — Go-based command line interface with MongoDB shell syntax",
+    changes: [
+      "New: AxioDB CLI — a Go-based command line tool for interacting with AxioDB servers via the TCP protocol.",
+      "New: Interactive REPL mode with MongoDB shell syntax — use, show dbs, show collections, db.coll.find(), db.coll.insert(), and all CRUD operations.",
+      "New: All 21 TCP commands supported — database, collection, document CRUD, aggregation, indexing, ping, disconnect.",
+      "New: TLS support with --tls, --tls-cert, and --tls-skip-verify flags.",
+      "New: TCP authentication support with -u and -p flags.",
+      "New: Connection string support — axiodb://host:port format.",
+      "New: JSON and table output modes with --output flag.",
+      "New: Tab autocomplete in REPL mode.",
+      "New: Cross-platform binaries for 12 targets — Linux (amd64, arm64, 386, armv7), macOS (amd64, arm64), Windows (amd64, arm64, 386), FreeBSD, OpenBSD, NetBSD.",
+      "New: One-line install scripts for Linux/macOS (install.sh) and Windows (install.ps1) with auto OS/arch detection and checksum verification.",
+      "New: Automated GitHub releases with checksums.txt on version bump in cli/VERSION.",
+      "New: Version sync script (Scripts/versionController.sh) updates package.json, GUI/package.json, Document/package.json, and cli/VERSION together.",
+    ],
+  },
+  {
     version: "15.1.0",
     date: "2026-08-25",
     title: "Aggregation engine rewrite: 60+ operators, $lookup cross-collection joins, custom operator registry",
