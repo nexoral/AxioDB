@@ -202,9 +202,7 @@ const Introduction: React.FC = () => {
           {/* New Feature Banner: CLI */}
           <a
             ref={cliBannerReveal.ref}
-            href="https://github.com/nexoral/AxioDB/releases?q=cli-v&expanded=true"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/cli"
             className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-emerald-50 px-6 py-5 rounded-xl border-2 border-emerald-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${cliBannerReveal.isVisible ? "is-visible" : ""}`}
           >
             <div className="flex items-center justify-center w-12 h-12 bg-emerald-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
