@@ -13,6 +13,7 @@ on:
       - 'GUI/**'
       - 'Test/**'
       - 'Scripts/**'
+      - 'cli/**'
 
 permissions:
   id-token: write  # Required for OIDC
@@ -29,6 +30,7 @@ jobs:
       # 'main' already covers source/** and GUI/** (see filters below), so this fires the
       # Docker publish whenever source, GUI, or Docker/** itself changes - not just Docker/**.
       run_docker: ${{ steps.filter.outputs.docker == 'true' || steps.filter.outputs.main == 'true' }}
+      run_cli_release: ${{ steps.filter.outputs.cli == 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -49,6 +51,8 @@ jobs:
               - 'tsconfig.json'
             docker:
               - 'Docker/**'
+            cli:
+              - 'cli/**'
 
   auth_rbac_gate:
     name: "Gate 1 — Auth (RBAC) Test Suite"
@@ -312,3 +316,128 @@ jobs:
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/axiodb:latest
+
+  release_cli:
+    name: "Release CLI Binary"
+    needs: [detect_changes]
+    if: needs.detect_changes.outputs.run_cli_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Read CLI version
+        id: version
+        run: |
+          VERSION=$(cat cli/VERSION | tr -d '[:space:]')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "CLI version: ${VERSION}"
+
+      - name: Check if release should be created
+        id: check
+        run: |
+          TAG="cli-v${{ steps.version.outputs.version }}"
+          NEW_VERSION="${{ steps.version.outputs.version }}"
+
+          # Check if this exact tag already exists
+          if gh release view "$TAG" &>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Release ${TAG} already exists, skipping"
+            exit 0
+          fi
+
+          # Get the latest CLI release tag
+          LATEST_TAG=$(gh release list --limit 1000 --json tagName,createdAt \
+            --jq 'sort_by(.createdAt) | reverse | .[].tagName' | grep '^cli-v' | head -1 || echo "")
+
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No previous CLI release found, will create first release"
+            echo "exists=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          LATEST_VERSION="${LATEST_TAG#cli-v}"
+
+          # Compare versions
+          ver_gt() {
+            local IFS=.
+            local raw1 raw2 i ver1 ver2
+            raw1="${1%%-*}"
+            raw2="${2%%-*}"
+            read -ra ver1 <<<"$raw1"
+            read -ra ver2 <<<"$raw2"
+            for ((i = ${#ver1[@]}; i < ${#ver2[@]}; i++)); do ver1[i]=0; done
+            for ((i = ${#ver2[@]}; i < ${#ver1[@]}; i++)); do ver2[i]=0; done
+            for ((i = 0; i < ${#ver1[@]}; i++)); do
+              if ((10#${ver1[i]} > 10#${ver2[i]})); then return 0; fi
+              if ((10#${ver1[i]} < 10#${ver2[i]})); then return 1; fi
+            done
+            return 1
+          }
+
+          if ver_gt "$NEW_VERSION" "$LATEST_VERSION"; then
+            echo "Version ${NEW_VERSION} is higher than latest ${LATEST_VERSION}, will create release"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version ${NEW_VERSION} is NOT higher than latest ${LATEST_VERSION}, skipping"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN }}
+
+      - name: Build binaries
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          cd cli
+          mkdir -p bin
+          VERSION=$(cat VERSION | tr -d '[:space:]')
+          GOOS=linux  GOARCH=amd64 go build -o bin/axiodb_linux_amd64 .
+          GOOS=linux  GOARCH=arm64 go build -o bin/axiodb_linux_arm64 .
+          GOOS=darwin  GOARCH=amd64 go build -o bin/axiodb_darwin_amd64 .
+          GOOS=darwin  GOARCH=arm64 go build -o bin/axiodb_darwin_arm64 .
+          GOOS=windows GOARCH=amd64 go build -o bin/axiodb_windows_amd64.exe .
+
+      - name: Create GitHub Release
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          TAG="cli-v${{ steps.version.outputs.version }}"
+          COMMIT_HASH=$(git rev-parse HEAD)
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+
+          NOTES="AxioDB CLI v${{ steps.version.outputs.version }}\n\nCommit: ${COMMIT_HASH}\n\n${COMMIT_MSG}"
+
+          gh release create "$TAG" \
+            cli/bin/axiodb_linux_amd64 \
+            cli/bin/axiodb_linux_arm64 \
+            cli/bin/axiodb_darwin_amd64 \
+            cli/bin/axiodb_darwin_arm64 \
+            cli/bin/axiodb_windows_amd64.exe \
+            --title "$TAG" \
+            --notes "$(echo -e "$NOTES")"
+        env:
+          GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN }}
+
+      - name: Cleanup old CLI releases
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          release_tags=($(gh release list --limit 1000 --json tagName,createdAt \
+            --jq 'sort_by(.createdAt) | reverse | .[].tagName' | grep '^cli-v' || true))
+          if [ ${#release_tags[@]} -gt 2 ]; then
+            for ((i = 2; i < ${#release_tags[@]}; i++)); do
+              old_tag=${release_tags[i]}
+              echo "Deleting release ${old_tag}"
+              gh release delete "$old_tag" --yes
+              gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${old_tag}" || true
+            done
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN }}

@@ -1,27 +1,81 @@
 #!/bin/bash
 
 # Version Controller Script for AxioDB
-# This script compares the local package.json version with the remote version
-# Used as a pre-commit hook to ensure version is updated
+# Fetches remote version, compares with local, prompts for new version if needed,
+# and syncs version across all package.json files and cli/VERSION
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Local package.json path (assuming the script is in the Scripts directory)
 LOCAL_PACKAGE_JSON="package.json"
-
-# Remote package.json URL
 REMOTE_URL="https://raw.githubusercontent.com/nexoral/AxioDB/main/package.json"
+
+# Compare versions: returns 0 if first > second
+ver_gt() {
+  local IFS=.
+  local raw1 raw2 i ver1 ver2
+  raw1="${1%%-*}"
+  raw2="${2%%-*}"
+  read -ra ver1 <<<"$raw1"
+  read -ra ver2 <<<"$raw2"
+  for ((i = ${#ver1[@]}; i < ${#ver2[@]}; i++)); do ver1[i]=0; done
+  for ((i = ${#ver2[@]}; i < ${#ver1[@]}; i++)); do ver2[i]=0; done
+  for ((i = 0; i < ${#ver1[@]}; i++)); do
+    if ((10#${ver1[i]} > 10#${ver2[i]})); then return 0; fi
+    if ((10#${ver1[i]} < 10#${ver2[i]})); then return 1; fi
+  done
+  return 1
+}
+
+# Sync version across all files
+sync_version() {
+  local NEW_VERSION="$1"
+
+  if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+    echo -e "${RED}Error: Invalid version format. Use semver (e.g., 15.2.0)${NC}"
+    exit 1
+  fi
+
+  echo "Updating version to $NEW_VERSION..."
+
+  if [ -f "package.json" ]; then
+    sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.json
+    echo -e "  ${GREEN}Updated${NC} package.json"
+  fi
+
+  if [ -f "GUI/package.json" ]; then
+    sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" GUI/package.json
+    echo -e "  ${GREEN}Updated${NC} GUI/package.json"
+  fi
+
+  if [ -f "Document/package.json" ]; then
+    sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" Document/package.json
+    echo -e "  ${GREEN}Updated${NC} Document/package.json"
+  fi
+
+  if [ -d "cli" ]; then
+    echo -n "$NEW_VERSION" > cli/VERSION
+    echo -e "  ${GREEN}Updated${NC} cli/VERSION"
+  fi
+
+  echo -e "${GREEN}Version synced to $NEW_VERSION in all files${NC}"
+}
 
 echo "AxioDB Version Controller"
 echo "========================="
 
+# If version argument provided, just sync and exit
+if [ -n "$1" ]; then
+  sync_version "$1"
+  exit 0
+fi
+
 # Check if local package.json exists
 if [ ! -f "$LOCAL_PACKAGE_JSON" ]; then
-  echo -e "${RED}Error: Local package.json not found at $LOCAL_PACKAGE_JSON${NC}"
+  echo -e "${RED}Error: Local package.json not found${NC}"
   exit 1
 fi
 
@@ -34,10 +88,8 @@ fi
 
 echo -e "Local version: ${GREEN}$LOCAL_VERSION${NC}"
 
-# Create temporary file for remote package.json
+# Fetch remote version
 TEMP_FILE=$(mktemp)
-
-# Fetch remote package.json
 echo "Fetching remote version..."
 if ! curl -s "$REMOTE_URL" -o "$TEMP_FILE"; then
   echo -e "${RED}Error: Failed to fetch remote package.json${NC}"
@@ -45,44 +97,41 @@ if ! curl -s "$REMOTE_URL" -o "$TEMP_FILE"; then
   exit 1
 fi
 
-# Get remote version
 REMOTE_VERSION=$(grep -o '"version": "[^"]*' "$TEMP_FILE" | cut -d'"' -f4)
+rm "$TEMP_FILE"
+
 if [ -z "$REMOTE_VERSION" ]; then
   echo -e "${RED}Error: Could not determine remote version${NC}"
-  rm "$TEMP_FILE"
   exit 1
 fi
 
 echo -e "Remote version: ${YELLOW}$REMOTE_VERSION${NC}"
 
-# Clean up temp file
-rm "$TEMP_FILE"
+# If local is already ahead, nothing to do
+if ver_gt "$LOCAL_VERSION" "$REMOTE_VERSION"; then
+  echo -e "${GREEN}Local version ($LOCAL_VERSION) is already ahead of remote ($REMOTE_VERSION). No update needed.${NC}"
+  exit 0
+fi
 
-# Compare versions using sort (this handles semantic versioning correctly)
-if [ "$(printf '%s\n' "$LOCAL_VERSION" "$REMOTE_VERSION" | sort -V | head -n1)" == "$REMOTE_VERSION" ]; then
-  # Local version is higher than remote (remote is listed first in the sort)
-  if [ "$LOCAL_VERSION" == "$REMOTE_VERSION" ]; then
-    echo -e "${RED}ERROR: Your version ($LOCAL_VERSION) is the same as the remote version.${NC}"
-    echo -e "${YELLOW}You must update the package version before committing.${NC}"
-    exit 1
-  else
-    echo -e "${GREEN}SUCCESS: Your version ($LOCAL_VERSION) is ahead of the remote version ($REMOTE_VERSION).${NC}"
-    exit 0
-  fi
+# Local is same or behind — prompt for new version
+if [ "$LOCAL_VERSION" == "$REMOTE_VERSION" ]; then
+  echo -e "${YELLOW}Local version matches remote. You must bump the version.${NC}"
 else
-  # Local version is lower than remote
-  echo -e "${RED}ERROR: Your version ($LOCAL_VERSION) is behind the remote version ($REMOTE_VERSION).${NC}"
-  echo -e "${YELLOW}Please update to the latest version.${NC}"
-  
-  # Ask if user wants to open the GitHub repository
-  read -p "Would you like to open the GitHub repository? (y/n): " -n 1 -r
-  echo
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    "$BROWSER" "https://github.com/nexoral/AxioDB"
-  fi
+  echo -e "${RED}Local version ($LOCAL_VERSION) is behind remote ($REMOTE_VERSION).${NC}"
+fi
+
+echo ""
+read -p "Enter new version (e.g., 15.2.0): " NEW_VERSION
+
+if [ -z "$NEW_VERSION" ]; then
+  echo -e "${RED}No version entered. Aborting.${NC}"
   exit 1
 fi
 
-# If script reaches here, it should still exit with an error
-echo -e "${RED}ERROR: Version check failed.${NC}"
-exit 1
+# Validate the new version is higher than remote
+if ! ver_gt "$NEW_VERSION" "$REMOTE_VERSION"; then
+  echo -e "${RED}Error: New version ($NEW_VERSION) must be higher than remote ($REMOTE_VERSION)${NC}"
+  exit 1
+fi
+
+sync_version "$NEW_VERSION"
