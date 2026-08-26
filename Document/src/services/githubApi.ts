@@ -55,7 +55,7 @@ interface GitHubUser {
 
 class GitHubApiService {
   private baseUrl = 'https://api.github.com';
-  private owner = 'AnkanSaha';
+  private owner = 'Nexoral';
   private repo = 'AxioDB';
 
   private async fetchFromGitHub<T>(endpoint: string): Promise<T> {
