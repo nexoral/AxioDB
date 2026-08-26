@@ -39,7 +39,6 @@ interface GitHubLanguages {
 }
 
 interface GitHubUser {
-  [x: string]: string;
   login: string;
   name: string;
   avatar_url: string;
