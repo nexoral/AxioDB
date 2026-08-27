@@ -29,7 +29,7 @@ AxioDB is one package with several distinct surfaces. They are **not interchange
 |---|---|---|---|---|---|
 | **Core embedded library** | The database itself, running in your process | ✅ Yes | ✅ Yes | `new AxioDB()` | none |
 | **Dashboard (Web GUI)** | Browser UI to browse/edit data, with login + roles | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ GUI: true })` / `AXIODB_GUI=true` | **27018** |
-| **Dashboard HTTP API** | REST API behind that GUI (38 endpoints) | ✅ Yes | ✅ Yes | comes with the Dashboard | **27018** |
+| **Dashboard HTTP API** | REST API behind that GUI (38 endpoints) | ✅ Yes | ✅ Yes | comes with the Dashboard; `HTTP: false` disables it | **27018** |
 | **AxioDBCloud TCP server** | Lets other processes/machines use this database | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ TCP: true })` / `AXIODB_TCP=true` | **27019** |
 | **AxioDBCloud client** | Connects to that TCP server, same API as embedded | ✅ Yes | ✅ Yes | `const { AxioDBCloud } = require('axiodb')` | — |
 | **CLI (Go)** | Command line interface — TCP queries, REPL, export/import via HTTP | ✅ Yes | ✅ Yes | `axiodb` binary | — |
@@ -79,7 +79,8 @@ console.log(result.data.documents[0].message); // Hello, Developer!
 
 ```typescript
 new AxioDB(options?: {
-  GUI?: boolean;          // Enable HTTP GUI on port 27018 (default: false)
+  GUI?: boolean;          // Enable web GUI + HTTP API on port 27018 (default: false)
+  HTTP?: boolean;         // Enable HTTP API server on port 27018 (default: true when GUI is on; GUI: true + HTTP: false throws error)
   RootName?: string;      // Root storage folder name (default: "AxioDB")
   CustomPath?: string;    // Custom storage path (default: current working directory)
   TCP?: boolean;          // Enable AxioDBCloud TCP server on port 27019 (default: false)
@@ -89,6 +90,8 @@ new AxioDB(options?: {
   TLSKeyPath?: string;    // Path to the matching PEM private key - required if TLS: true
 })
 ```
+
+If `GUI: true` and `HTTP: false`, the constructor throws — the GUI needs the HTTP server to serve its UI. If `GUI: false` and `HTTP: true`, only the REST API runs on port 27018 (no UI — the browser shows "GUI is disabled").
 
 If `TLS: true` but either path is missing/unreadable, the constructor throws immediately — it never silently falls back to plaintext.
 
@@ -511,7 +514,7 @@ await client.disconnect();
 docker run -d \
   --name axiodb-server \
   -p 27018:27018 -p 27019:27019 \
-  -e AXIODB_TCP_AUTH=true \
+  -e AXIODB_TCP_AUTH_ENABLED=true \
   -v axiodb-data:/app \
   theankansaha/axiodb
 ```
@@ -519,8 +522,9 @@ docker run -d \
 | Variable | Default | Description |
 |---|---|---|
 | `AXIODB_GUI` | `true` | HTTP GUI on port 27018 |
+| `AXIODB_HTTP` | mirrors GUI | HTTP API on port 27018 — auto-enables when GUI is on; `AXIODB_GUI=true` + `AXIODB_HTTP=false` is an error |
 | `AXIODB_TCP` | `true` | AxioDBCloud TCP server on port 27019 |
-| `AXIODB_TCP_AUTH` | `true` | Require TCP authentication (shared RBAC with GUI) |
+| `AXIODB_TCP_AUTH_ENABLED` | `true` | Require TCP authentication (shared RBAC with GUI) |
 | `AXIODB_TLS` | `false` | Encrypt TCP with TLS |
 | `AXIODB_TLS_CERT_PATH` | *(none)* | In-container path to PEM cert — required if `AXIODB_TLS=true` |
 | `AXIODB_TLS_KEY_PATH` | *(none)* | In-container path to PEM key — required if `AXIODB_TLS=true` |

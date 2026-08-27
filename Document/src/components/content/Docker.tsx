@@ -59,7 +59,7 @@ const Docker: React.FC = () => {
   --name axiodb-server \\
   -p 27018:27018 \\
   -p 27019:27019 \\
-  -e AXIODB_TCP_AUTH=true \\
+  -e AXIODB_TCP_AUTH_ENABLED=true \\
   -v axiodb-data:/app \\
   theankansaha/axiodb
 
@@ -121,7 +121,7 @@ const Docker: React.FC = () => {
                     <td className="py-2">Enable the AxioDBCloud TCP server on port 27019</td>
                   </tr>
                   <tr className="border-b border-gray-200">
-                    <td className="py-2 pr-4 font-mono text-xs">AXIODB_TCP_AUTH</td>
+                    <td className="py-2 pr-4 font-mono text-xs">AXIODB_TCP_AUTH_ENABLED</td>
                     <td className="py-2 pr-4"><code>true</code></td>
                     <td className="py-2">Require username/password on TCP connections (same RBAC accounts as the GUI)</td>
                   </tr>
@@ -182,7 +182,7 @@ docker run -d \\
   --name axiodb-server \\
   -p 27018:27018 \\
   -p 27019:27019 \\
-  -e AXIODB_TCP_AUTH=false \\
+  -e AXIODB_TCP_AUTH_ENABLED=false \\
   -v axiodb-data:/app \\
   theankansaha/axiodb`}
             />
@@ -268,7 +268,7 @@ services:
     environment:
       - AXIODB_GUI=true
       - AXIODB_TCP=true
-      - AXIODB_TCP_AUTH=true
+      - AXIODB_TCP_AUTH_ENABLED=true
       - AXIODB_ROOT_NAME=AxioDB
     volumes:
       - axiodb-data:/app
@@ -300,7 +300,7 @@ services:
     environment:
       - AXIODB_GUI=true
       - AXIODB_TCP=true
-      - AXIODB_TCP_AUTH=true
+      - AXIODB_TCP_AUTH_ENABLED=true
       - AXIODB_TLS=true
       - AXIODB_TLS_CERT_PATH=/certs/cert.pem
       - AXIODB_TLS_KEY_PATH=/certs/key.pem

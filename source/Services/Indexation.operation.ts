@@ -52,9 +52,11 @@ export class AxioDB {
   private static _instance: AxioDB;
   private DatabaseMap: Map<string, DatabaseMap>;
   private GUI: boolean = General.DBMS_GUI_Enable;
+  private HTTP: boolean = false;
   private TCP: boolean = false;
   private TCPAuth: boolean = false;
   private TLS: boolean = false;
+  private ready: Promise<void>;
   private TLSCertPath?: string;
   private TLSKeyPath?: string;
 
@@ -66,24 +68,21 @@ export class AxioDB {
 
     const { GUI, RootName, CustomPath, TCP, TCPAuth, TLS, TLSCertPath, TLSKeyPath } = options;
 
-    // Default Vlaues
-
-    this.RootName = RootName || General.DBMS_Name; // Set the root name
-    this.currentPATH = path.resolve(CustomPath || "."); // Set the current path
-    this.fileManager = new FileManager(); // Initialize the FileManager class
-    this.folderManager = new FolderManager(); // Initialize the FolderManager class
-    this.Converter = new Converter(); // Initialize the Converter class
-    this.ResponseHelper = new ResponseHelper(); // Initialize the ResponseHelper class
-    this.DatabaseMap = new Map<string, DatabaseMap>(); // Initialize the DatabaseMap
-    this.GUI = GUI !== undefined ? GUI : General.DBMS_GUI_Enable; // Set GUI option
-    this.TCP = TCP !== undefined ? TCP : false; // Set TCP option
-    this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false; // Set TCPAuth option
-    this.TLS = TLS !== undefined ? TLS : false; // Set TLS option
+    this.RootName = RootName || General.DBMS_Name;
+    this.currentPATH = path.resolve(CustomPath || ".");
+    this.fileManager = new FileManager();
+    this.folderManager = new FolderManager();
+    this.Converter = new Converter();
+    this.ResponseHelper = new ResponseHelper();
+    this.DatabaseMap = new Map<string, DatabaseMap>();
+    this.GUI = GUI !== undefined ? GUI : General.DBMS_GUI_Enable;
+    this.HTTP = options.HTTP !== undefined ? options.HTTP : (this.GUI ? true : false);
+    this.TCP = TCP !== undefined ? TCP : false;
+    this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false;
+    this.TLS = TLS !== undefined ? TLS : false;
     this.TLSCertPath = TLSCertPath;
     this.TLSKeyPath = TLSKeyPath;
 
-    // Fail fast: never silently fall back to plaintext because a cert/key path was
-    // missing or unreadable - that would be a silent security downgrade.
     if (this.TLS) {
       if (!this.TLSCertPath || !this.TLSKeyPath) {
         throw new Error(
@@ -98,7 +97,13 @@ export class AxioDB {
       }
     }
 
-    this.initializeRoot(); // Ensure root initialization (reads GUI/TCP/TCPAuth/TLS, so runs after they're set)
+    if (this.GUI && options.HTTP === false) {
+      throw new Error(
+        "GUI: true requires HTTP to be enabled. Set HTTP: true or remove the explicit HTTP: false.",
+      );
+    }
+
+    this.ready = this.initializeRoot();
   }
 
   /**
@@ -130,18 +135,17 @@ export class AxioDB {
       }
     }
     if (this.GUI || (this.TCP && this.TCPAuth)) {
-      await new AuthSeeder(this).seedIfNeeded(); // Ensure config DB, RBAC seed data exist before accepting requests
-      LoginRateLimiter.startCleanupSweep(); // Only relevant once some auth surface (GUI or TCPAuth) is active
+      await new AuthSeeder(this).seedIfNeeded();
+      LoginRateLimiter.startCleanupSweep();
     }
-    if (this.GUI) {
-      Console.green("Starting AxioDB Control Server...");
-      createAxioDBControlServer(this); // Start the web Control Server with the AxioDB instance
+    if (this.HTTP) {
+      Console.green(this.GUI ? "Starting AxioDB Control Server..." : "Starting AxioDB HTTP API Server (API only, GUI disabled)...");
+      createAxioDBControlServer(this, this.GUI);
     }
     if (this.TCP) {
       Console.green(
         this.TLS ? "Starting AxioDB TCP Server (TLS)..." : "Starting AxioDB TCP Server...",
       );
-      // Start the TCP Server with the AxioDB instance
       const tlsOptions = this.TLS
         ? { certPath: this.TLSCertPath as string, keyPath: this.TLSKeyPath as string }
         : undefined;
@@ -165,6 +169,7 @@ export class AxioDB {
    * @returns The newly created database object.
    */
   public async createDB(DBName: string): Promise<Database> {
+    await this.ready;
     const dbPath = path.join(this.currentPATH, DBName);
 
     // Check if the database already exists
@@ -195,6 +200,7 @@ export class AxioDB {
    * @returns {Promise<SuccessInterface | undefined>} A promise that resolves when the database information is successfully retrieved and the response is sent.
    */
   public async getInstanceInfo(): Promise<SuccessInterface | undefined> {
+    await this.ready;
     const totalDatabases = await this.folderManager.ListDirectory(
       path.resolve(this.currentPATH),
     );
@@ -242,6 +248,7 @@ export class AxioDB {
    * ```
    */
   public async isDatabaseExists(DBName: string): Promise<boolean> {
+    await this.ready;
     const dbPath = path.join(this.currentPATH, DBName);
     const exists = await this.folderManager.DirectoryExists(dbPath);
     return exists.statusCode === StatusCodes.OK;
@@ -262,6 +269,7 @@ export class AxioDB {
   public async deleteDatabase(
     DBName: string,
   ): Promise<SuccessInterface | ErrorInterface | undefined> {
+    await this.ready;
     const dbPath = path.join(this.currentPATH, DBName);
     const exists = await this.folderManager.DirectoryExists(dbPath);
 
