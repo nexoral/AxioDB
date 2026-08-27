@@ -56,6 +56,7 @@ export class AxioDB {
   private TCP: boolean = false;
   private TCPAuth: boolean = false;
   private TLS: boolean = false;
+  private ready: Promise<void>;
   private TLSCertPath?: string;
   private TLSKeyPath?: string;
 
@@ -67,15 +68,13 @@ export class AxioDB {
 
     const { GUI, RootName, CustomPath, TCP, TCPAuth, TLS, TLSCertPath, TLSKeyPath } = options;
 
-    // Default Vlaues
-
-    this.RootName = RootName || General.DBMS_Name; // Set the root name
-    this.currentPATH = path.resolve(CustomPath || "."); // Set the current path
-    this.fileManager = new FileManager(); // Initialize the FileManager class
-    this.folderManager = new FolderManager(); // Initialize the FolderManager class
-    this.Converter = new Converter(); // Initialize the Converter class
-    this.ResponseHelper = new ResponseHelper(); // Initialize the ResponseHelper class
-    this.DatabaseMap = new Map<string, DatabaseMap>(); // Initialize the DatabaseMap
+    this.RootName = RootName || General.DBMS_Name;
+    this.currentPATH = path.resolve(CustomPath || ".");
+    this.fileManager = new FileManager();
+    this.folderManager = new FolderManager();
+    this.Converter = new Converter();
+    this.ResponseHelper = new ResponseHelper();
+    this.DatabaseMap = new Map<string, DatabaseMap>();
     this.GUI = GUI !== undefined ? GUI : General.DBMS_GUI_Enable;
     this.HTTP = options.HTTP !== undefined ? options.HTTP : (this.GUI ? true : false);
     this.TCP = TCP !== undefined ? TCP : false;
@@ -104,7 +103,7 @@ export class AxioDB {
       );
     }
 
-    this.initializeRoot();
+    this.ready = this.initializeRoot();
   }
 
   /**
@@ -170,6 +169,7 @@ export class AxioDB {
    * @returns The newly created database object.
    */
   public async createDB(DBName: string): Promise<Database> {
+    await this.ready;
     const dbPath = path.join(this.currentPATH, DBName);
 
     // Check if the database already exists
@@ -200,6 +200,7 @@ export class AxioDB {
    * @returns {Promise<SuccessInterface | undefined>} A promise that resolves when the database information is successfully retrieved and the response is sent.
    */
   public async getInstanceInfo(): Promise<SuccessInterface | undefined> {
+    await this.ready;
     const totalDatabases = await this.folderManager.ListDirectory(
       path.resolve(this.currentPATH),
     );
@@ -247,6 +248,7 @@ export class AxioDB {
    * ```
    */
   public async isDatabaseExists(DBName: string): Promise<boolean> {
+    await this.ready;
     const dbPath = path.join(this.currentPATH, DBName);
     const exists = await this.folderManager.DirectoryExists(dbPath);
     return exists.statusCode === StatusCodes.OK;
@@ -267,6 +269,7 @@ export class AxioDB {
   public async deleteDatabase(
     DBName: string,
   ): Promise<SuccessInterface | ErrorInterface | undefined> {
+    await this.ready;
     const dbPath = path.join(this.currentPATH, DBName);
     const exists = await this.folderManager.DirectoryExists(dbPath);
 
