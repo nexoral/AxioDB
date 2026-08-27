@@ -2,9 +2,8 @@
 
 # Version Controller Script for AxioDB
 # Fetches remote version, compares with local, prompts for new version if needed,
-# and syncs version across all package.json files and cli/VERSION
+# and syncs version only in folders that have git changes
 
-# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
@@ -13,7 +12,6 @@ NC='\033[0m'
 LOCAL_PACKAGE_JSON="package.json"
 REMOTE_URL="https://raw.githubusercontent.com/nexoral/AxioDB/main/package.json"
 
-# Compare versions: returns 0 if first > second
 ver_gt() {
   local IFS=.
   local raw1 raw2 i ver1 ver2
@@ -30,7 +28,33 @@ ver_gt() {
   return 1
 }
 
-# Sync version across all files
+detect_changed_areas() {
+  CHANGED_CLI=false
+  CHANGED_DOCUMENT=false
+  CHANGED_GUI=false
+
+  if ! git rev-parse --is-inside-work-tree &>/dev/null; then
+    echo -e "${YELLOW}Not a git repo — updating all version files${NC}"
+    CHANGED_CLI=true
+    CHANGED_DOCUMENT=true
+    CHANGED_GUI=true
+    return
+  fi
+
+  local changed_files
+  changed_files=$(git diff --name-only HEAD 2>/dev/null)
+  if [ -z "$changed_files" ]; then
+    changed_files=$(git diff --name-only --cached 2>/dev/null)
+  fi
+  if [ -z "$changed_files" ]; then
+    changed_files=$(git status --porcelain 2>/dev/null | awk '{print $2}')
+  fi
+
+  echo "$changed_files" | grep -q '^cli/' && CHANGED_CLI=true
+  echo "$changed_files" | grep -q '^Document/' && CHANGED_DOCUMENT=true
+  echo "$changed_files" | grep -q '^GUI/' && CHANGED_GUI=true
+}
+
 sync_version() {
   local NEW_VERSION="$1"
 
@@ -39,29 +63,29 @@ sync_version() {
     exit 1
   fi
 
+  detect_changed_areas
+
   echo "Updating version to $NEW_VERSION..."
 
-  if [ -f "package.json" ]; then
-    sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.json
-    echo -e "  ${GREEN}Updated${NC} package.json"
-  fi
+  sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.json
+  echo -e "  ${GREEN}Updated${NC} package.json (always)"
 
-  if [ -f "GUI/package.json" ]; then
-    sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" GUI/package.json
-    echo -e "  ${GREEN}Updated${NC} GUI/package.json"
-  fi
-
-  if [ -f "Document/package.json" ]; then
-    sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" Document/package.json
-    echo -e "  ${GREEN}Updated${NC} Document/package.json"
-  fi
-
-  if [ -d "cli" ]; then
+  if [ "$CHANGED_CLI" = true ] && [ -d "cli" ]; then
     echo -n "$NEW_VERSION" > cli/VERSION
-    echo -e "  ${GREEN}Updated${NC} cli/VERSION"
+    echo -e "  ${GREEN}Updated${NC} cli/VERSION (cli/ has changes)"
   fi
 
-  echo -e "${GREEN}Version synced to $NEW_VERSION in all files${NC}"
+  if [ "$CHANGED_DOCUMENT" = true ] && [ -f "Document/package.json" ]; then
+    sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" Document/package.json
+    echo -e "  ${GREEN}Updated${NC} Document/package.json (Document/ has changes)"
+  fi
+
+  if [ "$CHANGED_GUI" = true ] && [ -f "GUI/package.json" ]; then
+    sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" GUI/package.json
+    echo -e "  ${GREEN}Updated${NC} GUI/package.json (GUI/ has changes)"
+  fi
+
+  echo -e "${GREEN}Version synced to $NEW_VERSION${NC}"
 }
 
 echo "AxioDB Version Controller"
