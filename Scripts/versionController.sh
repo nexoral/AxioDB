@@ -72,7 +72,8 @@ sync_version() {
 
   if [ "$CHANGED_CLI" = true ] && [ -d "cli" ]; then
     echo -n "$NEW_VERSION" > cli/VERSION
-    echo -e "  ${GREEN}Updated${NC} cli/VERSION (cli/ has changes)"
+    sed -i "s/var cliVersion = \".*\"/var cliVersion = \"$NEW_VERSION\"/" cli/cmd/version.go
+    echo -e "  ${GREEN}Updated${NC} cli/VERSION + cli/cmd/version.go (cli/ has changes)"
   fi
 
   if [ "$CHANGED_DOCUMENT" = true ] && [ -f "Document/package.json" ]; then
