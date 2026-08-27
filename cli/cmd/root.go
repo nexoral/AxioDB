@@ -33,4 +33,6 @@ func init() {
 	rootCmd.PersistentFlags().Int("timeout", 30, "Request timeout in seconds")
 	rootCmd.PersistentFlags().String("db", "", "Database name")
 	rootCmd.PersistentFlags().String("collection", "", "Collection name")
+	rootCmd.PersistentFlags().String("http-host", "localhost", "HTTP server host (for export/import)")
+	rootCmd.PersistentFlags().Int("http-port", 27018, "HTTP server port (for export/import)")
 }
