@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nexoral/axiodb-cli/pkg/httpclient"
 	"github.com/nexoral/axiodb-cli/pkg/protocol"
 	"github.com/spf13/cobra"
 )
@@ -23,6 +24,8 @@ type Config struct {
 	Timeout       int
 	DB            string
 	Collection    string
+	HTTPHost      string
+	HTTPPort      int
 }
 
 func FromFlags(cmd *cobra.Command) (*Config, error) {
@@ -40,6 +43,8 @@ func FromFlags(cmd *cobra.Command) (*Config, error) {
 	cfg.Timeout, _ = cmd.Flags().GetInt("timeout")
 	cfg.DB, _ = cmd.Flags().GetString("db")
 	cfg.Collection, _ = cmd.Flags().GetString("collection")
+	cfg.HTTPHost, _ = cmd.Flags().GetString("http-host")
+	cfg.HTTPPort, _ = cmd.Flags().GetInt("http-port")
 
 	if cfg.ConnString != "" {
 		host, port, err := parseConnectionString(cfg.ConnString)
@@ -108,4 +113,8 @@ func GetDBContext(cmd *cobra.Command) string {
 func GetCollectionContext(cmd *cobra.Command) string {
 	coll, _ := cmd.Flags().GetString("collection")
 	return coll
+}
+
+func (c *Config) NewHTTPClient() *httpclient.HTTPClient {
+	return httpclient.New(c.HTTPHost, c.HTTPPort, time.Duration(c.Timeout)*time.Second)
 }

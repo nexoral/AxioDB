@@ -341,7 +341,7 @@ The rule: the `-e AXIODB_TLS_CERT_PATH=...` value must always match the *right-h
 
 ## 💻 AxioDB CLI — Command Line Interface
 
-A Go-based CLI tool for interacting with AxioDB servers via the TCP protocol. Supports all database operations with both single-command and interactive REPL modes.
+A Go-based CLI tool for interacting with AxioDB servers via the TCP protocol. Supports all database operations with both single-command and interactive REPL modes. Export and import databases via the HTTP API.
 
 ### Quick Install
 
@@ -399,14 +399,27 @@ axiodb -c axiodb://127.0.0.1:27019 -u admin -p admin connect
 axiodb -c axiodb://127.0.0.1:27019 --tls --tls-cert ./cert.pem connect
 ```
 
+**Export database (via HTTP API):**
+```bash
+axiodb export mydb --http-host localhost --http-port 27018 -u admin -p secret
+# Saves mydb.tar.gz in current directory
+```
+
+**Import database (via HTTP API):**
+```bash
+axiodb import ./backups/mydb.tar.gz --http-host localhost --http-port 27018 -u admin -p secret
+# Tab completes .tar.gz file paths
+```
+
 ### Features
 
-- **All 21 TCP commands:** database, collection, document CRUD, aggregation, indexing
+- **All 23 commands:** database, collection, document CRUD, aggregation, indexing, export, import
 - **Interactive REPL:** MongoDB shell syntax (`use`, `show dbs`, `db.coll.find()`)
+- **Export & Import:** backup/restore databases via HTTP API, tab-completes file paths
 - **TLS support:** `--tls`, `--tls-cert`, `--tls-skip-verify`
-- **Auth support:** `-u` / `-p` flags
+- **Auth support:** `-u` / `-p` flags (TCP and HTTP)
 - **JSON output:** `--output json` for scripting
-- **Tab autocomplete** in REPL mode
+- **Tab autocomplete** in REPL mode and file path completion
 
 👉 **[Full CLI Documentation](https://github.com/nexoral/AxioDB/tree/main/cli)**
 

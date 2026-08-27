@@ -25,6 +25,7 @@ Full SQL→AxioDB cookbook and an honest list of what you give up: https://axiod
 - ACID transactions with savepoints, rollback, and WAL — crash recovery covers plain `insert()` too, not just explicit transactions
 - Built-in web Dashboard on port 27018 with role-based login (Super Admin / Admin / View)
 - AxioDBCloud: TCP remote access on port 27019, with optional shared-RBAC authentication (TCPAuth) and optional TLS
+- CLI: Go-based command line interface — TCP queries, interactive REPL, database export/import via HTTP, 12 platforms
 - MCP Server: 32 tools for AI agent integration — **Docker image only, not in the npm package** (see below)
 - Full TypeScript support, types included, no `@types` package needed
 
@@ -75,6 +76,7 @@ Machine-readable limits and the full boundary table: https://axiodb.in/llms-full
 - [Create Database](https://axiodb.in/create-database)
 - [Create Collection](https://axiodb.in/create-collection)
 - [AxioDBCloud (Remote/TCP)](https://axiodb.in/cloud)
+- [CLI (Command Line Interface)](https://axiodb.in/cli)
 - [Docker Deployment](https://axiodb.in/docker)
 - [MCP Server (AI Agent Integration)](https://axiodb.in/mcp-server)
 - [Troubleshooting](https://axiodb.in/troubleshooting)

@@ -35,7 +35,7 @@ sync_version() {
   local NEW_VERSION="$1"
 
   if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-    echo -e "${RED}Error: Invalid version format. Use semver (e.g., 15.2.0)${NC}"
+    echo -e "${RED}Error: Invalid version format. Use semver (e.g., $(echo "$REMOTE_VERSION" | awk -F. '{print $1+1".0.0"}'))${NC}"
     exit 1
   fi
 
@@ -121,7 +121,7 @@ else
 fi
 
 echo ""
-read -p "Enter new version (e.g., 15.2.0): " NEW_VERSION
+read -p "Enter new version (e.g., $(echo "$REMOTE_VERSION" | awk -F. '{print $1+1".0.0"}')): " NEW_VERSION
 
 if [ -z "$NEW_VERSION" ]; then
   echo -e "${RED}No version entered. Aborting.${NC}"
