@@ -6,14 +6,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var cliVersion = "unknown"
+var cliVersion = "18.1.4"
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the CLI version",
 	Run: func(cmd *cobra.Command, args []string) {
 		short, _ := cmd.Flags().GetBool("short")
-
 		if short {
 			fmt.Println(cliVersion)
 		} else {
