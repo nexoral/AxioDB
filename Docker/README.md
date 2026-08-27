@@ -29,7 +29,7 @@ docker run -d \
   theankansaha/axiodb
 ```
 
-> **Authentication is on by default** (`AXIODB_TCP_AUTH=true`) - both the GUI (`http://localhost:27018`) and TCP (`axiodb://localhost:27019`) share the same seeded `admin` / `admin` account, which must have its password changed on first login via the GUI before it (or any account) can be used over TCP. See [Environment Variables](#environment-variables) to turn this off or change the root database name.
+> **Authentication is on by default** (`AXIODB_TCP_AUTH_ENABLED=true`) - both the GUI (`http://localhost:27018`) and TCP (`axiodb://localhost:27019`) share the same seeded `admin` / `admin` account, which must have its password changed on first login via the GUI before it (or any account) can be used over TCP. See [Environment Variables](#environment-variables) to turn this off or change the root database name.
 
 ### Custom Port Mapping
 
@@ -68,7 +68,7 @@ docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -p 27019:27019 \
-  -e AXIODB_TCP_AUTH=false \
+  -e AXIODB_TCP_AUTH_ENABLED=false \
   -v axiodb-data:/app \
   theankansaha/axiodb
 ```
@@ -191,8 +191,12 @@ main();
 | Variable | Default | Description |
 | --- | --- | --- |
 | `AXIODB_GUI` | `true` | Enable the HTTP Control Server / web GUI on port 27018 |
+| `AXIODB_HTTP` | mirrors `AXIODB_GUI` | Enable the HTTP API server on port 27018 — auto-enables when GUI is on; `AXIODB_GUI=true` + `AXIODB_HTTP=false` is an error |
 | `AXIODB_TCP` | `true` | Enable the AxioDBCloud TCP server on port 27019 |
-| `AXIODB_TCP_AUTH` | `true` | Require username/password authentication on TCP connections (same RBAC accounts as the GUI) |
+| `AXIODB_TCP_AUTH_ENABLED` | `true` | Require username/password authentication on TCP connections (same RBAC accounts as the GUI) |
+| `AXIODB_TLS` | `false` | Encrypt TCP connections with TLS instead of plaintext |
+| `AXIODB_TLS_CERT_PATH` | *(none)* | Path inside the container to a PEM cert file — required when `AXIODB_TLS=true` |
+| `AXIODB_TLS_KEY_PATH` | *(none)* | Path inside the container to the matching PEM private key — required when `AXIODB_TLS=true` |
 | `AXIODB_ROOT_NAME` | `AxioDB` | Name of the root database folder created under the data volume |
 | `AXIODB_CUSTOM_PATH` | *(container's working directory)* | Custom path for database storage inside the container |
 | `AXIODB_MCP` | `false` | Enable the MCP server (AI agent integration) on port 27020 |
@@ -203,7 +207,7 @@ docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -p 27019:27019 \
-  -e AXIODB_TCP_AUTH=false \
+  -e AXIODB_TCP_AUTH_ENABLED=false \
   -e AXIODB_ROOT_NAME=MyProductionDB \
   -v axiodb-data:/app \
   theankansaha/axiodb
@@ -230,7 +234,7 @@ services:
     environment:
       - AXIODB_GUI=true
       - AXIODB_TCP=true
-      - AXIODB_TCP_AUTH=true
+      - AXIODB_TCP_AUTH_ENABLED=true
       - AXIODB_ROOT_NAME=AxioDB
     volumes:
       - axiodb-data:/app
@@ -295,7 +299,7 @@ Every tool except `axiodb_login` requires a `sessionId` from a successful login 
 subsequent call is checked against that logged-in user's actual RBAC role, exactly like the
 HTTP API. Nothing is gated by a static container environment variable. `AXIODB_MCP=true` only
 has RBAC to serve once it's actually seeded, i.e. `AXIODB_GUI=true` (default) or
-`AXIODB_TCP=true` + `AXIODB_TCP_AUTH=true`.
+`AXIODB_TCP=true` + `AXIODB_TCP_AUTH_ENABLED=true`.
 
 ### Human-in-the-loop on destructive tools
 
@@ -398,7 +402,7 @@ docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -p 27019:27019 \
-  -e AXIODB_TCP_AUTH=true \
+  -e AXIODB_TCP_AUTH_ENABLED=true \
   -v axiodb-data:/app \
   axiodb:latest
 ```

@@ -278,7 +278,7 @@ url = "http://localhost:27020/mcp"`}
               <strong>AXIODB_MCP=true</strong> only has something to serve once RBAC is actually
               seeded — that requires <code className="px-1 py-0.5 bg-gray-100 rounded">AXIODB_GUI=true</code>{" "}
               (the default) or <code className="px-1 py-0.5 bg-gray-100 rounded">AXIODB_TCP=true</code> +{" "}
-              <code className="px-1 py-0.5 bg-gray-100 rounded">AXIODB_TCP_AUTH=true</code>. See{" "}
+              <code className="px-1 py-0.5 bg-gray-100 rounded">AXIODB_TCP_AUTH_ENABLED=true</code>. See{" "}
               <a href="/docker" className="underline font-medium">Docker Deployment</a> for every environment variable.
             </p>
           </div>

@@ -1,13 +1,12 @@
 const http = require('http');
 
-// Mirrors runner.js's own boolean parsing so this script agrees with whatever
-// surfaces the container actually started (GUI and/or TCP can each be disabled).
 function parseBoolean(value, fallback) {
   if (value === undefined || value === '') return fallback;
   return ['true', '1', 'yes'].includes(String(value).trim().toLowerCase());
 };
 
 const guiEnabled = parseBoolean(process.env.AXIODB_GUI, true);
+const httpEnabled = parseBoolean(process.env.AXIODB_HTTP, guiEnabled);
 const tcpEnabled = parseBoolean(process.env.AXIODB_TCP, true);
 const tlsEnabled = parseBoolean(process.env.AXIODB_TLS, false);
 const mcpEnabled = parseBoolean(process.env.AXIODB_MCP, false);
@@ -17,11 +16,9 @@ const CHECK_TIMEOUT_MS = 4000;
 function checkGui() {
   return new Promise((resolve, reject) => {
     const request = http.get(
-      // The whole API router mounts under /api (see server/config/server.ts), so the real
-      // health route is /api/health, not /health.
       { host: 'localhost', port: 27018, path: '/api/health', timeout: CHECK_TIMEOUT_MS },
       (response) => {
-        response.resume(); // drain body, we only care about the status code
+        response.resume();
         if (response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
           resolve();
         } else {
@@ -35,27 +32,14 @@ function checkGui() {
 }
 
 function checkTcp() {
-  // Reuses the exact heartbeat mechanism (PING -> PONG) the AxioDBCloud client already
-  // uses internally to monitor its own connection - PING is exempt from TCPAuth, so this
-  // works regardless of whether the container was started with AXIODB_TCP_AUTH=true.
   const { AxioDBCloud } = require('./lib/config/DB.js');
-  // maxPoolSize: 1 - a liveness probe only needs one connection; the client's default pool
-  // size of 10 would otherwise open (and immediately tear down) 10 TCP handshakes every
-  // HEALTHCHECK interval for no benefit.
   const client = new AxioDBCloud('axiodb://localhost:27019', {
     timeout: CHECK_TIMEOUT_MS,
     maxPoolSize: 1,
     tls: tlsEnabled,
-    // Safe specifically because this is a loopback probe within the same container - there
-    // is no network path to spoof, so skipping cert/hostname verification isn't a real trust
-    // decision here. Real clients connecting from outside the container must still supply
-    // tlsCAPath (or a publicly trusted cert) and should never disable this themselves.
     tlsRejectUnauthorized: false,
   });
 
-  // AxioDBCloud is an EventEmitter that re-emits socket errors as 'error' - without a
-  // listener here, an unexpected disconnect would crash this healthcheck process instead
-  // of just resolving to an "unhealthy" exit code.
   client.on('error', () => {});
 
   return client
@@ -65,9 +49,6 @@ function checkTcp() {
 }
 
 function checkMcp() {
-  // The MCP endpoint only speaks Streamable HTTP JSON-RPC, not a plain REST health route -
-  // a GET without an active Mcp-Session-Id deterministically gets a 400 from the transport
-  // (see mcpServer.js), which is sufficient proof the process is up and listening.
   return new Promise((resolve, reject) => {
     const request = http.get(
       { host: 'localhost', port: mcpPort, path: '/mcp', timeout: CHECK_TIMEOUT_MS },
@@ -83,15 +64,11 @@ function checkMcp() {
 
 async function main() {
   const checks = [];
-  if (guiEnabled) checks.push(checkGui());
+  if (httpEnabled) checks.push(checkGui());
   if (tcpEnabled) checks.push(checkTcp());
   if (mcpEnabled) checks.push(checkMcp());
 
-  if (checks.length === 0) {
-    // Neither surface is enabled - nothing meaningful to probe, so the container is
-    // "healthy" as long as this script itself can run.
-    return;
-  }
+  if (checks.length === 0) return;
 
   await Promise.all(checks);
 }

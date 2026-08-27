@@ -32,8 +32,9 @@ EXPOSE 27018 27019 27020
 
 # Defaults - override with `-e VAR=value` at `docker run` time, no rebuild required
 ENV AXIODB_GUI=true
+ENV AXIODB_HTTP=true
 ENV AXIODB_TCP=true
-ENV AXIODB_TCP_AUTH=true
+ENV AXIODB_TCP_AUTH_ENABLED=true
 ENV AXIODB_TLS=false
 ENV AXIODB_ROOT_NAME=AxioDB
 ENV AXIODB_MCP=false

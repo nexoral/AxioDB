@@ -35,7 +35,7 @@ Full SQL→AxioDB cookbook and an honest list of what you give up: https://axiod
 |---|---|---|---|---|
 | Core embedded library | none | Yes | Yes | `new AxioDB()` |
 | Dashboard (web GUI) | 27018 | Yes | Yes | `{ GUI: true }` / `AXIODB_GUI=true` |
-| Dashboard HTTP API (REST, 38 endpoints) | 27018 | Yes | Yes | comes with the Dashboard |
+| Dashboard HTTP API (REST, 38 endpoints) | 27018 | Yes | Yes | comes with the Dashboard; `{ HTTP: false }` disables it |
 | AxioDBCloud TCP server | 27019 | Yes | Yes | `{ TCP: true }` / `AXIODB_TCP=true` |
 | AxioDBCloud client | — | Yes | Yes | `require('axiodb').AxioDBCloud` |
 | MCP server (32 tools) | 27020 | **No** | Yes | `AXIODB_MCP=true` |

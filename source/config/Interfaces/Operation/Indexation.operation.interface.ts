@@ -2,6 +2,8 @@ import { DatabaseMap } from "./database.operation.interface";
 
 export interface AxioDBOptions {
   GUI?: boolean;
+  /** Enable HTTP API server on port 27018. Auto-enables when GUI: true. If GUI: true and HTTP: false, throws error at startup. */
+  HTTP?: boolean;
   RootName?: string;
   CustomPath?: string;
   TCP?: boolean;

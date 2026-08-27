@@ -13,6 +13,7 @@ import SessionStore from "../../Services/Auth/SessionStore.service";
 
 export default async function createAxioDBControlServer(
   AxioDBInstance: AxioDB,
+  guiEnabled: boolean = true,
 ): Promise<void> {
   await checkPortAndDocker(ServerKeys.PORT);
 
@@ -48,20 +49,26 @@ export default async function createAxioDBControlServer(
     },
   );
 
-  // Registered before the SPA fallback route below, so static assets are served directly
-  // rather than falling through to index.html.
-  await AxioDBControlServer.register(fastifyStatic, {
-    root: staticPath,
-    prefix: "/",
-    decorateReply: false,
-  });
+  if (guiEnabled) {
+    await AxioDBControlServer.register(fastifyStatic, {
+      root: staticPath,
+      prefix: "/",
+      decorateReply: false,
+    });
 
-  // SPA fallback: any non-API, non-static route gets the React app's index.html
-  AxioDBControlServer.get("/", async (request, reply) => {
-    const indexPath = path.join(staticPath, "index.html");
-    const stream = fs.createReadStream(indexPath);
-    return reply.type("text/html").send(stream);
-  });
+    AxioDBControlServer.get("/", async (request, reply) => {
+      const indexPath = path.join(staticPath, "index.html");
+      const stream = fs.createReadStream(indexPath);
+      return reply.type("text/html").send(stream);
+    });
+  } else {
+    AxioDBControlServer.get("/", async (request, reply) => {
+      return reply.type("application/json").send({
+        message: "AxioDB HTTP API is running. GUI is disabled. Enable it with GUI: true.",
+        api: "/api/health",
+      });
+    });
+  }
 
   AxioDBControlServer.register(router, {
     prefix: "/api",

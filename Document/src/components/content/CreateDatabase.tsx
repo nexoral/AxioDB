@@ -50,7 +50,7 @@ console.log("Database 'ProductsDB' created");
       />
       <h1 className="text-3xl font-bold mb-6">Create Database</h1>
       <p className="text-gray-600 mb-8">
-        AxioDB constructor follows the pattern: <code className="bg-gray-100 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-100 px-2 py-1 rounded">&#123;GUI?, RootName?, CustomPath?, TCP?, TCPAuth?&#125;</code>.
+        AxioDB constructor follows the pattern: <code className="bg-gray-100 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-100 px-2 py-1 rounded">&#123;GUI?, HTTP?, RootName?, CustomPath?, TCP?, TCPAuth?&#125;</code>.
         This pattern provides better readability and flexibility.
       </p>
 
@@ -60,6 +60,7 @@ console.log("Database 'ProductsDB' created");
         </h3>
         <ul className="space-y-2 text-gray-600">
           <li><strong>GUI</strong> (boolean, optional): Enable web GUI on localhost:27018 - defaults to false</li>
+          <li><strong>HTTP</strong> (boolean, optional): Enable HTTP API server on port 27018 - auto-enables when GUI is on; GUI: true + HTTP: false throws error</li>
           <li><strong>RootName</strong> (string, optional): Custom root folder name - defaults to "AxioDB"</li>
           <li><strong>CustomPath</strong> (string, optional): Custom storage path - defaults to current directory</li>
           <li><strong>TCP</strong> (boolean, optional): Enable the AxioDBCloud TCP server on port 27019 - defaults to false</li>

@@ -52,6 +52,7 @@ export class AxioDB {
   private static _instance: AxioDB;
   private DatabaseMap: Map<string, DatabaseMap>;
   private GUI: boolean = General.DBMS_GUI_Enable;
+  private HTTP: boolean = false;
   private TCP: boolean = false;
   private TCPAuth: boolean = false;
   private TLS: boolean = false;
@@ -75,15 +76,14 @@ export class AxioDB {
     this.Converter = new Converter(); // Initialize the Converter class
     this.ResponseHelper = new ResponseHelper(); // Initialize the ResponseHelper class
     this.DatabaseMap = new Map<string, DatabaseMap>(); // Initialize the DatabaseMap
-    this.GUI = GUI !== undefined ? GUI : General.DBMS_GUI_Enable; // Set GUI option
-    this.TCP = TCP !== undefined ? TCP : false; // Set TCP option
-    this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false; // Set TCPAuth option
-    this.TLS = TLS !== undefined ? TLS : false; // Set TLS option
+    this.GUI = GUI !== undefined ? GUI : General.DBMS_GUI_Enable;
+    this.HTTP = options.HTTP !== undefined ? options.HTTP : (this.GUI ? true : false);
+    this.TCP = TCP !== undefined ? TCP : false;
+    this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false;
+    this.TLS = TLS !== undefined ? TLS : false;
     this.TLSCertPath = TLSCertPath;
     this.TLSKeyPath = TLSKeyPath;
 
-    // Fail fast: never silently fall back to plaintext because a cert/key path was
-    // missing or unreadable - that would be a silent security downgrade.
     if (this.TLS) {
       if (!this.TLSCertPath || !this.TLSKeyPath) {
         throw new Error(
@@ -98,7 +98,13 @@ export class AxioDB {
       }
     }
 
-    this.initializeRoot(); // Ensure root initialization (reads GUI/TCP/TCPAuth/TLS, so runs after they're set)
+    if (this.GUI && options.HTTP === false) {
+      throw new Error(
+        "GUI: true requires HTTP to be enabled. Set HTTP: true or remove the explicit HTTP: false.",
+      );
+    }
+
+    this.initializeRoot();
   }
 
   /**
@@ -130,18 +136,17 @@ export class AxioDB {
       }
     }
     if (this.GUI || (this.TCP && this.TCPAuth)) {
-      await new AuthSeeder(this).seedIfNeeded(); // Ensure config DB, RBAC seed data exist before accepting requests
-      LoginRateLimiter.startCleanupSweep(); // Only relevant once some auth surface (GUI or TCPAuth) is active
+      await new AuthSeeder(this).seedIfNeeded();
+      LoginRateLimiter.startCleanupSweep();
     }
-    if (this.GUI) {
-      Console.green("Starting AxioDB Control Server...");
-      createAxioDBControlServer(this); // Start the web Control Server with the AxioDB instance
+    if (this.HTTP) {
+      Console.green(this.GUI ? "Starting AxioDB Control Server..." : "Starting AxioDB HTTP API Server (API only, GUI disabled)...");
+      createAxioDBControlServer(this, this.GUI);
     }
     if (this.TCP) {
       Console.green(
         this.TLS ? "Starting AxioDB TCP Server (TLS)..." : "Starting AxioDB TCP Server...",
       );
-      // Start the TCP Server with the AxioDB instance
       const tlsOptions = this.TLS
         ? { certPath: this.TLSCertPath as string, keyPath: this.TLSKeyPath as string }
         : undefined;

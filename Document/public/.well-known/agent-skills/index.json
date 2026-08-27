@@ -6,7 +6,7 @@
       "type": "skill-md",
       "description": "Use AxioDB, an embedded NoSQL database for Node.js with MongoDB-style queries and zero native dependencies.",
       "url": "https://axiodb.in/.well-known/agent-skills/axiodb/SKILL.md",
-      "digest": "sha256:df995f8c628a691e3080f65917a5245f42041188b55e9956de225174d5972798",
+      "digest": "sha256:229d3f176b9de4f6152a26622e0c683120aa59adbd9134ba5faa74cf18ec98d5",
       "license": "MIT",
       "homepage": "https://axiodb.in"
     }

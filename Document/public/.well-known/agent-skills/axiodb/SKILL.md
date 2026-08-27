@@ -141,7 +141,7 @@ the wrong one is the most common source of bad advice about AxioDB.
 |---|---|---|---|
 | **Core library** (above) | The embedded database itself, running in your own process | `npm install axiodb` → `new AxioDB()` | none |
 | **Dashboard / Control Server** | Web GUI for browsing and editing data, with login and roles | `new AxioDB({ GUI: true })`, or Docker `AXIODB_GUI=true` | 27018 |
-| **Dashboard HTTP API** | The REST API behind that GUI — same RBAC, session cookie auth | comes with the Dashboard; nothing extra to enable | 27018 |
+| **Dashboard HTTP API** | The REST API behind that GUI — same RBAC, session cookie auth | comes with the Dashboard; `HTTP: false` disables it | 27018 |
 | **AxioDBCloud server** | TCP server so other processes/machines can use this database | `new AxioDB({ TCP: true })`, or Docker `AXIODB_TCP=true` | 27019 |
 | **AxioDBCloud client** | Client that talks to that TCP server with the same API as the core library | `const { AxioDBCloud } = require("axiodb")` | — |
 | **MCP server** | 32 MCP tools so an AI agent can operate the database | **Docker image only** (`theankansaha/axiodb` with `AXIODB_MCP=true`); not in the npm package | 27020 |

@@ -134,6 +134,7 @@ console.log(result.data.documents[0].message); // Hello, Developer! 👋
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
 | `GUI` | `boolean` | `false` | Enable the web-based GUI dashboard at `localhost:27018` |
+| `HTTP` | `boolean` | mirrors `GUI` | Enable the HTTP API server on port 27018 — auto-enables when GUI is on; `GUI: true` + `HTTP: false` throws an error |
 | `RootName` | `string` | `"AxioDB"` | Name of the root folder database files are stored under |
 | `CustomPath` | `string` | current working directory | Custom filesystem path for database storage |
 | `TCP` | `boolean` | `false` | Enable the AxioDBCloud TCP server on port 27019 |
@@ -542,7 +543,7 @@ docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -p 27019:27019 \
-  -e AXIODB_TCP_AUTH=true \
+  -e AXIODB_TCP_AUTH_ENABLED=true \
   -v axiodb-data:/app \
   theankansaha/axiodb
 
@@ -561,8 +562,9 @@ Every option below has a default matching the image's previous fixed behavior �
 | Variable | Default | Description |
 | --- | --- | --- |
 | `AXIODB_GUI` | `true` | Enable the HTTP Control Server / web GUI on port 27018 |
+| `AXIODB_HTTP` | mirrors `AXIODB_GUI` | Enable the HTTP API server on port 27018 — auto-enables when GUI is on; `AXIODB_GUI=true` + `AXIODB_HTTP=false` is an error |
 | `AXIODB_TCP` | `true` | Enable the AxioDBCloud TCP server on port 27019 |
-| `AXIODB_TCP_AUTH` | `true` | Require username/password authentication on TCP connections (same RBAC accounts as the GUI) |
+| `AXIODB_TCP_AUTH_ENABLED` | `true` | Require username/password authentication on TCP connections (same RBAC accounts as the GUI) |
 | `AXIODB_TLS` | `false` | Encrypt TCP connections with TLS instead of plaintext (see [Advanced: TLS encryption](#advanced-tls-encryption)) |
 | `AXIODB_TLS_CERT_PATH` | *(none)* | Path **inside the container** to a PEM cert file - required when `AXIODB_TLS=true`. Mount the real file in with `-v` first (see the TLS section above) |
 | `AXIODB_TLS_KEY_PATH` | *(none)* | Path **inside the container** to the matching PEM private key - required when `AXIODB_TLS=true` |
@@ -579,7 +581,7 @@ docker run -d \
   --name axiodb-server \
   -p 27018:27018 \
   -p 27019:27019 \
-  -e AXIODB_TCP_AUTH=false \
+  -e AXIODB_TCP_AUTH_ENABLED=false \
   -v axiodb-data:/app \
   theankansaha/axiodb
 ```
@@ -598,7 +600,7 @@ services:
     environment:
       - AXIODB_GUI=true
       - AXIODB_TCP=true
-      - AXIODB_TCP_AUTH=true
+      - AXIODB_TCP_AUTH_ENABLED=true
       - AXIODB_ROOT_NAME=AxioDB
     volumes:
       - axiodb-data:/app
@@ -622,7 +624,7 @@ services:
     environment:
       - AXIODB_GUI=true
       - AXIODB_TCP=true
-      - AXIODB_TCP_AUTH=true
+      - AXIODB_TCP_AUTH_ENABLED=true
       - AXIODB_TLS=true
       - AXIODB_TLS_CERT_PATH=/certs/cert.pem
       - AXIODB_TLS_KEY_PATH=/certs/key.pem
@@ -678,7 +680,7 @@ that logged-in user's actual role, exactly like the HTTP Control Server. A View-
 gets a real `403` on write tools; nothing is gated by a static container environment variable.
 
 `AXIODB_MCP=true` only has RBAC to serve once it's actually seeded, which requires
-`AXIODB_GUI=true` (the default) or `AXIODB_TCP=true` + `AXIODB_TCP_AUTH=true`.
+`AXIODB_GUI=true` (the default) or `AXIODB_TCP=true` + `AXIODB_TCP_AUTH_ENABLED=true`.
 
 Full tool catalogue, examples, and security notes: **[MCP Server docs](https://axiodb.in/mcp-server)**.
 
