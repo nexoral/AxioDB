@@ -57,6 +57,7 @@ export class AxioDB {
   private TCPAuth: boolean = false;
   private TLS: boolean = false;
   private ready: Promise<void>;
+  private _initializing = false;
   private TLSCertPath?: string;
   private TLSKeyPath?: string;
 
@@ -103,7 +104,8 @@ export class AxioDB {
       );
     }
 
-    this.ready = this.initializeRoot();
+    this._initializing = true;
+    this.ready = this.initializeRoot().finally(() => { this._initializing = false; });
   }
 
   /**
@@ -169,7 +171,7 @@ export class AxioDB {
    * @returns The newly created database object.
    */
   public async createDB(DBName: string): Promise<Database> {
-    await this.ready;
+    if (!this._initializing) await this.ready;
     const dbPath = path.join(this.currentPATH, DBName);
 
     // Check if the database already exists
@@ -200,7 +202,7 @@ export class AxioDB {
    * @returns {Promise<SuccessInterface | undefined>} A promise that resolves when the database information is successfully retrieved and the response is sent.
    */
   public async getInstanceInfo(): Promise<SuccessInterface | undefined> {
-    await this.ready;
+    if (!this._initializing) await this.ready;
     const totalDatabases = await this.folderManager.ListDirectory(
       path.resolve(this.currentPATH),
     );
@@ -248,7 +250,7 @@ export class AxioDB {
    * ```
    */
   public async isDatabaseExists(DBName: string): Promise<boolean> {
-    await this.ready;
+    if (!this._initializing) await this.ready;
     const dbPath = path.join(this.currentPATH, DBName);
     const exists = await this.folderManager.DirectoryExists(dbPath);
     return exists.statusCode === StatusCodes.OK;
@@ -269,7 +271,7 @@ export class AxioDB {
   public async deleteDatabase(
     DBName: string,
   ): Promise<SuccessInterface | ErrorInterface | undefined> {
-    await this.ready;
+    if (!this._initializing) await this.ready;
     const dbPath = path.join(this.currentPATH, DBName);
     const exists = await this.folderManager.DirectoryExists(dbPath);
 
