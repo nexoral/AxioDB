@@ -12,6 +12,7 @@ import { CommandType } from '../types/command.types';
 import AuthEvents from '../../Services/Auth/AuthEvents.service';
 import ConnectionRateLimiter from '../connection/ConnectionRateLimiter';
 import Logger from "../../Helper/Logger.helper";
+import TransactionManager from '../connection/TransactionManager';
 
 /** Path to a PEM cert + matching private key, used to encrypt the TCP server with TLS instead of plaintext. */
 export interface TCPTLSOptions {
@@ -116,6 +117,9 @@ function setupConnectionManagerHandlers(connectionManager: ConnectionManager): v
 
   connectionManager.on('connection:removed', (connectionId: string) => {
     Logger.info(`[AxioDB TCP] Client disconnected: ${connectionId}`);
+    TransactionManager.getInstance().rollbackAllForConnection(connectionId).catch((error) => {
+      Logger.error(`[AxioDB TCP] Error rolling back transactions for ${connectionId}:`, error);
+    });
   });
 
   connectionManager.on('error', (error: Error, connectionId: string) => {

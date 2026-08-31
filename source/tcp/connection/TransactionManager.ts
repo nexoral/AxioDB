@@ -26,8 +26,9 @@ export default class TransactionManager {
     return TransactionManager.instance;
   }
 
-  beginTransaction(connectionId: string, transactionId: string, collectionPath: string): Transaction {
+  beginTransaction(connectionId: string, collectionPath: string): Transaction {
     const txn = new Transaction(collectionPath);
+    const transactionId = txn.getId();
 
     let connTxns = this.activeTransactions.get(connectionId);
     if (!connTxns) {

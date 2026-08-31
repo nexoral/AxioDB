@@ -57,6 +57,10 @@ export default class Collection {
     });
   }
 
+  public getCollectionPath(): string {
+    return this.path;
+  }
+
   /**
    * Get Numbers of Documents in the Collection
    * @returns {Promise<number>} - A promise that resolves with the number of documents in the collection.

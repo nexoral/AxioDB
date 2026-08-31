@@ -44,6 +44,7 @@ const testModules = {
   'http-api': './modules/http-api.test.js',
   'tcp-auth': './modules/tcp-auth.test.js',
   'tcp-noauth': './modules/tcp-noauth.test.js',
+  'tcp-transaction': './modules/tcp-transaction.test.js',
   'tcp-tls': './modules/tcp-tls.test.js',
   'crash-recovery': './modules/crash-recovery.test.js',
   'mcp-confirm': './modules/mcp-confirm.test.js'

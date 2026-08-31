@@ -2,7 +2,6 @@ import { AxioDB } from '../../../Services/Indexation.operation';
 import { TCPResponse } from '../../types/protocol.types';
 import { StatusCode } from '../../config/keys';
 import TransactionManager from '../../connection/TransactionManager';
-import UniqueGenerator from '../../../Helper/UniqueGenerator.helper';
 import { isReservedDatabaseName } from '../../../config/Keys/Permissions';
 
 type Params = Record<string, unknown>;
@@ -34,8 +33,8 @@ export default class TransactionHandler {
       const collection = await databaseInstance.createCollection(collectionName);
       const collectionPath = (collection as unknown as { getCollectionPath(): string }).getCollectionPath();
 
-      const transactionId = new UniqueGenerator(15).RandomWord(true);
-      this.txnManager.beginTransaction(connectionId, transactionId, collectionPath);
+      const txn = this.txnManager.beginTransaction(connectionId, collectionPath);
+      const transactionId = txn.getId();
 
       return {
         id: requestId,

@@ -52,6 +52,14 @@ export default class Transaction {
     this.FileManager = new FileManager();
   }
 
+  public getId(): string {
+    return this.transactionId;
+  }
+
+  public getCollectionPath(): string {
+    return this.collectionPath;
+  }
+
   /**
    * Creates a savepoint at the current state of the transaction.
    * Allows partial rollback to this point using rollbackTo().
