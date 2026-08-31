@@ -172,14 +172,22 @@ const db = new AxioDB({
 ### Transactions
 - **ACID-compliant, single-collection transactions** with savepoints, rollback, and Write-Ahead Logging (WAL) for crash recovery
 - **Session Management:** scoped transactions with timeout support
+- **TCP Transactions:** BEGIN/COMMIT/ROLLBACK over TCP with savepoints, connection-pinned client proxy, and auto-rollback on disconnect
 
 ```javascript
+// Local transaction
 const session = collection.startSession();
 await session.withTransaction(async (tx) => {
   await tx.insert({ name: 'Alice', balance: 1000 });
   await tx.update({ name: 'Bob' }, { $inc: { balance: -100 } });
   // Auto-commits on success, auto-rolls-back on error
 });
+
+// TCP transaction
+const tx = await client.db('mydb').collection('users').beginTransaction();
+await tx.insert({ name: 'Alice', balance: 1000 });
+await tx.update({ name: 'Bob' }, { $inc: { balance: -100 } });
+await tx.commit(); // or await tx.rollback();
 ```
 
 ### Caching
@@ -871,6 +879,23 @@ await collection.delete({ status: 'inactive' }).deleteMany();
 - `transaction.rollbackToSavepoint(name: string): Transaction`
 - `transaction.commit(): Promise<SuccessInterface>`
 - `transaction.rollback(): Promise<void>`
+
+### TCP Transaction Proxy
+
+- `collection.beginTransaction(): Promise<TransactionProxy>`
+- `transactionProxy.insert(data: object): Promise<unknown>`
+- `transactionProxy.insertMany(documents: object[]): Promise<unknown>`
+- `transactionProxy.query(query: object, options?): Promise<unknown>`
+- `transactionProxy.findByIds(ids: string[]): Promise<unknown>`
+- `transactionProxy.updateById(documentId: string, updateData: object): Promise<unknown>`
+- `transactionProxy.updateByQuery(query: object, updateData: object, updateOne?: boolean): Promise<unknown>`
+- `transactionProxy.deleteById(documentId: string): Promise<unknown>`
+- `transactionProxy.deleteByQuery(query: object, deleteOne?: boolean): Promise<unknown>`
+- `transactionProxy.savepoint(name: string): Promise<unknown>`
+- `transactionProxy.rollbackToSavepoint(name: string): Promise<unknown>`
+- `transactionProxy.releaseSavepoint(name: string): Promise<unknown>`
+- `transactionProxy.commit(): Promise<unknown>`
+- `transactionProxy.rollback(): Promise<unknown>`
 
 ---
 

@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 19.2.0 | License: MIT | Node.js >= 20.0.0
+Version: 20.3.0 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -473,9 +473,9 @@ Login rate limiting: 5 failed attempts from one IP within a trailing 15-minute w
 
 ## AxioDBCloud — Remote TCP Access
 
-Same API as embedded AxioDB, over a TCP connection. The wire protocol has exactly **27 commands** (`source/tcp/types/command.types.ts`):
+Same API as embedded AxioDB, over a TCP connection. The wire protocol has exactly **33 commands** (`source/tcp/types/command.types.ts`):
 
-`PING`, `DISCONNECT`, `AUTHENTICATE`, `CREATE_DB`, `DELETE_DB`, `DB_EXISTS`, `GET_INSTANCE_INFO`, `CREATE_COLLECTION`, `DELETE_COLLECTION`, `COLLECTION_EXISTS`, `GET_COLLECTION_INFO`, `INSERT_DOCUMENT`, `INSERT_MANY_DOCUMENTS`, `QUERY_DOCUMENTS`, `QUERY_BY_ID`, `UPDATE_DOCUMENT_BY_ID`, `UPDATE_DOCUMENTS_BY_QUERY`, `DELETE_DOCUMENT_BY_ID`, `DELETE_DOCUMENTS_BY_QUERY`, `AGGREGATE`, `TOTAL_DOCUMENTS`, `CREATE_INDEX`, `DROP_INDEX`, `LIST_INDEXES`, `BEGIN_TRANSACTION`, `COMMIT_TRANSACTION`, `ROLLBACK_TRANSACTION`, `FIND_BY_IDS`
+`PING`, `DISCONNECT`, `AUTHENTICATE`, `CREATE_DB`, `DELETE_DB`, `DB_EXISTS`, `GET_INSTANCE_INFO`, `CREATE_COLLECTION`, `DELETE_COLLECTION`, `COLLECTION_EXISTS`, `GET_COLLECTION_INFO`, `INSERT_DOCUMENT`, `INSERT_MANY_DOCUMENTS`, `QUERY_DOCUMENTS`, `QUERY_BY_ID`, `UPDATE_DOCUMENT_BY_ID`, `UPDATE_DOCUMENTS_BY_QUERY`, `DELETE_DOCUMENT_BY_ID`, `DELETE_DOCUMENTS_BY_QUERY`, `AGGREGATE`, `TOTAL_DOCUMENTS`, `CREATE_INDEX`, `DROP_INDEX`, `LIST_INDEXES`, `BEGIN_TRANSACTION`, `COMMIT_TRANSACTION`, `ROLLBACK_TRANSACTION`, `SAVEPOINT`, `ROLLBACK_TO_SAVEPOINT`, `RELEASE_SAVEPOINT`, `FIND_BY_IDS`
 
 You normally never send these by hand — the `AxioDBCloud` client wraps them behind the same `createDB`/`createCollection`/`query` API as the embedded library. `client.sendCommand()` is the escape hatch if you need one directly.
 
@@ -513,6 +513,30 @@ client.createDB(name: string): Promise<DatabaseProxy>
 client.deleteDatabase(name: string): Promise<void>
 client.isDatabaseExists(name: string): Promise<boolean>
 client.getInstanceInfo(): Promise<any>
+client.getPinnedConnection(): PooledConnection | null  // for transaction pinning
+```
+
+### Transaction Proxy (TCP)
+
+```typescript
+collection.beginTransaction(): Promise<TransactionProxy>
+
+transactionProxy.insert(data: object): Promise<unknown>
+transactionProxy.insertMany(documents: object[]): Promise<unknown>
+transactionProxy.findByIds(ids: string[]): Promise<unknown>
+transactionProxy.query(query: object, options?): Promise<unknown>
+transactionProxy.updateById(documentId: string, updateData: object): Promise<unknown>
+transactionProxy.updateByQuery(query: object, updateData: object, updateOne?: boolean): Promise<unknown>
+transactionProxy.deleteById(documentId: string): Promise<unknown>
+transactionProxy.deleteByQuery(query: object, deleteOne?: boolean): Promise<unknown>
+transactionProxy.savepoint(name: string): Promise<unknown>
+transactionProxy.rollbackToSavepoint(name: string): Promise<unknown>
+transactionProxy.releaseSavepoint(name: string): Promise<unknown>
+transactionProxy.commit(): Promise<unknown>
+transactionProxy.rollback(): Promise<unknown>
+```
+
+All operations on a TransactionProxy are pinned to a single TCP connection so in-flight writes are visible to subsequent reads within the same transaction. On disconnect, orphaned transactions are automatically rolled back server-side.
 client.on('poolDegraded', (event: { requested, connected, failed, errors }) => {})
 client.on('error', (err) => {})
 ```
@@ -835,7 +859,7 @@ source/
 │   ├── controller/                 Auth, Database, Collection, Index, Operation controllers
 │   └── middleware/auth.middleware.ts   Session cookie + permission enforcement
 ├── tcp/                            AxioDBCloud TCP server (port 27019)
-│   ├── types/command.types.ts      The 27-command CommandType enum
+│   ├── types/command.types.ts      The 33-command CommandType enum
 │   ├── handler/CommandHandler.ts   Command dispatch
 │   └── handler/handlers/           Auth, DB, Collection, Operation handlers
 └── client/                         AxioDBCloud client + Database/Collection proxies
@@ -847,7 +871,7 @@ Docker/                             NOT published to npm (.npmignore)
 └── mcp/tools/                      The 32 MCP tools, one file per feature area
 
 Test/modules/                       crud, transaction, read, auth, tcp-auth, tcp-noauth,
-                                    tcp-tls, crash-recovery, mcp-confirm
+                                    tcp-transaction, tcp-tls, crash-recovery, mcp-confirm
 Document/                           This documentation site (React + Vite, deployed to axiodb.in)
 ```
 

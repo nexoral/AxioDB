@@ -12,6 +12,21 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "20.3.0",
+    date: "2026-09-01",
+    title: "ACID transactions over TCP with savepoints and connection-pinned client proxy",
+    changes: [
+      "New: ACID transactions over TCP — BEGIN/COMMIT/ROLLBACK commands routed through a per-connection TransactionManager with WAL-backed durability, Wait-Die deadlock avoidance, and 30-second timeout",
+      "New: savepoints over TCP — SAVEPOINT, ROLLBACK_TO_SAVEPOINT, RELEASE_SAVEPOINT commands for partial rollback within a transaction",
+      "New: connection-pinned client — TransactionProxy pins all transactional operations to a single TCP connection so in-flight writes are visible to subsequent reads within the same transaction",
+      "New: Collection.beginTransaction() on the AxioDBCloud client returns a chainable TransactionProxy with insert/update/delete/commit/rollback/savepoint methods",
+      "New: auto-rollback on disconnect — orphaned transactions are automatically rolled back when a TCP connection drops, preventing data corruption from partial writes",
+      "New: Transaction.getId() and Collection.getCollectionPath() public getters for TCP handler integration",
+      "Quality: OperationHandler routes CRUD with transactionId through the in-flight Transaction, buffering writes until commit",
+      "Quality: 20 new TCP transaction tests covering BEGIN/COMMIT, ROLLBACK, savepoints, isolation, cross-connection rejection, and disconnect cleanup",
+    ],
+  },
+  {
     version: "19.2.0",
     date: "2026-09-01",
     title: "Index hints, batch read, zero `any` types, ESLint, and structured Logger",

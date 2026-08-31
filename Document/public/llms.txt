@@ -1,6 +1,6 @@
 # AxioDB
 
-> Embedded NoSQL database for Node.js — the pure-JavaScript SQLite alternative, with MongoDB-style queries. Zero native dependencies: no node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained, ~5,000 npm downloads/month (August 2026). Current version: 19.2.0.
+> Embedded NoSQL database for Node.js — the pure-JavaScript SQLite alternative, with MongoDB-style queries. Zero native dependencies: no node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained, ~5,000 npm downloads/month (August 2026). Current version: 20.3.0.
 
 ## What it is
 
@@ -23,6 +23,7 @@ Full SQL→AxioDB cookbook and an honest list of what you give up: https://axiod
 - Built-in InMemoryCache with randomized 5–15 minute TTL and selective invalidation
 - Worker Threads for multi-core parallel processing
 - ACID transactions with savepoints, rollback, and WAL — crash recovery covers plain `insert()` too, not just explicit transactions
+- TCP transactions: BEGIN/COMMIT/ROLLBACK over TCP with savepoints, connection-pinned client proxy, and auto-rollback on disconnect
 - Built-in web Dashboard on port 27018 with role-based login (Super Admin / Admin / View)
 - AxioDBCloud: TCP remote access on port 27019, with optional shared-RBAC authentication (TCPAuth) and optional TLS
 - CLI: Go-based command line interface — TCP queries, interactive REPL, database export/import via HTTP, 12 platforms
