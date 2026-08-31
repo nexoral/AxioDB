@@ -64,7 +64,7 @@ export default class OperationHandler {
    * Handle QUERY_DOCUMENTS command
    */
   async handleQueryDocuments(requestId: string, params: any): Promise<TCPResponse> {
-    const { dbName, collectionName, query = {}, limit, skip, sort, findOne } = params;
+    const { dbName, collectionName, query = {}, limit, skip, sort, findOne, hint } = params;
 
     try {
       const databaseInstance = await this.axioDB.createDB(dbName);
@@ -87,6 +87,10 @@ export default class OperationHandler {
 
       if (findOne) {
         queryBuilder = queryBuilder.findOne(findOne);
+      }
+
+      if (hint) {
+        queryBuilder = queryBuilder.hint(hint);
       }
 
       const result = await queryBuilder.exec();
@@ -126,6 +130,33 @@ export default class OperationHandler {
       message: result.message,
       data: result.data,
     };
+  }
+
+  /**
+   * Handle FIND_BY_IDS command
+   */
+  async handleFindByIds(requestId: string, params: any): Promise<TCPResponse> {
+    const { dbName, collectionName, ids } = params;
+
+    try {
+      const databaseInstance = await this.axioDB.createDB(dbName);
+      const collection = await databaseInstance.createCollection(collectionName);
+      const result = await collection.findByIds(ids);
+
+      return {
+        id: requestId,
+        statusCode: result.statusCode,
+        message: 'Documents retrieved successfully',
+        data: result.data,
+      };
+    } catch (error) {
+      return {
+        id: requestId,
+        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
+        message: error instanceof Error ? error.message : String(error),
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   /**

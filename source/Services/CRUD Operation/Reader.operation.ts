@@ -31,6 +31,7 @@ export default class Reader {
   private project: object | any;
   private readonly ResponseHelper: responseHelper;
   private AllData: any[];
+  private indexHint: string | undefined;
 
   /**
    * Creates an instance of Read.
@@ -68,11 +69,12 @@ export default class Reader {
    */
   private generateCacheKey(): string {
     const components = [
-      this.path,  // Collection path prevents cross-collection collisions
+      this.path,
       this.Converter.ToString(this.baseQuery),
       this.limit?.toString() ?? 'all',
       this.skip?.toString() ?? '0',
-      Object.keys(this.sort).length > 0 ? this.Converter.ToString(this.sort) : 'nosort'
+      Object.keys(this.sort).length > 0 ? this.Converter.ToString(this.sort) : 'nosort',
+      this.indexHint ?? 'nohint'
     ];
     return components.join('::');
   }
@@ -118,46 +120,56 @@ export default class Reader {
       const indexReader = new ReadIndex(this.path);
       let indexedFileNames: string[] = [];
 
-      // Check if query can use index optimization
-      const queryKeys = Object.keys(this.baseQuery);
-      if (queryKeys.length === 1) {
-        const fieldName = queryKeys[0];
-        const fieldValue = this.baseQuery[fieldName];
+      // Index hint: force a specific index
+      if (this.indexHint && this.baseQuery[this.indexHint] !== undefined) {
+        const hintField = this.indexHint;
+        const hintValue = this.baseQuery[hintField];
 
-        if (typeof fieldValue === 'object' && fieldValue !== null) {
-          // OPTIMIZED: Use $in-aware index lookup (O(K) vs O(N))
-          if ('$in' in fieldValue) {
-            indexedFileNames = await indexReader.getFilesForInOperator(fieldName, fieldValue.$in);
+        if (typeof hintValue === 'object' && hintValue !== null) {
+          if ('$in' in hintValue) {
+            indexedFileNames = await indexReader.getFilesForInOperator(hintField, hintValue.$in);
+          } else if ('$regex' in hintValue) {
+            indexedFileNames = await indexReader.getFileFromIndex({ [hintField]: hintValue });
+          } else if ('$gt' in hintValue || '$gte' in hintValue || '$lt' in hintValue || '$lte' in hintValue) {
+            indexedFileNames = await indexReader.getFilesForRangeOperator(hintField, hintValue);
+          } else {
+            indexedFileNames = await indexReader.getFileFromIndex({ [hintField]: hintValue });
           }
-          // OPTIMIZED: Use prefix index lookup for regex patterns like /^prefix/
-          else if ('$regex' in fieldValue) {
-            const prefixInfo = this.detectPrefixPattern(fieldValue.$regex, fieldValue.$options);
-            if (prefixInfo.isPrefix && prefixInfo.prefix) {
-              indexedFileNames = await indexReader.getFilesForPrefixQuery(
-                fieldName,
-                prefixInfo.prefix,
-                prefixInfo.caseInsensitive
-              );
+        } else {
+          indexedFileNames = await indexReader.getFileFromIndex({ [hintField]: hintValue });
+        }
+      } else {
+        // Auto-detect best index
+        const queryKeys = Object.keys(this.baseQuery);
+        if (queryKeys.length === 1) {
+          const fieldName = queryKeys[0];
+          const fieldValue = this.baseQuery[fieldName];
+
+          if (typeof fieldValue === 'object' && fieldValue !== null) {
+            if ('$in' in fieldValue) {
+              indexedFileNames = await indexReader.getFilesForInOperator(fieldName, fieldValue.$in);
+            } else if ('$regex' in fieldValue) {
+              const prefixInfo = this.detectPrefixPattern(fieldValue.$regex, fieldValue.$options);
+              if (prefixInfo.isPrefix && prefixInfo.prefix) {
+                indexedFileNames = await indexReader.getFilesForPrefixQuery(
+                  fieldName,
+                  prefixInfo.prefix,
+                  prefixInfo.caseInsensitive
+                );
+              } else {
+                indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
+              }
+            } else if ('$gt' in fieldValue || '$gte' in fieldValue || '$lt' in fieldValue || '$lte' in fieldValue) {
+              indexedFileNames = await indexReader.getFilesForRangeOperator(fieldName, fieldValue);
             } else {
-              // Non-prefix regex - use standard lookup (will likely fall back to full scan)
               indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
             }
-          }
-          // OPTIMIZED: Use sorted-index range lookup for $gt/$gte/$lt/$lte (O(log U + K) vs O(N))
-          else if ('$gt' in fieldValue || '$gte' in fieldValue || '$lt' in fieldValue || '$lte' in fieldValue) {
-            indexedFileNames = await indexReader.getFilesForRangeOperator(fieldName, fieldValue);
-          }
-          // Other operators - use standard lookup
-          else {
+          } else {
             indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
           }
         } else {
-          // Standard exact match
           indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
         }
-      } else {
-        // Multiple fields or no fields - use standard index lookup
-        indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
       }
 
       let ReadResponse;
@@ -316,6 +328,19 @@ export default class Reader {
 
   public findOne(status: boolean = false): Reader {
     this.FindOneStatus = status;
+    return this;
+  }
+
+  /**
+   * Forces a specific index to be used for the query.
+   * @param {string} indexName - The indexed field name to use.
+   * @returns {Reader} - An instance of the Reader class.
+   */
+  public hint(indexName: string): Reader {
+    if (typeof indexName !== "string") {
+      throw new Error("Hint should be a string (index field name)");
+    }
+    this.indexHint = indexName;
     return this;
   }
 

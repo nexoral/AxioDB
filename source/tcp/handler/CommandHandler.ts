@@ -148,6 +148,9 @@ export class CommandHandler {
         case CommandType.QUERY_BY_ID:
           return await this.operationHandler.handleQueryById(id, params);
 
+        case CommandType.FIND_BY_IDS:
+          return await this.operationHandler.handleFindByIds(id, params);
+
         case CommandType.UPDATE_DOCUMENT_BY_ID:
           return await this.operationHandler.handleUpdateById(id, params);
 

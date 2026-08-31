@@ -67,10 +67,11 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
         documentId: z.string().optional(),
         query: z.record(z.string(), z.any()).optional(),
         page: z.number().int().min(1).optional(),
+        hint: z.string().optional(),
       },
       annotations: READ_ONLY,
     },
-    withAuth(PERMISSIONS.DOCUMENT_QUERY, ({ dbName, collectionName, documentId, query, page }) => {
+    withAuth(PERMISSIONS.DOCUMENT_QUERY, ({ dbName, collectionName, documentId, query, page, hint }) => {
       if (documentId) {
         return crudController.getDocumentsById({ query: { dbName, collectionName, documentId } });
       }
@@ -159,8 +160,6 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
     {
       description: 'Get the total document count in a collection.',
       inputSchema: { ...sessionIdField, dbName: z.string().min(1), collectionName: z.string().min(1) },
-      // Not readOnly: createDB()/createCollection() create-if-missing, so counting documents in
-      // an unknown collection leaves an empty database/collection behind.
       annotations: { ...ADDITIVE, idempotentHint: true },
     },
     withAuth(PERMISSIONS.DOCUMENT_VIEW, async ({ dbName, collectionName }) => {
@@ -169,6 +168,23 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
       const result = await collection.totalDocuments();
       return { statusCode: 200, message: 'OK', data: result.data };
     }),
+  );
+
+  server.registerTool(
+    'axiodb_find_documents_by_ids',
+    {
+      description: 'Retrieve multiple documents from a collection by their IDs in a single call.',
+      inputSchema: {
+        ...sessionIdField,
+        dbName: z.string().min(1),
+        collectionName: z.string().min(1),
+        ids: z.array(z.string()).min(1),
+      },
+      annotations: READ_ONLY,
+    },
+    withAuth(PERMISSIONS.DOCUMENT_VIEW, ({ dbName, collectionName, ids }) =>
+      crudController.getDocumentsByIds({ query: { dbName, collectionName }, body: { ids } }),
+    ),
   );
 
   server.registerTool(

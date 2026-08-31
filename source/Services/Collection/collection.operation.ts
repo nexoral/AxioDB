@@ -215,16 +215,26 @@ export default class Collection {
    * @returns {Reader} - An instance of the Reader class.
    */
   public query(query: object | any): Reader {
-    // Check if documentId is empty or not
     if (!query) {
       throw new Error("Query cannot be empty");
     }
-    // Read the data
     return new Reader(
       this.name,
       this.path,
       query,
     );
+  }
+
+  /**
+   * Retrieves multiple documents by their IDs in a single call.
+   * @param {string[]} ids - Array of document IDs to retrieve.
+   * @returns {Promise<SuccessInterface | ErrorInterface>} - Matching documents.
+   */
+  public async findByIds(ids: string[]): Promise<SuccessInterface | ErrorInterface> {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new Error("IDs must be a non-empty array");
+    }
+    return this.query({ documentId: ids }).exec();
   }
 
   /**

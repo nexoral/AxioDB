@@ -34,6 +34,12 @@ export default async function OperationRouter(
   );
 
   fastify.post(
+    "/all/by-ids/",
+    { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_VIEW)] },
+    async (request) => new CRUDController(AxioDBInstance).getDocumentsByIds(request),
+  );
+
+  fastify.post(
     "/create/",
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_CREATE)],

@@ -148,6 +148,44 @@ export default class CRUDController {
     );
   }
 
+  public async getDocumentsByIds(request: FastifyRequest) {
+    const { dbName, collectionName } = request.query as {
+      dbName: string;
+      collectionName: string;
+    };
+    const { ids } = request.body as { ids: string[] };
+
+    if (!dbName || typeof dbName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
+    }
+    if (!collectionName || typeof collectionName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
+    }
+    if (!Array.isArray(ids) || ids.length === 0 || !ids.every(id => typeof id === "string")) {
+      return buildResponse(StatusCodes.BAD_REQUEST, "ids must be a non-empty array of strings");
+    }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+    }
+
+    const databaseInstance: Database =
+      await this.AxioDBInstance.createDB(dbName);
+
+    const DB_Collection =
+      await databaseInstance.createCollection(collectionName);
+
+    const result = await DB_Collection.findByIds(ids);
+    if (!result.data) {
+      return buildResponse(StatusCodes.NOT_FOUND, "No documents found");
+    }
+
+    return buildResponse(
+      StatusCodes.OK,
+      "Documents retrieved successfully",
+      result.data,
+    );
+  }
+
   public async createNewDocument(request: FastifyRequest) {
     const { dbName, collectionName } = request.query as {
       dbName: string;

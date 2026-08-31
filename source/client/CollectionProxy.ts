@@ -33,6 +33,14 @@ export default class CollectionProxy {
     });
   }
 
+  async findByIds(ids: string[]): Promise<any> {
+    return await this.client.sendCommand(CommandType.FIND_BY_IDS, {
+      dbName: this.dbName,
+      collectionName: this.collectionName,
+      ids,
+    });
+  }
+
   query(query: object): ReaderProxy {
     return new ReaderProxy(this.client, this.dbName, this.collectionName, query);
   }

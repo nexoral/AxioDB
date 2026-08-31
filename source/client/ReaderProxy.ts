@@ -11,6 +11,7 @@ export default class ReaderProxy {
   private skipValue?: number;
   private sortValue?: object;
   private findOneValue: boolean = false;
+  private hintValue?: string;
 
   constructor(client: AxioDBCloud, dbName: string, collectionName: string, query: object) {
     this.client = client;
@@ -39,6 +40,11 @@ export default class ReaderProxy {
     return this;
   }
 
+  hint(indexName: string): this {
+    this.hintValue = indexName;
+    return this;
+  }
+
   async exec(): Promise<any> {
     const params: any = {
       dbName: this.dbName,
@@ -60,6 +66,10 @@ export default class ReaderProxy {
 
     if (this.findOneValue) {
       params.findOne = this.findOneValue;
+    }
+
+    if (this.hintValue) {
+      params.hint = this.hintValue;
     }
 
     return await this.client.sendCommand(CommandType.QUERY_DOCUMENTS, params);

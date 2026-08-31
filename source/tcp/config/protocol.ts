@@ -188,6 +188,12 @@ export class MessageValidator {
         }
         break;
 
+      case CommandType.FIND_BY_IDS:
+        if (!params.dbName || !params.collectionName || !Array.isArray(params.ids) || params.ids.length === 0) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName, collectionName, ids`);
+        }
+        break;
+
       case CommandType.UPDATE_DOCUMENTS_BY_QUERY:
         if (!params.dbName || !params.collectionName || !params.query || !params.updateData) {
           throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName, collectionName, query, updateData`);
