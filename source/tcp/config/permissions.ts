@@ -7,10 +7,7 @@ import { PERMISSIONS, PermissionKey } from '../../config/Keys/Permissions';
  * `source/server/router/Routers/*.routes.ts`) so TCP and GUI enforce identical rules
  * against the same `config` DB users/roles.
  *
- * Commands with no entry here (and not in `TCP_AUTH_EXEMPT_COMMANDS`) still require a
- * successful AUTHENTICATE, but no specific permission - currently only
- * BEGIN/COMMIT/ROLLBACK_TRANSACTION, which fall straight through to the existing
- * `NOT_IMPLEMENTED` response.
+ * Transaction commands require DOCUMENT_CREATE because they modify data.
  */
 export const TCP_COMMAND_PERMISSIONS: Partial<Record<CommandType, PermissionKey>> = {
   [CommandType.CREATE_DB]: PERMISSIONS.DB_CREATE,
@@ -37,6 +34,13 @@ export const TCP_COMMAND_PERMISSIONS: Partial<Record<CommandType, PermissionKey>
   [CommandType.CREATE_INDEX]: PERMISSIONS.INDEX_CREATE,
   [CommandType.DROP_INDEX]: PERMISSIONS.INDEX_DELETE,
   [CommandType.LIST_INDEXES]: PERMISSIONS.INDEX_VIEW,
+
+  [CommandType.BEGIN_TRANSACTION]: PERMISSIONS.DOCUMENT_CREATE,
+  [CommandType.COMMIT_TRANSACTION]: PERMISSIONS.DOCUMENT_CREATE,
+  [CommandType.ROLLBACK_TRANSACTION]: PERMISSIONS.DOCUMENT_CREATE,
+  [CommandType.SAVEPOINT]: PERMISSIONS.DOCUMENT_CREATE,
+  [CommandType.ROLLBACK_TO_SAVEPOINT]: PERMISSIONS.DOCUMENT_CREATE,
+  [CommandType.RELEASE_SAVEPOINT]: PERMISSIONS.DOCUMENT_CREATE,
 };
 
 /** Commands that never require authentication, even when the TCP server has `TCPAuth` enabled. */

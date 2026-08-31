@@ -155,6 +155,27 @@ export class MessageValidator {
         }
         break;
 
+      case CommandType.BEGIN_TRANSACTION:
+        if (!params.dbName || !params.collectionName) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName, collectionName`);
+        }
+        break;
+
+      case CommandType.COMMIT_TRANSACTION:
+      case CommandType.ROLLBACK_TRANSACTION:
+        if (!params.transactionId) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: transactionId`);
+        }
+        break;
+
+      case CommandType.SAVEPOINT:
+      case CommandType.ROLLBACK_TO_SAVEPOINT:
+      case CommandType.RELEASE_SAVEPOINT:
+        if (!params.transactionId || !params.savepointName) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: transactionId, savepointName`);
+        }
+        break;
+
       case CommandType.CREATE_COLLECTION:
       case CommandType.DELETE_COLLECTION:
       case CommandType.COLLECTION_EXISTS:
@@ -247,9 +268,6 @@ export class MessageValidator {
       case CommandType.PING:
       case CommandType.DISCONNECT:
       case CommandType.GET_INSTANCE_INFO:
-      case CommandType.BEGIN_TRANSACTION:
-      case CommandType.COMMIT_TRANSACTION:
-      case CommandType.ROLLBACK_TRANSACTION:
         // No required params
         break;
 

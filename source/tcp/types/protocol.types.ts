@@ -50,8 +50,9 @@ export interface TCPRequest {
     fieldNames?: string[];
     indexName?: string;
 
-    // Transaction parameters (future)
+    // Transaction parameters
     transactionId?: string;
+    savepointName?: string;
   };
 }
 

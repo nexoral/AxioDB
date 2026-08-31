@@ -41,10 +41,13 @@ export enum CommandType {
   DROP_INDEX = 'DROP_INDEX',
   LIST_INDEXES = 'LIST_INDEXES',
 
-  // Transaction Operations (future)
+  // Transaction Operations
   BEGIN_TRANSACTION = 'BEGIN_TRANSACTION',
   COMMIT_TRANSACTION = 'COMMIT_TRANSACTION',
   ROLLBACK_TRANSACTION = 'ROLLBACK_TRANSACTION',
+  SAVEPOINT = 'SAVEPOINT',
+  ROLLBACK_TO_SAVEPOINT = 'ROLLBACK_TO_SAVEPOINT',
+  RELEASE_SAVEPOINT = 'RELEASE_SAVEPOINT',
 }
 
 /**
@@ -79,4 +82,7 @@ export const CommandDocumentation: Record<CommandType, string> = {
   [CommandType.BEGIN_TRANSACTION]: 'Begin database transaction',
   [CommandType.COMMIT_TRANSACTION]: 'Commit database transaction',
   [CommandType.ROLLBACK_TRANSACTION]: 'Rollback database transaction',
+  [CommandType.SAVEPOINT]: 'Create a savepoint within a transaction',
+  [CommandType.ROLLBACK_TO_SAVEPOINT]: 'Rollback to a specific savepoint',
+  [CommandType.RELEASE_SAVEPOINT]: 'Release a savepoint',
 };

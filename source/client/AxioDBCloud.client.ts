@@ -205,6 +205,20 @@ export class AxioDBCloud extends EventEmitter {
   }
 
   /**
+   * Send a command through the least-busy connected pool member, optionally
+   * routing to a specific PooledConnection (used for transaction pinning so all
+   * operations within one transaction go through the same TCP socket).
+   */
+  async sendPinnedCommand(command: CommandType, params: Record<string, unknown>, pinnedConnection?: PooledConnection): Promise<unknown> {
+    const connection = pinnedConnection ?? this.pickConnection();
+    if (!connection) {
+      throw new Error('Not connected to server');
+    }
+
+    return connection.sendCommand(command, params);
+  }
+
+  /**
    * Picks the connected pool member with the fewest in-flight requests (least-busy),
    * rather than round-robin, so a connection stuck on a slow command doesn't receive
    * more work while other members are idle.
@@ -222,6 +236,15 @@ export class AxioDBCloud extends EventEmitter {
     }
 
     return best;
+  }
+
+  /**
+   * Returns the least-busy connected pool member for transaction pinning.
+   * All transactional commands will be routed through this single connection
+   * so in-flight writes are visible to subsequent reads within the same transaction.
+   */
+  getPinnedConnection(): PooledConnection | null {
+    return this.pickConnection();
   }
 
   async disconnect(): Promise<void> {
