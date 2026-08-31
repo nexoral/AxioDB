@@ -120,30 +120,32 @@ export class MessageValidator {
   /**
    * Validate TCPRequest structure
    */
-  static validateRequest(request: any): TCPRequest {
+  static validateRequest(request: unknown): TCPRequest {
     if (!request || typeof request !== 'object') {
       throw new Error(ErrorMessage.INVALID_MESSAGE_FORMAT);
     }
 
-    if (!request.id || typeof request.id !== 'string') {
+    const req = request as Record<string, unknown>;
+
+    if (!req.id || typeof req.id !== 'string') {
       throw new Error(ErrorMessage.INVALID_CORRELATION_ID);
     }
 
-    if (!request.command || !Object.values(CommandType).includes(request.command)) {
+    if (!req.command || !Object.values(CommandType).includes(req.command as CommandType)) {
       throw new Error(ErrorMessage.UNKNOWN_COMMAND);
     }
 
-    if (!request.params || typeof request.params !== 'object') {
-      request.params = {};
+    if (!req.params || typeof req.params !== 'object') {
+      req.params = {};
     }
 
-    return request as TCPRequest;
+    return req as unknown as TCPRequest;
   }
 
   /**
    * Validate command-specific parameters
    */
-  static validateParams(command: CommandType, params: any): void {
+  static validateParams(command: CommandType, params: Record<string, unknown>): void {
     switch (command) {
       case CommandType.CREATE_DB:
       case CommandType.DELETE_DB:
@@ -271,7 +273,7 @@ export class MessageValidator {
   /**
    * Create success response
    */
-  static createSuccessResponse(requestId: string, message: string, data?: any): TCPResponse {
+  static createSuccessResponse(requestId: string, message: string, data?: unknown): TCPResponse {
     return {
       id: requestId,
       statusCode: StatusCode.OK,

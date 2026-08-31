@@ -1,9 +1,11 @@
-import { TCPResponse } from '../../types/protocol.types';
+import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode, ErrorMessage, SuccessMessage } from '../../config/keys';
 import { ConnectionManager } from '../../connection/ConnectionManager';
 import AuthService from '../../../Services/Auth/AuthService.service';
 import LoginRateLimiter from '../../../Services/Auth/LoginRateLimiter.service';
 import { AuthenticatedUser } from '../../../config/Interfaces/Auth/auth.interface';
+
+type Params = TCPRequest['params'];
 
 /**
  * Auth Handler - Handles the AUTHENTICATE TCP command
@@ -23,7 +25,7 @@ export default class AuthHandler {
    */
   async handleAuthenticate(
     requestId: string,
-    params: any,
+    params: Params,
     connectionId: string,
     remoteIp: string,
     connectionManager: ConnectionManager,

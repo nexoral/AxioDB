@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 15.0.0 | License: MIT | Node.js >= 20.0.0
+Version: 19.2.0 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -135,6 +135,7 @@ collection.getIndexes(): Promise<SuccessInterface | ErrorInterface>
 collection.totalDocuments(): Promise<SuccessInterface | ErrorInterface>
 collection.beginTransaction(): Transaction
 collection.startSession(options?: SessionOptions): Session
+collection.findByIds(ids: string[]): Promise<SuccessInterface | ErrorInterface>
 ```
 
 `query()`, `update()`, `delete()`, and `aggregate()` all return chainable objects — nothing happens until you call the terminal method (`.exec()`, `.UpdateOne()`, `.deleteMany()`, etc.). There is no `collection.findAll()` method.
@@ -168,6 +169,7 @@ reader.setCount(count: boolean): Reader      // include totalDocuments in the re
 reader.setProject(fields: object): Reader    // { field: 1 } to include only that field
 reader.findOne(matchOneOnly?: boolean): Reader  // still needs .exec() after - see below
 reader.exec(): Promise<SuccessInterface | ErrorInterface>
+reader.hint(fieldName: string): Reader    // force use of a specific index
 ```
 
 `findOne()` returns `Reader` for chaining, not a Promise directly — you must still call `.exec()`:
@@ -189,6 +191,18 @@ const paginated = await users
 
 const withCount = await users.query({ role: 'admin' }).setCount(true).exec();
 ```
+
+### Index hints
+
+Force the query engine to use a specific index instead of scanning:
+
+```javascript
+// Without hint: might scan the full collection
+// With hint: forces use of the 'status' index
+const active = await users.query({ status: 'active' }).hint('status').exec();
+```
+
+Index hints are useful when the query planner picks a suboptimal index, or when you want to guarantee a specific index is used for performance-critical queries.
 
 ### Query operators (full list)
 
@@ -260,6 +274,23 @@ deleter.deleteMany(): Promise<SuccessInterface | ErrorInterface> // every match
 await users.delete({ name: 'Dave' }).deleteOne();
 await users.delete({ active: false }).deleteMany();
 ```
+
+---
+
+## Batch Read (findByIds)
+
+Retrieve multiple documents by their IDs in a single call:
+
+```typescript
+collection.findByIds(ids: string[]): Promise<SuccessInterface | ErrorInterface>
+```
+
+```javascript
+const docs = await users.findByIds(['doc1', 'doc2', 'doc3']);
+console.log(docs.data.documents); // array of matching documents
+```
+
+Missing IDs are silently omitted from the result — no error is thrown for non-existent IDs.
 
 ---
 
@@ -444,7 +475,7 @@ Login rate limiting: 5 failed attempts from one IP within a trailing 15-minute w
 
 Same API as embedded AxioDB, over a TCP connection. The wire protocol has exactly **27 commands** (`source/tcp/types/command.types.ts`):
 
-`PING`, `DISCONNECT`, `AUTHENTICATE`, `CREATE_DB`, `DELETE_DB`, `DB_EXISTS`, `GET_INSTANCE_INFO`, `CREATE_COLLECTION`, `DELETE_COLLECTION`, `COLLECTION_EXISTS`, `GET_COLLECTION_INFO`, `INSERT_DOCUMENT`, `INSERT_MANY_DOCUMENTS`, `QUERY_DOCUMENTS`, `QUERY_BY_ID`, `UPDATE_DOCUMENT_BY_ID`, `UPDATE_DOCUMENTS_BY_QUERY`, `DELETE_DOCUMENT_BY_ID`, `DELETE_DOCUMENTS_BY_QUERY`, `AGGREGATE`, `TOTAL_DOCUMENTS`, `CREATE_INDEX`, `DROP_INDEX`, `LIST_INDEXES`, `BEGIN_TRANSACTION`, `COMMIT_TRANSACTION`, `ROLLBACK_TRANSACTION`
+`PING`, `DISCONNECT`, `AUTHENTICATE`, `CREATE_DB`, `DELETE_DB`, `DB_EXISTS`, `GET_INSTANCE_INFO`, `CREATE_COLLECTION`, `DELETE_COLLECTION`, `COLLECTION_EXISTS`, `GET_COLLECTION_INFO`, `INSERT_DOCUMENT`, `INSERT_MANY_DOCUMENTS`, `QUERY_DOCUMENTS`, `QUERY_BY_ID`, `UPDATE_DOCUMENT_BY_ID`, `UPDATE_DOCUMENTS_BY_QUERY`, `DELETE_DOCUMENT_BY_ID`, `DELETE_DOCUMENTS_BY_QUERY`, `AGGREGATE`, `TOTAL_DOCUMENTS`, `CREATE_INDEX`, `DROP_INDEX`, `LIST_INDEXES`, `BEGIN_TRANSACTION`, `COMMIT_TRANSACTION`, `ROLLBACK_TRANSACTION`, `FIND_BY_IDS`
 
 You normally never send these by hand — the `AxioDBCloud` client wraps them behind the same `createDB`/`createCollection`/`query` API as the embedded library. `client.sendCommand()` is the escape hatch if you need one directly.
 

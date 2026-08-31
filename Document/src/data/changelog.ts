@@ -12,6 +12,18 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "19.2.0",
+    date: "2026-09-01",
+    title: "Index hints, batch read, zero `any` types, ESLint, and structured Logger",
+    changes: [
+      "New: index hints on queries — `collection.query({ status: 'active' }).hint('status').exec()` forces the query engine to use a specific index instead of scanning",
+      "New: batch document read — `collection.findByIds(['id1', 'id2'])` retrieves multiple documents by ID in a single call; exposed over HTTP (POST /api/operation/all/by-ids/) and TCP (FIND_BY_IDS command)",
+      "Quality: all `any` types removed from the TypeScript source — every file in source/ now uses proper types (Record<string, unknown>, unknown, Document, etc.), zero `any` remaining",
+      "Quality: ESLint configured with @typescript-eslint, 0 errors 0 warnings across the entire codebase",
+      "Quality: all console.log/error/warn calls replaced with a structured Logger helper (source/Helper/Logger.helper.ts) for consistent, configurable output",
+    ],
+  },
+  {
     version: "15.2.0",
     date: "2026-08-27",
     title: "AxioDB CLI — Go-based command line interface with MongoDB shell syntax",

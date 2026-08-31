@@ -76,7 +76,10 @@ export default class Collection {
     try {
       // List all files in the directory
       const files = await new FolderManager().ListDirectory(this.path);
-      const documentFiles = files.data.filter((fileName: string) =>
+      if (!("data" in files)) {
+        return new ResponseHelper().Error("Failed to list directory");
+      }
+      const documentFiles = (files.data as string[]).filter((fileName: string) =>
         fileName.endsWith(General.DBMS_File_EXT),
       );
       return new ResponseHelper().Success({
@@ -152,13 +155,17 @@ export default class Collection {
     txn.insert(data);
     const commitResult = await txn.commit();
 
-    if (!("data" in commitResult) || !commitResult.data.documentIds?.length) {
+    if (!("data" in commitResult)) {
+      return commitResult;
+    }
+    const commitData = commitResult.data as { documentIds?: string[] };
+    if (!commitData.documentIds?.length) {
       return commitResult;
     }
 
     return new ResponseHelper().Success({
       Message: "Data Inserted Successfully",
-      documentId: commitResult.data.documentIds[0],
+      documentId: commitData.documentIds[0],
     });
   }
 
@@ -198,14 +205,18 @@ export default class Collection {
     }
     const commitResult = await txn.commit();
 
-    if (!("data" in commitResult) || !commitResult.data.documentIds?.length) {
+    if (!("data" in commitResult)) {
+      return commitResult;
+    }
+    const commitData = commitResult.data as { documentIds?: string[] };
+    if (!commitData.documentIds?.length) {
       return commitResult;
     }
 
     return new ResponseHelper().Success({
       message: "Total Documents Inserted",
-      total: commitResult.data.documentIds.length,
-      id: commitResult.data.documentIds,
+      total: commitData.documentIds.length,
+      id: commitData.documentIds,
     });
   }
 
@@ -248,7 +259,7 @@ export default class Collection {
    * collection.aggregate([{$match: {}}, ${group: {_id: null, count: {$sum: 1}}}]).exec();
    * ```
    */
-  public aggregate(PipelineQuerySteps: object[]): Aggregation {
+  public aggregate(PipelineQuerySteps: Record<string, unknown>[]): Aggregation {
     // Check if Pipeline Steps is valid Array of Object
     if (!PipelineQuerySteps) {
       throw new Error("Please provide valid Pipeline Steps");

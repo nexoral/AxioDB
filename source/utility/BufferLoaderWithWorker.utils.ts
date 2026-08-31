@@ -32,13 +32,14 @@ export default async function ReaderWithWorker(
         const ReadFileResponse = await fileManager.ReadFile(`${path}/${fileName}`);
 
         if ("data" in ReadFileResponse) {
+          const fileData = ReadFileResponse.data as string;
           if (storeFileName) {
             return {
               fileName: fileName,
-              data: converter.ToObject(ReadFileResponse.data),
+              data: converter.ToObject(fileData),
             };
           } else {
-            return converter.ToObject(ReadFileResponse.data);
+            return converter.ToObject(fileData);
           }
         } else {
           Logger.error(`Failed to read file: ${fileName}`);

@@ -74,7 +74,7 @@ export default class Insertion {
 
       return new responseHelper().Error("Failed to save data");
     } catch (error) {
-      return new responseHelper().Error(error);
+      return new responseHelper().Error(error as string | Error);
     }
   }
 

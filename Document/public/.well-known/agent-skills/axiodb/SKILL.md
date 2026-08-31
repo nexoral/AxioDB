@@ -95,6 +95,8 @@ takes a schema argument.
 - **Transactions** — `collection.beginTransaction()` or `collection.startSession()` for ACID work with savepoints, rollback, and a write-ahead log. Plain `insert()` is WAL-backed too, so a crash mid-write is recovered on next open.
 - **Aggregation** — `collection.aggregate([...])` with 60+ stages including `$lookup` (cross-collection joins), `$facet`, `$bucket`, `$count`, `$sample`, and full expression evaluator. Custom operators via `OperatorRegistry`.
 - **Indexes** — `collection.newIndex("email")`, `getIndexes()`, `dropIndex()`.
+- **Index hints** — `collection.query({ field: value }).hint('field')` forces use of a specific index for predictable query performance.
+- **Batch read** — `collection.findByIds(['id1', 'id2'])` retrieves multiple documents by ID in one call.
 
 ## Coming from SQLite
 

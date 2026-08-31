@@ -13,18 +13,18 @@ interface CompiledQuery {
   key: string;
   type: 'regex' | 'in_set' | 'range' | 'eq' | 'direct' | 'ne' | 'nin';
   regex?: RegExp;
-  inSet?: Set<any>;
+  inSet?: Set<unknown>;
   rangeOps?: { $gt?: number; $lt?: number; $gte?: number; $lte?: number };
-  eqValue?: any;
-  directValue?: any;
+  eqValue?: unknown;
+  directValue?: unknown;
 }
 
 export default class Searcher {
-  private data: any[];
+  private data: Record<string, unknown>[];
   private isUpdated: boolean = false;
   private compiledQueries: CompiledQuery[] | null = null;
 
-  constructor(arr: any[], isUpdated: boolean = false) {
+  constructor(arr: Record<string, unknown>[], isUpdated: boolean = false) {
     this.data = arr;
     this.isUpdated = isUpdated;
   }
@@ -32,7 +32,7 @@ export default class Searcher {
   /**
    * Pre-compiles query operators for faster matching (regex, $in sets, etc.)
    */
-  private compileQuery(query: { [key: string]: any }): CompiledQuery[] {
+  private compileQuery(query: Record<string, unknown>): CompiledQuery[] {
     const compiled: CompiledQuery[] = [];
     
     for (const key of Object.keys(query)) {
@@ -41,10 +41,11 @@ export default class Searcher {
       const queryValue = query[key];
       
       if (typeof queryValue === "object" && queryValue !== null) {
+        const qv = queryValue as Record<string, unknown>;
         // Handle $regex - pre-compile RegExp
-        if ("$regex" in queryValue) {
-          const pattern = queryValue["$regex"];
-          const flags = queryValue["$options"] || "i";
+        if ("$regex" in qv) {
+          const pattern = qv["$regex"] as string | RegExp;
+          const flags = (qv["$options"] as string) || "i";
           compiled.push({
             key,
             type: 'regex',
@@ -52,48 +53,48 @@ export default class Searcher {
           });
         }
         // Handle $in - convert to Set for O(1) lookup
-        else if ("$in" in queryValue && Array.isArray(queryValue["$in"])) {
+        else if ("$in" in qv && Array.isArray(qv["$in"])) {
           compiled.push({
             key,
             type: 'in_set',
-            inSet: new Set(queryValue["$in"])
+            inSet: new Set(qv["$in"])
           });
         }
         // Handle range operators
-        else if ("$gt" in queryValue || "$lt" in queryValue || "$gte" in queryValue || "$lte" in queryValue) {
+        else if ("$gt" in qv || "$lt" in qv || "$gte" in qv || "$lte" in qv) {
           compiled.push({
             key,
             type: 'range',
             rangeOps: {
-              $gt: queryValue["$gt"],
-              $lt: queryValue["$lt"],
-              $gte: queryValue["$gte"],
-              $lte: queryValue["$lte"]
+              $gt: qv["$gt"] as number | undefined,
+              $lt: qv["$lt"] as number | undefined,
+              $gte: qv["$gte"] as number | undefined,
+              $lte: qv["$lte"] as number | undefined
             }
           });
         }
         // Handle $eq
-        else if ("$eq" in queryValue) {
+        else if ("$eq" in qv) {
           compiled.push({
             key,
             type: 'eq',
-            eqValue: queryValue["$eq"]
+            eqValue: qv["$eq"]
           });
         }
         // Handle $ne
-        else if ("$ne" in queryValue) {
+        else if ("$ne" in qv) {
           compiled.push({
             key,
             type: 'ne',
-            eqValue: queryValue["$ne"]
+            eqValue: qv["$ne"]
           });
         }
         // Handle $nin - convert to Set for O(1) lookup
-        else if ("$nin" in queryValue && Array.isArray(queryValue["$nin"])) {
+        else if ("$nin" in qv && Array.isArray(qv["$nin"])) {
           compiled.push({
             key,
             type: 'nin',
-            inSet: new Set(queryValue["$nin"])
+            inSet: new Set(qv["$nin"])
           });
         }
       } else {
@@ -114,7 +115,7 @@ export default class Searcher {
    * Note: The item passed here should already be the actual data object to compare against.
    * The caller (find method) handles extracting via additionalFiled if needed.
    */
-  private matchWithCompiled(item: any, compiled: CompiledQuery[]): boolean {
+  private matchWithCompiled(item: Record<string, unknown>, compiled: CompiledQuery[]): boolean {
     if (!item) return false;
     
     for (const cq of compiled) {
@@ -166,11 +167,11 @@ export default class Searcher {
    * @returns {Promise<any[]>} - A promise that resolves to an array of matching items.
    */
   public async find(
-    query: { [key: string]: any },
+    query: Record<string, unknown>,
     additionalFiled?: string | number | undefined,
     findOne: boolean = false,
     limit?: number,
-  ): Promise<any[]> {
+  ): Promise<Record<string, unknown>[]> {
     // Pre-compile query for faster matching
     const hasLogicalOps = '$or' in query || '$and' in query;
     const compiled = hasLogicalOps ? null : this.compileQuery(query);
@@ -178,7 +179,7 @@ export default class Searcher {
     
     // For small datasets, findOne, or when limit is small - use optimized linear search
     if (findOne || (effectiveLimit && effectiveLimit < 1000) || this.data.length < 10000) {
-      const result: any[] = [];
+      const result: Record<string, unknown>[] = [];
       for (let i = 0; i < this.data.length; i++) {
         const rawItem = this.data[i];
         const item = additionalFiled ? rawItem[additionalFiled] : rawItem;
@@ -187,8 +188,8 @@ export default class Searcher {
         
         // Use compiled query for faster matching when no logical operators
         const matches = compiled 
-          ? this.matchWithCompiled(item, compiled)
-          : Searcher.matchesQuery(item, query, this.isUpdated);
+          ? this.matchWithCompiled(item as Record<string, unknown>, compiled)
+          : Searcher.matchesQuery(item as Record<string, unknown>, query, this.isUpdated);
           
         if (matches) {
           result.push(rawItem);
@@ -205,7 +206,7 @@ export default class Searcher {
     const numWorkers = Math.min(os.cpus().length, Math.max(1, Math.ceil(this.data.length / 1000)));
     const chunkSize = Math.ceil(this.data.length / numWorkers);
 
-    const tasks: Promise<any[]>[] = [];
+    const tasks: Promise<Record<string, unknown>[]>[] = [];
 
     for (let i = 0; i < numWorkers; i++) {
       const start = i * chunkSize;
@@ -246,8 +247,8 @@ export default class Searcher {
    * @returns {boolean} - True if the item matches the query, false otherwise.
    */
   public static matchesQuery(
-    item: any,
-    query: { [key: string]: any },
+    item: Record<string, unknown>,
+    query: Record<string, unknown>,
     isUpdated: boolean = false,
   ): boolean {
     // Handle root-level $or
@@ -292,35 +293,36 @@ export default class Searcher {
     for (let i = 0; i < queryLength; i++) {
       const key = queryKeys[i];
       const queryValue = query[key];
-      const itemValue = isUpdated == true ? item.data[key] : item[key];
+      const itemValue = isUpdated == true ? (item.data as Record<string, unknown>)[key] : item[key];
 
       // If queryValue is an object (for operators)
       if (typeof queryValue === "object" && queryValue !== null) {
+        const qv = queryValue as Record<string, unknown>;
         // Handle MongoDB-like operators with optimized checks
-        if ("$regex" in queryValue) {
+        if ("$regex" in qv) {
           // Support both pre-compiled RegExp and string patterns
-          const pattern = queryValue["$regex"];
+          const pattern = qv["$regex"] as string | RegExp;
           const regex = pattern instanceof RegExp 
             ? pattern 
-            : new RegExp(pattern, queryValue["$options"] || "i");
-          if (!regex.test(itemValue)) return false;
+            : new RegExp(pattern, (qv["$options"] as string) || "i");
+          if (!regex.test(String(itemValue))) return false;
           continue;
         }
 
         // Handle range operators - check all that are present (don't use continue to allow combined $gte + $lte)
-        const hasRangeOp = "$gt" in queryValue || "$lt" in queryValue || "$gte" in queryValue || "$lte" in queryValue;
+        const hasRangeOp = "$gt" in qv || "$lt" in qv || "$gte" in qv || "$lte" in qv;
         if (hasRangeOp) {
           if (typeof itemValue !== "number") return false;
-          if ("$gt" in queryValue && !(itemValue > queryValue["$gt"])) return false;
-          if ("$lt" in queryValue && !(itemValue < queryValue["$lt"])) return false;
-          if ("$gte" in queryValue && !(itemValue >= queryValue["$gte"])) return false;
-          if ("$lte" in queryValue && !(itemValue <= queryValue["$lte"])) return false;
+          if ("$gt" in qv && !(itemValue > (qv["$gt"] as number))) return false;
+          if ("$lt" in qv && !(itemValue < (qv["$lt"] as number))) return false;
+          if ("$gte" in qv && !(itemValue >= (qv["$gte"] as number))) return false;
+          if ("$lte" in qv && !(itemValue <= (qv["$lte"] as number))) return false;
           continue;
         }
 
-        if ("$in" in queryValue && Array.isArray(queryValue["$in"])) {
+        if ("$in" in qv && Array.isArray(qv["$in"])) {
           // Use Set for O(1) lookup on large arrays
-          const inArray = queryValue["$in"];
+          const inArray = qv["$in"] as unknown[];
           if (inArray.length > 10) {
             const inSet = new Set(inArray);
             if (!inSet.has(itemValue)) return false;
@@ -331,8 +333,8 @@ export default class Searcher {
         }
 
         // $exists - Check if field exists in document
-        if ("$exists" in queryValue) {
-          const shouldExist = queryValue["$exists"];
+        if ("$exists" in qv) {
+          const shouldExist = qv["$exists"] as boolean;
           const fieldExists = itemValue !== undefined && itemValue !== null;
           if (shouldExist && !fieldExists) return false;
           if (!shouldExist && fieldExists) return false;
@@ -340,12 +342,12 @@ export default class Searcher {
         }
 
         // $elemMatch - Match array elements with nested conditions
-        if ("$elemMatch" in queryValue) {
+        if ("$elemMatch" in qv) {
           if (!Array.isArray(itemValue)) return false;
 
-          const elemQuery = queryValue["$elemMatch"];
+          const elemQuery = qv["$elemMatch"] as Record<string, unknown>;
           const hasMatch = itemValue.some(elem => {
-            return this.matchesQuery(elem, elemQuery, false);
+            return this.matchesQuery(elem as Record<string, unknown>, elemQuery, false);
           });
 
           if (!hasMatch) return false;
@@ -353,20 +355,20 @@ export default class Searcher {
         }
 
         // $not - Negation of query condition
-        if ("$not" in queryValue) {
-          const negatedQuery = queryValue["$not"];
-          const tempDoc = { [key]: itemValue };
-          const tempQuery = { [key]: negatedQuery };
+        if ("$not" in qv) {
+          const negatedQuery = qv["$not"] as Record<string, unknown>;
+          const tempDoc = { [key]: itemValue } as Record<string, unknown>;
+          const tempQuery = { [key]: negatedQuery } as Record<string, unknown>;
 
-          if (this.matchesQuery(isUpdated ? { data: tempDoc } : tempDoc, tempQuery, isUpdated)) {
+          if (this.matchesQuery(isUpdated ? { data: tempDoc } as Record<string, unknown> : tempDoc, tempQuery, isUpdated)) {
             return false;
           }
           continue;
         }
 
         // $type - Check value type
-        if ("$type" in queryValue) {
-          const expectedType = queryValue["$type"];
+        if ("$type" in qv) {
+          const expectedType = qv["$type"] as string;
           const actualType = itemValue === null ? 'null'
                           : Array.isArray(itemValue) ? 'array'
                           : typeof itemValue;
@@ -376,17 +378,17 @@ export default class Searcher {
         }
 
         // $size - Check array length
-        if ("$size" in queryValue) {
+        if ("$size" in qv) {
           if (!Array.isArray(itemValue)) return false;
-          if (itemValue.length !== queryValue["$size"]) return false;
+          if (itemValue.length !== (qv["$size"] as number)) return false;
           continue;
         }
 
         // $all - Array must contain all specified values
-        if ("$all" in queryValue && Array.isArray(queryValue["$all"])) {
+        if ("$all" in qv && Array.isArray(qv["$all"])) {
           if (!Array.isArray(itemValue)) return false;
 
-          const requiredValues = queryValue["$all"];
+          const requiredValues = qv["$all"] as unknown[];
           const itemSet = new Set(itemValue);
           const hasAll = requiredValues.every(val => itemSet.has(val));
 
@@ -394,20 +396,20 @@ export default class Searcher {
           continue;
         }
 
-        if ("$eq" in queryValue) {
-          if (itemValue !== queryValue["$eq"]) return false;
+        if ("$eq" in qv) {
+          if (itemValue !== qv["$eq"]) return false;
           continue;
         }
 
         // $ne - Not equal
-        if ("$ne" in queryValue) {
-          if (itemValue === queryValue["$ne"]) return false;
+        if ("$ne" in qv) {
+          if (itemValue === qv["$ne"]) return false;
           continue;
         }
 
         // $nin - Not in array (inverse of $in)
-        if ("$nin" in queryValue && Array.isArray(queryValue["$nin"])) {
-          const ninArray = queryValue["$nin"];
+        if ("$nin" in qv && Array.isArray(qv["$nin"])) {
+          const ninArray = qv["$nin"] as unknown[];
           if (ninArray.length > 10) {
             const ninSet = new Set(ninArray);
             if (ninSet.has(itemValue)) return false;

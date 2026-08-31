@@ -23,7 +23,7 @@ export default class TransactionIndexManager {
   private readonly ReadIndexService: ReadIndex;
   private readonly indexCache: IndexCache;
   // Keyed by fieldName (not file path) - IndexCache.updateIndex() takes the field name
-  private stagedIndexUpdates: Map<string, any> = new Map();
+  private stagedIndexUpdates: Map<string, { fieldName: string; indexEntries: Record<string, string[]>; sortedValues: number[] }> = new Map();
 
   constructor(collectionPath: string) {
     this.collectionPath = collectionPath;
@@ -40,22 +40,22 @@ export default class TransactionIndexManager {
     this.indexCache = IndexCache.getInstance(collectionPath);
   }
 
-  public async resolveQueryToDocumentIds(query: object): Promise<string[]> {
+  public async resolveQueryToDocumentIds(query: Record<string, unknown>): Promise<string[]> {
     try {
       const fileNames = await this.ReadIndexService.getFileFromIndex(query);
 
       if (fileNames && fileNames.length > 0) {
-        const dataList = await ReaderWithWorker(fileNames, this.collectionPath, true);
+        const dataList = await ReaderWithWorker(fileNames, this.collectionPath, true) as Record<string, unknown>[];
 
         const searchedData = await new Searcher(dataList, true).find(query, "data");
-        return searchedData.map((item: any) => item.data.documentId);
+        return searchedData.map((item) => (item.data as { documentId: string }).documentId);
       }
 
       const allFiles = await this.getAllDocumentFiles();
-      const allData = await ReaderWithWorker(allFiles, this.collectionPath, true);
+      const allData = await ReaderWithWorker(allFiles, this.collectionPath, true) as Record<string, unknown>[];
 
       const searchedData = await new Searcher(allData, true).find(query, "data");
-      return searchedData.map((item: any) => item.data.documentId);
+      return searchedData.map((item) => (item.data as { documentId: string }).documentId);
     } catch {
       return [];
     }
@@ -68,7 +68,7 @@ export default class TransactionIndexManager {
       if (metaLines.length === 0) return;
 
       for (const line of metaLines) {
-        const indexMetaEntry = this.Converter.ToObject(line);
+        const indexMetaEntry = this.Converter.ToObject(line) as { indexFieldName: string };
         const fieldName = indexMetaEntry.indexFieldName;
 
         // Read through the shared cache (memory hit, or disk on cold start) so
@@ -89,7 +89,7 @@ export default class TransactionIndexManager {
         for (const op of operations) {
           if (op.type === 'INSERT' && op.data && op.documentId) {
             if (Object.prototype.hasOwnProperty.call(op.data, fieldName)) {
-              const fieldValue = (op.data as any)[fieldName];
+              const fieldValue = String((op.data as Record<string, unknown>)[fieldName]);
               const fileName = `${op.documentId}${General.DBMS_File_EXT}`;
 
               if (!indexEntries[fieldValue]) {
@@ -104,8 +104,8 @@ export default class TransactionIndexManager {
               }
             }
           } else if (op.type === 'UPDATE' && op.data && op.documentId && op.oldData) {
-            const oldFieldValue = (op.oldData as any)[fieldName];
-            const newFieldValue = (op.data as any)[fieldName];
+            const oldFieldValue = String((op.oldData as Record<string, unknown>)[fieldName]);
+            const newFieldValue = String((op.data as Record<string, unknown>)[fieldName]);
             const fileName = `${op.documentId}${General.DBMS_File_EXT}`;
 
             // Field value didn't actually change (the common case - e.g. updating
@@ -145,7 +145,7 @@ export default class TransactionIndexManager {
             }
           } else if (op.type === 'DELETE' && op.documentId && op.oldData) {
             if (Object.prototype.hasOwnProperty.call(op.oldData, fieldName)) {
-              const fieldValue = (op.oldData as any)[fieldName];
+              const fieldValue = String((op.oldData as Record<string, unknown>)[fieldName]);
               const fileName = `${op.documentId}${General.DBMS_File_EXT}`;
 
               if (indexEntries[fieldValue]) {
@@ -166,7 +166,11 @@ export default class TransactionIndexManager {
 
         indexData.indexEntries = indexEntries;
         indexData.sortedValues = sortedValues;
-        this.stagedIndexUpdates.set(fieldName, indexData);
+        this.stagedIndexUpdates.set(fieldName, {
+          fieldName: indexData.fieldName,
+          indexEntries: indexData.indexEntries,
+          sortedValues: indexData.sortedValues ?? [],
+        });
       }
     } catch {
       return;

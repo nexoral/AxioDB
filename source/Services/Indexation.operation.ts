@@ -214,14 +214,15 @@ export class AxioDB {
     );
     // check if all data is returned
     if ("data" in totalDatabases && "data" in totalSize) {
+      const databasesList = totalDatabases.data as string[];
       // Hide the reserved RBAC "config" database from user-facing database listings
-      const visibleDatabases: string[] = totalDatabases.data.filter(
+      const visibleDatabases: string[] = databasesList.filter(
         (db: string) => db.toLowerCase() !== RESERVED_DB_NAME,
       );
       const FinalDatabaseInfo: FinalDatabaseInfo = {
         CurrentPath: this.currentPATH,
         RootName: this.RootName,
-        TotalSize: parseFloat(totalSize.data),
+        TotalSize: parseFloat(totalSize.data as string),
         TotalDatabases: `${visibleDatabases.length} Databases`,
         ListOfDatabases: visibleDatabases,
         DatabaseMap: this.DatabaseMap,

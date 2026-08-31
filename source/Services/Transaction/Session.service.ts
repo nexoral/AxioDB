@@ -101,7 +101,7 @@ export default class Session {
       return this.ResponseHelper.Error("Session has expired or is inactive");
     }
 
-    let lastError: any = null;
+    let lastError: SuccessInterface | ErrorInterface | Error | null = null;
     let attempts = 0;
 
     while (attempts < this.options.maxRetries) {
@@ -130,7 +130,7 @@ export default class Session {
         }
 
         lastError = result;
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Ensure transaction is rolled back on error
         if (this.currentTransaction) {
           try {
@@ -142,11 +142,12 @@ export default class Session {
         }
 
         // Check if error is retryable
-        if (!this.options.retryWrites || !this.isRetryableError(error.message)) {
-          return this.ResponseHelper.Error(error.message || error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (!this.options.retryWrites || !this.isRetryableError(errorMessage)) {
+          return this.ResponseHelper.Error(errorMessage);
         }
 
-        lastError = error;
+        lastError = error instanceof Error ? error : new Error(String(error));
       }
 
       // Wait before retry with exponential backoff
@@ -156,7 +157,7 @@ export default class Session {
     }
 
     return this.ResponseHelper.Error(
-      `Transaction failed after ${attempts} attempts: ${lastError?.message || lastError}`
+      `Transaction failed after ${attempts} attempts: ${lastError && 'message' in lastError ? (lastError.message as string) || lastError : String(lastError)}`
     );
   }
 
@@ -174,9 +175,10 @@ export default class Session {
       const result = await this.currentTransaction.commit();
       this.currentTransaction = null;
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.currentTransaction = null;
-      return this.ResponseHelper.Error(error.message || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return this.ResponseHelper.Error(errorMessage);
     }
   }
 
@@ -194,9 +196,10 @@ export default class Session {
       const result = await this.currentTransaction.rollback();
       this.currentTransaction = null;
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.currentTransaction = null;
-      return this.ResponseHelper.Error(error.message || error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return this.ResponseHelper.Error(errorMessage);
     }
   }
 

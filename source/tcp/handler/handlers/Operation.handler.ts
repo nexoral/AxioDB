@@ -1,7 +1,17 @@
 import { AxioDB } from '../../../Services/Indexation.operation';
-import { TCPResponse } from '../../types/protocol.types';
+import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode } from '../../config/keys';
 import CRUDController from '../../../server/controller/Operation/CRUD.controller';
+import { Document } from '../../../config/Interfaces/shared.types';
+import { FastifyRequest } from 'fastify';
+
+type Params = TCPRequest['params'];
+
+interface MockRequest {
+  query: Record<string, string>;
+  body?: Document | Document[];
+  [key: string]: unknown;
+}
 
 /**
  * Operation Handler - Handles CRUD operation TCP commands
@@ -19,16 +29,15 @@ export default class OperationHandler {
   /**
    * Handle INSERT_DOCUMENT command
    */
-  async handleInsertDocument(requestId: string, params: any): Promise<TCPResponse> {
+  async handleInsertDocument(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, data } = params;
 
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName },
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName! },
       body: data,
-    } as any;
+    };
 
-    const result = await this.controller.createNewDocument(mockRequest);
+    const result = await this.controller.createNewDocument(mockRequest as unknown as FastifyRequest);
 
     return {
       id: requestId,
@@ -41,16 +50,15 @@ export default class OperationHandler {
   /**
    * Handle INSERT_MANY_DOCUMENTS command
    */
-  async handleInsertManyDocuments(requestId: string, params: any): Promise<TCPResponse> {
+  async handleInsertManyDocuments(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, documents } = params;
 
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName },
-      body: documents,
-    } as any;
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName! },
+      body: documents as Document[],
+    };
 
-    const result = await this.controller.createManyNewDocument(mockRequest);
+    const result = await this.controller.createManyNewDocument(mockRequest as unknown as FastifyRequest);
 
     return {
       id: requestId,
@@ -63,15 +71,15 @@ export default class OperationHandler {
   /**
    * Handle QUERY_DOCUMENTS command
    */
-  async handleQueryDocuments(requestId: string, params: any): Promise<TCPResponse> {
+  async handleQueryDocuments(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, query = {}, limit, skip, sort, findOne, hint } = params;
 
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const collection = await databaseInstance.createCollection(collectionName);
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
 
       // Build query with options
-      let queryBuilder = collection.query(query);
+      let queryBuilder = collection.query(query as Record<string, unknown>);
 
       if (limit !== undefined) {
         queryBuilder = queryBuilder.Limit(limit);
@@ -114,15 +122,14 @@ export default class OperationHandler {
   /**
    * Handle QUERY_BY_ID command
    */
-  async handleQueryById(requestId: string, params: any): Promise<TCPResponse> {
+  async handleQueryById(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, id: documentId } = params;
 
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName, documentId },
-    } as any;
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName!, documentId: documentId! },
+    };
 
-    const result = await this.controller.getDocumentsById(mockRequest);
+    const result = await this.controller.getDocumentsById(mockRequest as unknown as FastifyRequest);
 
     return {
       id: requestId,
@@ -135,13 +142,13 @@ export default class OperationHandler {
   /**
    * Handle FIND_BY_IDS command
    */
-  async handleFindByIds(requestId: string, params: any): Promise<TCPResponse> {
+  async handleFindByIds(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, ids } = params;
 
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const collection = await databaseInstance.createCollection(collectionName);
-      const result = await collection.findByIds(ids);
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
+      const result = await collection.findByIds(ids!);
 
       return {
         id: requestId,
@@ -162,16 +169,15 @@ export default class OperationHandler {
   /**
    * Handle UPDATE_DOCUMENT_BY_ID command
    */
-  async handleUpdateById(requestId: string, params: any): Promise<TCPResponse> {
+  async handleUpdateById(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, id: documentId, updateData } = params;
 
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName, documentId },
-      body: updateData,
-    } as any;
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName!, documentId: documentId! },
+      body: updateData as Document,
+    };
 
-    const result = await this.controller.updateDocumentById(mockRequest);
+    const result = await this.controller.updateDocumentById(mockRequest as unknown as FastifyRequest);
 
     return {
       id: requestId,
@@ -184,17 +190,16 @@ export default class OperationHandler {
   /**
    * Handle UPDATE_DOCUMENTS_BY_QUERY command
    */
-  async handleUpdateByQuery(requestId: string, params: any): Promise<TCPResponse> {
+  async handleUpdateByQuery(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, query, updateData, updateOne = true } = params;
     const isMany = !updateOne;
 
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName, isMany },
-      body: { query, update: updateData },
-    } as any;
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName!, isMany: String(isMany) },
+      body: { query, update: updateData } as unknown as Document,
+    };
 
-    const result = await this.controller.updateDocumentByQuery(mockRequest);
+    const result = await this.controller.updateDocumentByQuery(mockRequest as unknown as FastifyRequest);
 
     return {
       id: requestId,
@@ -207,15 +212,14 @@ export default class OperationHandler {
   /**
    * Handle DELETE_DOCUMENT_BY_ID command
    */
-  async handleDeleteById(requestId: string, params: any): Promise<TCPResponse> {
+  async handleDeleteById(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, id: documentId } = params;
 
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName, documentId },
-    } as any;
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName!, documentId: documentId! },
+    };
 
-    const result = await this.controller.deleteDocumentById(mockRequest);
+    const result = await this.controller.deleteDocumentById(mockRequest as unknown as FastifyRequest);
 
     return {
       id: requestId,
@@ -228,17 +232,16 @@ export default class OperationHandler {
   /**
    * Handle DELETE_DOCUMENTS_BY_QUERY command
    */
-  async handleDeleteByQuery(requestId: string, params: any): Promise<TCPResponse> {
+  async handleDeleteByQuery(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, query, deleteOne = true } = params;
     const isMany = !deleteOne;
 
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName, isMany },
-      body: { query },
-    } as any;
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName!, isMany: String(isMany) },
+      body: { query } as unknown as Document,
+    };
 
-    const result = await this.controller.deleteDocumentByQuery(mockRequest);
+    const result = await this.controller.deleteDocumentByQuery(mockRequest as unknown as FastifyRequest);
 
     return {
       id: requestId,
@@ -251,16 +254,15 @@ export default class OperationHandler {
   /**
    * Handle AGGREGATE command
    */
-  async handleAggregate(requestId: string, params: any): Promise<TCPResponse> {
+  async handleAggregate(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, pipeline } = params;
 
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName },
-      body: { aggregation: pipeline },
-    } as any;
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName! },
+      body: { aggregation: pipeline } as unknown as Document,
+    };
 
-    const result = await this.controller.runAggregation(mockRequest);
+    const result = await this.controller.runAggregation(mockRequest as unknown as FastifyRequest);
 
     return {
       id: requestId,
@@ -273,19 +275,19 @@ export default class OperationHandler {
   /**
    * Handle TOTAL_DOCUMENTS command
    */
-  async handleTotalDocuments(requestId: string, params: any): Promise<TCPResponse> {
+  async handleTotalDocuments(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName } = params;
 
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const collection = await databaseInstance.createCollection(collectionName);
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
 
       const result = await collection.totalDocuments();
 
       return {
         id: requestId,
         statusCode: result.statusCode,
-        message: 'message' in result ? result.message || 'Total documents retrieved successfully' : 'Total documents retrieved successfully',
+        message: 'message' in result ? (result.message as string) || 'Total documents retrieved successfully' : 'Total documents retrieved successfully',
         data: result.data,
       };
     } catch (error) {
@@ -301,14 +303,14 @@ export default class OperationHandler {
   /**
    * Handle CREATE_INDEX command
    */
-  async handleCreateIndex(requestId: string, params: any): Promise<TCPResponse> {
+  async handleCreateIndex(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, fieldNames } = params;
 
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const collection = await databaseInstance.createCollection(collectionName);
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
 
-      const result = await collection.newIndex(...fieldNames);
+      const result = await collection.newIndex(...(fieldNames as string[]));
 
       return {
         id: requestId,
@@ -329,19 +331,19 @@ export default class OperationHandler {
   /**
    * Handle LIST_INDEXES command
    */
-  async handleListIndexes(requestId: string, params: any): Promise<TCPResponse> {
+  async handleListIndexes(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName } = params;
 
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const collection = await databaseInstance.createCollection(collectionName);
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
 
       const result = await collection.getIndexes();
 
       return {
         id: requestId,
         statusCode: result.statusCode,
-        message: 'message' in result ? result.message || 'Indexes retrieved successfully' : 'Indexes retrieved successfully',
+        message: 'message' in result ? (result.message as string) || 'Indexes retrieved successfully' : 'Indexes retrieved successfully',
         data: result.data,
       };
     } catch (error) {
@@ -357,14 +359,14 @@ export default class OperationHandler {
   /**
    * Handle DROP_INDEX command
    */
-  async handleDropIndex(requestId: string, params: any): Promise<TCPResponse> {
+  async handleDropIndex(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, indexName } = params;
 
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const collection = await databaseInstance.createCollection(collectionName);
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
 
-      const result = await collection.dropIndex(indexName);
+      const result = await collection.dropIndex(indexName!);
 
       return {
         id: requestId,

@@ -12,7 +12,7 @@ export default class Converter {
     return parseInt(value);
   }
 
-  public ToObject(value: string): any {
+  public ToObject(value: string): unknown {
     return JSON.parse(value);
   }
 

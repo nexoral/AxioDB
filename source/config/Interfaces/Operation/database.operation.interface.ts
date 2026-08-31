@@ -10,6 +10,6 @@ export interface FinalCollectionsInfo {
   TotalSize: number;
   TotalCollections: number | string;
   ListOfCollections: string[];
-  collectionMetaStatus: any[];
+  collectionMetaStatus: Array<{ collectionName: string; path: string }>;
   AllCollectionsPaths: string[];
 }

@@ -195,7 +195,7 @@ export class AxioDBCloud extends EventEmitter {
     return this.pool.find((connection) => connection.authUser)?.authUser;
   }
 
-  async sendCommand(command: CommandType, params: any): Promise<any> {
+  async sendCommand(command: CommandType, params: Record<string, unknown>): Promise<unknown> {
     const connection = this.pickConnection();
     if (!connection) {
       throw new Error('Not connected to server');
@@ -239,11 +239,11 @@ export class AxioDBCloud extends EventEmitter {
   }
 
   async isDatabaseExists(name: string): Promise<boolean> {
-    const result = await this.sendCommand(CommandType.DB_EXISTS, { dbName: name });
-    return result.exists;
+    const result = await this.sendCommand(CommandType.DB_EXISTS, { dbName: name }) as Record<string, unknown>;
+    return result.exists as boolean;
   }
 
-  async getInstanceInfo(): Promise<any> {
+  async getInstanceInfo(): Promise<unknown> {
     return await this.sendCommand(CommandType.GET_INSTANCE_INFO, {});
   }
 

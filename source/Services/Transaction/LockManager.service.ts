@@ -153,7 +153,7 @@ export default class LockManager {
         return null;
       }
 
-      const lockData = this.Converter.ToObject(readResult.data);
+      const lockData = this.Converter.ToObject(readResult.data as string) as { lockInfo: LockInfo; checksum: string };
       const { lockInfo, checksum } = lockData;
 
       const calculatedChecksum = createHash('sha256')

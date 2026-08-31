@@ -156,6 +156,8 @@ const db = new AxioDB({
 
 ### Querying
 - **Chainable Query API:** `.query()`, `.Sort()`, `.Limit()`, `.Skip()`, `.setCount()`, `.setProject()`, `.exec()` / `.findOne()`
+- **Index Hints:** `.hint('fieldName')` to force a specific index on any query for predictable performance
+- **Batch Read:** `.findByIds(['id1', 'id2'])` to retrieve multiple documents by ID in a single call
 - **MongoDB-style Query Operators:** `$gt`, `$gte`, `$lt`, `$lte`, `$ne`, `$in`, `$nin`, `$exists`, `$regex`, `$or`, `$and`
 - **Aggregation Pipelines:** 60+ MongoDB-compatible stages (`$match`, `$group`, `$sort`, `$project`, `$limit`, `$skip`, `$unwind`, `$addFields`, `$lookup`, `$facet`, `$bucket`, `$count`, `$sample`, ...) with full expression evaluator, cross-collection `$lookup` joins, and custom operator registration via `OperatorRegistry`
 - **Bulk Operations:** high-performance `insertMany`, `UpdateMany`, `deleteMany`

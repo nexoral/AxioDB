@@ -156,7 +156,7 @@ export default class PooledConnection {
     return this.authUser;
   }
 
-  sendCommand(command: CommandType | string, params: any): Promise<any> {
+  sendCommand(command: CommandType | string, params: Record<string, unknown>): Promise<unknown> {
     if (this.state !== ConnectionState.CONNECTED || !this.socket) {
       return Promise.reject(new Error('Not connected to server'));
     }

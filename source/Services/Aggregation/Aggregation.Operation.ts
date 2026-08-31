@@ -18,8 +18,8 @@ import {
 } from "./operators/stageOperators";
 
 export default class Aggregation {
-  private AllData: any[] = [];
-  private readonly Pipeline: any[];
+  private AllData: Record<string, unknown>[] = [];
+  private readonly Pipeline: Record<string, unknown>[];
   private readonly path: string;
   private readonly collectionName: string;
   private readonly ResponseHelper: ResponseHelper;
@@ -28,7 +28,7 @@ export default class Aggregation {
   constructor(
     collectionName: string,
     path: string,
-    Pipeline: object[] | any,
+    Pipeline: Record<string, unknown>[],
     collectionResolver?: CollectionResolver,
   ) {
     this.collectionName = collectionName;
@@ -54,22 +54,22 @@ export default class Aggregation {
       const opName = Object.keys(stage)[0];
       if (!opName) continue;
 
-      const opExpr = (stage as any)[opName];
+      const opExpr = stage[opName] as Record<string, unknown>;
 
       if (opName === "$lookup") {
         result = await executeLookup(result, opExpr, this.collectionResolver);
         continue;
       }
       if (opName === "$facet") {
-        result = [executeFacet(result, opExpr)];
+        result = [executeFacet(result, opExpr as Record<string, unknown[]>)] as unknown as Record<string, unknown>[];
         continue;
       }
       if (opName === "$bucket") {
-        result = executeBucket(result, opExpr);
+        result = executeBucket(result, opExpr as { groupBy: unknown; boundaries: unknown[]; default?: string; output?: Record<string, unknown> });
         continue;
       }
       if (opName === "$bucketAuto") {
-        result = executeBucketAuto(result, opExpr);
+        result = executeBucketAuto(result, opExpr as { groupBy: unknown; buckets: number; output?: Record<string, unknown> });
         continue;
       }
 
@@ -81,7 +81,7 @@ export default class Aggregation {
 
       const registered = OperatorRegistry.getOperator(opName);
       if (registered && registered.type === "stage") {
-        const customResult = (registered.fn as any)(result, opExpr, this.collectionResolver);
+        const customResult = (registered.fn as (data: Record<string, unknown>[], expr: Record<string, unknown>, resolver?: CollectionResolver) => Record<string, unknown>[] | Promise<Record<string, unknown>[]>)(result, opExpr, this.collectionResolver);
         result = customResult instanceof Promise ? await customResult : customResult;
         continue;
       }
@@ -100,7 +100,7 @@ export default class Aggregation {
         if (fileNames.length > 0) {
           const result = await DocumentLoader.loadDocuments(this.path, fileNames, false);
           if ("data" in result) {
-            this.AllData = result.data;
+            this.AllData = result.data as Record<string, unknown>[];
             Console.green(`${this.AllData.length} Documents Loaded for Aggregation (index-optimized)`);
             return;
           }
@@ -112,7 +112,7 @@ export default class Aggregation {
 
     const result = await DocumentLoader.loadDocuments(this.path, undefined, false);
     if ("data" in result) {
-      this.AllData = result.data;
+      this.AllData = result.data as Record<string, unknown>[];
       Console.green(`${this.AllData.length} Documents Loaded for Aggregation`);
     }
   }

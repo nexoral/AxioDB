@@ -457,7 +457,7 @@ export default class CRUDController {
     };
 
     const { aggregation } = request.body as {
-      aggregation: object[];
+      aggregation: Record<string, unknown>[];
     };
 
     if (!Array.isArray(aggregation) || aggregation.length === 0) {

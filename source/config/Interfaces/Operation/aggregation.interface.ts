@@ -1,11 +1,11 @@
 
-export type CollectionResolver = (collectionName: string, query?: Record<string, any>) => Promise<any[]>;
+export type CollectionResolver = (collectionName: string, query?: Record<string, unknown>) => Promise<Record<string, unknown>[]>;
 
-export type StageOperatorFn = (input: any[], stageExpr: any, resolver?: CollectionResolver) => any[] | Promise<any[]>;
+export type StageOperatorFn = (input: Record<string, unknown>[], stageExpr: Record<string, unknown>, resolver?: CollectionResolver) => Record<string, unknown>[] | Promise<Record<string, unknown>[]>;
 
-export type AccumulatorFn = (collection: any[], expr: any) => any;
+export type AccumulatorFn = (collection: Record<string, unknown>[], expr: unknown) => unknown;
 
-export type ExpressionFn = (doc: any, expr: any) => any;
+export type ExpressionFn = (doc: Record<string, unknown>, expr: unknown) => unknown;
 
 export interface RegisteredOperator {
   type: "stage" | "accumulator" | "expression";

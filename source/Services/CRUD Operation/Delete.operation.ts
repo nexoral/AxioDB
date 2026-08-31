@@ -5,6 +5,7 @@ import {
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import ResponseHelper from "../../Helper/response.helper";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
+import { TransactionOperation } from "../../config/Interfaces/Transaction/transaction.interface";
 
 // Import All Utility
 import Searcher from "../../utility/Searcher.utils";
@@ -19,16 +20,16 @@ import Transaction from "../Transaction/Transaction.service";
 export default class DeleteOperation {
   // Properties
   protected readonly collectionName: string;
-  private readonly baseQuery: object | any;
+  private readonly baseQuery: Record<string, unknown>;
   private readonly path: string;
   private readonly ResponseHelper: ResponseHelper;
-  private allDataWithFileName: any[] = [];
-  private sort: object | any;
+  private allDataWithFileName: Array<{ fileName: string; data: Record<string, unknown> }> = [];
+  private sort: Record<string, 1 | -1>;
 
   constructor(
     collectionName: string,
     path: string,
-    baseQuery: object | any,
+    baseQuery: Record<string, unknown>,
   ) {
     this.collectionName = collectionName;
     this.path = path;
@@ -69,8 +70,8 @@ export default class DeleteOperation {
         return commitResult;
       }
 
-      const deleteOp = (commitResult.data.resolvedOperations ?? []).find(
-        (op: any) => op.type === "DELETE" && op.documentId === documentId,
+      const deleteOp = ((commitResult.data as { resolvedOperations?: TransactionOperation[] }).resolvedOperations ?? []).find(
+        (op: TransactionOperation) => op.type === "DELETE" && op.documentId === documentId,
       );
       if (!deleteOp) {
         return this.ResponseHelper.Error("Document no longer exists");
@@ -107,8 +108,8 @@ export default class DeleteOperation {
         return commitResult;
       }
 
-      const deleteOps = (commitResult.data.resolvedOperations ?? []).filter(
-        (op: any) => op.type === "DELETE",
+      const deleteOps = ((commitResult.data as { resolvedOperations?: TransactionOperation[] }).resolvedOperations ?? []).filter(
+        (op: TransactionOperation) => op.type === "DELETE",
       );
 
       if (deleteOps.length === 0) {
@@ -119,7 +120,7 @@ export default class DeleteOperation {
 
       return this.ResponseHelper.Success({
         message: "Data deleted successfully",
-        deleteData: deleteOps.map((op: any) => op.oldData),
+        deleteData: deleteOps.map((op: TransactionOperation) => op.oldData),
       });
     } catch {
       return this.ResponseHelper.Error("Failed to delete data");
@@ -131,7 +132,7 @@ export default class DeleteOperation {
    * @param {object} sort - The sort to be set.
    * @returns {DeleteOperation} - An instance of the DeleteOperation class.
    */
-  public Sort(sort: object | any): DeleteOperation {
+  public Sort(sort: Record<string, 1 | -1>): DeleteOperation {
     this.sort = sort;
     return this;
   }
@@ -164,7 +165,7 @@ export default class DeleteOperation {
       return null;
     }
 
-    const SearchedData = await new Searcher(ReadResponse.data, true).find(
+    const SearchedData = await new Searcher(ReadResponse.data as Record<string, unknown>[], true).find(
       this.baseQuery,
       "data",
     );
@@ -173,14 +174,14 @@ export default class DeleteOperation {
       return null;
     }
 
-    let selectedFirstData = SearchedData[0];
+    let selectedFirstData = SearchedData[0] as unknown as { fileName: string; data: Record<string, unknown> };
     if (Object.keys(this.sort).length !== 0) {
       const Sorter: Sorting = new Sorting(SearchedData, this.sort);
-      const SortedData: any[] = await Sorter.sort("data");
+      const SortedData: Array<{ fileName: string; data: Record<string, unknown> }> = await Sorter.sort("data") as unknown as Array<{ fileName: string; data: Record<string, unknown> }>;
       selectedFirstData = SortedData[0];
     }
 
-    const fileName: string = selectedFirstData?.fileName;
+    const fileName: string = (selectedFirstData as { fileName: string })?.fileName;
     return fileName ? fileName.split(".")[0] : null;
   }
 
@@ -201,7 +202,7 @@ export default class DeleteOperation {
 
     // Store result in allDataWithFileName if successful
     if ("data" in result) {
-      this.allDataWithFileName = result.data;
+      this.allDataWithFileName = result.data as Array<{ fileName: string; data: Record<string, unknown> }>;
     }
 
     return result;

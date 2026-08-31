@@ -2,6 +2,7 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
+import { Document, SortSpec, ProjectionSpec, QueryValue } from "../../config/Interfaces/shared.types";
 
 // Import All helpers
 import InMemoryCache from "../../Memory/memory.operation";
@@ -20,17 +21,17 @@ import { ReadIndex } from "../Index/ReadIndex.service";
  */
 export default class Reader {
   private readonly collectionName: string;
-  private readonly path: string | any;
+  private readonly path: string;
   private readonly Converter: Converter;
-  private readonly baseQuery: object | any;
+  private readonly baseQuery: Record<string, QueryValue>;
   private limit: number | undefined;
   private skip: number | undefined;
-  private sort: object | any;
+  private sort: SortSpec;
   private totalCount: boolean;
   private FindOneStatus: boolean;
-  private project: object | any;
+  private project: ProjectionSpec;
   private readonly ResponseHelper: responseHelper;
-  private AllData: any[];
+  private AllData: Document[];
   private indexHint: string | undefined;
 
   /**
@@ -42,7 +43,7 @@ export default class Reader {
   constructor(
     collectionName: string,
     path: string,
-    baseQuery: object | any,
+    baseQuery: Record<string, QueryValue>,
   ) {
     this.collectionName = collectionName;
     this.path = path;
@@ -85,7 +86,7 @@ export default class Reader {
    */
   public async exec(): Promise<SuccessInterface | ErrorInterface> {
     try {
-      let SearchedData: any[] = [];
+      let SearchedData: Document[] = [];
 
       // Generate cache key with collection context (fixes cache collision bug)
       const cacheKey = this.generateCacheKey();
@@ -93,7 +94,7 @@ export default class Reader {
       // Check if result is in cache
       const responseFromCache = await InMemoryCache.getCache(cacheKey);
       if (responseFromCache !== false) {
-        SearchedData = responseFromCache;
+        SearchedData = responseFromCache as Document[];
         return this.applySortAndReturn(SearchedData);
       }
 
@@ -104,14 +105,15 @@ export default class Reader {
           `${PathSanitizer.sanitizePathComponent(id)}${General.DBMS_File_EXT}`;
 
         const FilePath = Array.isArray(this.baseQuery.documentId)
-          ? this.baseQuery.documentId.map(sanitizeDocId)
-          : [sanitizeDocId(this.baseQuery.documentId)];
+          ? this.baseQuery.documentId.map((id) => sanitizeDocId(String(id)))
+          : [sanitizeDocId(String(this.baseQuery.documentId))];
 
         const ReadResponse = await this.LoadAllBufferRawData(FilePath);
         if ("data" in ReadResponse) {
+          const data = ReadResponse.data as Document[];
           // Fire-and-forget: Cache asynchronously
-          InMemoryCache.setCache(cacheKey, ReadResponse.data, this.path).catch(() => {});
-          return this.ApplySkipAndLimit(ReadResponse.data);
+          InMemoryCache.setCache(cacheKey, data, this.path).catch(() => {});
+          return this.ApplySkipAndLimit(data);
         }
         return this.ResponseHelper.Error("Failed to read document by ID");
       }
@@ -126,14 +128,15 @@ export default class Reader {
         const hintValue = this.baseQuery[hintField];
 
         if (typeof hintValue === 'object' && hintValue !== null) {
-          if ('$in' in hintValue) {
-            indexedFileNames = await indexReader.getFilesForInOperator(hintField, hintValue.$in);
-          } else if ('$regex' in hintValue) {
-            indexedFileNames = await indexReader.getFileFromIndex({ [hintField]: hintValue });
-          } else if ('$gt' in hintValue || '$gte' in hintValue || '$lt' in hintValue || '$lte' in hintValue) {
-            indexedFileNames = await indexReader.getFilesForRangeOperator(hintField, hintValue);
+          const hintObj = hintValue as Record<string, unknown>;
+          if ('$in' in hintObj) {
+            indexedFileNames = await indexReader.getFilesForInOperator(hintField, hintObj.$in as unknown[]);
+          } else if ('$regex' in hintObj) {
+            indexedFileNames = await indexReader.getFileFromIndex({ [hintField]: hintObj });
+          } else if ('$gt' in hintObj || '$gte' in hintObj || '$lt' in hintObj || '$lte' in hintObj) {
+            indexedFileNames = await indexReader.getFilesForRangeOperator(hintField, hintObj as { $gt?: number; $gte?: number; $lt?: number; $lte?: number });
           } else {
-            indexedFileNames = await indexReader.getFileFromIndex({ [hintField]: hintValue });
+            indexedFileNames = await indexReader.getFileFromIndex({ [hintField]: hintObj });
           }
         } else {
           indexedFileNames = await indexReader.getFileFromIndex({ [hintField]: hintValue });
@@ -146,10 +149,11 @@ export default class Reader {
           const fieldValue = this.baseQuery[fieldName];
 
           if (typeof fieldValue === 'object' && fieldValue !== null) {
-            if ('$in' in fieldValue) {
-              indexedFileNames = await indexReader.getFilesForInOperator(fieldName, fieldValue.$in);
-            } else if ('$regex' in fieldValue) {
-              const prefixInfo = this.detectPrefixPattern(fieldValue.$regex, fieldValue.$options);
+            const fieldObj = fieldValue as Record<string, unknown>;
+            if ('$in' in fieldObj) {
+              indexedFileNames = await indexReader.getFilesForInOperator(fieldName, fieldObj.$in as unknown[]);
+            } else if ('$regex' in fieldObj) {
+              const prefixInfo = this.detectPrefixPattern(fieldObj.$regex as string | RegExp, fieldObj.$options as string | undefined);
               if (prefixInfo.isPrefix && prefixInfo.prefix) {
                 indexedFileNames = await indexReader.getFilesForPrefixQuery(
                   fieldName,
@@ -159,8 +163,8 @@ export default class Reader {
               } else {
                 indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
               }
-            } else if ('$gt' in fieldValue || '$gte' in fieldValue || '$lt' in fieldValue || '$lte' in fieldValue) {
-              indexedFileNames = await indexReader.getFilesForRangeOperator(fieldName, fieldValue);
+            } else if ('$gt' in fieldObj || '$gte' in fieldObj || '$lt' in fieldObj || '$lte' in fieldObj) {
+              indexedFileNames = await indexReader.getFilesForRangeOperator(fieldName, fieldObj as { $gt?: number; $gte?: number; $lt?: number; $lte?: number });
             } else {
               indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
             }
@@ -190,17 +194,18 @@ export default class Reader {
 
       // If no query filters, return all data
       if (Object.keys(this.baseQuery).length === 0) {
+        const data = ReadResponse.data as Document[];
         // Fire-and-forget: Cache asynchronously
-        InMemoryCache.setCache(cacheKey, ReadResponse.data, this.path).catch(() => {});
-        return this.applySortAndReturn(ReadResponse.data);
+        InMemoryCache.setCache(cacheKey, data, this.path).catch(() => {});
+        return this.applySortAndReturn(data);
       }
 
       // If we used index for exact match (single field, no operators), data is already filtered
       if (usedIndex && this.isExactIndexMatch()) {
-        SearchedData = ReadResponse.data;
+        SearchedData = ReadResponse.data as Document[];
       } else {
         // Apply searcher for complex queries or partial index matches
-        const searcher: Searcher = new Searcher(ReadResponse.data);
+        const searcher: Searcher = new Searcher(ReadResponse.data as Record<string, unknown>[]);
         SearchedData = await searcher.find(this.baseQuery);
       }
 
@@ -263,12 +268,12 @@ export default class Reader {
   /**
    * Applies sorting if needed and returns data with skip/limit
    */
-  private async applySortAndReturn(data: any[]): Promise<SuccessInterface | ErrorInterface> {
+  private async applySortAndReturn(data: Document[]): Promise<SuccessInterface | ErrorInterface> {
     if (Object.keys(this.sort).length === 0) {
       return this.ApplySkipAndLimit(data);
     }
     const Sorter: Sorting = new Sorting(data, this.sort);
-    const SortedData: any[] = await Sorter.sort();
+    const SortedData: Document[] = await Sorter.sort();
     return this.ApplySkipAndLimit(SortedData);
   }
 
@@ -306,7 +311,7 @@ export default class Reader {
    * @param {object} sort - The sort to be set.
    * @returns {Reader} - An instance of the Reader class.
    */
-  public Sort(sort: object | any): Reader {
+  public Sort(sort: SortSpec): Reader {
     // check if sort is an object or not
     if (typeof sort !== "object") {
       throw new Error("Sort should be an object");
@@ -344,7 +349,7 @@ export default class Reader {
     return this;
   }
 
-  public setProject(project: object | any): Reader {
+  public setProject(project: ProjectionSpec): Reader {
     // check if project is an object or not
     if (typeof project !== "object") {
       throw new Error("Project should be an object");
@@ -379,7 +384,7 @@ export default class Reader {
 
     // Store result in AllData if successful
     if ("data" in result) {
-      this.AllData = result.data;
+      this.AllData = result.data as Document[];
     }
 
     return result;
@@ -397,7 +402,7 @@ export default class Reader {
    * @returns {Promise<SuccessInterface | ErrorInterface>} - A promise that resolves to a success interface containing the sliced data or the original data.
    */
   private async ApplySkipAndLimit(
-    FinalData: any[],
+    FinalData: Document[],
   ): Promise<SuccessInterface | ErrorInterface> {
     // Check if FindOneStatus is true
     if (this.FindOneStatus === true) {
@@ -406,8 +411,9 @@ export default class Reader {
         if (Object.keys(this.project).length !== 0) {
           const projectionresponse = await this.ApplyProjection([FinalData[0]]);
           if ("data" in projectionresponse) {
+            const projData = projectionresponse.data as { documents: Document[] };
             return this.ResponseHelper.Success({
-              documents: projectionresponse.data.documents[0],
+              documents: projData.documents[0],
             });
           }
         }
@@ -421,7 +427,7 @@ export default class Reader {
     // Check if limit is passed or not
     if (this.limit !== undefined && this.skip !== undefined) {
       // Apply Skip and Limit
-      const limitedAndSkippedData: any[] = FinalData.slice(
+      const limitedAndSkippedData: Document[] = FinalData.slice(
         this.skip,
         this.skip + this.limit,
       );
@@ -433,8 +439,9 @@ export default class Reader {
             limitedAndSkippedData,
           );
           if ("data" in projectionresponse) {
+            const projData = projectionresponse.data as { documents: Document[] };
             return this.ResponseHelper.Success({
-              documents: projectionresponse.data.documents,
+              documents: projData.documents,
               totalDocuments: FinalData.length,
             });
           }
@@ -449,8 +456,9 @@ export default class Reader {
             limitedAndSkippedData,
           );
           if ("data" in projectionresponse) {
+            const projData = projectionresponse.data as { documents: Document[] };
             return this.ResponseHelper.Success({
-              documents: projectionresponse.data.documents,
+              documents: projData.documents,
             });
           }
         }
@@ -466,15 +474,15 @@ export default class Reader {
 
   // Apply Projection
   private async ApplyProjection(
-    FinalData: any[],
+    FinalData: Document[],
   ): Promise<SuccessInterface | ErrorInterface> {
     // Special keys
     const SpecialKeys = ["documentId"];
 
     // Apply Project
     if (Object.keys(this.project).length !== 0) {
-      const projectedData: any[] = FinalData.map((data) => {
-        const projectedObject: any = {};
+      const projectedData: Document[] = FinalData.map((data) => {
+        const projectedObject: Document = {};
         const keys = Object.keys(this.project);
         const hasInclude = keys.some((key) => this.project[key] === 1);
         const hasExclude = keys.every((key) => this.project[key] === 0);

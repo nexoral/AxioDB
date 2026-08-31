@@ -1,7 +1,10 @@
 import { AxioDB } from '../../../Services/Indexation.operation';
-import { TCPResponse } from '../../types/protocol.types';
+import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode, SuccessMessage } from '../../config/keys';
 import DatabaseController from '../../../server/controller/Database/Databse.controller';
+import { FastifyRequest } from 'fastify';
+
+type Params = TCPRequest['params'];
 
 /**
  * Database Handler - Handles database-related TCP commands
@@ -20,12 +23,12 @@ export default class DBHandler {
    * Handle CREATE_DB command
    * Note: This is idempotent - returns database whether it exists or not
    */
-  async handleCreateDB(requestId: string, params: any): Promise<TCPResponse> {
+  async handleCreateDB(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName } = params;
 
     try {
       // Use AxioDB instance directly for idempotent behavior
-      await this.axioDB.createDB(dbName);
+      await this.axioDB.createDB(dbName!);
 
       return {
         id: requestId,
@@ -46,15 +49,14 @@ export default class DBHandler {
   /**
    * Handle DELETE_DB command
    */
-  async handleDeleteDB(requestId: string, params: any): Promise<TCPResponse> {
+  async handleDeleteDB(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName } = params;
 
-    // Create mock request object
     const mockRequest = {
-      query: { dbName },
-    } as any;
+      query: { dbName: dbName! },
+    };
 
-    const result = await this.controller.deleteDatabase(mockRequest);
+    const result = await this.controller.deleteDatabase(mockRequest as unknown as FastifyRequest);
 
     return {
       id: requestId,
@@ -67,11 +69,11 @@ export default class DBHandler {
   /**
    * Handle DB_EXISTS command
    */
-  async handleDBExists(requestId: string, params: any): Promise<TCPResponse> {
+  async handleDBExists(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName } = params;
 
     try {
-      const exists = await this.axioDB.isDatabaseExists(dbName);
+      const exists = await this.axioDB.isDatabaseExists(dbName!);
 
       return {
         id: requestId,

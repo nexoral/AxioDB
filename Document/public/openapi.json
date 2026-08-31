@@ -1692,7 +1692,7 @@
           "Document Operations (CRUD)"
         ],
         "summary": "Retrieves documents matching a MongoDB-style query with pagination",
-        "description": "Retrieves documents matching a MongoDB-style query with pagination. Supports operators like $gt, $gte, $lt, $lte, $ne, $in, $regex.",
+        "description": "Retrieves documents matching a MongoDB-style query with pagination. Supports operators like $gt, $gte, $lt, $lte, $ne, $in, $regex. Optionally pass a hint to force a specific index.",
         "operationId": "postApiOperationAllByQuery",
         "parameters": [
           {
@@ -1720,6 +1720,15 @@
             "description": "Page number (starts from 1)",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "hint",
+            "in": "query",
+            "required": false,
+            "description": "Index field name to force (e.g. 'email' to use the email index)",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -1828,6 +1837,102 @@
           },
           "404": {
             "description": "Not Found - Document does not exist"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/all/by-ids/": {
+      "post": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Retrieves multiple documents by their IDs in a single call",
+        "description": "Retrieves multiple documents by their IDs in a single call. More efficient than multiple by-id requests.",
+        "operationId": "postApiOperationAllByIds",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {},
+                    "description": "Array of document IDs to retrieve"
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              },
+              "example": {
+                "ids": [
+                  "abc123",
+                  "def456",
+                  "ghi789"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Returns matching documents",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "Documents retrieved successfully",
+                  "data": {
+                    "documents": [
+                      {
+                        "documentId": "abc123",
+                        "name": "John Doe",
+                        "updatedAt": "2025-10-31T12:00:00.000Z"
+                      },
+                      {
+                        "documentId": "def456",
+                        "name": "Jane Smith",
+                        "updatedAt": "2025-10-31T12:00:00.000Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid parameters or empty ids array"
+          },
+          "404": {
+            "description": "Not Found - No documents match the provided IDs"
           }
         },
         "security": [

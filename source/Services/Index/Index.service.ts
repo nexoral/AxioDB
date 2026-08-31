@@ -43,7 +43,7 @@ export class IndexManager {
    */
   public static serializeIndexData(indexData: { fieldName: string; indexEntries: Record<string, string[]>; sortedValues?: number[] }): string {
     const lines: string[] = [];
-    const header: any = { h: 1, f: indexData.fieldName, s: indexData.sortedValues ?? [] };
+    const header: { h: number; f: string; s: number[] } = { h: 1, f: indexData.fieldName, s: indexData.sortedValues ?? [] };
     lines.push(JSON.stringify(header));
     for (const [key, files] of Object.entries(indexData.indexEntries)) {
       lines.push(JSON.stringify({ k: key, v: files }));
@@ -59,12 +59,12 @@ export class IndexManager {
     if (lines.length === 0) return null;
     const decoder = new TextDecoder();
     try {
-      const headerStr = typeof lines[0] === 'string' ? lines[0] : decoder.decode(lines[0] as any);
+      const headerStr = typeof lines[0] === 'string' ? lines[0] : decoder.decode(lines[0] as unknown as Uint8Array);
       const header = JSON.parse(headerStr);
       if (!header || header.h !== 1) return null;
       const indexEntries: Record<string, string[]> = {};
       for (let i = 1; i < lines.length; i++) {
-        const lineStr = typeof lines[i] === 'string' ? lines[i] : decoder.decode(lines[i] as any);
+        const lineStr = typeof lines[i] === 'string' ? lines[i] : decoder.decode(lines[i] as unknown as Uint8Array);
         try {
           const entry = JSON.parse(lineStr);
           if (entry && entry.k !== undefined && entry.v !== undefined) {
@@ -122,7 +122,7 @@ export class IndexManager {
         } else {
           // Check for duplicate by streaming meta lines (stop on first match)
           const existingMeta = await this.listMetaEntries();
-          const indexExists = existingMeta.some((entry: any) => entry.indexFieldName === indexName);
+          const indexExists = existingMeta.some((entry: IndexMetaEntry) => entry.indexFieldName === indexName);
           if (!indexExists) {
             await this.fileManager.AppendFile(this.indexMetaPath, this.converter.ToString(metaEntry) + "\n");
             EffectedIndexes.push(indexName);
@@ -156,11 +156,11 @@ export class IndexManager {
       await this.fileManager.DeleteFile(indexFilePath);
       // update index.meta.jsonl — stream-filter instead of full parse+rewrite
       const existingMeta = await this.listMetaEntries();
-      const filtered = existingMeta.filter((entry: any) => entry.indexFieldName !== indexName);
+      const filtered = existingMeta.filter((entry: IndexMetaEntry) => entry.indexFieldName !== indexName);
       if (filtered.length === 0) {
         await this.fileManager.DeleteFile(this.indexMetaPath);
       } else {
-        const lines = filtered.map((e: any) => this.converter.ToString(e)).join("\n") + "\n";
+        const lines = filtered.map((e: IndexMetaEntry) => this.converter.ToString(e)).join("\n") + "\n";
         await this.fileManager.WriteFile(this.indexMetaPath, lines);
       }
       return this.ResponseHelper.Success(`Index: ${indexName} deleted successfully`);
@@ -211,19 +211,19 @@ export class IndexManager {
    */
   private async listMetaEntries(): Promise<IndexMetaEntry[]> {
     const lines = await this.fileManager.ReadLines(this.indexMetaPath);
-    return lines.map(line => this.converter.ToObject(line));
+    return lines.map(line => this.converter.ToObject(line) as IndexMetaEntry);
   }
 
   /**
    * Finds index metadata entries that correspond to properties present on the provided document.
    * Streams meta file, returns first match (doesn't parse the entire file).
    */
-  protected async findMatchingIndexMeta (doc: any): Promise<any[] | undefined> {
+  protected async findMatchingIndexMeta (doc: Record<string, unknown>): Promise<IndexMetaEntry[] | undefined> {
     try {
       const lines = await this.fileManager.ReadLines(this.indexMetaPath);
       if (lines.length === 0) return undefined;
-      const entries = lines.map(line => this.converter.ToObject(line));
-      return entries.filter((meta: { indexFieldName: any; }) =>
+      const entries = lines.map(line => this.converter.ToObject(line) as IndexMetaEntry);
+      return entries.filter((meta: IndexMetaEntry) =>
         Object.prototype.hasOwnProperty.call(doc, meta.indexFieldName)
       );
     } catch {

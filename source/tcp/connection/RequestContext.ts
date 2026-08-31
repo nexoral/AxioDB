@@ -40,7 +40,7 @@ export class RequestContext {
   /**
    * Get request parameters
    */
-  get params(): any {
+  get params(): TCPRequest['params'] {
     return this.request.params;
   }
 
@@ -54,7 +54,7 @@ export class RequestContext {
   /**
    * Get connection metadata
    */
-  getMetadata(): Record<string, any> {
+  getMetadata(): Record<string, string | number> {
     return {
       remoteAddress: this.remoteAddress,
       timestamp: this.timestamp,

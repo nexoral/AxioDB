@@ -21,15 +21,16 @@ export interface TCPRequest {
     key?: string;
 
     // Document data
-    data?: any;
-    documents?: any[];
+    data?: Record<string, unknown>;
+    documents?: Record<string, unknown>[];
 
     // Query parameters
-    query?: object;
+    query?: Record<string, unknown>;
     id?: string; // Document ID for by-id operations
+    ids?: string[]; // Document IDs for batch operations
 
     // Update parameters
-    updateData?: object;
+    updateData?: Record<string, unknown>;
     updateOne?: boolean;
 
     // Delete parameters
@@ -38,8 +39,9 @@ export interface TCPRequest {
     // Query modifiers
     limit?: number;
     skip?: number;
-    sort?: object;
+    sort?: Record<string, 1 | -1>;
     findOne?: boolean;
+    hint?: string;
 
     // Aggregation parameters
     pipeline?: object[];
@@ -61,7 +63,7 @@ export interface TCPResponse {
   id: string; // Matches request ID for correlation
   statusCode: number; // HTTP-style status codes
   message: string; // Human-readable message
-  data?: any; // Response data (varies by command)
+  data?: unknown; // Response data (varies by command)
   error?: string; // Error details if statusCode >= 400
 }
 
@@ -80,7 +82,7 @@ export enum ConnectionState {
  * Pending request tracking
  */
 export interface PendingRequest {
-  resolve: (value: any) => void;
+  resolve: (value: unknown) => void;
   reject: (error: Error) => void;
   timeout: NodeJS.Timeout;
   timestamp: number;

@@ -78,14 +78,21 @@ export default class CollectionController {
         await this.AxioDBInstance.createDB(databaseName)
       ).getCollectionInfo();
       
-      const FolderPaths = collections?.data?.AllCollectionsPaths;
-      const mainData = collections?.data;
+      if (!collections || !("data" in collections)) {
+        return buildResponse(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "Failed to retrieve collections",
+        );
+      }
+
+      const mainData = collections.data as Record<string, unknown>;
+      const FolderPaths = (mainData.AllCollectionsPaths as string[]) || [];
       mainData.CollectionSizeMap = [];
 
       await Promise.all([
         ...FolderPaths.map(async (folderPath: string) => {
           const fileCount = await countDocumentsInFolder(folderPath);
-          mainData.CollectionSizeMap.push({ folderPath, fileCount });
+          (mainData.CollectionSizeMap as Array<{ folderPath: string; fileCount: number }>).push({ folderPath, fileCount });
         }),
       ]);
 

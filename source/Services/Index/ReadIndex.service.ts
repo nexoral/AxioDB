@@ -1,5 +1,5 @@
 import { General } from "../../config/Keys/Keys";
-import { IndexManager } from "./Index.service";
+import { IndexManager, IndexMetaEntry } from "./Index.service";
 import { IndexCache } from "./IndexCache.service";
 import SortedIndexValues from "../../Helper/SortedIndexValues.helper";
 
@@ -34,9 +34,10 @@ export class ReadIndex extends IndexManager {
    * @throws The returned promise will reject if reading or parsing the index file fails (for example,
    *         due to I/O errors or converter failures).
    */
-  public async getFileFromIndex (query: any) : Promise <string[]>{
-    const matchedIndexFile = await this.findMatchingIndexMeta(query);
-    if(matchedIndexFile !== undefined) {
+  public async getFileFromIndex (query: Record<string, unknown>) : Promise <string[]>{
+    const matchedIndexFiles = await this.findMatchingIndexMeta(query);
+    if(matchedIndexFiles !== undefined && matchedIndexFiles.length > 0) {
+      const matchedIndexFile = matchedIndexFiles[0];
       // FAST PATH: Try to get from memory cache first (O(1), no disk I/O)
       const indexData = await this.indexCache.getIndex(matchedIndexFile.indexFieldName);
 
@@ -49,7 +50,7 @@ export class ReadIndex extends IndexManager {
           return [];
         }
 
-        const finalValueFiles = indexData.indexEntries[queryValue];
+        const finalValueFiles = indexData.indexEntries[String(queryValue)];
         return finalValueFiles || [];
       }
 
@@ -63,7 +64,7 @@ export class ReadIndex extends IndexManager {
           if (typeof queryValue === 'object' && queryValue !== null) {
             return [];
           }
-          const finalValueFiles = indexData.indexEntries[queryValue];
+          const finalValueFiles = indexData.indexEntries[String(queryValue)];
           return finalValueFiles || [];
         }
       } catch { /* stream failed */ }
@@ -95,15 +96,15 @@ export class ReadIndex extends IndexManager {
    * // For query: { category: { $in: ['Electronics', 'Books'] } }
    * const files = await readIndex.getFilesForInOperator('category', ['Electronics', 'Books']);
    */
-  public async getFilesForInOperator(fieldName: string, values: any[]): Promise<string[]> {
+  public async getFilesForInOperator(fieldName: string, values: unknown[]): Promise<string[]> {
     const indexData = await this.indexCache.getIndex(fieldName);
     if (!indexData) return [];
 
     const fileSet = new Set<string>();
     for (const value of values) {
-      const files = indexData.indexEntries[value];
+      const files = indexData.indexEntries[String(value)];
       if (files) {
-        files.forEach(f => fileSet.add(f));
+        files.forEach((f: string) => fileSet.add(f));
       }
     }
     return Array.from(fileSet);
@@ -219,12 +220,13 @@ export class ReadIndex extends IndexManager {
  * @throws May propagate errors from `fileManager.ReadFile` or `converter.ToObject` if those
  *         operations throw or reject.
  */
-  protected async findMatchingIndexMeta(document: any): Promise<any | undefined> {
+  protected async findMatchingIndexMeta(document: Record<string, unknown>): Promise<IndexMetaEntry[] | undefined> {
     const lines = await this.fileManager.ReadLines(this.indexMetaPath);
     if (lines.length === 0) return undefined;
-    const entries = lines.map(line => this.converter.ToObject(line));
-    return entries.find((meta: { indexFieldName: any; }) =>
+    const entries = lines.map(line => this.converter.ToObject(line) as IndexMetaEntry);
+    const matched = entries.filter((meta: IndexMetaEntry) =>
       Object.prototype.hasOwnProperty.call(document, meta.indexFieldName)
     );
+    return matched.length > 0 ? matched : undefined;
   }
 }

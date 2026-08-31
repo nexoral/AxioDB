@@ -3,13 +3,13 @@ import { FastifyReply } from "fastify";
 export type ResponseBuilder = {
   statusCode: number;
   message: string;
-  data?: any;
+  data?: unknown;
 };
 
 export default function buildResponse(
   statusCode: number,
   message: string,
-  data?: any,
+  data?: unknown,
 ): ResponseBuilder {
   return {
     statusCode,

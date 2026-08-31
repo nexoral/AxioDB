@@ -45,8 +45,8 @@ export default class ReaderProxy {
     return this;
   }
 
-  async exec(): Promise<any> {
-    const params: any = {
+  async exec(): Promise<unknown> {
+    const params: Record<string, unknown> = {
       dbName: this.dbName,
       collectionName: this.collectionName,
       query: this.queryFilter,

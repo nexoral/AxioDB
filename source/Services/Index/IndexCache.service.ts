@@ -165,7 +165,7 @@ export class IndexCache {
       // Load each index file in parallel
       const loadPromises = metaLines.map(async (line) => {
         try {
-          const meta = this.converter.ToObject(line);
+          const meta = this.converter.ToObject(line) as { path: string; indexFieldName: string };
           const indexPath = meta.path;
           const fieldName = meta.indexFieldName;
 

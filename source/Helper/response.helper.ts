@@ -20,7 +20,7 @@ export default class ResponseHelper {
     this.ErrorCode = StatusCodes.INTERNAL_SERVER_ERROR;
   }
 
-  public async Success(data?: any): Promise<SuccessInterface> {
+  public async Success(data?: unknown): Promise<SuccessInterface> {
     return {
       statusCode: this.SucessCode,
       status: true,
@@ -28,11 +28,16 @@ export default class ResponseHelper {
     };
   }
 
-  public async Error(message?: any): Promise<ErrorInterface> {
+  public async Error(error?: unknown): Promise<ErrorInterface> {
+    const message =
+      error instanceof Error ? error.message
+        : typeof error === 'string' ? error
+        : error !== undefined ? String(error)
+        : undefined;
     return {
       statusCode: this.ErrorCode,
       status: false,
-      message: message,
+      message,
     };
   }
 }

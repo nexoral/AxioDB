@@ -7,7 +7,6 @@ import Logger from "../../Helper/Logger.helper";
 
 interface ErrorInterface {
   error: string;
-  [key: string]: any;
 }
 
 const { chunk, path, storeFileName } = workerData;
@@ -22,13 +21,14 @@ async function processFiles() {
           await new FileManager().ReadFile(`${path}/${fileName}`);
 
         if ("data" in ReadFileResponse) {
+          const fileData = ReadFileResponse.data as string;
           if (storeFileName == true) {
             return {
               fileName: fileName,
-              data: new Converter().ToObject(ReadFileResponse.data),
+              data: new Converter().ToObject(fileData),
             };
           } else {
-            return new Converter().ToObject(ReadFileResponse.data);
+            return new Converter().ToObject(fileData);
           }
         } else {
           Logger.error(`Failed to read file: ${fileName}`);

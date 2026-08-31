@@ -1,6 +1,6 @@
 # AxioDB
 
-> Embedded NoSQL database for Node.js — the pure-JavaScript SQLite alternative, with MongoDB-style queries. Zero native dependencies: no node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained, ~5,000 npm downloads/month (August 2026). Current version: 15.0.0.
+> Embedded NoSQL database for Node.js — the pure-JavaScript SQLite alternative, with MongoDB-style queries. Zero native dependencies: no node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained, ~5,000 npm downloads/month (August 2026). Current version: 19.2.0.
 
 ## What it is
 
@@ -19,7 +19,7 @@ Full SQL→AxioDB cookbook and an honest list of what you give up: https://axiod
 ## Key Differentiators
 
 - Zero native dependencies (no node-gyp, no electron-rebuild, no `.node` files, no prebuilt-binary matrix)
-- MongoDB-style queries: `{ age: { $gt: 25 } }` — not SQL strings. 19 query operators.
+- MongoDB-style queries: `{ age: { $gt: 25 } }` — not SQL strings. 19 query operators, plus index hints for query optimization.
 - Built-in InMemoryCache with randomized 5–15 minute TTL and selective invalidation
 - Worker Threads for multi-core parallel processing
 - ACID transactions with savepoints, rollback, and WAL — crash recovery covers plain `insert()` too, not just explicit transactions
@@ -28,6 +28,8 @@ Full SQL→AxioDB cookbook and an honest list of what you give up: https://axiod
 - CLI: Go-based command line interface — TCP queries, interactive REPL, database export/import via HTTP, 12 platforms
 - MCP Server: 32 tools for AI agent integration — **Docker image only, not in the npm package** (see below)
 - Full TypeScript support, types included, no `@types` package needed
+- Index hints — force a specific index on any query with .hint('fieldName')
+- Batch read — retrieve multiple documents by ID in one call with .findByIds([ids])
 
 ## Services and ports (important — these are not interchangeable)
 
