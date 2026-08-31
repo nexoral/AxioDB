@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from "../../../config/Keys/StatusCode";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse, {
@@ -15,6 +14,7 @@ import os from "os";
 import path from "path";
 import { pipeline } from "node:stream/promises";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
+import Logger from "../../../Helper/Logger.helper";
 import {
   claimImport,
   ImportConflictError,
@@ -60,7 +60,7 @@ export default class DatabaseController {
         Database_Name: name,
       });
     } catch (error) {
-      console.error("Error creating database:", error);
+      Logger.error("Error creating database:", error);
       return buildResponse(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Error creating database",
@@ -85,7 +85,7 @@ export default class DatabaseController {
         Database_Name: dbName,
       });
     } catch (error) {
-      console.error("Error deleting database:", error);
+      Logger.error("Error deleting database:", error);
       return buildResponse(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Error deleting database",
@@ -150,11 +150,11 @@ export default class DatabaseController {
       const stream = fs.createReadStream(responseZipTar);
 
       stream.on("error", async (error) => {
-        console.error("Stream error:", error);
+        Logger.error("Stream error:", error);
         try {
           await fs.promises.unlink(responseZipTar);
         } catch (unlinkError) {
-          console.error("Error cleaning up temp file:", unlinkError);
+          Logger.error("Error cleaning up temp file:", unlinkError);
         }
       });
 
@@ -162,13 +162,13 @@ export default class DatabaseController {
         try {
           await fs.promises.unlink(responseZipTar);
         } catch (unlinkError) {
-          console.error("Error cleaning up temp file:", unlinkError);
+          Logger.error("Error cleaning up temp file:", unlinkError);
         }
       });
 
       return reply.send(stream);
     } catch (error: unknown) {
-      console.error("Error exporting database:", error);
+      Logger.error("Error exporting database:", error);
       return reply.status(500).send({
         success: false,
         message: "Error exporting database",
@@ -232,7 +232,7 @@ export default class DatabaseController {
         // Extracted into staging, never straight into the data directory.
         await unzipFile(savePath, stagingDir);
       } catch (error: unknown) {
-        console.error("Error unzipping uploaded database:", error);
+        Logger.error("Error unzipping uploaded database:", error);
         return reply.status(400).send({
           success: false,
           message:
@@ -248,7 +248,7 @@ export default class DatabaseController {
       try {
         databaseName = readExportedDatabaseName(stagingDir);
       } catch (error: unknown) {
-        console.error("Rejected upload that is not an AxioDB export:", error);
+        Logger.error("Rejected upload that is not an AxioDB export:", error);
         return reply.status(400).send({
           success: false,
           message:
@@ -305,7 +305,7 @@ export default class DatabaseController {
         file: data.filename,
       };
     } catch (error: unknown) {
-      console.error("Error importing database:", error);
+      Logger.error("Error importing database:", error);
       return reply.status(500).send({
         success: false,
         message: "Error importing database",
@@ -318,7 +318,7 @@ export default class DatabaseController {
       await fs.promises
         .rm(workDir, { recursive: true, force: true })
         .catch((cleanupError) => {
-          console.error("Error cleaning up import staging directory:", cleanupError);
+          Logger.error("Error cleaning up import staging directory:", cleanupError);
         });
     }
   }

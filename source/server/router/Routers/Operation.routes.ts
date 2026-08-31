@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
-import buildResponse from "../../helper/responseBuilder.helper";
-import { StatusCodes } from "../../../config/Keys/StatusCode";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import CRUDController from "../../controller/Operation/CRUD.controller";
 import { requireAuth, requireFreshPassword } from "../../middleware/auth.middleware";
@@ -21,19 +18,19 @@ export default async function OperationRouter(
   fastify.get(
     "/all/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_VIEW)] },
-    async (request, reply) => new CRUDController(AxioDBInstance).getAllDocuments(request),
+    async (request) => new CRUDController(AxioDBInstance).getAllDocuments(request),
   );
 
   fastify.post(
     "/all/by-query/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_QUERY)] },
-    async (request, reply) => new CRUDController(AxioDBInstance).getDocumentsByQuery(request),
+    async (request) => new CRUDController(AxioDBInstance).getDocumentsByQuery(request),
   );
 
   fastify.get(
     "/all/by-id/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_VIEW)] },
-    async (request, reply) => new CRUDController(AxioDBInstance).getDocumentsById(request),
+    async (request) => new CRUDController(AxioDBInstance).getDocumentsById(request),
   );
 
   fastify.post(
@@ -41,7 +38,7 @@ export default async function OperationRouter(
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_CREATE)],
     },
-    async (request, reply) => new CRUDController(AxioDBInstance).createNewDocument(request),
+    async (request) => new CRUDController(AxioDBInstance).createNewDocument(request),
   );
 
   fastify.post(
@@ -49,7 +46,7 @@ export default async function OperationRouter(
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_CREATE)],
     },
-    async (request, reply) => new CRUDController(AxioDBInstance).createManyNewDocument(request),
+    async (request) => new CRUDController(AxioDBInstance).createManyNewDocument(request),
   );
 
   fastify.put(
@@ -57,7 +54,7 @@ export default async function OperationRouter(
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_UPDATE)],
     },
-    async (request, reply) => new CRUDController(AxioDBInstance).updateDocumentById(request),
+    async (request) => new CRUDController(AxioDBInstance).updateDocumentById(request),
   );
 
   fastify.put(
@@ -65,7 +62,7 @@ export default async function OperationRouter(
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_UPDATE)],
     },
-    async (request, reply) => new CRUDController(AxioDBInstance).updateDocumentByQuery(request),
+    async (request) => new CRUDController(AxioDBInstance).updateDocumentByQuery(request),
   );
 
   fastify.delete(
@@ -73,7 +70,7 @@ export default async function OperationRouter(
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_DELETE)],
     },
-    async (request, reply) => new CRUDController(AxioDBInstance).deleteDocumentById(request),
+    async (request) => new CRUDController(AxioDBInstance).deleteDocumentById(request),
   );
 
   fastify.delete(
@@ -81,7 +78,7 @@ export default async function OperationRouter(
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_DELETE)],
     },
-    async (request, reply) => new CRUDController(AxioDBInstance).deleteDocumentByQuery(request),
+    async (request) => new CRUDController(AxioDBInstance).deleteDocumentByQuery(request),
   );
 
   fastify.post(
@@ -93,6 +90,6 @@ export default async function OperationRouter(
         requirePermission(PERMISSIONS.DOCUMENT_AGGREGATE),
       ],
     },
-    async (request, reply) => new CRUDController(AxioDBInstance).runAggregation(request),
+    async (request) => new CRUDController(AxioDBInstance).runAggregation(request),
   );
 }

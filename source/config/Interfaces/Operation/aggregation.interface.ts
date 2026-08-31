@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export type CollectionResolver = (collectionName: string, query?: Record<string, any>) => Promise<any[]>;
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function getNestedValue(obj: any, path: string): any {
   if (!path || !obj) return undefined;

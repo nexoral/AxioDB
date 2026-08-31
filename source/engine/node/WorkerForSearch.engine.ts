@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { parentPort, workerData } from "worker_threads";
 import Searcher from "../../utility/Searcher.utils";
 

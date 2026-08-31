@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ErrorInterface, SuccessInterface } from "../../config/Interfaces/Helper/response.helper.interface";
 import { General } from "../../config/Keys/Keys";
 import FileManager from "../../engine/Filesystem/FileManager";

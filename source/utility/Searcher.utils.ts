@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Worker } from "worker_threads";
 import path from "path";
 import os from "os";
@@ -264,7 +262,9 @@ export default class Searcher {
 
     // Handle root-level $and
     if ("$and" in query && Array.isArray(query.$and)) {
-      const { $and, ...rest } = query;
+      const rest = Object.fromEntries(
+        Object.entries(query).filter(([k]) => k !== "$and")
+      );
       const andMatch = query.$and.every((sub) => this.matchesQuery(item, sub));
       const restMatch = Object.keys(rest).length
         ? this.matchesQuery(item, rest)
@@ -367,7 +367,7 @@ export default class Searcher {
         // $type - Check value type
         if ("$type" in queryValue) {
           const expectedType = queryValue["$type"];
-          let actualType = itemValue === null ? 'null'
+          const actualType = itemValue === null ? 'null'
                           : Array.isArray(itemValue) ? 'array'
                           : typeof itemValue;
 

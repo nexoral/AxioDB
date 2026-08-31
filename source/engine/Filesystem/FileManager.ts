@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import fs, { open as fsOpen } from "fs/promises";
 import { createReadStream } from "fs";
 import { createInterface } from "readline";
@@ -212,7 +211,7 @@ export default class FileManager {
           if ((stats.mode & 0o444) !== 0o444) {
             await fs.chmod(path, 0o644);
           }
-        } catch (permError) {
+        } catch {
           // Continue with attempt to read the file even if we couldn't modify permissions
         }
 
@@ -225,7 +224,7 @@ export default class FileManager {
           }
 
           return this.responseHelper.Success(stats.size);
-        } catch (statError) {
+        } catch {
           // Fall back to system commands if native method fails
           const osType = WorkerProcess.getOS();
           if (osType === "windows") {

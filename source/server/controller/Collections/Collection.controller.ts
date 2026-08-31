@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { StatusCodes } from "../../../config/Keys/StatusCode";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse, {
@@ -7,6 +6,7 @@ import buildResponse, {
 import { FastifyRequest } from "fastify";
 import countDocumentsInFolder from "../../helper/documentCounterInFolder.helper";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
+import Logger from "../../../Helper/Logger.helper";
 export default class CollectionController {
   private AxioDBInstance: AxioDB;
 
@@ -50,7 +50,7 @@ export default class CollectionController {
         },
       );
     } catch (error) {
-      console.error("Error creating collection:", error);
+      Logger.error("Error creating collection:", error);
       return buildResponse(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Failed to create collection",
@@ -95,7 +95,7 @@ export default class CollectionController {
         mainData,
       );
     } catch (error) {
-      console.error("Error retrieving collections:", error);
+      Logger.error("Error retrieving collections:", error);
       return buildResponse(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Failed to retrieve collections",
@@ -133,7 +133,7 @@ export default class CollectionController {
       await databaseInstance.deleteCollection(collectionName);
       return buildResponse(StatusCodes.OK, "Collection deleted successfully");
     } catch (error) {
-      console.error("Error deleting collection:", error);
+      Logger.error("Error deleting collection:", error);
       return buildResponse(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Failed to delete collection",

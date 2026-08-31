@@ -11,6 +11,7 @@ import { DEFAULT_TCP_PORT, ErrorMessage, StatusCode } from './keys';
 import { CommandType } from '../types/command.types';
 import AuthEvents from '../../Services/Auth/AuthEvents.service';
 import ConnectionRateLimiter from '../connection/ConnectionRateLimiter';
+import Logger from "../../Helper/Logger.helper";
 
 /** Path to a PEM cert + matching private key, used to encrypt the TCP server with TLS instead of plaintext. */
 export interface TCPTLSOptions {
@@ -87,17 +88,17 @@ export default async function createAxioDBTCPServer(
 
   // Setup server error handling
   server.on('error', (error: Error) => {
-    console.error('[AxioDB TCP Server] Server error:', error);
+    Logger.error('[AxioDB TCP Server] Server error:', error);
   });
 
   server.on('listening', () => {
     const address = server.address();
-    console.log(`[AxioDB TCP Server] Listening on port ${typeof address === 'object' ? address?.port : port}`);
+    Logger.info(`[AxioDB TCP Server] Listening on port ${typeof address === 'object' ? address?.port : port}`);
   });
 
   // Start listening
   server.listen(port, () => {
-    console.log(
+    Logger.info(
       `[AxioDB TCP Server] Started successfully on port ${port}${tlsOptions ? ' (TLS)' : ''}`,
     );
   });
@@ -110,29 +111,29 @@ export default async function createAxioDBTCPServer(
  */
 function setupConnectionManagerHandlers(connectionManager: ConnectionManager): void {
   connectionManager.on('connection:added', (connectionId: string, remoteAddress: string) => {
-    console.log(`[AxioDB TCP] Client connected: ${connectionId} from ${remoteAddress}`);
+    Logger.info(`[AxioDB TCP] Client connected: ${connectionId} from ${remoteAddress}`);
   });
 
   connectionManager.on('connection:removed', (connectionId: string) => {
-    console.log(`[AxioDB TCP] Client disconnected: ${connectionId}`);
+    Logger.info(`[AxioDB TCP] Client disconnected: ${connectionId}`);
   });
 
   connectionManager.on('error', (error: Error, connectionId: string) => {
-    console.error(`[AxioDB TCP] Error on connection ${connectionId}:`, error);
+    Logger.error(`[AxioDB TCP] Error on connection ${connectionId}:`, error);
   });
 
   connectionManager.on('socket:error', (error: Error, connectionId: string) => {
-    console.error(`[AxioDB TCP] Socket error on connection ${connectionId}:`, error);
+    Logger.error(`[AxioDB TCP] Socket error on connection ${connectionId}:`, error);
   });
 
   connectionManager.on('socket:closed', (connectionId: string, hadError: boolean) => {
     if (hadError) {
-      console.log(`[AxioDB TCP] Connection ${connectionId} closed with error`);
+      Logger.info(`[AxioDB TCP] Connection ${connectionId} closed with error`);
     }
   });
 
   connectionManager.on('socket:timeout', (connectionId: string) => {
-    console.log(`[AxioDB TCP] Connection ${connectionId} timed out`);
+    Logger.info(`[AxioDB TCP] Connection ${connectionId} timed out`);
   });
 }
 
@@ -153,7 +154,7 @@ function handleNewConnection(
     try {
       socket.write(MessageFramer.encode(errorResponse));
     } catch (error) {
-      console.error('[AxioDB TCP] Error sending rejection response:', error);
+      Logger.error('[AxioDB TCP] Error sending rejection response:', error);
     }
 
     socket.end();
@@ -202,7 +203,7 @@ async function handleMessage(
     const sent = connectionManager.sendResponse(connectionId, response);
 
     if (!sent) {
-      console.error(`[AxioDB TCP] Failed to send response for request ${message.id}`);
+      Logger.error(`[AxioDB TCP] Failed to send response for request ${message.id}`);
     }
 
     // Handle DISCONNECT command
@@ -210,7 +211,7 @@ async function handleMessage(
       connectionManager.removeConnection(connectionId);
     }
   } catch (error) {
-    console.error('[AxioDB TCP] Error handling message:', error);
+    Logger.error('[AxioDB TCP] Error handling message:', error);
 
     // Send error response
     const errorResponse: TCPResponse = {

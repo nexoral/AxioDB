@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {
   ErrorInterface,
@@ -81,7 +80,7 @@ export default class DeleteOperation {
         message: "Data deleted successfully",
         deleteData: deleteOp.oldData,
       });
-    } catch (error) {
+    } catch {
       return this.ResponseHelper.Error("Failed to delete data");
     }
   }
@@ -122,7 +121,7 @@ export default class DeleteOperation {
         message: "Data deleted successfully",
         deleteData: deleteOps.map((op: any) => op.oldData),
       });
-    } catch (error) {
+    } catch {
       return this.ResponseHelper.Error("Failed to delete data");
     }
   }

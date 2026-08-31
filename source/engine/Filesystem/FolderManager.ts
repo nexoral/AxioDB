@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import FileSystem from "fs/promises";
 import FileSystemSync from "fs";
 import WorkerProcess from "../cli/worker_process";
 import ResponseHelper from "../../Helper/response.helper";
+import Logger from "../../Helper/Logger.helper";
 import {
   ErrorInterface,
   SuccessInterface,
@@ -116,7 +116,7 @@ export default class FolderManager {
           );
           size = parseInt(stdout, 10) || 0;
         } catch (cmdError) {
-          console.warn(
+          Logger.warn(
             `Windows command failed: ${cmdError}, using fallback method`,
           );
           size = await this.calculateDirectorySizeRecursively(path);
@@ -128,7 +128,7 @@ export default class FolderManager {
           );
           size = parseInt(stdout.split("\t")[0], 10) || 0;
         } catch (cmdError) {
-          console.warn(
+          Logger.warn(
             `Unix command failed: ${cmdError}, using fallback method`,
           );
           size = await this.calculateDirectorySizeRecursively(path);
@@ -136,7 +136,7 @@ export default class FolderManager {
       }
       return this.responseHelper.Success(size);
     } catch (err) {
-      console.error(`Error getting directory size: ${err}`);
+      Logger.error(`Error getting directory size: ${err}`);
       return this.responseHelper.Error(`Failed to get directory size: ${err}`);
     } finally {
       await this.restoreDirectoryPermissions(permissionsMap);
@@ -160,7 +160,7 @@ export default class FolderManager {
           await this.fileSystem.chmod(dirPath, 0o755);
         }
       } catch (error) {
-        console.warn(
+        Logger.warn(
           `Could not check/modify permissions for ${dirPath}: ${error}`,
         );
         return;
@@ -170,7 +170,7 @@ export default class FolderManager {
       try {
         items = await this.fileSystem.readdir(dirPath);
       } catch (error) {
-        console.warn(`Could not read directory ${dirPath}: ${error}`);
+        Logger.warn(`Could not read directory ${dirPath}: ${error}`);
         return;
       }
 
@@ -195,12 +195,12 @@ export default class FolderManager {
               await this.fileSystem.chmod(itemPath, 0o644);
             }
           }
-        } catch (itemError) {
+        } catch {
           // Continue with other items
         }
       }
     } catch (error) {
-      console.warn(`Error preparing directory ${dirPath}: ${error}`);
+      Logger.warn(`Error preparing directory ${dirPath}: ${error}`);
     }
   }
 
@@ -216,7 +216,7 @@ export default class FolderManager {
         try {
           await this.fileSystem.chmod(path, originalMode);
         } catch (error) {
-          console.warn(`Failed to restore permissions for ${path}: ${error}`);
+          Logger.warn(`Failed to restore permissions for ${path}: ${error}`);
         }
       }
     }
@@ -246,13 +246,13 @@ export default class FolderManager {
             totalSize += stats.size;
           }
         } catch (itemError) {
-          console.warn(
+          Logger.warn(
             `Skipping item during size calculation: ${itemPath}: ${itemError}`,
           );
         }
       }
     } catch (error) {
-      console.warn(
+      Logger.warn(
         `Error reading directory during size calculation: ${dirPath}: ${error}`,
       );
     }

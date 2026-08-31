@@ -4,7 +4,6 @@ import {
   SuccessInterface,
 } from "../config/Interfaces/Helper/response.helper.interface";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Generates standardized success/error response objects.
  * @example

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Fastify from "fastify";
 import fastifyCors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
@@ -10,6 +9,7 @@ import checkPortAndDocker from "./PortFreeChecker";
 import { AxioDB } from "../../Services/Indexation.operation";
 import router from "../router/Router";
 import SessionStore from "../../Services/Auth/SessionStore.service";
+import Logger from "../../Helper/Logger.helper";
 
 export default async function createAxioDBControlServer(
   AxioDBInstance: AxioDB,
@@ -81,7 +81,7 @@ export default async function createAxioDBControlServer(
       host: "0.0.0.0",
     });
     SessionStore.startCleanupSweep();
-    console.log(
+    Logger.info(
       `AxioDB Control Server is running on http://localhost:${ServerKeys.PORT}`,
     );
   } catch (err) {

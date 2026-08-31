@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CollectionResolver } from "../../../config/Interfaces/Operation/aggregation.interface";
 import { evaluateExpression, getNestedValue } from "./expressionOperators";
 import { BUILT_IN_ACCUMULATORS } from "./accumulatorOperators";

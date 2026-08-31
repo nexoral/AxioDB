@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import ResponseHelper from "../../Helper/response.helper";
 import {
   ErrorInterface,

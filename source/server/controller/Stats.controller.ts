@@ -1,9 +1,9 @@
-/* eslint-disable no-self-assign */
 import { StatusCodes } from "../../config/Keys/StatusCode";
 import { AxioDB } from "../../Services/Indexation.operation";
 import buildResponse from "../helper/responseBuilder.helper";
 import InMemoryCache from "../../Memory/memory.operation";
 import fs from "fs";
+import Logger from "../../Helper/Logger.helper";
 
 export default class StatsController {
   private AxioDBInstance: AxioDB;
@@ -63,7 +63,7 @@ export default class StatsController {
           (totalUsedStorage / (1024 * 1024)).toFixed(2),
         );
       } catch (storageError) {
-        console.error("Error fetching machine storage:", storageError);
+        Logger.error("Error fetching machine storage:", storageError);
       }
 
       const MatrixUnitsForUsedStorage = "MB";
@@ -101,7 +101,7 @@ export default class StatsController {
         response,
       );
     } catch (error) {
-      console.error("Error fetching dashboard stats:", error);
+      Logger.error("Error fetching dashboard stats:", error);
       return buildResponse(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Failed to fetch dashboard stats",

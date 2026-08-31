@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   ErrorInterface,
   SuccessInterface,
@@ -92,7 +91,7 @@ export default class UpdateOperation {
         previousData: updateOp.oldData,
         documentId,
       });
-    } catch (error) {
+    } catch {
       return this.ResponseHelper.Error("Failed to update data");
     }
   }
@@ -147,7 +146,7 @@ export default class UpdateOperation {
         effectedData: updateOps.length,
         documentIds: updateOps.map((op: any) => op.documentId),
       });
-    } catch (error) {
+    } catch {
       return this.ResponseHelper.Error("Failed to update data");
     }
   }

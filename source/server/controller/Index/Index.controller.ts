@@ -5,6 +5,7 @@ import buildResponse, {
 } from "../../helper/responseBuilder.helper";
 import { FastifyRequest } from "fastify";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
+import Logger from "../../../Helper/Logger.helper";
 
 export default class IndexController {
   private AxioDBInstance: AxioDB;
@@ -44,7 +45,7 @@ export default class IndexController {
       }
       return buildResponse(StatusCodes.OK, "Indexes retrieved successfully", result.data);
     } catch (error) {
-      console.error("Error retrieving indexes:", error);
+      Logger.error("Error retrieving indexes:", error);
       return buildResponse(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Failed to retrieve indexes",
@@ -88,7 +89,7 @@ export default class IndexController {
           : "Index created successfully";
       return buildResponse(StatusCodes.CREATED, message, result?.data);
     } catch (error) {
-      console.error("Error creating index:", error);
+      Logger.error("Error creating index:", error);
       return buildResponse(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Failed to create index",
@@ -131,7 +132,7 @@ export default class IndexController {
       }
       return buildResponse(StatusCodes.OK, "Index deleted successfully", result.data);
     } catch (error) {
-      console.error("Error deleting index:", error);
+      Logger.error("Error deleting index:", error);
       return buildResponse(
         StatusCodes.INTERNAL_SERVER_ERROR,
         "Failed to delete index",

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { evaluateExpression } from "./expressionOperators";
 
 function resolveOperand(doc: any, operand: any): any {

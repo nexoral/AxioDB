@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { General } from "../../config/Keys/Keys";
 import { IndexManager } from "./Index.service";
 import { IndexCache } from "./IndexCache.service";

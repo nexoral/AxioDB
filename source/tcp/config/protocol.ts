@@ -1,5 +1,5 @@
 import { TCPRequest, TCPResponse } from '../types/protocol.types';
-import { CommandType, CommandDocumentation } from '../types/command.types';
+import { CommandType } from '../types/command.types';
 import { MAX_MESSAGE_SIZE, MESSAGE_LENGTH_BYTES, ENCODING, ErrorMessage, StatusCode } from './keys';
 
 /**
@@ -48,7 +48,7 @@ export class MessageFramer {
 
     try {
       return JSON.parse(json);
-    } catch (error) {
+    } catch {
       throw new Error(ErrorMessage.INVALID_MESSAGE_FORMAT);
     }
   }

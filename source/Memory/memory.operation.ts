@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import os from "os";
+import Logger from "../Helper/Logger.helper";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Cache entry with random TTL for improved performance
@@ -241,7 +240,7 @@ export class InMemoryCache {
 
       try {
         availableMemory = os.freemem(); // only available in Node.js
-      } catch (error) {
+      } catch {
         availableMemory = -1; // e.g. running in a browser environment
       }
 
@@ -252,7 +251,7 @@ export class InMemoryCache {
         tempQueryCount: this.tempSearchQuery.length,
       };
     } catch (error) {
-      console.error("Error getting cache details:", error);
+      Logger.error("Error getting cache details:", error);
       return false;
     }
   }

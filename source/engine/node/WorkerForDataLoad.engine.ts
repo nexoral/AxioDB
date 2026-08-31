@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { parentPort, workerData } from "worker_threads";
 
 import FileManager from "../Filesystem/FileManager";
 import Converter from "../../Helper/Converter.helper";
 import { SuccessInterface } from "../../config/Interfaces/Helper/response.helper.interface";
+import Logger from "../../Helper/Logger.helper";
 
 interface ErrorInterface {
   error: string;
@@ -31,11 +31,11 @@ async function processFiles() {
             return new Converter().ToObject(ReadFileResponse.data);
           }
         } else {
-          console.error(`Failed to read file: ${fileName}`);
+          Logger.error(`Failed to read file: ${fileName}`);
           return null;
         }
       } catch (error) {
-        console.error(`Error processing file ${fileName}:`, error);
+        Logger.error(`Error processing file ${fileName}:`, error);
         return null;
       }
     });
@@ -55,7 +55,7 @@ async function processFiles() {
 }
 
 processFiles().catch((error) => {
-  console.error("Worker error:", error);
+  Logger.error("Worker error:", error);
   if (parentPort) {
     parentPort.postMessage({ error: String(error) });
   }

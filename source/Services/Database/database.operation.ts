@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Collection from "../Collection/collection.operation";
 import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
@@ -16,6 +15,7 @@ import { IndexManager } from "../Index/Index.service";
 import { IndexCache } from "../Index/IndexCache.service";
 import { General } from "../../config/Keys/Keys";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
+import Logger from "../../Helper/Logger.helper";
 
 // Types
 type CollectionMetadata = {
@@ -64,7 +64,7 @@ export default class Database {
     // If the collection does not exist, create it
     if (collectionExists.statusCode !== StatusCodes.OK) {
       await this.folderManager.CreateDirectory(collectionPath);
-      console.log(`Collection Created: ${collectionPath}`);
+      Logger.info(`Collection Created: ${collectionPath}`);
     }
 
     // Create AutoIndex meta for the collection

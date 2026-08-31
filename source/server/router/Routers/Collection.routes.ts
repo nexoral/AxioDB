@@ -1,8 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
-import buildResponse from "../../helper/responseBuilder.helper";
-import { StatusCodes } from "../../../config/Keys/StatusCode";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import CollectionController from "../../controller/Collections/Collection.controller";
 import { requireAuth, requireFreshPassword } from "../../middleware/auth.middleware";
@@ -24,7 +20,7 @@ export default async function collectionRouter(
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.COLLECTION_VIEW)],
     },
-    async (request, reply) => {
+    async (request) => {
       return new CollectionController(AxioDBInstance).getCollections(request);
     },
   );
@@ -38,7 +34,7 @@ export default async function collectionRouter(
         requirePermission(PERMISSIONS.COLLECTION_CREATE),
       ],
     },
-    async (request, reply) => new CollectionController(AxioDBInstance).createCollection(request),
+    async (request) => new CollectionController(AxioDBInstance).createCollection(request),
   );
 
   fastify.delete(
@@ -50,6 +46,6 @@ export default async function collectionRouter(
         requirePermission(PERMISSIONS.COLLECTION_DELETE),
       ],
     },
-    async (request, reply) => new CollectionController(AxioDBInstance).deleteCollection(request),
+    async (request) => new CollectionController(AxioDBInstance).deleteCollection(request),
   );
 }

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
 import { AuthorInfo, AvailableRoutes } from "../config/keys";
 import buildResponse, {
@@ -141,7 +139,7 @@ export default async function mainRouter(
   fastify.get(
     "/dashboard-stats",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DASHBOARD_VIEW)] },
-    async (request, reply) => {
+    async () => {
       return new StatsController(AxioDBInstance).getDashBoardStat();
     },
   );

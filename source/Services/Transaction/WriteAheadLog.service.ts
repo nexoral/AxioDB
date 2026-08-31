@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createHash } from 'crypto';
 import { open as fsOpen } from 'fs/promises';
 import {

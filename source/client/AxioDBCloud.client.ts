@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import PooledConnection from './PooledConnection';
 import { CommandType } from '../tcp/types/command.types';
 import { AxioDBCloudOptions, AuthenticatedUser, ConnectionState, ParsedConnectionString, PoolDegradedEvent } from './types/client.types';
 import DatabaseProxy from './DatabaseProxy';
+import Logger from "../Helper/Logger.helper";
 
 const DEFAULT_MAX_POOL_SIZE = 10;
 
@@ -45,7 +45,7 @@ export class AxioDBCloud extends EventEmitter {
     // own, that one handles visibility and we don't double-log.
     this.on('error', (error: Error) => {
       if (this.listenerCount('error') <= 1) {
-        console.error(
+        Logger.error(
           '[AxioDBCloud] Unhandled connection error:',
           error instanceof Error ? error.message : error,
         );

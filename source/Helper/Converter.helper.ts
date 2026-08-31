@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export default class Converter {
   static ToObject(): string {
     throw new Error("Method not implemented.");

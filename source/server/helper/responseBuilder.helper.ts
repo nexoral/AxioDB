@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FastifyReply } from "fastify";
 
 export type ResponseBuilder = {

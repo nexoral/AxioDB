@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   ErrorInterface,
   SuccessInterface,
@@ -21,7 +20,6 @@ import Converter from "../../Helper/Converter.helper";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import { IndexManager } from "../Index/Index.service";
 import { IndexCache } from "../Index/IndexCache.service";
-import InMemoryCache from "../../Memory/memory.operation";
 
 /**
  * Represents a collection inside a database.

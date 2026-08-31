@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomUUID } from "crypto";
 import FileManager from "../../engine/Filesystem/FileManager";
 
