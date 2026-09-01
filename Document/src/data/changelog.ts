@@ -12,6 +12,15 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "20.3.2",
+    date: "2026-09-01",
+    title: "Security: @fastify/static route guard bypass and supply-chain vulnerabilities patched",
+    changes: [
+      "Security: patched GHSA-83w8-p2f5-377r / CVE-2026-15074 — @fastify/static 9.3.0 → 10.1.3 fixes route-guard bypass via non-leading .. and %2E%2E path segments (CVSS 7.5); also patched GHSA-8pvw-jcv7-9cmj, GHSA-v2hh-gcrm-f6hx, GHSA-7p8r-x3mc-p8w7, GHSA-c96f-x56v-gq3h, GHSA-r292-9mhp-454m",
+      "Updated: @fastify/static 10.1.3, tar 7.5.22, find-my-way 9.9.0, fast-uri 3.1.6 — npm audit 0 vulnerabilities",
+    ],
+  },
+  {
     version: "20.3.1",
     date: "2026-09-01",
     title: "ACID transactions over TCP with savepoints and connection-pinned client proxy",
