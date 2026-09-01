@@ -898,6 +898,64 @@
         ]
       }
     },
+    "/api/auth/roles/{roleName}": {
+      "delete": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Deletes a custom role",
+        "description": "Deletes a custom role. Predefined roles and roles assigned to users cannot be deleted.",
+        "operationId": "deleteApiAuthRolesRoleName",
+        "parameters": [
+          {
+            "name": "roleName",
+            "in": "query",
+            "required": true,
+            "description": "Role name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Role deleted",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Role deleted successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - System role, assigned role, or role not found"
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing role:delete permission"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "roleName",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
     "/api/auth/roles/permissions": {
       "get": {
         "tags": [
@@ -1617,6 +1675,66 @@
           },
           "500": {
             "description": "Internal Server Error - Failed to delete index"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/total/": {
+      "get": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Returns the total number of documents in one collection.",
+        "description": "Returns the total number of documents in one collection.",
+        "operationId": "getApiOperationTotal",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "Database name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "Collection name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Returns the document count",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Total Documents in the Collection",
+                  "data": {
+                    "total": 42
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Database and collection are required"
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing document:view permission"
           }
         },
         "security": [

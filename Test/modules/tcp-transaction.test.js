@@ -55,7 +55,7 @@ class RawTcpClient {
 }
 
 function getDocs(response) {
-  return response?.data?.data?.documents ?? [];
+  return response?.data?.documents ?? response?.data?.data?.documents ?? [];
 }
 
 class TcpTransactionTests extends TestRunner {
@@ -487,6 +487,34 @@ class TcpTransactionTests extends TestRunner {
         assert.equal(getDocs(query).length, 0);
 
         client2.close();
+      });
+    });
+
+    await this.describe('TCP Read and system operations', async () => {
+      await this.test('QUERY_DOCUMENTS honors an index hint', async () => {
+        const client = new RawTcpClient();
+        await client.connect();
+        await client.send(CommandType.INSERT_DOCUMENT, { dbName: 'TxnRead', collectionName: 'Items', data: { category: 'a', value: 1 } });
+        await client.send(CommandType.INSERT_DOCUMENT, { dbName: 'TxnRead', collectionName: 'Items', data: { category: 'b', value: 2 } });
+        const index = await client.send(CommandType.CREATE_INDEX, { dbName: 'TxnRead', collectionName: 'Items', fieldNames: ['category'] });
+        assert.ok(index.statusCode >= 200 && index.statusCode < 300);
+        const query = await client.send(CommandType.QUERY_DOCUMENTS, { dbName: 'TxnRead', collectionName: 'Items', query: { category: 'a' }, hint: 'category' });
+        assert.equal(query.statusCode, 200);
+        assert.equal(getDocs(query).length, 1);
+        client.close();
+      });
+
+      await this.test('AGGREGATE and GET_INSTANCE_INFO are available over TCP', async () => {
+        const client = new RawTcpClient();
+        await client.connect();
+        const aggregate = await client.send(CommandType.AGGREGATE, { dbName: 'TxnReadAgg', collectionName: 'Items', pipeline: [{ $count: 'total' }] });
+        assert.equal(aggregate.statusCode, 200);
+        const info = await client.send(CommandType.GET_INSTANCE_INFO, {});
+        assert.equal(info.statusCode, 200);
+        const health = await client.send(CommandType.HEALTH, {});
+        assert.equal(health.statusCode, 200);
+        assert.equal(health.data.status, 'ok');
+        client.close();
       });
     });
   }

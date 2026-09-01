@@ -47,7 +47,8 @@ const testModules = {
   'tcp-transaction': './modules/tcp-transaction.test.js',
   'tcp-tls': './modules/tcp-tls.test.js',
   'crash-recovery': './modules/crash-recovery.test.js',
-  'mcp-confirm': './modules/mcp-confirm.test.js'
+  'mcp-confirm': './modules/mcp-confirm.test.js',
+  'mcp-functional': './modules/mcp-functional.test.js'
 };
 
 /**

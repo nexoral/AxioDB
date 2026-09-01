@@ -77,7 +77,7 @@ module.exports = function registerDocumentTools(server, axioDBInstance) {
       }
       if (query) {
         return crudController.getDocumentsByQuery({
-          query: { dbName, collectionName, page: page || 1 },
+          query: { dbName, collectionName, page: page || 1, hint },
           body: { query },
         });
       }

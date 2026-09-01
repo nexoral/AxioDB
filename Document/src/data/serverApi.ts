@@ -385,6 +385,24 @@ export const apiCategories: ApiCategory[] = [
           ],
         },
         {
+          method: "DELETE",
+          path: "/api/auth/roles/:roleName",
+          description: "Deletes a custom role. Predefined roles and roles assigned to users cannot be deleted.",
+          parameters: [
+            { name: "roleName", type: "path", dataType: "string", required: true, description: "Role name" },
+          ],
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Role deleted successfully"
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Role deleted" },
+            { code: 400, description: "Bad Request - System role, assigned role, or role not found" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing role:delete permission" },
+          ],
+        },
+        {
           method: "GET",
           path: "/api/auth/roles/permissions",
           description: "Returns the full predefined permission catalogue, grouped by category - used to render the permission picker when creating a custom role.",
@@ -790,6 +808,26 @@ file: [database.tar.gz file]`,
       title: "Document Operations (CRUD)",
       description: "Create, read, update, and delete documents with advanced query support",
       endpoints: [
+        {
+          method: "GET",
+          path: "/api/operation/total/",
+          description: "Returns the total number of documents in one collection.",
+          parameters: [
+            { name: "dbName", type: "query", dataType: "string", required: true, description: "Database name" },
+            { name: "collectionName", type: "query", dataType: "string", required: true, description: "Collection name" },
+          ],
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Total Documents in the Collection",
+  "data": { "total": 42 }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Returns the document count" },
+            { code: 400, description: "Bad Request - Database and collection are required" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing document:view permission" },
+          ],
+        },
         {
           method: "GET",
           path: "/api/operation/all/",

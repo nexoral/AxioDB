@@ -179,14 +179,15 @@ const db = new AxioDB({
 const session = collection.startSession();
 await session.withTransaction(async (tx) => {
   await tx.insert({ name: 'Alice', balance: 1000 });
-  await tx.update({ name: 'Bob' }, { $inc: { balance: -100 } });
+  // Updates are flat merges; AxioDB does not implement MongoDB's $inc operator.
+  await tx.update({ name: 'Bob' }, { balance: 900 });
   // Auto-commits on success, auto-rolls-back on error
 });
 
 // TCP transaction
 const tx = await client.db('mydb').collection('users').beginTransaction();
 await tx.insert({ name: 'Alice', balance: 1000 });
-await tx.update({ name: 'Bob' }, { $inc: { balance: -100 } });
+await tx.update({ name: 'Bob' }, { balance: 900 });
 await tx.commit(); // or await tx.rollback();
 ```
 
@@ -221,7 +222,7 @@ await tx.commit(); // or await tx.rollback();
 - **🔄 Zero Code Changes:** same `createDB`/`createCollection`/`insert`/`query` API as embedded AxioDB
 - **⚡ Fast Binary Protocol:** length-prefixed JSON framing, with automatic reconnection
 - **🔐 Optional Authentication:** shared RBAC with the GUI, per-IP rate limiting (see [Advanced](#advanced-tcp-authentication) below)
-- **📦 35+ Commands:** full CRUD, aggregation, and indexing over the wire
+- **📦 32 Commands:** full CRUD, aggregation, indexing, and transactions over the wire
 - **🔁 Auto-Reconnect:** exponential backoff, up to 10 retry attempts
 - **💓 Heartbeat Monitoring:** `PING`/`PONG` every 30 seconds
 - **🆔 Request Correlation:** UUID-based request/response matching
@@ -381,12 +382,17 @@ irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps
 
 ### Usage
 
+> **Activation notice:** Data commands (`db`/`collection`/`document`/`index`/`transaction`/`ping`/`health`/`connect`) require the server started with `TCP: true` (`AXIODB_TCP=true`, port 27019). Management commands (`user`/`role`/`user change-password`/`export`/`import`) require `GUI: true`/`HTTP: true` (`AXIODB_GUI=true`, port 27018). TCP is data-plane only — no management over TCP by design.
+
 **Single commands:**
 ```bash
 axiodb -c axiodb://127.0.0.1:27019 ping
 axiodb -c axiodb://127.0.0.1:27019 db list
 axiodb -c axiodb://127.0.0.1:27019 document insert '{"name":"Alice"}' --db mydb --collection users
 axiodb -c axiodb://127.0.0.1:27019 document query '{}' --db mydb --collection users
+axiodb -c axiodb://127.0.0.1:27019 document query '{}' --hint email --db mydb --collection users
+axiodb -c axiodb://127.0.0.1:27019 health
+axiodb -c axiodb://127.0.0.1:27019 transaction begin --db mydb --collection users
 ```
 
 **Interactive REPL (MongoDB shell style):**
@@ -422,9 +428,36 @@ axiodb import ./backups/mydb.tar.gz --http-host localhost --http-port 27018 -u a
 # Tab completes .tar.gz file paths
 ```
 
+**User and role administration (via HTTP API):**
+```bash
+axiodb user list --http-host localhost --http-port 27018 -u admin -p secret
+axiodb user create analyst analyst123 View --http-host localhost --http-port 27018 -u admin -p secret
+axiodb user change-password oldPass newPass --http-host localhost --http-port 27018 -u analyst -p analyst123
+axiodb role list --http-host localhost --http-port 27018 -u admin -p secret
+axiodb role create Auditor document:view,document:query --http-host localhost --http-port 27018 -u admin -p secret
+```
+
+**Transactions (via TCP, full lifecycle):**
+```bash
+# File-based batch (auto-commit/rollback)
+axiodb transaction run operations.json --db mydb --collection users
+# Manual control
+axiodb transaction begin --db mydb --collection users  # → transactionId
+axiodb transaction savepoint <txnId> sp1
+axiodb transaction rollback-to <txnId> sp1
+axiodb transaction release <txnId> sp1
+axiodb transaction commit <txnId>
+axiodb transaction rollback <txnId>
+```
+
+Management commands use the authenticated HTTP API; they do not add management commands to the
+TCP client protocol, which remains focused on database, collection, document, index, aggregation,
+count, and transaction operations.
+
 ### Features
 
-- **All 23 commands:** database, collection, document CRUD, aggregation, indexing, export, import
+- **TCP data operations:** database, collection, document CRUD, aggregation, indexing, counts, and transactions
+- **CLI transactions and diagnostics:** run a transaction operation file, use query index hints, find documents by IDs, and check TCP health
 - **Interactive REPL:** MongoDB shell syntax (`use`, `show dbs`, `db.coll.find()`)
 - **Export & Import:** backup/restore databases via HTTP API, tab-completes file paths
 - **TLS support:** `--tls`, `--tls-cert`, `--tls-skip-verify`
@@ -655,7 +688,7 @@ volumes:
 ## 🤖 MCP Server — AI Agent Integration
 
 Spin up the same Docker container with `AXIODB_MCP=true` and let Claude (or any MCP-compatible
-AI agent) talk to your AxioDB instance directly — 32 tools covering databases, collections,
+AI agent) talk to your AxioDB instance directly — 43 tools covering databases, collections,
 documents, aggregation, indexes, dashboard stats, and user/role management, all gated by the
 same RBAC as the web GUI. It runs in the same process as your existing container; nothing new
 to install, no second database instance.
@@ -814,17 +847,21 @@ const electronics = await products
 
 - `createDB(dbName: string): Promise<Database>`
 - `deleteDatabase(dbName: string): Promise<SuccessInterface | ErrorInterface>`
+- `isDatabaseExists(dbName: string): Promise<boolean>`
+- `getInstanceInfo(): Promise<SuccessInterface | undefined>`
 
 ### Database
 
 - `createCollection(name: string): Promise<Collection>`
 - `deleteCollection(name: string): Promise<SuccessInterface | ErrorInterface>`
+- `isCollectionExists(name: string): Promise<boolean>`
 - `getCollectionInfo(): Promise<SuccessInterface>`
 
 ### Collection
 
 - `insert(document: object): Promise<SuccessInterface | ErrorInterface>`
-- `insertMany(documents: object[]): Promise<SuccessInterface | ErrorInterface>`
+- `insertMany(documents: object | object[]): Promise<SuccessInterface | ErrorInterface>`
+- `totalDocuments(): Promise<SuccessInterface | ErrorInterface>`
 - `query(query: object): Reader`
 - `update(query: object): Updater`
 - `delete(query: object): Deleter`
@@ -837,6 +874,8 @@ const electronics = await products
 ### Updater / Deleter
 
 `update(query)` and `delete(query)` on their own don't change anything — they return a chainable object. Call one of the methods below to actually apply the change:
+
+Updates are flat shallow merges. AxioDB does not implement MongoDB update operators such as `$inc`, `$set`, or `$push`; keys beginning with `$` are stored as ordinary field names.
 
 - `updater.UpdateOne(data: object): Promise<SuccessInterface | ErrorInterface>` — applies `data` to the first document matching `query`
 - `updater.UpdateMany(data: object): Promise<SuccessInterface | ErrorInterface>` — applies `data` to every document matching `query`
@@ -870,7 +909,7 @@ await collection.delete({ status: 'inactive' }).deleteMany();
 ### Transaction (Session)
 
 - `startSession(options?: { timeout?: number }): Session`
-- `session.withTransaction(callback: Function): Promise<any>`
+- `session.withTransaction(callback: (transaction: Transaction) => Promise<void>): Promise<SuccessInterface | ErrorInterface>`
 - `session.startTransaction(): Transaction`
 - `transaction.insert(document: object): Transaction`
 - `transaction.update(query: object, update: object): Transaction`
@@ -878,7 +917,13 @@ await collection.delete({ status: 'inactive' }).deleteMany();
 - `transaction.savepoint(name: string): Transaction`
 - `transaction.rollbackToSavepoint(name: string): Transaction`
 - `transaction.commit(): Promise<SuccessInterface>`
-- `transaction.rollback(): Promise<void>`
+- `transaction.rollback(): Promise<SuccessInterface | ErrorInterface>`
+
+### MCP transactions (Docker image)
+
+The Docker-only MCP server exposes authenticated, single-collection ACID transactions with
+insert, update, delete, savepoint, commit, and rollback tools. Begin with
+`axiodb_begin_transaction`, then pass its `transactionId` to the other transaction tools.
 
 ### TCP Transaction Proxy
 

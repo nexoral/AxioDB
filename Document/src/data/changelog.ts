@@ -111,7 +111,9 @@ export const changelog: ChangelogEntry[] = [
     title: "Human-in-the-loop confirmation for the MCP server's destructive tools",
     changes: [
       "The 9 MCP tools that destroy or overwrite data (delete_database, delete_collection, delete_document, update_document, drop_index, delete_user, delete_role, update_user_role, reset_user_password) now ask a human through the MCP client's own confirmation prompt (elicitation/create) before touching the database, naming the exact target - decline, cancel, or an unchecked box aborts with 409 and never reaches a controller",
-      "Every one of the 32 MCP tools now ships readOnlyHint/destructiveHint/idempotentHint annotations, so clients can auto-approve reads and hold writes for review",
+      "Every one of the 43 MCP tools now ships readOnlyHint/destructiveHint/idempotentHint annotations, so clients can auto-approve reads and hold writes for review",
+      "Added authenticated MCP transactions with insert, update, delete, savepoints, commit, and rollback",
+      "Added HTTP-backed CLI user and role administration while keeping the TCP client data-plane focused",
       "Clients without elicitation support are unaffected (the call proceeds on the annotations alone) - a View-role login remains the server-side way to make an agent strictly read-only",
       "Fixed two dishonest annotations caught by the new tests: axiodb_collection_exists and axiodb_total_documents are not readOnly, since createDB()/createCollection() create-if-missing and can leave an empty database/collection behind",
       "New test suite: npm test mcp-confirm (confirmation gate, advisory fallback, and a static check that no destructive tool can be added without a gate)",

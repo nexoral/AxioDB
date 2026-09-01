@@ -29,11 +29,11 @@ AxioDB is one package with several distinct surfaces. They are **not interchange
 |---|---|---|---|---|---|
 | **Core embedded library** | The database itself, running in your process | ✅ Yes | ✅ Yes | `new AxioDB()` | none |
 | **Dashboard (Web GUI)** | Browser UI to browse/edit data, with login + roles | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ GUI: true })` / `AXIODB_GUI=true` | **27018** |
-| **Dashboard HTTP API** | REST API behind that GUI (38 endpoints) | ✅ Yes | ✅ Yes | comes with the Dashboard; `HTTP: false` disables it | **27018** |
+| **Dashboard HTTP API** | REST API behind that GUI (41 endpoints) | ✅ Yes | ✅ Yes | comes with the Dashboard; `HTTP: false` disables it | **27018** |
 | **AxioDBCloud TCP server** | Lets other processes/machines use this database | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ TCP: true })` / `AXIODB_TCP=true` | **27019** |
 | **AxioDBCloud client** | Connects to that TCP server, same API as embedded | ✅ Yes | ✅ Yes | `const { AxioDBCloud } = require('axiodb')` | — |
 | **CLI (Go)** | Command line interface — TCP queries, REPL, export/import via HTTP | ✅ Yes | ✅ Yes | `axiodb` binary | — |
-| **MCP server (32 tools)** | Lets an AI agent operate the database | ❌ **NO** | ✅ Yes | `AXIODB_MCP=true` | **27020** |
+| **MCP server (43 tools)** | Lets an AI agent operate the database | ❌ **NO** | ✅ Yes | `AXIODB_MCP=true` | **27020** |
 
 **The MCP server is Docker-only.** It lives in `Docker/` in the repository, which is listed in `.npmignore`. Running `npm install axiodb` does **not** give you an MCP server. The only supported way to run it is the `theankansaha/axiodb` Docker image with `AXIODB_MCP=true`.
 
@@ -473,9 +473,9 @@ Login rate limiting: 5 failed attempts from one IP within a trailing 15-minute w
 
 ## AxioDBCloud — Remote TCP Access
 
-Same API as embedded AxioDB, over a TCP connection. The wire protocol has exactly **33 commands** (`source/tcp/types/command.types.ts`):
+Same API as embedded AxioDB, over a TCP connection. The wire protocol has exactly **32 commands** (`source/tcp/types/command.types.ts`):
 
-`PING`, `DISCONNECT`, `AUTHENTICATE`, `CREATE_DB`, `DELETE_DB`, `DB_EXISTS`, `GET_INSTANCE_INFO`, `CREATE_COLLECTION`, `DELETE_COLLECTION`, `COLLECTION_EXISTS`, `GET_COLLECTION_INFO`, `INSERT_DOCUMENT`, `INSERT_MANY_DOCUMENTS`, `QUERY_DOCUMENTS`, `QUERY_BY_ID`, `UPDATE_DOCUMENT_BY_ID`, `UPDATE_DOCUMENTS_BY_QUERY`, `DELETE_DOCUMENT_BY_ID`, `DELETE_DOCUMENTS_BY_QUERY`, `AGGREGATE`, `TOTAL_DOCUMENTS`, `CREATE_INDEX`, `DROP_INDEX`, `LIST_INDEXES`, `BEGIN_TRANSACTION`, `COMMIT_TRANSACTION`, `ROLLBACK_TRANSACTION`, `SAVEPOINT`, `ROLLBACK_TO_SAVEPOINT`, `RELEASE_SAVEPOINT`, `FIND_BY_IDS`
+`PING`, `HEALTH`, `DISCONNECT`, `AUTHENTICATE`, `CREATE_DB`, `DELETE_DB`, `DB_EXISTS`, `GET_INSTANCE_INFO`, `CREATE_COLLECTION`, `DELETE_COLLECTION`, `COLLECTION_EXISTS`, `GET_COLLECTION_INFO`, `INSERT_DOCUMENT`, `INSERT_MANY_DOCUMENTS`, `QUERY_DOCUMENTS`, `QUERY_BY_ID`, `UPDATE_DOCUMENT_BY_ID`, `UPDATE_DOCUMENTS_BY_QUERY`, `DELETE_DOCUMENT_BY_ID`, `DELETE_DOCUMENTS_BY_QUERY`, `AGGREGATE`, `TOTAL_DOCUMENTS`, `CREATE_INDEX`, `DROP_INDEX`, `LIST_INDEXES`, `BEGIN_TRANSACTION`, `COMMIT_TRANSACTION`, `ROLLBACK_TRANSACTION`, `SAVEPOINT`, `ROLLBACK_TO_SAVEPOINT`, `RELEASE_SAVEPOINT`, `FIND_BY_IDS`
 
 You normally never send these by hand — the `AxioDBCloud` client wraps them behind the same `createDB`/`createCollection`/`query` API as the embedded library. `client.sendCommand()` is the escape hatch if you need one directly.
 
@@ -508,11 +508,11 @@ client.connect(): Promise<void>          // must be awaited before any other cal
 client.disconnect(): Promise<void>
 client.login(username: string, password: string): Promise<AuthenticatedUser>
 client.authenticatedUser: AuthenticatedUser | undefined   // getter
-client.sendCommand(command: string, params: any): Promise<any>  // low-level escape hatch
+client.sendCommand(command: string, params: Record<string, unknown>): Promise<unknown>  // low-level escape hatch
 client.createDB(name: string): Promise<DatabaseProxy>
 client.deleteDatabase(name: string): Promise<void>
 client.isDatabaseExists(name: string): Promise<boolean>
-client.getInstanceInfo(): Promise<any>
+client.getInstanceInfo(): Promise<SuccessInterface | undefined>
 client.getPinnedConnection(): PooledConnection | null  // for transaction pinning
 ```
 
@@ -604,7 +604,7 @@ docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
   -v axiodb-data:/app theankansaha/axiodb
 ```
 
-32 tools at `http://localhost:27020/mcp` covering databases, collections, documents, aggregation, indexes, dashboard stats, and user/role management — gated by the same RBAC as the GUI (a View-role session gets a real `403` on write tools). Every tool except `axiodb_login` requires a `sessionId` from logging in first. Compatible with Claude Code, Codex CLI, opencode, GitHub Copilot CLI, Cursor, Windsurf, and Google Antigravity — see https://axiodb.in/mcp-server for exact registration commands per tool.
+43 tools at `http://localhost:27020/mcp` covering databases, collections, documents, aggregation, indexes, dashboard stats, health, transactions, and user/role management — gated by the same RBAC as the GUI (a View-role session gets a real `403` on write tools). Every tool except `axiodb_login` requires a `sessionId` from logging in first. Compatible with Claude Code, Codex CLI, opencode, GitHub Copilot CLI, Cursor, Windsurf, and Google Antigravity — see https://axiodb.in/mcp-server for exact registration commands per tool.
 
 ---
 
@@ -859,7 +859,7 @@ source/
 │   ├── controller/                 Auth, Database, Collection, Index, Operation controllers
 │   └── middleware/auth.middleware.ts   Session cookie + permission enforcement
 ├── tcp/                            AxioDBCloud TCP server (port 27019)
-│   ├── types/command.types.ts      The 33-command CommandType enum
+│   ├── types/command.types.ts      The 32-command CommandType enum
 │   ├── handler/CommandHandler.ts   Command dispatch
 │   └── handler/handlers/           Auth, DB, Collection, Operation handlers
 └── client/                         AxioDBCloud client + Database/Collection proxies
@@ -868,7 +868,7 @@ Docker/                             NOT published to npm (.npmignore)
 ├── Dockerfile                      EXPOSE 27018 27019 27020
 ├── runner.js                       Reads AXIODB_* env vars, boots the instance
 ├── mcpServer.js                    MCP server, Streamable HTTP on port 27020 at /mcp
-└── mcp/tools/                      The 32 MCP tools, one file per feature area
+└── mcp/tools/                      The 43 MCP tools, one file per feature area
 
 Test/modules/                       crud, transaction, read, auth, tcp-auth, tcp-noauth,
                                     tcp-transaction, tcp-tls, crash-recovery, mcp-confirm
@@ -938,18 +938,19 @@ Add the deployment constraint that nothing else solves: **your install must neve
 
 ---
 
-## The 32 MCP Tools (Docker only)
+## The 43 MCP Tools (Docker only)
 
 Available **only** via the Docker image with `AXIODB_MCP=true`, at `http://localhost:27020/mcp` (Streamable HTTP). Every tool except `axiodb_login` requires a `sessionId` returned by `axiodb_login`. Destructive tools additionally prompt the human through the MCP client before running.
 
 - **Auth (4):** `axiodb_login`, `axiodb_logout`, `axiodb_whoami`, `axiodb_change_own_password`
 - **Database (4):** `axiodb_create_database`, `axiodb_delete_database`, `axiodb_database_exists`, `axiodb_get_instance_info`
 - **Collection (4):** `axiodb_create_collection`, `axiodb_delete_collection`, `axiodb_collection_exists`, `axiodb_get_collection_info`
-- **Document (7):** `axiodb_insert_document`, `axiodb_insert_many_documents`, `axiodb_query_documents`, `axiodb_update_document`, `axiodb_delete_document`, `axiodb_aggregate`, `axiodb_total_documents`
+- **Document (8):** `axiodb_insert_document`, `axiodb_insert_many_documents`, `axiodb_query_documents`, `axiodb_update_document`, `axiodb_delete_document`, `axiodb_aggregate`, `axiodb_total_documents`, `axiodb_find_documents_by_ids`
 - **Index (3):** `axiodb_create_index`, `axiodb_drop_index`, `axiodb_list_indexes`
-- **Dashboard (1):** `axiodb_get_dashboard_stats`
+- **Dashboard (2):** `axiodb_health`, `axiodb_get_dashboard_stats`
 - **User (5):** `axiodb_create_user`, `axiodb_delete_user`, `axiodb_list_users`, `axiodb_update_user_role`, `axiodb_reset_user_password`
 - **Role (4):** `axiodb_create_role`, `axiodb_delete_role`, `axiodb_list_roles`, `axiodb_list_permissions`
+- **Transactions (9):** `axiodb_begin_transaction`, `axiodb_transaction_insert`, `axiodb_transaction_update`, `axiodb_transaction_delete`, `axiodb_transaction_savepoint`, `axiodb_transaction_rollback_to_savepoint`, `axiodb_transaction_release_savepoint`, `axiodb_commit_transaction`, `axiodb_rollback_transaction`
 
 ---
 

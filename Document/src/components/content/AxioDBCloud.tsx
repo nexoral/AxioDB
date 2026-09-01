@@ -652,7 +652,7 @@ main().catch(console.error);`}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
-            { icon: CheckCircle, title: "35+ Commands", desc: "Full CRUD, aggregation, indexing support" },
+            { icon: CheckCircle, title: "32 Commands", desc: "Full CRUD, aggregation, indexing, and transactions" },
             { icon: Lock, title: "Optional Auth (NEW!)", desc: "Shared RBAC with the GUI, per-IP rate limiting" },
             { icon: RefreshCw, title: "Auto-Reconnect", desc: "Exponential backoff with 10 retry attempts" },
             { icon: Activity, title: "Heartbeat", desc: "PING/PONG every 30 seconds" },

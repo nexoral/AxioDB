@@ -266,6 +266,7 @@ export class MessageValidator {
         break;
 
       case CommandType.PING:
+      case CommandType.HEALTH:
       case CommandType.DISCONNECT:
       case CommandType.GET_INSTANCE_INFO:
         // No required params

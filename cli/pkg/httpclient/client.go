@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,6 +18,81 @@ import (
 type HTTPClient struct {
 	baseURL    string
 	httpClient *http.Client
+}
+
+func (c *HTTPClient) doJSON(method, path string, payload interface{}) (map[string]interface{}, error) {
+	var body io.Reader
+	if payload != nil {
+		encoded, err := json.Marshal(payload)
+		if err != nil {
+			return nil, fmt.Errorf("encode request: %w", err)
+		}
+		body = bytes.NewReader(encoded)
+	}
+	req, err := http.NewRequest(method, c.baseURL+path, body)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	if payload != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("parse response: %w", err)
+	}
+	if resp.StatusCode >= 400 {
+		message, _ := result["message"].(string)
+		if message == "" {
+			message = resp.Status
+		}
+		return nil, fmt.Errorf("request failed: %s", message)
+	}
+	return result, nil
+}
+
+func (c *HTTPClient) ListUsers() (map[string]interface{}, error) {
+	return c.doJSON(http.MethodGet, "/api/auth/users/", nil)
+}
+
+func (c *HTTPClient) CreateUser(username, password, role string) (map[string]interface{}, error) {
+	return c.doJSON(http.MethodPost, "/api/auth/users/", map[string]string{"username": username, "password": password, "role": role})
+}
+
+func (c *HTTPClient) UpdateUserRole(username, role string) (map[string]interface{}, error) {
+	return c.doJSON(http.MethodPatch, "/api/auth/users/"+url.PathEscape(username)+"/role", map[string]string{"role": role})
+}
+
+func (c *HTTPClient) ResetUserPassword(username, password string) (map[string]interface{}, error) {
+	return c.doJSON(http.MethodPatch, "/api/auth/users/"+url.PathEscape(username)+"/reset-password", map[string]string{"newPassword": password})
+}
+
+func (c *HTTPClient) DeleteUser(username string) (map[string]interface{}, error) {
+	return c.doJSON(http.MethodDelete, "/api/auth/users/"+url.PathEscape(username), nil)
+}
+
+func (c *HTTPClient) ListRoles() (map[string]interface{}, error) {
+	return c.doJSON(http.MethodGet, "/api/auth/roles/", nil)
+}
+
+func (c *HTTPClient) CreateRole(roleName string, permissions []string) (map[string]interface{}, error) {
+	return c.doJSON(http.MethodPost, "/api/auth/roles/", map[string]interface{}{"roleName": roleName, "permissions": permissions})
+}
+
+func (c *HTTPClient) DeleteRole(roleName string) (map[string]interface{}, error) {
+	return c.doJSON(http.MethodDelete, "/api/auth/roles/"+url.PathEscape(roleName), nil)
+}
+
+func (c *HTTPClient) ListPermissions() (map[string]interface{}, error) {
+	return c.doJSON(http.MethodGet, "/api/auth/roles/permissions", nil)
+}
+
+func (c *HTTPClient) ChangeOwnPassword(currentPassword, newPassword string) (map[string]interface{}, error) {
+	return c.doJSON(http.MethodPatch, "/api/auth/change-password", map[string]string{"currentPassword": currentPassword, "newPassword": newPassword})
 }
 
 func New(host string, port int, timeout time.Duration) *HTTPClient {

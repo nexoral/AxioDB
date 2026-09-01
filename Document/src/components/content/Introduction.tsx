@@ -192,7 +192,7 @@ const Introduction: React.FC = () => {
               </div>
               <p className="text-sm text-gray-600">
                 Spin up AxioDB on a cloud container and let your AI agent (Claude, or any
-                MCP-compatible client) talk to that database directly — 32 tools, real login,
+                MCP-compatible client) talk to that database directly — 43 tools, real login,
                 the exact same RBAC as the web GUI.
               </p>
             </div>
@@ -219,7 +219,7 @@ const Introduction: React.FC = () => {
               </div>
               <p className="text-sm text-gray-600">
                 Go-based command line interface for AxioDB — interactive REPL with MongoDB shell syntax,
-                all 21 TCP commands, TLS support, and installers for 12 platforms.
+                all 32 TCP commands, TLS support, and installers for 12 platforms.
               </p>
             </div>
             <ArrowRight className="h-6 w-6 text-emerald-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />

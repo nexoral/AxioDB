@@ -6,6 +6,7 @@
 export enum CommandType {
   // Connection Commands
   PING = 'PING',
+  HEALTH = 'HEALTH',
   DISCONNECT = 'DISCONNECT',
 
   // Authentication Commands
@@ -55,6 +56,7 @@ export enum CommandType {
  */
 export const CommandDocumentation: Record<CommandType, string> = {
   [CommandType.PING]: 'Heartbeat ping to verify connection',
+  [CommandType.HEALTH]: 'Get TCP service health status',
   [CommandType.DISCONNECT]: 'Gracefully disconnect from server',
   [CommandType.AUTHENTICATE]: 'Authenticate with username and password',
   [CommandType.CREATE_DB]: 'Create a new database',

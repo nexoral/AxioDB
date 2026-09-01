@@ -101,11 +101,13 @@ var documentQueryCmd = &cobra.Command{
 		skip, _ := cmd.Flags().GetInt("skip")
 		sortStr, _ := cmd.Flags().GetString("sort")
 		findOne, _ := cmd.Flags().GetBool("find-one")
+		hint, _ := cmd.Flags().GetString("hint")
 
 		opts := commands.QueryOptions{
 			Limit:   limit,
 			Skip:    skip,
 			FindOne: findOne,
+			Hint:    hint,
 		}
 
 		if len(args) > 0 {
@@ -131,6 +133,35 @@ var documentQueryCmd = &cobra.Command{
 		defer client.Disconnect()
 
 		resp, err := commands.QueryDocuments(client, cfg.DB, cfg.Collection, opts)
+		if err != nil {
+			return err
+		}
+		return printOutput(cfg.Output, resp)
+	},
+}
+
+var documentFindByIDsCmd = &cobra.Command{
+	Use:   "find-by-ids <ids-json>",
+	Short: "Find multiple documents by ID",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cfg, err := config.FromFlags(cmd)
+		if err != nil {
+			return err
+		}
+		if cfg.DB == "" || cfg.Collection == "" {
+			return fmt.Errorf("--db and --collection flags are required")
+		}
+		var ids []string
+		if err := json.Unmarshal([]byte(args[0]), &ids); err != nil || len(ids) == 0 {
+			return fmt.Errorf("ids must be a non-empty JSON array of strings")
+		}
+		client, err := cfg.ConnectAndAuth()
+		if err != nil {
+			return err
+		}
+		defer client.Disconnect()
+		resp, err := commands.FindDocumentsByIDs(client, cfg.DB, cfg.Collection, ids)
 		if err != nil {
 			return err
 		}
@@ -358,6 +389,7 @@ func init() {
 	documentQueryCmd.Flags().Int("skip", 0, "Skip results")
 	documentQueryCmd.Flags().String("sort", "", "Sort JSON (e.g., '{\"name\":1}')")
 	documentQueryCmd.Flags().Bool("find-one", false, "Find single document")
+	documentQueryCmd.Flags().String("hint", "", "Index field name to use")
 
 	documentUpdateByQueryCmd.Flags().Bool("many", false, "Update multiple documents")
 	documentDeleteByQueryCmd.Flags().Bool("many", false, "Delete multiple documents")
@@ -366,6 +398,7 @@ func init() {
 	documentCmd.AddCommand(documentInsertManyCmd)
 	documentCmd.AddCommand(documentQueryCmd)
 	documentCmd.AddCommand(documentGetCmd)
+	documentCmd.AddCommand(documentFindByIDsCmd)
 	documentCmd.AddCommand(documentUpdateCmd)
 	documentCmd.AddCommand(documentUpdateByQueryCmd)
 	documentCmd.AddCommand(documentDeleteCmd)

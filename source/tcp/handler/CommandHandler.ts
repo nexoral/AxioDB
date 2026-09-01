@@ -102,6 +102,9 @@ export class CommandHandler {
         case CommandType.PING:
           return this.handlePing(id);
 
+        case CommandType.HEALTH:
+          return this.handleHealth(id);
+
         case CommandType.DISCONNECT:
           return this.handleDisconnect(id);
 
@@ -225,6 +228,15 @@ export class CommandHandler {
       statusCode: StatusCode.OK,
       message: SuccessMessage.PING_PONG,
       data: { timestamp: Date.now() },
+    };
+  }
+
+  private handleHealth(requestId: string): TCPResponse {
+    return {
+      id: requestId,
+      statusCode: StatusCode.OK,
+      message: 'AxioDB is healthy',
+      data: { status: 'ok', timestamp: Date.now() },
     };
   }
 

@@ -190,6 +190,14 @@ class HTTPAPITests extends TestRunner {
       });
     });
 
+    await this.describe('Document Count Endpoint', async () => {
+      await this.test('GET /api/operation/total/ - returns collection count', async () => {
+        const res = await request('GET', '/api/operation/total/?dbName=TestDB&collectionName=Users', this.cookieHeader());
+        assert.equal(res.body.statusCode, 200);
+        assert.equal(res.body.data.total, 3);
+      });
+    });
+
     await this.describe('Collection Endpoints', async () => {
       await this.test('GET /api/collection/all/ - lists collections', async () => {
         const res = await request('GET', '/api/collection/all/?databaseName=TestDB', this.cookieHeader());

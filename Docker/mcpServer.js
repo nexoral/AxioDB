@@ -26,6 +26,7 @@ const registerIndexTools = require('./mcp/tools/index.tools');
 const registerDashboardTools = require('./mcp/tools/dashboard.tools');
 const registerUserTools = require('./mcp/tools/user.tools');
 const registerRoleTools = require('./mcp/tools/role.tools');
+const registerTransactionTools = require('./mcp/tools/transaction.tools');
 
 const MCP_SERVER_NAME = 'axiodb-mcp-server';
 const MCP_SERVER_VERSION = '1.0.0';
@@ -40,6 +41,7 @@ function buildMcpServer(axioDBInstance) {
   registerDashboardTools(server, axioDBInstance);
   registerUserTools(server, axioDBInstance);
   registerRoleTools(server, axioDBInstance);
+  registerTransactionTools(server, axioDBInstance);
   return server;
 }
 
@@ -108,3 +110,5 @@ module.exports = function mcpServerEntry(axioDBInstance) {
   const port = parseInt(process.env.AXIODB_MCP_PORT || '27020', 10);
   return startMcpServer(axioDBInstance, port);
 };
+
+module.exports.buildMcpServer = buildMcpServer;

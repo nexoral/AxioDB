@@ -21,6 +21,24 @@ export default async function OperationRouter(
     async (request) => new CRUDController(AxioDBInstance).getAllDocuments(request),
   );
 
+  fastify.get(
+    "/total/",
+    { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_VIEW)] },
+    async (request) => {
+      const { dbName, collectionName } = request.query as { dbName?: string; collectionName?: string };
+      if (!dbName || !collectionName) {
+        return { statusCode: 400, message: "dbName and collectionName are required" };
+      }
+      try {
+        const database = await AxioDBInstance.createDB(dbName);
+        const collection = await database.createCollection(collectionName);
+        return collection.totalDocuments();
+      } catch {
+        return { statusCode: 500, message: "Unable to count documents" };
+      }
+    },
+  );
+
   fastify.post(
     "/all/by-query/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_QUERY)] },

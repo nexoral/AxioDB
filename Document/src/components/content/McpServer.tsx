@@ -62,6 +62,7 @@ const toolGroups: { title: string; permissionNote: string; tools: string[] }[] =
       "axiodb_update_document",
       "axiodb_delete_document",
       "axiodb_total_documents",
+      "axiodb_find_documents_by_ids",
       "axiodb_aggregate",
     ],
   },
@@ -73,7 +74,22 @@ const toolGroups: { title: string; permissionNote: string; tools: string[] }[] =
   {
     title: "Dashboard",
     permissionNote: "dashboard:view",
-    tools: ["axiodb_get_dashboard_stats"],
+    tools: ["axiodb_health", "axiodb_get_dashboard_stats"],
+  },
+  {
+    title: "Transactions",
+    permissionNote: "document:create / update / delete",
+    tools: [
+      "axiodb_begin_transaction",
+      "axiodb_transaction_insert",
+      "axiodb_transaction_update",
+      "axiodb_transaction_delete",
+      "axiodb_transaction_savepoint",
+      "axiodb_transaction_rollback_to_savepoint",
+      "axiodb_transaction_release_savepoint",
+      "axiodb_commit_transaction",
+      "axiodb_rollback_transaction",
+    ],
   },
   {
     title: "User Management",
@@ -98,7 +114,7 @@ const McpServer: React.FC = () => {
     <div className="space-y-12">
       <Seo
         title="MCP Server | AxioDB Documentation"
-        description="Let AI agents (Claude, and any MCP-compatible client) talk to your AxioDB instance directly - 32 tools, real login, and the exact same RBAC as the web GUI."
+        description="Let AI agents (Claude, and any MCP-compatible client) talk to your AxioDB instance directly - 43 tools, real login, and the exact same RBAC as the web GUI."
         path="/mcp-server"
       />
 
@@ -120,7 +136,7 @@ const McpServer: React.FC = () => {
           <p className="text-lg text-gray-600 leading-relaxed max-w-3xl">
             Spin up AxioDB in a container and let Claude (or any MCP-compatible AI agent) talk to
             it directly — create databases, query documents, run aggregations, manage users and
-            roles, all through 32 tools that log in and enforce the exact same RBAC as the web
+            roles, transactions, and health checks, all through 43 tools that log in and enforce the exact same RBAC as the web
             GUI. It runs in the same process as your existing Docker deployment — no separate
             install, no new database instance.
           </p>
@@ -332,7 +348,7 @@ url = "http://localhost:27020/mcp"`}
       <section>
         <h2 className="text-3xl font-bold mb-6 text-gray-900 flex items-center gap-3">
           <Layers className="h-8 w-8 text-fuchsia-500" />
-          32 Tools, Mirroring the HTTP Control Server 1:1
+          43 Tools for Database Operations and Administration
         </h2>
         <p className="text-gray-600 mb-6 max-w-3xl">
           Every MCP tool maps to the exact same controller and permission check as its HTTP
@@ -365,8 +381,8 @@ url = "http://localhost:27020/mcp"`}
 
         <div className="mt-6 p-4 bg-gray-100 rounded-lg border border-gray-200">
           <p className="text-sm text-gray-600">
-            <strong>Out of scope by design:</strong> transactions and database export/import are
-            not exposed as MCP tools — kept out of this surface entirely rather than deferred.
+            <strong>Surface boundary:</strong> transactions are available through MCP. Database
+            export/import remain HTTP Dashboard API operations and are not exposed as MCP tools.
           </p>
         </div>
       </section>
