@@ -9,16 +9,20 @@ const http = require('http');
 const { AxioDB } = require('../../lib/config/DB.js');
 
 const PORT = 27018;
-const BASE = `http://127.0.0.1:${PORT}`;
 
 function request(method, urlPath, { body, cookie } = {}) {
   return new Promise((resolve, reject) => {
-    const url = new URL(urlPath, BASE);
     const headers = {};
     if (cookie) headers['Cookie'] = cookie;
     if (body !== undefined) headers['Content-Type'] = 'application/json';
 
-    const req = http.request(url, { method, headers }, (res) => {
+    const req = http.request({
+      hostname: '127.0.0.1',
+      port: PORT,
+      path: urlPath,
+      method,
+      headers,
+    }, (res) => {
       const chunks = [];
       res.on('data', (c) => chunks.push(c));
       res.on('end', () => {
@@ -392,6 +396,13 @@ class HTTPAPITests extends TestRunner {
         const res = await request('GET', '/api/routes', this.cookieHeader());
         assert.equal(res.body.statusCode, 200);
         assert.ok(Array.isArray(res.body.data));
+      });
+    });
+
+    await this.describe('Static file traversal protection', async () => {
+      await this.test('Encoded dot-dot segments cannot reach the static root', async () => {
+        const res = await request('GET', '/nested/%2E%2E/index.html');
+        assert.equal(res.status, 400);
       });
     });
 
