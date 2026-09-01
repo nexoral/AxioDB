@@ -52,6 +52,13 @@ Cache/
 AxioDB/
 .dockerignore
 
+# Go CLI (separate binary, not shipped in npm package)
+cli/
+
+# Tooling configs (not shipped in npm package)
+opencode.json
+.graphifyignore
+
 # Dependencies
 node_modules/
 

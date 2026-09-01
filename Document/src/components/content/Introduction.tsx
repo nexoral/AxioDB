@@ -97,7 +97,8 @@ const Introduction: React.FC = () => {
   const badgeUrls = {
     npm: githubApi.getBadgeUrl('npm'),
     codeql: githubApi.getBadgeUrl('github-actions'),
-    socket: githubApi.getBadgeUrl('socket')
+    socket: githubApi.getBadgeUrl('socket'),
+    stars: githubApi.getBadgeUrl('stars')
   };
 
   return (

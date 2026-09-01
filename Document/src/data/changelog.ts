@@ -12,6 +12,16 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "20.3.3",
+    date: "2026-09-01",
+    title: "Docs: short tagline, badge fixes, and dynamic Socket score",
+    changes: [
+      "Docs: renamed tagline to 'SQLite Alternative for JavaScript' across README, package description, Introduction, Header, llms.txt, llms-full.txt",
+      "Fixed: Document site TypeScript TS2339 — added 'stars' to badgeUrls type (githubApi.getBadgeUrl('stars')); kept Socket full score via socket.dev/api/badge (dynamic), removed broken shields.io/socket, bundlephobia/minzip, Snyk 404 badges",
+      "Docs: added install size, jsDelivr hits, npm types, GitHub Stars dynamic badges to README and site hero; all numbers remain live from npm/GitHub/Socket",
+    ],
+  },
+  {
     version: "20.3.2",
     date: "2026-09-01",
     title: "Security: @fastify/static route guard bypass and supply-chain vulnerabilities patched",
