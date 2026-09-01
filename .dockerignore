@@ -70,3 +70,10 @@ Thumbs.db
 *.tmp
 tmp/
 temp/
+
+# Go CLI (separate binary, not needed in runtime)
+cli/
+
+# Tooling configs (not needed in runtime)
+opencode.json
+.graphifyignore
