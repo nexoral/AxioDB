@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable prefer-const */
 import { StatusCodes } from "../../../config/Keys/StatusCode";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse from "../../helper/responseBuilder.helper";
 import { FastifyRequest } from "fastify";
 import Database from "../../../Services/Database/database.operation";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
+import Logger from "../../../Helper/Logger.helper";
 
 export default class CRUDController {
   private AxioDBInstance: AxioDB;
@@ -15,13 +14,13 @@ export default class CRUDController {
   }
 
   public async getAllDocuments(request: FastifyRequest) {
-    let { dbName, collectionName, page } = request.query as {
+    const { dbName, collectionName, page: rawPage } = request.query as {
       dbName: string;
       collectionName: string;
       page: number;
     };
 
-    page = parseInt(String(page));
+    const page = parseInt(String(rawPage));
 
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
@@ -60,16 +59,16 @@ export default class CRUDController {
   }
 
   public async getDocumentsByQuery(request: FastifyRequest) {
-    let { dbName, collectionName, page } = request.query as {
+    const { dbName, collectionName, page } = request.query as {
       dbName: string;
       collectionName: string;
       page: number;
     };
-    let { query } = request.body as {
+    const { query } = request.body as {
       query: object;
     };
 
-    let PageNumber = parseInt(String(page));
+    const PageNumber = parseInt(String(page));
 
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
@@ -113,7 +112,7 @@ export default class CRUDController {
   }
 
   public async getDocumentsById(request: FastifyRequest) {
-    let { dbName, collectionName, documentId } = request.query as {
+    const { dbName, collectionName, documentId } = request.query as {
       dbName: string;
       collectionName: string;
       documentId: string;
@@ -149,8 +148,46 @@ export default class CRUDController {
     );
   }
 
+  public async getDocumentsByIds(request: FastifyRequest) {
+    const { dbName, collectionName } = request.query as {
+      dbName: string;
+      collectionName: string;
+    };
+    const { ids } = request.body as { ids: string[] };
+
+    if (!dbName || typeof dbName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
+    }
+    if (!collectionName || typeof collectionName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
+    }
+    if (!Array.isArray(ids) || ids.length === 0 || !ids.every(id => typeof id === "string")) {
+      return buildResponse(StatusCodes.BAD_REQUEST, "ids must be a non-empty array of strings");
+    }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+    }
+
+    const databaseInstance: Database =
+      await this.AxioDBInstance.createDB(dbName);
+
+    const DB_Collection =
+      await databaseInstance.createCollection(collectionName);
+
+    const result = await DB_Collection.findByIds(ids);
+    if (!result.data) {
+      return buildResponse(StatusCodes.NOT_FOUND, "No documents found");
+    }
+
+    return buildResponse(
+      StatusCodes.OK,
+      "Documents retrieved successfully",
+      result.data,
+    );
+  }
+
   public async createNewDocument(request: FastifyRequest) {
-    let { dbName, collectionName } = request.query as {
+    const { dbName, collectionName } = request.query as {
       dbName: string;
       collectionName: string;
     };
@@ -188,7 +225,7 @@ export default class CRUDController {
   }
 
   public async createManyNewDocument(request: FastifyRequest) {
-    let { dbName, collectionName } = request.query as {
+    const { dbName, collectionName } = request.query as {
       dbName: string;
       collectionName: string;
     };
@@ -226,7 +263,7 @@ export default class CRUDController {
   }
 
   public async updateDocumentById(request: FastifyRequest) {
-    let { dbName, collectionName, documentId } = request.query as {
+    const { dbName, collectionName, documentId } = request.query as {
       dbName: string;
       collectionName: string;
       documentId: string;
@@ -270,7 +307,7 @@ export default class CRUDController {
   }
 
   public async updateDocumentByQuery(request: FastifyRequest) {
-    let { dbName, collectionName, isMany } = request.query as {
+    const { dbName, collectionName, isMany } = request.query as {
       dbName: string;
       collectionName: string;
       isMany: boolean;
@@ -323,7 +360,7 @@ export default class CRUDController {
   }
 
   public async deleteDocumentById(request: FastifyRequest) {
-    let { dbName, collectionName, documentId } = request.query as {
+    const { dbName, collectionName, documentId } = request.query as {
       dbName: string;
       collectionName: string;
       documentId: string;
@@ -349,7 +386,7 @@ export default class CRUDController {
     const deleteResult = await DB_Collection.delete({
       documentId: documentId,
     }).deleteOne();
-    console.log(deleteResult);
+    Logger.info(deleteResult);
     if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
       return buildResponse(
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -361,13 +398,13 @@ export default class CRUDController {
   }
 
   public async deleteDocumentByQuery(request: FastifyRequest) {
-    let { dbName, collectionName, isMany } = request.query as {
+    const { dbName, collectionName, isMany } = request.query as {
       dbName: string;
       collectionName: string;
       isMany: boolean;
     };
 
-    let { query } = request.body as {
+    const { query } = request.body as {
       query: object;
     };
 
@@ -414,13 +451,13 @@ export default class CRUDController {
    * }
    */
   public async runAggregation(request: FastifyRequest) {
-    let { dbName, collectionName } = request.query as {
+    const { dbName, collectionName } = request.query as {
       dbName: string;
       collectionName: string;
     };
 
-    let { aggregation } = request.body as {
-      aggregation: object[];
+    const { aggregation } = request.body as {
+      aggregation: Record<string, unknown>[];
     };
 
     if (!Array.isArray(aggregation) || aggregation.length === 0) {

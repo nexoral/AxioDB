@@ -1,10 +1,10 @@
 export interface TransactionOperation {
   type: 'INSERT' | 'UPDATE' | 'DELETE';
   documentId?: string;
-  query?: object;
-  data?: object;
+  query?: Record<string, unknown>;
+  data?: Record<string, unknown>;
   fileName?: string;
-  oldData?: object;
+  oldData?: Record<string, unknown>;
   savepointName?: string;
 }
 

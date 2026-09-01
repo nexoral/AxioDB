@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Socket } from 'net';
 import { connect as tlsConnect } from 'tls';
 import { randomUUID } from 'crypto';
@@ -6,6 +5,7 @@ import { MessageBuffer, MessageFramer } from '../tcp/config/protocol';
 import { TCPRequest, TCPResponse, PendingRequest } from '../tcp/types/protocol.types';
 import { CommandType } from '../tcp/types/command.types';
 import { AuthenticatedUser, ConnectionState } from './types/client.types';
+import Logger from "../Helper/Logger.helper";
 
 /** Per-connection options a PooledConnection needs (pool-level options like maxPoolSize live one level up). */
 export interface PooledConnectionOptions {
@@ -156,7 +156,7 @@ export default class PooledConnection {
     return this.authUser;
   }
 
-  sendCommand(command: CommandType | string, params: any): Promise<any> {
+  sendCommand(command: CommandType | string, params: Record<string, unknown>): Promise<unknown> {
     if (this.state !== ConnectionState.CONNECTED || !this.socket) {
       return Promise.reject(new Error('Not connected to server'));
     }
@@ -262,7 +262,7 @@ export default class PooledConnection {
         pending.reject(new Error(response.error || response.message));
       }
     } else {
-      console.warn(`[AxioDBCloud] Received response for unknown request occured: ${response.id}`);
+      Logger.warn(`[AxioDBCloud] Received response for unknown request occured: ${response.id}`);
     }
   }
 
@@ -313,7 +313,7 @@ export default class PooledConnection {
       try {
         await this.sendCommand(CommandType.PING, {});
       } catch (error) {
-        console.warn('[AxioDBCloud] Heartbeat failed:', error);
+        Logger.warn('[AxioDBCloud] Heartbeat failed:', error);
       }
     }, this.options.heartbeatInterval);
   }

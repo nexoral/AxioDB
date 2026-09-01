@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { General } from "../../config/Keys/Keys";
 import FileManager from "../../engine/Filesystem/FileManager";
 import Converter from "../../Helper/Converter.helper";
 import { IndexManager } from "./Index.service";
+import Logger from "../../Helper/Logger.helper";
 
 /**
  * Structure of index data stored in index files
@@ -166,7 +165,7 @@ export class IndexCache {
       // Load each index file in parallel
       const loadPromises = metaLines.map(async (line) => {
         try {
-          const meta = this.converter.ToObject(line);
+          const meta = this.converter.ToObject(line) as { path: string; indexFieldName: string };
           const indexPath = meta.path;
           const fieldName = meta.indexFieldName;
 
@@ -185,13 +184,13 @@ export class IndexCache {
           }
         } catch (error) {
           // Silent per-index failure - continue loading other indexes
-          console.error(`Failed to load index ${line}:`, error);
+          Logger.error(`Failed to load index ${line}:`, error);
         }
       });
 
       await Promise.all(loadPromises);
     } catch (error) {
-      console.error("Failed to load indexes into memory:", error);
+      Logger.error("Failed to load indexes into memory:", error);
     }
   }
 

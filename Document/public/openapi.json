@@ -898,6 +898,64 @@
         ]
       }
     },
+    "/api/auth/roles/{roleName}": {
+      "delete": {
+        "tags": [
+          "Authentication & Access Control"
+        ],
+        "summary": "Deletes a custom role",
+        "description": "Deletes a custom role. Predefined roles and roles assigned to users cannot be deleted.",
+        "operationId": "deleteApiAuthRolesRoleName",
+        "parameters": [
+          {
+            "name": "roleName",
+            "in": "query",
+            "required": true,
+            "description": "Role name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Role deleted",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Role deleted successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - System role, assigned role, or role not found"
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing role:delete permission"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      },
+      "parameters": [
+        {
+          "name": "roleName",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
     "/api/auth/roles/permissions": {
       "get": {
         "tags": [
@@ -1626,6 +1684,66 @@
         ]
       }
     },
+    "/api/operation/total/": {
+      "get": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Returns the total number of documents in one collection.",
+        "description": "Returns the total number of documents in one collection.",
+        "operationId": "getApiOperationTotal",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "Database name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "Collection name",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success - Returns the document count",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Total Documents in the Collection",
+                  "data": {
+                    "total": 42
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Database and collection are required"
+          },
+          "401": {
+            "description": "Unauthorized - Session invalid or expired"
+          },
+          "403": {
+            "description": "Forbidden - Missing document:view permission"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
     "/api/operation/all/": {
       "get": {
         "tags": [
@@ -1692,7 +1810,7 @@
           "Document Operations (CRUD)"
         ],
         "summary": "Retrieves documents matching a MongoDB-style query with pagination",
-        "description": "Retrieves documents matching a MongoDB-style query with pagination. Supports operators like $gt, $gte, $lt, $lte, $ne, $in, $regex.",
+        "description": "Retrieves documents matching a MongoDB-style query with pagination. Supports operators like $gt, $gte, $lt, $lte, $ne, $in, $regex. Optionally pass a hint to force a specific index.",
         "operationId": "postApiOperationAllByQuery",
         "parameters": [
           {
@@ -1720,6 +1838,15 @@
             "description": "Page number (starts from 1)",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "hint",
+            "in": "query",
+            "required": false,
+            "description": "Index field name to force (e.g. 'email' to use the email index)",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -1828,6 +1955,102 @@
           },
           "404": {
             "description": "Not Found - Document does not exist"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/all/by-ids/": {
+      "post": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Retrieves multiple documents by their IDs in a single call",
+        "description": "Retrieves multiple documents by their IDs in a single call. More efficient than multiple by-id requests.",
+        "operationId": "postApiOperationAllByIds",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {},
+                    "description": "Array of document IDs to retrieve"
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              },
+              "example": {
+                "ids": [
+                  "abc123",
+                  "def456",
+                  "ghi789"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Returns matching documents",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "status": "success",
+                  "message": "Documents retrieved successfully",
+                  "data": {
+                    "documents": [
+                      {
+                        "documentId": "abc123",
+                        "name": "John Doe",
+                        "updatedAt": "2025-10-31T12:00:00.000Z"
+                      },
+                      {
+                        "documentId": "def456",
+                        "name": "Jane Smith",
+                        "updatedAt": "2025-10-31T12:00:00.000Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid parameters or empty ids array"
+          },
+          "404": {
+            "description": "Not Found - No documents match the provided IDs"
           }
         },
         "security": [

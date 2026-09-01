@@ -1,8 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
-import buildResponse from "../../helper/responseBuilder.helper";
-import { StatusCodes } from "../../../config/Keys/StatusCode";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import DatabaseController from "../../controller/Database/Databse.controller";
 import fastifyMultipart from "@fastify/multipart";
@@ -35,7 +31,7 @@ export default async function dbRouter(
   fastify.get(
     "/databases",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DB_VIEW)] },
-    async (request) => {
+    async () => {
       return new DatabaseController(AxioDBInstance).getDatabases();
     },
   );

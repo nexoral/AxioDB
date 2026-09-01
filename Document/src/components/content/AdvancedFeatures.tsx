@@ -38,6 +38,19 @@ const setup = async () => {
   // Fast retrieval by documentId
   const fastRes = await UserCollection.query({ documentId: "JOHTAOIJNHUJOBD"}).exec();
   console.log("Fast Retrieval:", fastRes);
+
+  // Batch-read multiple IDs (O(1) per id)
+  const batch = await UserCollection.findByIds(["id1","id2","id3"]);
+  console.log("Batch:", batch.data.documents);
+
+  // Force index via hint (requires newIndex first)
+  await UserCollection.newIndex('status');
+  const hinted = await UserCollection.query({ status: 'active' }).hint('status').exec();
+  console.log("Hinted:", hinted);
+
+  // Total count without loading docs
+  const count = await UserCollection.totalDocuments();
+  console.log("Total:", count.data.total);
 };
 
 setup();`,

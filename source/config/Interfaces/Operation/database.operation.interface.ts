@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 export interface DatabaseMap {
   DatabaseName: string;
@@ -11,6 +10,6 @@ export interface FinalCollectionsInfo {
   TotalSize: number;
   TotalCollections: number | string;
   ListOfCollections: string[];
-  collectionMetaStatus: any[];
+  collectionMetaStatus: Array<{ collectionName: string; path: string }>;
   AllCollectionsPaths: string[];
 }

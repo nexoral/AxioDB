@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import UniqueGenerator from "../../Helper/UniqueGenerator.helper";
 import {
   ErrorInterface,
@@ -51,6 +50,14 @@ export default class Transaction {
     this.ResponseHelper = new ResponseHelper();
     this.Converter = new Converter();
     this.FileManager = new FileManager();
+  }
+
+  public getId(): string {
+    return this.transactionId;
+  }
+
+  public getCollectionPath(): string {
+    return this.collectionPath;
   }
 
   /**
@@ -141,7 +148,7 @@ export default class Transaction {
     return this;
   }
 
-  public update(query: object, data: object): Transaction {
+  public update(query: Record<string, unknown>, data: Record<string, unknown>): Transaction {
     if (!query || typeof query !== 'object') {
       throw new Error("Query must be a valid object");
     }
@@ -159,7 +166,7 @@ export default class Transaction {
     return this;
   }
 
-  public delete(query: object): Transaction {
+  public delete(query: Record<string, unknown>): Transaction {
     if (!query || typeof query !== 'object') {
       throw new Error("Query must be a valid object");
     }
@@ -355,9 +362,9 @@ export default class Transaction {
             continue;
           }
 
-          const oldData = this.Converter.ToObject(readResult.data);
+          const oldData = this.Converter.ToObject(readResult.data as string) as Record<string, unknown>;
 
-          const newData = { ...oldData, ...op.data };
+          const newData = { ...oldData, ...op.data as Record<string, unknown> };
 
           resolvedOperations.push({
             type: 'UPDATE',
@@ -384,7 +391,7 @@ export default class Transaction {
             continue;
           }
 
-          const oldData = this.Converter.ToObject(readResult.data);
+          const oldData = this.Converter.ToObject(readResult.data as string) as Record<string, unknown>;
 
           resolvedOperations.push({
             type: 'DELETE',
@@ -411,7 +418,7 @@ export default class Transaction {
       if (op.type === 'UPDATE' || op.type === 'DELETE') {
         const readResult = await this.FileManager.ReadFile(filePath);
         if (readResult.status) {
-          beforeData = readResult.data;
+          beforeData = readResult.data as string;
         }
       }
 
@@ -538,7 +545,7 @@ export default class Transaction {
       return [];
     }
     const listing = await folderManager.ListDirectory(transactionDir);
-    if (!listing.status || !Array.isArray(listing.data)) {
+    if (!listing.status || !("data" in listing) || !Array.isArray(listing.data)) {
       return [];
     }
     return (listing.data as string[]).filter((name) => name.endsWith(WAL_FILE_EXT));

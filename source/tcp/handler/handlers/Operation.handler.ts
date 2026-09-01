@@ -1,284 +1,244 @@
 import { AxioDB } from '../../../Services/Indexation.operation';
-import { TCPResponse } from '../../types/protocol.types';
+import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode } from '../../config/keys';
 import CRUDController from '../../../server/controller/Operation/CRUD.controller';
+import { Document } from '../../../config/Interfaces/shared.types';
+import { FastifyRequest } from 'fastify';
+import TransactionManager from '../../connection/TransactionManager';
 
-/**
- * Operation Handler - Handles CRUD operation TCP commands
- * Reuses existing CRUDController logic
- */
+type Params = TCPRequest['params'];
+
+interface MockRequest {
+  query: Record<string, string>;
+  body?: Document | Document[];
+  [key: string]: unknown;
+}
+
 export default class OperationHandler {
   private controller: CRUDController;
   private axioDB: AxioDB;
+  private txnManager: TransactionManager;
 
   constructor(axioDB: AxioDB) {
     this.axioDB = axioDB;
     this.controller = new CRUDController(axioDB);
+    this.txnManager = TransactionManager.getInstance();
   }
 
-  /**
-   * Handle INSERT_DOCUMENT command
-   */
-  async handleInsertDocument(requestId: string, params: any): Promise<TCPResponse> {
-    const { dbName, collectionName, data } = params;
+  private error(id: string, statusCode: number, message: string): TCPResponse {
+    return { id, statusCode, message, error: message };
+  }
 
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName },
+  async handleInsertDocument(requestId: string, params: Params, connectionId: string): Promise<TCPResponse> {
+    const { dbName, collectionName, data, transactionId } = params;
+
+    if (transactionId) {
+      const txn = this.txnManager.getTransaction(connectionId, transactionId);
+      if (!txn) return this.error(requestId, StatusCode.BAD_REQUEST, 'No active transaction with this ID on this connection');
+      try {
+        txn.insert(data as Record<string, unknown>);
+        return { id: requestId, statusCode: StatusCode.OK, message: 'Document buffered in transaction', data: { documentId: (data as Record<string, unknown>)?.documentId } };
+      } catch (error) {
+        return this.error(requestId, StatusCode.BAD_REQUEST, error instanceof Error ? error.message : String(error));
+      }
+    }
+
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName! },
       body: data,
-    } as any;
-
-    const result = await this.controller.createNewDocument(mockRequest);
-
-    return {
-      id: requestId,
-      statusCode: result.statusCode,
-      message: result.message,
-      data: result.data,
     };
+    const result = await this.controller.createNewDocument(mockRequest as unknown as FastifyRequest);
+    return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
   }
 
-  /**
-   * Handle INSERT_MANY_DOCUMENTS command
-   */
-  async handleInsertManyDocuments(requestId: string, params: any): Promise<TCPResponse> {
-    const { dbName, collectionName, documents } = params;
+  async handleInsertManyDocuments(requestId: string, params: Params, connectionId: string): Promise<TCPResponse> {
+    const { dbName, collectionName, documents, transactionId } = params;
 
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName },
-      body: documents,
-    } as any;
+    if (transactionId) {
+      const txn = this.txnManager.getTransaction(connectionId, transactionId);
+      if (!txn) return this.error(requestId, StatusCode.BAD_REQUEST, 'No active transaction with this ID on this connection');
+      try {
+        for (const doc of documents as Record<string, unknown>[]) {
+          txn.insert(doc);
+        }
+        return { id: requestId, statusCode: StatusCode.OK, message: 'Documents buffered in transaction', data: { count: (documents as unknown[]).length } };
+      } catch (error) {
+        return this.error(requestId, StatusCode.BAD_REQUEST, error instanceof Error ? error.message : String(error));
+      }
+    }
 
-    const result = await this.controller.createManyNewDocument(mockRequest);
-
-    return {
-      id: requestId,
-      statusCode: result.statusCode,
-      message: result.message,
-      data: result.data,
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName! },
+      body: documents as Document[],
     };
+    const result = await this.controller.createManyNewDocument(mockRequest as unknown as FastifyRequest);
+    return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
   }
 
-  /**
-   * Handle QUERY_DOCUMENTS command
-   */
-  async handleQueryDocuments(requestId: string, params: any): Promise<TCPResponse> {
-    const { dbName, collectionName, query = {}, limit, skip, sort, findOne } = params;
+  async handleQueryDocuments(requestId: string, params: Params): Promise<TCPResponse> {
+    const { dbName, collectionName, query = {}, limit, skip, sort, findOne, hint } = params;
 
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const collection = await databaseInstance.createCollection(collectionName);
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
 
-      // Build query with options
-      let queryBuilder = collection.query(query);
-
-      if (limit !== undefined) {
-        queryBuilder = queryBuilder.Limit(limit);
-      }
-
-      if (skip !== undefined) {
-        queryBuilder = queryBuilder.Skip(skip);
-      }
-
-      if (sort) {
-        queryBuilder = queryBuilder.Sort(sort);
-      }
-
-      if (findOne) {
-        queryBuilder = queryBuilder.findOne(findOne);
-      }
+      let queryBuilder = collection.query(query as Record<string, unknown>);
+      if (limit !== undefined) queryBuilder = queryBuilder.Limit(limit);
+      if (skip !== undefined) queryBuilder = queryBuilder.Skip(skip);
+      if (sort) queryBuilder = queryBuilder.Sort(sort);
+      if (findOne) queryBuilder = queryBuilder.findOne(findOne);
+      if (hint) queryBuilder = queryBuilder.hint(hint);
 
       const result = await queryBuilder.exec();
-
-      return {
-        id: requestId,
-        statusCode: StatusCode.OK,
-        message: 'Documents retrieved successfully',
-        data: result,
-      };
+      return { id: requestId, statusCode: StatusCode.OK, message: 'Documents retrieved successfully', data: result };
     } catch (error) {
-      return {
-        id: requestId,
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        message: error instanceof Error ? error.message : String(error),
-        error: error instanceof Error ? error.message : String(error),
-      };
+      return this.error(requestId, StatusCode.INTERNAL_SERVER_ERROR, error instanceof Error ? error.message : String(error));
     }
   }
 
-  /**
-   * Handle QUERY_BY_ID command
-   */
-  async handleQueryById(requestId: string, params: any): Promise<TCPResponse> {
+  async handleQueryById(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, id: documentId } = params;
-
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName, documentId },
-    } as any;
-
-    const result = await this.controller.getDocumentsById(mockRequest);
-
-    return {
-      id: requestId,
-      statusCode: result.statusCode,
-      message: result.message,
-      data: result.data,
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName!, documentId: documentId! },
     };
+    const result = await this.controller.getDocumentsById(mockRequest as unknown as FastifyRequest);
+    return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
   }
 
-  /**
-   * Handle UPDATE_DOCUMENT_BY_ID command
-   */
-  async handleUpdateById(requestId: string, params: any): Promise<TCPResponse> {
-    const { dbName, collectionName, id: documentId, updateData } = params;
-
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName, documentId },
-      body: updateData,
-    } as any;
-
-    const result = await this.controller.updateDocumentById(mockRequest);
-
-    return {
-      id: requestId,
-      statusCode: result.statusCode,
-      message: result.message,
-      data: result.data,
-    };
-  }
-
-  /**
-   * Handle UPDATE_DOCUMENTS_BY_QUERY command
-   */
-  async handleUpdateByQuery(requestId: string, params: any): Promise<TCPResponse> {
-    const { dbName, collectionName, query, updateData, updateOne = true } = params;
-    const isMany = !updateOne;
-
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName, isMany },
-      body: { query, update: updateData },
-    } as any;
-
-    const result = await this.controller.updateDocumentByQuery(mockRequest);
-
-    return {
-      id: requestId,
-      statusCode: result.statusCode,
-      message: result.message,
-      data: result.data,
-    };
-  }
-
-  /**
-   * Handle DELETE_DOCUMENT_BY_ID command
-   */
-  async handleDeleteById(requestId: string, params: any): Promise<TCPResponse> {
-    const { dbName, collectionName, id: documentId } = params;
-
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName, documentId },
-    } as any;
-
-    const result = await this.controller.deleteDocumentById(mockRequest);
-
-    return {
-      id: requestId,
-      statusCode: result.statusCode,
-      message: result.message,
-      data: result.data,
-    };
-  }
-
-  /**
-   * Handle DELETE_DOCUMENTS_BY_QUERY command
-   */
-  async handleDeleteByQuery(requestId: string, params: any): Promise<TCPResponse> {
-    const { dbName, collectionName, query, deleteOne = true } = params;
-    const isMany = !deleteOne;
-
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName, isMany },
-      body: { query },
-    } as any;
-
-    const result = await this.controller.deleteDocumentByQuery(mockRequest);
-
-    return {
-      id: requestId,
-      statusCode: result.statusCode,
-      message: result.message,
-      data: result.data,
-    };
-  }
-
-  /**
-   * Handle AGGREGATE command
-   */
-  async handleAggregate(requestId: string, params: any): Promise<TCPResponse> {
-    const { dbName, collectionName, pipeline } = params;
-
-    // Create mock request object
-    const mockRequest = {
-      query: { dbName, collectionName },
-      body: { aggregation: pipeline },
-    } as any;
-
-    const result = await this.controller.runAggregation(mockRequest);
-
-    return {
-      id: requestId,
-      statusCode: result.statusCode,
-      message: result.message,
-      data: result.data,
-    };
-  }
-
-  /**
-   * Handle TOTAL_DOCUMENTS command
-   */
-  async handleTotalDocuments(requestId: string, params: any): Promise<TCPResponse> {
-    const { dbName, collectionName } = params;
-
+  async handleFindByIds(requestId: string, params: Params): Promise<TCPResponse> {
+    const { dbName, collectionName, ids } = params;
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const collection = await databaseInstance.createCollection(collectionName);
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
+      const result = await collection.findByIds(ids!);
+      return { id: requestId, statusCode: result.statusCode, message: 'Documents retrieved successfully', data: result.data };
+    } catch (error) {
+      return this.error(requestId, StatusCode.INTERNAL_SERVER_ERROR, error instanceof Error ? error.message : String(error));
+    }
+  }
 
+  async handleUpdateById(requestId: string, params: Params, connectionId: string): Promise<TCPResponse> {
+    const { dbName, collectionName, id: documentId, updateData, transactionId } = params;
+
+    if (transactionId) {
+      const txn = this.txnManager.getTransaction(connectionId, transactionId);
+      if (!txn) return this.error(requestId, StatusCode.BAD_REQUEST, 'No active transaction with this ID on this connection');
+      try {
+        txn.update({ documentId } as Record<string, unknown>, updateData as Record<string, unknown>);
+        return { id: requestId, statusCode: StatusCode.OK, message: 'Update buffered in transaction' };
+      } catch (error) {
+        return this.error(requestId, StatusCode.BAD_REQUEST, error instanceof Error ? error.message : String(error));
+      }
+    }
+
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName!, documentId: documentId! },
+      body: updateData as Document,
+    };
+    const result = await this.controller.updateDocumentById(mockRequest as unknown as FastifyRequest);
+    return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
+  }
+
+  async handleUpdateByQuery(requestId: string, params: Params, connectionId: string): Promise<TCPResponse> {
+    const { dbName, collectionName, query, updateData, transactionId } = params;
+
+    if (transactionId) {
+      const txn = this.txnManager.getTransaction(connectionId, transactionId);
+      if (!txn) return this.error(requestId, StatusCode.BAD_REQUEST, 'No active transaction with this ID on this connection');
+      try {
+        txn.update(query as Record<string, unknown>, updateData as Record<string, unknown>);
+        return { id: requestId, statusCode: StatusCode.OK, message: 'Update buffered in transaction' };
+      } catch (error) {
+        return this.error(requestId, StatusCode.BAD_REQUEST, error instanceof Error ? error.message : String(error));
+      }
+    }
+
+    const isMany = !(params.updateOne ?? true);
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName!, isMany: String(isMany) },
+      body: { query, update: updateData } as unknown as Document,
+    };
+    const result = await this.controller.updateDocumentByQuery(mockRequest as unknown as FastifyRequest);
+    return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
+  }
+
+  async handleDeleteById(requestId: string, params: Params, connectionId: string): Promise<TCPResponse> {
+    const { dbName, collectionName, id: documentId, transactionId } = params;
+
+    if (transactionId) {
+      const txn = this.txnManager.getTransaction(connectionId, transactionId);
+      if (!txn) return this.error(requestId, StatusCode.BAD_REQUEST, 'No active transaction with this ID on this connection');
+      try {
+        txn.delete({ documentId } as Record<string, unknown>);
+        return { id: requestId, statusCode: StatusCode.OK, message: 'Delete buffered in transaction' };
+      } catch (error) {
+        return this.error(requestId, StatusCode.BAD_REQUEST, error instanceof Error ? error.message : String(error));
+      }
+    }
+
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName!, documentId: documentId! },
+    };
+    const result = await this.controller.deleteDocumentById(mockRequest as unknown as FastifyRequest);
+    return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
+  }
+
+  async handleDeleteByQuery(requestId: string, params: Params, connectionId: string): Promise<TCPResponse> {
+    const { dbName, collectionName, query, transactionId } = params;
+
+    if (transactionId) {
+      const txn = this.txnManager.getTransaction(connectionId, transactionId);
+      if (!txn) return this.error(requestId, StatusCode.BAD_REQUEST, 'No active transaction with this ID on this connection');
+      try {
+        txn.delete(query as Record<string, unknown>);
+        return { id: requestId, statusCode: StatusCode.OK, message: 'Delete buffered in transaction' };
+      } catch (error) {
+        return this.error(requestId, StatusCode.BAD_REQUEST, error instanceof Error ? error.message : String(error));
+      }
+    }
+
+    const isMany = !(params.deleteOne ?? true);
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName!, isMany: String(isMany) },
+      body: { query } as unknown as Document,
+    };
+    const result = await this.controller.deleteDocumentByQuery(mockRequest as unknown as FastifyRequest);
+    return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
+  }
+
+  async handleAggregate(requestId: string, params: Params): Promise<TCPResponse> {
+    const { dbName, collectionName, pipeline } = params;
+    const mockRequest: MockRequest = {
+      query: { dbName: dbName!, collectionName: collectionName! },
+      body: { aggregation: pipeline } as unknown as Document,
+    };
+    const result = await this.controller.runAggregation(mockRequest as unknown as FastifyRequest);
+    return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
+  }
+
+  async handleTotalDocuments(requestId: string, params: Params): Promise<TCPResponse> {
+    const { dbName, collectionName } = params;
+    try {
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
       const result = await collection.totalDocuments();
-
       return {
         id: requestId,
         statusCode: result.statusCode,
-        message: 'message' in result ? result.message || 'Total documents retrieved successfully' : 'Total documents retrieved successfully',
+        message: 'message' in result ? (result.message as string) || 'Total documents retrieved successfully' : 'Total documents retrieved successfully',
         data: result.data,
       };
     } catch (error) {
-      return {
-        id: requestId,
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        message: error instanceof Error ? error.message : String(error),
-        error: error instanceof Error ? error.message : String(error),
-      };
+      return this.error(requestId, StatusCode.INTERNAL_SERVER_ERROR, error instanceof Error ? error.message : String(error));
     }
   }
 
-  /**
-   * Handle CREATE_INDEX command
-   */
-  async handleCreateIndex(requestId: string, params: any): Promise<TCPResponse> {
+  async handleCreateIndex(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, fieldNames } = params;
-
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const collection = await databaseInstance.createCollection(collectionName);
-
-      const result = await collection.newIndex(...fieldNames);
-
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
+      const result = await collection.newIndex(...(fieldNames as string[]));
       return {
         id: requestId,
         statusCode: result ? result.statusCode : StatusCode.OK,
@@ -286,55 +246,33 @@ export default class OperationHandler {
         data: result ? result.data : undefined,
       };
     } catch (error) {
-      return {
-        id: requestId,
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        message: error instanceof Error ? error.message : String(error),
-        error: error instanceof Error ? error.message : String(error),
-      };
+      return this.error(requestId, StatusCode.INTERNAL_SERVER_ERROR, error instanceof Error ? error.message : String(error));
     }
   }
 
-  /**
-   * Handle LIST_INDEXES command
-   */
-  async handleListIndexes(requestId: string, params: any): Promise<TCPResponse> {
+  async handleListIndexes(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName } = params;
-
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const collection = await databaseInstance.createCollection(collectionName);
-
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
       const result = await collection.getIndexes();
-
       return {
         id: requestId,
         statusCode: result.statusCode,
-        message: 'message' in result ? result.message || 'Indexes retrieved successfully' : 'Indexes retrieved successfully',
+        message: 'message' in result ? (result.message as string) || 'Indexes retrieved successfully' : 'Indexes retrieved successfully',
         data: result.data,
       };
     } catch (error) {
-      return {
-        id: requestId,
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        message: error instanceof Error ? error.message : String(error),
-        error: error instanceof Error ? error.message : String(error),
-      };
+      return this.error(requestId, StatusCode.INTERNAL_SERVER_ERROR, error instanceof Error ? error.message : String(error));
     }
   }
 
-  /**
-   * Handle DROP_INDEX command
-   */
-  async handleDropIndex(requestId: string, params: any): Promise<TCPResponse> {
+  async handleDropIndex(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, indexName } = params;
-
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const collection = await databaseInstance.createCollection(collectionName);
-
-      const result = await collection.dropIndex(indexName);
-
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const collection = await databaseInstance.createCollection(collectionName!);
+      const result = await collection.dropIndex(indexName!);
       return {
         id: requestId,
         statusCode: result ? result.statusCode : StatusCode.OK,
@@ -342,12 +280,7 @@ export default class OperationHandler {
         data: result ? result.data : undefined,
       };
     } catch (error) {
-      return {
-        id: requestId,
-        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        message: error instanceof Error ? error.message : String(error),
-        error: error instanceof Error ? error.message : String(error),
-      };
+      return this.error(requestId, StatusCode.INTERNAL_SERVER_ERROR, error instanceof Error ? error.message : String(error));
     }
   }
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   ErrorInterface,
   SuccessInterface,
@@ -21,7 +20,6 @@ import Converter from "../../Helper/Converter.helper";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import { IndexManager } from "../Index/Index.service";
 import { IndexCache } from "../Index/IndexCache.service";
-import InMemoryCache from "../../Memory/memory.operation";
 
 /**
  * Represents a collection inside a database.
@@ -59,6 +57,10 @@ export default class Collection {
     });
   }
 
+  public getCollectionPath(): string {
+    return this.path;
+  }
+
   /**
    * Get Numbers of Documents in the Collection
    * @returns {Promise<number>} - A promise that resolves with the number of documents in the collection.
@@ -78,7 +80,10 @@ export default class Collection {
     try {
       // List all files in the directory
       const files = await new FolderManager().ListDirectory(this.path);
-      const documentFiles = files.data.filter((fileName: string) =>
+      if (!("data" in files)) {
+        return new ResponseHelper().Error("Failed to list directory");
+      }
+      const documentFiles = (files.data as string[]).filter((fileName: string) =>
         fileName.endsWith(General.DBMS_File_EXT),
       );
       return new ResponseHelper().Success({
@@ -154,13 +159,17 @@ export default class Collection {
     txn.insert(data);
     const commitResult = await txn.commit();
 
-    if (!("data" in commitResult) || !commitResult.data.documentIds?.length) {
+    if (!("data" in commitResult)) {
+      return commitResult;
+    }
+    const commitData = commitResult.data as { documentIds?: string[] };
+    if (!commitData.documentIds?.length) {
       return commitResult;
     }
 
     return new ResponseHelper().Success({
       Message: "Data Inserted Successfully",
-      documentId: commitResult.data.documentIds[0],
+      documentId: commitData.documentIds[0],
     });
   }
 
@@ -200,14 +209,18 @@ export default class Collection {
     }
     const commitResult = await txn.commit();
 
-    if (!("data" in commitResult) || !commitResult.data.documentIds?.length) {
+    if (!("data" in commitResult)) {
+      return commitResult;
+    }
+    const commitData = commitResult.data as { documentIds?: string[] };
+    if (!commitData.documentIds?.length) {
       return commitResult;
     }
 
     return new ResponseHelper().Success({
       message: "Total Documents Inserted",
-      total: commitResult.data.documentIds.length,
-      id: commitResult.data.documentIds,
+      total: commitData.documentIds.length,
+      id: commitData.documentIds,
     });
   }
 
@@ -217,16 +230,26 @@ export default class Collection {
    * @returns {Reader} - An instance of the Reader class.
    */
   public query(query: object | any): Reader {
-    // Check if documentId is empty or not
     if (!query) {
       throw new Error("Query cannot be empty");
     }
-    // Read the data
     return new Reader(
       this.name,
       this.path,
       query,
     );
+  }
+
+  /**
+   * Retrieves multiple documents by their IDs in a single call.
+   * @param {string[]} ids - Array of document IDs to retrieve.
+   * @returns {Promise<SuccessInterface | ErrorInterface>} - Matching documents.
+   */
+  public async findByIds(ids: string[]): Promise<SuccessInterface | ErrorInterface> {
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new Error("IDs must be a non-empty array");
+    }
+    return this.query({ documentId: ids }).exec();
   }
 
   /**
@@ -240,7 +263,7 @@ export default class Collection {
    * collection.aggregate([{$match: {}}, ${group: {_id: null, count: {$sum: 1}}}]).exec();
    * ```
    */
-  public aggregate(PipelineQuerySteps: object[]): Aggregation {
+  public aggregate(PipelineQuerySteps: Record<string, unknown>[]): Aggregation {
     // Check if Pipeline Steps is valid Array of Object
     if (!PipelineQuerySteps) {
       throw new Error("Please provide valid Pipeline Steps");

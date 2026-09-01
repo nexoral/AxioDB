@@ -42,6 +42,7 @@ type QueryOptions struct {
 	Skip     int
 	Sort     interface{}
 	FindOne  bool
+	Hint     string
 }
 
 func QueryDocuments(client *protocol.Client, dbName, collectionName string, opts QueryOptions) (*protocol.Response, error) {
@@ -63,6 +64,9 @@ func QueryDocuments(client *protocol.Client, dbName, collectionName string, opts
 	}
 	if opts.FindOne {
 		params["findOne"] = true
+	}
+	if opts.Hint != "" {
+		params["hint"] = opts.Hint
 	}
 
 	resp, err := client.Send("QUERY_DOCUMENTS", params)
@@ -86,6 +90,21 @@ func QueryByID(client *protocol.Client, dbName, collectionName, id string) (*pro
 	}
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf("query by id failed: %s", resp.Error)
+	}
+	return resp, nil
+}
+
+func FindDocumentsByIDs(client *protocol.Client, dbName, collectionName string, ids interface{}) (*protocol.Response, error) {
+	resp, err := client.Send("FIND_BY_IDS", map[string]interface{}{
+		"dbName":         dbName,
+		"collectionName": collectionName,
+		"ids":            ids,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("find documents by ids: %w", err)
+	}
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("find documents by ids failed: %s", resp.Error)
 	}
 	return resp, nil
 }

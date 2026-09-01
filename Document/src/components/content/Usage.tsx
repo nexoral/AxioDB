@@ -57,33 +57,31 @@ console.log(response);`,
 const singleDocument = await collection.query({ documentId: "S4ACDVS6SZ4S6VS" }).exec();
 console.log(singleDocument);
 
-// Retrieve multiple documents by an array of documentIds
-const multipleDocuments = await collection.query({ documentId: ["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"] }).exec();
-console.log(multipleDocuments);
+// Batch-read: O(1) per id, recommended for multiple IDs
+const multipleDocuments = await collection.findByIds(["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"]);
+console.log(multipleDocuments.data.documents);
 
-// Retrieve documents with additional filters
+// Index hint — force a specific index for performance
+const hinted = await collection.query({ status: 'active' }).hint('status').exec();
+console.log(hinted);
+
+// Retrieve documents with additional filters + hint
 const filteredDocuments = await collection.query({
-  documentId: ["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"],
   age: { $gt: 20 }
-}).exec();
+}).hint('age').exec();
 console.log(filteredDocuments);
 
 // Retrieve documents with projection
-const projectedDocuments = await collection.query({
-  documentId: ["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"]
-}).setProject({ name: 1, age: 1 }).exec();
+const projectedDocuments = await collection.query({})
+  .setProject({ name: 1, age: 1 }).exec();
 console.log(projectedDocuments);
 
 // Retrieve documents with sorting
-const sortedDocuments = await collection.query({
-  documentId: ["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"]
-}).Sort({ age: -1 }).exec();
+const sortedDocuments = await collection.query({}).Sort({ age: -1 }).exec();
 console.log(sortedDocuments);
 
 // Retrieve documents with pagination
-const paginatedDocuments = await collection.query({
-  documentId: ["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"]
-}).Limit(2).Skip(1).exec();
+const paginatedDocuments = await collection.query({}).Limit(2).Skip(1).exec();
 console.log(paginatedDocuments);`,
     },
     es6: {
@@ -114,33 +112,31 @@ console.log(response);`,
 const singleDocument = await collection.query({ documentId: "S4ACDVS6SZ4S6VS" }).exec();
 console.log(singleDocument);
 
-// Retrieve multiple documents by an array of documentIds
-const multipleDocuments = await collection.query({ documentId: ["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"] }).exec();
-console.log(multipleDocuments);
+// Batch-read: O(1) per id, recommended for multiple IDs
+const multipleDocuments = await collection.findByIds(["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"]);
+console.log(multipleDocuments.data.documents);
 
-// Retrieve documents with additional filters
+// Index hint — force a specific index for performance
+const hinted = await collection.query({ status: 'active' }).hint('status').exec();
+console.log(hinted);
+
+// Retrieve documents with additional filters + hint
 const filteredDocuments = await collection.query({
-  documentId: ["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"],
   age: { $gt: 20 }
-}).exec();
+}).hint('age').exec();
 console.log(filteredDocuments);
 
 // Retrieve documents with projection
-const projectedDocuments = await collection.query({
-  documentId: ["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"]
-}).setProject({ name: 1, age: 1 }).exec();
+const projectedDocuments = await collection.query({})
+  .setProject({ name: 1, age: 1 }).exec();
 console.log(projectedDocuments);
 
 // Retrieve documents with sorting
-const sortedDocuments = await collection.query({
-  documentId: ["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"]
-}).Sort({ age: -1 }).exec();
+const sortedDocuments = await collection.query({}).Sort({ age: -1 }).exec();
 console.log(sortedDocuments);
 
 // Retrieve documents with pagination
-const paginatedDocuments = await collection.query({
-  documentId: ["S4ACDVS6SZ4S6VS", "S4ACDVS6SZ4S6VA"]
-}).Limit(2).Skip(1).exec();
+const paginatedDocuments = await collection.query({}).Limit(2).Skip(1).exec();
 console.log(paginatedDocuments);`,
     },
   };
@@ -572,7 +568,7 @@ const main = async () => {
         avgAge: { $avg: "$age" }
       }
     }
-  ]);
+  ]).exec();
 
   // Update operations
   await UserCollection.update({name: "John Doe"}).UpdateOne({name: "Ankan"});

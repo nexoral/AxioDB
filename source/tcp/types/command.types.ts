@@ -6,6 +6,7 @@
 export enum CommandType {
   // Connection Commands
   PING = 'PING',
+  HEALTH = 'HEALTH',
   DISCONNECT = 'DISCONNECT',
 
   // Authentication Commands
@@ -28,6 +29,7 @@ export enum CommandType {
   INSERT_MANY_DOCUMENTS = 'INSERT_MANY_DOCUMENTS',
   QUERY_DOCUMENTS = 'QUERY_DOCUMENTS',
   QUERY_BY_ID = 'QUERY_BY_ID',
+  FIND_BY_IDS = 'FIND_BY_IDS',
   UPDATE_DOCUMENT_BY_ID = 'UPDATE_DOCUMENT_BY_ID',
   UPDATE_DOCUMENTS_BY_QUERY = 'UPDATE_DOCUMENTS_BY_QUERY',
   DELETE_DOCUMENT_BY_ID = 'DELETE_DOCUMENT_BY_ID',
@@ -40,10 +42,13 @@ export enum CommandType {
   DROP_INDEX = 'DROP_INDEX',
   LIST_INDEXES = 'LIST_INDEXES',
 
-  // Transaction Operations (future)
+  // Transaction Operations
   BEGIN_TRANSACTION = 'BEGIN_TRANSACTION',
   COMMIT_TRANSACTION = 'COMMIT_TRANSACTION',
   ROLLBACK_TRANSACTION = 'ROLLBACK_TRANSACTION',
+  SAVEPOINT = 'SAVEPOINT',
+  ROLLBACK_TO_SAVEPOINT = 'ROLLBACK_TO_SAVEPOINT',
+  RELEASE_SAVEPOINT = 'RELEASE_SAVEPOINT',
 }
 
 /**
@@ -51,6 +56,7 @@ export enum CommandType {
  */
 export const CommandDocumentation: Record<CommandType, string> = {
   [CommandType.PING]: 'Heartbeat ping to verify connection',
+  [CommandType.HEALTH]: 'Get TCP service health status',
   [CommandType.DISCONNECT]: 'Gracefully disconnect from server',
   [CommandType.AUTHENTICATE]: 'Authenticate with username and password',
   [CommandType.CREATE_DB]: 'Create a new database',
@@ -65,6 +71,7 @@ export const CommandDocumentation: Record<CommandType, string> = {
   [CommandType.INSERT_MANY_DOCUMENTS]: 'Insert multiple documents into collection',
   [CommandType.QUERY_DOCUMENTS]: 'Query documents with filters and options',
   [CommandType.QUERY_BY_ID]: 'Query document by ID',
+  [CommandType.FIND_BY_IDS]: 'Retrieve multiple documents by their IDs',
   [CommandType.UPDATE_DOCUMENT_BY_ID]: 'Update document by ID',
   [CommandType.UPDATE_DOCUMENTS_BY_QUERY]: 'Update documents matching query',
   [CommandType.DELETE_DOCUMENT_BY_ID]: 'Delete document by ID',
@@ -77,4 +84,7 @@ export const CommandDocumentation: Record<CommandType, string> = {
   [CommandType.BEGIN_TRANSACTION]: 'Begin database transaction',
   [CommandType.COMMIT_TRANSACTION]: 'Commit database transaction',
   [CommandType.ROLLBACK_TRANSACTION]: 'Rollback database transaction',
+  [CommandType.SAVEPOINT]: 'Create a savepoint within a transaction',
+  [CommandType.ROLLBACK_TO_SAVEPOINT]: 'Rollback to a specific savepoint',
+  [CommandType.RELEASE_SAVEPOINT]: 'Release a savepoint',
 };

@@ -117,9 +117,9 @@ export async function tarGzFolder(
  * ```typescript
  * try {
  *   const extractedPath = await unzipFile('/path/to/archive.tar.gz', '/path/to/destination');
- *   console.log(`Files extracted to ${extractedPath}`);
+ *   Logger.info(`Files extracted to ${extractedPath}`);
  * } catch (error) {
- *   console.error('Failed to unzip file:', error);
+ *   Logger.error('Failed to unzip file:', error);
  * }
  * ```
  */

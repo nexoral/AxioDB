@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Collection from "../Collection/collection.operation";
 import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
@@ -16,6 +15,7 @@ import { IndexManager } from "../Index/Index.service";
 import { IndexCache } from "../Index/IndexCache.service";
 import { General } from "../../config/Keys/Keys";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
+import Logger from "../../Helper/Logger.helper";
 
 // Types
 type CollectionMetadata = {
@@ -64,7 +64,7 @@ export default class Database {
     // If the collection does not exist, create it
     if (collectionExists.statusCode !== StatusCodes.OK) {
       await this.folderManager.CreateDirectory(collectionPath);
-      console.log(`Collection Created: ${collectionPath}`);
+      Logger.info(`Collection Created: ${collectionPath}`);
     }
 
     // Create AutoIndex meta for the collection
@@ -130,8 +130,12 @@ export default class Database {
    */
   public async getCollectionInfo(): Promise<SuccessInterface | undefined> {
     const collections = await this.folderManager.ListDirectory(this.path);
+    if (!("data" in collections)) {
+      return;
+    }
+    const collectionsList = collections.data as string[];
     // The registry file lives alongside the collection folders - it is not a collection.
-    collections.data = collections.data.filter(
+    const filteredCollections = collectionsList.filter(
       (collection: string) => collection !== General.Collection_Meta_File,
     );
     const totalSize = await this.folderManager.GetDirectorySize(
@@ -140,21 +144,21 @@ export default class Database {
 
     // Get collection Status
     const CollectionStatus = await Promise.all(
-      collections.data.map((collection: string) =>
+      filteredCollections.map((collection: string) =>
         this.getCollectionMetaDetails(collection),
       ),
     );
 
-    if ("data" in collections && "data" in totalSize) {
+    if ("data" in totalSize) {
       const FinalCollections: FinalCollectionsInfo = {
         CurrentPath: this.path,
         RootName: this.name,
         MatrixUnits: "MB",
-        TotalCollections: `${collections.data.length} Collections`,
-        TotalSize: parseInt((totalSize.data / 1024 / 1024).toFixed(4)),
-        ListOfCollections: collections.data,
-        collectionMetaStatus: CollectionStatus,
-        AllCollectionsPaths: collections.data.map((collection: string) =>
+        TotalCollections: `${filteredCollections.length} Collections`,
+        TotalSize: parseInt(((totalSize.data as number) / 1024 / 1024).toFixed(4)),
+        ListOfCollections: filteredCollections,
+        collectionMetaStatus: CollectionStatus.filter((m): m is CollectionMetadata => m !== undefined).map(m => ({ collectionName: m.name, path: m.path })),
+        AllCollectionsPaths: filteredCollections.map((collection: string) =>
           path.join(this.path, collection),
         ),
       };
@@ -277,7 +281,7 @@ export default class Database {
    * @private
    */
   private createCollectionResolver(): CollectionResolver {
-    return async (targetCollectionName: string, query?: Record<string, any>): Promise<any[]> => {
+    return async (targetCollectionName: string, query?: Record<string, unknown>): Promise<Record<string, unknown>[]> => {
       const sanitizedTarget = PathSanitizer.sanitizePathComponent(targetCollectionName);
       const targetPath = PathSanitizer.safePath(this.path, sanitizedTarget);
 
@@ -295,7 +299,7 @@ export default class Database {
           const fileNames = await new ReadIndex(targetPath).getFileFromIndex(query);
           if (fileNames.length > 0) {
             const result = await DocumentLoader.loadDocuments(targetPath, fileNames, false);
-            if ("data" in result) return result.data;
+            if ("data" in result) return result.data as Record<string, unknown>[];
           }
         } catch {
           // Index miss — fall through to full scan
@@ -303,7 +307,7 @@ export default class Database {
       }
 
       const result = await DocumentLoader.loadDocuments(targetPath);
-      if ("data" in result) return result.data;
+      if ("data" in result) return result.data as Record<string, unknown>[];
       throw new Error(`Failed to load documents from collection "${targetCollectionName}"`);
     };
   }

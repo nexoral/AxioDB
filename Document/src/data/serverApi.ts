@@ -385,6 +385,24 @@ export const apiCategories: ApiCategory[] = [
           ],
         },
         {
+          method: "DELETE",
+          path: "/api/auth/roles/:roleName",
+          description: "Deletes a custom role. Predefined roles and roles assigned to users cannot be deleted.",
+          parameters: [
+            { name: "roleName", type: "path", dataType: "string", required: true, description: "Role name" },
+          ],
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Role deleted successfully"
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Role deleted" },
+            { code: 400, description: "Bad Request - System role, assigned role, or role not found" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing role:delete permission" },
+          ],
+        },
+        {
           method: "GET",
           path: "/api/auth/roles/permissions",
           description: "Returns the full predefined permission catalogue, grouped by category - used to render the permission picker when creating a custom role.",
@@ -792,6 +810,26 @@ file: [database.tar.gz file]`,
       endpoints: [
         {
           method: "GET",
+          path: "/api/operation/total/",
+          description: "Returns the total number of documents in one collection.",
+          parameters: [
+            { name: "dbName", type: "query", dataType: "string", required: true, description: "Database name" },
+            { name: "collectionName", type: "query", dataType: "string", required: true, description: "Collection name" },
+          ],
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Total Documents in the Collection",
+  "data": { "total": 42 }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Returns the document count" },
+            { code: 400, description: "Bad Request - Database and collection are required" },
+            { code: 401, description: "Unauthorized - Session invalid or expired" },
+            { code: 403, description: "Forbidden - Missing document:view permission" },
+          ],
+        },
+        {
+          method: "GET",
           path: "/api/operation/all/",
           description: "Retrieves all documents from a collection with pagination support. Returns 10 documents per page, sorted by most recent updates first.",
           parameters: [
@@ -840,7 +878,7 @@ file: [database.tar.gz file]`,
         {
           method: "POST",
           path: "/api/operation/all/by-query/",
-          description: "Retrieves documents matching a MongoDB-style query with pagination. Supports operators like $gt, $gte, $lt, $lte, $ne, $in, $regex.",
+          description: "Retrieves documents matching a MongoDB-style query with pagination. Supports operators like $gt, $gte, $lt, $lte, $ne, $in, $regex. Optionally pass a hint to force a specific index.",
           parameters: [
             {
               name: "dbName",
@@ -869,6 +907,13 @@ file: [database.tar.gz file]`,
               dataType: "object",
               required: true,
               description: "MongoDB-style query object",
+            },
+            {
+              name: "hint",
+              type: "query",
+              dataType: "string",
+              required: false,
+              description: "Index field name to force (e.g. 'email' to use the email index)",
             },
           ],
           requestBody: `{
@@ -940,6 +985,53 @@ file: [database.tar.gz file]`,
             { code: 200, description: "Success - Returns the document" },
             { code: 400, description: "Bad Request - Invalid parameters" },
             { code: 404, description: "Not Found - Document does not exist" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/operation/all/by-ids/",
+          description: "Retrieves multiple documents by their IDs in a single call. More efficient than multiple by-id requests.",
+          parameters: [
+            {
+              name: "dbName",
+              type: "query",
+              dataType: "string",
+              required: true,
+              description: "The name of the database",
+            },
+            {
+              name: "collectionName",
+              type: "query",
+              dataType: "string",
+              required: true,
+              description: "The name of the collection",
+            },
+            {
+              name: "ids",
+              type: "body",
+              dataType: "string[]",
+              required: true,
+              description: "Array of document IDs to retrieve",
+            },
+          ],
+          requestBody: `{
+  "ids": ["abc123", "def456", "ghi789"]
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "status": "success",
+  "message": "Documents retrieved successfully",
+  "data": {
+    "documents": [
+      { "documentId": "abc123", "name": "John Doe", "updatedAt": "2025-10-31T12:00:00.000Z" },
+      { "documentId": "def456", "name": "Jane Smith", "updatedAt": "2025-10-31T12:00:00.000Z" }
+    ]
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Returns matching documents" },
+            { code: 400, description: "Bad Request - Invalid parameters or empty ids array" },
+            { code: 404, description: "Not Found - No documents match the provided IDs" },
           ],
         },
         {

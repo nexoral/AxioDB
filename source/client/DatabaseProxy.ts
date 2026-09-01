@@ -32,8 +32,8 @@ export default class DatabaseProxy {
     const result = await this.client.sendCommand(CommandType.COLLECTION_EXISTS, {
       dbName: this.dbName,
       collectionName: name,
-    });
-    return result.exists;
+    }) as Record<string, unknown>;
+    return result.exists as boolean;
   }
 
   async getCollectionInfo(): Promise<any> {

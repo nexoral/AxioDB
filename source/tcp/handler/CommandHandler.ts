@@ -14,6 +14,8 @@ import DBHandler from './handlers/DB.handler';
 import CollectionHandler from './handlers/Collection.handler';
 import OperationHandler from './handlers/Operation.handler';
 import AuthHandler from './handlers/Auth.handler';
+import TransactionHandler from './handlers/Transaction.handler';
+import TransactionManager from '../connection/TransactionManager';
 
 /**
  * Command Handler - Main dispatcher for TCP commands
@@ -27,6 +29,8 @@ export class CommandHandler {
   private collectionHandler: CollectionHandler;
   private operationHandler: OperationHandler;
   private authHandler: AuthHandler;
+  private transactionHandler: TransactionHandler;
+  private txnManager: TransactionManager;
 
   constructor(axioDB: AxioDB, connectionManager: ConnectionManager, requireAuth: boolean = false) {
     this.axioDB = axioDB;
@@ -38,6 +42,8 @@ export class CommandHandler {
     this.collectionHandler = new CollectionHandler(axioDB);
     this.operationHandler = new OperationHandler(axioDB);
     this.authHandler = new AuthHandler();
+    this.transactionHandler = new TransactionHandler(axioDB);
+    this.txnManager = TransactionManager.getInstance();
   }
 
   /**
@@ -96,6 +102,9 @@ export class CommandHandler {
         case CommandType.PING:
           return this.handlePing(id);
 
+        case CommandType.HEALTH:
+          return this.handleHealth(id);
+
         case CommandType.DISCONNECT:
           return this.handleDisconnect(id);
 
@@ -137,10 +146,10 @@ export class CommandHandler {
 
         // CRUD operations
         case CommandType.INSERT_DOCUMENT:
-          return await this.operationHandler.handleInsertDocument(id, params);
+          return await this.operationHandler.handleInsertDocument(id, params, context.connectionId);
 
         case CommandType.INSERT_MANY_DOCUMENTS:
-          return await this.operationHandler.handleInsertManyDocuments(id, params);
+          return await this.operationHandler.handleInsertManyDocuments(id, params, context.connectionId);
 
         case CommandType.QUERY_DOCUMENTS:
           return await this.operationHandler.handleQueryDocuments(id, params);
@@ -148,17 +157,20 @@ export class CommandHandler {
         case CommandType.QUERY_BY_ID:
           return await this.operationHandler.handleQueryById(id, params);
 
+        case CommandType.FIND_BY_IDS:
+          return await this.operationHandler.handleFindByIds(id, params);
+
         case CommandType.UPDATE_DOCUMENT_BY_ID:
-          return await this.operationHandler.handleUpdateById(id, params);
+          return await this.operationHandler.handleUpdateById(id, params, context.connectionId);
 
         case CommandType.UPDATE_DOCUMENTS_BY_QUERY:
-          return await this.operationHandler.handleUpdateByQuery(id, params);
+          return await this.operationHandler.handleUpdateByQuery(id, params, context.connectionId);
 
         case CommandType.DELETE_DOCUMENT_BY_ID:
-          return await this.operationHandler.handleDeleteById(id, params);
+          return await this.operationHandler.handleDeleteById(id, params, context.connectionId);
 
         case CommandType.DELETE_DOCUMENTS_BY_QUERY:
-          return await this.operationHandler.handleDeleteByQuery(id, params);
+          return await this.operationHandler.handleDeleteByQuery(id, params, context.connectionId);
 
         case CommandType.AGGREGATE:
           return await this.operationHandler.handleAggregate(id, params);
@@ -176,15 +188,24 @@ export class CommandHandler {
         case CommandType.LIST_INDEXES:
           return await this.operationHandler.handleListIndexes(id, params);
 
-        // Transaction operations (future - not implemented)
+        // Transaction operations
         case CommandType.BEGIN_TRANSACTION:
+          return await this.transactionHandler.handleBegin(id, params, context.connectionId);
+
         case CommandType.COMMIT_TRANSACTION:
+          return await this.transactionHandler.handleCommit(id, params, context.connectionId);
+
         case CommandType.ROLLBACK_TRANSACTION:
-          return this.createErrorResponse(
-            id,
-            StatusCode.NOT_IMPLEMENTED,
-            'Transaction support not implemented yet'
-          );
+          return await this.transactionHandler.handleRollback(id, params, context.connectionId);
+
+        case CommandType.SAVEPOINT:
+          return await this.transactionHandler.handleSavepoint(id, params, context.connectionId);
+
+        case CommandType.ROLLBACK_TO_SAVEPOINT:
+          return await this.transactionHandler.handleRollbackToSavepoint(id, params, context.connectionId);
+
+        case CommandType.RELEASE_SAVEPOINT:
+          return await this.transactionHandler.handleReleaseSavepoint(id, params, context.connectionId);
 
         default:
           return this.createErrorResponse(id, StatusCode.BAD_REQUEST, ErrorMessage.UNKNOWN_COMMAND);
@@ -207,6 +228,15 @@ export class CommandHandler {
       statusCode: StatusCode.OK,
       message: SuccessMessage.PING_PONG,
       data: { timestamp: Date.now() },
+    };
+  }
+
+  private handleHealth(requestId: string): TCPResponse {
+    return {
+      id: requestId,
+      statusCode: StatusCode.OK,
+      message: 'AxioDB is healthy',
+      data: { status: 'ok', timestamp: Date.now() },
     };
   }
 

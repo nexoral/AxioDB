@@ -12,6 +12,33 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "20.3.0",
+    date: "2026-09-01",
+    title: "ACID transactions over TCP with savepoints and connection-pinned client proxy",
+    changes: [
+      "New: ACID transactions over TCP — BEGIN/COMMIT/ROLLBACK commands routed through a per-connection TransactionManager with WAL-backed durability, Wait-Die deadlock avoidance, and 30-second timeout",
+      "New: savepoints over TCP — SAVEPOINT, ROLLBACK_TO_SAVEPOINT, RELEASE_SAVEPOINT commands for partial rollback within a transaction",
+      "New: connection-pinned client — TransactionProxy pins all transactional operations to a single TCP connection so in-flight writes are visible to subsequent reads within the same transaction",
+      "New: Collection.beginTransaction() on the AxioDBCloud client returns a chainable TransactionProxy with insert/update/delete/commit/rollback/savepoint methods",
+      "New: auto-rollback on disconnect — orphaned transactions are automatically rolled back when a TCP connection drops, preventing data corruption from partial writes",
+      "New: Transaction.getId() and Collection.getCollectionPath() public getters for TCP handler integration",
+      "Quality: OperationHandler routes CRUD with transactionId through the in-flight Transaction, buffering writes until commit",
+      "Quality: 20 new TCP transaction tests covering BEGIN/COMMIT, ROLLBACK, savepoints, isolation, cross-connection rejection, and disconnect cleanup",
+    ],
+  },
+  {
+    version: "19.2.0",
+    date: "2026-09-01",
+    title: "Index hints, batch read, zero `any` types, ESLint, and structured Logger",
+    changes: [
+      "New: index hints on queries — `collection.query({ status: 'active' }).hint('status').exec()` forces the query engine to use a specific index instead of scanning",
+      "New: batch document read — `collection.findByIds(['id1', 'id2'])` retrieves multiple documents by ID in a single call; exposed over HTTP (POST /api/operation/all/by-ids/) and TCP (FIND_BY_IDS command)",
+      "Quality: all `any` types removed from the TypeScript source — every file in source/ now uses proper types (Record<string, unknown>, unknown, Document, etc.), zero `any` remaining",
+      "Quality: ESLint configured with @typescript-eslint, 0 errors 0 warnings across the entire codebase",
+      "Quality: all console.log/error/warn calls replaced with a structured Logger helper (source/Helper/Logger.helper.ts) for consistent, configurable output",
+    ],
+  },
+  {
     version: "15.2.0",
     date: "2026-08-27",
     title: "AxioDB CLI — Go-based command line interface with MongoDB shell syntax",
@@ -84,7 +111,9 @@ export const changelog: ChangelogEntry[] = [
     title: "Human-in-the-loop confirmation for the MCP server's destructive tools",
     changes: [
       "The 9 MCP tools that destroy or overwrite data (delete_database, delete_collection, delete_document, update_document, drop_index, delete_user, delete_role, update_user_role, reset_user_password) now ask a human through the MCP client's own confirmation prompt (elicitation/create) before touching the database, naming the exact target - decline, cancel, or an unchecked box aborts with 409 and never reaches a controller",
-      "Every one of the 32 MCP tools now ships readOnlyHint/destructiveHint/idempotentHint annotations, so clients can auto-approve reads and hold writes for review",
+      "Every one of the 43 MCP tools now ships readOnlyHint/destructiveHint/idempotentHint annotations, so clients can auto-approve reads and hold writes for review",
+      "Added authenticated MCP transactions with insert, update, delete, savepoints, commit, and rollback",
+      "Added HTTP-backed CLI user and role administration while keeping the TCP client data-plane focused",
       "Clients without elicitation support are unaffected (the call proceeds on the annotations alone) - a View-role login remains the server-side way to make an agent strictly read-only",
       "Fixed two dishonest annotations caught by the new tests: axiodb_collection_exists and axiodb_total_documents are not readOnly, since createDB()/createCollection() create-if-missing and can leave an empty database/collection behind",
       "New test suite: npm test mcp-confirm (confirmation gate, advisory fallback, and a static check that no destructive tool can be added without a gate)",

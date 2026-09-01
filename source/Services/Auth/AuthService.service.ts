@@ -55,18 +55,18 @@ export default class AuthService {
       .query({ username })
       .findOne(true)
       .exec();
-    if ("data" in result && result.data && result.data.documents) {
-      return result.data.documents as UserDocument;
+    if ("data" in result && result.data && (result.data as Record<string, unknown>).documents) {
+      return (result.data as { documents: UserDocument }).documents;
     }
     return null;
   }
 
   public async listUsers(): Promise<SafeUser[]> {
     const result = await ConfigDatabase.getUsersCollection().query({}).Limit(1000).exec();
-    if (!("data" in result) || !result.data?.documents) {
+    if (!("data" in result) || !result.data || !(result.data as Record<string, unknown>).documents) {
       return [];
     }
-    const users = result.data.documents as UserDocument[];
+    const users = (result.data as { documents: UserDocument[] }).documents;
     return users.map((user) => ({
       username: user.username,
       role: user.role,
@@ -250,10 +250,10 @@ export default class AuthService {
 
   public async listRoles(): Promise<RoleDocument[]> {
     const result = await ConfigDatabase.getRolesCollection().query({}).Limit(1000).exec();
-    if (!("data" in result) || !result.data?.documents) {
+    if (!("data" in result) || !result.data || !(result.data as Record<string, unknown>).documents) {
       return [];
     }
-    return result.data.documents as RoleDocument[];
+    return (result.data as { documents: RoleDocument[] }).documents;
   }
 
   public async deleteRole(roleName: string): Promise<MutationResult> {
@@ -272,8 +272,9 @@ export default class AuthService {
       .exec();
     const hasUsers =
       "data" in usersWithRole &&
-      Array.isArray(usersWithRole.data?.documents) &&
-      usersWithRole.data.documents.length > 0;
+      usersWithRole.data &&
+      Array.isArray((usersWithRole.data as Record<string, unknown>).documents) &&
+      ((usersWithRole.data as Record<string, unknown>).documents as unknown[]).length > 0;
     if (hasUsers) {
       return {
         success: false,
@@ -299,7 +300,7 @@ export default class AuthService {
       .Limit(1000)
       .exec();
 
-    const superAdmins = "data" in result && result.data?.documents ? (result.data.documents as UserDocument[]) : [];
+    const superAdmins = "data" in result && result.data && (result.data as Record<string, unknown>).documents ? ((result.data as { documents: UserDocument[] }).documents) : [];
     const remaining = superAdmins.filter(
       (user) => user.username !== excludingUsername && user.isActive !== false,
     );

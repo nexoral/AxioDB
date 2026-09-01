@@ -25,7 +25,8 @@ export default class DocumentLoader {
         const readResponse = await new FolderManager().ListDirectory(collectionPath);
 
         if ("data" in readResponse) {
-          const axiodbFiles = readResponse.data.filter((file: string) =>
+          const files = readResponse.data as string[];
+          const axiodbFiles = files.filter((file: string) =>
             file.endsWith(".axiodb")
           );
           dataFilesList.push(...axiodbFiles);

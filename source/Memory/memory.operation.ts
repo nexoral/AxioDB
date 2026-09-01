@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import os from "os";
+import Logger from "../Helper/Logger.helper";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
  * Cache entry with random TTL for improved performance
  */
 interface CacheEntry {
-  value: any;
+  value: unknown;
   registeredAt: Date;
   ttl: number;        // Random TTL in milliseconds (5-15 min)
   expiresAt: Date;    // Pre-computed expiration timestamp
@@ -23,7 +22,7 @@ interface CacheEntry {
 export class InMemoryCache {
   private readonly ttl: number;  // Kept for backward compatibility
   private cacheObject: Map<string, CacheEntry>;
-  private tempSearchQuery: Array<{ queryString: any; registeredAt: Date }> = [];
+  private tempSearchQuery: Array<{ queryString: Record<string, unknown>; registeredAt: Date }> = [];
   private readonly autoResetCacheInterval: number = 86400; // 24 hours
   // Reverse index: "{collectionPath}::{documentId}" -> cache keys whose cached result contains that document.
   // Lets invalidateByDocument(s) evict only the affected entries instead of the whole collection's cache.
@@ -60,7 +59,7 @@ export class InMemoryCache {
    * @example
    * await cache.setCache('user-123', { name: 'John', age: 30 });
    */
-  public async setCache(key: string, value: any, collectionPath?: string): Promise<boolean> {
+  public async setCache(key: string, value: unknown, collectionPath?: string): Promise<boolean> {
     const ttl = this.generateRandomTTL();
     const now = new Date();
     const expiresAt = new Date(now.getTime() + ttl);
@@ -119,7 +118,7 @@ export class InMemoryCache {
   }
 
   /** Tracked for analytics/monitoring only - does not gate or block caching. */
-  public async setTempSearchQuery(queryString: any): Promise<boolean> {
+  public async setTempSearchQuery(queryString: Record<string, unknown>): Promise<boolean> {
     this.tempSearchQuery.push({
       queryString: queryString,
       registeredAt: new Date(),
@@ -134,7 +133,7 @@ export class InMemoryCache {
    * @param key - The unique identifier to lookup in the cache
    * @returns A Promise that resolves to the cached value if found and not expired, false otherwise
    */
-  public async getCache(key: string): Promise<any | boolean> {
+  public async getCache(key: string): Promise<unknown | false> {
     const cacheItem = this.cacheObject.get(key);
     if (!cacheItem) {
       return false;
@@ -223,7 +222,7 @@ export class InMemoryCache {
   }
 
   /** Returns estimated cache size/memory stats, or false if calculation fails (logged, not thrown). */
-  public async getCacheDetails(): Promise<any> {
+  public async getCacheDetails(): Promise<{ cacheSizeInBytes: number; availableMemoryInBytes: number; cacheItemCount: number; tempQueryCount: number } | false> {
     try {
       let totalCacheSize = 0;
 
@@ -241,7 +240,7 @@ export class InMemoryCache {
 
       try {
         availableMemory = os.freemem(); // only available in Node.js
-      } catch (error) {
+      } catch {
         availableMemory = -1; // e.g. running in a browser environment
       }
 
@@ -252,7 +251,7 @@ export class InMemoryCache {
         tempQueryCount: this.tempSearchQuery.length,
       };
     } catch (error) {
-      console.error("Error getting cache details:", error);
+      Logger.error("Error getting cache details:", error);
       return false;
     }
   }

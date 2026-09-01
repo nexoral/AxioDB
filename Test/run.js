@@ -41,11 +41,14 @@ const testModules = {
   read: './modules/read.test.js',
   aggregation: './modules/aggregation.test.js',
   auth: './modules/auth.test.js',
+  'http-api': './modules/http-api.test.js',
   'tcp-auth': './modules/tcp-auth.test.js',
   'tcp-noauth': './modules/tcp-noauth.test.js',
+  'tcp-transaction': './modules/tcp-transaction.test.js',
   'tcp-tls': './modules/tcp-tls.test.js',
   'crash-recovery': './modules/crash-recovery.test.js',
-  'mcp-confirm': './modules/mcp-confirm.test.js'
+  'mcp-confirm': './modules/mcp-confirm.test.js',
+  'mcp-functional': './modules/mcp-functional.test.js'
 };
 
 /**
@@ -54,11 +57,11 @@ const testModules = {
 function runTestModule(name, modulePath) {
   return new Promise((resolve) => {
     const startTime = Date.now();
-    const testDir = path.dirname(require.resolve(modulePath));
     
     // Create a simple runner script inline
+    const absModulePath = path.resolve(__dirname, modulePath);
     const runnerCode = `
-      const TestClass = require('${modulePath}');
+      const TestClass = require('${absModulePath}');
       const suite = new TestClass();
       suite.run().then(results => {
         suite.printResults();
@@ -70,7 +73,7 @@ function runTestModule(name, modulePath) {
     `;
     
     const child = spawn('node', ['-e', runnerCode], {
-      cwd: __dirname,
+      cwd: path.join(__dirname, '..'),
       stdio: 'inherit'
     });
     

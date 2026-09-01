@@ -93,8 +93,12 @@ takes a schema argument.
 ## More of the core library
 
 - **Transactions** — `collection.beginTransaction()` or `collection.startSession()` for ACID work with savepoints, rollback, and a write-ahead log. Plain `insert()` is WAL-backed too, so a crash mid-write is recovered on next open.
+- **TCP transactions** — AxioDBCloud supports connection-pinned `BEGIN`/`COMMIT`/`ROLLBACK` transactions with savepoints and automatic rollback on disconnect.
+- **MCP transactions** — the Docker-only MCP server exposes authenticated, single-collection ACID transaction tools with savepoints.
 - **Aggregation** — `collection.aggregate([...])` with 60+ stages including `$lookup` (cross-collection joins), `$facet`, `$bucket`, `$count`, `$sample`, and full expression evaluator. Custom operators via `OperatorRegistry`.
 - **Indexes** — `collection.newIndex("email")`, `getIndexes()`, `dropIndex()`.
+- **Index hints** — `collection.query({ field: value }).hint('field')` forces use of a specific index for predictable query performance.
+- **Batch read** — `collection.findByIds(['id1', 'id2'])` retrieves multiple documents by ID in one call.
 
 ## Coming from SQLite
 
@@ -144,7 +148,8 @@ the wrong one is the most common source of bad advice about AxioDB.
 | **Dashboard HTTP API** | The REST API behind that GUI — same RBAC, session cookie auth | comes with the Dashboard; `HTTP: false` disables it | 27018 |
 | **AxioDBCloud server** | TCP server so other processes/machines can use this database | `new AxioDB({ TCP: true })`, or Docker `AXIODB_TCP=true` | 27019 |
 | **AxioDBCloud client** | Client that talks to that TCP server with the same API as the core library | `const { AxioDBCloud } = require("axiodb")` | — |
-| **MCP server** | 32 MCP tools so an AI agent can operate the database | **Docker image only** (`theankansaha/axiodb` with `AXIODB_MCP=true`); not in the npm package | 27020 |
+| **CLI (Go)** | Command-line: data ops via TCP + REPL + export/import + user/role admin via HTTP | `curl -fsSL https://axiodb.in/install.sh | sh` → `axiodb -c axiodb://host:27019 --db X --collection Y document query '{}'` | — |
+| **MCP server** | 43 MCP tools so an AI agent can operate the database | **Docker image only** (`theankansaha/axiodb` with `AXIODB_MCP=true`); not in the npm package | 27020 |
 
 Details on each:
 
@@ -157,6 +162,7 @@ Details on each:
 
 ### Surface rules worth remembering
 
+- **CLI needs the server enabled:** data commands (`db`, `collection`, `document`, `index`, `transaction`, `ping`, `health`, `connect`) require `TCP: true` / `AXIODB_TCP=true` (27019). Management commands (`user`, `role`, `user change-password`, `export`/`import`) require `GUI: true` / `AXIODB_HTTP=true` (27018). Missing activation → `ECONNREFUSED`. TCP is data-plane only — no user/role over TCP.
 - The Dashboard HTTP API (27018) speaks HTTP; the AxioDBCloud protocol (27019) does not. Pointing a client at the wrong port is the usual cause of a "HTTP data on TCP port" error.
 - The Dashboard, AxioDBCloud auth (`TCPAuth: true`), and the MCP server all share **one** user/role store. A password change or lockout applies everywhere.
 - The MCP server is reached over Streamable HTTP at `http://localhost:27020/mcp`. Every tool except `axiodb_login` needs a `sessionId` obtained from that login.

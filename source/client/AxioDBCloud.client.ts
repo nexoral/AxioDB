@@ -1,10 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import PooledConnection from './PooledConnection';
 import { CommandType } from '../tcp/types/command.types';
 import { AxioDBCloudOptions, AuthenticatedUser, ConnectionState, ParsedConnectionString, PoolDegradedEvent } from './types/client.types';
 import DatabaseProxy from './DatabaseProxy';
+import Logger from "../Helper/Logger.helper";
 
 const DEFAULT_MAX_POOL_SIZE = 10;
 
@@ -45,7 +45,7 @@ export class AxioDBCloud extends EventEmitter {
     // own, that one handles visibility and we don't double-log.
     this.on('error', (error: Error) => {
       if (this.listenerCount('error') <= 1) {
-        console.error(
+        Logger.error(
           '[AxioDBCloud] Unhandled connection error:',
           error instanceof Error ? error.message : error,
         );
@@ -195,8 +195,22 @@ export class AxioDBCloud extends EventEmitter {
     return this.pool.find((connection) => connection.authUser)?.authUser;
   }
 
-  async sendCommand(command: CommandType, params: any): Promise<any> {
+  async sendCommand(command: CommandType, params: Record<string, unknown>): Promise<unknown> {
     const connection = this.pickConnection();
+    if (!connection) {
+      throw new Error('Not connected to server');
+    }
+
+    return connection.sendCommand(command, params);
+  }
+
+  /**
+   * Send a command through the least-busy connected pool member, optionally
+   * routing to a specific PooledConnection (used for transaction pinning so all
+   * operations within one transaction go through the same TCP socket).
+   */
+  async sendPinnedCommand(command: CommandType, params: Record<string, unknown>, pinnedConnection?: PooledConnection): Promise<unknown> {
+    const connection = pinnedConnection ?? this.pickConnection();
     if (!connection) {
       throw new Error('Not connected to server');
     }
@@ -224,6 +238,15 @@ export class AxioDBCloud extends EventEmitter {
     return best;
   }
 
+  /**
+   * Returns the least-busy connected pool member for transaction pinning.
+   * All transactional commands will be routed through this single connection
+   * so in-flight writes are visible to subsequent reads within the same transaction.
+   */
+  getPinnedConnection(): PooledConnection | null {
+    return this.pickConnection();
+  }
+
   async disconnect(): Promise<void> {
     await Promise.all(this.pool.map((connection) => connection.disconnect()));
     this.pool = [];
@@ -239,11 +262,11 @@ export class AxioDBCloud extends EventEmitter {
   }
 
   async isDatabaseExists(name: string): Promise<boolean> {
-    const result = await this.sendCommand(CommandType.DB_EXISTS, { dbName: name });
-    return result.exists;
+    const result = await this.sendCommand(CommandType.DB_EXISTS, { dbName: name }) as Record<string, unknown>;
+    return result.exists as boolean;
   }
 
-  async getInstanceInfo(): Promise<any> {
+  async getInstanceInfo(): Promise<unknown> {
     return await this.sendCommand(CommandType.GET_INSTANCE_INFO, {});
   }
 

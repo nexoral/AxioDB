@@ -1,5 +1,5 @@
 import { TCPRequest, TCPResponse } from '../types/protocol.types';
-import { CommandType, CommandDocumentation } from '../types/command.types';
+import { CommandType } from '../types/command.types';
 import { MAX_MESSAGE_SIZE, MESSAGE_LENGTH_BYTES, ENCODING, ErrorMessage, StatusCode } from './keys';
 
 /**
@@ -48,7 +48,7 @@ export class MessageFramer {
 
     try {
       return JSON.parse(json);
-    } catch (error) {
+    } catch {
       throw new Error(ErrorMessage.INVALID_MESSAGE_FORMAT);
     }
   }
@@ -120,36 +120,59 @@ export class MessageValidator {
   /**
    * Validate TCPRequest structure
    */
-  static validateRequest(request: any): TCPRequest {
+  static validateRequest(request: unknown): TCPRequest {
     if (!request || typeof request !== 'object') {
       throw new Error(ErrorMessage.INVALID_MESSAGE_FORMAT);
     }
 
-    if (!request.id || typeof request.id !== 'string') {
+    const req = request as Record<string, unknown>;
+
+    if (!req.id || typeof req.id !== 'string') {
       throw new Error(ErrorMessage.INVALID_CORRELATION_ID);
     }
 
-    if (!request.command || !Object.values(CommandType).includes(request.command)) {
+    if (!req.command || !Object.values(CommandType).includes(req.command as CommandType)) {
       throw new Error(ErrorMessage.UNKNOWN_COMMAND);
     }
 
-    if (!request.params || typeof request.params !== 'object') {
-      request.params = {};
+    if (!req.params || typeof req.params !== 'object') {
+      req.params = {};
     }
 
-    return request as TCPRequest;
+    return req as unknown as TCPRequest;
   }
 
   /**
    * Validate command-specific parameters
    */
-  static validateParams(command: CommandType, params: any): void {
+  static validateParams(command: CommandType, params: Record<string, unknown>): void {
     switch (command) {
       case CommandType.CREATE_DB:
       case CommandType.DELETE_DB:
       case CommandType.DB_EXISTS:
         if (!params.dbName) {
           throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName`);
+        }
+        break;
+
+      case CommandType.BEGIN_TRANSACTION:
+        if (!params.dbName || !params.collectionName) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName, collectionName`);
+        }
+        break;
+
+      case CommandType.COMMIT_TRANSACTION:
+      case CommandType.ROLLBACK_TRANSACTION:
+        if (!params.transactionId) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: transactionId`);
+        }
+        break;
+
+      case CommandType.SAVEPOINT:
+      case CommandType.ROLLBACK_TO_SAVEPOINT:
+      case CommandType.RELEASE_SAVEPOINT:
+        if (!params.transactionId || !params.savepointName) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: transactionId, savepointName`);
         }
         break;
 
@@ -185,6 +208,12 @@ export class MessageValidator {
       case CommandType.DELETE_DOCUMENT_BY_ID:
         if (!params.dbName || !params.collectionName || !params.id) {
           throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName, collectionName, id`);
+        }
+        break;
+
+      case CommandType.FIND_BY_IDS:
+        if (!params.dbName || !params.collectionName || !Array.isArray(params.ids) || params.ids.length === 0) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName, collectionName, ids`);
         }
         break;
 
@@ -237,11 +266,9 @@ export class MessageValidator {
         break;
 
       case CommandType.PING:
+      case CommandType.HEALTH:
       case CommandType.DISCONNECT:
       case CommandType.GET_INSTANCE_INFO:
-      case CommandType.BEGIN_TRANSACTION:
-      case CommandType.COMMIT_TRANSACTION:
-      case CommandType.ROLLBACK_TRANSACTION:
         // No required params
         break;
 
@@ -265,7 +292,7 @@ export class MessageValidator {
   /**
    * Create success response
    */
-  static createSuccessResponse(requestId: string, message: string, data?: any): TCPResponse {
+  static createSuccessResponse(requestId: string, message: string, data?: unknown): TCPResponse {
     return {
       id: requestId,
       statusCode: StatusCode.OK,

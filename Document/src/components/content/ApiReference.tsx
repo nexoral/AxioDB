@@ -189,14 +189,23 @@ const totalPages = Math.ceil(result.data.total / pageSize);`,
           returns: "Promise<SuccessInterface>: Object containing the total document count.",
         },
         {
+          name: "findByIds",
+          signature: "findByIds(ids: string[]): Promise<SuccessInterface | ErrorInterface>",
+          description: "Batch-read: fetch multiple documents by their IDs in one call (O(1) per id, missing ids silently omitted). Faster than N separate query({documentId}) calls and avoids cache churn.",
+          example: `// Batch-read 3 documents
+const batch = await users.findByIds(['id1','id2','id3']); // → { statusCode: 200, data: { documents: [...] } }
+console.log(batch.data.documents);`,
+          returns: "Promise<SuccessInterface>: Object with data.documents array (missing ids omitted).",
+        },
+        {
           name: "newIndex",
-          signature: "newIndex(...fields: string[]): void",
-          description: "Creates indexes on specified field(s) to dramatically improve query performance. Indexes optimize lookups, range queries, sorting, and filtering operations on the indexed fields. Essential for collections with large datasets or frequent queries. Multiple fields can be indexed simultaneously for compound queries.",
+          signature: "newIndex(...fields: string[]): Promise<SuccessInterface | ErrorInterface>",
+          description: "Creates indexes on specified field(s) to dramatically improve query performance. Indexes optimize lookups, range queries, sorting, and filtering operations on the indexed fields. Essential for collections with large datasets or frequent queries. Multiple fields can be indexed simultaneously for compound queries. Requires no server restart.",
           example: `// Create single field index
-collection.newIndex('email');
+await users.newIndex('email');
 
 // Create multiple field indexes
-collection.newIndex('name', 'age', 'email');
+await users.newIndex('name', 'age', 'email');
 
 // Indexes improve performance for:
 // - Exact matches: query({ email: 'user@example.com' })
@@ -207,8 +216,8 @@ collection.newIndex('name', 'age', 'email');
 
 // Best practice: Create indexes after collection creation
 const users = await db.createCollection('users');
-users.newIndex('email', 'age', 'createdAt');`,
-          returns: "void: No return value. Indexes are created synchronously.",
+await users.newIndex('email', 'age', 'createdAt');`,
+          returns: "Promise<SuccessInterface>: Created index metadata (async dual-write).",
         },
         {
           name: "dropIndex",
@@ -371,6 +380,17 @@ const addresses = await collection
   .query({})
   .setProject({ 'address.city': 1, 'address.zip': 1 })
   .exec();`,
+          returns: "Reader: The Reader instance for further chaining.",
+        },
+        {
+          name: "hint",
+          signature: "hint(indexName: string): Reader",
+          description: "Force the query planner to use a specific index (field name). Requires the index to already exist via newIndex(). Use for performance tuning when the auto-selected index is not optimal.",
+          example: `// Force 'status' index
+const active = await users.query({ status: 'active' }).hint('status').exec();
+
+// With other chain ops
+const page = await users.query({ age: { $gte: 18 } }).hint('age').Sort({ age: 1 }).Limit(20).exec();`,
           returns: "Reader: The Reader instance for further chaining.",
         },
         {
@@ -788,11 +808,11 @@ await collection.aggregate([
       title: "Collection - Transaction Operations",
       methods: [
         {
-          name: "startTransaction",
-          signature: "startTransaction(): Promise<Transaction>",
+          name: "beginTransaction",
+          signature: "beginTransaction(): Transaction",
           description: "Starts a new transaction for atomic operations. All operations within a transaction are isolated and can be committed together or rolled back if any operation fails. Provides ACID-like guarantees for multiple operations.",
           example: `// Start a transaction
-const transaction = await collection.startTransaction();
+const transaction = collection.beginTransaction();
 
 // Operations within transaction are isolated
 await transaction.insert({ name: 'Alice', balance: 1000 });
@@ -800,13 +820,13 @@ await transaction.insert({ name: 'Bob', balance: 500 });
 
 // Commit all changes atomically
 await transaction.commit();`,
-          returns: "Promise<Transaction>: A transaction instance for chaining operations.",
+          returns: "Transaction: A transaction instance for chaining operations.",
         },
         {
           name: "transaction.insert",
-          signature: "transaction.insert(document: object): Promise<SuccessInterface>",
+          signature: "transaction.insert(document: object): Transaction",
           description: "Inserts a document within the transaction context. The document is staged but not persisted until commit() is called. If rollback() is called, this insert will be discarded.",
-          example: `const transaction = await collection.startTransaction();
+          example: `const transaction = collection.beginTransaction();
 
 // Insert multiple documents in transaction
 await transaction.insert({ type: 'debit', amount: 100 });
@@ -817,18 +837,18 @@ await transaction.commit();`,
         },
         {
           name: "transaction.update",
-          signature: "transaction.update(query: object, update: object): Promise<SuccessInterface>",
+          signature: "transaction.update(query: object, update: object): Transaction",
           description: "Updates documents matching the query within the transaction. Changes are staged until commit(). Original values are preserved for potential rollback.",
-          example: `const transaction = await collection.startTransaction();
+          example: `const transaction = collection.beginTransaction();
 
 // Transfer funds between accounts
 await transaction.update(
   { accountId: 'A123' },
-  { $inc: { balance: -500 } }
+    { balance: 500 }
 );
 await transaction.update(
   { accountId: 'B456' },
-  { $inc: { balance: 500 } }
+    { balance: 1500 }
 );
 
 await transaction.commit();`,
@@ -836,9 +856,9 @@ await transaction.commit();`,
         },
         {
           name: "transaction.delete",
-          signature: "transaction.delete(query: object): Promise<SuccessInterface>",
+          signature: "transaction.delete(query: object): Transaction",
           description: "Deletes documents matching the query within the transaction. Deletion is staged until commit(). Documents are preserved for potential rollback.",
-          example: `const transaction = await collection.startTransaction();
+          example: `const transaction = collection.beginTransaction();
 
 // Delete and log in single transaction
 await transaction.delete({ status: 'expired' });
@@ -855,13 +875,13 @@ await transaction.commit();`,
           name: "transaction.commit",
           signature: "commit(): Promise<SuccessInterface>",
           description: "Commits all staged operations in the transaction atomically. If any operation fails during commit, all changes are automatically rolled back. After commit, the transaction cannot be reused.",
-          example: `const transaction = await collection.startTransaction();
+          example: `const transaction = collection.beginTransaction();
 
 try {
   await transaction.insert({ orderId: 'ORD001', total: 299.99 });
   await transaction.update(
     { productId: 'PROD001' },
-    { $inc: { stock: -1 } }
+    { stock: 9 }
   );
   
   // Commit all changes
@@ -876,7 +896,7 @@ try {
           name: "transaction.rollback",
           signature: "rollback(): Promise<SuccessInterface>",
           description: "Discards all staged operations and restores the collection to its state before the transaction began. Use this when you need to cancel operations due to validation failures or business logic conditions.",
-          example: `const transaction = await collection.startTransaction();
+          example: `const transaction = collection.beginTransaction();
 
 await transaction.update(
   { accountId: 'sender' },

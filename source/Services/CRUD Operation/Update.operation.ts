@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   ErrorInterface,
   SuccessInterface,
@@ -7,6 +6,7 @@ import ResponseHelper from "../../Helper/response.helper";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
+import { TransactionOperation } from "../../config/Interfaces/Transaction/transaction.interface";
 
 // Import All Utility
 import { General } from "../../config/Keys/Keys";
@@ -16,16 +16,16 @@ import Transaction from "../Transaction/Transaction.service";
 export default class UpdateOperation {
   // Properties
   protected readonly collectionName: string;
-  private readonly baseQuery: object | any;
+  private readonly baseQuery: Record<string, unknown>;
   private readonly path: string;
   private readonly ResponseHelper: ResponseHelper;
-  private allDataWithFileName: any[] = [];
-  private sort: object | any;
+  private allDataWithFileName: Array<{ fileName: string; data: Record<string, unknown> }> = [];
+  private sort: Record<string, 1 | -1>;
 
   constructor(
     collectionName: string,
     path: string,
-    baseQuery: object | any,
+    baseQuery: Record<string, unknown>,
   ) {
     this.collectionName = collectionName;
     this.path = path;
@@ -51,7 +51,7 @@ export default class UpdateOperation {
    *          - Error if no document matched or the transaction failed
    */
   public async UpdateOne(
-    newData: object | any,
+    newData: Record<string, unknown>,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       // check if the data is an empty object or not
@@ -79,8 +79,8 @@ export default class UpdateOperation {
         return commitResult;
       }
 
-      const updateOp = (commitResult.data.resolvedOperations ?? []).find(
-        (op: any) => op.type === "UPDATE" && op.documentId === documentId,
+      const updateOp = ((commitResult.data as { resolvedOperations?: TransactionOperation[] }).resolvedOperations ?? []).find(
+        (op: TransactionOperation) => op.type === "UPDATE" && op.documentId === documentId,
       );
       if (!updateOp) {
         return this.ResponseHelper.Error("Document no longer exists");
@@ -92,7 +92,7 @@ export default class UpdateOperation {
         previousData: updateOp.oldData,
         documentId,
       });
-    } catch (error) {
+    } catch {
       return this.ResponseHelper.Error("Failed to update data");
     }
   }
@@ -111,7 +111,7 @@ export default class UpdateOperation {
    *          - Error if no document matched or the transaction failed
    */
   public async UpdateMany(
-    newData: object | any,
+    newData: Record<string, unknown>,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       // check if the data is an empty object or not
@@ -132,8 +132,8 @@ export default class UpdateOperation {
         return commitResult;
       }
 
-      const updateOps = (commitResult.data.resolvedOperations ?? []).filter(
-        (op: any) => op.type === "UPDATE",
+      const updateOps = ((commitResult.data as { resolvedOperations?: TransactionOperation[] }).resolvedOperations ?? []).filter(
+        (op: TransactionOperation) => op.type === "UPDATE",
       );
 
       if (updateOps.length === 0) {
@@ -145,9 +145,9 @@ export default class UpdateOperation {
       return this.ResponseHelper.Success({
         message: "Data updated successfully",
         effectedData: updateOps.length,
-        documentIds: updateOps.map((op: any) => op.documentId),
+        documentIds: updateOps.map((op: TransactionOperation) => op.documentId),
       });
-    } catch (error) {
+    } catch {
       return this.ResponseHelper.Error("Failed to update data");
     }
   }
@@ -157,7 +157,7 @@ export default class UpdateOperation {
    * @param {object} sort - The sort to be set.
    * @returns {UpdateOperation} - An instance of the UpdateOperation class.
    */
-  public Sort(sort: object | any): UpdateOperation {
+  public Sort(sort: Record<string, 1 | -1>): UpdateOperation {
     this.sort = sort;
     return this;
   }
@@ -190,7 +190,7 @@ export default class UpdateOperation {
       return null;
     }
 
-    const SearchedData = await new Searcher(ReadResponse.data, true).find(
+    const SearchedData = await new Searcher(ReadResponse.data as Record<string, unknown>[], true).find(
       this.baseQuery,
       "data",
     );
@@ -199,14 +199,14 @@ export default class UpdateOperation {
       return null;
     }
 
-    let selectedFirstData = SearchedData[0];
+    let selectedFirstData = SearchedData[0] as unknown as { fileName: string; data: Record<string, unknown> };
     if (Object.keys(this.sort).length !== 0) {
       const Sorter: Sorting = new Sorting(SearchedData, this.sort);
-      const SortedData: any[] = await Sorter.sort("data");
+      const SortedData: Array<{ fileName: string; data: Record<string, unknown> }> = await Sorter.sort("data") as unknown as Array<{ fileName: string; data: Record<string, unknown> }>;
       selectedFirstData = SortedData[0];
     }
 
-    const fileName: string = selectedFirstData?.fileName;
+    const fileName: string = (selectedFirstData as { fileName: string })?.fileName;
     return fileName ? fileName.split(".")[0] : null;
   }
 
@@ -227,7 +227,7 @@ export default class UpdateOperation {
 
     // Store result in allDataWithFileName if successful
     if ("data" in result) {
-      this.allDataWithFileName = result.data;
+      this.allDataWithFileName = result.data as Array<{ fileName: string; data: Record<string, unknown> }>;
     }
 
     return result;

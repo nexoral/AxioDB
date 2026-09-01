@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Import Libraries
 import FileManager from "../engine/Filesystem/FileManager";
@@ -27,6 +26,7 @@ import createAxioDBTCPServer from "../tcp/config/server";
 import AuthSeeder from "./Auth/AuthSeeder.service";
 import { RESERVED_DB_NAME } from "../config/Keys/Permissions";
 import LoginRateLimiter from "./Auth/LoginRateLimiter.service";
+import Logger from "../Helper/Logger.helper";
 
 /**
  * Class representing the AxioDB database.
@@ -133,7 +133,7 @@ export class AxioDB {
           `Failed to create AxioDB folder: ${Dir_Status.statusCode}`,
         );
       } else {
-        console.log(`AxioDB folder created at: ${this.currentPATH}`);
+        Logger.info(`AxioDB folder created at: ${this.currentPATH}`);
       }
     }
     if (this.GUI || (this.TCP && this.TCPAuth)) {
@@ -152,7 +152,7 @@ export class AxioDB {
         ? { certPath: this.TLSCertPath as string, keyPath: this.TLSKeyPath as string }
         : undefined;
       createAxioDBTCPServer(this, undefined, this.TCPAuth, tlsOptions).catch((error) => {
-        console.error("[AxioDB TCP Server] Failed to start:", error);
+        Logger.error("[AxioDB TCP Server] Failed to start:", error);
       });
     }
   }
@@ -178,7 +178,7 @@ export class AxioDB {
     const exists = await this.folderManager.DirectoryExists(dbPath);
     if (exists.statusCode !== StatusCodes.OK) {
       await this.folderManager.CreateDirectory(dbPath);
-      console.log(`Database Created: ${dbPath}`);
+      Logger.info(`Database Created: ${dbPath}`);
     }
     const newDB = new Database(DBName, dbPath);
     // Store database metadata in the DatabaseMap
@@ -214,14 +214,15 @@ export class AxioDB {
     );
     // check if all data is returned
     if ("data" in totalDatabases && "data" in totalSize) {
+      const databasesList = totalDatabases.data as string[];
       // Hide the reserved RBAC "config" database from user-facing database listings
-      const visibleDatabases: string[] = totalDatabases.data.filter(
+      const visibleDatabases: string[] = databasesList.filter(
         (db: string) => db.toLowerCase() !== RESERVED_DB_NAME,
       );
       const FinalDatabaseInfo: FinalDatabaseInfo = {
         CurrentPath: this.currentPATH,
         RootName: this.RootName,
-        TotalSize: parseFloat(totalSize.data),
+        TotalSize: parseFloat(totalSize.data as string),
         TotalDatabases: `${visibleDatabases.length} Databases`,
         ListOfDatabases: visibleDatabases,
         DatabaseMap: this.DatabaseMap,
@@ -245,7 +246,7 @@ export class AxioDB {
    * ```typescript
    * const exists = await indexation.isDatabaseExists('myDatabase');
    * if (exists) {
-   *   console.log('Database exists');
+   *   Logger.info('Database exists');
    * }
    * ```
    */

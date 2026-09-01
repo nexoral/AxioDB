@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createHash } from 'crypto';
 import {
   ErrorInterface,
@@ -124,7 +123,7 @@ export default class LockManager {
     for (const documentId of documentIds) {
       try {
         await this.releaseLock(documentId);
-      } catch (error) {
+      } catch {
         continue;
       }
     }
@@ -135,7 +134,7 @@ export default class LockManager {
       const lockFilePath = `${this.lockDir}/${documentId}.lock`;
       const fileExists = await this.FileManager.FileExists(lockFilePath);
       return fileExists.status;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -154,7 +153,7 @@ export default class LockManager {
         return null;
       }
 
-      const lockData = this.Converter.ToObject(readResult.data);
+      const lockData = this.Converter.ToObject(readResult.data as string) as { lockInfo: LockInfo; checksum: string };
       const { lockInfo, checksum } = lockData;
 
       const calculatedChecksum = createHash('sha256')
@@ -166,7 +165,7 @@ export default class LockManager {
       }
 
       return null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }

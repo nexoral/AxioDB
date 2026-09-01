@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { FastifyInstance, FastifyPluginOptions } from "fastify";
 import { AuthorInfo, AvailableRoutes } from "../config/keys";
 import buildResponse, {
@@ -90,6 +88,8 @@ export default async function mainRouter(
       const toMB = (bytes: number) => parseFloat((bytes / 1024 / 1024).toFixed(2));
       const cache = await InMemoryCache.getCacheDetails();
       const instance = await AxioDBInstance.getInstanceInfo();
+      const cacheData = cache as { cacheSizeInBytes: number; availableMemoryInBytes: number } | false;
+      const instanceData = instance?.data as Record<string, unknown> | undefined;
 
       return buildResponse(StatusCodes.OK, "System information", {
         process: {
@@ -109,15 +109,15 @@ export default async function mainRouter(
           unit: "MB",
         },
         cache: {
-          used: parseFloat((cache.cacheSizeInBytes / 1024 / 1024).toFixed(2)),
-          max: parseFloat((cache.availableMemoryInBytes / 1024 / 1024).toFixed(2)),
+          used: parseFloat(((cacheData ? cacheData.cacheSizeInBytes : 0) / 1024 / 1024).toFixed(2)),
+          max: parseFloat(((cacheData ? cacheData.availableMemoryInBytes : 0) / 1024 / 1024).toFixed(2)),
           unit: "MB",
         },
         instance: {
           version: PackageFile.version,
-          rootName: instance?.data?.RootName ?? null,
-          path: instance?.data?.CurrentPath ?? null,
-          totalDatabases: instance?.data?.ListOfDatabases?.length ?? 0,
+          rootName: (instanceData?.RootName as string) ?? null,
+          path: (instanceData?.CurrentPath as string) ?? null,
+          totalDatabases: ((instanceData?.ListOfDatabases as unknown[])?.length) ?? 0,
         },
         // Ports are fixed in code; the TCP/MCP surfaces are opt-in at startup.
         services: [
@@ -141,7 +141,7 @@ export default async function mainRouter(
   fastify.get(
     "/dashboard-stats",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DASHBOARD_VIEW)] },
-    async (request, reply) => {
+    async () => {
       return new StatsController(AxioDBInstance).getDashBoardStat();
     },
   );

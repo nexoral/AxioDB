@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Worker } from "worker_threads";
 import paths from "path";
 import os from "os";
 import FileManager from "../engine/Filesystem/FileManager";
 import Converter from "../Helper/Converter.helper";
+import Logger from "../Helper/Logger.helper";
 
 /**
  * Reads data files using worker threads to parallelize the loading process.
@@ -32,20 +32,21 @@ export default async function ReaderWithWorker(
         const ReadFileResponse = await fileManager.ReadFile(`${path}/${fileName}`);
 
         if ("data" in ReadFileResponse) {
+          const fileData = ReadFileResponse.data as string;
           if (storeFileName) {
             return {
               fileName: fileName,
-              data: converter.ToObject(ReadFileResponse.data),
+              data: converter.ToObject(fileData),
             };
           } else {
-            return converter.ToObject(ReadFileResponse.data);
+            return converter.ToObject(fileData);
           }
         } else {
-          console.error(`Failed to read file: ${fileName}`);
+          Logger.error(`Failed to read file: ${fileName}`);
           return null;
         }
       } catch (error) {
-        console.error(`Error processing file ${fileName}:`, error);
+        Logger.error(`Error processing file ${fileName}:`, error);
         return null;
       }
     });

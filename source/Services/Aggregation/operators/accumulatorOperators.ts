@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { evaluateExpression } from "./expressionOperators";
 
-function resolveOperand(doc: any, operand: any): any {
+function resolveOperand(doc: Record<string, unknown>, operand: unknown): unknown {
   if (typeof operand === "string" && operand.startsWith("$")) {
     return doc[operand.substring(1)];
   }
@@ -11,7 +10,7 @@ function resolveOperand(doc: any, operand: any): any {
   return operand;
 }
 
-export function accumulatorSum(groupDocs: any[], expr: any): number {
+export function accumulatorSum(groupDocs: Record<string, unknown>[], expr: unknown): number {
   if (typeof expr === "number") return groupDocs.length * expr;
   return groupDocs.reduce((sum, doc) => {
     const val = resolveOperand(doc, expr);
@@ -19,7 +18,7 @@ export function accumulatorSum(groupDocs: any[], expr: any): number {
   }, 0);
 }
 
-export function accumulatorAvg(groupDocs: any[], expr: any): number | null {
+export function accumulatorAvg(groupDocs: Record<string, unknown>[], expr: unknown): number | null {
   if (groupDocs.length === 0) return null;
   let sum = 0;
   let count = 0;
@@ -33,47 +32,47 @@ export function accumulatorAvg(groupDocs: any[], expr: any): number | null {
   return count > 0 ? sum / count : null;
 }
 
-export function accumulatorMin(groupDocs: any[], expr: any): any {
+export function accumulatorMin(groupDocs: Record<string, unknown>[], expr: unknown): unknown {
   if (groupDocs.length === 0) return null;
-  let min: any = undefined;
+  let min: unknown = undefined;
   for (const doc of groupDocs) {
     const val = resolveOperand(doc, expr);
-    if (val !== null && val !== undefined && (min === undefined || val < min)) {
+    if (val !== null && val !== undefined && (min === undefined || (val as number) < (min as number))) {
       min = val;
     }
   }
   return min !== undefined ? min : null;
 }
 
-export function accumulatorMax(groupDocs: any[], expr: any): any {
+export function accumulatorMax(groupDocs: Record<string, unknown>[], expr: unknown): unknown {
   if (groupDocs.length === 0) return null;
-  let max: any = undefined;
+  let max: unknown = undefined;
   for (const doc of groupDocs) {
     const val = resolveOperand(doc, expr);
-    if (val !== null && val !== undefined && (max === undefined || val > max)) {
+    if (val !== null && val !== undefined && (max === undefined || (val as number) > (max as number))) {
       max = val;
     }
   }
   return max !== undefined ? max : null;
 }
 
-export function accumulatorFirst(groupDocs: any[], expr: any): any {
+export function accumulatorFirst(groupDocs: Record<string, unknown>[], expr: unknown): unknown {
   if (groupDocs.length === 0) return null;
   return resolveOperand(groupDocs[0], expr);
 }
 
-export function accumulatorLast(groupDocs: any[], expr: any): any {
+export function accumulatorLast(groupDocs: Record<string, unknown>[], expr: unknown): unknown {
   if (groupDocs.length === 0) return null;
   return resolveOperand(groupDocs[groupDocs.length - 1], expr);
 }
 
-export function accumulatorPush(groupDocs: any[], expr: any): any[] {
+export function accumulatorPush(groupDocs: Record<string, unknown>[], expr: unknown): unknown[] {
   return groupDocs.map(doc => resolveOperand(doc, expr));
 }
 
-export function accumulatorAddToSet(groupDocs: any[], expr: any): any[] {
-  const seen = new Set<any>();
-  const result: any[] = [];
+export function accumulatorAddToSet(groupDocs: Record<string, unknown>[], expr: unknown): unknown[] {
+  const seen = new Set<string>();
+  const result: unknown[] = [];
   for (const doc of groupDocs) {
     const val = resolveOperand(doc, expr);
     const key = JSON.stringify(val);
@@ -85,33 +84,33 @@ export function accumulatorAddToSet(groupDocs: any[], expr: any): any[] {
   return result;
 }
 
-export function accumulatorStdDevPop(groupDocs: any[], expr: any): number | null {
+export function accumulatorStdDevPop(groupDocs: Record<string, unknown>[], expr: unknown): number | null {
   if (groupDocs.length === 0) return null;
   const values = groupDocs
     .map(doc => resolveOperand(doc, expr))
-    .filter(v => typeof v === "number" && !isNaN(v));
+    .filter((v): v is number => typeof v === "number" && !isNaN(v));
   if (values.length === 0) return null;
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
   const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length;
   return Math.sqrt(variance);
 }
 
-export function accumulatorStdDevSamp(groupDocs: any[], expr: any): number | null {
+export function accumulatorStdDevSamp(groupDocs: Record<string, unknown>[], expr: unknown): number | null {
   if (groupDocs.length <= 1) return null;
   const values = groupDocs
     .map(doc => resolveOperand(doc, expr))
-    .filter(v => typeof v === "number" && !isNaN(v));
+    .filter((v): v is number => typeof v === "number" && !isNaN(v));
   if (values.length <= 1) return null;
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
   const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / (values.length - 1);
   return Math.sqrt(variance);
 }
 
-export function accumulatorCount(groupDocs: any[]): number {
+export function accumulatorCount(groupDocs: Record<string, unknown>[]): number {
   return groupDocs.length;
 }
 
-export const BUILT_IN_ACCUMULATORS: Record<string, (groupDocs: any[], expr: any) => any> = {
+export const BUILT_IN_ACCUMULATORS: Record<string, (groupDocs: Record<string, unknown>[], expr: unknown) => unknown> = {
   $sum: accumulatorSum,
   $avg: accumulatorAvg,
   $min: accumulatorMin,

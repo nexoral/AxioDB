@@ -4,6 +4,7 @@ import ReaderProxy from './ReaderProxy';
 import UpdateOperationProxy from './UpdateOperationProxy';
 import DeleteOperationProxy from './DeleteOperationProxy';
 import AggregationProxy from './AggregationProxy';
+import TransactionProxy from './TransactionProxy';
 
 /** Mirrors the Collection class API. */
 export default class CollectionProxy {
@@ -30,6 +31,14 @@ export default class CollectionProxy {
       dbName: this.dbName,
       collectionName: this.collectionName,
       documents,
+    });
+  }
+
+  async findByIds(ids: string[]): Promise<any> {
+    return await this.client.sendCommand(CommandType.FIND_BY_IDS, {
+      dbName: this.dbName,
+      collectionName: this.collectionName,
+      ids,
     });
   }
 
@@ -77,6 +86,34 @@ export default class CollectionProxy {
       dbName: this.dbName,
       collectionName: this.collectionName,
     });
+  }
+
+  /**
+   * Begin a transaction on this collection. Returns a TransactionProxy that
+   * pins all operations to a single TCP connection so in-flight writes are
+   * visible to subsequent reads within the same transaction.
+   */
+  async beginTransaction(): Promise<TransactionProxy> {
+    const pinnedConnection = this.client.getPinnedConnection();
+    if (!pinnedConnection) {
+      throw new Error('Not connected to server');
+    }
+
+    const result = await this.client.sendPinnedCommand(
+      CommandType.BEGIN_TRANSACTION,
+      { dbName: this.dbName, collectionName: this.collectionName },
+      pinnedConnection,
+    ) as Record<string, unknown>;
+
+    const transactionId = result.transactionId as string;
+
+    return new TransactionProxy(
+      this.client,
+      transactionId,
+      this.dbName,
+      this.collectionName,
+      pinnedConnection,
+    );
   }
 
   get name(): string {

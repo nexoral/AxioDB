@@ -129,7 +129,7 @@ const Security: React.FC = () => {
           <p className="text-gray-600 text-sm">
             RBAC protects the Control Server&apos;s HTTP API and the TCP server alike, but both are still designed for
             trusted local/network access - not a substitute for network-level protections if you expose either
-            beyond your own machine or private network. The TCP protocol itself is also unencrypted (no TLS).
+            beyond your own machine or private network. TCP is unencrypted by default; enable TLS with <code>TLS: true</code> + <code>TLSCertPath</code>/<code>TLSKeyPath</code> (or <code>AXIODB_TLS=true</code> in Docker) to encrypt it.
           </p>
         </div>
       </div>

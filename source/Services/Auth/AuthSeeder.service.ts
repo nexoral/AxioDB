@@ -49,8 +49,8 @@ export default class AuthSeeder {
     const existingUsers = await usersCollection.query({}).Limit(1).exec();
     const alreadySeeded =
       "data" in existingUsers &&
-      Array.isArray(existingUsers.data?.documents) &&
-      existingUsers.data.documents.length > 0;
+      Array.isArray((existingUsers.data as Record<string, unknown>)?.documents) &&
+      ((existingUsers.data as Record<string, unknown>)?.documents as unknown[])?.length > 0;
 
     if (!alreadySeeded) {
       await this.seedPermissions(permissionsCollection);
@@ -96,8 +96,8 @@ export default class AuthSeeder {
 
   private async hydratePermissionCache(rolesCollection: Collection): Promise<void> {
     const result = await rolesCollection.query({}).Limit(1000).exec();
-    if ("data" in result && result.data && Array.isArray(result.data.documents)) {
-      const roles = result.data.documents as RoleDocument[];
+    if ("data" in result && result.data && Array.isArray((result.data as Record<string, unknown>).documents)) {
+      const roles = (result.data as { documents: RoleDocument[] }).documents;
       PermissionChecker.hydrate(
         roles.map((role) => ({ roleName: role.roleName, permissions: role.permissions })),
       );

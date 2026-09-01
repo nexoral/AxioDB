@@ -1,7 +1,10 @@
 import { AxioDB } from '../../../Services/Indexation.operation';
-import { TCPResponse } from '../../types/protocol.types';
+import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode } from '../../config/keys';
 import CollectionController from '../../../server/controller/Collections/Collection.controller';
+import { FastifyRequest } from 'fastify';
+
+type Params = TCPRequest['params'];
 
 /**
  * Collection Handler - Handles collection-related TCP commands
@@ -20,13 +23,13 @@ export default class CollectionHandler {
    * Handle CREATE_COLLECTION command
    * Note: This is idempotent - returns collection whether it exists or not
    */
-  async handleCreateCollection(requestId: string, params: any): Promise<TCPResponse> {
+  async handleCreateCollection(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName } = params;
 
     try {
       // Use AxioDB instance directly for idempotent behavior
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      await databaseInstance.createCollection(collectionName);
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      await databaseInstance.createCollection(collectionName!);
 
       return {
         id: requestId,
@@ -47,15 +50,14 @@ export default class CollectionHandler {
   /**
    * Handle DELETE_COLLECTION command
    */
-  async handleDeleteCollection(requestId: string, params: any): Promise<TCPResponse> {
+  async handleDeleteCollection(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName } = params;
 
-    // Create mock request object
     const mockRequest = {
-      query: { dbName, collectionName },
-    } as any;
+      query: { dbName: dbName!, collectionName: collectionName! },
+    };
 
-    const result = await this.controller.deleteCollection(mockRequest);
+    const result = await this.controller.deleteCollection(mockRequest as unknown as FastifyRequest);
 
     return {
       id: requestId,
@@ -68,12 +70,12 @@ export default class CollectionHandler {
   /**
    * Handle COLLECTION_EXISTS command
    */
-  async handleCollectionExists(requestId: string, params: any): Promise<TCPResponse> {
+  async handleCollectionExists(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName } = params;
 
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName);
-      const exists = await databaseInstance.isCollectionExists(collectionName);
+      const databaseInstance = await this.axioDB.createDB(dbName!);
+      const exists = await databaseInstance.isCollectionExists(collectionName!);
 
       return {
         id: requestId,
@@ -94,15 +96,14 @@ export default class CollectionHandler {
   /**
    * Handle GET_COLLECTION_INFO command
    */
-  async handleGetCollectionInfo(requestId: string, params: any): Promise<TCPResponse> {
+  async handleGetCollectionInfo(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName } = params;
 
-    // Create mock request object
     const mockRequest = {
-      query: { databaseName: dbName },
-    } as any;
+      query: { databaseName: dbName! },
+    };
 
-    const result = await this.controller.getCollections(mockRequest);
+    const result = await this.controller.getCollections(mockRequest as unknown as FastifyRequest);
 
     return {
       id: requestId,

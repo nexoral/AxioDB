@@ -31,6 +31,9 @@ axiodb://mydb.example.com:27019`;
 const USAGE_SINGLE = `# Test connection
 axiodb -c axiodb://127.0.0.1:27019 ping
 
+# Check service health
+axiodb -c axiodb://127.0.0.1:27019 health
+
 # List databases
 axiodb -c axiodb://127.0.0.1:27019 db list
 
@@ -41,6 +44,14 @@ axiodb -c axiodb://127.0.0.1:27019 document insert '{"name":"Alice","age":30}' \
 # Query documents (JSON output)
 axiodb -c axiodb://127.0.0.1:27019 document query '{"age":{"$gt":25}}' \\
   --db mydb --collection users --output json
+
+# Query using an index hint
+axiodb -c axiodb://127.0.0.1:27019 document query '{"email":"alice@example.com"}' \\
+  --db mydb --collection users --hint email
+
+# Find several documents by ID
+axiodb -c axiodb://127.0.0.1:27019 document find-by-ids '["id1","id2"]' \\
+  --db mydb --collection users
 
 # With authentication
 axiodb -c axiodb://127.0.0.1:27019 -u admin -p secret db list
@@ -100,6 +111,24 @@ axiodb import ./backups/mydb.tar.gz \\
   --http-host localhost --http-port 27018 \\
   -u admin -p secret`;
 
+const USAGE_ADMIN = `# User and role administration uses the HTTP API (port 27018)
+axiodb user list --http-host localhost --http-port 27018 -u admin -p secret
+axiodb user create analyst analyst123 View --http-host localhost --http-port 27018 -u admin -p secret
+axiodb role list --http-host localhost --http-port 27018 -u admin -p secret
+axiodb role create Auditor document:view,document:query --http-host localhost --http-port 27018 -u admin -p secret`;
+
+const USAGE_TRANSACTION = `# Run transaction steps from a JSON file on one TCP connection
+cat > transfer.json <<'EOF'
+[
+  {"operation":"update-by-id","id":"sender","updateData":{"balance":500}},
+  {"operation":"update-by-id","id":"receiver","updateData":{"balance":1500}},
+  {"operation":"savepoint","savepointName":"checked"}
+]
+EOF
+
+axiodb transaction run transfer.json --db mydb --collection accounts \\
+  -c axiodb://127.0.0.1:27019 -u admin -p secret`;
+
 const CliPage: React.FC = () => {
   const heroReveal = useScrollReveal<HTMLDivElement>();
   const installReveal = useScrollReveal<HTMLDivElement>();
@@ -154,7 +183,7 @@ const CliPage: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg border border-purple-200">
               <Zap className="h-4 w-4 text-purple-600" />
-              <span className="text-sm font-semibold text-purple-700">23 Commands</span>
+              <span className="text-sm font-semibold text-purple-700">CLI Commands</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 rounded-lg border border-orange-200">
               <Globe className="h-4 w-4 text-orange-600" />
@@ -182,6 +211,22 @@ const CliPage: React.FC = () => {
               <Server className="h-5 w-5" />
               Source Code
             </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Activation Notice */}
+      <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg mb-8">
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 mt-0.5">
+            <Server className="h-5 w-5 text-amber-600" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-amber-800">Enable HTTP & TCP on the server first</p>
+            <p className="text-sm text-amber-700 mt-1">
+              The CLI needs <code className="px-1 py-0.5 bg-white rounded">TCP 27019</code> enabled (<code className="px-1 py-0.5 bg-white rounded">new AxioDB(&#123; TCP: true &#125;)</code> or <code className="px-1 py-0.5 bg-white rounded">AXIODB_TCP=true</code>) for data commands: <code className="px-1 py-0.5 bg-white rounded">db</code>, <code className="px-1 py-0.5 bg-white rounded">collection</code>, <code className="px-1 py-0.5 bg-white rounded">document</code>, <code className="px-1 py-0.5 bg-white rounded">index</code>, <code className="px-1 py-0.5 bg-white rounded">transaction</code>, <code className="px-1 py-0.5 bg-white rounded">ping</code>, <code className="px-1 py-0.5 bg-white rounded">health</code>, <code className="px-1 py-0.5 bg-white rounded">connect</code>.
+              Management commands (<code className="px-1 py-0.5 bg-white rounded">user</code>, <code className="px-1 py-0.5 bg-white rounded">role</code>, <code className="px-1 py-0.5 bg-white rounded">user change-password</code>, <code className="px-1 py-0.5 bg-white rounded">export</code>/<code className="px-1 py-0.5 bg-white rounded">import</code>) need <code className="px-1 py-0.5 bg-white rounded">HTTP 27018</code> enabled (<code className="px-1 py-0.5 bg-white rounded">GUI: true</code> / <code className="px-1 py-0.5 bg-white rounded">AXIODB_GUI=true</code>). TCP is data-plane only by design — no user/role management over TCP.
+            </p>
           </div>
         </div>
       </div>
@@ -328,6 +373,18 @@ const CliPage: React.FC = () => {
           </p>
           <CodeBlock code={USAGE_EXPORT_IMPORT} language="bash" />
         </div>
+
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">User & Role Administration (via HTTP API)</h3>
+          <p className="text-sm text-gray-600 mb-3">Management commands use HTTP port 27018. The TCP protocol remains data-plane only.</p>
+          <CodeBlock code={USAGE_ADMIN} language="bash" />
+        </div>
+
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">Transactions</h3>
+          <p className="text-sm text-gray-600 mb-3">Transaction steps run in order on one TCP connection and commit together. Updates are flat merges; operators such as <code>$inc</code> are not supported.</p>
+          <CodeBlock code={USAGE_TRANSACTION} language="bash" />
+        </div>
       </div>
 
       {/* Features */}
@@ -338,7 +395,9 @@ const CliPage: React.FC = () => {
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Features</h2>
         <div className="grid md:grid-cols-2 gap-4">
           {[
-            { title: "All 23 TCP Commands", desc: "Database, collection, document CRUD, aggregation, indexing" },
+            { title: "TCP Data Operations", desc: "Database, collection, document CRUD, aggregation, indexing, counts, hints, find-by-IDs, and transactions" },
+            { title: "Health & Diagnostics", desc: "Check TCP service health and retrieve instance information" },
+            { title: "HTTP Administration", desc: "Manage users and roles without adding management commands to the TCP client" },
             { title: "Interactive REPL", desc: "MongoDB shell syntax with tab autocomplete" },
             { title: "Export & Import", desc: "Backup/restore databases via HTTP API, tab-completes file paths" },
             { title: "TLS Encryption", desc: "--tls, --tls-cert, --tls-skip-verify flags" },
