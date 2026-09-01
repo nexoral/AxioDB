@@ -8,9 +8,6 @@ export function isPortInUse(port: number, host = ServerKeys.LOCALHOST) {
       .once("error", (err: NodeJS.ErrnoException) => {
         if (err.code === "EADDRINUSE") {
           resolve(true);
-          throw new Error(
-            `Port ${port} is already in use. Please Free the port to get the GUI.`,
-          );
         } else {
           resolve(false);
         }
@@ -24,5 +21,10 @@ export function isPortInUse(port: number, host = ServerKeys.LOCALHOST) {
 }
 
 export default async function checkPortAndDocker(port: number) {
-  await isPortInUse(port);
+  const inUse = await isPortInUse(port);
+  if (inUse) {
+    throw new Error(
+      `Port ${port} is already in use. Please Free the port to get the GUI.`,
+    );
+  }
 }

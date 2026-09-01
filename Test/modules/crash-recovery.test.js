@@ -119,8 +119,7 @@ class CrashRecoveryTests extends TestRunner {
             // Give the fire-and-forget recovery a moment to finish.
             await new Promise((r) => setTimeout(r, 1000));
             const result = await collection.query({}).Limit(100000).exec();
-            console.log(JSON.stringify({ count: result.data.documents.length }));
-            process.exit(0);
+            process.stdout.write(JSON.stringify({ count: result.data.documents.length }) + '\\n', () => process.exit(0));
           })();
         `;
         const stdout = await runChildToCompletion(verifyCode);
@@ -204,8 +203,7 @@ class CrashRecoveryTests extends TestRunner {
             const collection = await database.createCollection('Users');
             await new Promise((r) => setTimeout(r, 1000));
             const result = await collection.query({ name: 'Target' }).exec();
-            console.log(JSON.stringify({ doc: result.data.documents[0] || null }));
-            process.exit(0);
+            process.stdout.write(JSON.stringify({ doc: result.data.documents[0] || null }) + '\\n', () => process.exit(0));
           })();
         `;
         const stdout = await runChildToCompletion(verifyCode);
@@ -252,14 +250,13 @@ class CrashRecoveryTests extends TestRunner {
             const probeEmail = all.data.documents[0]?.email || 'u0@test.com';
             const emailProbe = await collection.query({ email: probeEmail }).Limit(50000).exec();
             const rangeProbe = await collection.query({ score: { $gte: 10, $lte: 20 } }).Limit(50000).exec();
-            console.log(JSON.stringify({
+            process.stdout.write(JSON.stringify({
               total: all.data.documents.length,
               catA: catA.data.documents.length,
               probeEmail,
               emailMatch: emailProbe.data.documents.length,
               rangeMatch: rangeProbe.data.documents.length
-            }));
-            process.exit(0);
+            }) + '\\n', () => process.exit(0));
           })();
         `;
         const stdout = await runChildToCompletion(verifyCode);
