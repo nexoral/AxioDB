@@ -45,7 +45,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
 
   // Documentation pages for search - wrapped in useMemo for performance
   const searchablePages: SearchResult[] = useMemo(() => [
-    { title: "Introduction", path: "/", description: "Get started with AxioDB - The Pure JavaScript Alternative to SQLite" },
+    { title: "Introduction", path: "/", description: "Get started with AxioDB - SQLite Alternative for JavaScript" },
     { title: "Features", path: "/features", description: "Explore production caching features and capabilities" },
     { title: "Limitations & Scale Considerations", path: "/limitations", description: "Understand AxioDB's design scope and when to use something else" },
     { title: "Installation", path: "/installation", description: "Install and set up AxioDB in your project" },

@@ -103,7 +103,7 @@ const Introduction: React.FC = () => {
   return (
     <section id="introduction" className="scroll-mt-20">
       <Seo
-        title="AxioDB - Pure JavaScript Alternative to SQLite | Introduction"
+        title="AxioDB - SQLite Alternative for JavaScript | Introduction"
         description="Embedded NoSQL database for Node.js with MongoDB-style queries, zero native dependencies, and a built-in web GUI. Install with npm and start building in seconds."
         path="/"
       />
@@ -145,7 +145,7 @@ const Introduction: React.FC = () => {
           </h1>
           <div className="space-y-4 mb-10">
             <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-gray-700 font-medium leading-tight">
-              The Pure JavaScript Alternative to SQLite
+              SQLite Alternative for JavaScript
             </p>
             <p className="text-lg lg:text-xl text-gray-600 font-light leading-relaxed max-w-4xl">
               Embedded NoSQL database for Node.js with MongoDB-style queries. Zero native dependencies,
@@ -154,21 +154,66 @@ const Introduction: React.FC = () => {
           </div>
 
           {/* Badges */}
-          <div className="flex flex-wrap items-center gap-3 mb-8">
+          <div className="flex flex-wrap items-center gap-2 mb-8">
             <img
               src={badgeUrls.npm}
               alt="npm version"
-              className="h-7 rounded shadow-sm hover:shadow-md transition-shadow"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/npm/v/axiodb?logo=npm&label=npm"
+              alt="npm shields"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/npm/dt/axiodb.svg"
+              alt="npm downloads total"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/npm/dm/axiodb.svg"
+              alt="npm downloads monthly"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/npm/unpacked-size/axiodb?label=install%20size"
+              alt="install size"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/jsdelivr/npm/hm/axiodb?label=jsDelivr"
+              alt="jsDelivr hits"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
             <img
               src={badgeUrls.codeql}
               alt="CodeQL"
-              className="h-7 rounded shadow-sm hover:shadow-md transition-shadow"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
             <img
               src={badgeUrls.socket}
               alt="Socket Security"
-              className="h-7 rounded shadow-sm hover:shadow-md transition-shadow"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src={badgeUrls.stars}
+              alt="GitHub Stars"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen"
+              alt="Node.js Version"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/badge/TypeScript-6.0-blue"
+              alt="TypeScript"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/badge/dependencies-0%20native-success"
+              alt="Zero Dependencies"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
           </div>
 
