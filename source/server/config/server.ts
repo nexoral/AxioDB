@@ -23,6 +23,21 @@ export default async function createAxioDBControlServer(
     bodyLimit: 52428800, // 50MB
   });
 
+  AxioDBControlServer.addHook("onRequest", async (request, reply) => {
+    const requestPath = (request.raw.url ?? "").split("?", 1)[0];
+    const hasDotDotSegment = /(?:^|\/)(?:\.\.|%2e%2e)(?:\/|$)/i.test(
+      requestPath,
+    );
+
+    if (hasDotDotSegment) {
+      await reply.code(400).send({
+        statusCode: 400,
+        status: false,
+        message: "Invalid request path",
+      });
+    }
+  });
+
   await AxioDBControlServer.register(fastifyCors, {
     origin: CORS_CONFIG.ORIGIN,
     methods: CORS_CONFIG.METHODS,
