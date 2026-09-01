@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "20.3.0",
+    version: "20.3.1",
     date: "2026-09-01",
     title: "ACID transactions over TCP with savepoints and connection-pinned client proxy",
     changes: [

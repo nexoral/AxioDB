@@ -137,34 +137,170 @@ jobs:
       - name: Run TCP No-Auth (backward compatibility) tests
         run: npm test tcp-noauth
 
-  test:
-    needs: [detect_changes, auth_rbac_gate, tcp_auth_rbac_gate, tcp_noauth_compat_gate]
+  http_api_gate:
+    name: "Gate 4 — HTTP API Test Suite"
+    needs: [detect_changes]
     if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20.x, 21.x, 22.x, 23.x, 24.x, 25.x, 26.x]
-      fail-fast: false  # Continue testing other versions even if one fails
-    name: "Gate 4 — Full Matrix Test (Node ${{ matrix.node-version }})"
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'  # Cache npm dependencies
+          node-version: '20.x'
+          cache: 'npm'
 
       - name: Cache node modules
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-${{ matrix.node-version }}-
+            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Run HTTP API tests
+        run: npm test http-api
+
+  tcp_transaction_gate:
+    name: "Gate 5 — TCP Transaction Test Suite"
+    needs: [detect_changes]
+    if: needs.detect_changes.outputs.run_test == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Run TCP Transaction tests
+        run: npm test tcp-transaction
+
+  tcp_tls_gate:
+    name: "Gate 6 — TCP TLS Test Suite"
+    needs: [detect_changes]
+    if: needs.detect_changes.outputs.run_test == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Run TCP TLS tests
+        run: npm test tcp-tls
+
+  mcp_functional_gate:
+    name: "Gate 7 — MCP Functional Test Suite"
+    needs: [detect_changes]
+    if: needs.detect_changes.outputs.run_test == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Run MCP Functional tests
+        run: npm test mcp-functional
+
+  test:
+    needs: [detect_changes, auth_rbac_gate, tcp_auth_rbac_gate, tcp_noauth_compat_gate, http_api_gate, tcp_transaction_gate, tcp_tls_gate, mcp_functional_gate]
+    if: needs.detect_changes.outputs.run_test == 'true'
+    runs-on: ubuntu-latest
+    name: "Gate 8 — Full Test Suite"
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
