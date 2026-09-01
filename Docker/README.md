@@ -285,15 +285,17 @@ Register the endpoint (`http://localhost:27020/mcp`) with whichever AI tool you 
 | **Windsurf** | Add to `~/.codeium/windsurf/mcp_config.json`: `{ "mcpServers": { "axiodb": { "serverUrl": "..." } } }` |
 | **Google Antigravity** (IDE & CLI) | Add to `~/.gemini/config/mcp_config.json`: `{ "mcpServers": { "axiodb": { "serverUrl": "..." } } }` — note `serverUrl`, not `url` |
 
-**32 tools**, covering:
+**43 tools**, covering:
 
 - **Session**: `axiodb_login`, `axiodb_logout`, `axiodb_whoami`, `axiodb_change_own_password`
 - **Database**: create/delete/exists/instance-info
 - **Collection**: create/delete/exists/info
-- **Documents & Aggregation**: insert/insert-many/query/update/delete/count/aggregate
+- **Documents**: insert/insert-many/query/update/delete/find-by-ids/total-documents + `aggregate`
 - **Index**: create/drop/list
-- **Dashboard**: stats
-- **User & Role Management**: full CRUD on users and roles, Super Admin only
+- **Dashboard**: health + stats
+- **User Management**: list/create/update-role/reset-password/delete
+- **Role Management**: list/create/delete/permissions
+- **Transactions**: begin/insert/update/delete/savepoint/rollback-to/release/commit/rollback
 
 Every tool except `axiodb_login` requires a `sessionId` from a successful login - every
 subsequent call is checked against that logged-in user's actual RBAC role, exactly like the
