@@ -267,7 +267,7 @@ class CrashRecoveryTests extends TestRunner {
 
         assert.ok(total > 0, 'Should have recovered at least some documents');
         assert.ok(catA > 0, 'Indexed $eq query should return matching documents');
-        assert.ok(emailMatch > 0, \`Exact email lookup for \${probeEmail} should work on recovered index\`);
+        assert.ok(emailMatch > 0, `Exact email lookup for ${probeEmail} should work on recovered index`);
         assert.ok(rangeMatch >= 0, 'Range query should not error after recovery');
 
         // Verify index meta file exists in JSONL format
