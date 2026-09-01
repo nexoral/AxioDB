@@ -6,9 +6,9 @@ We actively support the following versions of AxioDB with security updates. Plea
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 11.x.x  | ✅ Yes             |
-| 10.x.x  | ⚠️ Security fixes only |
-| < 10.0  | ❌ No              |
+| 20.x.x  | ✅ Yes             |
+| 11.x.x  | ⚠️ Security fixes only |
+| < 11.0  | ❌ No              |
 
 **Recommendation:** Always use the latest version of AxioDB for the best security, performance, and features.
 
