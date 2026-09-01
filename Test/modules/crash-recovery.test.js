@@ -248,11 +248,14 @@ class CrashRecoveryTests extends TestRunner {
             await new Promise((r) => setTimeout(r, 1000));
             const all = await collection.query({}).Limit(50000).exec();
             const catA = await collection.query({ category: 'a' }).Limit(50000).exec();
-            const emailProbe = await collection.query({ email: 'u5@test.com' }).Limit(50000).exec();
+            // Probe email of an actually recovered document, not hard-coded u5 — avoids flake when <6 docs recovered on slow CI (Node 22)
+            const probeEmail = all.data.documents[0]?.email || 'u0@test.com';
+            const emailProbe = await collection.query({ email: probeEmail }).Limit(50000).exec();
             const rangeProbe = await collection.query({ score: { $gte: 10, $lte: 20 } }).Limit(50000).exec();
             console.log(JSON.stringify({
               total: all.data.documents.length,
               catA: catA.data.documents.length,
+              probeEmail,
               emailMatch: emailProbe.data.documents.length,
               rangeMatch: rangeProbe.data.documents.length
             }));
@@ -260,11 +263,11 @@ class CrashRecoveryTests extends TestRunner {
           })();
         `;
         const stdout = await runChildToCompletion(verifyCode);
-        const { total, catA, emailMatch, rangeMatch } = JSON.parse(stdout.trim().split('\n').pop());
+        const { total, catA, probeEmail, emailMatch, rangeMatch } = JSON.parse(stdout.trim().split('\n').pop());
 
         assert.ok(total > 0, 'Should have recovered at least some documents');
         assert.ok(catA > 0, 'Indexed $eq query should return matching documents');
-        assert.ok(emailMatch > 0 || total === 0, 'Exact email lookup should work on recovered index');
+        assert.ok(emailMatch > 0, \`Exact email lookup for \${probeEmail} should work on recovered index\`);
         assert.ok(rangeMatch >= 0, 'Range query should not error after recovery');
 
         // Verify index meta file exists in JSONL format

@@ -207,7 +207,7 @@ function buildOpenApi(): string {
           "This API is one of several AxioDB surfaces and is not interchangeable with the others:",
           "- Embedded library (`npm install axiodb`) - in-process, no HTTP at all. https://axiodb.in/api-reference",
           "- AxioDBCloud TCP server/client on port 27019 - its own wire protocol, not HTTP. https://axiodb.in/cloud",
-          "- MCP server on port 27020 (Docker image only) - Streamable HTTP at /mcp, 32 tools. https://axiodb.in/mcp-server",
+          "- MCP server on port 27020 (Docker image only) - Streamable HTTP at /mcp, 43 tools. https://axiodb.in/mcp-server",
           "",
           "The Dashboard, AxioDBCloud authentication, and the MCP server share one user and role store.",
           "",

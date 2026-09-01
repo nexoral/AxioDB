@@ -144,17 +144,21 @@ git checkout -b fix/bug-description
 
 ```
 AxioDB/
-├── src/               # Source files (TypeScript)
-│   ├── config/        # Configuration files
-│   ├── core/          # Core database functionality
-│   ├── utils/         # Utility functions
-│   └── types/         # TypeScript type definitions
-├── lib/               # Compiled JavaScript (generated)
-├── Test/              # Test files
-├── Document/          # Documentation website
-├── Docker/            # Docker configuration
-├── GUI/               # Built-in web GUI
-└── package.json       # Project metadata
+├── source/                    # TypeScript 6.0 strict → lib/ (CJS)
+│   ├── Services/              # Collection, Database, CRUD Operation, Index, Aggregation, Transaction, Auth
+│   ├── engine/Filesystem/     # FileManager, FolderManager
+│   ├── server/                # HTTP GUI + REST API 27018 (Fastify)
+│   ├── tcp/                   # AxioDBCloud TCP 27019 + client Proxies
+│   ├── Helper/                # Converter, Response, PathSanitizer
+│   ├── Memory/                # InMemoryCache
+│   └── config/Keys/           # General, Permissions
+├── lib/                       # Compiled JS (tsc, gitignored)
+├── Test/modules/              # 13 suites (isolated child processes, singleton)
+├── Document/                  # React docs site 5173 (single source serverApi.ts → openapi.json)
+├── Docker/                    # Dockerfile 27018/27019/27020 + mcpServer.js 43 tools
+├── GUI/                       # Vite React GUI
+├── cli/                       # Go CLI 12 platforms
+└── package.json               # 20.4.1
 ```
 
 ## Coding Standards

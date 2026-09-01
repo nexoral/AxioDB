@@ -12,6 +12,15 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "20.4.1",
+    date: "2026-09-01",
+    title: "Docs & version sync: 41 endpoints, 32 cmds, 43 tools consistency",
+    changes: [
+      "Fixed: version drift — root package.json 20.4.1 vs Document 20.4.0 — synced Document/package.json, GUI/package.json, cli/VERSION, llms.txt, llms-full.txt, index.html, changelog to 20.4.1",
+      "Fixed: stale '32 tools' in openapi.json:5, generate-seo-files.ts:210, index.html:262 FAQ — updated to 43 tools to match 43 distinct MCP tools on disk",
+    ],
+  },
+  {
     version: "20.4.0",
     date: "2026-09-01",
     title: "Test stability: read suite threshold fix for Node 26 CI",
