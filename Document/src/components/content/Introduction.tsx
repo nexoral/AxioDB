@@ -736,7 +736,7 @@ const Introduction: React.FC = () => {
                     <Sparkles className="h-3 w-3" />
                     NEW FEATURE
                   </div>
-                  <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mb-3">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-2xl font-extrabold text-gray-900 mb-3">
                     Introducing AxioDBCloud
                   </h3>
                   <p className="text-xl text-accent-700 mb-4 leading-relaxed">
