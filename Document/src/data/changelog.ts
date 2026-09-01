@@ -12,6 +12,15 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "20.4.0",
+    date: "2026-09-01",
+    title: "Test stability: read suite threshold fix for Node 26 CI",
+    changes: [
+      "Fixed: read.test.js 'Exact match on indexed field is fast' flaky on Node 26 (881ms > 500ms on shared runner) — added warm-up query and raised threshold 500 → 1000ms",
+      "CI: added Gates 4-7 before matrix (HTTP API, TCP Transaction, TCP TLS, MCP Functional) in Push.yml and auto_ci.yml; auto_ci Gate 8 now non-matrix single 20.x; all versions bumped to 20.4.0",
+    ],
+  },
+  {
     version: "20.3.3",
     date: "2026-09-01",
     title: "Docs: short tagline, badge fixes, and dynamic Socket score",

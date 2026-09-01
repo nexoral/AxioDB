@@ -1,6 +1,6 @@
 # AxioDB
 
-> Embedded NoSQL database for Node.js — SQLite Alternative for JavaScript, with MongoDB-style queries. Zero native dependencies: no node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained, ~5,000 npm downloads/month (August 2026). Current version: 20.3.3.
+> Embedded NoSQL database for Node.js — SQLite Alternative for JavaScript, with MongoDB-style queries. Zero native dependencies: no node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained, ~5,000 npm downloads/month (August 2026). Current version: 20.4.0.
 
 ## What it is
 
