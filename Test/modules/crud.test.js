@@ -67,13 +67,16 @@ class CRUDTests extends TestRunner {
       });
 
       await this.test('Insert multiple documents', async () => {
-        const users = fixtures.generateUsers(100);
+        const users = fixtures.generateUsers(500);
+        const startTime = Date.now();
         const result = await this.collection.insertMany(users);
+        const insertDuration = Date.now() - startTime;
 
         assert.isSuccess(result);
-        assert.equal(result.data.total, 100);
-        assert.equal(result.data.id.length, 100);
+        assert.equal(result.data.total, users.length);
+        assert.equal(result.data.id.length, users.length);
         this.documentIds.push(...result.data.id);
+        this.log(`     InsertMany (${users.length} docs): ${insertDuration}ms`, 'gray');
       });
 
       await this.test('Insert with validation - empty data throws', async () => {

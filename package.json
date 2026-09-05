@@ -1,7 +1,7 @@
 {
   "name": "axiodb",
-  "version": "20.5.6",
-  "description": "SQLite Alternative for JavaScript. Embedded NoSQL database for Node.js with MongoDB-style queries, zero native dependencies, built-in InMemoryCache, and web GUI. Perfect for desktop apps, CLI tools, and embedded systems. No compilation, no platform issues—pure JavaScript from npm install to production.",
+  "version": "20.6.7",
+  "description": "The embedded database for Node.js. Replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, zero native dependencies, and built-in InMemoryCache. No compilation, no platform issues. Perfect for desktop apps, CLI tools, and embedded systems.",
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
   "scripts": {

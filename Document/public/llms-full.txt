@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 20.4.1 | License: MIT | Node.js >= 20.0.0
+Version: 20.6.7 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -11,7 +11,7 @@ This file documents the actual, source-verified API surface of AxioDB — every 
 
 ## What is AxioDB?
 
-AxioDB is an embedded NoSQL database for Node.js with MongoDB-style queries. It is a SQLite Alternative for JavaScript with zero native dependencies, no compilation step, and no platform-specific binaries. It works everywhere Node.js runs — Electron apps, CLI tools, local-first applications, and Node.js backends.
+AxioDB is an embedded database for Node.js that replaces SQLite, LowDB, NeDB, and raw JSON files. MongoDB-style queries, ACID transactions, zero native dependencies, no compilation step, and no platform-specific binaries. It works everywhere Node.js runs — Electron apps, CLI tools, local-first applications, and Node.js backends.
 
 **One-liner:** `npm install axiodb` and you have a database. No mongod process, no node-gyp, no electron-rebuild.
 
@@ -32,7 +32,7 @@ AxioDB is one package with several distinct surfaces. They are **not interchange
 | **Dashboard HTTP API** | REST API behind that GUI (41 endpoints) | ✅ Yes | ✅ Yes | comes with the Dashboard; `HTTP: false` disables it | **27018** |
 | **AxioDBCloud TCP server** | Lets other processes/machines use this database | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ TCP: true })` / `AXIODB_TCP=true` | **27019** |
 | **AxioDBCloud client** | Connects to that TCP server, same API as embedded | ✅ Yes | ✅ Yes | `const { AxioDBCloud } = require('axiodb')` | — |
-| **CLI (Go)** | Command line interface — TCP queries, REPL, export/import via HTTP | ✅ Yes | ✅ Yes | `axiodb` binary | — |
+| **CLI** | Command line interface — TCP queries, REPL, export/import via HTTP | ✅ Yes | ✅ Yes | `axiodb` binary | — |
 | **MCP server (43 tools)** | Lets an AI agent operate the database | ❌ **NO** | ✅ Yes | `AXIODB_MCP=true` | **27020** |
 
 **The MCP server is Docker-only.** It lives in `Docker/` in the repository, which is listed in `.npmignore`. Running `npm install axiodb` does **not** give you an MCP server. The only supported way to run it is the `theankansaha/axiodb` Docker image with `AXIODB_MCP=true`.
@@ -622,14 +622,19 @@ docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
 
 ---
 
-## Performance (10,000-document benchmark, illustrative — not a guarantee)
+## Performance (100,000-document benchmark — full npm test, 13/13 suites)
 
-- Single insert: ~3ms · InsertMany (10 docs): ~87ms
-- `documentId` lookup (indexed): ~1ms · `findOne`: ~1ms
-- Query with `$gt`: ~469ms · Query with `$in`: ~401ms · Sort: ~382ms · Full scan: ~2.6s
-- `UpdateOne`: ~8ms · `UpdateMany` (full collection): ~466ms
-- `deleteOne`: ~3ms · `deleteMany`: ~446ms
-- Transaction insert: ~23ms · Transaction update: ~14ms · Rollback: ~3ms
+Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js v26.8.1. Full details: https://axiodb.in/performance
+
+- Single insert: ~31ms · InsertMany (500 docs): ~365ms
+- `documentId` lookup (indexed): ~1ms · `findOne`: <1ms
+- Query with `$gt`: ~1,123ms · Query with `$in` (5 values): ~533ms · Sort + range: ~1,217ms · Full scan (10K cap): ~1,781ms
+- `UpdateOne`: ~35ms · `UpdateMany` (full collection): ~326ms
+- `deleteOne`: ~28ms · `deleteMany`: ~144ms
+- Transaction insert + commit: ~38ms · Transaction update + commit: ~32ms · Rollback: ~8ms · Savepoint: ~24ms
+- HTTP API: insert ~35ms, query ~12ms, update ~26ms · TCP: CRUD ~40ms, TLS CRUD ~93ms
+- Crash recovery (SIGKILL during writes): ~2s, no data corruption
+- Aggregation pipeline: 1-4ms (in-memory) · MCP functional: ~1.7s (6 tests)
 
 ---
 
@@ -639,37 +644,97 @@ docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
 
 | | SQLite / better-sqlite3 | AxioDB |
 |---|---|---|
-| Native dependencies | Yes (C bindings) | None |
-| Query language | SQL strings | JS objects |
-| Schema migrations | Required | Schema-less |
+| Native dependencies | Yes (C bindings, node-gyp) | None — pure JavaScript |
+| electron-rebuild | Required on every Electron update | Not needed |
+| Query language | SQL strings | MongoDB-style JS objects |
+| Schema migrations | Required (ALTER TABLE) | Schema-less |
+| Built-in caching | No | Yes (InMemoryCache with TTL) |
+| Multi-core | No (single-threaded) | Yes (Worker Threads) |
+| Built-in GUI | No | Yes (web dashboard) |
+| TypeScript | Partial (types only) | Full (6.0 strict mode) |
+| Best for | 10M+ records, relational data | 10K–500K docs, embedded apps |
+
+### vs LowDB
+
+| | LowDB | AxioDB |
+|---|---|---|
+| Status | Stale (3 years old) | Active |
+| Storage | Single JSON file | File-per-document |
+| Concurrency | Unsafe — concurrent writes corrupt data | Safe — atomic writes, file-based locking |
+| ACID transactions | No — crash = data corruption | Yes — with savepoints and WAL |
+| Built-in caching | No | Yes (InMemoryCache) |
+| Worker Threads | No | Yes |
+| TypeScript | Yes (ESM issues reported) | Full (6.0 strict) |
+| Query language | Lodash/JS array methods | MongoDB-style (19 operators) |
+| Indexing | No | Custom field indexing |
+| Best for | Small prototypes only | Electron, CLI, 10K-500K docs |
+
+### vs NeDB
+
+| | NeDB | AxioDB |
+|---|---|---|
+| Status | ABANDONED (since 2016) | Active |
+| Maintenance | None — no security patches | Regular updates |
+| Data loss | Reported by users | ACID transactions prevent it |
+| File corruption | Yes — on concurrent access | No — atomic writes |
+| API style | Callbacks (no Promises) | Async/Await |
+| TypeScript | No | Full (6.0 strict) |
+| Storage | Single file/in-memory | File-per-document |
 | Built-in caching | No | Yes |
-| Multi-core | No | Worker Threads |
-| Built-in GUI | No | Yes |
-| Best for | 10M+ records, relational | 10K–500K docs, embedded |
+| GUI | No | Yes (web dashboard) |
+| TCP remote access | No | Yes (AxioDBCloud) |
+| MCP server (AI) | No | Yes (43 tools) |
 
-### vs lowdb / nedb
+### vs LokiJS
 
-| | lowdb | nedb | AxioDB |
-|---|---|---|---|
-| Maintained | Yes | No (abandoned) | Yes |
-| Native bindings | None | None | None |
-| Storage | Single JSON file | Single file/in-memory | File-per-document |
-| Query language | JS/Lodash | JS objects | JS objects (MongoDB-style) |
-| Built-in caching | No | No | Yes |
-| Worker Threads | No | No | Yes |
-| ACID transactions | No | No | Yes |
-| TypeScript | Yes | Partial | Full |
-| Sweet spot | <5K docs | <100K docs | 10K–500K docs |
-| Built-in GUI | No | No | Yes |
+| | LokiJS | AxioDB |
+|---|---|---|
+| Status | Abandoned | Active |
+| Storage | In-memory (optional persistence) | File-based (persistent) |
+| ACID transactions | No | Yes |
+| Query language | MongoDB-style | MongoDB-style |
+| TypeScript | No | Full |
+| Best for | Nothing (abandoned) | Electron, CLI, 10K-500K docs |
 
 ### vs MongoDB
 
 | | MongoDB | AxioDB |
 |---|---|---|
-| Server required | Yes | No — embedded |
-| Network access | Yes | Optional (AxioDBCloud) |
+| Server required | Yes — separate process | No — embedded |
+| Network access | Required | Optional (AxioDBCloud) |
 | Scale | Distributed, unlimited | Single node, 10K–500K docs |
+| Setup | Complex (config, auth, replica sets) | `npm install axiodb` |
 | Best for | Multi-user production | Desktop apps, CLI tools |
+
+### Migration Guide
+
+**From LowDB to AxioDB:**
+```javascript
+// Before (LowDB):
+const db = await JSONFilePreset('db.json', {})
+db.data.posts.push(post)
+await db.write()
+
+// After (AxioDB):
+const db = new AxioDB()
+const myDB = await db.createDB('app')
+const posts = await myDB.createCollection('posts')
+await posts.insert(post)
+```
+
+**From NeDB to AxioDB:**
+```javascript
+// Before (NeDB):
+const Datastore = require('nedb')
+const db = new Datastore()
+db.insert(doc, callback)
+
+// After (AxioDB):
+const db = new AxioDB()
+const myDB = await db.createDB('app')
+const col = await myDB.createCollection('data')
+await col.insert(doc)
+```
 
 ---
 

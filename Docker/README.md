@@ -1,9 +1,9 @@
 # AxioDB Docker Image
 
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
-[![AxioDB](https://img.shields.io/badge/AxioDB-2.29.82-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
+[![AxioDB](https://img.shields.io/badge/AxioDB-20.6.7-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
 
-This Docker image provides both a REST API server and TCP remote access for AxioDB, allowing you to interact with the AxioDB database management system through HTTP requests or TCP connections. The container includes a web-based GUI dashboard for visual database management, comprehensive API endpoints for programmatic access, and AxioDBCloud TCP connector for remote client connections.
+This Docker image provides the embedded database for Node.js — replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, and zero native dependencies. It includes a REST API server, TCP remote access (AxioDBCloud), web GUI dashboard, and an optional MCP server for AI agent integration.
 
 ## =� What's Included
 

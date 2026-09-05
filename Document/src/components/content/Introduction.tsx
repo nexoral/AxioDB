@@ -16,6 +16,8 @@ import {
   Zap,
   TrendingUp,
   Command,
+  Copy,
+  Check,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Seo from "../ui/Seo";
@@ -24,7 +26,7 @@ import { githubApi } from "../../services/githubApi";
 import { npmApi } from "../../services/npmApi";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
 
-const HELLO_WORLD_CODE = `// npm install axiodb
+  const HELLO_WORLD_CODE = `// npm install axiodb
 const { AxioDB } = require('axiodb');
 
 // Create AxioDB instance with built-in GUI
@@ -34,11 +36,53 @@ const db = new AxioDB({ GUI: true }); // Enable GUI at localhost:27018
 const myDB = await db.createDB('HelloWorldDB');
 const collection = await myDB.createCollection('greetings');
 
-// Insert and retrieve data - Hello World! 👋
-await collection.insert({ message: 'Hello, Developer! 👋' });
+// Insert and retrieve data - Hello World!
+await collection.insert({ message: 'Hello, Developer!' });
 const result = await collection.query({}).exec();
-console.log(result.data.documents[0].message); // Hello, Developer! 👋
+console.log(result.data.documents[0].message); // Hello, Developer!
 `;
+
+  const COMPETITOR_PROBLEMS = [
+    {
+      name: "LowDB",
+      stars: "22.6k",
+      status: "Stale",
+      problems: [
+        "No concurrency — concurrent writes corrupt data",
+        "No ACID transactions — crash = data loss",
+        "No built-in caching — full file rewrite every time",
+        "Single JSON file — entire DB loaded into memory",
+        "Last updated 3 years ago"
+      ],
+      icon: "📄"
+    },
+    {
+      name: "NeDB",
+      stars: "13.5k",
+      status: "ABANDONED",
+      problems: [
+        "No longer maintained since 2016",
+        "Data loss issues reported by users",
+        "File corruption on concurrent access",
+        "No TypeScript support",
+        "Security vulnerabilities unpatched"
+      ],
+      icon: "💀"
+    },
+    {
+      name: "better-sqlite3",
+      stars: "11k+",
+      status: "Active (but painful)",
+      problems: [
+        "Requires native C bindings compilation",
+        "node-gyp headaches on every platform",
+        "electron-rebuild required for Electron apps",
+        "SQL strings instead of JavaScript objects",
+        "Platform-specific builds (Windows ≠ Mac)"
+      ],
+      icon: "🔧"
+    }
+  ];
 
 const Introduction: React.FC = () => {
   const [totalDownloads, setTotalDownloads] = useState<number | null>(null);
@@ -46,6 +90,7 @@ const Introduction: React.FC = () => {
   const [weeklyDownloads, setWeeklyDownloads] = useState<number | null>(null);
   const [monthlyDownloads, setMonthlyDownloads] = useState<number | null>(null);
   const [isLoadingDownloads, setIsLoadingDownloads] = useState(true);
+  const [skillCopied, setSkillCopied] = useState(false);
 
   // Scroll-triggered reveal state for each below-the-fold section of the
   // page (see useScrollReveal). The hero itself animates immediately on
@@ -55,8 +100,10 @@ const Introduction: React.FC = () => {
   const readOpsReveal = useScrollReveal<HTMLDivElement>();
   const updateDeleteReveal = useScrollReveal<HTMLDivElement>();
   const transactionReveal = useScrollReveal<HTMLDivElement>();
+  const suiteReveal = useScrollReveal<HTMLDivElement>();
   const terminalReveal = useScrollReveal<HTMLDivElement>();
   const mcpBannerReveal = useScrollReveal<HTMLAnchorElement>();
+  const skillBannerReveal = useScrollReveal<HTMLDivElement>();
   const cliBannerReveal = useScrollReveal<HTMLAnchorElement>();
   const cloudBannerReveal = useScrollReveal<HTMLDivElement>();
   const guiBannerReveal = useScrollReveal<HTMLDivElement>();
@@ -64,6 +111,8 @@ const Introduction: React.FC = () => {
   const featureCardsReveal = useScrollReveal<HTMLDivElement>();
   const quoteReveal = useScrollReveal<HTMLDivElement>();
   const painPointsReveal = useScrollReveal<HTMLDivElement>();
+  const originStoryReveal = useScrollReveal<HTMLDivElement>();
+  const competitorCalloutReveal = useScrollReveal<HTMLDivElement>();
 
   useEffect(() => {
     // Fetch npm download statistics
@@ -104,8 +153,8 @@ const Introduction: React.FC = () => {
   return (
     <section id="introduction" className="scroll-mt-20">
       <Seo
-        title="AxioDB - SQLite Alternative for JavaScript | Introduction"
-        description="Embedded NoSQL database for Node.js with MongoDB-style queries, zero native dependencies, and a built-in web GUI. Install with npm and start building in seconds."
+        title="AxioDB - The Embedded Database for Node.js | Introduction"
+        description="Replaces SQLite, LowDB, NeDB and raw JSON files with a real database. MongoDB-style queries, ACID transactions, zero native dependencies. No node-gyp, no electron-rebuild. Just npm install."
         path="/"
       />
       {/* Hero Section */}
@@ -146,11 +195,14 @@ const Introduction: React.FC = () => {
           </h1>
           <div className="space-y-4 mb-10">
             <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-gray-700 font-medium leading-tight">
-              SQLite Alternative for JavaScript
+              The Embedded Database for Node.js
             </p>
             <p className="text-lg lg:text-xl text-gray-600 font-light leading-relaxed max-w-4xl">
-              Embedded NoSQL database for Node.js with MongoDB-style queries. Zero native dependencies,
-              no compilation, no platform issues. Pure JavaScript from npm install to production.
+              Replaces SQLite, LowDB, NeDB & raw JSON files with a real database.
+              MongoDB-style queries, ACID transactions, zero native dependencies.
+              No more <code className="text-red-500 bg-red-50 px-1 rounded text-base font-medium">node-gyp</code> failures.
+              No more <code className="text-red-500 bg-red-50 px-1 rounded text-base font-medium">electron-rebuild</code>.
+              Just <code className="text-emerald-600 bg-emerald-50 px-1 rounded text-base font-medium">npm install</code>.
             </p>
           </div>
 
@@ -172,6 +224,16 @@ const Introduction: React.FC = () => {
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
             <img
+              src="https://img.shields.io/npm/dy/axiodb.svg"
+              alt="npm downloads yearly"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/npm/dw/axiodb.svg"
+              alt="npm downloads weekly"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
               src="https://img.shields.io/npm/dm/axiodb.svg"
               alt="npm downloads monthly"
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
@@ -184,6 +246,16 @@ const Introduction: React.FC = () => {
             <img
               src="https://img.shields.io/jsdelivr/npm/hm/axiodb?label=jsDelivr"
               alt="jsDelivr hits"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/npm/types/axiodb?label=types"
+              alt="TypeScript types"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/badge/License-MIT-yellow.svg"
+              alt="License MIT"
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
             <img
@@ -207,6 +279,11 @@ const Introduction: React.FC = () => {
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
             <img
+              src="https://img.shields.io/badge/tested%20on-20%20%7C%2021%20%7C%2022%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-blue"
+              alt="Tested on Node.js"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
               src="https://img.shields.io/badge/TypeScript-6.0-blue"
               alt="TypeScript"
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
@@ -217,59 +294,6 @@ const Introduction: React.FC = () => {
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
           </div>
-
-          {/* New Feature Banner: MCP Server */}
-          <a
-            ref={mcpBannerReveal.ref}
-            href="/mcp-server"
-            className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-accent-50 px-6 py-5 rounded-xl border-2 border-fuchsia-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${mcpBannerReveal.isVisible ? "is-visible" : ""}`}
-          >
-            <div className="flex items-center justify-center w-12 h-12 bg-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-              <Bot className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="text-xs bg-purple-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
-                  NEW
-                </span>
-                <span className="text-lg font-black text-accent-600">
-                  AxioDB MCP Server
-                </span>
-              </div>
-              <p className="text-sm text-gray-600">
-                Spin up AxioDB on a cloud container and let your AI agent (Claude, or any
-                MCP-compatible client) talk to that database directly — 43 tools, real login,
-                the exact same RBAC as the web GUI.
-              </p>
-            </div>
-            <ArrowRight className="h-6 w-6 text-fuchsia-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
-          </a>
-
-          {/* New Feature Banner: CLI */}
-          <a
-            ref={cliBannerReveal.ref}
-            href="/cli"
-            className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-emerald-50 px-6 py-5 rounded-xl border-2 border-emerald-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${cliBannerReveal.isVisible ? "is-visible" : ""}`}
-          >
-            <div className="flex items-center justify-center w-12 h-12 bg-emerald-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-              <Command className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
-                  NEW
-                </span>
-                <span className="text-lg font-black text-emerald-700">
-                  AxioDB CLI
-                </span>
-              </div>
-              <p className="text-sm text-gray-600">
-                Go-based command line interface for AxioDB — interactive REPL with MongoDB shell syntax,
-                all 32 TCP commands, TLS support, and installers for 12 platforms.
-              </p>
-            </div>
-            <ArrowRight className="h-6 w-6 text-emerald-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
-          </a>
 
           {/* NPM Download Stats */}
           <div
@@ -393,6 +417,127 @@ const Introduction: React.FC = () => {
             </a>
           </div>
 
+          {/* Agent Skill Banner */}
+          <div
+            ref={skillBannerReveal.ref}
+            className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 rounded-xl border-2 border-blue-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${skillBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-center justify-center w-12 h-12 bg-blue-600 rounded-xl shadow-lg flex-shrink-0">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-xs bg-blue-600 text-white px-2.5 py-1 rounded-full font-bold">
+                  AI SKILL
+                </span>
+                <span className="text-lg font-black text-blue-800">
+                  Use AxioDB with Any AI Agent
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Load the AxioDB Agent Skill into ChatGPT, Claude, Cursor, Copilot, or any AI coding assistant
+                to get expert guidance on queries, schema design, transactions, and best practices.
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    const prompt = `Fetch and save the AxioDB Agent Skill from this URL:
+
+${window.location.origin}/.well-known/agent-skills/axiodb/SKILL.md
+
+Save it as your reference for all AxioDB tasks. This skill contains the complete API reference for the embedded library and TCP client, correct syntax for queries/updates/transactions/aggregation, common mistakes to avoid, and implementation patterns. Always consult this skill before writing AxioDB code.`;
+                    try {
+                      await navigator.clipboard.writeText(prompt);
+                      setSkillCopied(true);
+                      setTimeout(() => setSkillCopied(false), 2000);
+                    } catch {
+                      // fallback for non-HTTPS
+                      const textarea = document.createElement("textarea");
+                      textarea.value = prompt;
+                      document.body.appendChild(textarea);
+                      textarea.select();
+                      document.execCommand("copy");
+                      document.body.removeChild(textarea);
+                      setSkillCopied(true);
+                      setTimeout(() => setSkillCopied(false), 2000);
+                    }
+                  }}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 ${
+                    skillCopied
+                      ? "bg-emerald-500 text-white"
+                      : "bg-blue-600 text-white hover:bg-blue-700 hover:-translate-y-0.5"
+                  }`}
+                >
+                  {skillCopied ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Copied to Clipboard
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Copy Skill Prompt
+                    </>
+                  )}
+                </button>
+                <span className="text-xs text-gray-400">Paste into any AI chat</span>
+              </div>
+            </div>
+          </div>
+
+          {/* New Feature Banner: MCP Server */}
+          <a
+            ref={mcpBannerReveal.ref}
+            href="/mcp-server"
+            className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-accent-50 px-6 py-5 rounded-xl border-2 border-fuchsia-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${mcpBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-center justify-center w-12 h-12 bg-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+              <Bot className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-xs bg-purple-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
+                  NEW
+                </span>
+                <span className="text-lg font-black text-accent-600">
+                  AxioDB MCP Server
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">
+                Spin up AxioDB on a cloud container and let your AI agent (Claude, or any
+                MCP-compatible client) talk to that database directly — 43 tools, real login,
+                the exact same RBAC as the web GUI.
+              </p>
+            </div>
+            <ArrowRight className="h-6 w-6 text-fuchsia-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
+          </a>
+
+          {/* New Feature Banner: CLI */}
+          <a
+            ref={cliBannerReveal.ref}
+            href="/cli"
+            className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-emerald-50 px-6 py-5 rounded-xl border-2 border-emerald-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${cliBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-center justify-center w-12 h-12 bg-emerald-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+              <Command className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
+                  NEW
+                </span>
+                <span className="text-lg font-black text-emerald-700">
+                  AxioDB CLI
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">
+                CLI tool for AxioDB — interactive REPL with MongoDB shell syntax,
+                all 32 TCP commands, TLS support, and installers for 12 platforms.
+              </p>
+            </div>
+            <ArrowRight className="h-6 w-6 text-emerald-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
+          </a>
+
           {/* Performance Metrics & ACID Compliance */}
           <div className="mb-8">
             {/* ACID Compliance Banner */}
@@ -419,16 +564,20 @@ const Introduction: React.FC = () => {
             <div className="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-200">
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-600">⚡ Performance Benchmark</span>
+                  <span className="font-bold text-gray-600">Performance Benchmark</span>
                   <span className="text-gray-600">|</span>
-                  <span className="text-gray-600">Tested: March 2026</span>
+                  <span className="text-gray-600">Tested: September 2026</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
-                  <span>💻 Ubuntu Linux</span>
+                  <span>AMD Ryzen 5 5500U (6C/12T)</span>
                   <span>•</span>
-                  <span>Node.js v20+</span>
+                  <span>7.1 GB RAM</span>
                   <span>•</span>
-                  <span className="font-bold text-amber-700">📊 10,000 documents dataset</span>
+                  <span>Ubuntu Linux 6.8.0</span>
+                  <span>•</span>
+                  <span>Node.js v26.8.1</span>
+                  <span>•</span>
+                  <span className="font-bold text-amber-700">100,000 documents dataset</span>
                 </div>
               </div>
             </div>
@@ -437,18 +586,18 @@ const Introduction: React.FC = () => {
             
             {/* INSERT Operations */}
             <div className="mb-4">
-              <p className="text-xs font-semibold text-accent-600 uppercase tracking-wider mb-2 px-1">📥 Insert Operations</p>
+              <p className="text-xs font-semibold text-accent-600 uppercase tracking-wider mb-2 px-1">Insert Operations</p>
               <div ref={insertOpsReveal.ref} className="grid grid-cols-2 md:grid-cols-3 gap-3 reveal-stagger-grid">
                 <div className={`relative bg-accent-50 px-4 py-3 rounded-xl border border-accent-200 shadow-md hover:shadow-lg transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-xl font-black text-accent-600">~3ms</span>
+                    <span className="text-xl font-black text-accent-600">~31ms</span>
                     <p className="text-xs text-accent-600 font-semibold">Insert Single</p>
                   </div>
                 </div>
                 <div className={`relative bg-accent-50 px-4 py-3 rounded-xl border border-accent-200 shadow-md hover:shadow-lg transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-xl font-black text-accent-600">~87ms</span>
-                    <p className="text-xs text-accent-600 font-semibold">InsertMany (10)</p>
+                    <span className="text-xl font-black text-accent-600">~365ms</span>
+                    <p className="text-xs text-accent-600 font-semibold">InsertMany (500)</p>
                   </div>
                 </div>
                 <div className={`relative bg-accent-50 px-4 py-3 rounded-xl border border-accent-200 shadow-md hover:shadow-lg transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
@@ -462,11 +611,11 @@ const Introduction: React.FC = () => {
 
             {/* READ/QUERY Operations */}
             <div className="mb-4">
-              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-2 px-1">📖 Read/Query Operations (10K docs)</p>
+              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-2 px-1">Read/Query Operations (100K docs)</p>
               <div ref={readOpsReveal.ref} className="grid grid-cols-3 md:grid-cols-6 gap-2 reveal-stagger-grid">
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~2ms</span>
+                    <span className="text-lg font-black text-emerald-600">~1ms</span>
                     <p className="text-[10px] text-emerald-700 font-semibold">Indexed</p>
                   </div>
                 </div>
@@ -478,62 +627,26 @@ const Introduction: React.FC = () => {
                 </div>
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~1ms</span>
+                    <span className="text-lg font-black text-emerald-600">&lt;1ms</span>
                     <p className="text-[10px] text-emerald-700 font-semibold">findOne</p>
                   </div>
                 </div>
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~2ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Projection</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~469ms</span>
+                    <span className="text-lg font-black text-emerald-600">~1.1s</span>
                     <p className="text-[10px] text-emerald-700 font-semibold">$gt</p>
                   </div>
                 </div>
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~401ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">$in</p>
+                    <span className="text-lg font-black text-emerald-600">~533ms</span>
+                    <p className="text-[10px] text-emerald-700 font-semibold">$in (5)</p>
                   </div>
                 </div>
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~454ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Limit</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~404ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Skip</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~382ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Sort</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~434ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">setCount</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~2.8s</span>
+                    <span className="text-lg font-black text-emerald-600">~2.0s</span>
                     <p className="text-[10px] text-emerald-700 font-semibold">Regex</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~2.6s</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Full Scan</p>
                   </div>
                 </div>
               </div>
@@ -542,46 +655,46 @@ const Introduction: React.FC = () => {
             {/* UPDATE & DELETE Operations */}
             <div ref={updateDeleteReveal.ref} className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-2 px-1">✏️ Update Operations</p>
+                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-2 px-1">Update Operations</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 reveal-stagger-grid">
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-amber-200 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-amber-700">~8ms</span>
+                      <span className="text-lg font-black text-amber-700">~35ms</span>
                       <p className="text-[10px] text-amber-700 font-semibold">UpdateOne</p>
                     </div>
                   </div>
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-amber-200 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-amber-700">~466ms</span>
+                      <span className="text-lg font-black text-amber-700">~326ms</span>
                       <p className="text-[10px] text-amber-700 font-semibold">UpdateMany</p>
                     </div>
                   </div>
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-amber-200 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-amber-700">~1ms</span>
+                      <span className="text-lg font-black text-amber-700">~2ms</span>
                       <p className="text-[10px] text-amber-700 font-semibold">Verify</p>
                     </div>
                   </div>
                 </div>
               </div>
               <div>
-                <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2 px-1">🗑️ Delete Operations</p>
+                <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2 px-1">Delete Operations</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 reveal-stagger-grid">
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-red-400">~3ms</span>
+                      <span className="text-lg font-black text-red-400">~28ms</span>
                       <p className="text-[10px] text-red-300 font-semibold">DeleteOne</p>
                     </div>
                   </div>
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-red-400">~446ms</span>
+                      <span className="text-lg font-black text-red-400">~144ms</span>
                       <p className="text-[10px] text-red-300 font-semibold">DeleteMany</p>
                     </div>
                   </div>
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-red-400">~463ms</span>
+                      <span className="text-lg font-black text-red-400">~53ms</span>
                       <p className="text-[10px] text-red-300 font-semibold">Verify</p>
                     </div>
                   </div>
@@ -591,56 +704,93 @@ const Introduction: React.FC = () => {
 
             {/* TRANSACTION Operations */}
             <div className="mb-4">
-              <p className="text-xs font-semibold text-violet-400 uppercase tracking-wider mb-2 px-1">🔄 Transaction Operations</p>
+              <p className="text-xs font-semibold text-violet-400 uppercase tracking-wider mb-2 px-1">Transaction Operations</p>
               <div ref={transactionReveal.ref} className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2 reveal-stagger-grid">
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~23ms</span>
+                    <span className="text-lg font-black text-violet-400">~38ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">TX Insert</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~14ms</span>
+                    <span className="text-lg font-black text-violet-400">~32ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">TX Update</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~15ms</span>
+                    <span className="text-lg font-black text-violet-400">~44ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">TX Delete</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~23ms</span>
+                    <span className="text-lg font-black text-violet-400">~46ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">TX Mixed</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~3ms</span>
+                    <span className="text-lg font-black text-violet-400">~8ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">Rollback</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~14ms</span>
+                    <span className="text-lg font-black text-violet-400">~24ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">Savepoint</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~10ms</span>
+                    <span className="text-lg font-black text-violet-400">~21ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">withTX</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~12ms</span>
+                    <span className="text-lg font-black text-violet-400">~20ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">Index Sync</p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* TEST SUITE OVERVIEW */}
+            <div ref={suiteReveal.ref} className={`mb-4 reveal-on-scroll ${suiteReveal.isVisible ? "is-visible" : ""}`}>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">Test Suite Overview (100K docs - 13/13 Passing)</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 reveal-stagger-grid">
+                {[
+                  { name: "CRUD", tests: 30, time: "3.7 s" },
+                  { name: "Transactions", tests: 22, time: "625 ms" },
+                  { name: "Read / Query", tests: 40, time: "146.8 s" },
+                  { name: "Aggregation", tests: 50, time: "458 ms" },
+                  { name: "Auth & RBAC", tests: 32, time: "6.0 s" },
+                  { name: "HTTP API", tests: 38, time: "1.5 s" },
+                  { name: "TCP Auth", tests: 20, time: "2.7 s" },
+                  { name: "TCP No-Auth", tests: 6, time: "627 ms" },
+                  { name: "TCP TX", tests: 17, time: "1.4 s" },
+                  { name: "TCP TLS", tests: 3, time: "641 ms" },
+                  { name: "Crash Recovery", tests: 3, time: "5.7 s" },
+                  { name: "MCP Confirm", tests: 11, time: "40 ms" },
+                  { name: "MCP Functional", tests: 6, time: "1.7 s" },
+                ].map((suite) => (
+                  <div key={suite.name} className="bg-gray-50 px-2 py-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all text-center">
+                    <p className="text-[10px] text-gray-500 font-semibold truncate">{suite.name}</p>
+                    <span className="text-sm font-black text-gray-700">{suite.time}</span>
+                    <p className="text-[9px] text-gray-400">{suite.tests} tests</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 text-center">
+                <a
+                  href="/performance"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-accent-600 hover:text-accent-700 transition-colors"
+                >
+                  View full performance report
+                  <ArrowRight className="h-3 w-3" />
+                </a>
               </div>
             </div>
           </div>
@@ -792,7 +942,7 @@ const Introduction: React.FC = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="bg-accent-100 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide text-accent-700">
-                    🎨 Built-in GUI
+                    Built-in GUI
                   </span>
                 </div>
                 <h3 className="text-lg font-semibold mb-2">
@@ -812,6 +962,131 @@ const Introduction: React.FC = () => {
                   <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
+            </div>
+          </div>
+
+          {/* Origin Story Section */}
+          <div
+            ref={originStoryReveal.ref}
+            className={`relative bg-gradient-to-br from-gray-50 to-accent-50 rounded-xl p-6 sm:p-8 mb-8 border border-gray-200 shadow-lg reveal-on-scroll ${originStoryReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">📖</span>
+              <span className="text-sm bg-accent-100 text-accent-700 px-3 py-1 rounded-full font-bold uppercase tracking-wide">Our Story</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-4">
+              Born from SQLite Pain. Built to Be Better.
+            </h2>
+            <div className="space-y-4 text-gray-600 leading-relaxed">
+              <p className="text-lg">
+                It started with a simple error: <code className="bg-red-50 text-red-600 px-2 py-1 rounded border border-red-200 font-mono text-sm">node-gyp ERR!</code>
+                <span className="text-red-600 font-semibold"> — again.</span>
+              </p>
+              <p>
+                We were building an Electron app. Needed a database. Tried <strong>better-sqlite3</strong> —
+                <span className="text-red-500"> node-gyp compilation failed</span>. Tried <strong>LowDB</strong> —
+                <span className="text-red-500"> data corrupted on concurrent writes</span>. Tried <strong>NeDB</strong> —
+                <span className="text-red-500"> abandoned since 2016</span>.
+              </p>
+              <p className="font-semibold text-gray-700">
+                So we built AxioDB.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4 mt-4">
+                <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
+                  <span className="text-green-500 text-lg mt-0.5">✓</span>
+                  <div>
+                    <span className="font-semibold text-gray-700">Zero native dependencies</span>
+                    <p className="text-sm text-gray-500">No node-gyp, no electron-rebuild, no platform headaches</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
+                  <span className="text-green-500 text-lg mt-0.5">✓</span>
+                  <div>
+                    <span className="font-semibold text-gray-700">ACID transactions</span>
+                    <p className="text-sm text-gray-500">Crash recovery, savepoints, write-ahead logging</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
+                  <span className="text-green-500 text-lg mt-0.5">✓</span>
+                  <div>
+                    <span className="font-semibold text-gray-700">MongoDB-style queries</span>
+                    <p className="text-sm text-gray-500">JavaScript objects, not SQL strings</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
+                  <span className="text-green-500 text-lg mt-0.5">✓</span>
+                  <div>
+                    <span className="font-semibold text-gray-700">Built-in caching & GUI</span>
+                    <p className="text-sm text-gray-500">InMemoryCache + web dashboard included</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Still Using This? Competitor Callout */}
+          <div
+            ref={competitorCalloutReveal.ref}
+            className={`relative bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-6 sm:p-8 mb-8 border-2 border-red-200 shadow-lg reveal-on-scroll ${competitorCalloutReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="text-center mb-6">
+              <span className="text-3xl mb-3 block">🤔</span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
+                Still Using LowDB, NeDB, or better-sqlite3?
+              </h2>
+              <p className="text-gray-600 text-lg">
+                Here's what developers actually deal with every day:
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4 mb-6">
+              {COMPETITOR_PROBLEMS.map((competitor) => (
+                <div key={competitor.name} className="bg-white rounded-xl p-5 border border-gray-200 shadow-md hover:shadow-lg transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">{competitor.icon}</span>
+                      <span className="font-bold text-gray-900">{competitor.name}</span>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full font-bold ${
+                      competitor.status === "ABANDONED" ? "bg-red-100 text-red-700" :
+                      competitor.status === "Stale" ? "bg-orange-100 text-orange-700" :
+                      "bg-yellow-100 text-yellow-700"
+                    }`}>
+                      {competitor.status}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 mb-3">{competitor.stars} GitHub stars</div>
+                  <ul className="space-y-2">
+                    {competitor.problems.map((problem, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-red-500 mt-0.5">✗</span>
+                        <span>{problem}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center">
+              <p className="text-lg font-semibold text-gray-700 mb-4">
+                AxioDB solves all of these problems:
+              </p>
+              <div className="flex flex-wrap justify-center gap-3 mb-6">
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ ACID Transactions</span>
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ Zero Native Deps</span>
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ Active Maintenance</span>
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ InMemoryCache</span>
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ TypeScript 6.0</span>
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ Built-in GUI</span>
+              </div>
+              <a
+                href="/comparison"
+                className="inline-flex items-center gap-2 bg-accent-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-accent-700 transition-all shadow-lg hover:shadow-md transform hover:-translate-y-0.5"
+              >
+                See Full Comparison
+                <ArrowRight className="h-5 w-5" />
+              </a>
             </div>
           </div>
         </div>

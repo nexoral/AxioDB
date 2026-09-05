@@ -105,6 +105,11 @@ const sidebarSections: SidebarSection[] = [
         label: "Performance Comparison",
         path: "/comparison",
       },
+      {
+        id: "performance",
+        label: "Performance Benchmarks",
+        path: "/performance",
+      },
     ],
   },
   {
