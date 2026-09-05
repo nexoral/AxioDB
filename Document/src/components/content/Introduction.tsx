@@ -24,7 +24,7 @@ import { githubApi } from "../../services/githubApi";
 import { npmApi } from "../../services/npmApi";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
 
-const HELLO_WORLD_CODE = `// npm install axiodb
+  const HELLO_WORLD_CODE = `// npm install axiodb
 const { AxioDB } = require('axiodb');
 
 // Create AxioDB instance with built-in GUI
@@ -34,11 +34,53 @@ const db = new AxioDB({ GUI: true }); // Enable GUI at localhost:27018
 const myDB = await db.createDB('HelloWorldDB');
 const collection = await myDB.createCollection('greetings');
 
-// Insert and retrieve data - Hello World! 👋
-await collection.insert({ message: 'Hello, Developer! 👋' });
+// Insert and retrieve data - Hello World!
+await collection.insert({ message: 'Hello, Developer!' });
 const result = await collection.query({}).exec();
-console.log(result.data.documents[0].message); // Hello, Developer! 👋
+console.log(result.data.documents[0].message); // Hello, Developer!
 `;
+
+  const COMPETITOR_PROBLEMS = [
+    {
+      name: "LowDB",
+      stars: "22.6k",
+      status: "Stale",
+      problems: [
+        "No concurrency — concurrent writes corrupt data",
+        "No ACID transactions — crash = data loss",
+        "No built-in caching — full file rewrite every time",
+        "Single JSON file — entire DB loaded into memory",
+        "Last updated 3 years ago"
+      ],
+      icon: "📄"
+    },
+    {
+      name: "NeDB",
+      stars: "13.5k",
+      status: "ABANDONED",
+      problems: [
+        "No longer maintained since 2016",
+        "Data loss issues reported by users",
+        "File corruption on concurrent access",
+        "No TypeScript support",
+        "Security vulnerabilities unpatched"
+      ],
+      icon: "💀"
+    },
+    {
+      name: "better-sqlite3",
+      stars: "11k+",
+      status: "Active (but painful)",
+      problems: [
+        "Requires native C bindings compilation",
+        "node-gyp headaches on every platform",
+        "electron-rebuild required for Electron apps",
+        "SQL strings instead of JavaScript objects",
+        "Platform-specific builds (Windows ≠ Mac)"
+      ],
+      icon: "🔧"
+    }
+  ];
 
 const Introduction: React.FC = () => {
   const [totalDownloads, setTotalDownloads] = useState<number | null>(null);
@@ -64,6 +106,8 @@ const Introduction: React.FC = () => {
   const featureCardsReveal = useScrollReveal<HTMLDivElement>();
   const quoteReveal = useScrollReveal<HTMLDivElement>();
   const painPointsReveal = useScrollReveal<HTMLDivElement>();
+  const originStoryReveal = useScrollReveal<HTMLDivElement>();
+  const competitorCalloutReveal = useScrollReveal<HTMLDivElement>();
 
   useEffect(() => {
     // Fetch npm download statistics
@@ -792,7 +836,7 @@ const Introduction: React.FC = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="bg-accent-100 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide text-accent-700">
-                    🎨 Built-in GUI
+                    Built-in GUI
                   </span>
                 </div>
                 <h3 className="text-lg font-semibold mb-2">
@@ -812,6 +856,131 @@ const Introduction: React.FC = () => {
                   <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
+            </div>
+          </div>
+
+          {/* Origin Story Section */}
+          <div
+            ref={originStoryReveal.ref}
+            className={`relative bg-gradient-to-br from-gray-50 to-accent-50 rounded-xl p-6 sm:p-8 mb-8 border border-gray-200 shadow-lg reveal-on-scroll ${originStoryReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-2xl">📖</span>
+              <span className="text-sm bg-accent-100 text-accent-700 px-3 py-1 rounded-full font-bold uppercase tracking-wide">Our Story</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-4">
+              Born from SQLite Pain. Built to Be Better.
+            </h2>
+            <div className="space-y-4 text-gray-600 leading-relaxed">
+              <p className="text-lg">
+                It started with a simple error: <code className="bg-red-50 text-red-600 px-2 py-1 rounded border border-red-200 font-mono text-sm">node-gyp ERR!</code>
+                <span className="text-red-600 font-semibold"> — again.</span>
+              </p>
+              <p>
+                We were building an Electron app. Needed a database. Tried <strong>better-sqlite3</strong> —
+                <span className="text-red-500"> node-gyp compilation failed</span>. Tried <strong>LowDB</strong> —
+                <span className="text-red-500"> data corrupted on concurrent writes</span>. Tried <strong>NeDB</strong> —
+                <span className="text-red-500"> abandoned since 2016</span>.
+              </p>
+              <p className="font-semibold text-gray-700">
+                So we built AxioDB.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4 mt-4">
+                <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
+                  <span className="text-green-500 text-lg mt-0.5">✓</span>
+                  <div>
+                    <span className="font-semibold text-gray-700">Zero native dependencies</span>
+                    <p className="text-sm text-gray-500">No node-gyp, no electron-rebuild, no platform headaches</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
+                  <span className="text-green-500 text-lg mt-0.5">✓</span>
+                  <div>
+                    <span className="font-semibold text-gray-700">ACID transactions</span>
+                    <p className="text-sm text-gray-500">Crash recovery, savepoints, write-ahead logging</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
+                  <span className="text-green-500 text-lg mt-0.5">✓</span>
+                  <div>
+                    <span className="font-semibold text-gray-700">MongoDB-style queries</span>
+                    <p className="text-sm text-gray-500">JavaScript objects, not SQL strings</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
+                  <span className="text-green-500 text-lg mt-0.5">✓</span>
+                  <div>
+                    <span className="font-semibold text-gray-700">Built-in caching & GUI</span>
+                    <p className="text-sm text-gray-500">InMemoryCache + web dashboard included</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Still Using This? Competitor Callout */}
+          <div
+            ref={competitorCalloutReveal.ref}
+            className={`relative bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-6 sm:p-8 mb-8 border-2 border-red-200 shadow-lg reveal-on-scroll ${competitorCalloutReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="text-center mb-6">
+              <span className="text-3xl mb-3 block">🤔</span>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
+                Still Using LowDB, NeDB, or better-sqlite3?
+              </h2>
+              <p className="text-gray-600 text-lg">
+                Here's what developers actually deal with every day:
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4 mb-6">
+              {COMPETITOR_PROBLEMS.map((competitor) => (
+                <div key={competitor.name} className="bg-white rounded-xl p-5 border border-gray-200 shadow-md hover:shadow-lg transition-all">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">{competitor.icon}</span>
+                      <span className="font-bold text-gray-900">{competitor.name}</span>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full font-bold ${
+                      competitor.status === "ABANDONED" ? "bg-red-100 text-red-700" :
+                      competitor.status === "Stale" ? "bg-orange-100 text-orange-700" :
+                      "bg-yellow-100 text-yellow-700"
+                    }`}>
+                      {competitor.status}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 mb-3">{competitor.stars} GitHub stars</div>
+                  <ul className="space-y-2">
+                    {competitor.problems.map((problem, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
+                        <span className="text-red-500 mt-0.5">✗</span>
+                        <span>{problem}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center">
+              <p className="text-lg font-semibold text-gray-700 mb-4">
+                AxioDB solves all of these problems:
+              </p>
+              <div className="flex flex-wrap justify-center gap-3 mb-6">
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ ACID Transactions</span>
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ Zero Native Deps</span>
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ Active Maintenance</span>
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ InMemoryCache</span>
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ TypeScript 6.0</span>
+                <span className="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold border border-green-200">✓ Built-in GUI</span>
+              </div>
+              <a
+                href="/comparison"
+                className="inline-flex items-center gap-2 bg-accent-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-accent-700 transition-all shadow-lg hover:shadow-md transform hover:-translate-y-0.5"
+              >
+                See Full Comparison
+                <ArrowRight className="h-5 w-5" />
+              </a>
             </div>
           </div>
         </div>

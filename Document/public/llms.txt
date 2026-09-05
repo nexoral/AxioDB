@@ -14,7 +14,17 @@ Sweet spot: 10K–500K documents per collection. Built for Electron apps, deskto
 
 AxioDB is plain JavaScript reading and writing files. There is nothing to compile, nothing to rebuild, and nothing that can mismatch. That is the entire point.
 
-Full SQL→AxioDB cookbook and an honest list of what you give up: https://axiodb.in/llms-full.txt
+## Why not LowDB, NeDB, or LokiJS?
+
+**LowDB** stores everything in a single JSON file. No concurrency safety (concurrent writes corrupt data), no ACID transactions (crash = data loss), no built-in caching, entire DB loaded into memory. Last updated 3 years ago.
+
+**NeDB** is abandoned since 2016. No security patches, no bug fixes. Users report data loss and file corruption. Callback-based API (no Promises). No TypeScript support.
+
+**LokiJS** is in-memory only. No ACID transactions. Persistence is an afterthought. Abandoned.
+
+**AxioDB** provides: file-per-document storage, ACID transactions with WAL, atomic writes via temp+rename, file-based locking, InMemoryCache, Worker Threads, TypeScript 6.0 strict, built-in GUI, TCP remote access, MCP server for AI agents. Actively maintained.
+
+Full comparison: https://axiodb.in/comparison
 
 ## Key Differentiators
 
@@ -23,12 +33,14 @@ Full SQL→AxioDB cookbook and an honest list of what you give up: https://axiod
 - Built-in InMemoryCache with randomized 5–15 minute TTL and selective invalidation
 - Worker Threads for multi-core parallel processing
 - ACID transactions with savepoints, rollback, and WAL — crash recovery covers plain `insert()` too, not just explicit transactions
+- Atomic writes via temp file + rename — no data corruption on crash
+- File-based locking with Wait-Die deadlock prevention — safe for concurrent access
 - TCP transactions: BEGIN/COMMIT/ROLLBACK over TCP with savepoints, connection-pinned client proxy, and auto-rollback on disconnect
 - Built-in web Dashboard on port 27018 with role-based login (Super Admin / Admin / View)
 - AxioDBCloud: TCP remote access on port 27019, with optional shared-RBAC authentication (TCPAuth) and optional TLS
 - CLI: Go-based command line interface — TCP data operations and interactive REPL, HTTP database export/import, and HTTP user/role administration
 - MCP Server: 43 tools for AI agent integration — **Docker image only, not in the npm package** (see below)
-- Full TypeScript support, types included, no `@types` package needed
+- Full TypeScript support (6.0 strict mode), types included, no `@types` package needed
 - Index hints — force a specific index on any query with .hint('fieldName')
 - Batch read — retrieve multiple documents by ID in one call with .findByIds([ids])
 

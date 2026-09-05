@@ -639,37 +639,97 @@ docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
 
 | | SQLite / better-sqlite3 | AxioDB |
 |---|---|---|
-| Native dependencies | Yes (C bindings) | None |
-| Query language | SQL strings | JS objects |
-| Schema migrations | Required | Schema-less |
+| Native dependencies | Yes (C bindings, node-gyp) | None — pure JavaScript |
+| electron-rebuild | Required on every Electron update | Not needed |
+| Query language | SQL strings | MongoDB-style JS objects |
+| Schema migrations | Required (ALTER TABLE) | Schema-less |
+| Built-in caching | No | Yes (InMemoryCache with TTL) |
+| Multi-core | No (single-threaded) | Yes (Worker Threads) |
+| Built-in GUI | No | Yes (web dashboard) |
+| TypeScript | Partial (types only) | Full (6.0 strict mode) |
+| Best for | 10M+ records, relational data | 10K–500K docs, embedded apps |
+
+### vs LowDB
+
+| | LowDB | AxioDB |
+|---|---|---|
+| Status | Stale (3 years old) | Active |
+| Storage | Single JSON file | File-per-document |
+| Concurrency | Unsafe — concurrent writes corrupt data | Safe — atomic writes, file-based locking |
+| ACID transactions | No — crash = data corruption | Yes — with savepoints and WAL |
+| Built-in caching | No | Yes (InMemoryCache) |
+| Worker Threads | No | Yes |
+| TypeScript | Yes (ESM issues reported) | Full (6.0 strict) |
+| Query language | Lodash/JS array methods | MongoDB-style (19 operators) |
+| Indexing | No | Custom field indexing |
+| Best for | Small prototypes only | Electron, CLI, 10K-500K docs |
+
+### vs NeDB
+
+| | NeDB | AxioDB |
+|---|---|---|
+| Status | ABANDONED (since 2016) | Active |
+| Maintenance | None — no security patches | Regular updates |
+| Data loss | Reported by users | ACID transactions prevent it |
+| File corruption | Yes — on concurrent access | No — atomic writes |
+| API style | Callbacks (no Promises) | Async/Await |
+| TypeScript | No | Full (6.0 strict) |
+| Storage | Single file/in-memory | File-per-document |
 | Built-in caching | No | Yes |
-| Multi-core | No | Worker Threads |
-| Built-in GUI | No | Yes |
-| Best for | 10M+ records, relational | 10K–500K docs, embedded |
+| GUI | No | Yes (web dashboard) |
+| TCP remote access | No | Yes (AxioDBCloud) |
+| MCP server (AI) | No | Yes (43 tools) |
 
-### vs lowdb / nedb
+### vs LokiJS
 
-| | lowdb | nedb | AxioDB |
-|---|---|---|---|
-| Maintained | Yes | No (abandoned) | Yes |
-| Native bindings | None | None | None |
-| Storage | Single JSON file | Single file/in-memory | File-per-document |
-| Query language | JS/Lodash | JS objects | JS objects (MongoDB-style) |
-| Built-in caching | No | No | Yes |
-| Worker Threads | No | No | Yes |
-| ACID transactions | No | No | Yes |
-| TypeScript | Yes | Partial | Full |
-| Sweet spot | <5K docs | <100K docs | 10K–500K docs |
-| Built-in GUI | No | No | Yes |
+| | LokiJS | AxioDB |
+|---|---|---|
+| Status | Abandoned | Active |
+| Storage | In-memory (optional persistence) | File-based (persistent) |
+| ACID transactions | No | Yes |
+| Query language | MongoDB-style | MongoDB-style |
+| TypeScript | No | Full |
+| Best for | Nothing (abandoned) | Electron, CLI, 10K-500K docs |
 
 ### vs MongoDB
 
 | | MongoDB | AxioDB |
 |---|---|---|
-| Server required | Yes | No — embedded |
-| Network access | Yes | Optional (AxioDBCloud) |
+| Server required | Yes — separate process | No — embedded |
+| Network access | Required | Optional (AxioDBCloud) |
 | Scale | Distributed, unlimited | Single node, 10K–500K docs |
+| Setup | Complex (config, auth, replica sets) | `npm install axiodb` |
 | Best for | Multi-user production | Desktop apps, CLI tools |
+
+### Migration Guide
+
+**From LowDB to AxioDB:**
+```javascript
+// Before (LowDB):
+const db = await JSONFilePreset('db.json', {})
+db.data.posts.push(post)
+await db.write()
+
+// After (AxioDB):
+const db = new AxioDB()
+const myDB = await db.createDB('app')
+const posts = await myDB.createCollection('posts')
+await posts.insert(post)
+```
+
+**From NeDB to AxioDB:**
+```javascript
+// Before (NeDB):
+const Datastore = require('nedb')
+const db = new Datastore()
+db.insert(doc, callback)
+
+// After (AxioDB):
+const db = new AxioDB()
+const myDB = await db.createDB('app')
+const col = await myDB.createCollection('data')
+await col.insert(doc)
+```
 
 ---
 
