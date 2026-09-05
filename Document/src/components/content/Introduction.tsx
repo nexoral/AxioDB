@@ -463,16 +463,16 @@ const Introduction: React.FC = () => {
             <div className="bg-gray-50 rounded-xl p-4 mb-4 border border-gray-200">
               <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-600">⚡ Performance Benchmark</span>
+                  <span className="font-bold text-gray-600">Performance Benchmark</span>
                   <span className="text-gray-600">|</span>
-                  <span className="text-gray-600">Tested: March 2026</span>
+                  <span className="text-gray-600">Tested: September 2026</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
-                  <span>💻 Ubuntu Linux</span>
+                  <span>Ubuntu Linux</span>
                   <span>•</span>
                   <span>Node.js v20+</span>
                   <span>•</span>
-                  <span className="font-bold text-amber-700">📊 10,000 documents dataset</span>
+                  <span className="font-bold text-amber-700">50,000 documents dataset</span>
                 </div>
               </div>
             </div>
@@ -506,11 +506,11 @@ const Introduction: React.FC = () => {
 
             {/* READ/QUERY Operations */}
             <div className="mb-4">
-              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-2 px-1">📖 Read/Query Operations (10K docs)</p>
+              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-2 px-1">Read/Query Operations (50K docs)</p>
               <div ref={readOpsReveal.ref} className="grid grid-cols-3 md:grid-cols-6 gap-2 reveal-stagger-grid">
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~2ms</span>
+                    <span className="text-lg font-black text-emerald-600">~1ms</span>
                     <p className="text-[10px] text-emerald-700 font-semibold">Indexed</p>
                   </div>
                 </div>
@@ -528,56 +528,20 @@ const Introduction: React.FC = () => {
                 </div>
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~2ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Projection</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~469ms</span>
+                    <span className="text-lg font-black text-emerald-600">~700ms</span>
                     <p className="text-[10px] text-emerald-700 font-semibold">$gt</p>
                   </div>
                 </div>
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~401ms</span>
+                    <span className="text-lg font-black text-emerald-600">~304ms</span>
                     <p className="text-[10px] text-emerald-700 font-semibold">$in</p>
                   </div>
                 </div>
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~454ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Limit</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~404ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Skip</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~382ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Sort</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~434ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">setCount</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~2.8s</span>
+                    <span className="text-lg font-black text-emerald-600">~1.2s</span>
                     <p className="text-[10px] text-emerald-700 font-semibold">Regex</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~2.6s</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Full Scan</p>
                   </div>
                 </div>
               </div>

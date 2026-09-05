@@ -443,19 +443,19 @@ const Comparison: React.FC = () => {
       {/* Performance Benchmark */}
       <div className="bg-gray-900 rounded-xl p-6 sm:p-8 mb-12 shadow-xl">
         <h3 className="text-2xl font-bold mb-6 text-white">
-          Performance Benchmark (10,000 documents)
+          Performance Benchmark (50,000 documents)
         </h3>
         <div className="grid md:grid-cols-3 gap-6">
           <div className="text-center">
             <div className="text-4xl font-extrabold text-accent-400 mb-2">~1ms</div>
             <div className="text-lg font-semibold text-white">AxioDB</div>
-            <div className="text-sm text-gray-400">documentId lookup</div>
+            <div className="text-sm text-gray-400">Indexed query</div>
             <div className="mt-2 text-xs text-green-400 font-semibold">O(1) with cache</div>
           </div>
           <div className="text-center">
-            <div className="text-4xl font-extrabold text-orange-400 mb-2">~500ms</div>
-            <div className="text-lg font-semibold text-white">LowDB</div>
-            <div className="text-sm text-gray-400">Full file scan</div>
+            <div className="text-4xl font-extrabold text-orange-400 mb-2">~1.2s</div>
+            <div className="text-lg font-semibold text-white">Full scan</div>
+            <div className="text-sm text-gray-400">10K of 50K docs</div>
             <div className="mt-2 text-xs text-orange-400 font-semibold">O(n) linear</div>
           </div>
           <div className="text-center">

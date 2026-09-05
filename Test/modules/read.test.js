@@ -32,8 +32,8 @@ class ReadOptimizationTests extends TestRunner {
     // Create indexes before inserting data
     await this.collection.newIndex('name', 'email', 'age', 'category');
 
-    // Generate and insert large dataset (10000 docs for realistic benchmark)
-    this.largeDataset = fixtures.generateUsers(10000);
+    // Generate and insert large dataset (50000 docs for realistic benchmark)
+    this.largeDataset = fixtures.generateUsers(50000);
     await this.collection.insertMany(this.largeDataset);
 
     this.log(`Test environment ready with ${this.largeDataset.length} documents`, 'success');
@@ -51,14 +51,14 @@ class ReadOptimizationTests extends TestRunner {
     // Index-based Read Tests
     await this.describe('Index-Based Reads', async () => {
       await this.test('Exact match on indexed field is fast', async () => {
-        // Warm up index cache + worker threads (cold start after 10K insertMany)
+        // Warm up index cache + worker threads (cold start after 50K insertMany)
         await this.collection.query({ name: 'Alice0' }).exec();
         const startTime = Date.now();
         const result = await this.collection.query({ name: 'Alice100' }).exec();
         const duration = Date.now() - startTime;
 
         assert.isSuccess(result);
-        assert.performanceWithin(duration, 1000, 'Indexed query should be fast');
+        assert.performanceWithin(duration, 2000, 'Indexed query should be fast');
         this.log(`     Index query completed in ${duration}ms`, 'gray');
       });
 
@@ -72,8 +72,8 @@ class ReadOptimizationTests extends TestRunner {
         }
 
         const avgTime = times.reduce((a, b) => a + b, 0) / times.length;
-        // Worker thread startup adds overhead, allow 500ms
-        assert.performanceWithin(avgTime, 500, 'Repeated indexed queries should be fast');
+        // Worker thread startup adds overhead, allow 1000ms for 50K dataset
+        assert.performanceWithin(avgTime, 1000, 'Repeated indexed queries should be fast');
       });
     });
 
@@ -499,7 +499,7 @@ class ReadOptimizationTests extends TestRunner {
     // Performance Comparison
     await this.describe('Performance Benchmarks', async () => {
       await this.test('Benchmark: Full scan vs indexed query', async () => {
-        // Full scan (no query)
+        // Full scan (no query) - limit to 10K for reasonable time
         const fullScanStart = Date.now();
         await this.collection.query({}).Limit(10000).exec();
         const fullScanTime = Date.now() - fullScanStart;
@@ -509,13 +509,13 @@ class ReadOptimizationTests extends TestRunner {
         await this.collection.query({ name: 'Alice500' }).exec();
         const indexedTime = Date.now() - indexedStart;
 
-        this.log(`     Full scan (10000 docs): ${fullScanTime}ms`, 'gray');
+        this.log(`     Full scan (10000 of 50000 docs): ${fullScanTime}ms`, 'gray');
         this.log(`     Indexed query: ${indexedTime}ms`, 'gray');
 
         // With worker threads, indexed queries may have startup overhead
         // Just verify both complete successfully without timeout
-        assert.ok(fullScanTime < 30000, 'Full scan should complete within 30 seconds');
-        assert.ok(indexedTime < 5000, 'Indexed query should complete within 5 seconds');
+        assert.ok(fullScanTime < 60000, 'Full scan should complete within 60 seconds');
+        assert.ok(indexedTime < 10000, 'Indexed query should complete within 10 seconds');
       });
     });
 
