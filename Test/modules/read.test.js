@@ -263,8 +263,8 @@ class ReadOptimizationTests extends TestRunner {
     // Range Query Index Correctness (sorted-index range lookup: $gt/$gte/$lt/$lte)
     await this.describe('Range Query Index Correctness', async () => {
       await this.test('$gt excludes boundary, $gte includes boundary', async () => {
-        const exclusive = await this.collection.query({ age: { $gt: 30 } }).Limit(20000).exec();
-        const inclusive = await this.collection.query({ age: { $gte: 30 } }).Limit(20000).exec();
+        const exclusive = await this.collection.query({ age: { $gt: 30 } }).Limit(50000).exec();
+        const inclusive = await this.collection.query({ age: { $gte: 30 } }).Limit(50000).exec();
 
         assert.isSuccess(exclusive);
         assert.isSuccess(inclusive);
@@ -276,16 +276,21 @@ class ReadOptimizationTests extends TestRunner {
           inclusive.data.documents.some(doc => doc.age === 30),
           '$gte should include age === 30'
         );
+        const boundaryCount = inclusive.data.documents.filter(doc => doc.age === 30).length;
+        assert.ok(
+          boundaryCount > 0,
+          'There should be documents with age === 30 in the dataset'
+        );
         assert.equal(
           inclusive.data.documents.length - exclusive.data.documents.length,
-          inclusive.data.documents.filter(doc => doc.age === 30).length,
+          boundaryCount,
           '$gte result should exceed $gt result by exactly the count of boundary-value docs'
         );
       });
 
       await this.test('$lt excludes boundary, $lte includes boundary', async () => {
-        const exclusive = await this.collection.query({ age: { $lt: 40 } }).Limit(20000).exec();
-        const inclusive = await this.collection.query({ age: { $lte: 40 } }).Limit(20000).exec();
+        const exclusive = await this.collection.query({ age: { $lt: 40 } }).Limit(50000).exec();
+        const inclusive = await this.collection.query({ age: { $lte: 40 } }).Limit(50000).exec();
 
         assert.isSuccess(exclusive);
         assert.isSuccess(inclusive);
@@ -297,11 +302,16 @@ class ReadOptimizationTests extends TestRunner {
           inclusive.data.documents.some(doc => doc.age === 40),
           '$lte should include age === 40'
         );
+        const boundaryCount = inclusive.data.documents.filter(doc => doc.age === 40).length;
+        assert.ok(
+          boundaryCount > 0,
+          'There should be documents around the age 40 boundary'
+        );
       });
 
       await this.test('Combined range matches manual full-scan filter exactly', async () => {
-        const indexed = await this.collection.query({ age: { $gte: 33, $lte: 37 } }).Limit(20000).exec();
-        const fullScan = await this.collection.query({}).Limit(20000).exec();
+        const indexed = await this.collection.query({ age: { $gte: 33, $lte: 37 } }).Limit(50000).exec();
+        const fullScan = await this.collection.query({}).Limit(50000).exec();
 
         assert.isSuccess(indexed);
         assert.isSuccess(fullScan);
@@ -312,6 +322,11 @@ class ReadOptimizationTests extends TestRunner {
           .sort();
         const actualIds = indexed.data.documents.map(doc => doc.documentId).sort();
 
+        assert.equal(
+          actualIds.length,
+          expectedIds.length,
+          'Indexed range query must return the same number of documents as a manual full-scan filter'
+        );
         assert.deepEqual(actualIds, expectedIds, 'Indexed range query must return the same documents as a manual full-scan filter');
       });
 
@@ -516,6 +531,147 @@ class ReadOptimizationTests extends TestRunner {
         // Just verify both complete successfully without timeout
         assert.ok(fullScanTime < 60000, 'Full scan should complete within 60 seconds');
         assert.ok(indexedTime < 10000, 'Indexed query should complete within 10 seconds');
+      });
+    });
+
+    // Missing Query Operator Tests
+    await this.describe('Query Operator Correctness', async () => {
+      await this.test('$eq explicit equality match', async () => {
+        const result = await this.collection.query({ name: { $eq: 'Alice0' } }).exec();
+        assert.isSuccess(result);
+        assert.ok(result.data.documents.length >= 1, '$eq should find exact match');
+        result.data.documents.forEach(doc => {
+          assert.equal(doc.name, 'Alice0');
+        });
+      });
+
+      await this.test('$ne excludes matching values', async () => {
+        const result = await this.collection.query({ name: { $ne: 'Alice0' } }).Limit(100).exec();
+        assert.isSuccess(result);
+        result.data.documents.forEach(doc => {
+          assert.ok(doc.name !== 'Alice0', '$ne should exclude the specified value');
+        });
+      });
+
+      await this.test('$nin excludes values in array', async () => {
+        const excludedNames = ['Alice0', 'Alice1', 'Alice2'];
+        const result = await this.collection.query({ name: { $nin: excludedNames } }).Limit(100).exec();
+        assert.isSuccess(result);
+        result.data.documents.forEach(doc => {
+          assert.ok(!excludedNames.includes(doc.name), '$nin should exclude all values in the array');
+        });
+      });
+
+      await this.test('$exists true finds documents with field', async () => {
+        const result = await this.collection.query({ age: { $exists: true } }).Limit(100).exec();
+        assert.isSuccess(result);
+        assert.ok(result.data.documents.length > 0, '$exists:true should find documents with the field');
+        result.data.documents.forEach(doc => {
+          assert.hasProperty(doc, 'age');
+        });
+      });
+
+      await this.test('$exists false finds documents without field', async () => {
+        await this.collection.insert({ name: 'NoAgeDoc', email: 'noage@test.com' });
+        const result = await this.collection.query({ age: { $exists: false } }).exec();
+        assert.isSuccess(result);
+        assert.ok(
+          result.data.documents.some(doc => doc.name === 'NoAgeDoc'),
+          '$exists:false should find the document without age field'
+        );
+        await this.collection.delete({ name: 'NoAgeDoc' }).deleteOne();
+      });
+
+      await this.test('$not negates sub-condition', async () => {
+        const result = await this.collection.query({ age: { $not: { $gt: 40 } } }).Limit(100).exec();
+        assert.isSuccess(result);
+        result.data.documents.forEach(doc => {
+          assert.ok(doc.age <= 40, '$not:{$gt:40} should return docs with age <= 40');
+        });
+      });
+
+      await this.test('$or matches any condition', async () => {
+        const result = await this.collection.query({
+          $or: [{ name: 'Alice0' }, { name: 'Bob0' }]
+        }).Limit(100).exec();
+        assert.isSuccess(result);
+        assert.ok(result.data.documents.length >= 1, '$or should match at least one condition');
+        const names = result.data.documents.map(d => d.name);
+        assert.ok(
+          names.includes('Alice0') || names.includes('Bob0'),
+          '$or should return docs matching at least one branch'
+        );
+      });
+
+      await this.test('$and matches all conditions', async () => {
+        const result = await this.collection.query({
+          $and: [{ age: { $gt: 25 } }, { age: { $lt: 35 } }]
+        }).Limit(100).exec();
+        assert.isSuccess(result);
+        result.data.documents.forEach(doc => {
+          assert.ok(doc.age > 25 && doc.age < 35, '$and should enforce all conditions');
+        });
+      });
+
+      await this.test('$nor matches none of the conditions', async () => {
+        const result = await this.collection.query({
+          $nor: [{ name: 'Alice0' }, { age: { $gt: 40 } }]
+        }).Limit(100).exec();
+        assert.isSuccess(result);
+        result.data.documents.forEach(doc => {
+          assert.ok(doc.name !== 'Alice0', '$nor should exclude first condition');
+          assert.ok(doc.age <= 40, '$nor should exclude second condition');
+        });
+      });
+
+      await this.test('$elemMatch matches array elements', async () => {
+        await this.collection.insert({
+          name: 'ArrayDoc',
+          email: 'array@test.com',
+          age: 30,
+          tags: [{ type: 'a', score: 10 }, { type: 'b', score: 20 }]
+        });
+        const result = await this.collection.query({
+          tags: { $elemMatch: { type: 'a', score: { $gt: 5 } } }
+        }).exec();
+        assert.isSuccess(result);
+        assert.ok(
+          result.data.documents.some(doc => doc.name === 'ArrayDoc'),
+          '$elemMatch should find document with matching array element'
+        );
+        await this.collection.delete({ name: 'ArrayDoc' }).deleteOne();
+      });
+
+      await this.test('$size matches array length', async () => {
+        await this.collection.insert({
+          name: 'SizeDoc',
+          email: 'size@test.com',
+          age: 30,
+          tags: ['a', 'b', 'c']
+        });
+        const result = await this.collection.query({ tags: { $size: 3 } }).exec();
+        assert.isSuccess(result);
+        assert.ok(
+          result.data.documents.some(doc => doc.name === 'SizeDoc'),
+          '$size should find document with 3-element array'
+        );
+        await this.collection.delete({ name: 'SizeDoc' }).deleteOne();
+      });
+
+      await this.test('$all matches all values in array', async () => {
+        await this.collection.insert({
+          name: 'AllDoc',
+          email: 'all@test.com',
+          age: 30,
+          tags: ['a', 'b', 'c']
+        });
+        const result = await this.collection.query({ tags: { $all: ['a', 'c'] } }).exec();
+        assert.isSuccess(result);
+        assert.ok(
+          result.data.documents.some(doc => doc.name === 'AllDoc'),
+          '$all should find document containing all specified values'
+        );
+        await this.collection.delete({ name: 'AllDoc' }).deleteOne();
       });
     });
 
