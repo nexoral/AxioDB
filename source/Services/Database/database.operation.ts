@@ -16,6 +16,7 @@ import { IndexCache } from "../Index/IndexCache.service";
 import { General } from "../../config/Keys/Keys";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
 import Logger from "../../Helper/Logger.helper";
+import type { InMemoryCache } from "../../Memory/memory.operation";
 
 // Types
 type CollectionMetadata = {
@@ -31,14 +32,16 @@ export default class Database {
   private name: string;
   private readonly path: string;
   private readonly collectionMetaPath: string;
+  private readonly cache: InMemoryCache;
   private fileManager: FileManager;
   private folderManager: FolderManager;
   private ResponseHelper: ResponseHelper;
 
-  constructor(name: string, path: string) {
+  constructor(name: string, path: string, cache: InMemoryCache) {
     this.name = name;
     this.path = path;
     this.collectionMetaPath = `${path}/${General.Collection_Meta_File}`;
+    this.cache = cache;
     this.fileManager = new FileManager();
     this.folderManager = new FolderManager();
     this.ResponseHelper = new ResponseHelper();
@@ -72,7 +75,7 @@ export default class Database {
     await Index.generateIndexMeta();
 
     const resolver = this.createCollectionResolver();
-    const collection = new Collection(collectionName, collectionPath, resolver);
+    const collection = new Collection(collectionName, collectionPath, resolver, this.cache);
     // Store collection metadata in the collectionMap
     await this.AddCollectionMetadata({
       name: collectionName,

@@ -25,12 +25,22 @@ function parseBoolean(value, fallback) {
   return ['true', '1', 'yes'].includes(String(value).trim().toLowerCase());
 }
 
+function parseNumber(value, fallback) {
+  if (value === undefined || value === '') return fallback;
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 const options = {
   GUI: parseBoolean(process.env.AXIODB_GUI, true),
   HTTP: parseBoolean(process.env.AXIODB_HTTP, parseBoolean(process.env.AXIODB_GUI, true)),
   TCP: parseBoolean(process.env.AXIODB_TCP, true),
   TCPAuth: parseBoolean(process.env.AXIODB_TCP_AUTH_ENABLED, true),
   TLS: parseBoolean(process.env.AXIODB_TLS, false),
+  Cache: parseBoolean(process.env.AXIODB_CACHE, true),
+  minTTL: parseNumber(process.env.AXIODB_CACHE_MIN_TTL, undefined),
+  maxTTL: parseNumber(process.env.AXIODB_CACHE_MAX_TTL, undefined),
+  cacheClearUp: parseNumber(process.env.AXIODB_CACHE_CLEARUP, undefined),
   RootName: process.env.AXIODB_ROOT_NAME || "AxioDB",
 };
 

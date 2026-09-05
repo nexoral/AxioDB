@@ -9,7 +9,7 @@ import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
-import InMemoryCache from "../../Memory/memory.operation";
+import type { InMemoryCache } from "../../Memory/memory.operation";
 import LockManager from "./LockManager.service";
 import TransactionIndexManager from "./TransactionIndexManager.service";
 import TransactionRegistry from "./TransactionRegistry.service";
@@ -28,6 +28,7 @@ export default class Transaction {
   private readonly Registry: TransactionRegistry;
   private readonly IndexManager: TransactionIndexManager;
   private readonly ResponseHelper: ResponseHelper;
+  private readonly cache: InMemoryCache;
   private readonly Converter: Converter;
   private readonly FileManager: FileManager;
   private readonly startTime: number;
@@ -37,10 +38,11 @@ export default class Transaction {
   private pendingWALEntries: WALEntry[] = [];
   private resolvedOperations: TransactionOperation[] = [];
 
-  constructor(collectionPath: string) {
+  constructor(collectionPath: string, cache: InMemoryCache) {
     this.transactionId = new UniqueGenerator(15).RandomWord(true);
     this.collectionPath = collectionPath;
     this.startTime = Date.now();
+    this.cache = cache;
 
     this.WAL = new WriteAheadLog(collectionPath, this.transactionId);
     this.LockManager = LockManager.getInstance(collectionPath);
@@ -225,13 +227,13 @@ export default class Transaction {
       // leaving unrelated cached queries (e.g. a disjoint range) untouched.
       const hasInsert = this.resolvedOperations.some((op) => op.type === 'INSERT');
       if (hasInsert) {
-        await InMemoryCache.invalidateByCollection(this.collectionPath);
+        await this.cache.invalidateByCollection(this.collectionPath);
       } else {
         const affectedDocumentIds = this.resolvedOperations
           .map((op) => op.documentId)
           .filter((id): id is string => Boolean(id));
         if (affectedDocumentIds.length > 0) {
-          await InMemoryCache.invalidateByDocuments(this.collectionPath, affectedDocumentIds);
+          await this.cache.invalidateByDocuments(this.collectionPath, affectedDocumentIds);
         }
       }
 

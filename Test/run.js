@@ -18,6 +18,7 @@
  *   node Test/run.js tcp-tls   # Run only TCP TLS tests
  *   node Test/run.js crash-recovery  # Run only real-SIGKILL crash-recovery tests
  *   node Test/run.js mcp-confirm  # Run only MCP destructive-tool confirmation tests
+ *   node Test/run.js cache-options  # Run only InMemoryCache option/instance tests
  */
 
 const { spawn } = require('child_process');
@@ -48,7 +49,8 @@ const testModules = {
   'tcp-tls': './modules/tcp-tls.test.js',
   'crash-recovery': './modules/crash-recovery.test.js',
   'mcp-confirm': './modules/mcp-confirm.test.js',
-  'mcp-functional': './modules/mcp-functional.test.js'
+  'mcp-functional': './modules/mcp-functional.test.js',
+  'cache-options': './modules/cache-options.test.js'
 };
 
 /**

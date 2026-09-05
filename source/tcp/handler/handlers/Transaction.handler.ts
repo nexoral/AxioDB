@@ -33,7 +33,7 @@ export default class TransactionHandler {
       const collection = await databaseInstance.createCollection(collectionName);
       const collectionPath = (collection as unknown as { getCollectionPath(): string }).getCollectionPath();
 
-      const txn = this.txnManager.beginTransaction(connectionId, collectionPath);
+      const txn = this.txnManager.beginTransaction(connectionId, collectionPath, this.axioDB.Cache);
       const transactionId = txn.getId();
 
       return {

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(cd /home/ankan/Documents/Projects/AxioDB && npm test > /tmp/npmtest-100K.log 2>&1; echo \"EXIT:$?\"; grep -E \"Suites Passed|✗ FAILED\" /tmp/npmtest-100K.log)",
+      "Shell(grep:*)",
+      "Shell(sed:*)",
+      "Shell(lscpu:*)",
+      "Shell(free:*)",
+      "Shell(node -v)",
+      "Shell(cd /home/ankan/Documents/Projects/AxioDB && printf '%s\\n' '{\"size\":100000,\"indexed\":1,\"documentId\":1,\"gtRange\":1123,\"gteLteRange\":807,\"inOp5\":533,\"inOp50\":2047,\"limit5\":1709,\"regex\":1959,\"sort\":1217,\"fullScan\":1781,\"indexedQuery\":1,\"cacheFirst\":703,\"cacheHit\":0}' >> Document/src/data/numbers.jsonl && cat Document/src/data/numbers.jsonl)",
+      "Shell(npm:*)",
+      "Shell(ls:*)",
+      "Shell(awk:*)",
+      "Shell(rm -rf /home/ankan/Documents/Projects/AxioDB/Document/api /home/ankan/Documents/Projects/AxioDB/Document/src/services/dockerApi.ts /home/ankan/Documents/Projects/AxioDB/Document/src/data/docker-stats.json 2>/dev/null; echo \"done\")",
+      "Shell(xxd:*)",
+      "Shell(cd /home/ankan/Documents/Projects/AxioDB/Document/public && sed -i '7s/.*/AxioDB is a file-based embedded database for Node.js. It replaces SQLite, LowDB, NeDB, and raw JSON files with a single `npm install` \\xe2\\x80\\x94 MongoDB-style queries, ACID transactions, InMemoryCache, and zero native C bindings. No compilation, no platform-specific builds, no ABI to match./' llms.txt && sed -n '7p' llms.txt)",
+      "Shell(gh:*)",
+      "Shell(echo \"20.6.7\" > /home/ankan/Documents/Projects/AxioDB/cli/VERSION && cat /home/ankan/Documents/Projects/AxioDB/cli/VERSION)",
+      "Shell(tee:*)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}

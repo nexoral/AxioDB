@@ -5,7 +5,7 @@ import {
 import { Document, SortSpec, ProjectionSpec, QueryValue } from "../../config/Interfaces/shared.types";
 
 // Import All helpers
-import InMemoryCache from "../../Memory/memory.operation";
+import type { InMemoryCache } from "../../Memory/memory.operation";
 import Converter from "../../Helper/Converter.helper";
 import responseHelper from "../../Helper/response.helper";
 import PathSanitizer from "../../Helper/PathSanitizer.helper";
@@ -30,6 +30,7 @@ export default class Reader {
   private totalCount: boolean;
   private FindOneStatus: boolean;
   private project: ProjectionSpec;
+  private readonly cache: InMemoryCache;
   private readonly ResponseHelper: responseHelper;
   private AllData: Document[];
   private indexHint: string | undefined;
@@ -39,11 +40,13 @@ export default class Reader {
    * @param {string} collectionName - The name of the collection.
    * @param {string} path - The data to be read.
    * @param {object} baseQuery - The base query to be used.
+   * @param {InMemoryCache} cache - The shared instance cache.
    */
   constructor(
     collectionName: string,
     path: string,
     baseQuery: Record<string, QueryValue>,
+    cache: InMemoryCache,
   ) {
     this.collectionName = collectionName;
     this.path = path;
@@ -53,6 +56,7 @@ export default class Reader {
     this.sort = {};
     this.project = {};
     this.baseQuery = baseQuery;
+    this.cache = cache;
     this.Converter = new Converter();
     this.ResponseHelper = new responseHelper();
     this.totalCount = false;
@@ -92,7 +96,7 @@ export default class Reader {
       const cacheKey = this.generateCacheKey();
       
       // Check if result is in cache
-      const responseFromCache = await InMemoryCache.getCache(cacheKey);
+      const responseFromCache = await this.cache.getCache(cacheKey);
       if (responseFromCache !== false) {
         SearchedData = responseFromCache as Document[];
         return this.applySortAndReturn(SearchedData);
@@ -112,7 +116,7 @@ export default class Reader {
         if ("data" in ReadResponse) {
           const data = ReadResponse.data as Document[];
           // Fire-and-forget: Cache asynchronously
-          InMemoryCache.setCache(cacheKey, data, this.path).catch(() => {});
+          this.cache.setCache(cacheKey, data, this.path).catch(() => {});
           return this.ApplySkipAndLimit(data);
         }
         return this.ResponseHelper.Error("Failed to read document by ID");
@@ -196,7 +200,7 @@ export default class Reader {
       if (Object.keys(this.baseQuery).length === 0) {
         const data = ReadResponse.data as Document[];
         // Fire-and-forget: Cache asynchronously
-        InMemoryCache.setCache(cacheKey, data, this.path).catch(() => {});
+        this.cache.setCache(cacheKey, data, this.path).catch(() => {});
         return this.applySortAndReturn(data);
       }
 
@@ -210,7 +214,7 @@ export default class Reader {
       }
 
       // Fire-and-forget: Cache asynchronously
-      InMemoryCache.setCache(cacheKey, SearchedData, this.path).catch(() => {});
+      this.cache.setCache(cacheKey, SearchedData, this.path).catch(() => {});
 
       return this.applySortAndReturn(SearchedData);
     } catch (error) {

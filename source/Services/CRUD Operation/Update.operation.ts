@@ -12,12 +12,14 @@ import { TransactionOperation } from "../../config/Interfaces/Transaction/transa
 import { General } from "../../config/Keys/Keys";
 import { ReadIndex } from "../Index/ReadIndex.service";
 import Transaction from "../Transaction/Transaction.service";
+import type { InMemoryCache } from "../../Memory/memory.operation";
 
 export default class UpdateOperation {
   // Properties
   protected readonly collectionName: string;
   private readonly baseQuery: Record<string, unknown>;
   private readonly path: string;
+  private readonly cache: InMemoryCache;
   private readonly ResponseHelper: ResponseHelper;
   private allDataWithFileName: Array<{ fileName: string; data: Record<string, unknown> }> = [];
   private sort: Record<string, 1 | -1>;
@@ -26,10 +28,12 @@ export default class UpdateOperation {
     collectionName: string,
     path: string,
     baseQuery: Record<string, unknown>,
+    cache: InMemoryCache,
   ) {
     this.collectionName = collectionName;
     this.path = path;
     this.baseQuery = baseQuery;
+    this.cache = cache;
     this.sort = {};
     this.ResponseHelper = new ResponseHelper();
     this.allDataWithFileName = []; // To store all data with file name
@@ -71,7 +75,7 @@ export default class UpdateOperation {
         );
       }
 
-      const txn = new Transaction(this.path);
+      const txn = new Transaction(this.path, this.cache);
       txn.update({ documentId }, newData);
       const commitResult = await txn.commit();
 
@@ -124,7 +128,7 @@ export default class UpdateOperation {
         throw new Error("Data must be an object.");
       }
 
-      const txn = new Transaction(this.path);
+      const txn = new Transaction(this.path, this.cache);
       txn.update(this.baseQuery, newData);
       const commitResult = await txn.commit();
 

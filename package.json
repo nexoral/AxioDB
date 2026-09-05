@@ -1,6 +1,6 @@
 {
   "name": "axiodb",
-  "version": "20.6.7",
+  "version": "21.7.8",
   "description": "The embedded database for Node.js. Replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, zero native dependencies, and built-in InMemoryCache. No compilation, no platform issues. Perfect for desktop apps, CLI tools, and embedded systems.",
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",

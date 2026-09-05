@@ -20,6 +20,7 @@ import Converter from "../../Helper/Converter.helper";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import { IndexManager } from "../Index/Index.service";
 import { IndexCache } from "../Index/IndexCache.service";
+import type { InMemoryCache } from "../../Memory/memory.operation";
 
 /**
  * Represents a collection inside a database.
@@ -31,12 +32,14 @@ export default class Collection {
   private Converter: Converter;
   private readonly IndexManager: IndexManager;
   private readonly indexCache: IndexCache;
+  private readonly cache: InMemoryCache;
   private readonly collectionResolver?: CollectionResolver;
 
   constructor(
     name: string,
     path: string,
-    collectionResolver?: CollectionResolver,
+    collectionResolver: CollectionResolver,
+    cache: InMemoryCache,
   ) {
     this.name = name;
     this.path = path;
@@ -44,6 +47,7 @@ export default class Collection {
     this.updatedAt = new Date().toISOString();
     this.IndexManager = new IndexManager(this.path);
     this.collectionResolver = collectionResolver;
+    this.cache = cache;
 
     // Initialize and eagerly load index cache for maximum query performance
     this.indexCache = IndexCache.getInstance(this.path);
@@ -237,6 +241,7 @@ export default class Collection {
       this.name,
       this.path,
       query,
+      this.cache,
     );
   }
 
@@ -299,6 +304,7 @@ export default class Collection {
       this.name,
       this.path,
       query,
+      this.cache,
     );
   }
 
@@ -310,6 +316,7 @@ export default class Collection {
       this.name,
       this.path,
       query,
+      this.cache,
     );
   }
 
@@ -322,7 +329,7 @@ export default class Collection {
       throw new Error("Collection path cannot be empty");
     }
 
-    return new Transaction(this.path);
+    return new Transaction(this.path, this.cache);
   }
 
   /**
@@ -351,6 +358,6 @@ export default class Collection {
       throw new Error("Collection path cannot be empty");
     }
 
-    return new Session(this.path, options);
+    return new Session(this.path, options, this.cache);
   }
 }
