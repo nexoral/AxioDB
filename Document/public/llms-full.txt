@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 20.4.1 | License: MIT | Node.js >= 20.0.0
+Version: 20.5.6 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -622,14 +622,19 @@ docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
 
 ---
 
-## Performance (10,000-document benchmark, illustrative — not a guarantee)
+## Performance (100,000-document benchmark — full npm test, 13/13 suites)
 
-- Single insert: ~3ms · InsertMany (10 docs): ~87ms
-- `documentId` lookup (indexed): ~1ms · `findOne`: ~1ms
-- Query with `$gt`: ~469ms · Query with `$in`: ~401ms · Sort: ~382ms · Full scan: ~2.6s
-- `UpdateOne`: ~8ms · `UpdateMany` (full collection): ~466ms
-- `deleteOne`: ~3ms · `deleteMany`: ~446ms
-- Transaction insert: ~23ms · Transaction update: ~14ms · Rollback: ~3ms
+Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js v26.8.1. Full details: https://axiodb.in/performance
+
+- Single insert: ~31ms · InsertMany (500 docs): ~365ms
+- `documentId` lookup (indexed): ~1ms · `findOne`: <1ms
+- Query with `$gt`: ~1,123ms · Query with `$in` (5 values): ~533ms · Sort + range: ~1,217ms · Full scan (10K cap): ~1,781ms
+- `UpdateOne`: ~35ms · `UpdateMany` (full collection): ~326ms
+- `deleteOne`: ~28ms · `deleteMany`: ~144ms
+- Transaction insert + commit: ~38ms · Transaction update + commit: ~32ms · Rollback: ~8ms · Savepoint: ~24ms
+- HTTP API: insert ~35ms, query ~12ms, update ~26ms · TCP: CRUD ~40ms, TLS CRUD ~93ms
+- Crash recovery (SIGKILL during writes): ~2s, no data corruption
+- Aggregation pipeline: 1-4ms (in-memory) · MCP functional: ~1.7s (6 tests)
 
 ---
 

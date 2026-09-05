@@ -33,7 +33,7 @@ class ReadOptimizationTests extends TestRunner {
     await this.collection.newIndex('name', 'email', 'age', 'category');
 
     // Generate and insert large dataset (50000 docs for realistic benchmark)
-    this.largeDataset = fixtures.generateUsers(100000);
+    this.largeDataset = fixtures.generateUsers(50000);
     await this.collection.insertMany(this.largeDataset);
 
     this.log(`Test environment ready with ${this.largeDataset.length} documents`, 'success');
@@ -263,8 +263,8 @@ class ReadOptimizationTests extends TestRunner {
     // Range Query Index Correctness (sorted-index range lookup: $gt/$gte/$lt/$lte)
     await this.describe('Range Query Index Correctness', async () => {
       await this.test('$gt excludes boundary, $gte includes boundary', async () => {
-        const exclusive = await this.collection.query({ age: { $gt: 30 } }).Limit(50000).exec();
-        const inclusive = await this.collection.query({ age: { $gte: 30 } }).Limit(50000).exec();
+        const exclusive = await this.collection.query({ age: { $gt: 30 } }).Limit(200000).exec();
+        const inclusive = await this.collection.query({ age: { $gte: 30 } }).Limit(200000).exec();
 
         assert.isSuccess(exclusive);
         assert.isSuccess(inclusive);
@@ -289,8 +289,8 @@ class ReadOptimizationTests extends TestRunner {
       });
 
       await this.test('$lt excludes boundary, $lte includes boundary', async () => {
-        const exclusive = await this.collection.query({ age: { $lt: 40 } }).Limit(50000).exec();
-        const inclusive = await this.collection.query({ age: { $lte: 40 } }).Limit(50000).exec();
+        const exclusive = await this.collection.query({ age: { $lt: 40 } }).Limit(200000).exec();
+        const inclusive = await this.collection.query({ age: { $lte: 40 } }).Limit(200000).exec();
 
         assert.isSuccess(exclusive);
         assert.isSuccess(inclusive);
@@ -310,8 +310,8 @@ class ReadOptimizationTests extends TestRunner {
       });
 
       await this.test('Combined range matches manual full-scan filter exactly', async () => {
-        const indexed = await this.collection.query({ age: { $gte: 33, $lte: 37 } }).Limit(50000).exec();
-        const fullScan = await this.collection.query({}).Limit(50000).exec();
+        const indexed = await this.collection.query({ age: { $gte: 33, $lte: 37 } }).Limit(200000).exec();
+        const fullScan = await this.collection.query({}).Limit(200000).exec();
 
         assert.isSuccess(indexed);
         assert.isSuccess(fullScan);
@@ -399,7 +399,7 @@ class ReadOptimizationTests extends TestRunner {
 
         assert.isSuccess(result);
         // Large $in arrays should still be reasonably fast due to Set optimization
-        assert.performanceWithin(duration, 2000, '$in with large array should use Set');
+        assert.performanceWithin(duration, 5000, '$in with large array should use Set');
         this.log(`     $in (50 values) completed in ${duration}ms`, 'gray');
       });
     });

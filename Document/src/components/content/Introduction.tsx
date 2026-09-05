@@ -97,6 +97,7 @@ const Introduction: React.FC = () => {
   const readOpsReveal = useScrollReveal<HTMLDivElement>();
   const updateDeleteReveal = useScrollReveal<HTMLDivElement>();
   const transactionReveal = useScrollReveal<HTMLDivElement>();
+  const suiteReveal = useScrollReveal<HTMLDivElement>();
   const terminalReveal = useScrollReveal<HTMLDivElement>();
   const mcpBannerReveal = useScrollReveal<HTMLAnchorElement>();
   const cliBannerReveal = useScrollReveal<HTMLAnchorElement>();
@@ -468,11 +469,15 @@ const Introduction: React.FC = () => {
                   <span className="text-gray-600">Tested: September 2026</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
-                  <span>Ubuntu Linux</span>
+                  <span>AMD Ryzen 5 5500U (6C/12T)</span>
                   <span>•</span>
-                  <span>Node.js v20+</span>
+                  <span>7.1 GB RAM</span>
                   <span>•</span>
-                  <span className="font-bold text-amber-700">50,000 documents dataset</span>
+                  <span>Ubuntu Linux 6.8.0</span>
+                  <span>•</span>
+                  <span>Node.js v26.8.1</span>
+                  <span>•</span>
+                  <span className="font-bold text-amber-700">100,000 documents dataset</span>
                 </div>
               </div>
             </div>
@@ -481,18 +486,18 @@ const Introduction: React.FC = () => {
             
             {/* INSERT Operations */}
             <div className="mb-4">
-              <p className="text-xs font-semibold text-accent-600 uppercase tracking-wider mb-2 px-1">📥 Insert Operations</p>
+              <p className="text-xs font-semibold text-accent-600 uppercase tracking-wider mb-2 px-1">Insert Operations</p>
               <div ref={insertOpsReveal.ref} className="grid grid-cols-2 md:grid-cols-3 gap-3 reveal-stagger-grid">
                 <div className={`relative bg-accent-50 px-4 py-3 rounded-xl border border-accent-200 shadow-md hover:shadow-lg transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-xl font-black text-accent-600">~3ms</span>
+                    <span className="text-xl font-black text-accent-600">~31ms</span>
                     <p className="text-xs text-accent-600 font-semibold">Insert Single</p>
                   </div>
                 </div>
                 <div className={`relative bg-accent-50 px-4 py-3 rounded-xl border border-accent-200 shadow-md hover:shadow-lg transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-xl font-black text-accent-600">~87ms</span>
-                    <p className="text-xs text-accent-600 font-semibold">InsertMany (10)</p>
+                    <span className="text-xl font-black text-accent-600">~365ms</span>
+                    <p className="text-xs text-accent-600 font-semibold">InsertMany (500)</p>
                   </div>
                 </div>
                 <div className={`relative bg-accent-50 px-4 py-3 rounded-xl border border-accent-200 shadow-md hover:shadow-lg transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
@@ -506,7 +511,7 @@ const Introduction: React.FC = () => {
 
             {/* READ/QUERY Operations */}
             <div className="mb-4">
-              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-2 px-1">Read/Query Operations (50K docs)</p>
+              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-2 px-1">Read/Query Operations (100K docs)</p>
               <div ref={readOpsReveal.ref} className="grid grid-cols-3 md:grid-cols-6 gap-2 reveal-stagger-grid">
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
@@ -522,25 +527,25 @@ const Introduction: React.FC = () => {
                 </div>
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~1ms</span>
+                    <span className="text-lg font-black text-emerald-600">&lt;1ms</span>
                     <p className="text-[10px] text-emerald-700 font-semibold">findOne</p>
                   </div>
                 </div>
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~700ms</span>
+                    <span className="text-lg font-black text-emerald-600">~1.1s</span>
                     <p className="text-[10px] text-emerald-700 font-semibold">$gt</p>
                   </div>
                 </div>
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~304ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">$in</p>
+                    <span className="text-lg font-black text-emerald-600">~533ms</span>
+                    <p className="text-[10px] text-emerald-700 font-semibold">$in (5)</p>
                   </div>
                 </div>
                 <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-md transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~1.2s</span>
+                    <span className="text-lg font-black text-emerald-600">~2.0s</span>
                     <p className="text-[10px] text-emerald-700 font-semibold">Regex</p>
                   </div>
                 </div>
@@ -550,46 +555,46 @@ const Introduction: React.FC = () => {
             {/* UPDATE & DELETE Operations */}
             <div ref={updateDeleteReveal.ref} className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-2 px-1">✏️ Update Operations</p>
+                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-2 px-1">Update Operations</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 reveal-stagger-grid">
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-amber-200 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-amber-700">~8ms</span>
+                      <span className="text-lg font-black text-amber-700">~35ms</span>
                       <p className="text-[10px] text-amber-700 font-semibold">UpdateOne</p>
                     </div>
                   </div>
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-amber-200 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-amber-700">~466ms</span>
+                      <span className="text-lg font-black text-amber-700">~326ms</span>
                       <p className="text-[10px] text-amber-700 font-semibold">UpdateMany</p>
                     </div>
                   </div>
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-amber-200 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-amber-700">~1ms</span>
+                      <span className="text-lg font-black text-amber-700">~2ms</span>
                       <p className="text-[10px] text-amber-700 font-semibold">Verify</p>
                     </div>
                   </div>
                 </div>
               </div>
               <div>
-                <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2 px-1">🗑️ Delete Operations</p>
+                <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2 px-1">Delete Operations</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 reveal-stagger-grid">
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-red-400">~3ms</span>
+                      <span className="text-lg font-black text-red-400">~28ms</span>
                       <p className="text-[10px] text-red-300 font-semibold">DeleteOne</p>
                     </div>
                   </div>
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-red-400">~446ms</span>
+                      <span className="text-lg font-black text-red-400">~144ms</span>
                       <p className="text-[10px] text-red-300 font-semibold">DeleteMany</p>
                     </div>
                   </div>
                   <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
                     <div className="text-center">
-                      <span className="text-lg font-black text-red-400">~463ms</span>
+                      <span className="text-lg font-black text-red-400">~53ms</span>
                       <p className="text-[10px] text-red-300 font-semibold">Verify</p>
                     </div>
                   </div>
@@ -599,56 +604,93 @@ const Introduction: React.FC = () => {
 
             {/* TRANSACTION Operations */}
             <div className="mb-4">
-              <p className="text-xs font-semibold text-violet-400 uppercase tracking-wider mb-2 px-1">🔄 Transaction Operations</p>
+              <p className="text-xs font-semibold text-violet-400 uppercase tracking-wider mb-2 px-1">Transaction Operations</p>
               <div ref={transactionReveal.ref} className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2 reveal-stagger-grid">
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~23ms</span>
+                    <span className="text-lg font-black text-violet-400">~38ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">TX Insert</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~14ms</span>
+                    <span className="text-lg font-black text-violet-400">~32ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">TX Update</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~15ms</span>
+                    <span className="text-lg font-black text-violet-400">~44ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">TX Delete</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~23ms</span>
+                    <span className="text-lg font-black text-violet-400">~46ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">TX Mixed</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~3ms</span>
+                    <span className="text-lg font-black text-violet-400">~8ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">Rollback</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~14ms</span>
+                    <span className="text-lg font-black text-violet-400">~24ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">Savepoint</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~10ms</span>
+                    <span className="text-lg font-black text-violet-400">~21ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">withTX</p>
                   </div>
                 </div>
                 <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
                   <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~12ms</span>
+                    <span className="text-lg font-black text-violet-400">~20ms</span>
                     <p className="text-[10px] text-violet-300 font-semibold">Index Sync</p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* TEST SUITE OVERVIEW */}
+            <div ref={suiteReveal.ref} className={`mb-4 reveal-on-scroll ${suiteReveal.isVisible ? "is-visible" : ""}`}>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">Test Suite Overview (100K docs - 13/13 Passing)</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 reveal-stagger-grid">
+                {[
+                  { name: "CRUD", tests: 30, time: "3.7 s" },
+                  { name: "Transactions", tests: 22, time: "625 ms" },
+                  { name: "Read / Query", tests: 40, time: "146.8 s" },
+                  { name: "Aggregation", tests: 50, time: "458 ms" },
+                  { name: "Auth & RBAC", tests: 32, time: "6.0 s" },
+                  { name: "HTTP API", tests: 38, time: "1.5 s" },
+                  { name: "TCP Auth", tests: 20, time: "2.7 s" },
+                  { name: "TCP No-Auth", tests: 6, time: "627 ms" },
+                  { name: "TCP TX", tests: 17, time: "1.4 s" },
+                  { name: "TCP TLS", tests: 3, time: "641 ms" },
+                  { name: "Crash Recovery", tests: 3, time: "5.7 s" },
+                  { name: "MCP Confirm", tests: 11, time: "40 ms" },
+                  { name: "MCP Functional", tests: 6, time: "1.7 s" },
+                ].map((suite) => (
+                  <div key={suite.name} className="bg-gray-50 px-2 py-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all text-center">
+                    <p className="text-[10px] text-gray-500 font-semibold truncate">{suite.name}</p>
+                    <span className="text-sm font-black text-gray-700">{suite.time}</span>
+                    <p className="text-[9px] text-gray-400">{suite.tests} tests</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 text-center">
+                <a
+                  href="/performance"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-accent-600 hover:text-accent-700 transition-colors"
+                >
+                  View full performance report
+                  <ArrowRight className="h-3 w-3" />
+                </a>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 # AxioDB
 
-> Embedded NoSQL database for Node.js — SQLite Alternative for JavaScript, with MongoDB-style queries. Zero native dependencies: no node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained for local-first, Electron, CLI and prototyping. Current version: 20.4.1.
+> Embedded NoSQL database for Node.js — SQLite Alternative for JavaScript, with MongoDB-style queries. Zero native dependencies: no node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained for local-first, Electron, CLI and prototyping. Current version: 20.5.6.
 
 ## What it is
 
@@ -97,6 +97,7 @@ Machine-readable limits and the full boundary table: https://axiodb.in/llms-full
 - [Troubleshooting](https://axiodb.in/troubleshooting)
 - [Changelog](https://axiodb.in/changelog)
 - [Maintainer's Zone](https://axiodb.in/maintainers-zone)
+- [Performance Benchmarks](https://axiodb.in/performance)
 
 ## For AI Agents
 
