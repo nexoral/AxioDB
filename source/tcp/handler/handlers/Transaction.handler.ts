@@ -3,6 +3,7 @@ import { TCPResponse } from '../../types/protocol.types';
 import { StatusCode } from '../../config/keys';
 import TransactionManager from '../../connection/TransactionManager';
 import { isReservedDatabaseName } from '../../../config/Keys/Permissions';
+import SafeErrorMessage from '../../../Helper/SafeErrorMessage.helper';
 
 type Params = Record<string, unknown>;
 
@@ -199,6 +200,7 @@ export default class TransactionHandler {
   }
 
   private error(id: string, statusCode: number, message: string): TCPResponse {
-    return { id, statusCode, message, error: message };
+    const safeMessage = SafeErrorMessage.sanitize(message);
+    return { id, statusCode, message: safeMessage, error: safeMessage };
   }
 }

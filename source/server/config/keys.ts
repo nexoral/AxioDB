@@ -29,6 +29,21 @@ export const staticPath: string = path.resolve(
   "../public/AxioControl",
 );
 
+/**
+ * Security headers applied to every HTTP response.
+ * CSP allows 'unsafe-inline' only for styles: the GUI injects CSS via JS,
+ * while all scripts are external (self).
+ */
+export const SECURITY_HEADERS: Record<string, string> = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "no-referrer",
+  "X-XSS-Protection": "1; mode=block",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
+  "Content-Security-Policy":
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' ws: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+};
+
 interface MainRoutesInterface {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: string;

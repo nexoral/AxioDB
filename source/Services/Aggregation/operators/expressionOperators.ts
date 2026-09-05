@@ -1,4 +1,6 @@
 
+import RegexGuard from "../../../Helper/RegexGuard.helper";
+
 export function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   if (!path || !obj) return undefined;
   const parts = path.split(".");
@@ -145,7 +147,10 @@ export function evaluateExpression(doc: Record<string, unknown>, expr: unknown):
     case "$regexMatch": {
       const input = exprObj.$regexMatch as Record<string, unknown>;
       const str = String(evaluateExpression(doc, input.input));
-      const regex = new RegExp(input.regex as string, (input.options as string) || "");
+      const regex = RegexGuard.compileRegex(
+        input.regex as string,
+        (input.options as string) || "",
+      );
       return regex.test(str);
     }
 

@@ -228,8 +228,15 @@ export default class FileManager {
           // Fall back to system commands if native method fails
           const osType = WorkerProcess.getOS();
           if (osType === "windows") {
-            const stdout = await this.WorkerProcess.execCommand(
-              `powershell -command "(Get-Item '${path}').length"`,
+            const stdout = await this.WorkerProcess.execCommandSafely(
+              "powershell",
+              [
+                "-NoProfile",
+                "-command",
+                "(Get-Item -LiteralPath $args[0]).length",
+                "--",
+                path,
+              ],
             );
             const size = parseInt(stdout, 10) || 0;
 
@@ -240,10 +247,11 @@ export default class FileManager {
 
             return this.responseHelper.Success(size);
           } else {
-            const stdout = await this.WorkerProcess.execCommand(
-              `wc -c < "${path}" 2>/dev/null || echo 0`,
+            const stdout = await this.WorkerProcess.execCommandSafely(
+              "wc",
+              ["-c", "--", path],
             );
-            const size = parseInt(stdout, 10) || 0;
+            const size = parseInt(stdout.trim(), 10) || 0;
 
             // Restore original permissions if they were modified
             if (originalMode !== null && (originalMode & 0o444) !== 0o444) {

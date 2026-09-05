@@ -4,7 +4,7 @@ import fastifyStatic from "@fastify/static";
 import fastifyCookie from "@fastify/cookie";
 import path from "path";
 import fs from "fs";
-import { CORS_CONFIG, ServerKeys, staticPath } from "./keys";
+import { CORS_CONFIG, SECURITY_HEADERS, ServerKeys, staticPath } from "./keys";
 import checkPortAndDocker from "./PortFreeChecker";
 import { AxioDB } from "../../Services/Indexation.operation";
 import router from "../router/Router";
@@ -50,6 +50,12 @@ export default async function createAxioDBControlServer(
   // Cookie support for session-based authentication (no signing secret needed -
   // the cookie value is meaningless without a matching entry in SessionStore's map)
   await AxioDBControlServer.register(fastifyCookie);
+
+  AxioDBControlServer.addHook("onSend", async (_request, reply) => {
+    for (const [header, value] of Object.entries(SECURITY_HEADERS)) {
+      reply.header(header, value);
+    }
+  });
 
   AxioDBControlServer.addContentTypeParser(
     "application/json",

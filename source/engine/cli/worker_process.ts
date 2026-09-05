@@ -1,11 +1,47 @@
-import { exec, spawn } from "child_process";
-import { promisify } from "util";
-const execAsync = promisify(exec);
+import { spawn } from "child_process";
 
 export default class WorkerProcess {
-  public async execCommand(command: string): Promise<string> {
+  /**
+   * Executes a binary with explicit arguments without a shell, capturing stdout.
+   *
+   * No shell string is ever constructed, so filenames or paths containing shell
+   * metacharacters cannot inject extra commands. Always prefer this over building
+   * a shell command when arguments derive from user-controlled paths.
+   *
+   * @param command - The executable to run (e.g. "du", "wc", "powershell").
+   * @param args - Arguments passed verbatim; no quoting or interpolation is applied.
+   * @returns The command's captured stdout.
+   * @example
+   * const size = await worker.execCommandSafely("wc", ["-c", "--", targetPath]);
+   */
+  public async execCommandSafely(
+    command: string,
+    args: string[] = [],
+  ): Promise<string> {
     try {
-      const { stdout } = await execAsync(command);
+      const stdout = await new Promise<string>((resolve, reject) => {
+        const child = spawn(command, args, { shell: false });
+        let out = "";
+        let err = "";
+        child.stdout.on("data", (chunk: Buffer) => {
+          out += chunk.toString();
+        });
+        child.stderr.on("data", (chunk: Buffer) => {
+          err += chunk.toString();
+        });
+        child.on("error", reject);
+        child.on("close", (code) => {
+          if (code === 0) {
+            resolve(out);
+          } else {
+            reject(
+              new Error(
+                `Command failed with exit code ${code}${err ? `: ${err.trim()}` : ""}`,
+              ),
+            );
+          }
+        });
+      });
       return stdout;
     } catch (error) {
       throw new Error(`Failed to execute command: ${error}`);

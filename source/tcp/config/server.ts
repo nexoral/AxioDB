@@ -12,6 +12,7 @@ import { CommandType } from '../types/command.types';
 import AuthEvents from '../../Services/Auth/AuthEvents.service';
 import ConnectionRateLimiter from '../connection/ConnectionRateLimiter';
 import Logger from "../../Helper/Logger.helper";
+import SafeErrorMessage from "../../Helper/SafeErrorMessage.helper";
 import TransactionManager from '../connection/TransactionManager';
 
 /** Path to a PEM cert + matching private key, used to encrypt the TCP server with TLS instead of plaintext. */
@@ -222,7 +223,7 @@ async function handleMessage(
       id: message.id || 'error',
       statusCode: StatusCode.INTERNAL_SERVER_ERROR,
       message: ErrorMessage.INTERNAL_ERROR,
-      error: error instanceof Error ? error.message : String(error),
+      error: SafeErrorMessage.sanitize(error),
     };
 
     connectionManager.sendResponse(connectionId, errorResponse);

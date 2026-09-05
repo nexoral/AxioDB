@@ -12,6 +12,19 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.1.2",
+    date: "2026-09-06",
+    title: "Security hardening: path traversal, shell injection, ReDoS, verbose errors, security headers",
+    changes: [
+      "Fixed: path traversal — user-controlled database/collection names are now run through PathSanitizer in `createDB`, `deleteDatabase`, `deleteCollection`, and `isCollectionExists`",
+      "Fixed: shell injection — `WorkerProcess.exec` (shell string) replaced with spawn-based `execCommandSafely` (no shell, args passed verbatim) for the `du`/`wc`/`powershell` calls in FolderManager/FileManager",
+      "Fixed: ReDoS — new `RegexGuard` helper statically rejects nested unbounded quantifiers (`(a+)+`) and overlapping alternation (`(a|aa)+`) in `$regex` / `$regexMatch` / `$match`, enforcing a 512-character pattern cap",
+      "Fixed: verbose errors — new `SafeErrorMessage` helper redacts filesystem paths and caps message length across the TCP and HTTP surfaces",
+      "Fixed: missing security headers — `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and CSP now applied to every HTTP response (API + GUI)",
+      "Chore: version synced 21.7.8 → 22.1.2 across package.json, package-lock.json, GUI, Document, cli/VERSION, cli/cmd/version.go, Docker/README.md, Document/index.html, llms.txt, llms-full.txt",
+    ],
+  },
+  {
     version: "21.7.8",
     date: "2026-09-05",
     title: "Instance-scoped InMemoryCache with configurable TTL lifecycle",

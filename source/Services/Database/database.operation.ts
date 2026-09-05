@@ -90,7 +90,7 @@ export default class Database {
    * @returns {Promise<boolean>} - Returns true if the collection exists, false otherwise.
    **/
   public async isCollectionExists(collectionName: string): Promise<boolean> {
-    const collectionPath = path.join(this.path, collectionName);
+    const collectionPath = PathSanitizer.safePath(this.path, collectionName);
     const exists = await this.folderManager.DirectoryExists(collectionPath);
     return exists.statusCode === StatusCodes.OK;
   }
@@ -104,7 +104,7 @@ export default class Database {
   public async deleteCollection(
     collectionName: string,
   ): Promise<SuccessInterface | ErrorInterface | undefined> {
-    const collectionPath = path.join(this.path, collectionName);
+    const collectionPath = PathSanitizer.safePath(this.path, collectionName);
     const exists = await this.folderManager.DirectoryExists(collectionPath);
     if (exists.statusCode === StatusCodes.OK) {
       // Remove collection metadata

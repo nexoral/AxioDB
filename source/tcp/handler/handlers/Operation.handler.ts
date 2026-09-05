@@ -5,6 +5,7 @@ import CRUDController from '../../../server/controller/Operation/CRUD.controller
 import { Document } from '../../../config/Interfaces/shared.types';
 import { FastifyRequest } from 'fastify';
 import TransactionManager from '../../connection/TransactionManager';
+import SafeErrorMessage from '../../../Helper/SafeErrorMessage.helper';
 
 type Params = TCPRequest['params'];
 
@@ -26,7 +27,8 @@ export default class OperationHandler {
   }
 
   private error(id: string, statusCode: number, message: string): TCPResponse {
-    return { id, statusCode, message, error: message };
+    const safeMessage = SafeErrorMessage.sanitize(message);
+    return { id, statusCode, message: safeMessage, error: safeMessage };
   }
 
   async handleInsertDocument(requestId: string, params: Params, connectionId: string): Promise<TCPResponse> {
