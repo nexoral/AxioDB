@@ -1,4 +1,4 @@
-# AxioDB: SQLite Alternative for JavaScript
+# AxioDB: The Embedded Database for Node.js
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
 [![npm version shields](https://img.shields.io/npm/v/axiodb?logo=npm&label=npm)](https://www.npmjs.com/package/axiodb)
@@ -27,7 +27,7 @@
 
 ## What is AxioDB?
 
-**Embedded NoSQL for Node.js, zero native deps.** `npm install axiodb` and you have a database — no server, no `node-gyp`, no `electron-rebuild`.
+**Embedded database for Node.js, zero native deps.** Replaces SQLite, LowDB, NeDB & raw JSON files. `npm install axiodb` and you have a database — MongoDB-style queries, ACID transactions, no server, no `node-gyp`, no `electron-rebuild`.
 
 **Problem:** `better-sqlite3` needs compiled binaries, `electron-rebuild` on every Electron update, per-platform builds. Plain JSON files have no query/cache/index.
 

@@ -140,7 +140,7 @@ const CliPage: React.FC = () => {
     <section id="cli" className="scroll-mt-20">
       <Seo
         title="AxioDB CLI - Command Line Interface"
-        description="Go-based CLI tool for AxioDB. Connection string format, global flags reference, interactive REPL with MongoDB shell syntax, TLS encryption, TCP authentication, 12 platform builds."
+        description="CLI tool for AxioDB. Connection string format, global flags reference, interactive REPL with MongoDB shell syntax, TLS encryption, TCP authentication, 12 platform builds."
         path="/cli"
       />
 
@@ -158,7 +158,7 @@ const CliPage: React.FC = () => {
               <span className="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded-full font-bold">
                 NEW
               </span>
-              <span>Go-based CLI</span>
+              <span>AxDB CLI</span>
               <span>•</span>
               <span>12 Platforms</span>
             </div>

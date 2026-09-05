@@ -153,8 +153,8 @@ const Introduction: React.FC = () => {
   return (
     <section id="introduction" className="scroll-mt-20">
       <Seo
-        title="AxioDB - SQLite Alternative for JavaScript | Introduction"
-        description="Embedded NoSQL database for Node.js with MongoDB-style queries, zero native dependencies, and a built-in web GUI. Install with npm and start building in seconds."
+        title="AxioDB - The Embedded Database for Node.js | Introduction"
+        description="Replaces SQLite, LowDB, NeDB and raw JSON files with a real database. MongoDB-style queries, ACID transactions, zero native dependencies. No node-gyp, no electron-rebuild. Just npm install."
         path="/"
       />
       {/* Hero Section */}
@@ -195,11 +195,14 @@ const Introduction: React.FC = () => {
           </h1>
           <div className="space-y-4 mb-10">
             <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-gray-700 font-medium leading-tight">
-              SQLite Alternative for JavaScript
+              The Embedded Database for Node.js
             </p>
             <p className="text-lg lg:text-xl text-gray-600 font-light leading-relaxed max-w-4xl">
-              Embedded NoSQL database for Node.js with MongoDB-style queries. Zero native dependencies,
-              no compilation, no platform issues. Pure JavaScript from npm install to production.
+              Replaces SQLite, LowDB, NeDB & raw JSON files with a real database.
+              MongoDB-style queries, ACID transactions, zero native dependencies.
+              No more <code className="text-red-500 bg-red-50 px-1 rounded text-base font-medium">node-gyp</code> failures.
+              No more <code className="text-red-500 bg-red-50 px-1 rounded text-base font-medium">electron-rebuild</code>.
+              Just <code className="text-emerald-600 bg-emerald-50 px-1 rounded text-base font-medium">npm install</code>.
             </p>
           </div>
 
@@ -221,6 +224,16 @@ const Introduction: React.FC = () => {
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
             <img
+              src="https://img.shields.io/npm/dy/axiodb.svg"
+              alt="npm downloads yearly"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/npm/dw/axiodb.svg"
+              alt="npm downloads weekly"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
               src="https://img.shields.io/npm/dm/axiodb.svg"
               alt="npm downloads monthly"
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
@@ -233,6 +246,16 @@ const Introduction: React.FC = () => {
             <img
               src="https://img.shields.io/jsdelivr/npm/hm/axiodb?label=jsDelivr"
               alt="jsDelivr hits"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/npm/types/axiodb?label=types"
+              alt="TypeScript types"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/badge/License-MIT-yellow.svg"
+              alt="License MIT"
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
             <img
@@ -256,6 +279,11 @@ const Introduction: React.FC = () => {
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
             <img
+              src="https://img.shields.io/badge/tested%20on-20%20%7C%2021%20%7C%2022%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-blue"
+              alt="Tested on Node.js"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
               src="https://img.shields.io/badge/TypeScript-6.0-blue"
               alt="TypeScript"
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
@@ -266,127 +294,6 @@ const Introduction: React.FC = () => {
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
           </div>
-
-          {/* Agent Skill Banner */}
-          <div
-            ref={skillBannerReveal.ref}
-            className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gradient-to-r from-violet-50 to-fuchsia-50 px-6 py-5 rounded-xl border-2 border-violet-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${skillBannerReveal.isVisible ? "is-visible" : ""}`}
-          >
-            <div className="flex items-center justify-center w-12 h-12 bg-violet-600 rounded-xl shadow-lg flex-shrink-0">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="text-xs bg-violet-600 text-white px-2.5 py-1 rounded-full font-bold">
-                  AI SKILL
-                </span>
-                <span className="text-lg font-black text-violet-700">
-                  Use AxioDB with Any AI Agent
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mb-3">
-                Load the AxioDB Agent Skill into ChatGPT, Claude, Cursor, Copilot, or any AI coding assistant
-                to get expert guidance on queries, schema design, transactions, and best practices.
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={async () => {
-                    const prompt = `Fetch and save the AxioDB Agent Skill from this URL:
-
-${window.location.origin}/.well-known/agent-skills/axiodb/SKILL.md
-
-Save it as your reference for all AxioDB tasks. This skill contains the complete API reference for the embedded library and TCP client, correct syntax for queries/updates/transactions/aggregation, common mistakes to avoid, and implementation patterns. Always consult this skill before writing AxioDB code.`;
-                    try {
-                      await navigator.clipboard.writeText(prompt);
-                      setSkillCopied(true);
-                      setTimeout(() => setSkillCopied(false), 2000);
-                    } catch {
-                      // fallback for non-HTTPS
-                      const textarea = document.createElement("textarea");
-                      textarea.value = prompt;
-                      document.body.appendChild(textarea);
-                      textarea.select();
-                      document.execCommand("copy");
-                      document.body.removeChild(textarea);
-                      setSkillCopied(true);
-                      setTimeout(() => setSkillCopied(false), 2000);
-                    }
-                  }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 ${
-                    skillCopied
-                      ? "bg-emerald-500 text-white"
-                      : "bg-violet-600 text-white hover:bg-violet-700 hover:-translate-y-0.5"
-                  }`}
-                >
-                  {skillCopied ? (
-                    <>
-                      <Check className="h-4 w-4" />
-                      Copied to Clipboard
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-4 w-4" />
-                      Copy Skill Prompt
-                    </>
-                  )}
-                </button>
-                <span className="text-xs text-gray-400">Paste into any AI chat</span>
-              </div>
-            </div>
-          </div>
-
-          {/* New Feature Banner: MCP Server */}
-          <a
-            ref={mcpBannerReveal.ref}
-            href="/mcp-server"
-            className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-accent-50 px-6 py-5 rounded-xl border-2 border-fuchsia-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${mcpBannerReveal.isVisible ? "is-visible" : ""}`}
-          >
-            <div className="flex items-center justify-center w-12 h-12 bg-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-              <Bot className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="text-xs bg-purple-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
-                  NEW
-                </span>
-                <span className="text-lg font-black text-accent-600">
-                  AxioDB MCP Server
-                </span>
-              </div>
-              <p className="text-sm text-gray-600">
-                Spin up AxioDB on a cloud container and let your AI agent (Claude, or any
-                MCP-compatible client) talk to that database directly — 43 tools, real login,
-                the exact same RBAC as the web GUI.
-              </p>
-            </div>
-            <ArrowRight className="h-6 w-6 text-fuchsia-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
-          </a>
-
-          {/* New Feature Banner: CLI */}
-          <a
-            ref={cliBannerReveal.ref}
-            href="/cli"
-            className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-emerald-50 px-6 py-5 rounded-xl border-2 border-emerald-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${cliBannerReveal.isVisible ? "is-visible" : ""}`}
-          >
-            <div className="flex items-center justify-center w-12 h-12 bg-emerald-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-              <Command className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
-                  NEW
-                </span>
-                <span className="text-lg font-black text-emerald-700">
-                  AxioDB CLI
-                </span>
-              </div>
-              <p className="text-sm text-gray-600">
-                Go-based command line interface for AxioDB — interactive REPL with MongoDB shell syntax,
-                all 32 TCP commands, TLS support, and installers for 12 platforms.
-              </p>
-            </div>
-            <ArrowRight className="h-6 w-6 text-emerald-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
-          </a>
 
           {/* NPM Download Stats */}
           <div
@@ -509,6 +416,127 @@ Save it as your reference for all AxioDB tasks. This skill contains the complete
               </div>
             </a>
           </div>
+
+          {/* Agent Skill Banner */}
+          <div
+            ref={skillBannerReveal.ref}
+            className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5 rounded-xl border-2 border-blue-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${skillBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-center justify-center w-12 h-12 bg-blue-600 rounded-xl shadow-lg flex-shrink-0">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-xs bg-blue-600 text-white px-2.5 py-1 rounded-full font-bold">
+                  AI SKILL
+                </span>
+                <span className="text-lg font-black text-blue-800">
+                  Use AxioDB with Any AI Agent
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Load the AxioDB Agent Skill into ChatGPT, Claude, Cursor, Copilot, or any AI coding assistant
+                to get expert guidance on queries, schema design, transactions, and best practices.
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    const prompt = `Fetch and save the AxioDB Agent Skill from this URL:
+
+${window.location.origin}/.well-known/agent-skills/axiodb/SKILL.md
+
+Save it as your reference for all AxioDB tasks. This skill contains the complete API reference for the embedded library and TCP client, correct syntax for queries/updates/transactions/aggregation, common mistakes to avoid, and implementation patterns. Always consult this skill before writing AxioDB code.`;
+                    try {
+                      await navigator.clipboard.writeText(prompt);
+                      setSkillCopied(true);
+                      setTimeout(() => setSkillCopied(false), 2000);
+                    } catch {
+                      // fallback for non-HTTPS
+                      const textarea = document.createElement("textarea");
+                      textarea.value = prompt;
+                      document.body.appendChild(textarea);
+                      textarea.select();
+                      document.execCommand("copy");
+                      document.body.removeChild(textarea);
+                      setSkillCopied(true);
+                      setTimeout(() => setSkillCopied(false), 2000);
+                    }
+                  }}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 ${
+                    skillCopied
+                      ? "bg-emerald-500 text-white"
+                      : "bg-blue-600 text-white hover:bg-blue-700 hover:-translate-y-0.5"
+                  }`}
+                >
+                  {skillCopied ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Copied to Clipboard
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Copy Skill Prompt
+                    </>
+                  )}
+                </button>
+                <span className="text-xs text-gray-400">Paste into any AI chat</span>
+              </div>
+            </div>
+          </div>
+
+          {/* New Feature Banner: MCP Server */}
+          <a
+            ref={mcpBannerReveal.ref}
+            href="/mcp-server"
+            className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-accent-50 px-6 py-5 rounded-xl border-2 border-fuchsia-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${mcpBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-center justify-center w-12 h-12 bg-purple-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+              <Bot className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-xs bg-purple-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
+                  NEW
+                </span>
+                <span className="text-lg font-black text-accent-600">
+                  AxioDB MCP Server
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">
+                Spin up AxioDB on a cloud container and let your AI agent (Claude, or any
+                MCP-compatible client) talk to that database directly — 43 tools, real login,
+                the exact same RBAC as the web GUI.
+              </p>
+            </div>
+            <ArrowRight className="h-6 w-6 text-fuchsia-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
+          </a>
+
+          {/* New Feature Banner: CLI */}
+          <a
+            ref={cliBannerReveal.ref}
+            href="/cli"
+            className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-emerald-50 px-6 py-5 rounded-xl border-2 border-emerald-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${cliBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-center justify-center w-12 h-12 bg-emerald-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+              <Command className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
+                  NEW
+                </span>
+                <span className="text-lg font-black text-emerald-700">
+                  AxioDB CLI
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">
+                CLI tool for AxioDB — interactive REPL with MongoDB shell syntax,
+                all 32 TCP commands, TLS support, and installers for 12 platforms.
+              </p>
+            </div>
+            <ArrowRight className="h-6 w-6 text-emerald-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
+          </a>
 
           {/* Performance Metrics & ACID Compliance */}
           <div className="mb-8">

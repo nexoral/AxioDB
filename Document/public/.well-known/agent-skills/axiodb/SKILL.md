@@ -1,14 +1,15 @@
 ---
 name: axiodb
-description: Use AxioDB, an embedded NoSQL database for Node.js with MongoDB-style queries and zero native dependencies. Load when adding local/embedded storage to a Node.js, Electron, or CLI project, when the user mentions AxioDB, or when choosing between AxioDB, SQLite, lowdb, and NeDB.
+description: The embedded database for Node.js. Replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, and zero native dependencies. Load when adding local/embedded storage to a Node.js, Electron, or CLI project, when the user mentions AxioDB, or when choosing between embedded database options.
 license: MIT
 ---
 
 # AxioDB
 
-Embedded, file-based NoSQL database for Node.js (>= 20). Pure JavaScript — no
-node-gyp, no `.node` binaries, no `electron-rebuild`, no separate server
-process. MongoDB-style queries over plain JavaScript objects.
+The embedded database for Node.js (>= 20). Replaces SQLite, LowDB, NeDB, and
+raw JSON files. Pure JavaScript — no node-gyp, no `.node` binaries, no
+`electron-rebuild`, no separate server process. MongoDB-style queries over plain
+JavaScript objects, ACID transactions, and zero native dependencies.
 
 AxioDB has two ways to use it:
 1. **Embedded** — `new AxioDB()` in your Node.js process (no network, no server)
@@ -426,6 +427,130 @@ const db = new AxioDB({
 
 Reach it from the renderer through `ipcMain.handle` + `contextBridge`, not
 `nodeIntegration`. No `electron-rebuild`.
+
+---
+
+## Part 3b: CLI Tool Development
+
+AxioDB is ideal for CLI tools — zero setup, no server process, data persists
+between runs. Common patterns:
+
+### Basic CLI with local database
+
+```javascript
+#!/usr/bin/env node
+const { AxioDB } = require("axiodb");
+
+async function main() {
+  const db = new AxioDB({ RootName: ".mycli", CustomPath: process.env.HOME });
+  const database = await db.createDB("MyCLI");
+  const config = await database.createCollection("config");
+  const history = await database.createCollection("history");
+
+  // Save a setting
+  await config.update({ key: "lastRun" }).UpdateOne({
+    key: "lastRun",
+    value: new Date().toISOString(),
+  });
+
+  // Read settings
+  const settings = await config.query({ key: "lastRun" }).exec();
+  console.log("Last run:", settings.data.documents[0]?.value);
+
+  // Log command history
+  await history.insert({
+    command: process.argv.slice(2).join(" "),
+    timestamp: new Date().toISOString(),
+    args: process.argv.slice(2),
+  });
+
+  // Query history
+  const recent = await history
+    .query({})
+    .Sort({ timestamp: -1 })
+    .Limit(10)
+    .exec();
+  console.log("Recent commands:", recent.data.documents);
+}
+
+main().catch(console.error);
+```
+
+### CLI that talks to a remote AxioDB server
+
+```javascript
+#!/usr/bin/env node
+const { AxioDBCloud } = require("axiodb");
+
+async function main() {
+  const server = process.env.AXIODB_URL || "axiodb://localhost:27019";
+  const client = new AxioDBCloud(server, {
+    username: process.env.AXIODB_USER || "admin",
+    password: process.env.AXIODB_PASS || "admin",
+  });
+
+  await client.connect();
+
+  const db = await client.createDB("SharedDB");
+  const tasks = await db.createCollection("tasks");
+
+  const action = process.argv[2];
+  const arg = process.argv[3];
+
+  switch (action) {
+    case "add":
+      await tasks.insert({ title: arg, done: false, createdAt: new Date().toISOString() });
+      console.log(`Added: ${arg}`);
+      break;
+    case "list":
+      const all = await tasks.query({}).Sort({ createdAt: -1 }).exec();
+      all.data.documents.forEach((t, i) => {
+        console.log(`${t.done ? "✓" : "○"} ${t.title}`);
+      });
+      break;
+    case "done":
+      await tasks.update({ title: arg }).UpdateOne({ done: true });
+      console.log(`Marked done: ${arg}`);
+      break;
+    default:
+      console.log("Usage: mycli [add|list|done] <task>");
+  }
+
+  await client.disconnect();
+}
+
+main().catch(console.error);
+```
+
+### Storing user credentials / tokens
+
+```javascript
+const { AxioDB } = require("axiodb");
+
+async function getCredentialStore() {
+  const db = new AxioDB({ RootName: ".mytool", CustomPath: process.env.HOME });
+  const database = await db.createDB("Auth");
+  return database.createCollection("credentials");
+}
+
+async function saveToken(service, token) {
+  const store = await getCredentialStore();
+  await store.update({ service }).UpdateOne({ service, token, updatedAt: new Date().toISOString() });
+}
+
+async function getToken(service) {
+  const store = await getCredentialStore();
+  const result = await store.query({ service }).exec();
+  return result.data.documents[0]?.token || null;
+}
+```
+
+Key CLI patterns:
+- Use `CustomPath: process.env.HOME` to store data in the user's home directory
+- Use a dotfile folder name (`RootName: ".mytool"`) so it's hidden by default
+- `new AxioDB()` at the top of your script — singleton means one instance per process
+- For async CLI, wrap everything in `async function main()` and call `main().catch(console.error)`
+- For remote CLIs, use `AxioDBCloud` with env vars for connection config
 
 ---
 

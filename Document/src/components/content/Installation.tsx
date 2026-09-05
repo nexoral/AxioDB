@@ -16,7 +16,7 @@ const Installation: React.FC = () => {
     <section id="installation" className="pt-12 scroll-mt-20">
       <Seo
         title="Install AxioDB - NPM Package Installation Guide"
-        description="Install AxioDB with npm in seconds - zero native dependencies, no compilation, works on Node.js 20+."
+        description="Install AxioDB with npm in seconds - replaces SQLite, LowDB, NeDB & raw JSON. Zero native dependencies, no compilation, works on Node.js 20+."
         path="/installation"
       />
       {/* Hero Header */}

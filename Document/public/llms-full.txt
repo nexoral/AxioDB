@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 20.5.6 | License: MIT | Node.js >= 20.0.0
+Version: 20.6.7 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -11,7 +11,7 @@ This file documents the actual, source-verified API surface of AxioDB — every 
 
 ## What is AxioDB?
 
-AxioDB is an embedded NoSQL database for Node.js with MongoDB-style queries. It is a SQLite Alternative for JavaScript with zero native dependencies, no compilation step, and no platform-specific binaries. It works everywhere Node.js runs — Electron apps, CLI tools, local-first applications, and Node.js backends.
+AxioDB is an embedded database for Node.js that replaces SQLite, LowDB, NeDB, and raw JSON files. MongoDB-style queries, ACID transactions, zero native dependencies, no compilation step, and no platform-specific binaries. It works everywhere Node.js runs — Electron apps, CLI tools, local-first applications, and Node.js backends.
 
 **One-liner:** `npm install axiodb` and you have a database. No mongod process, no node-gyp, no electron-rebuild.
 
@@ -32,7 +32,7 @@ AxioDB is one package with several distinct surfaces. They are **not interchange
 | **Dashboard HTTP API** | REST API behind that GUI (41 endpoints) | ✅ Yes | ✅ Yes | comes with the Dashboard; `HTTP: false` disables it | **27018** |
 | **AxioDBCloud TCP server** | Lets other processes/machines use this database | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ TCP: true })` / `AXIODB_TCP=true` | **27019** |
 | **AxioDBCloud client** | Connects to that TCP server, same API as embedded | ✅ Yes | ✅ Yes | `const { AxioDBCloud } = require('axiodb')` | — |
-| **CLI (Go)** | Command line interface — TCP queries, REPL, export/import via HTTP | ✅ Yes | ✅ Yes | `axiodb` binary | — |
+| **CLI** | Command line interface — TCP queries, REPL, export/import via HTTP | ✅ Yes | ✅ Yes | `axiodb` binary | — |
 | **MCP server (43 tools)** | Lets an AI agent operate the database | ❌ **NO** | ✅ Yes | `AXIODB_MCP=true` | **27020** |
 
 **The MCP server is Docker-only.** It lives in `Docker/` in the repository, which is listed in `.npmignore`. Running `npm install axiodb` does **not** give you an MCP server. The only supported way to run it is the `theankansaha/axiodb` Docker image with `AXIODB_MCP=true`.
