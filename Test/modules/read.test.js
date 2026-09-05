@@ -33,7 +33,7 @@ class ReadOptimizationTests extends TestRunner {
     await this.collection.newIndex('name', 'email', 'age', 'category');
 
     // Generate and insert large dataset (50000 docs for realistic benchmark)
-    this.largeDataset = fixtures.generateUsers(50000);
+    this.largeDataset = fixtures.generateUsers(100000);
     await this.collection.insertMany(this.largeDataset);
 
     this.log(`Test environment ready with ${this.largeDataset.length} documents`, 'success');

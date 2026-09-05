@@ -173,8 +173,19 @@ export default class Searcher {
     limit?: number,
   ): Promise<Record<string, unknown>[]> {
     // Pre-compile query for faster matching
-    const hasLogicalOps = '$or' in query || '$and' in query;
-    const compiled = hasLogicalOps ? null : this.compileQuery(query);
+    const hasLogicalOps = '$or' in query || '$and' in query || '$nor' in query;
+    let compiled: CompiledQuery[] | null = hasLogicalOps
+      ? null
+      : this.compileQuery(query);
+    // If some query keys use operators not covered by the compiled fast path
+    // ($not, $elemMatch, $size, $all, $exists, $type, etc.), the partial compiled
+    // list would silently match every document. Fall back to matchesQuery instead.
+    if (
+      compiled !== null &&
+      compiled.length !== Object.keys(query).length
+    ) {
+      compiled = null;
+    }
     const effectiveLimit = findOne ? 1 : limit;
     
     // For small datasets, findOne, or when limit is small - use optimized linear search
