@@ -13,6 +13,7 @@ import Sorting from "../../utility/SortData.utils";
 import { General } from "../../config/Keys/Keys";
 import { ReadIndex } from "../Index/ReadIndex.service";
 import Transaction from "../Transaction/Transaction.service";
+import type { InMemoryCache } from "../../Memory/memory.operation";
 /**
  * The DeleteOperation class is used to delete a document from a collection.
  * This class provides methods to delete a single document that matches the base query.
@@ -22,6 +23,7 @@ export default class DeleteOperation {
   protected readonly collectionName: string;
   private readonly baseQuery: Record<string, unknown>;
   private readonly path: string;
+  private readonly cache: InMemoryCache;
   private readonly ResponseHelper: ResponseHelper;
   private allDataWithFileName: Array<{ fileName: string; data: Record<string, unknown> }> = [];
   private sort: Record<string, 1 | -1>;
@@ -30,10 +32,12 @@ export default class DeleteOperation {
     collectionName: string,
     path: string,
     baseQuery: Record<string, unknown>,
+    cache: InMemoryCache,
   ) {
     this.collectionName = collectionName;
     this.path = path;
     this.baseQuery = baseQuery;
+    this.cache = cache;
     this.sort = {};
     this.ResponseHelper = new ResponseHelper();
     this.allDataWithFileName = []; // To store all data with file name
@@ -62,7 +66,7 @@ export default class DeleteOperation {
         );
       }
 
-      const txn = new Transaction(this.path);
+      const txn = new Transaction(this.path, this.cache);
       txn.delete({ documentId });
       const commitResult = await txn.commit();
 
@@ -100,7 +104,7 @@ export default class DeleteOperation {
    */
   public async deleteMany(): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const txn = new Transaction(this.path);
+      const txn = new Transaction(this.path, this.cache);
       txn.delete(this.baseQuery);
       const commitResult = await txn.commit();
 

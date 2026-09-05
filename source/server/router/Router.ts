@@ -16,7 +16,6 @@ import authRouter from "./Routers/Auth.routes";
 import userManagementRouter from "./Routers/UserManagement.routes";
 import roleManagementRouter from "./Routers/RoleManagement.routes";
 import StatsController from "../controller/Stats.controller";
-import InMemoryCache from "../../Memory/memory.operation";
 import { requireAuth, requireFreshPassword } from "../middleware/auth.middleware";
 import { requirePermission } from "../middleware/permission.middleware";
 import { PERMISSIONS } from "../../config/Keys/Permissions";
@@ -86,7 +85,7 @@ export default async function mainRouter(
       );
       const memory = process.memoryUsage();
       const toMB = (bytes: number) => parseFloat((bytes / 1024 / 1024).toFixed(2));
-      const cache = await InMemoryCache.getCacheDetails();
+      const cache = await AxioDBInstance.Cache.getCacheDetails();
       const instance = await AxioDBInstance.getInstanceInfo();
       const cacheData = cache as { cacheSizeInBytes: number; availableMemoryInBytes: number } | false;
       const instanceData = instance?.data as Record<string, unknown> | undefined;

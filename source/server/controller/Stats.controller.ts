@@ -1,7 +1,6 @@
 import { StatusCodes } from "../../config/Keys/StatusCode";
 import { AxioDB } from "../../Services/Indexation.operation";
 import buildResponse from "../helper/responseBuilder.helper";
-import InMemoryCache from "../../Memory/memory.operation";
 import fs from "fs";
 import Logger from "../../Helper/Logger.helper";
 
@@ -74,7 +73,7 @@ export default class StatsController {
       const MatrixUnitsForUsedStorage = "MB";
       const MatrixUnitsForMachineStorage = "MB";
 
-      const CacheStorageDetails = await InMemoryCache.getCacheDetails();
+      const CacheStorageDetails = await this.AxioDBInstance.Cache.getCacheDetails();
       const cacheDetails = CacheStorageDetails as { cacheSizeInBytes: number; availableMemoryInBytes: number } | false;
       const totalCacheSize = parseFloat(
         ((cacheDetails ? cacheDetails.cacheSizeInBytes : 0) / (1024 * 1024)).toFixed(2),

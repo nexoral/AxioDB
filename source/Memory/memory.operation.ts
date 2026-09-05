@@ -2,13 +2,24 @@ import os from "os";
 import Logger from "../Helper/Logger.helper";
 
 
+export interface InMemoryCacheOptions {
+  /** When false the cache stores nothing and every lookup misses. Defaults to true. */
+  enabled?: boolean;
+  /** Minimum entry lifetime in minutes. Defaults to 5. */
+  minTTL?: number;
+  /** Maximum entry lifetime in minutes. Defaults to 15. */
+  maxTTL?: number;
+  /** Housekeeping cleanup cadence and search-query retention, in seconds. Defaults to 86400 (24 hours). */
+  cacheClearUp?: number;
+}
+
 /**
  * Cache entry with random TTL for improved performance
  */
 interface CacheEntry {
   value: unknown;
   registeredAt: Date;
-  ttl: number;        // Random TTL in milliseconds (5-15 min)
+  ttl: number;        // Random TTL in milliseconds (minTTL-maxTTL)
   expiresAt: Date;    // Pre-computed expiration timestamp
   documentKeys?: string[]; // "{collectionPath}::{documentId}" entries this result contains, for reverse invalidation
 }
@@ -20,33 +31,50 @@ interface CacheEntry {
  * - Auto-cleanup of expired entries
  */
 export class InMemoryCache {
-  private readonly ttl: number;  // Kept for backward compatibility
+  private readonly enabled: boolean;
+  private readonly minTTL: number;
+  private readonly maxTTL: number;
+  private readonly cacheClearUp: number;
   private cacheObject: Map<string, CacheEntry>;
   private tempSearchQuery: Array<{ queryString: Record<string, unknown>; registeredAt: Date }> = [];
-  private readonly autoResetCacheInterval: number = 86400; // 24 hours
   // Reverse index: "{collectionPath}::{documentId}" -> cache keys whose cached result contains that document.
   // Lets invalidateByDocument(s) evict only the affected entries instead of the whole collection's cache.
   private documentIndex: Map<string, Set<string>> = new Map();
 
-  /** @param TTL - Time to live in seconds for cache entries. Defaults to 86400 seconds (24 hours) */
-  constructor(TTL: string | number = 86400) {
-    this.ttl = typeof TTL === "string" ? parseInt(TTL) : TTL;
+  /**
+   * @param TTL - InMemoryCacheOptions, or a legacy numeric/string value treated as `cacheClearUp`.
+   */
+  constructor(TTL: string | number | InMemoryCacheOptions = {}) {
+    const options: InMemoryCacheOptions = typeof TTL === "object" ? TTL : { cacheClearUp: Number(TTL) || undefined };
+
+    const minMinutes = options.minTTL ?? 5;
+    const maxMinutes = options.maxTTL ?? 15;
+    if (typeof minMinutes !== "number" || typeof maxMinutes !== "number" || minMinutes <= 0 || maxMinutes <= 0 || maxMinutes < minMinutes) {
+      throw new Error("Invalid cache TTL: minTTL and maxTTL must be positive minutes and maxTTL must be >= minTTL.");
+    }
+
+    this.cacheClearUp = options.cacheClearUp ?? 86400;
+    if (typeof this.cacheClearUp !== "number" || this.cacheClearUp <= 0) {
+      throw new Error("cacheClearUp must be a positive number of seconds.");
+    }
+
+    this.enabled = options.enabled ?? true;
+    this.minTTL = minMinutes * 60 * 1000;
+    this.maxTTL = maxMinutes * 60 * 1000;
     this.cacheObject = new Map();
     this.tempSearchQuery = [];
     this.autoResetCache();
   }
 
   /**
-   * Generates a random TTL between 5-15 minutes
+   * Generates a random TTL between minTTL and maxTTL
    * This prevents cache stampede (thundering herd problem)
    *
    * @returns Random TTL in milliseconds
    * @private
    */
   private generateRandomTTL(): number {
-    const MIN_TTL = 5 * 60 * 1000;   // 5 minutes in milliseconds
-    const MAX_TTL = 15 * 60 * 1000;  // 15 minutes in milliseconds
-    return Math.floor(Math.random() * (MAX_TTL - MIN_TTL + 1)) + MIN_TTL;
+    return Math.floor(Math.random() * (this.maxTTL - this.minTTL + 1)) + this.minTTL;
   }
 
   /**
@@ -60,6 +88,9 @@ export class InMemoryCache {
    * await cache.setCache('user-123', { name: 'John', age: 30 });
    */
   public async setCache(key: string, value: unknown, collectionPath?: string): Promise<boolean> {
+    if (!this.enabled) {
+      return true;
+    }
     const ttl = this.generateRandomTTL();
     const now = new Date();
     const expiresAt = new Date(now.getTime() + ttl);
@@ -119,6 +150,9 @@ export class InMemoryCache {
 
   /** Tracked for analytics/monitoring only - does not gate or block caching. */
   public async setTempSearchQuery(queryString: Record<string, unknown>): Promise<boolean> {
+    if (!this.enabled) {
+      return true;
+    }
     this.tempSearchQuery.push({
       queryString: queryString,
       registeredAt: new Date(),
@@ -134,6 +168,9 @@ export class InMemoryCache {
    * @returns A Promise that resolves to the cached value if found and not expired, false otherwise
    */
   public async getCache(key: string): Promise<unknown | false> {
+    if (!this.enabled) {
+      return false;
+    }
     const cacheItem = this.cacheObject.get(key);
     if (!cacheItem) {
       return false;
@@ -275,13 +312,13 @@ export class InMemoryCache {
 
         keysToDelete.forEach(key => this.evictCacheEntry(key));
 
-        // 24-hour retention for temp search queries
+        // cacheClearUp retention for temp search queries
         this.tempSearchQuery = this.tempSearchQuery.filter((item) => {
           const diff = Math.abs(now.getTime() - item.registeredAt.getTime());
-          return diff < this.autoResetCacheInterval * 1000;
+          return diff < this.cacheClearUp * 1000;
         });
       },
-      parseInt(String(this.ttl)),
+      parseInt(String(this.cacheClearUp)),
     );
 
     // Background housekeeping must never be the reason a short-lived script or CLI
@@ -292,4 +329,3 @@ export class InMemoryCache {
     }
   }
 }
-export default new InMemoryCache(86400); // 24 hours

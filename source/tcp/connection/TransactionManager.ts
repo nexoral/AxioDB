@@ -1,4 +1,5 @@
 import Transaction from '../../Services/Transaction/Transaction.service';
+import type { InMemoryCache } from '../../Memory/memory.operation';
 import Logger from '../../Helper/Logger.helper';
 
 /**
@@ -26,8 +27,8 @@ export default class TransactionManager {
     return TransactionManager.instance;
   }
 
-  beginTransaction(connectionId: string, collectionPath: string): Transaction {
-    const txn = new Transaction(collectionPath);
+  beginTransaction(connectionId: string, collectionPath: string, cache: InMemoryCache): Transaction {
+    const txn = new Transaction(collectionPath, cache);
     const transactionId = txn.getId();
 
     let connTxns = this.activeTransactions.get(connectionId);

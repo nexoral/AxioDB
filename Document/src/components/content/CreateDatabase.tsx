@@ -31,6 +31,13 @@ console.log("AxioDB instance with custom path created");
 const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: "MyCustomDB", CustomPath: "./data" });
 console.log("AxioDB instance with authenticated TCP access created");
 `,
+    cacheTuning: `
+// Tune the per-instance InMemoryCache: 10-30 minute randomized TTL, hourly cleanup
+const db = new AxioDB({ Cache: true, minTTL: 10, maxTTL: 30, cacheClearUp: 3600 });
+
+// Disable caching entirely (reads always hit disk)
+const dbNoCache = new AxioDB({ Cache: false });
+`,
     createDatabase: `
 // Create databases under the current AxioDB instance
 const userDB = await db.createDB("UsersDB");
@@ -50,7 +57,7 @@ console.log("Database 'ProductsDB' created");
       />
       <h1 className="text-3xl font-bold mb-6">Create Database</h1>
       <p className="text-gray-600 mb-8">
-        AxioDB constructor follows the pattern: <code className="bg-gray-100 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-100 px-2 py-1 rounded">&#123;GUI?, HTTP?, RootName?, CustomPath?, TCP?, TCPAuth?&#125;</code>.
+        AxioDB constructor follows the pattern: <code className="bg-gray-100 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-100 px-2 py-1 rounded">&#123;GUI?, HTTP?, RootName?, CustomPath?, TCP?, TCPAuth?, TLS?, TLSCertPath?, TLSKeyPath?, Cache?, minTTL?, maxTTL?, cacheClearUp?&#125;</code>.
         This pattern provides better readability and flexibility.
       </p>
 
@@ -65,6 +72,11 @@ console.log("Database 'ProductsDB' created");
           <li><strong>CustomPath</strong> (string, optional): Custom storage path - defaults to current directory</li>
           <li><strong>TCP</strong> (boolean, optional): Enable the AxioDBCloud TCP server on port 27019 - defaults to false</li>
           <li><strong>TCPAuth</strong> (boolean, optional): Require username/password authentication (same RBAC users as the GUI) on TCP connections - defaults to false</li>
+          <li><strong>TLS</strong> (boolean, optional): Encrypt the TCP server with TLS - requires TLSCertPath + TLSKeyPath PEM files - defaults to false</li>
+          <li><strong>Cache</strong> (boolean, optional): Enable the per-instance InMemoryCache - defaults to true (set false to disable caching entirely)</li>
+          <li><strong>minTTL</strong> (number, optional): Minimum randomized cache TTL in minutes - defaults to 5</li>
+          <li><strong>maxTTL</strong> (number, optional): Maximum randomized cache TTL in minutes - defaults to 15</li>
+          <li><strong>cacheClearUp</strong> (number, optional): Cache cleanup sweep interval in seconds - defaults to 86400</li>
         </ul>
       </div>
 
@@ -97,6 +109,12 @@ console.log("Database 'ProductsDB' created");
         Enable remote access via AxioDBCloud and require login before any TCP command is accepted.
       </p>
       <CodeBlock code={codeExamples.tcpAuth} language="javascript" />
+
+      <h3 className="text-2xl font-semibold mt-8 mb-4">Cache Tuning</h3>
+      <p className="text-gray-600 mb-4">
+        Each instance owns an InMemoryCache. Tune its randomized TTL bounds and cleanup interval, or disable it entirely with <code className="bg-gray-100 px-2 py-1 rounded">Cache: false</code>.
+      </p>
+      <CodeBlock code={codeExamples.cacheTuning} language="javascript" />
 
       <h3 className="text-2xl font-semibold mt-8 mb-4">Create Multiple Databases</h3>
       <p className="text-gray-600 mb-4">

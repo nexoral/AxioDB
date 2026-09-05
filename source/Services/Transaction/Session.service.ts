@@ -6,6 +6,7 @@ import {
 import { SessionOptions } from "../../config/Interfaces/Transaction/transaction.interface";
 import ResponseHelper from "../../Helper/response.helper";
 import Transaction from "./Transaction.service";
+import type { InMemoryCache } from "../../Memory/memory.operation";
 
 /**
  * Session provides MongoDB-like session management for transactions.
@@ -14,6 +15,7 @@ import Transaction from "./Transaction.service";
 export default class Session {
   private readonly sessionId: string;
   private readonly collectionPath: string;
+  private readonly cache: InMemoryCache;
   private readonly options: Required<SessionOptions>;
   private readonly ResponseHelper: ResponseHelper;
   private readonly startTime: number;
@@ -22,10 +24,12 @@ export default class Session {
 
   constructor(
     collectionPath: string,
-    options: SessionOptions = {}
+    options: SessionOptions = {},
+    cache: InMemoryCache,
   ) {
     this.sessionId = new UniqueGenerator(20).RandomWord(true);
     this.collectionPath = collectionPath;
+    this.cache = cache;
     this.startTime = Date.now();
     this.ResponseHelper = new ResponseHelper();
 
@@ -72,7 +76,7 @@ export default class Session {
       throw new Error("A transaction is already active in this session. Commit or rollback first.");
     }
 
-    this.currentTransaction = new Transaction(this.collectionPath);
+    this.currentTransaction = new Transaction(this.collectionPath, this.cache);
 
     return this.currentTransaction;
   }

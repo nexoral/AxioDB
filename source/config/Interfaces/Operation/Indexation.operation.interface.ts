@@ -15,6 +15,14 @@ export interface AxioDBOptions {
   TLSCertPath?: string;
   /** Path to the PEM-encoded private key file matching `TLSCertPath`. Required when `TLS: true`. */
   TLSKeyPath?: string;
+  /** Enable the built-in InMemoryCache. Defaults to true - when false the cache stores nothing and every read goes to disk. */
+  Cache?: boolean;
+  /** Minimum cache entry lifetime in minutes. Defaults to 5. */
+  minTTL?: number;
+  /** Maximum cache entry lifetime in minutes. Defaults to 15. */
+  maxTTL?: number;
+  /** Cache housekeeping cleanup cadence and search-query retention, in seconds. Defaults to 86400 (24 hours). */
+  cacheClearUp?: number;
 }
 
 export interface FinalDatabaseInfo {

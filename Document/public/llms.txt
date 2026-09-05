@@ -1,6 +1,6 @@
 # AxioDB
 
-> The embedded database for Node.js. Replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, and zero native dependencies. No node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained for Electron, CLI, local-first and prototyping. Current version: 20.6.7.
+> The embedded database for Node.js. Replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, and zero native dependencies. No node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained for Electron, CLI, local-first and prototyping. Current version: 21.7.8.
 
 ## What it is
 
@@ -30,7 +30,7 @@ Full comparison: https://axiodb.in/comparison
 
 - Zero native dependencies (no node-gyp, no electron-rebuild, no `.node` files, no prebuilt-binary matrix)
 - MongoDB-style queries: `{ age: { $gt: 25 } }` — not SQL strings. 19 query operators, plus index hints for query optimization.
-- Built-in InMemoryCache with randomized 5–15 minute TTL and selective invalidation
+- Built-in InMemoryCache (per-instance, configurable `minTTL`/`maxTTL`/`cacheClearUp`, `Cache: false` disables) with randomized TTL and selective invalidation
 - Worker Threads for multi-core parallel processing
 - ACID transactions with savepoints, rollback, and WAL — crash recovery covers plain `insert()` too, not just explicit transactions
 - Atomic writes via temp file + rename — no data corruption on crash

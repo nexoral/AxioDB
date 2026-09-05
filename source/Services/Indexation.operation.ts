@@ -27,6 +27,7 @@ import AuthSeeder from "./Auth/AuthSeeder.service";
 import { RESERVED_DB_NAME } from "../config/Keys/Permissions";
 import LoginRateLimiter from "./Auth/LoginRateLimiter.service";
 import Logger from "../Helper/Logger.helper";
+import { InMemoryCache } from "../Memory/memory.operation";
 
 /**
  * Class representing the AxioDB database.
@@ -36,6 +37,10 @@ import Logger from "../Helper/Logger.helper";
  * @param {string} options.CustomPath - Custom path for database storage. Defaults to current directory.
  * @param {boolean} options.TCP - Enable/disable TCP server (port 27019). Defaults to false.
  * @param {boolean} options.TCPAuth - Require username/password authentication (same RBAC users as the GUI) for TCP connections. Defaults to false.
+ * @param {boolean} options.Cache - Enable the built-in InMemoryCache shared across the whole instance. Defaults to true.
+ * @param {number} options.minTTL - Minimum cache entry lifetime in minutes. Defaults to 5.
+ * @param {number} options.maxTTL - Maximum cache entry lifetime in minutes. Defaults to 15.
+ * @param {number} options.cacheClearUp - Cache housekeeping cadence and search-query retention in seconds. Defaults to 86400.
  * @returns {AxioDB} - Returns the instance of AxioDB.
  * @example
  * const db = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./data" });
@@ -51,6 +56,7 @@ export class AxioDB {
   private ResponseHelper: ResponseHelper;
   private static _instance: AxioDB;
   private DatabaseMap: Map<string, DatabaseMap>;
+  private readonly cache: InMemoryCache;
   private GUI: boolean = General.DBMS_GUI_Enable;
   private HTTP: boolean = false;
   private TCP: boolean = false;
@@ -67,7 +73,7 @@ export class AxioDB {
     }
     AxioDB._instance = this;
 
-    const { GUI, RootName, CustomPath, TCP, TCPAuth, TLS, TLSCertPath, TLSKeyPath } = options;
+    const { GUI, RootName, CustomPath, TCP, TCPAuth, TLS, TLSCertPath, TLSKeyPath, Cache, minTTL, maxTTL, cacheClearUp } = options;
 
     this.RootName = RootName || General.DBMS_Name;
     this.currentPATH = path.resolve(CustomPath || ".");
@@ -76,6 +82,12 @@ export class AxioDB {
     this.Converter = new Converter();
     this.ResponseHelper = new ResponseHelper();
     this.DatabaseMap = new Map<string, DatabaseMap>();
+    this.cache = new InMemoryCache({
+      enabled: Cache !== false,
+      minTTL: minTTL ?? 5,
+      maxTTL: maxTTL ?? 15,
+      cacheClearUp: cacheClearUp ?? 86400,
+    });
     this.GUI = GUI !== undefined ? GUI : General.DBMS_GUI_Enable;
     this.HTTP = options.HTTP !== undefined ? options.HTTP : (this.GUI ? true : false);
     this.TCP = TCP !== undefined ? TCP : false;
@@ -165,6 +177,11 @@ export class AxioDB {
     return this.currentPATH;
   }
 
+  /** The shared InMemoryCache owned by this AxioDB instance, passed down to databases, collections, operations, transactions and the HTTP/TCP/MCP surfaces. */
+  public get Cache(): InMemoryCache {
+    return this.cache;
+  }
+
   /**
    * Creates a new database folder and updates the metadata file.
    * @param DBName - The name of the database to create.
@@ -180,7 +197,7 @@ export class AxioDB {
       await this.folderManager.CreateDirectory(dbPath);
       Logger.info(`Database Created: ${dbPath}`);
     }
-    const newDB = new Database(DBName, dbPath);
+    const newDB = new Database(DBName, dbPath, this.cache);
     // Store database metadata in the DatabaseMap
     // Note: The DatabaseMap is now storing an object instead of a Database instance
     this.DatabaseMap.set(DBName, { DatabaseName: DBName, path: dbPath });
