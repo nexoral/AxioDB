@@ -16,6 +16,8 @@ import {
   Zap,
   TrendingUp,
   Command,
+  Copy,
+  Check,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Seo from "../ui/Seo";
@@ -88,6 +90,7 @@ const Introduction: React.FC = () => {
   const [weeklyDownloads, setWeeklyDownloads] = useState<number | null>(null);
   const [monthlyDownloads, setMonthlyDownloads] = useState<number | null>(null);
   const [isLoadingDownloads, setIsLoadingDownloads] = useState(true);
+  const [skillCopied, setSkillCopied] = useState(false);
 
   // Scroll-triggered reveal state for each below-the-fold section of the
   // page (see useScrollReveal). The hero itself animates immediately on
@@ -100,6 +103,7 @@ const Introduction: React.FC = () => {
   const suiteReveal = useScrollReveal<HTMLDivElement>();
   const terminalReveal = useScrollReveal<HTMLDivElement>();
   const mcpBannerReveal = useScrollReveal<HTMLAnchorElement>();
+  const skillBannerReveal = useScrollReveal<HTMLDivElement>();
   const cliBannerReveal = useScrollReveal<HTMLAnchorElement>();
   const cloudBannerReveal = useScrollReveal<HTMLDivElement>();
   const guiBannerReveal = useScrollReveal<HTMLDivElement>();
@@ -261,6 +265,74 @@ const Introduction: React.FC = () => {
               alt="Zero Dependencies"
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
+          </div>
+
+          {/* Agent Skill Banner */}
+          <div
+            ref={skillBannerReveal.ref}
+            className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gradient-to-r from-violet-50 to-fuchsia-50 px-6 py-5 rounded-xl border-2 border-violet-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${skillBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-center justify-center w-12 h-12 bg-violet-600 rounded-xl shadow-lg flex-shrink-0">
+              <Sparkles className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-xs bg-violet-600 text-white px-2.5 py-1 rounded-full font-bold">
+                  AI SKILL
+                </span>
+                <span className="text-lg font-black text-violet-700">
+                  Use AxioDB with Any AI Agent
+                </span>
+              </div>
+              <p className="text-sm text-gray-600 mb-3">
+                Load the AxioDB Agent Skill into ChatGPT, Claude, Cursor, Copilot, or any AI coding assistant
+                to get expert guidance on queries, schema design, transactions, and best practices.
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    const prompt = `Fetch and save the AxioDB Agent Skill from this URL:
+
+${window.location.origin}/.well-known/agent-skills/axiodb/SKILL.md
+
+Save it as your reference for all AxioDB tasks. This skill contains the complete API reference for the embedded library and TCP client, correct syntax for queries/updates/transactions/aggregation, common mistakes to avoid, and implementation patterns. Always consult this skill before writing AxioDB code.`;
+                    try {
+                      await navigator.clipboard.writeText(prompt);
+                      setSkillCopied(true);
+                      setTimeout(() => setSkillCopied(false), 2000);
+                    } catch {
+                      // fallback for non-HTTPS
+                      const textarea = document.createElement("textarea");
+                      textarea.value = prompt;
+                      document.body.appendChild(textarea);
+                      textarea.select();
+                      document.execCommand("copy");
+                      document.body.removeChild(textarea);
+                      setSkillCopied(true);
+                      setTimeout(() => setSkillCopied(false), 2000);
+                    }
+                  }}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 ${
+                    skillCopied
+                      ? "bg-emerald-500 text-white"
+                      : "bg-violet-600 text-white hover:bg-violet-700 hover:-translate-y-0.5"
+                  }`}
+                >
+                  {skillCopied ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Copied to Clipboard
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Copy Skill Prompt
+                    </>
+                  )}
+                </button>
+                <span className="text-xs text-gray-400">Paste into any AI chat</span>
+              </div>
+            </div>
           </div>
 
           {/* New Feature Banner: MCP Server */}
