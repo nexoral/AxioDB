@@ -42,8 +42,8 @@ const ApiReference: React.FC = () => {
       methods: [
         {
           name: "constructor",
-          signature: "new AxioDB(options?: { GUI?: boolean, HTTP?: boolean, RootName?: string, CustomPath?: string, TCP?: boolean, TCPAuth?: boolean })",
-          description: "Creates a new AxioDB instance using an options object. This is the main entry point for AxioDB. Only one instance is allowed per application (singleton pattern). The GUI option enables/disables the web-based GUI dashboard at localhost:27018. HTTP enables the HTTP API server (auto-enables when GUI is on; GUI: true + HTTP: false throws error). TCP option enables the TCP server on port 27019. TCPAuth requires username/password authentication (same RBAC users as the GUI) for TCP connections - defaults to false.",
+          signature: "new AxioDB(options?: { GUI?: boolean, HTTP?: boolean, RootName?: string, CustomPath?: string, TCP?: boolean, TCPAuth?: boolean, TLS?: boolean, TLSCertPath?: string, TLSKeyPath?: string, Cache?: boolean, minTTL?: number, maxTTL?: number, cacheClearUp?: number })",
+          description: "Creates a new AxioDB instance using an options object. This is the main entry point for AxioDB. Only one instance is allowed per application (singleton pattern). The GUI option enables/disables the web-based GUI dashboard at localhost:27018. HTTP enables the HTTP API server (auto-enables when GUI is on; GUI: true + HTTP: false throws error). TCP option enables the TCP server on port 27019. TCPAuth requires username/password authentication (same RBAC users as the GUI) for TCP connections - defaults to false. TLS encrypts the TCP server (requires TLSCertPath/TLSKeyPath PEM files). Cache (default true) enables the per-instance InMemoryCache; minTTL/maxTTL bound the randomized cache TTL in minutes (defaults 5/15) and cacheClearUp sets the cleanup interval in seconds (default 86400). Each instance owns its cache - it is passed down to databases, collections, read/update/delete paths, transactions, and the HTTP/TCP/MCP surfaces.",
           example: `// Basic initialization with GUI enabled
 const db = new AxioDB({ GUI: true });
 
@@ -57,7 +57,16 @@ const db = new AxioDB({ GUI: false, HTTP: true });
 const db = new AxioDB({ GUI: false });
 
 // TCP server with authentication required
-const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'MyDB', CustomPath: './data' });`,
+const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'MyDB', CustomPath: './data' });
+
+// TLS-encrypted TCP server
+const db = new AxioDB({ TCP: true, TLS: true, TLSCertPath: './cert.pem', TLSKeyPath: './key.pem' });
+
+// Tuned in-memory cache: 10-30 minute randomized TTL, hourly cleanup
+const db = new AxioDB({ Cache: true, minTTL: 10, maxTTL: 30, cacheClearUp: 3600 });
+
+// Disable the cache entirely (reads always hit disk)
+const db = new AxioDB({ Cache: false });`,
           returns: "AxioDB: The AxioDB instance for managing databases.",
         },
         {

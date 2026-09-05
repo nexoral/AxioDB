@@ -15,7 +15,7 @@
       "Shell(xxd:*)",
       "Shell(cd /home/ankan/Documents/Projects/AxioDB/Document/public && sed -i '7s/.*/AxioDB is a file-based embedded database for Node.js. It replaces SQLite, LowDB, NeDB, and raw JSON files with a single `npm install` \\xe2\\x80\\x94 MongoDB-style queries, ACID transactions, InMemoryCache, and zero native C bindings. No compilation, no platform-specific builds, no ABI to match./' llms.txt && sed -n '7p' llms.txt)",
       "Shell(gh:*)",
-      "Shell(echo \"20.6.7\" > /home/ankan/Documents/Projects/AxioDB/cli/VERSION && cat /home/ankan/Documents/Projects/AxioDB/cli/VERSION)",
+      "Shell(echo \"21.7.8\" > /home/ankan/Documents/Projects/AxioDB/cli/VERSION && cat /home/ankan/Documents/Projects/AxioDB/cli/VERSION)",
       "Shell(tee:*)"
     ],
     "deny": [],

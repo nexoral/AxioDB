@@ -97,7 +97,8 @@ supported.
 * **MongoDB-style queries** — `{ age: { $gt: 25 } }`, 19 operators + `hint()` + `findByIds()`
 * **ACID transactions** — `savepoint`/`rollbackTo`/`WAL`, crashes recover via `Transaction.recoverTransactions()`
 * **Aggregation** — 60+ stages, `$lookup` joins, `OperatorRegistry` custom ops
-* **InMemoryCache + indexes** — dual-write, auto `IndexCache`
+* **InMemoryCache + indexes** — per-instance cache, dual-write, auto `IndexCache`
+* **Configurable cache** — `{ Cache, minTTL, maxTTL, cacheClearUp }` controls the per-instance InMemoryCache (default `5–15m` randomized TTL, `Cache: false` disables it) → [axiodb.in/api-reference](https://axiodb.in/api-reference)
 * **Ports:** GUI `27018` · TCP `27019` `AxioDBCloud` · MCP `27020` Docker-only
 
 > **Docs:** `axiodb.in` is the single source — this README is a quick start only.

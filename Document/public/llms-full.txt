@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 20.6.7 | License: MIT | Node.js >= 20.0.0
+Version: 21.7.8 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -88,12 +88,18 @@ new AxioDB(options?: {
   TLS?: boolean;          // Encrypt the TCP server with TLS (default: false)
   TLSCertPath?: string;   // Path to a PEM cert file - required if TLS: true
   TLSKeyPath?: string;    // Path to the matching PEM private key - required if TLS: true
+  Cache?: boolean;        // Enable the per-instance InMemoryCache (default: true; set false to disable caching entirely)
+  minTTL?: number;        // Minimum randomized cache TTL in minutes (default: 5)
+  maxTTL?: number;        // Maximum randomized cache TTL in minutes (default: 15)
+  cacheClearUp?: number;  // Cache cleanup sweep interval in seconds (default: 86400)
 })
 ```
 
 If `GUI: true` and `HTTP: false`, the constructor throws — the GUI needs the HTTP server to serve its UI. If `GUI: false` and `HTTP: true`, only the REST API runs on port 27018 (no UI — the browser shows "GUI is disabled").
 
 If `TLS: true` but either path is missing/unreadable, the constructor throws immediately — it never silently falls back to plaintext.
+
+**Cache lifecycle:** each AxioDB instance owns its own InMemoryCache (no cross-instance singleton), constructed in the constructor and passed down to every database, collection, reader/update/delete path, and transaction. The TTL for a cached query result is randomized per entry between `minTTL` and `maxTTL` (staggered to avoid a cache-stampede). With `Cache: false` the constructor does not build a cache (or builds a disabled one) so `getCache()` returns nothing and `setCache()` is a no-op — writes still function normally, reads always hit disk. Rejecting `minTTL`/`maxTTL`/`cacheClearUp` that are non-positive, or `maxTTL < minTTL`, throws. The `InMemoryCache` constructor also accepts the legacy overload `new InMemoryCache(86400)` where the first argument is `cacheClearUp` in seconds.
 
 ```typescript
 db.createDB(dbName: string): Promise<Database>
@@ -440,7 +446,7 @@ await users.dropIndex('email');
 await users.getIndexes();
 ```
 
-`documentId` is always indexed automatically — no setup needed, O(1) lookups. Every index is dual-written (in-memory cache + disk); the in-memory copy has a randomized 5–15 minute TTL (staggered on purpose, to avoid a cache-stampede when many entries would otherwise expire at once) and reloads from disk on a cold start or cache miss. A query that isn't an indexed exact match, or whose index misses, falls back to a full collection scan.
+`documentId` is always indexed automatically — no setup needed, O(1) lookups. Every index is dual-written (in-memory cache + disk); the in-memory copy has a randomized TTL bounded by the instance's `minTTL`/`maxTTL` (default 5–15 minutes, staggered on purpose, to avoid a cache-stampede when many entries would otherwise expire at once) and reloads from disk on a cold start or cache miss. A query that isn't an indexed exact match, or whose index misses, falls back to a full collection scan.
 
 ---
 

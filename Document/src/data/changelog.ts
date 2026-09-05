@@ -12,6 +12,19 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "21.7.8",
+    date: "2026-09-05",
+    title: "Instance-scoped InMemoryCache with configurable TTL lifecycle",
+    changes: [
+      "Breaking: the module-level InMemoryCache singleton (default export) is gone — every AxioDB instance now owns one cache, built in the constructor and passed down to databases, collections, read/update/delete paths, transactions, and the HTTP/TCP/MCP surfaces",
+      "New: `Cache?: boolean` (default true) — `Cache: false` disables caching entirely (reads always hit disk); `minTTL`/`maxTTL` (minutes, default 5/15) bound the per-entry randomized TTL; `cacheClearUp` (seconds, default 86400) sets the cleanup sweep interval",
+      "Changed: `InMemoryCache` is now a named export (`import { InMemoryCache }`) with `InMemoryCacheOptions`; the legacy `new InMemoryCache(cacheClearUpSeconds)` overload still works; invalid TTLs (`<= 0`, `maxTTL < minTTL`) throw",
+      "New: dashboard stats (HTTP `/dashboard-stats` + MCP `axiodb_get_dashboard_stats`) and TCP transaction caching read the live instance cache through the `AxioDB` instance (public `AxioDB.Cache` getter)",
+      "New: `Test/modules/cache-options.test.js` — defaults, custom TTLs, legacy overload, disabled cache, instance isolation, invalidation; full suite now 14 suites",
+      "Chore: version synced 20.6.7 → 21.7.8 across package.json, package-lock.json, GUI, Document, cli/VERSION, cli/cmd/version.go, Docker/README.md, Document/index.html, llms.txt, llms-full.txt",
+    ],
+  },
+  {
     version: "20.4.1",
     date: "2026-09-01",
     title: "Docs & version sync: 41 endpoints, 32 cmds, 43 tools consistency",

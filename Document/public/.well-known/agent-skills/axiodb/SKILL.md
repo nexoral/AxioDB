@@ -52,6 +52,10 @@ const db = new AxioDB({
   GUI: false,          // web GUI + HTTP API on port 27018 (default: false)
   RootName: "AxioDB",  // root storage folder name
   CustomPath: ".",     // custom storage path (default: cwd)
+  Cache: true,         // per-instance InMemoryCache (default: true; false disables caching)
+  minTTL: 5,           // randomized cache TTL floor, minutes (default: 5)
+  maxTTL: 15,          // randomized cache TTL ceiling, minutes (default: 15)
+  cacheClearUp: 86400, // cleanup sweep interval, seconds (default: 86400)
 });
 ```
 
@@ -61,6 +65,11 @@ from one module.
 
 `GUI: true` opens port 27018 with a web dashboard and REST API. Leave it
 `false` for production / Electron apps.
+
+Each instance owns its own cache: `Cache`, `minTTL`, `maxTTL`, and
+`cacheClearUp` (all optional) configure it. `Cache: false` disables caching
+entirely (reads always hit disk). The constructor validates the TTL bounds —
+non-positive values or `maxTTL < minTTL` throw.
 
 ### Database and Collection
 
@@ -795,12 +804,15 @@ await users.insertMany([
 
 ### Cache awareness
 
-AxioDB has a built-in InMemoryCache with random TTL (5-15 minutes). Repeated
-identical queries return from cache in <1ms. The cache is automatically
-invalidated when documents are updated/deleted.
+AxioDB has a built-in InMemoryCache with a randomized TTL bounded by the
+instance's `minTTL`/`maxTTL` (default 5-15 minutes). Repeated identical queries
+return from cache in <1ms. The cache is automatically invalidated when
+documents are updated/deleted.
 
-No action needed — just be aware that the first query hits disk and subsequent
-identical queries are instant.
+The cache is per-instance and configurable at construction time:
+`{ Cache: false }` disables it, and `Cache`/`minTTL`/`maxTTL`/`cacheClearUp`
+tune it. No action needed — just be aware that the first query hits disk and
+subsequent identical queries are instant.
 
 ### Worker Threads
 
