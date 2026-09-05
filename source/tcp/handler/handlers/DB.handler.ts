@@ -3,6 +3,7 @@ import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode, SuccessMessage } from '../../config/keys';
 import DatabaseController from '../../../server/controller/Database/Databse.controller';
 import { FastifyRequest } from 'fastify';
+import SafeErrorMessage from '../../../Helper/SafeErrorMessage.helper';
 
 type Params = TCPRequest['params'];
 
@@ -40,8 +41,8 @@ export default class DBHandler {
       return {
         id: requestId,
         statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        message: error instanceof Error ? error.message : String(error),
-        error: error instanceof Error ? error.message : String(error),
+        message: SafeErrorMessage.sanitize(error),
+        error: SafeErrorMessage.sanitize(error),
       };
     }
   }
@@ -85,8 +86,8 @@ export default class DBHandler {
       return {
         id: requestId,
         statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        message: error instanceof Error ? error.message : String(error),
-        error: error instanceof Error ? error.message : String(error),
+        message: SafeErrorMessage.sanitize(error),
+        error: SafeErrorMessage.sanitize(error),
       };
     }
   }

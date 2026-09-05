@@ -2,6 +2,7 @@ import { CollectionResolver } from "../../../config/Interfaces/Operation/aggrega
 import { evaluateExpression, getNestedValue } from "./expressionOperators";
 import { BUILT_IN_ACCUMULATORS } from "./accumulatorOperators";
 import { OperatorRegistry } from "../OperatorRegistry";
+import RegexGuard from "../../../Helper/RegexGuard.helper";
 
 function matchesCondition(itemValue: unknown, condition: unknown): boolean {
   if (condition === null || condition === undefined) {
@@ -17,7 +18,7 @@ function matchesCondition(itemValue: unknown, condition: unknown): boolean {
   if (typeof condition === "object") {
     if ("$regex" in condition) {
       try {
-        return new RegExp(String((condition as Record<string, unknown>).$regex), ((condition as Record<string, unknown>).$options as string) || "").test(String(itemValue));
+        return RegexGuard.compileRegex(String((condition as Record<string, unknown>).$regex), ((condition as Record<string, unknown>).$options as string) || "").test(String(itemValue));
       } catch { return false; }
     }
     if ("$gte" in condition) return (itemValue as number) >= ((condition as Record<string, unknown>).$gte as number);

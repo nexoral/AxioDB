@@ -8,6 +8,7 @@ import { ConnectionManager } from '../connection/ConnectionManager';
 import { TCP_COMMAND_PERMISSIONS, TCP_AUTH_EXEMPT_COMMANDS } from '../config/permissions';
 import { isReservedDatabaseName } from '../../config/Keys/Permissions';
 import PermissionChecker from '../../Services/Auth/PermissionChecker.helper';
+import SafeErrorMessage from '../../Helper/SafeErrorMessage.helper';
 
 // Handlers
 import DBHandler from './handlers/DB.handler';
@@ -85,7 +86,7 @@ export class CommandHandler {
       return this.createErrorResponse(
         request.id,
         StatusCode.BAD_REQUEST,
-        error instanceof Error ? error.message : String(error)
+        SafeErrorMessage.sanitize(error),
       );
     }
   }
@@ -214,7 +215,7 @@ export class CommandHandler {
       return this.createErrorResponse(
         id,
         StatusCode.INTERNAL_SERVER_ERROR,
-        error instanceof Error ? error.message : String(error)
+        SafeErrorMessage.sanitize(error),
       );
     }
   }

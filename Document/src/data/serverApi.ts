@@ -100,7 +100,7 @@ export const apiCategories: ApiCategory[] = [
     "memory": { "rss": 92.4, "heapUsed": 41.2, "heapTotal": 63.5, "external": 2.1, "unit": "MB" },
     "cache": { "used": 3.42, "max": 512, "unit": "MB" },
     "instance": {
-      "version": "21.7.8",
+      "version": "22.1.2",
       "rootName": "AxioDB",
       "path": "/app/AxioDB",
       "totalDatabases": 3

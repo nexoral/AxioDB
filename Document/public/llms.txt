@@ -1,6 +1,6 @@
 # AxioDB
 
-> The embedded database for Node.js. Replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, and zero native dependencies. No node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained for Electron, CLI, local-first and prototyping. Current version: 21.7.8.
+> The embedded database for Node.js. Replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, and zero native dependencies. No node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained for Electron, CLI, local-first and prototyping. Current version: 22.1.2.
 
 ## What it is
 

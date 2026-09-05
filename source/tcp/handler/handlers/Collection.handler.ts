@@ -3,6 +3,7 @@ import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode } from '../../config/keys';
 import CollectionController from '../../../server/controller/Collections/Collection.controller';
 import { FastifyRequest } from 'fastify';
+import SafeErrorMessage from '../../../Helper/SafeErrorMessage.helper';
 
 type Params = TCPRequest['params'];
 
@@ -41,8 +42,8 @@ export default class CollectionHandler {
       return {
         id: requestId,
         statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        message: error instanceof Error ? error.message : String(error),
-        error: error instanceof Error ? error.message : String(error),
+        message: SafeErrorMessage.sanitize(error),
+        error: SafeErrorMessage.sanitize(error),
       };
     }
   }
@@ -83,18 +84,18 @@ export default class CollectionHandler {
         message: exists ? 'Collection exists' : 'Collection does not exist',
         data: { exists },
       };
-    } catch (error) {
+} catch (error) {
       return {
         id: requestId,
         statusCode: StatusCode.INTERNAL_SERVER_ERROR,
-        message: error instanceof Error ? error.message : String(error),
-        error: error instanceof Error ? error.message : String(error),
+        message: SafeErrorMessage.sanitize(error),
+        error: SafeErrorMessage.sanitize(error),
       };
     }
   }
 
   /**
-   * Handle GET_COLLECTION_INFO command
+   * Handle COLLECTION_EXISTS command
    */
   async handleGetCollectionInfo(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName } = params;

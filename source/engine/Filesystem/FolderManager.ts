@@ -111,8 +111,15 @@ export default class FolderManager {
 
       if (osType === "windows") {
         try {
-          const stdout = await this.WorkerProcess.execCommand(
-            `powershell -command "(Get-ChildItem '${path}' -Recurse -Force | Measure-Object -Property Length -Sum).Sum"`,
+          const stdout = await this.WorkerProcess.execCommandSafely(
+            "powershell",
+            [
+              "-NoProfile",
+              "-command",
+              "(Get-ChildItem -LiteralPath $args[0] -Recurse -Force | Measure-Object -Property Length -Sum).Sum",
+              "--",
+              path,
+            ],
           );
           size = parseInt(stdout, 10) || 0;
         } catch (cmdError) {
@@ -123,8 +130,9 @@ export default class FolderManager {
         }
       } else {
         try {
-          const stdout = await this.WorkerProcess.execCommand(
-            `du -sb "${path}" 2>/dev/null`,
+          const stdout = await this.WorkerProcess.execCommandSafely(
+            "du",
+            ["-sb", path],
           );
           size = parseInt(stdout.split("\t")[0], 10) || 0;
         } catch (cmdError) {

@@ -13,6 +13,7 @@ import Converter from "../Helper/Converter.helper";
 import Console from "../Helper/Console.helper";
 import { StatusCodes } from "../config/Keys/StatusCode";
 import ResponseHelper from "../Helper/response.helper";
+import PathSanitizer from "../Helper/PathSanitizer.helper";
 
 // Interfaces
 import {
@@ -189,7 +190,7 @@ export class AxioDB {
    */
   public async createDB(DBName: string): Promise<Database> {
     if (!this._initializing) await this.ready;
-    const dbPath = path.join(this.currentPATH, DBName);
+    const dbPath = PathSanitizer.safePath(this.currentPATH, DBName);
 
     // Check if the database already exists
     const exists = await this.folderManager.DirectoryExists(dbPath);
@@ -269,7 +270,7 @@ export class AxioDB {
    */
   public async isDatabaseExists(DBName: string): Promise<boolean> {
     if (!this._initializing) await this.ready;
-    const dbPath = path.join(this.currentPATH, DBName);
+    const dbPath = PathSanitizer.safePath(this.currentPATH, DBName);
     const exists = await this.folderManager.DirectoryExists(dbPath);
     return exists.statusCode === StatusCodes.OK;
   }
@@ -290,7 +291,7 @@ export class AxioDB {
     DBName: string,
   ): Promise<SuccessInterface | ErrorInterface | undefined> {
     if (!this._initializing) await this.ready;
-    const dbPath = path.join(this.currentPATH, DBName);
+    const dbPath = PathSanitizer.safePath(this.currentPATH, DBName);
     const exists = await this.folderManager.DirectoryExists(dbPath);
 
     if (exists.statusCode === StatusCodes.OK) {

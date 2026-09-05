@@ -1,6 +1,7 @@
 import { Worker } from "worker_threads";
 import path from "path";
 import os from "os";
+import RegexGuard from "../Helper/RegexGuard.helper";
 
 const workerPath: string = path.resolve(
   __dirname,
@@ -49,7 +50,7 @@ export default class Searcher {
           compiled.push({
             key,
             type: 'regex',
-            regex: pattern instanceof RegExp ? pattern : new RegExp(pattern, flags)
+            regex: pattern instanceof RegExp ? pattern : RegexGuard.compileRegex(pattern, flags)
           });
         }
         // Handle $in - convert to Set for O(1) lookup
@@ -315,7 +316,7 @@ export default class Searcher {
           const pattern = qv["$regex"] as string | RegExp;
           const regex = pattern instanceof RegExp 
             ? pattern 
-            : new RegExp(pattern, (qv["$options"] as string) || "i");
+            : RegexGuard.compileRegex(pattern, (qv["$options"] as string) || "i");
           if (!regex.test(String(itemValue))) return false;
           continue;
         }

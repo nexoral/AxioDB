@@ -22,6 +22,7 @@ import {
   readExportedDatabaseName,
   releaseImport,
 } from "../../helper/databaseImport.helper";
+import SafeErrorMessage from "../../../Helper/SafeErrorMessage.helper";
 
 export default class DatabaseController {
   private AxioDBInstance: AxioDB;
@@ -172,7 +173,7 @@ export default class DatabaseController {
       return reply.status(500).send({
         success: false,
         message: "Error exporting database",
-        error: error instanceof Error ? error.message : String(error),
+        error: SafeErrorMessage.sanitize(error),
       });
     }
   }

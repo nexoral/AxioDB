@@ -5,6 +5,7 @@ import { TCPRequest, TCPResponse } from '../types/protocol.types';
 import { MAX_CONNECTIONS, MAX_CONNECTIONS_PER_IP, CONNECTION_TIMEOUT, ErrorMessage, StatusCode } from '../config/keys';
 import { AuthenticatedUser } from '../../config/Interfaces/Auth/auth.interface';
 import ConnectionRateLimiter from './ConnectionRateLimiter';
+import SafeErrorMessage from '../../Helper/SafeErrorMessage.helper';
 
 /**
  * Connection metadata
@@ -238,7 +239,7 @@ export class ConnectionManager extends EventEmitter {
           id: 'error',
           statusCode: StatusCode.BAD_REQUEST,
           message: ErrorMessage.INVALID_MESSAGE_FORMAT,
-          error: error instanceof Error ? error.message : String(error),
+          error: SafeErrorMessage.sanitize(error),
         };
         this.sendResponse(connectionId, errorResponse);
 
