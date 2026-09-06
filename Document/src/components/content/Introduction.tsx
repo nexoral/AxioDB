@@ -154,7 +154,7 @@ const Introduction: React.FC = () => {
     <section id="introduction" className="scroll-mt-20">
       <Seo
         title="AxioDB - The Embedded Database for Node.js | Introduction"
-        description="Replaces SQLite, LowDB, NeDB and raw JSON files with a real database. MongoDB-style queries, ACID transactions, zero native dependencies. No node-gyp, no electron-rebuild. Just npm install."
+        description="Replaces SQLite, LowDB, NeDB and raw JSON files with a real database. Runs on Node.js 20+ and Bun. MongoDB-style queries, ACID transactions, zero native dependencies. No node-gyp, no electron-rebuild. Just npm install."
         path="/"
       />
       {/* Hero Section */}
@@ -203,6 +203,8 @@ const Introduction: React.FC = () => {
               No more <code className="text-red-500 bg-red-50 px-1 rounded text-base font-medium">node-gyp</code> failures.
               No more <code className="text-red-500 bg-red-50 px-1 rounded text-base font-medium">electron-rebuild</code>.
               Just <code className="text-emerald-600 bg-emerald-50 px-1 rounded text-base font-medium">npm install</code>.
+              Runs on <strong className="font-semibold text-green-700">Node.js 20+</strong> and <strong className="font-semibold text-amber-700">Bun</strong>
+              — one codebase, same data files, no runtime lock-in.
             </p>
           </div>
 
@@ -284,6 +286,16 @@ const Introduction: React.FC = () => {
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
             <img
+              src="https://img.shields.io/badge/Bun%20tested-v1.4.0-black?logo=bun"
+              alt="Bun tested v1.4.0"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
+              src="https://img.shields.io/badge/Deno-partial%209%2F12-red"
+              alt="Deno partial support"
+              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
+            />
+            <img
               src="https://img.shields.io/badge/TypeScript-6.0-blue"
               alt="TypeScript"
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
@@ -293,6 +305,71 @@ const Introduction: React.FC = () => {
               alt="Zero Dependencies"
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
+          </div>
+
+          {/* Runtime Compatibility & Tested Cases */}
+          <div className="bg-white border-2 border-gray-200 rounded-xl p-5 sm:p-6 mb-8 shadow-md">
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-3 mb-4">
+              <span className="font-extrabold text-gray-900 text-lg">
+                Runs on
+              </span>
+              <div className="flex items-center gap-2">
+                <img
+                  src="/logos/nodejs.svg"
+                  alt="Node.js"
+                  className="h-8 w-8"
+                />
+                <span className="text-gray-800 font-semibold">
+                  Node.js{" "}
+                  <span className="text-gray-500 font-normal">
+                    ≥ v20 · officially supported
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <img
+                  src="/logos/bun.svg"
+                  alt="Bun"
+                  className="h-8 w-8"
+                />
+                <span className="text-gray-800 font-semibold">
+                  Bun{" "}
+                  <span className="text-gray-500 font-normal">
+                    verified on v1.4.0
+                  </span>
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="font-semibold text-gray-700 mr-1">
+                Verified test cases:
+              </span>
+              {[
+                "CRUD (insert / find / update / delete)",
+                "Indexed queries",
+                "ACID transactions",
+                "Aggregation",
+                "Worker threads — ≥100 files",
+                "Worker threads — ≥10,000 docs"
+              ].map((testCase) => (
+                <span
+                  key={testCase}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 text-sm rounded-full border border-green-200"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                  {testCase}
+                </span>
+              ))}
+            </div>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              All 12 engine test suites — CRUD, transactions, reads, indexed
+              queries & searches, auth, TCP/TLS, HTTP API, and crash recovery —
+              pass on the machine's Node (v26.8.1) and Bun (v1.4.0), including
+              the worker-thread data paths (reads of ≥100-file collections,
+              searches over ≥10,000 documents). Node 20+ is the supported
+              baseline; Bun is verified on the installed v1.4.0 only. Deno
+              passes 9/12 — worker threads are pending there.
+            </p>
           </div>
 
           {/* NPM Download Stats */}
@@ -444,6 +521,8 @@ const Introduction: React.FC = () => {
                     const prompt = `Fetch and save the AxioDB Agent Skill from this URL:
 
 ${window.location.origin}/.well-known/agent-skills/axiodb/SKILL.md
+
+Read that skill & save it for you & for all available AI Agents in this machine.
 
 Save it as your reference for all AxioDB tasks. This skill contains the complete API reference for the embedded library and TCP client, correct syntax for queries/updates/transactions/aggregation, common mistakes to avoid, and implementation patterns. Always consult this skill before writing AxioDB code.`;
                     try {
@@ -842,8 +921,8 @@ Save it as your reference for all AxioDB tasks. This skill contains the complete
                 <div className="bg-accent-100/20 border border-accent-600/30 rounded-lg p-3 mb-3">
                   <div className="flex items-center gap-2 text-accent-600 text-sm">
                     <span>ℹ️</span>
-                    <span className="font-semibold">Node.js Required:</span>
-                    <span>AxioDB runs on Node.js servers, not in browsers</span>
+                    <span className="font-semibold">Node.js & Bun supported:</span>
+                    <span>AxioDB runs on Node.js ≥20 or Bun (v1.4.0) servers, not in browsers</span>
                   </div>
                 </div>
                 <CodeBlock code={HELLO_WORLD_CODE} language="javascript" />

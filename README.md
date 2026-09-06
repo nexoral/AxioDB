@@ -57,7 +57,7 @@ console.log(data.documents);
 
 ```bash
 npm install axiodb
-# Node.js ≥20
+# Node.js ≥20 (also verified on Bun v1.4.0)
 ```
 
 ## Basic CRUD
