@@ -29,6 +29,12 @@ const sidebarSections: SidebarSection[] = [
     ],
   },
   {
+    title: "Animated Execution",
+    items: [
+      { id: "execution", label: "Watch AxioDB Run", path: "/execution" },
+    ],
+  },
+  {
     title: "Working with Data",
     items: [
       {

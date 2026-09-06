@@ -22,6 +22,7 @@ import McpServer from "./components/content/McpServer";
 import Troubleshooting from "./components/content/Troubleshooting";
 import Changelog from "./components/content/Changelog";
 import Performance from "./components/content/Performance";
+import AnimatedExecution from "./components/content/AnimatedExecution";
 
 // Route table consumed by vite-react-ssg to know which pages to prerender at
 // build time, and by react-router-dom at runtime for client-side navigation.
@@ -54,6 +55,7 @@ export const routes: RouteRecord[] = [
       { path: "troubleshooting", element: <Troubleshooting /> },
       { path: "changelog", element: <Changelog /> },
       { path: "performance", element: <Performance /> },
+      { path: "execution", element: <AnimatedExecution /> },
       { path: "maintainers-zone", element: <MaintainersZone /> },
       { path: "why-choose-axiodb", element: <Introduction /> },
     ],

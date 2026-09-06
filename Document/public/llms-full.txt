@@ -644,6 +644,36 @@ Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js 
 
 ---
 
+## Animated Execution
+
+Interactive animated walkthroughs of AxioDB internals, source-verified against `source/`. URL: https://axiodb.in/execution. Pick "AxioDB Local" (embedded engine, 13 scenarios) or "AxioDBCloud" (remote/TCP client, 9 scenarios); each scenario animates a step-by-step execution trace with a live console and the real implementation code.
+
+**Local — embedded engine (13):**
+- On-disk storage layout — `FolderManager` root tree, database/collection folders, file-per-document `.axiodb`, `indexes/*.jsonl`, `collection.meta.jsonl`, `index.meta.jsonl`
+- Create DB / Create Collection — folder creation, name sanitization `replace(/[^a-zA-Z0-9-_]/g,'_')`
+- Insert single / InsertMany — WAL append, `randomUUID()` document id, temp file + atomic rename, dual-write index + cache invalidation
+- Index structure — range-keyed value buckets in `indexes/*.jsonl`, `index.meta.jsonl` registry
+- Query by index — `index.meta.jsonl` registry → single-file lookup, range boundaries via binary search, cache-first reads
+- Cache flow — `InMemoryCache` random 5-15m TTL `Math.floor(Math.random()*(15-5+1)+5)*60*1000`, index cache, reverse document index for targeted eviction
+- Update / Delete — `updateIndexForWrite` bucket management, atomic rename, cache invalidation
+- Transactions — WAL `txn-meta.jsonl`, temp write + atomic rename, commit/rollback/retry, snapshot rollback
+- Sessions — `beginSavepoint`/`rollbackToSavepoint`, log-based undo, `autoCommit`/`withTransaction`
+- Aggregation — `$match/$project/$group/$sort/$limit`, `setCache` on execution, `AggregationReader` + `OperatorRegistry`
+- Worker threads — `WorkerForDataLoad.engine` parallel parse, `WorkerForSearch.engine` off-main search
+
+**AxioDBCloud — remote/TCP client (9):**
+- Connect — `axiodb://host:port` parsing, `maxPoolSize` (default 10) pool, first member gates, rest via `Promise.allSettled`, `poolDegraded` event
+- Authenticate — `AUTHENTICATE` on every connected member, RBAC in server, creds stashed for auto-replay on reconnect
+- Message framing — `[4-byte length uint32 BE][JSON payload]`, `MessageBuffer` chunk reassembly, correlation by `randomUUID()`
+- Least-busy routing — `pickConnection()` picks the CONNECTED member with fewest in-flight `pendingCount`
+- TLS — `tls.connect` with `tlsCAPath` read once, `rejectUnauthorized` default true, `'secureConnect'` gates CONNECTED
+- Heartbeat — no-arg `PING` every `heartbeatInterval` (default 30s); failures only log a warning
+- Reconnect & backoff — `delay × 2^(attempt−1)` capped at 30s, `RECONNECTING` state, replay of stashed login, `onExhausted`
+- Graceful disconnect — `DISCONNECT` command, heartbeat stop, `socket.end()`, pool flattened to `[]`, no auto-reconnect
+- Transaction pinning — `getPinnedConnection()` pins all txn commands to one socket so in-flight writes are visible to reads
+
+---
+
 ## Comparisons
 
 ### vs SQLite / better-sqlite3
