@@ -1,11 +1,12 @@
 {
   "name": "vite-project",
   "private": true,
-  "version": "22.1.2",
+  "version": "22.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "assets": "node scripts/optimize-assets.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -31,6 +32,12 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "vite": "^6.3.5"
+    "sharp": "^0.35.4",
+    "terser": "^5.0.0",
+    "vite": "^6.3.5",
+    "vite-plugin-image-optimizer": "^2.0.3"
+  },
+  "allowScripts": {
+    "sharp@0.35.4": true
   }
 }

@@ -42,6 +42,13 @@ test.js
 *.test.js
 *.spec.js
 
+# Source maps (dev-only, not needed at runtime)
+*.js.map
+lib/**/*.js.map
+
+# GUI build artifacts not consumed at runtime (Vite internals)
+lib/server/public/AxioControl/.vite/
+
 # Build artifacts and GUI (not needed in npm package)
 GUI/
 Docker/
@@ -58,6 +65,7 @@ cli/
 # Tooling configs (not shipped in npm package)
 opencode.json
 .graphifyignore
+graphify-out/
 
 # Dependencies
 node_modules/

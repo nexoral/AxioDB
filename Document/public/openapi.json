@@ -140,7 +140,7 @@
                       "unit": "MB"
                     },
                     "instance": {
-                      "version": "22.1.2",
+                      "version": "22.2.0",
                       "rootName": "AxioDB",
                       "path": "/app/AxioDB",
                       "totalDatabases": 3
