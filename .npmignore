@@ -39,6 +39,7 @@ SECURITY.md
 Test/
 test/
 test.js
+bun-test.mjs
 *.test.js
 *.spec.js
 

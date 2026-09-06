@@ -11,7 +11,7 @@ This file documents the actual, source-verified API surface of AxioDB — every 
 
 ## What is AxioDB?
 
-AxioDB is an embedded database for Node.js that replaces SQLite, LowDB, NeDB, and raw JSON files. MongoDB-style queries, ACID transactions, zero native dependencies, no compilation step, and no platform-specific binaries. It works everywhere Node.js runs — Electron apps, CLI tools, local-first applications, and Node.js backends.
+AxioDB is an embedded database for Node.js that replaces SQLite, LowDB, NeDB, and raw JSON files. MongoDB-style queries, ACID transactions, zero native dependencies, no compilation step, and no platform-specific binaries. It works everywhere Node.js runs — Electron apps, CLI tools, local-first applications, and Node.js backends — and is also verified on Bun (tested on v1.4.0).
 
 **One-liner:** `npm install axiodb` and you have a database. No mongod process, no node-gyp, no electron-rebuild.
 
@@ -51,7 +51,7 @@ AxioDB is one package with several distinct surfaces. They are **not interchange
 npm install axiodb
 ```
 
-Requires Node.js >= 20.0.0, npm >= 6.0.0. Server-side/desktop only — does not run in a browser (needs the filesystem).
+Requires Node.js >= 20.0.0, npm >= 6.0.0 (also verified on Bun v1.4.0). Server-side/desktop only — does not run in a browser (needs the filesystem).
 
 ---
 

@@ -27,7 +27,7 @@
 
 ## What is AxioDB?
 
-**Embedded database for Node.js, zero native deps.** Replaces SQLite, LowDB, NeDB & raw JSON files. `npm install axiodb` and you have a database — MongoDB-style queries, ACID transactions, no server, no `node-gyp`, no `electron-rebuild`.
+**Embedded database for Node.js & Bun, zero native deps.** Replaces SQLite, LowDB, NeDB & raw JSON files. `npm install axiodb` and you have a database — MongoDB-style queries, ACID transactions, no server, no `node-gyp`, no `electron-rebuild`.
 
 **Problem:** `better-sqlite3` needs compiled binaries, `electron-rebuild` on every Electron update, per-platform builds. Plain JSON files have no query/cache/index.
 
@@ -57,7 +57,7 @@ console.log(data.documents);
 
 ```bash
 npm install axiodb
-# Node.js ≥20
+# Node.js ≥20 (also verified on Bun v1.4.0)
 ```
 
 ## Basic CRUD
