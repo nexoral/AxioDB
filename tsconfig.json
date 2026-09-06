@@ -6,7 +6,7 @@
     "declaration": true, // Generate declaration files
     "checkJs": false, // Disable checking of JavaScript files
     "allowJs": true, // Allow JavaScript files to be included
-    "sourceMap": true, // Generate source maps
+    "sourceMap": false, // Disable source maps (not needed at runtime; keeps the npm package small)
     "jsx": "react", // Specify the JSX factory function
     "strict": true, // Enable all strict type-checking options
     "removeComments": false, // Preserve comments in the output

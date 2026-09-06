@@ -2,6 +2,7 @@ import { defineConfig } from "vite"; // vite config
 import react from "@vitejs/plugin-react-swc"; // react-swc plugin
 import { VitePWA } from "vite-plugin-pwa"; // pwa plugin
 import tailwindcss from "@tailwindcss/vite"; // tailwindcss plugin
+import { ViteImageOptimizer } from "vite-plugin-image-optimizer"; // image optimizer (sharp)
 
 /* The code is exporting a default configuration object for the Vite build tool. This configuration
 object specifies various settings and options for the build process. */
@@ -9,6 +10,14 @@ export default defineConfig({
   plugins: [
     tailwindcss(), // Tailwind CSS plugin for Vite
     react(),
+    ViteImageOptimizer({
+      // Compress every bundled/public image so dist stays small
+      includePublic: true,
+      png: { palette: true, quality: 90, compressionLevel: 9, adaptiveFiltering: true },
+      jpeg: { quality: 82, mozjpeg: true },
+      jpg: { quality: 82, mozjpeg: true },
+      webp: { quality: 85, effort: 6 },
+    }),
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
@@ -79,8 +88,12 @@ export default defineConfig({
     outDir: "AxioControl",
     emptyOutDir: true,
     sourcemap: false,
-    minify: true,
-    ssrManifest: true,
+    minify: "terser",
+    terserOptions: {
+      compress: { passes: 2, drop_console: false },
+      format: { comments: false },
+      mangle: true,
+    },
     modulePreload: true,
     copyPublicDir: true,
     cssCodeSplit: true,
