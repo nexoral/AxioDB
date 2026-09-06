@@ -153,7 +153,7 @@ const Introduction: React.FC = () => {
   return (
     <section id="introduction" className="scroll-mt-20">
       <Seo
-        title="AxioDB - The Embedded Database for Node.js & Bun | Introduction"
+        title="AxioDB - The Embedded Database for Node.js | Introduction"
         description="Replaces SQLite, LowDB, NeDB and raw JSON files with a real database. Runs on Node.js 20+ and Bun. MongoDB-style queries, ACID transactions, zero native dependencies. No node-gyp, no electron-rebuild. Just npm install."
         path="/"
       />
@@ -195,7 +195,7 @@ const Introduction: React.FC = () => {
           </h1>
           <div className="space-y-4 mb-10">
             <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-gray-700 font-medium leading-tight">
-              The Embedded Database for Node.js & Bun
+              The Embedded Database for Node.js
             </p>
             <p className="text-lg lg:text-xl text-gray-600 font-light leading-relaxed max-w-4xl">
               Replaces SQLite, LowDB, NeDB & raw JSON files with a real database.
