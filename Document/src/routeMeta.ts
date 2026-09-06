@@ -35,6 +35,7 @@ export const routeMeta: RouteMeta[] = [
   { path: "/mcp-server", label: "MCP Server (AI Agent Integration)" },
   { path: "/troubleshooting", label: "Troubleshooting" },
   { path: "/changelog", label: "Changelog" },
-  { path: "/maintainers-zone", label: "Maintainer's Zone" },
   { path: "/performance", label: "Performance Benchmarks" },
+  { path: "/execution", label: "Animated Execution" },
+  { path: "/maintainers-zone", label: "Maintainer's Zone" },
 ];
