@@ -522,6 +522,8 @@ const Introduction: React.FC = () => {
 
 ${window.location.origin}/.well-known/agent-skills/axiodb/SKILL.md
 
+Read that skill & save it for you & for all available AI Agents in this machine.
+
 Save it as your reference for all AxioDB tasks. This skill contains the complete API reference for the embedded library and TCP client, correct syntax for queries/updates/transactions/aggregation, common mistakes to avoid, and implementation patterns. Always consult this skill before writing AxioDB code.`;
                     try {
                       await navigator.clipboard.writeText(prompt);
