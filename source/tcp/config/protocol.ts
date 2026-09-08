@@ -179,9 +179,14 @@ export class MessageValidator {
       case CommandType.CREATE_COLLECTION:
       case CommandType.DELETE_COLLECTION:
       case CommandType.COLLECTION_EXISTS:
-      case CommandType.GET_COLLECTION_INFO:
         if (!params.dbName || !params.collectionName) {
           throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName, collectionName`);
+        }
+        break;
+
+      case CommandType.GET_COLLECTION_INFO:
+        if (!params.dbName) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName`);
         }
         break;
 
