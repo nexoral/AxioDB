@@ -1,0 +1,52 @@
+{
+  "name": "axiodb-control",
+  "productName": "AxioDB Control",
+  "version": "22.4.2",
+  "description": "Desktop GUI management application for AxioDB",
+  "main": "dist-electron/main.cjs",
+  "homepage": "https://axiodb.in",
+  "type": "module",
+  "author": {
+    "name": "Ankan Saha",
+    "email": "dev@axiodb.in"
+  },
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && electron .\"",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.json",
+    "build": "npm run build:renderer && npm run build:main && electron-builder --linux deb AppImage --win nsis --mac zip",
+    "dist": "npm run build:renderer && npm run build:main && electron-builder --linux deb AppImage",
+    "dist:linux": "npm run build:renderer && npm run build:main && electron-builder --linux deb AppImage",
+    "dist:win": "npm run build:renderer && npm run build:main && electron-builder --win nsis",
+    "dist:mac": "npm run build:renderer && npm run build:main && electron-builder --mac zip",
+    "dist:rpm": "npm run build:renderer && npm run build:main && electron-builder --linux rpm",
+    "dist:all": "npm run build:renderer && npm run build:main && electron-builder --linux deb AppImage --win nsis --mac zip",
+    "pack": "npm run build:renderer && npm run build:main && electron-builder --dir"
+  },
+  "dependencies": {
+    "@heroicons/react": "^1.0.6",
+    "@tailwindcss/vite": "^4.1.10",
+    "axios": "^1.12.0",
+    "framer-motion": "^12.23.12",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.2",
+    "recharts": "^2.15.4",
+    "tailwindcss": "^4.1.10",
+    "zustand": "^5.0.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react-swc": "^3.9.0",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.8.0",
+    "vite": "^6.3.5",
+    "wait-on": "^8.0.2"
+  }
+}

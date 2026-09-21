@@ -1,0 +1,58 @@
+{
+  "appId": "com.axiodb.control",
+  "productName": "AxioDB Control",
+  "copyright": "Copyright © 2026 Ankan Saha",
+  "directories": {
+    "output": "release",
+    "buildResources": "resources"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*",
+    "resources/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "resources/icon.png",
+      "to": "icon.png"
+    }
+  ],
+  "linux": {
+    "target": [
+      { "target": "deb", "arch": ["x64", "arm64"] },
+      { "target": "AppImage", "arch": ["x64", "arm64"] }
+    ],
+    "maintainer": "Ankan Saha <dev@axiodb.in>",
+    "category": "Development",
+    "icon": "resources/icons",
+    "synopsis": "Desktop GUI management client for AxioDB",
+    "description": "Next-generation desktop interface for managing AxioDB databases, collections, documents, queries, and monitoring.",
+    "desktop": {
+      "StartupWMClass": "AxioDB Control"
+    }
+  },
+  "deb": {
+    "afterInstall": "resources/after-install.sh",
+    "afterRemove": "resources/after-remove.sh"
+  },
+  "win": {
+    "target": [
+      { "target": "nsis", "arch": ["x64"] }
+    ],
+    "icon": "resources/icon.png"
+  },
+  "mac": {
+    "target": [
+      { "target": "zip", "arch": ["x64", "arm64"] }
+    ],
+    "category": "public.app-category.developer-tools",
+    "icon": "resources/icon.png"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  }
+}

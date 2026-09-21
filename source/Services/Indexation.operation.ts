@@ -149,7 +149,7 @@ export class AxioDB {
         Logger.info(`AxioDB folder created at: ${this.currentPATH}`);
       }
     }
-    if (this.GUI || (this.TCP && this.TCPAuth)) {
+    if (this.GUI || this.HTTP || (this.TCP && this.TCPAuth)) {
       await new AuthSeeder(this).seedIfNeeded();
       LoginRateLimiter.startCleanupSweep();
     }

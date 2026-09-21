@@ -457,8 +457,8 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/axiodb:latest
 
-  release_cli:
-    name: "Release CLI Binary"
+  release_softwares:
+    name: "Release Softwares"
     needs: [detect_changes]
     if: needs.detect_changes.outputs.run_cli_release == 'true'
     runs-on: ubuntu-latest
@@ -559,6 +559,48 @@ jobs:
           cp ../Scripts/install.sh .
           cp ../Scripts/install.ps1 .
 
+      - name: Setup Node.js
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Electron app (all platforms)
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          cd electron
+          npm install
+          npm run build:renderer
+          npm run build:main
+          npx electron-builder --linux deb AppImage --win nsis --mac zip
+        env:
+          GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN_FOR_RELEASE }}
+
+      - name: Build GUI (standalone web)
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          cd GUI
+          npm install
+          npm run build
+          cd dist
+          tar -czf ../../cli/bin/AxioDB_GUI.tar.gz .
+
+      - name: Collect Electron artifacts
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          mkdir -p gui-artifacts
+          cp electron/dist/*.deb gui-artifacts/ 2>/dev/null || true
+          cp electron/dist/*.AppImage gui-artifacts/ 2>/dev/null || true
+          cp electron/dist/*.exe gui-artifacts/ 2>/dev/null || true
+          cp electron/dist/*.zip gui-artifacts/ 2>/dev/null || true
+          cp electron/dist/*.dmg gui-artifacts/ 2>/dev/null || true
+          cp electron/dist/*.rpm gui-artifacts/ 2>/dev/null || true
+          cp electron/dist/*.snap gui-artifacts/ 2>/dev/null || true
+          cp electron/dist/*.tar.gz gui-artifacts/ 2>/dev/null || true
+          cp electron/dist/*.yml gui-artifacts/ 2>/dev/null || true
+          cd gui-artifacts
+          sha256sum *.deb *.AppImage *.exe *.zip *.dmg *.rpm *.snap *.tar.gz 2>/dev/null > gui_checksums.txt || true
+
       - name: Create GitHub Release
         if: steps.check.outputs.exists == 'false'
         run: |
@@ -566,7 +608,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
 
           BODY=$(cat << 'RELEASEBODY'
-          ## AxioDB CLI vVERSION_PLACEHOLDER
+          ## AxioDB vVERSION_PLACEHOLDER
 
           ### Quick Install
 
@@ -584,20 +626,22 @@ jobs:
 
           ### Downloads
 
-          #### Windows
+          #### CLI (Command Line)
+
+          **Windows**
           | File | Architecture |
           |------|--------------|
           | `axiodb_windows_amd64.exe` | x64 (most common) |
           | `axiodb_windows_arm64.exe` | ARM64 (Surface Pro X) |
           | `axiodb_windows_386.exe` | x86 (32-bit) |
 
-          #### macOS
+          **macOS**
           | File | Architecture |
           |------|--------------|
           | `axiodb_darwin_arm64` | Apple Silicon (M1/M2/M3/M4) |
           | `axiodb_darwin_amd64` | Intel |
 
-          #### Linux
+          **Linux**
           | File | Architecture |
           |------|--------------|
           | `axiodb_linux_amd64` | x86_64 |
@@ -605,24 +649,39 @@ jobs:
           | `axiodb_linux_386` | x86 (32-bit) |
           | `axiodb_linux_arm` | ARMv7 (Raspberry Pi 3) |
 
-          #### BSD
+          **BSD**
           | File | Architecture |
           |------|--------------|
           | `axiodb_freebsd_amd64` | FreeBSD x86_64 |
           | `axiodb_openbsd_amd64` | OpenBSD x86_64 |
           | `axiodb_netbsd_amd64` | NetBSD x86_64 |
 
+          #### GUI (Desktop Electron App)
+
+          | File | Platform |
+          |------|----------|
+          | `AxioDB_Control_*.deb` | Debian/Ubuntu |
+          | `AxioDB_Control_*.AppImage` | Linux Universal |
+          | `AxioDB_Control_*.exe` | Windows Installer |
+          | `AxioDB_Control_*.zip` | macOS |
+
+          #### GUI (Standalone Web)
+
+          | File | Description |
+          |------|-------------|
+          | `AxioDB_GUI.tar.gz` | Standalone web GUI (extract & open index.html) |
+
           ---
 
           ### Manual Installation
 
-          **Linux/macOS/BSD:**
+          **CLI - Linux/macOS/BSD:**
           ```bash
           chmod +x axiodb_<os>_<arch>
           sudo mv axiodb_<os>_<arch> /usr/local/bin/axiodb
           ```
 
-          **Windows:**
+          **CLI - Windows:**
           Move `axiodb_windows_<arch>.exe` to a folder in PATH and rename to `axiodb.exe`
 
           ---
@@ -643,6 +702,7 @@ jobs:
 
           ### Checksums
           Verify download: `sha256sum -c checksums.txt --ignore-missing`
+          Verify GUI: `sha256sum -c gui_checksums.txt --ignore-missing`
           RELEASEBODY
           )
 
@@ -664,6 +724,15 @@ jobs:
             cli/bin/checksums.txt \
             cli/bin/install.sh \
             cli/bin/install.ps1 \
+            cli/bin/AxioDB_GUI.tar.gz \
+            gui-artifacts/*.deb \
+            gui-artifacts/*.AppImage \
+            gui-artifacts/*.exe \
+            gui-artifacts/*.zip \
+            gui-artifacts/*.dmg \
+            gui-artifacts/*.rpm \
+            gui-artifacts/*.snap \
+            gui-artifacts/gui_checksums.txt \
             --title "$TAG" \
             --notes "$BODY"
         env:

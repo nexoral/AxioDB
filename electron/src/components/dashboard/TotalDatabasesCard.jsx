@@ -1,0 +1,43 @@
+import { DatabaseIcon } from '@heroicons/react/outline'
+import { useEffect, useState } from 'react'
+
+/**
+ * Component to display the total number of databases in the AxioDB system
+ */
+const TotalDatabasesCard = ({ totalDatabases }) => {
+  // In a real application, this would come from an API
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Simulate fetching total databases count
+    setTimeout(() => {
+      setLoading(false)
+    }, 1000) // Simulate a 1 second delay
+  }, [])
+
+  return (
+    <div className='bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow'>
+      <div className='flex justify-between'>
+        <div>
+          {/* <h3 className="text-lg font-medium text-ink-900">Total Databases</h3> */}
+          {loading
+            ? (
+              <div className='h-8 mt-2 bg-ink-200 rounded animate-pulse w-16 text-center' />
+              )
+            : (
+              <p className='text-2xl font-bold text-brand-700 mt-2 text-center'>
+                {totalDatabases <= 1
+                  ? `${totalDatabases} Database`
+                  : `${totalDatabases} Databases`}
+              </p>
+              )}
+        </div>
+        <div className='p-3 bg-info-50 rounded-full'>
+          <DatabaseIcon className='h-8 w-8 text-brand-700' />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default TotalDatabasesCard

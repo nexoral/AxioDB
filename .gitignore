@@ -35,3 +35,10 @@ graphify-out/
 # project instructions and must stay tracked.
 .claude/settings.json
 .claude/settings.local.json
+
+# Electron generated build outputs & dependencies
+electron/node_modules/
+electron/dist/
+electron/dist-electron/
+electron/release/
+electron/.vite/
