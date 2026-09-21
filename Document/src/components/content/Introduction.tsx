@@ -18,6 +18,8 @@ import {
   Command,
   Copy,
   Check,
+  Monitor,
+  Globe,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Seo from "../ui/Seo";
@@ -105,6 +107,7 @@ const Introduction: React.FC = () => {
   const mcpBannerReveal = useScrollReveal<HTMLAnchorElement>();
   const skillBannerReveal = useScrollReveal<HTMLDivElement>();
   const cliBannerReveal = useScrollReveal<HTMLAnchorElement>();
+  const desktopGuiBannerReveal = useScrollReveal<HTMLAnchorElement>();
   const cloudBannerReveal = useScrollReveal<HTMLDivElement>();
   const guiBannerReveal = useScrollReveal<HTMLDivElement>();
   const whyAxioDBReveal = useScrollReveal<HTMLDivElement>();
@@ -617,7 +620,35 @@ Save it as your reference for all AxioDB tasks. This skill contains the complete
             <ArrowRight className="h-6 w-6 text-emerald-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
           </a>
 
-          {/* Performance Metrics & ACID Compliance */}
+          {/* New Feature Banner: Desktop GUI */}
+          <a
+            ref={desktopGuiBannerReveal.ref}
+            href="/installation"
+            className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gradient-to-r from-indigo-50 to-violet-50 px-6 py-5 rounded-xl border-2 border-indigo-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${desktopGuiBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+              <Monitor className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="text-xs bg-indigo-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
+                  NEW
+                </span>
+                <span className="text-lg font-black text-indigo-700">
+                  AxioDB Desktop GUI
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">
+                Native desktop app (Electron) with a card-based document viewer,
+                bouncy-ball splash loader, connection management, and all-in-one
+                database tooling for Linux, macOS, and Windows.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-center gap-2 text-xs text-gray-500 flex-shrink-0">
+              <span className="hidden sm:inline">Linux · macOS · Windows</span>
+              <ArrowRight className="h-6 w-6 text-indigo-600 group-hover:translate-x-1 transition-transform duration-300" />
+            </div>
+          </a>
           <div className="mb-8">
             {/* ACID Compliance Banner */}
             <div className="flex items-center justify-center gap-3 bg-orange-50 px-6 py-4 rounded-xl border-2 border-amber-200 shadow-md mb-6">

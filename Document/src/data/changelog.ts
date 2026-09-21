@@ -12,6 +12,27 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.9.7",
+    date: "2026-09-21",
+    title: "Electron desktop app: card-based documents, splash screen, installer unification, version sync",
+    changes: [
+      "New: Electron desktop GUI (`electron/`) — a full-featured desktop application mirroring the web GUI, with connection management, database/collection/document CRUD, query console, and live health/Latency monitoring",
+      "New: Splash screen with animated bouncy-balls loader — eliminates the first-open white flash when the Electron window initializes (transparent: false, backgroundColor: #f8fafc, closed via ready-to-show event)",
+      "New: Card-based document view in Electron Documents page — each document rendered as a card with Copy/Edit/Delete hover actions, _id hidden and displayed as #documentId, first 10 fields shown with 'Show more' to expand the rest",
+      "New: Interactive installer scripts (`install.sh` + `install.ps1`) — presents a CLI/GUI/Both choice menu; `CHOICE=2 bash` for non-interactive GUI install; auto-detects non-TTY piped installs and defaults to CLI with instructions",
+      "New: 10s health ping — periodic ping to `/api/health` updates `pingLatency` in the connection store; displayed in Titlebar and StatusBar with a pulsing connection dot",
+      "New: Password save & auto-fill — saved connections now store passwords; selecting a saved connection auto-fills all fields including password; 'Password saved' badge on connection cards; dedup by host:port:username",
+      "New: Database export in Electron — right-click export from Sidebar per-database, with spinner states and success/error banners; streams binary tar.gz from HTTP API to native save dialog",
+      "Fixed: delete collection false failure — prop name mismatch (`onDeleted` vs `onCollectionDeleted`) caused TypeError after successful deletion, showing 'Failed to delete' even though the collection was removed on the server",
+      "Fixed: delete database false failure — same prop name mismatch (`databaseName`/`onDeleted` vs `dbName`/`onConfirmDelete`)",
+      "Fixed: collection creation API error — CreateCollectionModal passing an object instead of a string, breaking `encodeURIComponent(selectedCollection)` in document-loading URLs",
+      "Fixed: Modal auto-focus — now focuses the first non-disabled input/textarea/button/select instead of the panel div",
+      "Chore: version sync script (`Scripts/versionController.sh`) updated to sync across all files — root package.json, cli/VERSION, cli/cmd/version.go, electron/package.json, GUI/package.json, Document/package.json, Document/public/llms.txt, Document/public/llms-full.txt, Document/index.html — no longer skips directories without git changes",
+      "Chore: GitHub Actions workflow renamed `release_cli` → `release_softwares`; now builds Electron app for all platforms (Linux deb/AppImage, Windows nsis, macOS zip) from a single Linux runner using electron-builder cross-compilation with Wine; Node.js 20 → 22",
+      "Chore: Electron app version bumped from 22.3.1 to 22.9.7 to match the monorepo version",
+    ],
+  },
+  {
     version: "22.1.2",
     date: "2026-09-06",
     title: "Security hardening: path traversal, shell injection, ReDoS, verbose errors, security headers",
