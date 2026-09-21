@@ -63,6 +63,9 @@ AxioDB/
 # Go CLI (separate binary, not shipped in npm package)
 /cli/
 
+# Electron desktop app (standalone application, not shipped in npm package)
+/electron/
+
 # Tooling configs (not shipped in npm package)
 opencode.json
 .graphifyignore

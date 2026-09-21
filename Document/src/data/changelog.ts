@@ -16,11 +16,13 @@ export const changelog: ChangelogEntry[] = [
     date: "2026-09-21",
     title: "Electron desktop app npm integration, .npmignore engine fix, dedicated GUI documentation",
     changes: [
-      "Fixed: npm packaging omission — corrected .npmignore rule from `cli/` to `/cli/` so that `lib/engine/cli/worker_process.js` is no longer stripped during `npm pack`, resolving the runtime 'Cannot find module ../cli/worker_process' exception in consumer installs",
+      "Fixed: npm packaging rules — corrected .npmignore rule from `cli/` to `/cli/` (preventing `lib/engine/cli/worker_process.js` from being stripped) and added `/electron/` so desktop GUI source and release artifacts are excluded from npm package deployments",
       "Refactored: Electron desktop app (`AxioDB Control`) now directly imports `AxioDB` from the installed `axiodb` npm package (`import { AxioDB } from \"axiodb\"`) instead of using brittle relative path require hacks into `../../lib/`",
       "Fixed: Electron storage IPC handlers — added strict type narrowing and safe fallbacks for query results across `store:getConnections`, `store:saveConnection`, `store:getSetting`, and `store:setSetting`",
       "Verified: local app storage path — verified embedded AxioDB instance properly structures data in `userData/.axiodb-control` (`~/.config/AxioDB Control/.axiodb-control/` on Linux) for connection profiles and settings",
-      "New: dedicated AxioDB Control GUI documentation page (`/gui`) — decoupled GUI documentation from the general installation page with platform-specific installers (.deb, .AppImage, NSIS .exe, macOS zip) and connection hub guides",
+      "New: dedicated AxioDB Control GUI documentation page (`/gui`) — created standalone documentation with platform-specific installers (.deb, .AppImage, NSIS .exe, macOS zip), local storage architecture reference, and connection hub guides",
+      "Decoupled: installation page (`/installation`) — removed shared desktop GUI install commands and releases table from the core npm package installation page, replacing them with a clean companion reference card pointing to `/gui` (matching `/cli`)",
+      "Updated: navigation & SEO artifacts — added dedicated 'Desktop GUI' navigation section in Sidebar, registered `/gui` route in route metadata, updated home page banner, and regenerated `sitemap.xml` and `llms.txt`",
     ],
   },
   {
