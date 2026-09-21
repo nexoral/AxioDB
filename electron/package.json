@@ -1,10 +1,14 @@
 {
   "name": "axiodb-control",
   "productName": "AxioDB Control",
-  "version": "22.4.2",
+  "version": "22.5.3",
   "description": "Desktop GUI management application for AxioDB",
   "main": "dist-electron/main.cjs",
   "homepage": "https://axiodb.in",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nexoral/AxioDB.git"
+  },
   "type": "module",
   "author": {
     "name": "Ankan Saha",
