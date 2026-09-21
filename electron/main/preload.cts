@@ -41,6 +41,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   uploadDatabase: (filePath: string, url: string) =>
     ipcRenderer.invoke("network:uploadDatabase", { filePath, url }),
 
+  // Binary file download (export)
+  exportDatabase: (dbName: string, baseUrl: string) =>
+    ipcRenderer.invoke("network:exportDatabase", { dbName, baseUrl }),
+
   // Network IPC client
   request: (config: RequestConfig) => ipcRenderer.invoke("network:request", config),
   clearCookies: () => ipcRenderer.invoke("network:clearCookies"),

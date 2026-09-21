@@ -13,6 +13,7 @@ import ForcePasswordChangeModal from "./components/auth/ForcePasswordChangeModal
 import ErrorBoundary from "./components/ui/ErrorBoundary";
 import { useConnectionStore } from "./store/connectionStore";
 import { useAuthStore } from "./store/authStore";
+import authApi from "./api/authApi";
 
 const MainLayout = ({ children }) => {
   const location = useLocation();
@@ -31,7 +32,7 @@ const MainLayout = ({ children }) => {
 };
 
 const AppContent = () => {
-  const { hasSeenWelcome, setHasSeenWelcome, isConnected } = useConnectionStore();
+  const { hasSeenWelcome, setHasSeenWelcome, isConnected, setPingLatency, getBaseUrl } = useConnectionStore();
   const { mustChangePassword } = useAuthStore();
   const [showForcePassword, setShowForcePassword] = useState(false);
 
@@ -40,6 +41,25 @@ const AppContent = () => {
       setShowForcePassword(true);
     }
   }, [mustChangePassword]);
+
+  // Periodic health ping every 10 seconds while connected — keeps the
+  // "connected X ms" latency in the titlebar and status bar fresh.
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const ping = async () => {
+      try {
+        const res = await authApi.ping(getBaseUrl());
+        setPingLatency(res.latency);
+      } catch {
+        setPingLatency(null);
+      }
+    };
+
+    ping();
+    const interval = setInterval(ping, 10000);
+    return () => clearInterval(interval);
+  }, [isConnected, getBaseUrl, setPingLatency]);
 
   // First launch: Animated Welcome
   if (!hasSeenWelcome) {

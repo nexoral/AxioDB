@@ -1,4 +1,5 @@
 import apiClient from "./client";
+import { useConnectionStore } from "../store/connectionStore";
 
 const authApi = {
   // Liveness & latency check
@@ -45,6 +46,38 @@ const authApi = {
 
   // Direct probe alias
   checkHealth: (targetBaseUrl) => authApi.ping(targetBaseUrl),
+
+  // Export a database as a tar.gz archive — uses native IPC in Electron for binary
+  // streaming, with a browser blob-download fallback for web dev.
+  exportDatabase: async (dbName) => {
+    const baseUrl = useConnectionStore.getState().getBaseUrl();
+
+    if (typeof window !== "undefined" && window.electronAPI?.exportDatabase) {
+      return window.electronAPI.exportDatabase(dbName, baseUrl);
+    }
+
+    const response = await apiClient.get("/api/db/export-database/", {
+      params: { dbName },
+      responseType: "blob",
+    });
+
+    const disposition = response.headers["content-disposition"];
+    const match = disposition?.match(/filename="(.+)"/);
+    const downloadName = match ? match[1] : `${dbName}.tar.gz`;
+
+    const url = window.URL.createObjectURL(new Blob([response.data], {
+      type: response.headers["content-type"] || "application/gzip",
+    }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", downloadName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    return { canceled: false, success: true, filePath: downloadName };
+  },
 };
 
 export default authApi;

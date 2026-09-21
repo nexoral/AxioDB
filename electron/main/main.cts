@@ -14,6 +14,7 @@ if (process.platform === "win32") {
 const cookieStore = new Map<string, string>();
 
 let mainWindow: BrowserWindow | null = null;
+let splashWindow: BrowserWindow | null = null;
 
 const isDev = process.env.NODE_ENV === "development" || process.argv.includes("--dev");
 
@@ -42,6 +43,64 @@ function getWindowIcon() {
   return undefined;
 }
 
+function createSplashWindow(): BrowserWindow {
+  const splash = new BrowserWindow({
+    width: 400,
+    height: 300,
+    frame: false,
+    transparent: true,
+    center: true,
+    resizable: false,
+    closable: false,
+    minimizable: false,
+    maximizable: false,
+    backgroundColor: "#ffffff00",
+    skipTaskbar: true,
+  });
+
+  const html = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8">
+<style>
+  body{margin:0;background:transparent;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+  .logo{display:flex;align-items-center;gap:10px;margin-bottom:26px}
+  .logo-text{font-size:20px;font-weight:700;color:#0f172a}
+  .balls{display:flex;align-items:flex-end;gap:7px;margin-bottom:18px}
+  .ball{width:14px;height:14px;border-radius:50%;display:inline-block}
+  .ball-0{background:linear-gradient(135deg,#3b82f8,#60a5fa);animation:bounce 0.6s ease-in-out 0ms infinite both}
+  .ball-1{background:linear-gradient(135deg,#10b981,#34d399);animation:bounce 0.6s ease-in-out 100ms infinite both}
+  .ball-2{background:linear-gradient(135deg,#a855f7,#c084fc);animation:bounce 0.6s ease-in-out 200ms infinite both}
+  .ball-3{background:linear-gradient(135deg,#f59e0b,#fbbf24);animation:bounce 0.6s ease-in-out 300ms infinite both}
+  .ball-4{background:linear-gradient(135deg,#ec4899,#f871f3);animation:bounce 0.6s ease-in-out 400ms infinite both}
+  .text{font-size:13px;color:#64748b;font-weight:500}
+  @keyframes bounce{0%,80%,100%{transform:scaleY(0.7);opacity:0.5}50%{transform:scaleY(1);opacity:1}}
+  @keyframes pulseLogo{0%,100%{opacity:0.4}50%{opacity:1}}
+</style>
+</head>
+<body>
+  <div class="logo">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="12" cy="6" rx="8" ry="3" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 6v12c0 1.66 3.58 3 8 3s8-1.34 8-3V6" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="12" cy="18" r="4" fill="#10b981"/>
+    </svg>
+    <span class="logo-text">AxioDB Control</span>
+  </div>
+  <div class="balls">
+    <div class="ball ball-0"></div>
+    <div class="ball ball-1"></div>
+    <div class="ball ball-2"></div>
+    <div class="ball ball-3"></div>
+    <div class="ball ball-4"></div>
+  </div>
+  <div class="text">Booting AxioDB Control…</div>
+</body>
+</html>`;
+
+  splash.loadURL(`data:text/html;charset=utf-8;base64,${Buffer.from(html).toString("base64")}`);
+  return splash;
+}
+
 function createWindow() {
   const icon = getWindowIcon();
 
@@ -52,6 +111,7 @@ function createWindow() {
     minHeight: 680,
     frame: false,
     backgroundColor: "#f8fafc",
+    show: false,
     icon,
     title: "AxioDB Control",
     webPreferences: {
@@ -60,6 +120,16 @@ function createWindow() {
       nodeIntegration: false,
       sandbox: false,
     },
+  });
+
+  mainWindow.once("ready-to-show", () => {
+    setTimeout(() => {
+      mainWindow?.show();
+      if (splashWindow) {
+        splashWindow.close();
+        splashWindow = null;
+      }
+    }, 500);
   });
 
   if (icon) {
@@ -98,10 +168,12 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  splashWindow = createSplashWindow();
   createWindow();
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
+      splashWindow = createSplashWindow();
       createWindow();
     }
   });
@@ -398,3 +470,116 @@ ipcMain.handle("network:request", async (_event, config: {
     }
   });
 });
+
+// Binary file download — streams a binary HTTP response straight to disk via a save dialog.
+// The export endpoint returns a tar.gz archive that cannot survive the JSON round-trip of
+// `network:request`, so this handler pipes the raw Buffer stream into a WriteStream.
+ipcMain.handle(
+  "network:exportDatabase",
+  async (_event, { dbName, baseUrl }: { dbName: string; baseUrl: string }) => {
+    if (!mainWindow) throw new Error("No main window available");
+
+    const saveResult = await dialog.showSaveDialog(mainWindow, {
+      title: "Export Database",
+      defaultPath: `${dbName}.tar.gz`,
+      filters: [
+        { name: "GZIP archives (*.tar.gz, *.tgz)", extensions: ["tar.gz", "tgz"] },
+        { name: "All files", extensions: ["*"] },
+      ],
+    });
+
+    if (saveResult.canceled || !saveResult.filePath) {
+      return { canceled: true };
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        const fullUrl = new URL(`${baseUrl.replace(/\/+$/, "")}/api/db/export-database/`);
+        fullUrl.searchParams.append("dbName", dbName);
+
+        const isHttps = fullUrl.protocol === "https:";
+        const client = isHttps ? https : http;
+        const hostKey = `${fullUrl.protocol}//${fullUrl.host}`;
+        const savedCookie = cookieStore.get(hostKey);
+
+        const requestHeaders: Record<string, string> = {
+          "User-Agent": "AxioDB-Control/22.3.1 (Desktop)",
+          Accept: "*/*",
+        };
+        if (savedCookie) {
+          requestHeaders["Cookie"] = savedCookie;
+        }
+
+        const req = client.request(
+          {
+            hostname: fullUrl.hostname,
+            port: fullUrl.port || (isHttps ? 443 : 80),
+            path: `${fullUrl.pathname}${fullUrl.search}`,
+            method: "GET",
+            headers: requestHeaders,
+            timeout: 180000,
+          },
+          (res) => {
+            if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+              let errorBody = "";
+              res.on("data", (chunk) => {
+                errorBody += chunk.toString("utf8");
+              });
+              res.on("end", () => {
+                try {
+                  const parsed = JSON.parse(errorBody);
+                  reject(
+                    new Error(
+                      (parsed.message as string) ||
+                        `Export failed with status ${res.statusCode}`,
+                    ),
+                  );
+                } catch {
+                  reject(
+                    new Error(`Export failed with status ${res.statusCode}`),
+                  );
+                }
+              });
+              return;
+            }
+
+            const fileStream = fs.createWriteStream(saveResult.filePath);
+            let downloadedBytes = 0;
+
+            res.on("data", (chunk) => {
+              downloadedBytes += chunk.length;
+            });
+
+            res.pipe(fileStream);
+
+            fileStream.on("finish", () => {
+              fileStream.close(() => {
+                resolve({
+                  canceled: false,
+                  success: true,
+                  filePath: saveResult.filePath,
+                  bytes: downloadedBytes,
+                });
+              });
+            });
+
+            fileStream.on("error", (err) => {
+              fs.unlink(saveResult.filePath, () => {});
+              reject(err);
+            });
+          },
+        );
+
+        req.on("error", (err) => reject(err));
+        req.on("timeout", () => {
+          req.destroy();
+          reject(new Error("Export timed out after 180000ms"));
+        });
+
+        req.end();
+      } catch (err: unknown) {
+        reject(err instanceof Error ? err : new Error(String(err)));
+      }
+    });
+  },
+);

@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import apiClient from "../api/client";
+import authApi from "../api/authApi";
 import { useConnectionStore } from "../store/connectionStore";
 import { useDbStore } from "../store/dbStore";
 import { formatBytes } from "../utils/format";
@@ -13,8 +14,16 @@ const Import = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  // Export state
+  const [exportingDb, setExportingDb] = useState(null);
+  const [exportStatus, setExportStatus] = useState(null); // 'success' | 'error' | null
+  const [exportError, setExportError] = useState("");
+  const [exportSuccess, setExportSuccess] = useState("");
+
   const getBaseUrl = useConnectionStore((state) => state.getBaseUrl);
   const fetchDatabases = useDbStore((state) => state.fetchDatabases);
+  const databases = useDbStore((state) => state.databases);
+  const loadingDatabases = useDbStore((state) => state.loadingTree);
 
   const validateFile = (name) => {
     const allowed = [".zip", ".tar", ".tar.gz", ".tgz"];
@@ -147,6 +156,37 @@ const Import = () => {
     setErrorMessage("");
     setSuccessMessage("");
   };
+
+  const handleExportDatabase = async (dbName) => {
+    setExportingDb(dbName);
+    setExportStatus(null);
+    setExportError("");
+    setExportSuccess("");
+
+    try {
+      const result = await authApi.exportDatabase(dbName);
+
+      if (result.canceled) {
+        return;
+      }
+
+      setExportStatus("success");
+      setExportSuccess(`${dbName}.tar.gz exported successfully`);
+    } catch (err) {
+      setExportStatus("error");
+      setExportError(
+        err.message || "Failed to export database. Please try again."
+      );
+    } finally {
+      setExportingDb(null);
+    }
+  };
+
+  useEffect(() => {
+    if (!databases.length && !loadingDatabases) {
+      fetchDatabases();
+    }
+  }, [databases, loadingDatabases, fetchDatabases]);
 
   return (
     <div className="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8">
@@ -343,7 +383,38 @@ const Import = () => {
               </>
             )}
           </button>
-        </div>
+         </div>
+
+        {/* Export Status */}
+        <AnimatePresence>
+          {exportStatus === "success" && exportSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-3"
+            >
+              <svg className="w-5 h-5 shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="font-semibold text-emerald-900">{exportSuccess}</span>
+            </motion.div>
+          )}
+
+          {exportStatus === "error" && exportError && (
+            <motion.div
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-center gap-3"
+            >
+              <svg className="w-5 h-5 shrink-0 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-semibold text-red-900">{exportError}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Informational Card */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
@@ -362,6 +433,91 @@ const Import = () => {
               <span>Once import completes, the database tree in the Explorer sidebar automatically updates.</span>
             </li>
           </ul>
+        </div>
+      </motion.div>
+
+      {/* Export Databases Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+        className="max-w-3xl mx-auto mt-8 space-y-4"
+      >
+        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V2m0 0l-4 4m4-4l4 4M5 12h14" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Export Databases</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Download a compressed backup of any database as a <span className="font-mono text-slate-700">.tar.gz</span> archive.
+              </p>
+            </div>
+          </div>
+
+          {loadingDatabases ? (
+            <div className="space-y-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-12 bg-slate-100 rounded-lg animate-pulse" />
+              ))}
+            </div>
+          ) : databases.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="h-10 w-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                </svg>
+              </div>
+              <p className="text-xs text-slate-500">No databases available for export.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {databases.map((dbName) => (
+                <motion.div
+                  key={dbName}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, delay: 0.05 * databases.indexOf(dbName) }}
+                  className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 hover:border-emerald-200 transition-all group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-8 w-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <ellipse cx="12" cy="6" rx="8" ry="3" />
+                        <path d="M4 6v12c0 1.66 3.58 3 8 3s8-1.34 8-3V6" />
+                      </svg>
+                    </div>
+                    <span className="font-mono text-sm text-slate-900 truncate">{dbName}</span>
+                  </div>
+                  <button
+                    onClick={() => handleExportDatabase(dbName)}
+                    disabled={exportingDb === dbName}
+                    className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5 shadow-sm"
+                  >
+                    {exportingDb === dbName ? (
+                      <>
+                        <svg className="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                        </svg>
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 12V2m0 0l-4 4m4-4l4 4M5 12h14" />
+                        </svg>
+                        Export
+                      </>
+                    )}
+                  </button>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </motion.div>
     </div>

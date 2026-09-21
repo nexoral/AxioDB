@@ -127,6 +127,17 @@
   50% { transform: translateY(-8px) translateX(6px); }
 }
 
+@keyframes latencyUpdate {
+  0% { color: #10b981; transform: scale(1.05); }
+  60% { color: #059669; transform: scale(1.12); }
+  100% { color: #10b981; transform: scale(1); }
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
 .animate-fadeIn { animation: fadeIn 0.25s var(--ease-out-soft) both; }
 .animate-slideIn { animation: slideIn 0.25s var(--ease-out-soft) both; }
 .animate-riseIn { animation: riseIn 0.35s var(--ease-out-soft) both; }
@@ -134,6 +145,8 @@
 .animate-pulseGlow { animation: pulseGlow 3s ease-in-out infinite; }
 .animate-radar { animation: radarSweep 2s linear infinite; }
 .animate-float { animation: floatOrb 6s ease-in-out infinite; }
+.animate-latencyUpdate { animation: latencyUpdate 0.35s var(--ease-spring) both; }
+.animate-pulseDot { animation: pulseDot 1.5s ease-in-out infinite both; }
 
 .stagger > * { animation: riseIn 0.35s var(--ease-out-soft) both; }
 .stagger > *:nth-child(1) { animation-delay: 0ms; }

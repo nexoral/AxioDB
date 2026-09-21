@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useConnectionStore } from "../store/connectionStore";
 import { useAuthStore } from "../store/authStore";
 import axioLogo from "../assets/AXioDB.png";
@@ -6,6 +7,7 @@ import axioLogo from "../assets/AXioDB.png";
 const Titlebar = () => {
   const [isMaximized, setIsMaximized] = useState(false);
   const { isConnected, host, port, pingLatency, disconnect } = useConnectionStore();
+  const isPingAlive = pingLatency !== null;
   const { clearSession } = useAuthStore();
 
   useEffect(() => {
@@ -37,17 +39,24 @@ const Titlebar = () => {
 
         {isConnected ? (
           <div className="ml-3 flex items-center gap-2 bg-emerald-50/80 border border-emerald-200/80 rounded-full px-2.5 py-0.5 no-drag">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            <span
+              className={`relative flex h-2 w-2 rounded-full bg-emerald-500 ${isPingAlive ? "animate-pulseDot" : ""}`}
+            >
+              <span className="absolute inset-0 rounded-full bg-emerald-400 opacity-40 animate-ping"></span>
             </span>
             <span className="text-[11px] font-mono font-medium text-slate-700">
               {host}:{port}
             </span>
             {pingLatency !== null && (
-              <span className="text-[10px] font-mono font-semibold text-emerald-700 bg-emerald-100/70 px-1.5 py-0.2 rounded">
+              <motion.span
+                key={pingLatency}
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="text-[10px] font-mono font-semibold text-emerald-700 bg-emerald-100/70 px-1.5 py-0.2 rounded"
+              >
                 {pingLatency}ms
-              </span>
+              </motion.span>
             )}
           </div>
         ) : (

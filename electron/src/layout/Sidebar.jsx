@@ -373,9 +373,9 @@ const Sidebar = () => {
 
       <DeleteDatabaseModal
         isOpen={!!dbToDelete}
-        databaseName={dbToDelete || ""}
+        dbName={dbToDelete || ""}
         onClose={() => setDbToDelete(null)}
-        onDeleted={() => {
+        onConfirmDelete={() => {
           if (dbToDelete) removeDatabaseLocally(dbToDelete);
           setDbToDelete(null);
         }}
@@ -396,7 +396,7 @@ const Sidebar = () => {
         databaseName={collToDelete?.dbName || ""}
         collectionName={collToDelete?.collName || ""}
         onClose={() => setCollToDelete(null)}
-        onDeleted={() => {
+        onCollectionDeleted={() => {
           if (collToDelete) removeCollectionLocally(collToDelete.dbName, collToDelete.collName);
           setCollToDelete(null);
         }}

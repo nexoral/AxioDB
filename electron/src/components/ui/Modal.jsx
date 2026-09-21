@@ -38,7 +38,11 @@ const Modal = ({
     }
     document.addEventListener('keydown', onKeyDown)
 
-    const focusTimer = requestAnimationFrame(() => panelRef.current?.focus())
+    const focusTimer = requestAnimationFrame(() => {
+      const firstFocusable = panelRef.current?.querySelector('input:not([disabled]), textarea:not([disabled]), button:not([disabled]), select:not([disabled]')
+      if (firstFocusable instanceof HTMLElement) firstFocusable.focus()
+      else panelRef.current?.focus()
+    })
 
     return () => {
       document.removeEventListener('keydown', onKeyDown)
