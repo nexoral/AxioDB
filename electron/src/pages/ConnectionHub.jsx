@@ -121,11 +121,13 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
 
       if (formData.saveToFavorites) {
         saveConnection({
+          id: crypto.randomUUID(),
           name: formData.name,
           protocol: formData.protocol,
           host: formData.host,
           port: Number(formData.port),
           username: formData.username,
+          password: formData.password,
         });
       }
 
@@ -209,6 +211,14 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
                       {conn.protocol}://{conn.host}:{conn.port}
                     </p>
                     <p className="text-[10px] text-slate-400 mt-1">User: {conn.username}</p>
+                    {conn.password ? (
+                      <div className="flex items-center gap-1 mt-1">
+                        <svg className="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-7H2v7a2 2 0 002 2zM10 11V7a2 2 0 012-2h2a2 2 0 012 2v4m-6 0h6m-6 0l1.5-1.5" />
+                        </svg>
+                        <span className="text-[10px] text-emerald-600 font-medium">Password saved</span>
+                      </div>
+                    ) : null}
                   </div>
                   <button
                     onClick={(e) => {

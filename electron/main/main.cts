@@ -48,13 +48,13 @@ function createSplashWindow(): BrowserWindow {
     width: 400,
     height: 300,
     frame: false,
-    transparent: true,
+    transparent: false,
     center: true,
     resizable: false,
     closable: false,
     minimizable: false,
     maximizable: false,
-    backgroundColor: "#ffffff00",
+    backgroundColor: "#f8fafc",
     skipTaskbar: true,
   });
 
@@ -62,9 +62,9 @@ function createSplashWindow(): BrowserWindow {
 <html>
 <head><meta charset="utf-8">
 <style>
-  body{margin:0;background:transparent;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-  .logo{display:flex;align-items-center;gap:10px;margin-bottom:26px}
-  .logo-text{font-size:20px;font-weight:700;color:#0f172a}
+  body{margin:0;background:#f8fafc;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+  .logo{display:flex;align-items:center;gap:10px;margin-bottom:26px}
+  .logo-text{font-size:22px;font-weight:700;background:linear-gradient(135deg,#0f172a,#33415a);-webkit-background-clip:text;color:transparent}
   .balls{display:flex;align-items:flex-end;gap:7px;margin-bottom:18px}
   .ball{width:14px;height:14px;border-radius:50%;display:inline-block}
   .ball-0{background:linear-gradient(135deg,#3b82f8,#60a5fa);animation:bounce 0.6s ease-in-out 0ms infinite both}

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useDbStore } from "../store/dbStore";
 import { useConnectionStore } from "../store/connectionStore";
+import authApi from "../api/authApi";
 import CreateDatabaseModal from "../components/database/CreateDatabaseModal";
 import DeleteDatabaseModal from "../components/database/DeleteDatabaseModal";
 import CreateCollectionModal from "../components/collection/CreateCollectionModal";
@@ -40,6 +41,29 @@ const Sidebar = () => {
   const [showCreateColl, setShowCreateColl] = useState(false);
   const [createCollDb, setCreateCollDb] = useState("");
   const [collToDelete, setCollToDelete] = useState(null); // { dbName, collName }
+
+  // Export notification
+  const [exportMsg, setExportMsg] = useState(null); // { type: 'success'|'error', text: string }
+  const [exportingDb, setExportingDb] = useState(null);
+
+  const clearExportMsg = () => {
+    setTimeout(() => setExportMsg(null), 4000);
+  };
+
+  const handleExportDatabase = async (dbName) => {
+    setExportingDb(dbName);
+    try {
+      const result = await authApi.exportDatabase(dbName);
+      if (result.canceled) return;
+      setExportMsg({ type: "success", text: `${dbName}.tar.gz exported` });
+      clearExportMsg();
+    } catch (err) {
+      setExportMsg({ type: "error", text: err.message || "Export failed" });
+      clearExportMsg();
+    } finally {
+      setExportingDb(null);
+    }
+  };
 
   useEffect(() => {
     fetchDatabases();
@@ -113,12 +137,12 @@ const Sidebar = () => {
                   ? "bg-white text-emerald-700 shadow-xs font-semibold"
                   : "hover:text-slate-900 hover:bg-slate-200/60"
               }`}
-              title="Import & Backup Restore"
+              title="Import & Export"
             >
               <svg className="w-4 h-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
-              <span>Import</span>
+              <span>Backup</span>
             </button>
 
             {(!permissions || permissions.includes("user:view")) && (
@@ -253,7 +277,7 @@ const Sidebar = () => {
                           setCreateCollDb(dbName);
                           setShowCreateColl(true);
                         }}
-                        className="opacity-0 group-hover/db:opacity-100 p-0.5 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded"
+                        className="opacity-0 group-hover/db:opacity-100 p-0.5 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded transition-opacity"
                         title="Add Collection"
                       >
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -264,9 +288,30 @@ const Sidebar = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          handleExportDatabase(dbName);
+                        }}
+                        disabled={exportingDb === dbName}
+                        className="opacity-0 group-hover/db:opacity-100 p-0.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded transition-opacity disabled:opacity-50"
+                        title="Export Database"
+                      >
+                        {exportingDb === dbName ? (
+                          <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                          </svg>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setDbToDelete(dbName);
                         }}
-                        className="opacity-0 group-hover/db:opacity-100 p-0.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded"
+                        className="opacity-0 group-hover/db:opacity-100 p-0.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-opacity"
                         title="Delete Database"
                       >
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -336,6 +381,31 @@ const Sidebar = () => {
           )}
         </div>
       </div>
+
+      {/* Export Notification */}
+      {exportMsg && (
+        <div className="px-3 pb-2">
+          <div
+            className={`p-2.5 rounded-lg text-xs font-medium flex items-center gap-2 transition-all ${
+              exportMsg.type === "success"
+                ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+                : "bg-red-50 border border-red-200 text-red-800"
+            }`}
+          >
+            <svg
+              className={`w-3.5 h-3.5 shrink-0 ${exportMsg.type === "success" ? "text-emerald-600" : "text-red-600"}`}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor"
+            >
+              {exportMsg.type === "success" ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              )}
+            </svg>
+            <span className="truncate">{exportMsg.text}</span>
+          </div>
+        </div>
+      )}
 
       {/* Bottom User Profile Section */}
       <div className="p-2 border-t border-slate-200 bg-white">

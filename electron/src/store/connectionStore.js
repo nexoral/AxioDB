@@ -56,11 +56,13 @@ export const useConnectionStore = create((set, get) => ({
 
   saveConnection: (connection) => {
     const current = get().savedConnections;
-    const existingIndex = current.findIndex((c) => c.id === connection.id);
+    const existingIndex = current.findIndex(
+      (c) => c.host === connection.host && c.port === connection.port && c.username === connection.username
+    );
     let updated;
     if (existingIndex >= 0) {
       updated = [...current];
-      updated[existingIndex] = connection;
+      updated[existingIndex] = { ...updated[existingIndex], ...connection };
     } else {
       updated = [connection, ...current];
     }
