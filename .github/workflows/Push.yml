@@ -615,6 +615,15 @@ jobs:
           irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
           ```
 
+          **GUI (Electron Desktop App):**
+          ```bash
+          # Linux/macOS
+          curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash
+
+          # Windows
+          $env:CHOICE=2; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
+          ```
+
           ---
 
           ### Downloads

@@ -47,13 +47,25 @@ fi
 echo -e "${GREEN}Latest version: v${VERSION}${NC}"
 echo ""
 
-echo -e "${CYAN}What would you like to install?${NC}"
-echo ""
-echo -e "  ${YELLOW}1)${NC} CLI only      — command-line tool (~5MB)"
-echo -e "  ${YELLOW}2)${NC} GUI only      — desktop Electron app (~80MB)"
-echo -e "  ${YELLOW}3)${NC} Both          — CLI + GUI"
-echo ""
-read -p "Enter choice [1-3]: " CHOICE
+# Detect interactive mode — when piped (curl ... | bash), stdin is not a TTY
+if [ -n "$CHOICE" ]; then
+    echo -e "${GREEN}Using install choice: $CHOICE (from env)${NC}"
+elif [ -t 0 ]; then
+    echo -e "${CYAN}What would you like to install?${NC}"
+    echo ""
+    echo -e "  ${YELLOW}1)${NC} CLI only      — command-line tool (~5MB)"
+    echo -e "  ${YELLOW}2)${NC} GUI only      — desktop Electron app (~80MB)"
+    echo -e "  ${YELLOW}3)${NC} Both          — CLI + GUI"
+    echo ""
+    read -p "Enter choice [1-3]: " CHOICE
+else
+    echo -e "${YELLOW}Non-interactive mode detected (piped install).${NC}"
+    echo -e "  Installing ${YELLOW}CLI only${NC} by default — to install GUI, use:"
+    echo -e "  ${GREEN}curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash${NC}"
+    echo -e "  Or download and run directly: ${GREEN}curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh > install.sh && bash install.sh${NC}"
+    echo ""
+    CHOICE="1"
+fi
 
 install_cli() {
     echo ""

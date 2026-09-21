@@ -44,14 +44,18 @@ try {
 Write-ColorOutput "[+] Latest version: v$VERSION" "Green"
 Write-Host ""
 
-Write-ColorOutput "What would you like to install?" "Cyan"
-Write-Host ""
-Write-ColorOutput "  1) CLI only      — command-line tool (~5MB)" "Yellow"
-Write-ColorOutput "  2) GUI only      — desktop Electron app (~80MB)" "Yellow"
-Write-ColorOutput "  3) Both          — CLI + GUI" "Yellow"
-Write-Host ""
-
-$CHOICE = Read-Host "Enter choice [1-3]"
+if ($env:CHOICE) {
+    Write-ColorOutput "[+] Using install choice: $env:CHOICE (from env)" "Green"
+    $CHOICE = $env:CHOICE
+} else {
+    Write-ColorOutput "What would you like to install?" "Cyan"
+    Write-Host ""
+    Write-ColorOutput "  1) CLI only      — command-line tool (~5MB)" "Yellow"
+    Write-ColorOutput "  2) GUI only      — desktop Electron app (~80MB)" "Yellow"
+    Write-ColorOutput "  3) Both          — CLI + GUI" "Yellow"
+    Write-Host ""
+    $CHOICE = Read-Host "Enter choice [1-3]"
+}
 
 function Install-CLI {
     Write-Host ""
