@@ -563,7 +563,14 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+
+      - name: Install Wine (for Windows cross-compile)
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y wine64 wine32
 
       - name: Build Electron app (all platforms)
         if: steps.check.outputs.exists == 'false'
@@ -589,17 +596,17 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         run: |
           mkdir -p gui-artifacts
-          cp electron/dist/*.deb gui-artifacts/ 2>/dev/null || true
-          cp electron/dist/*.AppImage gui-artifacts/ 2>/dev/null || true
-          cp electron/dist/*.exe gui-artifacts/ 2>/dev/null || true
-          cp electron/dist/*.zip gui-artifacts/ 2>/dev/null || true
-          cp electron/dist/*.dmg gui-artifacts/ 2>/dev/null || true
-          cp electron/dist/*.rpm gui-artifacts/ 2>/dev/null || true
-          cp electron/dist/*.snap gui-artifacts/ 2>/dev/null || true
-          cp electron/dist/*.tar.gz gui-artifacts/ 2>/dev/null || true
-          cp electron/dist/*.yml gui-artifacts/ 2>/dev/null || true
+          cp electron/release/*.deb gui-artifacts/ 2>/dev/null || true
+          cp electron/release/*.AppImage gui-artifacts/ 2>/dev/null || true
+          cp electron/release/*.exe gui-artifacts/ 2>/dev/null || true
+          cp electron/release/*.zip gui-artifacts/ 2>/dev/null || true
+          cp electron/release/*.dmg gui-artifacts/ 2>/dev/null || true
+          cp electron/release/*.rpm gui-artifacts/ 2>/dev/null || true
+          cp electron/release/*.snap gui-artifacts/ 2>/dev/null || true
+          cp electron/release/*.tar.gz gui-artifacts/ 2>/dev/null || true
+          cp electron/release/*.yml gui-artifacts/ 2>/dev/null || true
           cd gui-artifacts
-          sha256sum *.deb *.AppImage *.exe *.zip *.dmg *.rpm *.snap *.tar.gz 2>/dev/null > gui_checksums.txt || true
+          sha256sum * 2>/dev/null > gui_checksums.txt || true
 
       - name: Create GitHub Release
         if: steps.check.outputs.exists == 'false'

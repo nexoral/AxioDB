@@ -32,10 +32,6 @@
       "StartupWMClass": "AxioDB Control"
     }
   },
-  "deb": {
-    "afterInstall": "resources/after-install.sh",
-    "afterRemove": "resources/after-remove.sh"
-  },
   "win": {
     "target": [
       { "target": "nsis", "arch": ["x64"] }
