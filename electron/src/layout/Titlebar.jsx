@@ -38,16 +38,28 @@ const Titlebar = () => {
         </span>
 
         {isConnected ? (
-          <div className="ml-3 flex items-center gap-2 bg-emerald-50/80 border border-emerald-200/80 rounded-full px-2.5 py-0.5 no-drag">
+          <div
+            className={`ml-3 flex items-center gap-2 rounded-full px-2.5 py-0.5 no-drag border ${
+              isPingAlive
+                ? "bg-emerald-50/80 border-emerald-200/80"
+                : "bg-amber-50 border-amber-300"
+            }`}
+          >
             <span
-              className={`relative flex h-2 w-2 rounded-full bg-emerald-500 ${isPingAlive ? "animate-pulseDot" : ""}`}
+              className={`relative flex h-2 w-2 rounded-full ${
+                isPingAlive ? "bg-emerald-500 animate-pulseDot" : "bg-red-500 animate-pulse"
+              }`}
             >
-              <span className="absolute inset-0 rounded-full bg-emerald-400 opacity-40 animate-ping"></span>
+              <span
+                className={`absolute inset-0 rounded-full opacity-40 animate-ping ${
+                  isPingAlive ? "bg-emerald-400" : "bg-red-400"
+                }`}
+              ></span>
             </span>
             <span className="text-[11px] font-mono font-medium text-slate-700">
               {host}:{port}
             </span>
-            {pingLatency !== null && (
+            {isPingAlive && pingLatency !== null ? (
               <motion.span
                 key={pingLatency}
                 initial={{ opacity: 0, scale: 0.85 }}
@@ -57,6 +69,10 @@ const Titlebar = () => {
               >
                 {pingLatency}ms
               </motion.span>
+            ) : (
+              <span className="text-[10px] font-mono font-bold text-red-600 bg-red-100/80 px-1.5 py-0.2 rounded">
+                Unreachable
+              </span>
             )}
           </div>
         ) : (

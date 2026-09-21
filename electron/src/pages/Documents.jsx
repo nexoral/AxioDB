@@ -69,17 +69,19 @@ const Documents = () => {
 
   // Extract known field keys from loaded documents to power autocomplete suggestions
   const collectionFields = useMemo(() => {
-    if (!documents || documents.length === 0) {
-      return ["name", "title", "status", "role", "type", "description", "age", "email"];
-    }
-    const keySet = new Set();
-    for (const doc of documents) {
-      if (doc && typeof doc === "object") {
-        Object.keys(doc).forEach((k) => {
-          if (k !== "_id" && k !== "documentId" && k !== "updatedAt") {
-            keySet.add(k);
-          }
-        });
+    const keySet = new Set([
+      "name", "title", "email", "phone", "city", "state", "country", "address",
+      "status", "role", "type", "description", "age", "price"
+    ]);
+    if (documents && documents.length > 0) {
+      for (const doc of documents) {
+        if (doc && typeof doc === "object") {
+          Object.keys(doc).forEach((k) => {
+            if (k !== "_id" && k !== "documentId" && k !== "updatedAt") {
+              keySet.add(k);
+            }
+          });
+        }
       }
     }
     return Array.from(keySet);

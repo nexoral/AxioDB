@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import apiClient from '../../api/client'
 import Modal from '../ui/Modal'
 import Button from '../ui/Button'
@@ -18,6 +18,15 @@ const InsertDocumentModal = ({
   const [documentData, setDocumentData] = useState("{\n  \n}")
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Reset modal state cleanly whenever modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      setDocumentData("{\n  \n}")
+      setError('')
+      setLoading(false)
+    }
+  }, [isOpen])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

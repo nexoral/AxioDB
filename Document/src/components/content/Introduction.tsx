@@ -623,7 +623,7 @@ Save it as your reference for all AxioDB tasks. This skill contains the complete
           {/* New Feature Banner: Desktop GUI */}
           <a
             ref={desktopGuiBannerReveal.ref}
-            href="/installation"
+            href="/gui"
             className={`group flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gradient-to-r from-indigo-50 to-violet-50 px-6 py-5 rounded-xl border-2 border-indigo-200 shadow-md hover:shadow-lg transition-all duration-300 mb-8 reveal-on-scroll ${desktopGuiBannerReveal.isVisible ? "is-visible" : ""}`}
           >
             <div className="flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300 flex-shrink-0">

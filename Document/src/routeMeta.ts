@@ -31,6 +31,7 @@ export const routeMeta: RouteMeta[] = [
   { path: "/create-collection", label: "Create Collection" },
   { path: "/cloud", label: "AxioDBCloud (Remote/TCP)" },
   { path: "/cli", label: "CLI (Command Line Interface)" },
+  { path: "/gui", label: "AxioDB Control (Desktop GUI)" },
   { path: "/docker", label: "Docker Deployment" },
   { path: "/mcp-server", label: "MCP Server (AI Agent Integration)" },
   { path: "/troubleshooting", label: "Troubleshooting" },

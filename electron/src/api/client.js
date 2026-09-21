@@ -62,7 +62,38 @@ const customIpcAdapter = async (config) => {
       );
       return Promise.reject(error);
     } catch (err) {
-      return Promise.reject(err);
+      const rawMsg = err?.message || String(err);
+      let cleanMsg = rawMsg;
+      let code = "ERR_NETWORK";
+
+      if (/ECONNREFUSED/i.test(rawMsg)) {
+        cleanMsg = `Connection refused (${fullUrl}). Please ensure the AxioDB server is running and the port is accessible.`;
+        code = "ECONNREFUSED";
+      } else if (/ETIMEDOUT|timed out/i.test(rawMsg)) {
+        cleanMsg = `Connection timed out (${fullUrl}). The server took too long to respond.`;
+        code = "ETIMEDOUT";
+      } else if (/ENOTFOUND/i.test(rawMsg)) {
+        cleanMsg = `Host not found (${fullUrl}). Please check the hostname or IP address.`;
+        code = "ENOTFOUND";
+      } else if (/ECONNRESET|socket hang up/i.test(rawMsg)) {
+        cleanMsg = `Connection was reset by the server (${fullUrl}).`;
+        code = "ECONNRESET";
+      } else {
+        // Strip Electron IPC wrapper if present
+        const match = rawMsg.match(/Error:\s*(.*)/);
+        if (match) {
+          cleanMsg = match[1];
+        }
+      }
+
+      const axiosErr = new axios.AxiosError(
+        cleanMsg,
+        code,
+        config,
+        {},
+        undefined
+      );
+      return Promise.reject(axiosErr);
     }
   }
 
@@ -93,6 +124,9 @@ apiClient.interceptors.response.use(
           error.response?.data?.message || "Session expired or unauthorized (401). Please log in again."
         );
       }
+    } else if (!error.response && useConnectionStore.getState().isConnected) {
+      // Network failure while in-app — mark latency as null
+      useConnectionStore.getState().setPingLatency(null);
     }
     return Promise.reject(error);
   }

@@ -32,9 +32,14 @@ const MainLayout = ({ children }) => {
 };
 
 const AppContent = () => {
-  const { hasSeenWelcome, setHasSeenWelcome, isConnected, setPingLatency, getBaseUrl } = useConnectionStore();
+  const { hasSeenWelcome, setHasSeenWelcome, isConnected, setPingLatency, getBaseUrl, hydrate, _loaded } = useConnectionStore();
   const { mustChangePassword } = useAuthStore();
   const [showForcePassword, setShowForcePassword] = useState(false);
+
+  // Hydrate store from AxioDB on first render
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
 
   useEffect(() => {
     if (mustChangePassword) {
@@ -60,6 +65,15 @@ const AppContent = () => {
     const interval = setInterval(ping, 10000);
     return () => clearInterval(interval);
   }, [isConnected, getBaseUrl, setPingLatency]);
+
+  // Show nothing while hydrating from AxioDB
+  if (!_loaded) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-xs text-slate-400 animate-pulse">Loading…</div>
+      </div>
+    );
+  }
 
   // First launch: Animated Welcome
   if (!hasSeenWelcome) {

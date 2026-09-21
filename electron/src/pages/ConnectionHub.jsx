@@ -85,9 +85,17 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
         latency: res.latency,
       });
     } catch (err) {
+      let msg = err.response?.data?.message || err.message;
+      if (err.code === "ECONNREFUSED" || /ECONNREFUSED/i.test(msg)) {
+        msg = `Connection refused at ${formData.host}:${formData.port}. Make sure AxioDB is running with HTTP enabled (GUI: true or AXIODB_GUI=true).`;
+      } else if (err.code === "ENOTFOUND" || /ENOTFOUND/i.test(msg)) {
+        msg = `Host "${formData.host}" not found. Please verify the hostname or IP address.`;
+      } else if (err.code === "ETIMEDOUT" || /timed out/i.test(msg)) {
+        msg = `Connection timed out at ${formData.host}:${formData.port}. Server did not respond.`;
+      }
       setTestResult({
         success: false,
-        message: err.response?.data?.message || err.message || "Failed to reach server at specified host:port",
+        message: msg,
       });
     } finally {
       setIsTesting(false);
@@ -120,14 +128,26 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
       });
 
       if (formData.saveToFavorites) {
+        // Find if this instance already exists by (name + host) or (host + port + username) to prevent duplicates
+        const existing = savedConnections.find(
+          (c) =>
+            (c.name?.trim().toLowerCase() === formData.name?.trim().toLowerCase() &&
+              c.host === formData.host &&
+              Number(c.port) === Number(formData.port)) ||
+            (c.host === formData.host &&
+              Number(c.port) === Number(formData.port) &&
+              c.username === formData.username)
+        );
+
         saveConnection({
-          id: crypto.randomUUID(),
+          id: existing?.id || crypto.randomUUID(),
           name: formData.name,
           protocol: formData.protocol,
           host: formData.host,
           port: Number(formData.port),
           username: formData.username,
           password: formData.password,
+          updatedAt: new Date().toISOString(),
         });
       }
 
@@ -157,6 +177,18 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
         setConnectionError(serverMsg || "Invalid username or password. Please verify your credentials.");
       } else if (err.response?.status === 403) {
         setConnectionError(serverMsg || "Access denied (403). Account lacks connection permissions.");
+      } else if (err.code === "ECONNREFUSED" || /ECONNREFUSED/i.test(err.message)) {
+        setConnectionError(
+          `Connection refused to AxioDB at ${formData.protocol}://${formData.host}:${formData.port}. Please ensure the AxioDB server is running and port ${formData.port} is accessible (GUI: true or AXIODB_GUI=true).`
+        );
+      } else if (err.code === "ENOTFOUND" || /ENOTFOUND/i.test(err.message)) {
+        setConnectionError(
+          `Host "${formData.host}" could not be resolved. Please verify the hostname or IP address.`
+        );
+      } else if (err.code === "ETIMEDOUT" || /timed out/i.test(err.message)) {
+        setConnectionError(
+          `Connection timed out (${formData.host}:${formData.port}). The AxioDB server did not respond.`
+        );
       } else {
         setConnectionError(
           serverMsg ||

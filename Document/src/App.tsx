@@ -17,6 +17,7 @@ import CreateCollection from "./components/content/CreateCollection";
 import MaintainersZone from "./components/content/MaintainersZone";
 import AxioDBCloud from "./components/content/AxioDBCloud";
 import Cli from "./components/content/Cli";
+import ControlGui from "./components/content/ControlGui";
 import Docker from "./components/content/Docker";
 import McpServer from "./components/content/McpServer";
 import Troubleshooting from "./components/content/Troubleshooting";
@@ -50,6 +51,7 @@ export const routes: RouteRecord[] = [
       { path: "create-collection", element: <CreateCollection /> },
       { path: "cloud", element: <AxioDBCloud /> },
       { path: "cli", element: <Cli /> },
+      { path: "gui", element: <ControlGui /> },
       { path: "docker", element: <Docker /> },
       { path: "mcp-server", element: <McpServer /> },
       { path: "troubleshooting", element: <Troubleshooting /> },

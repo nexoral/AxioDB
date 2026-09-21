@@ -18,7 +18,7 @@ const getDisplayFields = (doc) => {
   );
 };
 
-const DocumentCard = ({ doc, idx, isSelected, onInspect, onEdit, onDelete }) => {
+const DocumentCard = ({ doc, idx, isSelected, onInspect, onEdit, onDelete, copyToClipboard }) => {
   const [expanded, setExpanded] = useState(false);
   const displayFields = getDisplayFields(doc);
   const shownFields = expanded ? displayFields : displayFields.slice(0, FIELD_LIMIT);

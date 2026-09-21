@@ -75,6 +75,16 @@ const sidebarSections: SidebarSection[] = [
     ],
   },
   {
+    title: "Desktop GUI",
+    items: [
+      {
+        id: "gui",
+        label: "AxioDB Control GUI",
+        path: "/gui",
+      },
+    ],
+  },
+  {
     title: "Troubleshooting",
     items: [
       {

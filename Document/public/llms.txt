@@ -1,6 +1,6 @@
 # AxioDB
 
-> The embedded database for Node.js. Replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, and zero native dependencies. No node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained for Electron, CLI, local-first and prototyping. Current version: 22.10.8.
+> The embedded database for Node.js. Replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, and zero native dependencies. No node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on. MIT licensed, actively maintained for Electron, CLI, local-first and prototyping. Current version: 22.11.0.
 
 ## What it is
 
@@ -114,6 +114,7 @@ Machine-readable limits and the full boundary table: https://axiodb.in/llms-full
 - [Create Collection](https://axiodb.in/create-collection)
 - [AxioDBCloud (Remote/TCP)](https://axiodb.in/cloud)
 - [CLI (Command Line Interface)](https://axiodb.in/cli)
+- [AxioDB Control (Desktop GUI)](https://axiodb.in/gui)
 - [Docker Deployment](https://axiodb.in/docker)
 - [MCP Server (AI Agent Integration)](https://axiodb.in/mcp-server)
 - [Troubleshooting](https://axiodb.in/troubleshooting)

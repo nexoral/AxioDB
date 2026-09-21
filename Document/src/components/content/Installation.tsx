@@ -1,4 +1,3 @@
-import React from "react";
 import {
   PackageOpen,
   Terminal,
@@ -7,8 +6,7 @@ import {
   AlertCircle,
   Command,
   Monitor,
-  Download,
-  Github,
+  ArrowRight,
 } from "lucide-react";
 import CodeBlock from "../ui/CodeBlock";
 import Seo from "../ui/Seo";
@@ -18,12 +16,6 @@ const INSTALL_NPM = `npm install axiodb@latest --save`;
 const INSTALL_CLI_LINUX = `curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | bash`;
 
 const INSTALL_CLI_WINDOWS = `irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex`;
-
-const INSTALL_GUI_LINUX = `curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash`;
-
-const INSTALL_GUI_WINDOWS = `irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | CHOICE=2 iex`;
-
-const INSTALL_BOTH = `curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=3 bash`;
 
 const Installation: React.FC = () => {
   const installationCode = INSTALL_NPM;
@@ -214,18 +206,27 @@ const Installation: React.FC = () => {
                   Interactive vs Non-Interactive
                 </p>
                 <p className="text-sm text-emerald-700 leading-relaxed">
-                  When run interactively (TTY), the installer presents a menu: 1) CLI, 2) GUI, 3) Both.
+                  When run interactively (TTY), the installer presents a menu to choose CLI, GUI, or Both.
                   When piped (<code className="px-1 py-0.5 bg-white rounded text-xs">curl | bash</code>),
-                  it defaults to CLI for backward compatibility. To install the GUI non-interactively,
-                  set <code className="px-1 py-0.5 bg-white rounded text-xs">CHOICE=2</code> (see below).
+                  it defaults to CLI for backward compatibility. For full command reference, see the <a href="/cli" className="underline font-semibold">AxioDB CLI documentation</a>.
                 </p>
               </div>
             </div>
           </div>
+
+          <div className="mt-4 flex items-center justify-end">
+            <a
+              href="/cli"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
+            >
+              Explore Full CLI Documentation &amp; Commands
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </div>
 
-      {/* GUI Desktop Installation */}
+      {/* AxioDB Control Desktop GUI */}
       <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200 hover:border-indigo-600">
         <div className="absolute inset-0 bg-indigo-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="relative z-10">
@@ -235,90 +236,31 @@ const Installation: React.FC = () => {
             </div>
             <div>
               <h3 className="text-2xl font-bold text-gray-900">
-                AxioDB Desktop GUI
+                AxioDB Control Desktop GUI
               </h3>
               <p className="text-gray-600">
-                Native desktop application (Electron) — card-based document viewer,
-                connection manager, and database tools for Linux, macOS, and Windows
+                Cross-platform visual management client for Linux, macOS, and Windows
               </p>
             </div>
           </div>
 
           <p className="text-gray-600 leading-relaxed mb-6">
-            The Desktop GUI bundles the full AxioDB Control Server with a native
-            Electron shell — no browser needed. Includes a bouncy-ball splash
-            loader, live connection health monitoring, card-based document
-            inspection with "Show more" expansion, and native save dialogs.
+            Prefer a visual database manager? AxioDB Control is a standalone desktop application (Electron) featuring a card-based document browser, connection profile management with auto-fill, 10s health and latency monitor, visual query runner, and binary database export/import.
           </p>
 
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <p className="text-sm font-semibold text-gray-600 mb-2">Linux (.deb / .AppImage)</p>
-              <CodeBlock code={INSTALL_GUI_LINUX} language="bash" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-600 mb-2">Windows (.exe / NSIS)</p>
-              <CodeBlock code={INSTALL_GUI_WINDOWS} language="powershell" />
-            </div>
+          <div className="flex flex-wrap items-center gap-4">
+            <a
+              href="/gui"
+              className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 shadow-md transition-all"
+            >
+              <Monitor className="h-5 w-5" />
+              View AxioDB Control GUI Guide
+              <ArrowRight className="h-5 w-5" />
+            </a>
+            <span className="text-sm text-gray-500">
+              Download .deb, .AppImage, NSIS .exe, or macOS zip on the dedicated GUI page
+            </span>
           </div>
-
-          <div className="bg-indigo-50 p-6 rounded-xl border border-indigo-200">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0">
-                <div className="p-2 bg-indigo-600 rounded-lg">
-                  <Download className="h-5 w-5 text-white" />
-                </div>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-indigo-700 mb-2">
-                  Or download directly from GitHub Releases
-                </p>
-                <p className="text-sm text-indigo-700 leading-relaxed">
-                  Visit{" "}
-                  <a
-                    href="https://github.com/nexoral/AxioDB/releases"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline font-medium"
-                  >
-                    GitHub Releases
-                  </a>
-                  {" "}and download the installer for your platform:
-                </p>
-                <ul className="mt-2 space-y-1 text-sm text-indigo-700">
-                  <li>• <strong>Linux</strong>: <code className="px-1.5 py-0.5 bg-white rounded text-xs">axiodb-desktop_&lt;version&gt;_amd64.deb</code> or <code className="px-1.5 py-0.5 bg-white rounded text-xs">.AppImage</code></li>
-                  <li>• <strong>Windows</strong>: <code className="px-1.5 py-0.5 bg-white rounded text-xs">AxioDB-Setup-&lt;version&gt;.exe</code></li>
-                  <li>• <strong>macOS</strong>: <code className="px-1.5 py-0.5 bg-white rounded text-xs">axiodb-desktop-&lt;version&gt;-mac.zip</code></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Install Both CLI & GUI */}
-      <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200 hover:border-amber-600">
-        <div className="absolute inset-0 bg-amber-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-amber-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
-              <Github className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900">
-                Install Both CLI &amp; GUI
-              </h3>
-              <p className="text-gray-600">One command for everything</p>
-            </div>
-          </div>
-
-          <p className="text-gray-600 leading-relaxed mb-6">
-            Use <code className="px-1.5 py-0.5 bg-gray-100 rounded text-xs">CHOICE=3</code> to install
-            both the AxioDB CLI and the Desktop GUI in a single run. The installer will prompt
-            interactively when run in a terminal, or run non-interactively when piped.
-          </p>
-
-          <CodeBlock code={INSTALL_BOTH} language="bash" />
         </div>
       </div>
 
