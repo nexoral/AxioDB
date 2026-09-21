@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useDbStore } from "../store/dbStore";
 import apiClient from "../api/client";
 import ObjectView from "../components/query/ObjectView";
@@ -9,6 +10,7 @@ import UpdateDocumentModal from "../components/document/UpdateDocumentModal";
 import DeleteDocumentModal from "../components/document/DeleteDocumentModal";
 import CreateCollectionModal from "../components/collection/CreateCollectionModal";
 import DeleteCollectionModal from "../components/collection/DeleteCollectionModal";
+import DocumentCard from "../components/document/DocumentCard";
 
 const Documents = () => {
   const {
@@ -33,7 +35,6 @@ const Documents = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [totalDocs, setTotalDocs] = useState(0);
-  const [viewMode, setViewMode] = useState("table"); // 'table' | 'json'
   const [queryLatency, setQueryLatency] = useState(null);
 
   // Compass-style Filter Bar inputs (accepts relaxed JS object literals)
@@ -260,18 +261,6 @@ const Documents = () => {
       setConsoleRunning(false);
     }
   };
-
-  // Auto-extract columns for desktop table view
-  const tableColumns = useMemo(() => {
-    if (!documents || documents.length === 0) return ["_id"];
-    const keySet = new Set(["_id"]);
-    for (const doc of documents) {
-      if (doc && typeof doc === "object") {
-        Object.keys(doc).forEach((k) => keySet.add(k));
-      }
-    }
-    return Array.from(keySet).slice(0, 8); // Display first 8 columns for clean density
-  }, [documents]);
 
   const copyToClipboard = (val) => {
     const text = typeof val === "object" ? JSON.stringify(val, null, 2) : String(val);
@@ -539,26 +528,14 @@ const Documents = () => {
                 Reset
               </button>
 
-              {/* View Switcher: Table vs JSON */}
-              <div className="flex p-0.5 bg-slate-100 border border-slate-200 rounded-md ml-2">
-                <button
-                  onClick={() => setViewMode("table")}
-                  className={`p-1 rounded cursor-pointer ${viewMode === "table" ? "bg-white text-emerald-700 shadow-xs" : "text-slate-500 hover:text-slate-800"}`}
-                  title="Table View"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => setViewMode("json")}
-                  className={`p-1 rounded cursor-pointer ${viewMode === "json" ? "bg-white text-emerald-700 shadow-xs" : "text-slate-500 hover:text-slate-800"}`}
-                  title="JSON Document View"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                  </svg>
-                </button>
+              {/* Cards Indicator */}
+              <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
+                <span className="text-emerald-700 font-semibold">
+                  {documents.length} document{documents.length !== 1 ? "s" : ""}
+                </span>
+                {queryLatency !== null && (
+                  <span>⚡ {queryLatency}ms</span>
+                )}
               </div>
             </div>
 
@@ -590,138 +567,29 @@ const Documents = () => {
                   <p className="font-semibold text-slate-600 mb-1">No matching documents</p>
                   <p>Try clearing your filter or inserting a new document.</p>
                 </div>
-              ) : viewMode === "table" ? (
-                /* High-Density Desktop Data Table */
-                <table className="w-full text-left text-xs border-collapse font-sans">
-                  <thead>
-                    <tr className="bg-slate-100 border-b border-slate-200 text-slate-700 sticky top-0 font-semibold font-mono">
-                      <th className="py-2 px-3 w-10 text-center text-slate-400">#</th>
-                      {tableColumns.map((col) => (
-                        <th key={col} className="py-2 px-3 truncate max-w-[200px] border-r border-slate-200/60 last:border-r-0">
-                          {col}
-                        </th>
-                      ))}
-                      <th className="py-2 px-3 text-right w-24">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
-                    {documents.map((doc, idx) => {
-                      const isSelected = inspectorDoc?._id === doc._id;
-                      return (
-                        <tr
-                          key={doc._id || idx}
-                          onClick={() => setInspectorDoc(doc)}
-                          className={`hover:bg-emerald-50/40 cursor-pointer transition-colors ${
-                            isSelected ? "bg-emerald-50/70" : ""
-                          }`}
-                        >
-                          <td className="py-2 px-3 text-center text-slate-400">{idx + 1}</td>
-                          {tableColumns.map((col) => {
-                            const val = doc[col];
-                            const isObj = typeof val === "object" && val !== null;
-                            const display = isObj ? JSON.stringify(val) : String(val !== undefined ? val : "");
-
-                            return (
-                              <td
-                                key={col}
-                                title={display}
-                                className="py-2 px-3 truncate max-w-[200px] text-slate-800 border-r border-slate-100 last:border-r-0"
-                              >
-                                {isObj ? (
-                                  <span className="text-purple-600">{display}</span>
-                                ) : typeof val === "number" ? (
-                                  <span className="text-amber-700 font-semibold">{display}</span>
-                                ) : typeof val === "boolean" ? (
-                                  <span className="text-cyan-700 font-semibold">{display}</span>
-                                ) : col === "_id" ? (
-                                  <span className="font-bold text-emerald-800">{display}</span>
-                                ) : (
-                                  display
-                                )}
-                              </td>
-                            );
-                          })}
-                          <td className="py-2 px-3 text-right space-x-1 whitespace-nowrap">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDoc(doc);
-                                setShowUpdateModal(true);
-                              }}
-                              className="p-1 text-slate-500 hover:text-emerald-700 hover:bg-slate-200 rounded"
-                              title="Edit"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDoc(doc);
-                                setShowDeleteModal(true);
-                              }}
-                              className="p-1 text-slate-500 hover:text-red-600 hover:bg-slate-200 rounded"
-                              title="Delete"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
               ) : (
-                /* JSON Cards List View */
-                <div className="p-4 space-y-3">
-                  {documents.map((doc, idx) => (
-                    <div
-                      key={doc._id || idx}
-                      onClick={() => setInspectorDoc(doc)}
-                      className={`p-3 bg-white border rounded-lg hover:border-emerald-500 cursor-pointer shadow-xs transition-all ${
-                        inspectorDoc?._id === doc._id ? "border-emerald-500 ring-2 ring-emerald-500/10" : "border-slate-200"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 text-xs text-slate-500 font-mono">
-                        <span className="font-bold text-emerald-800">_id: {doc._id}</span>
-                        <div className="space-x-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              copyToClipboard(doc);
-                            }}
-                            className="hover:text-slate-800"
-                          >
-                            Copy
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedDoc(doc);
-                              setShowUpdateModal(true);
-                            }}
-                            className="hover:text-emerald-700"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedDoc(doc);
-                              setShowDeleteModal(true);
-                            }}
-                            className="hover:text-red-600"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-                      <ObjectView value={doc} maxHeight={220} />
-                    </div>
-                  ))}
+                /* Card-based Document View */
+                <div className="p-4">
+                  <AnimatePresence>
+                    {documents.map((doc, idx) => (
+                      <DocumentCard
+                        key={doc._id || idx}
+                        doc={doc}
+                        idx={idx}
+                        isSelected={inspectorDoc?._id === doc._id}
+                        onInspect={(d) => setInspectorDoc(d)}
+                        onEdit={(d) => {
+                          setSelectedDoc(d);
+                          setShowUpdateModal(true);
+                        }}
+                        onDelete={(d) => {
+                          setSelectedDoc(d);
+                          setShowDeleteModal(true);
+                        }}
+                        copyToClipboard={copyToClipboard}
+                      />
+                    ))}
+                  </AnimatePresence>
                 </div>
               )}
             </div>
@@ -732,7 +600,7 @@ const Documents = () => {
                 <div className="p-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                   <div className="min-w-0">
                     <h3 className="text-xs font-bold text-slate-800">Document Inspector</h3>
-                    <p className="text-[10px] font-mono text-slate-400 truncate">_id: {inspectorDoc._id}</p>
+                    <p className="text-[10px] font-mono text-slate-400 truncate">ID: {inspectorDoc._id || inspectorDoc.documentId}</p>
                   </div>
                   <button
                     onClick={() => setInspectorDoc(null)}
@@ -743,7 +611,11 @@ const Documents = () => {
                 </div>
 
                 <div className="flex-1 overflow-auto p-3 bg-slate-50">
-                  <ObjectView value={inspectorDoc} maxHeight={600} />
+                  <ObjectView value={(() => {
+                    if (!inspectorDoc || typeof inspectorDoc !== "object") return inspectorDoc;
+                    const { _id, documentId, updatedAt, ...rest } = inspectorDoc;
+                    return rest;
+                  })()} maxHeight={600} />
                 </div>
 
                 <div className="p-3 border-t border-slate-200 bg-white flex items-center justify-between">
