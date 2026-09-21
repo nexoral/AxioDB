@@ -591,11 +591,6 @@ jobs:
           cp electron/release/*.AppImage gui-artifacts/ 2>/dev/null || true
           cp electron/release/*.exe gui-artifacts/ 2>/dev/null || true
           cp electron/release/*.zip gui-artifacts/ 2>/dev/null || true
-          cp electron/release/*.dmg gui-artifacts/ 2>/dev/null || true
-          cp electron/release/*.rpm gui-artifacts/ 2>/dev/null || true
-          cp electron/release/*.snap gui-artifacts/ 2>/dev/null || true
-          cp electron/release/*.tar.gz gui-artifacts/ 2>/dev/null || true
-          cp electron/release/*.yml gui-artifacts/ 2>/dev/null || true
           cd gui-artifacts
           sha256sum * 2>/dev/null > gui_checksums.txt || true
 
@@ -693,39 +688,44 @@ jobs:
           ---
 
           ### Checksums
-          Verify download: `sha256sum -c checksums.txt --ignore-missing`
-          Verify GUI: `sha256sum -c gui_checksums.txt --ignore-missing`
+          Verify CLI downloads: `sha256sum -c checksums.txt --ignore-missing`
+          Verify GUI downloads: `cd gui-artifacts && sha256sum -c gui_checksums.txt --ignore-missing`
           RELEASEBODY
           )
 
-          BODY=$(echo "$BODY" | sed "s/VERSION_PLACEHOLDER/$VERSION/g")
+           BODY=$(echo "$BODY" | sed "s/VERSION_PLACEHOLDER/$VERSION/g")
 
-          gh release create "$TAG" \
-            cli/bin/axiodb_linux_amd64 \
-            cli/bin/axiodb_linux_arm64 \
-            cli/bin/axiodb_linux_386 \
-            cli/bin/axiodb_linux_arm \
-            cli/bin/axiodb_darwin_amd64 \
-            cli/bin/axiodb_darwin_arm64 \
-            cli/bin/axiodb_windows_amd64.exe \
-            cli/bin/axiodb_windows_arm64.exe \
-            cli/bin/axiodb_windows_386.exe \
-            cli/bin/axiodb_freebsd_amd64 \
-            cli/bin/axiodb_openbsd_amd64 \
-            cli/bin/axiodb_netbsd_amd64 \
-            cli/bin/checksums.txt \
-            cli/bin/install.sh \
-            cli/bin/install.ps1 \
-            gui-artifacts/*.deb \
-            gui-artifacts/*.AppImage \
-            gui-artifacts/*.exe \
-            gui-artifacts/*.zip \
-            gui-artifacts/*.dmg \
-            gui-artifacts/*.rpm \
-            gui-artifacts/*.snap \
-            gui-artifacts/gui_checksums.txt \
-            --title "$TAG" \
-            --notes "$BODY"
+          shopt -s nullglob
+          GUI_ARTIFACTS=(
+            gui-artifacts/*.deb
+            gui-artifacts/*.AppImage
+            gui-artifacts/*.exe
+            gui-artifacts/*.zip
+            gui-artifacts/gui_checksums.txt
+          )
+          shopt -u nullglob
+
+          ARGS=(
+            cli/bin/axiodb_linux_amd64
+            cli/bin/axiodb_linux_arm64
+            cli/bin/axiodb_linux_386
+            cli/bin/axiodb_linux_arm
+            cli/bin/axiodb_darwin_amd64
+            cli/bin/axiodb_darwin_arm64
+            cli/bin/axiodb_windows_amd64.exe
+            cli/bin/axiodb_windows_arm64.exe
+            cli/bin/axiodb_windows_386.exe
+            cli/bin/axiodb_freebsd_amd64
+            cli/bin/axiodb_openbsd_amd64
+            cli/bin/axiodb_netbsd_amd64
+            cli/bin/checksums.txt
+            cli/bin/install.sh
+            cli/bin/install.ps1
+          )
+          ARGS+=("${GUI_ARTIFACTS[@]}")
+          ARGS+=("--title" "$TAG" "--notes" "$BODY")
+
+          gh release create "$TAG" "${ARGS[@]}"
         env:
           GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN_FOR_RELEASE }}
 
