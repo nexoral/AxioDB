@@ -12,6 +12,18 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.11.0",
+    date: "2026-09-21",
+    title: "Electron desktop app npm integration, .npmignore engine fix, dedicated GUI documentation",
+    changes: [
+      "Fixed: npm packaging omission — corrected .npmignore rule from `cli/` to `/cli/` so that `lib/engine/cli/worker_process.js` is no longer stripped during `npm pack`, resolving the runtime 'Cannot find module ../cli/worker_process' exception in consumer installs",
+      "Refactored: Electron desktop app (`AxioDB Control`) now directly imports `AxioDB` from the installed `axiodb` npm package (`import { AxioDB } from \"axiodb\"`) instead of using brittle relative path require hacks into `../../lib/`",
+      "Fixed: Electron storage IPC handlers — added strict type narrowing and safe fallbacks for query results across `store:getConnections`, `store:saveConnection`, `store:getSetting`, and `store:setSetting`",
+      "Verified: local app storage path — verified embedded AxioDB instance properly structures data in `userData/.axiodb-control` (`~/.config/AxioDB Control/.axiodb-control/` on Linux) for connection profiles and settings",
+      "New: dedicated AxioDB Control GUI documentation page (`/gui`) — decoupled GUI documentation from the general installation page with platform-specific installers (.deb, .AppImage, NSIS .exe, macOS zip) and connection hub guides",
+    ],
+  },
+  {
     version: "22.9.7",
     date: "2026-09-21",
     title: "Electron desktop app: card-based documents, splash screen, installer unification, version sync",

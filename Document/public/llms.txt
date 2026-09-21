@@ -114,6 +114,7 @@ Machine-readable limits and the full boundary table: https://axiodb.in/llms-full
 - [Create Collection](https://axiodb.in/create-collection)
 - [AxioDBCloud (Remote/TCP)](https://axiodb.in/cloud)
 - [CLI (Command Line Interface)](https://axiodb.in/cli)
+- [AxioDB Control (Desktop GUI)](https://axiodb.in/gui)
 - [Docker Deployment](https://axiodb.in/docker)
 - [MCP Server (AI Agent Integration)](https://axiodb.in/mcp-server)
 - [Troubleshooting](https://axiodb.in/troubleshooting)
