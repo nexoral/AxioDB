@@ -1,7 +1,7 @@
 {
   "name": "axiodb-control",
   "productName": "AxioDB Control",
-  "version": "22.6.4",
+  "version": "22.7.5",
   "description": "Desktop GUI management application for AxioDB",
   "main": "dist-electron/main.cjs",
   "homepage": "https://axiodb.in",
