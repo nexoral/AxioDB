@@ -663,12 +663,6 @@ jobs:
           | `AxioDB_Control_*.exe` | Windows Installer |
           | `AxioDB_Control_*.zip` | macOS |
 
-          #### GUI (Standalone Web)
-
-          | File | Description |
-          |------|-------------|
-          | `AxioDB_GUI.tar.gz` | Standalone web GUI (extract & open index.html) |
-
           ---
 
           ### Manual Installation
