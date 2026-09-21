@@ -4,6 +4,9 @@ import http from "http";
 import https from "https";
 import fs from "fs";
 
+// AxioDB embedded — local app storage (no GUI, no HTTP, no TCP)
+import { AxioDB } from "axiodb";
+
 // Set application identity for Linux desktop and Windows taskbar
 app.setName("AxioDB Control");
 if (process.platform === "win32") {
@@ -12,6 +15,22 @@ if (process.platform === "win32") {
 
 // In-memory session cookie store for AxioDB sessions
 const cookieStore = new Map<string, string>();
+
+// Local AxioDB instance for app data persistence (connections, settings, etc.)
+const localDB = new AxioDB({
+  GUI: false,
+  HTTP: false,
+  TCP: false,
+  Cache: false,
+  RootName: ".axiodb-control",
+  CustomPath: app.getPath("userData"),
+});
+
+/** Helper: get or create a collection from the local DB */
+async function getLocalCollection(dbName: string, collName: string) {
+  const db = await localDB.createDB(dbName);
+  return db.createCollection(collName);
+}
 
 let mainWindow: BrowserWindow | null = null;
 let splashWindow: BrowserWindow | null = null;
@@ -469,6 +488,98 @@ ipcMain.handle("network:request", async (_event, config: {
       reject(err);
     }
   });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Local AxioDB Storage IPC Handlers
+// Replaces localStorage with embedded AxioDB for persistent app data.
+// Collections: "connections" (saved server connections), "settings" (app prefs)
+// ──────────────────────────────────────────────────────────────────────────────
+
+// Connections — list all saved connections
+ipcMain.handle("store:getConnections", async () => {
+  try {
+    const coll = await getLocalCollection("AppData", "connections");
+    const result = await coll.query({}).exec();
+    const data = result?.data as { documents: Record<string, unknown>[] } | undefined;
+    return data?.documents ?? [];
+  } catch (err) {
+    console.error("[Store] Failed to get connections:", err);
+    return [];
+  }
+});
+
+// Connections — save (insert or update) a connection
+ipcMain.handle("store:saveConnection", async (_event, connection: Record<string, unknown>) => {
+  try {
+    const coll = await getLocalCollection("AppData", "connections");
+    const existing = await coll.query({ id: connection.id }).exec();
+    const existingData = existing?.data as { documents: Record<string, unknown>[] } | undefined;
+    if (existingData?.documents && existingData.documents.length > 0) {
+      await coll.update({ id: connection.id }).UpdateOne(connection);
+    } else {
+      await coll.insert(connection);
+    }
+    return { success: true };
+  } catch (err) {
+    console.error("[Store] Failed to save connection:", err);
+    return { success: false, error: String(err) };
+  }
+});
+
+// Connections — delete a connection by id
+ipcMain.handle("store:deleteConnection", async (_event, id: string) => {
+  try {
+    const coll = await getLocalCollection("AppData", "connections");
+    await coll.delete({ id }).deleteOne();
+    return { success: true };
+  } catch (err) {
+    console.error("[Store] Failed to delete connection:", err);
+    return { success: false, error: String(err) };
+  }
+});
+
+// Settings — get a setting value by key
+ipcMain.handle("store:getSetting", async (_event, key: string) => {
+  try {
+    const coll = await getLocalCollection("AppData", "settings");
+    const result = await coll.query({ key }).exec();
+    const data = result?.data as { documents: { value?: unknown }[] } | undefined;
+    return data?.documents[0]?.value ?? null;
+  } catch (err) {
+    console.error("[Store] Failed to get setting:", err);
+    return null;
+  }
+});
+
+// Settings — set a setting value (upsert by key)
+ipcMain.handle("store:setSetting", async (_event, key: string, value: unknown) => {
+  try {
+    const coll = await getLocalCollection("AppData", "settings");
+    const existing = await coll.query({ key }).exec();
+    const existingData = existing?.data as { documents: Record<string, unknown>[] } | undefined;
+    if (existingData?.documents && existingData.documents.length > 0) {
+      await coll.update({ key }).UpdateOne({ key, value });
+    } else {
+      await coll.insert({ key, value });
+    }
+    return { success: true };
+  } catch (err) {
+    console.error("[Store] Failed to set setting:", err);
+    return { success: false, error: String(err) };
+  }
+});
+
+// Settings — delete a setting by key
+ipcMain.handle("store:deleteSetting", async (_event, key: string) => {
+  try {
+    const coll = await getLocalCollection("AppData", "settings");
+    await coll.delete({ key }).deleteOne();
+    return { success: true };
+  } catch (err) {
+    console.error("[Store] Failed to delete setting:", err);
+    return { success: false, error: String(err) };
+  }
 });
 
 // Binary file download — streams a binary HTTP response straight to disk via a save dialog.

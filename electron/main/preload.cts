@@ -48,4 +48,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Network IPC client
   request: (config: RequestConfig) => ipcRenderer.invoke("network:request", config),
   clearCookies: () => ipcRenderer.invoke("network:clearCookies"),
+
+  // Local AxioDB storage (replaces localStorage)
+  store: {
+    getConnections: () => ipcRenderer.invoke("store:getConnections"),
+    saveConnection: (connection: Record<string, unknown>) =>
+      ipcRenderer.invoke("store:saveConnection", connection),
+    deleteConnection: (id: string) => ipcRenderer.invoke("store:deleteConnection", id),
+    getSetting: (key: string) => ipcRenderer.invoke("store:getSetting", key),
+    setSetting: (key: string, value: unknown) =>
+      ipcRenderer.invoke("store:setSetting", key, value),
+    deleteSetting: (key: string) => ipcRenderer.invoke("store:deleteSetting", key),
+  },
 });
