@@ -583,15 +583,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GIT_AUTH_TOKEN_FOR_RELEASE }}
 
-      - name: Build GUI (standalone web)
-        if: steps.check.outputs.exists == 'false'
-        run: |
-          cd GUI
-          npm install
-          npm run build
-          cd dist
-          tar -czf ../../cli/bin/AxioDB_GUI.tar.gz .
-
       - name: Collect Electron artifacts
         if: steps.check.outputs.exists == 'false'
         run: |
@@ -672,12 +663,6 @@ jobs:
           | `AxioDB_Control_*.exe` | Windows Installer |
           | `AxioDB_Control_*.zip` | macOS |
 
-          #### GUI (Standalone Web)
-
-          | File | Description |
-          |------|-------------|
-          | `AxioDB_GUI.tar.gz` | Standalone web GUI (extract & open index.html) |
-
           ---
 
           ### Manual Installation
@@ -731,7 +716,6 @@ jobs:
             cli/bin/checksums.txt \
             cli/bin/install.sh \
             cli/bin/install.ps1 \
-            cli/bin/AxioDB_GUI.tar.gz \
             gui-artifacts/*.deb \
             gui-artifacts/*.AppImage \
             gui-artifacts/*.exe \
