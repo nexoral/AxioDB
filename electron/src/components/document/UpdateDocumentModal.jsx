@@ -32,12 +32,14 @@ const UpdateDocumentModal = ({
   }, [fields, document])
 
   useEffect(() => {
-    if (document) {
+    if (isOpen && document) {
       // Create a copy without the _id, documentId and updatedAt
       const { _id, documentId, updatedAt, ...docCopy } = document
       setDocumentData(formatLiteral(docCopy))
+      setError('')
+      setLoading(false)
     }
-  }, [document])
+  }, [isOpen, document])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

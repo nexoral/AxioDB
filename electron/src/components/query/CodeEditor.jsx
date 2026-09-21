@@ -95,7 +95,8 @@ const CodeEditor = ({
   }
 
   const applySuggestion = (item) => {
-    const next = value.slice(0, suggestions.replaceFrom) + item.insert + value.slice(caret)
+    const replaceTo = suggestions.replaceTo ?? caret
+    const next = value.slice(0, suggestions.replaceFrom) + item.insert + value.slice(replaceTo)
     const caretTarget = suggestions.replaceFrom + (item.caretOffset ?? item.insert.length)
 
     onChange(next)

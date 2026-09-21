@@ -4,6 +4,7 @@ import { validateDocument, QUERY_OPERATORS } from './queryLanguage'
 
 const COMMON_FIELDS = [
   'name', 'title', 'email', 'status', 'role', 'type', 'age', 'price',
+  'city', 'state', 'country', 'address', 'zip', 'phone',
   'description', 'isActive', 'tags', 'metadata', 'userId', 'category', 'count'
 ]
 
@@ -19,6 +20,28 @@ const COMMON_LITERALS = [
   { label: '$push', detail: 'operator', doc: 'Append value to array', insert: '$push: {}' }
 ]
 
+const extractKeysFromText = (text) => {
+  const keys = new Set()
+  const regex = /(?:[{,]\s*|\n\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g
+  let match
+  while ((match = regex.exec(text)) !== null) {
+    if (match[1] !== '_id' && match[1] !== 'documentId' && match[1] !== 'updatedAt') {
+      keys.add(match[1])
+    }
+  }
+  return Array.from(keys)
+}
+
+const isKeyPosition = (before) => {
+  const stripped = before.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, '""')
+  const lastColon = stripped.lastIndexOf(':')
+  const lastComma = stripped.lastIndexOf(',')
+  const lastBrace = stripped.lastIndexOf('{')
+  const lastBracket = stripped.lastIndexOf('[')
+  const lastBoundary = Math.max(lastComma, lastBrace, lastBracket)
+  return lastColon <= lastBoundary
+}
+
 const getObjectSuggestions = (text, caret, fields = []) => {
   const before = text.slice(0, caret)
 
@@ -27,59 +50,89 @@ const getObjectSuggestions = (text, caret, fields = []) => {
   if (opMatch) {
     const prefix = opMatch[1]
     return {
-      items: QUERY_OPERATORS.filter((o) => o.label.startsWith(prefix)),
+      items: QUERY_OPERATORS.filter((o) => o.label.toLowerCase().startsWith(prefix.toLowerCase())),
       replaceFrom: caret - prefix.length,
+      replaceTo: caret,
       prefix
     }
   }
 
-  // If typing a property/field name or literal
-  const idMatch = /([A-Za-z_][A-Za-z0-9_]*)$/.exec(before)
+  // If typing a property/field name or literal (supports optional leading quote)
+  const idMatch = /(['"]?)([A-Za-z_][A-Za-z0-9_]*)$/.exec(before)
   if (idMatch) {
-    const prefix = idMatch[1]
-    const candidateFields = fields && fields.length > 0 ? fields : COMMON_FIELDS
-    const items = []
+    const quoteChar = idMatch[1]
+    const prefix = idMatch[2]
+    const prefixLower = prefix.toLowerCase()
+    const isKey = isKeyPosition(before)
 
-    candidateFields.forEach((f) => {
-      if (f.startsWith(prefix)) {
-        items.push({
-          label: f,
-          detail: 'field',
-          doc: `Document property "${f}"`,
-          insert: `${f}: `
-        })
+    // Calculate replace range, consuming any auto-paired closing quote if present
+    const replaceFrom = quoteChar ? caret - prefix.length - 1 : caret - prefix.length
+    const replaceTo = quoteChar && text[caret] === quoteChar ? caret + 1 : caret
+
+    if (isKey) {
+      const candidateSet = new Set([...fields, ...extractKeysFromText(text), ...COMMON_FIELDS])
+      const items = []
+
+      candidateSet.forEach((f) => {
+        if (f.toLowerCase().startsWith(prefixLower)) {
+          items.push({
+            label: f,
+            detail: 'field',
+            doc: `Document property "${f}"`,
+            insert: `${f}: ""`,
+            caretOffset: f.length + 3
+          })
+        }
+      })
+
+      if (items.length > 0) {
+        return {
+          items,
+          replaceFrom,
+          replaceTo,
+          prefix
+        }
       }
-    })
+    } else {
+      // In value position: suggest literals (true, false, null, array, object, etc.)
+      const items = []
+      COMMON_LITERALS.forEach((lit) => {
+        if (lit.label.toLowerCase().startsWith(prefixLower)) {
+          items.push(lit)
+        }
+      })
 
-    COMMON_LITERALS.forEach((lit) => {
-      if (lit.label.startsWith(prefix)) {
-        items.push(lit)
-      }
-    })
-
-    if (items.length > 0) {
-      return {
-        items,
-        replaceFrom: caret - prefix.length,
-        prefix
+      if (items.length > 0) {
+        return {
+          items,
+          replaceFrom: caret - prefix.length,
+          replaceTo: caret,
+          prefix
+        }
       }
     }
   }
 
-  return { items: [], replaceFrom: caret, prefix: '' }
+  return { items: [], replaceFrom: caret, replaceTo: caret, prefix: '' }
 }
 
 const getAllObjectSuggestions = (text, caret, fields = []) => {
-  const candidateFields = fields && fields.length > 0 ? fields : COMMON_FIELDS
-  const items = candidateFields.map((f) => ({
-    label: f,
-    detail: 'field',
-    doc: `Document property "${f}"`,
-    insert: `${f}: `
-  }))
+  const before = text.slice(0, caret)
+  const isKey = isKeyPosition(before)
 
-  items.push(...COMMON_LITERALS)
-  return { items, replaceFrom: caret, prefix: '' }
+  if (isKey) {
+    const candidateSet = new Set([...fields, ...extractKeysFromText(text), ...COMMON_FIELDS])
+    const items = Array.from(candidateSet).map((f) => ({
+      label: f,
+      detail: 'field',
+      doc: `Document property "${f}"`,
+      insert: `${f}: ""`,
+      caretOffset: f.length + 3
+    }))
+    return { items, replaceFrom: caret, replaceTo: caret, prefix: '' }
+  }
+
+  return { items: [...COMMON_LITERALS], replaceFrom: caret, replaceTo: caret, prefix: '' }
 }
 
 /**

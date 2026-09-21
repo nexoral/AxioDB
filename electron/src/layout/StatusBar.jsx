@@ -19,14 +19,20 @@ const StatusBar = () => {
               isConnected
                 ? isPingAlive
                   ? "bg-emerald-500 shadow-xs animate-pulseDot"
-                  : "bg-emerald-500 shadow-xs animate-pulse"
+                  : "bg-red-500 shadow-xs animate-pulse"
                 : "bg-slate-400"
             }`}
           />
-          <span className="font-medium text-slate-700">{isConnected ? `${protocol}://${host}:${port}` : "Offline"}</span>
+          <span className="font-medium text-slate-700">
+            {isConnected
+              ? isPingAlive
+                ? `${protocol}://${host}:${port}`
+                : `${protocol}://${host}:${port} (Unreachable)`
+              : "Offline"}
+          </span>
         </div>
 
-        {isConnected && pingLatency !== null && (
+        {isConnected && pingLatency !== null && isPingAlive && (
           <>
             <span className="text-slate-300">|</span>
             <motion.span
@@ -61,7 +67,7 @@ const StatusBar = () => {
             <span className="text-slate-300">|</span>
           </>
         )}
-        <span className="text-slate-400 font-sans">AxioDB Control v22.3.1</span>
+        <span className="text-slate-400 font-sans">AxioDB Control v22.11.0</span>
       </div>
     </footer>
   );

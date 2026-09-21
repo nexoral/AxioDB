@@ -496,27 +496,67 @@ ipcMain.handle("network:request", async (_event, config: {
 // Collections: "connections" (saved server connections), "settings" (app prefs)
 // ──────────────────────────────────────────────────────────────────────────────
 
-// Connections — list all saved connections
+// Connections — list all saved connections (deduplicated by instance identity)
 ipcMain.handle("store:getConnections", async () => {
   try {
     const coll = await getLocalCollection("AppData", "connections");
     const result = await coll.query({}).exec();
     const data = result?.data as { documents: Record<string, unknown>[] } | undefined;
-    return data?.documents ?? [];
+    const rawDocs = data?.documents ?? [];
+
+    // Deduplicate by instance identity: name + host + port + username
+    const map = new Map<string, Record<string, unknown>>();
+    for (const doc of rawDocs) {
+      if (!doc) continue;
+      const key = `${String(doc.name || "").trim().toLowerCase()}@${doc.host}:${doc.port}:${doc.username || ""}`;
+      if (!map.has(key)) {
+        map.set(key, doc);
+      } else {
+        const existing = map.get(key)!;
+        map.set(key, { ...existing, ...doc, id: existing.id || doc.id });
+      }
+    }
+    return Array.from(map.values());
   } catch (err) {
     console.error("[Store] Failed to get connections:", err);
     return [];
   }
 });
 
-// Connections — save (insert or update) a connection
+// Connections — save (insert or update) a connection without creating duplicates
 ipcMain.handle("store:saveConnection", async (_event, connection: Record<string, unknown>) => {
   try {
     const coll = await getLocalCollection("AppData", "connections");
-    const existing = await coll.query({ id: connection.id }).exec();
-    const existingData = existing?.data as { documents: Record<string, unknown>[] } | undefined;
-    if (existingData?.documents && existingData.documents.length > 0) {
-      await coll.update({ id: connection.id }).UpdateOne(connection);
+    let existingDoc: Record<string, unknown> | null = null;
+
+    if (connection.id) {
+      const existing = await coll.query({ id: connection.id }).exec();
+      const docs = (existing?.data as { documents: Record<string, unknown>[] } | undefined)?.documents;
+      if (docs && docs.length > 0) {
+        existingDoc = docs[0];
+      }
+    }
+
+    // If not matched by id, match by instance identity (name + host + port or host + port + username)
+    if (!existingDoc && connection.host && connection.port) {
+      const allRes = await coll.query({}).exec();
+      const allDocs = (allRes?.data as { documents: Record<string, unknown>[] } | undefined)?.documents ?? [];
+      const match = allDocs.find((c) =>
+        (String(c.name || "").trim().toLowerCase() === String(connection.name || "").trim().toLowerCase() &&
+          c.host === connection.host &&
+          Number(c.port) === Number(connection.port)) ||
+        (c.host === connection.host &&
+          Number(c.port) === Number(connection.port) &&
+          c.username === connection.username)
+      );
+      if (match) {
+        existingDoc = match;
+      }
+    }
+
+    if (existingDoc && existingDoc.id) {
+      connection.id = existingDoc.id;
+      await coll.update({ id: existingDoc.id }).UpdateOne(connection);
     } else {
       await coll.insert(connection);
     }

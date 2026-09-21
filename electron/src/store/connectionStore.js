@@ -10,11 +10,29 @@ import { create } from "zustand";
 // Check if running inside Electron
 const isElectron = typeof window !== "undefined" && window.electronAPI?.store;
 
+/** Deduplicate connections by instance identity: name + host + port + username */
+const deduplicateConnections = (list) => {
+  if (!Array.isArray(list)) return [];
+  const seen = new Map();
+  for (const conn of list) {
+    if (!conn) continue;
+    const key = `${conn.name?.trim().toLowerCase() || ""}@${conn.host}:${conn.port}:${conn.username || ""}`;
+    if (!seen.has(key)) {
+      seen.set(key, conn);
+    } else {
+      const prev = seen.get(key);
+      seen.set(key, { ...prev, ...conn, id: prev.id || conn.id });
+    }
+  }
+  return Array.from(seen.values());
+};
+
 /** Load saved connections from AxioDB (main process) or fallback to localStorage */
 const loadSavedConnections = async () => {
   if (isElectron) {
     try {
-      return await window.electronAPI.store.getConnections();
+      const conns = await window.electronAPI.store.getConnections();
+      return deduplicateConnections(conns);
     } catch {
       return [];
     }
@@ -22,7 +40,7 @@ const loadSavedConnections = async () => {
   // Browser dev fallback (no Electron)
   try {
     const raw = localStorage.getItem("axiodb_saved_connections");
-    return raw ? JSON.parse(raw) : [];
+    return raw ? deduplicateConnections(JSON.parse(raw)) : [];
   } catch {
     return [];
   }
@@ -110,20 +128,30 @@ export const useConnectionStore = create((set, get) => ({
   saveConnection: async (connection) => {
     const current = get().savedConnections;
     const existingIndex = current.findIndex(
-      (c) => c.host === connection.host && c.port === connection.port && c.username === connection.username
+      (c) =>
+        (connection.id && c.id === connection.id) ||
+        (c.name?.trim().toLowerCase() === connection.name?.trim().toLowerCase() &&
+          c.host === connection.host &&
+          Number(c.port) === Number(connection.port)) ||
+        (c.host === connection.host &&
+          Number(c.port) === Number(connection.port) &&
+          c.username === connection.username)
     );
+
+    const targetConnection = { ...connection };
     let updated;
     if (existingIndex >= 0) {
+      targetConnection.id = current[existingIndex].id || targetConnection.id;
       updated = [...current];
-      updated[existingIndex] = { ...updated[existingIndex], ...connection };
+      updated[existingIndex] = { ...current[existingIndex], ...targetConnection };
     } else {
-      updated = [connection, ...current];
+      updated = [targetConnection, ...current];
     }
 
     // Persist to AxioDB (main process)
     if (isElectron) {
       try {
-        await window.electronAPI.store.saveConnection(connection);
+        await window.electronAPI.store.saveConnection(targetConnection);
       } catch (err) {
         console.error("[ConnectionStore] Failed to persist connection:", err);
       }
