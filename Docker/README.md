@@ -1,7 +1,7 @@
 # AxioDB Docker Image
 
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
-[![AxioDB](https://img.shields.io/badge/AxioDB-22.2.0-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
+[![AxioDB](https://img.shields.io/badge/AxioDB-22.9.7-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
 
 This Docker image provides the embedded database for Node.js — replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, and zero native dependencies. It includes a REST API server, TCP remote access (AxioDBCloud), web GUI dashboard, and an optional MCP server for AI agent integration.
 
@@ -173,16 +173,52 @@ const main = async () => {
 main();
 ```
 
-### When to Use: Docker (REST API) vs Docker (TCP) vs NPM Package
+### When to Use: Docker (REST API) vs Docker (TCP) vs NPM Package vs Desktop GUI vs CLI
 
-| Use Case                       | Docker (REST API)  | Docker (AxioDBCloud TCP) | NPM Package (Embedded)    |
-| ------------------------------ | ------------------ | ------------------------ | ------------------------- |
-| **Local Node.js Apps**         | Not recommended    | Not recommended          | **Recommended**           |
-| **Remote Node.js Apps**        | Good choice        | **Better performance**   | Not applicable            |
-| **Microservices Architecture** | Good choice        | **Recommended**          | Consider boundaries       |
-| **Non-Node.js Applications**   | **Recommended**    | Not available            | Not available             |
-| **Development/Prototyping**    | Quick setup        | Quick setup              | **Best performance**      |
-| **Cloud Deployment**           | Network overhead   | **Optimized for cloud**  | Not applicable            |
+| Use Case                       | Docker (REST API)  | Docker (AxioDBCloud TCP) | NPM Package (Embedded)    | Desktop GUI (Electron) | CLI Tool |
+| ------------------------------ | ------------------ | ------------------------ | ------------------------- | ---------------------- | -------- |
+| **Local Node.js Apps**         | Not recommended    | Not recommended          | **Recommended**           | —                      | Good for ad-hoc queries |
+| **Remote Node.js Apps**        | Good choice        | **Better performance**   | Not applicable            | Connect to any server   | Connect to any server |
+| **Microservices Architecture** | Good choice        | **Recommended**          | Consider boundaries       | —                      | — |
+| **Non-Node.js Applications**   | **Recommended**    | Not available            | Not available             | —                      | — |
+| **Development/Prototyping**    | Quick setup        | Quick setup              | **Best performance**      | **Best UX**            | **Best terminal UX** |
+| **Cloud Deployment**           | Network overhead   | **Optimized for cloud**  | Not applicable            | —                      | — |
+
+### Desktop GUI (Electron App)
+
+AxioDB ships a native desktop application for Linux, macOS, and Windows — a card-based document
+viewer, connection manager, live health monitoring, and all-in-one database tooling with no browser needed.
+
+**Download** from [GitHub Releases](https://github.com/nexoral/AxioDB/releases) and install:
+- **Linux**: `.deb` package or `.AppImage` (portable, no install needed)
+- **macOS**: `.zip` archive (unzip and drag to Applications)
+- **Windows**: `.exe` NSIS installer
+
+**Non-interactive install (Linux):**
+
+```bash
+# GUI (Desktop app) only
+curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash
+
+# CLI + GUI
+curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=3 bash
+```
+
+### CLI Tool
+
+The AxioDB CLI provides a MongoDB-style interactive REPL, TCP commands for database management, TLS
+support, and export/import — available as pre-built binaries for 12 platforms.
+
+```bash
+# Interactive install (menu: 1→CLI, 2→GUI, 3→Both)
+curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | bash
+
+# Non-interactive: CLI only
+curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=1 bash
+```
+
+See the [CLI documentation](https://axiodb.in/cli) and [Installation guide](https://axiodb.in/installation)
+for full details.
 
 ## =' Configuration
 

@@ -247,6 +247,23 @@ const CliPage: React.FC = () => {
             <CodeBlock code={INSTALL_WINDOWS} language="powershell" />
           </div>
         </div>
+
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-sm text-gray-600 mb-2">
+            <strong>Choose what to install:</strong> The installer prompts interactively
+            (1) CLI, (2) GUI, (3) Both. When piped (<code className="px-1 py-0.5 bg-white rounded text-xs">curl | bash</code>),
+            it defaults to CLI. Set <code className="px-1 py-0.5 bg-white rounded text-xs">CHOICE</code> for non-interactive
+            selection:
+          </p>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <code className="px-2 py-1 bg-white rounded border border-gray-200 text-center">CHOICE=1 → CLI only</code>
+            <code className="px-2 py-1 bg-white rounded border border-gray-200 text-center">CHOICE=2 → GUI only</code>
+            <code className="px-2 py-1 bg-white rounded border border-gray-200 text-center">CHOICE=3 → CLI + GUI</code>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            See <a href="/installation" className="underline">Installation</a> for full details.
+          </p>
+        </div>
       </div>
 
       {/* Connection String */}

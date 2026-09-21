@@ -55,10 +55,53 @@ console.log(data.documents);
 
 ## Installation
 
+### npm (Library)
+
 ```bash
 npm install axiodb
 # Node.js ≥20 (also verified on Bun v1.4.0)
 ```
+
+### CLI & Desktop GUI (System-wide)
+
+AxioDB ships a CLI tool and a native Desktop GUI (Electron). The installer
+presents a menu — **1) CLI**, **2) GUI**, **3) Both** — when run interactively,
+and defaults to CLI when piped (`curl | bash`).
+
+#### Quick Install (interactive)
+
+```bash
+# Linux / macOS
+curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | bash
+
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
+```
+
+#### Non-Interactive (choose what you want)
+
+Set `CHOICE` before piping to select without the menu:
+
+| `CHOICE` | Installs |
+|----------|----------|
+| `1` | CLI only |
+| `2` | GUI (Desktop) only |
+| `3` | CLI + GUI |
+
+```bash
+# GUI (Desktop app) — Linux
+curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash
+
+# GUI (Desktop app) — Windows
+irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | CHOICE=2 iex
+
+# Both CLI + GUI
+curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=3 bash
+```
+
+You can also download installers directly from
+[GitHub Releases](https://github.com/nexoral/AxioDB/releases).
+
 
 ## Basic CRUD
 
