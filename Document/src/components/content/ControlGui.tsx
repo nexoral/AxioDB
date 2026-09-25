@@ -1,513 +1,502 @@
 import {
   ArrowRight,
-  Monitor,
-  Download,
-  Terminal,
-  Shield,
-  Zap,
-  Server,
-  Database,
-  HardDrive,
-  Activity,
-  Layers,
-  FolderTree,
-  Lock,
-  RefreshCw,
   CheckCircle2,
+  ChevronRight,
+  Database,
+  Download,
+  ExternalLink,
   FileText,
+  HelpCircle,
+  Monitor,
+  Play,
+  Server,
+  ShieldCheck,
+  Terminal,
 } from "lucide-react";
 import React from "react";
 import Seo from "../ui/Seo";
 import CodeBlock from "../ui/CodeBlock";
 import { useScrollReveal } from "../../hooks/useScrollReveal";
 
-const INSTALL_GUI_LINUX = `curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash`;
+const INSTALL_GUI_LINUX =
+  "curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash";
 
-const INSTALL_GUI_WINDOWS = `$env:CHOICE=2; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex`;
+const INSTALL_GUI_WINDOWS =
+  "$env:CHOICE=2; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex";
 
-const MANUAL_DEB = `# Install on Debian / Ubuntu / Mint
-sudo dpkg -i axiodb-control_22.14.1_amd64.deb
+const SERVER_GUI_CONFIG_CODE = `import { AxioDB } from "axiodb";
 
-# Launch AxioDB Control
-axiodb-control`;
+// Starts the web GUI and the HTTP API on port 27018.
+const db = new AxioDB({ GUI: true });
 
-const MANUAL_APPIMAGE = `# Make AppImage executable and launch
-chmod +x axiodb-control-22.14.1.AppImage
-./axiodb-control-22.14.1.AppImage`;
+// Use db.createDB(), db.getDB(), or another database operation here.
+// AxioDB waits for its startup work before handling that operation.`;
 
-const LOCAL_STORAGE_CODE = `// Inside Electron Main Process (main.cts):
-import { AxioDB } from "axiodb";
-import { app } from "electron";
-import path from "path";
+const SERVER_HTTP_CONFIG_CODE = `import { AxioDB } from "axiodb";
 
-// AxioDB Control stores its own connection profiles & settings locally
-const dbPath = path.join(app.getPath("userData"), ".axiodb-control");
-const localDB = new AxioDB({
-  RootPath: dbPath,
-  RootName: ".axiodb-control",
-  InMemoryCache: true,
-});
+// Starts the HTTP API on port 27018 without serving the web GUI.
+const db = new AxioDB({ GUI: false, HTTP: true });`;
 
-await localDB.init();`;
-
-const SERVER_CONFIG_CODE = `import { AxioDB } from "axiodb";
-
-// Enable HTTP Control API (default port 27018) for AxioDB Control GUI
-const db = new AxioDB({
-  GUI: true,             // Starts HTTP server on port 27018
-  Port: 27018,           // Default HTTP port
-  Auth: true,            // Enable RBAC authentication
-  AdminUser: "admin",    // Default admin username
-  AdminPassword: "your-secure-password",
-});
-
-await db.init();`;
+const ENVIRONMENT_CONFIG_CODE =
+  "docker run -d -p 27018:27018 \\\n  -e AXIODB_GUI=true -e AXIODB_HTTP=true \\\n  theankansaha/axiodb";
 
 const ControlGui: React.FC = () => {
   const heroReveal = useScrollReveal<HTMLDivElement>();
-  const installReveal = useScrollReveal<HTMLDivElement>();
-  const architectureReveal = useScrollReveal<HTMLDivElement>();
+  const quickStartReveal = useScrollReveal<HTMLDivElement>();
   const featuresReveal = useScrollReveal<HTMLDivElement>();
-  const storageReveal = useScrollReveal<HTMLDivElement>();
-  const platformsReveal = useScrollReveal<HTMLDivElement>();
+  const helpReveal = useScrollReveal<HTMLDivElement>();
 
   return (
     <section id="gui" className="scroll-mt-20">
       <Seo
         title="AxioDB Control GUI - Desktop Database Manager"
-        description="AxioDB Control is the official desktop GUI for AxioDB. Built with Electron, featuring connection management, card-based document browsing, live health monitoring, query console, and binary backups."
+        description="Learn how to install AxioDB Control, connect it to an AxioDB server, and manage your data from a desktop app."
         path="/gui"
       />
 
-      {/* Hero */}
       <div
         ref={heroReveal.ref}
-        className={`relative overflow-hidden bg-white rounded-lg p-5 sm:p-8 lg:p-12 mb-12 border border-gray-200 shadow-md reveal-on-scroll ${heroReveal.isVisible ? "is-visible" : ""}`}
+        className={`relative overflow-hidden bg-white rounded-lg p-5 sm:p-8 lg:p-12 mb-8 border border-gray-200 shadow-md reveal-on-scroll ${heroReveal.isVisible ? "is-visible" : ""}`}
       >
-        <div className="relative z-10">
+        <div className="max-w-3xl">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-indigo-600 rounded-lg">
-              <Monitor className="h-8 w-8 text-white" />
+              <Monitor className="h-7 w-7 text-white" />
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="text-xs bg-indigo-600 text-white px-2.5 py-1 rounded-full font-bold">
-                NEW
-              </span>
-              <span>AxioDB Control</span>
-              <span>•</span>
-              <span>Linux · macOS · Windows</span>
-            </div>
+            <span className="text-sm font-semibold text-indigo-700">
+              Desktop app · Windows · macOS · Linux
+            </span>
           </div>
-
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 text-gray-900">
-            AxioDB Control GUI
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
+            AxioDB Control
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600 mb-6 max-w-3xl">
-            The official cross-platform desktop application for AxioDB. Connect to
-            local and remote databases, inspect collections with card-based document
-            views, monitor live latency, run MongoDB-style queries, and stream database backups.
+          <p className="text-lg text-gray-600 leading-relaxed mb-6">
+            A simple desktop way to connect to AxioDB, browse your collections,
+            run queries, and manage documents. Follow the three steps below to
+            get started.
           </p>
-
-          <div className="flex flex-wrap gap-3 mb-6">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-200">
-              <Monitor className="h-4 w-4 text-indigo-600" />
-              <span className="text-sm font-semibold text-indigo-700">Electron Native Shell</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-lg border border-blue-200">
-              <Database className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-semibold text-blue-700">Embedded AxioDB Storage</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 rounded-lg border border-emerald-200">
-              <Activity className="h-4 w-4 text-emerald-600" />
-              <span className="text-sm font-semibold text-emerald-700">10s Live Health Ping</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 rounded-lg border border-purple-200">
-              <Layers className="h-4 w-4 text-purple-600" />
-              <span className="text-sm font-semibold text-purple-700">Card Document Viewer</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 rounded-lg border border-amber-200">
-              <Download className="h-4 w-4 text-amber-600" />
-              <span className="text-sm font-semibold text-amber-700">Binary tar.gz Export</span>
-            </div>
-          </div>
-
           <div className="flex flex-wrap gap-3">
             <a
               href="https://github.com/nexoral/AxioDB/releases"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 shadow-lg transition-all"
+              className="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors"
             >
               <Download className="h-5 w-5" />
-              Download Installer
-              <ArrowRight className="h-5 w-5" />
+              Download the app
+              <ExternalLink className="h-4 w-4" />
             </a>
             <a
-              href="https://github.com/nexoral/AxioDB/tree/main/electron"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-bold hover:bg-gray-50 transition-colors"
+              href="#quick-start"
+              className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-5 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
             >
-              <FolderTree className="h-5 w-5" />
-              Electron Source
+              Quick start
+              <ArrowRight className="h-4 w-4" />
             </a>
           </div>
         </div>
       </div>
 
-      {/* Server Requirement Notice */}
-      <div className="bg-indigo-50 border-l-4 border-indigo-500 p-5 rounded-r-lg mb-8">
+      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-5 mb-8">
         <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-0.5">
-            <Server className="h-5 w-5 text-indigo-600" />
-          </div>
+          <Server className="h-5 w-5 text-indigo-600 mt-0.5 shrink-0" />
           <div>
-            <p className="text-sm font-bold text-indigo-900">
-              Connects to AxioDB HTTP Control Server (Port 27018)
-            </p>
-            <p className="text-sm text-indigo-800 mt-1 leading-relaxed">
-              AxioDB Control operates over the HTTP Control API on port <code className="px-1.5 py-0.5 bg-white rounded font-mono text-xs">27018</code>.
-              Ensure your server instance has <code className="px-1.5 py-0.5 bg-white rounded font-mono text-xs">GUI: true</code> (or environment variable <code className="px-1.5 py-0.5 bg-white rounded font-mono text-xs">AXIODB_GUI=true</code>) enabled.
-              If RBAC authentication is activated, log in with your administrative or role credentials.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Installation */}
-      <div
-        ref={installReveal.ref}
-        className={`bg-white rounded-lg p-5 sm:p-8 lg:p-8 mb-8 border border-gray-200 shadow-md reveal-on-scroll ${installReveal.isVisible ? "is-visible" : ""}`}
-      >
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Installation</h2>
-        <p className="text-gray-600 mb-6">
-          Install AxioDB Control directly using the universal installer script with <code className="px-1.5 py-0.5 bg-gray-100 rounded font-mono text-xs font-semibold">CHOICE=2</code>,
-          or download the pre-built installer for your operating system.
-        </p>
-
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Terminal className="h-4 w-4 text-gray-700" />
-              <p className="text-sm font-semibold text-gray-800">Linux / macOS (One-Line Script)</p>
-            </div>
-            <CodeBlock code={INSTALL_GUI_LINUX} language="bash" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Terminal className="h-4 w-4 text-gray-700" />
-              <p className="text-sm font-semibold text-gray-800">Windows (PowerShell)</p>
-            </div>
-            <CodeBlock code={INSTALL_GUI_WINDOWS} language="powershell" />
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          <div>
-            <p className="text-sm font-semibold text-gray-800 mb-2">Manual Debian / Ubuntu (.deb)</p>
-            <CodeBlock code={MANUAL_DEB} language="bash" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-800 mb-2">Manual Standalone AppImage (.AppImage)</p>
-            <CodeBlock code={MANUAL_APPIMAGE} language="bash" />
-          </div>
-        </div>
-
-        {/* Release Artifacts Matrix */}
-        <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
-          <div className="flex items-center gap-2 mb-3">
-            <Download className="h-5 w-5 text-indigo-600" />
-            <h3 className="text-base font-bold text-gray-900">Direct GitHub Releases Downloads</h3>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">
-            Download the binary directly from{" "}
-            <a
-              href="https://github.com/nexoral/AxioDB/releases"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-indigo-600 hover:text-indigo-800 underline font-medium"
-            >
-              GitHub Releases
-            </a>:
-          </p>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 text-left text-gray-700">
-                  <th className="py-2 px-3 font-semibold">Platform</th>
-                  <th className="py-2 px-3 font-semibold">Format</th>
-                  <th className="py-2 px-3 font-semibold">Artifact Filename</th>
-                  <th className="py-2 px-3 font-semibold">Architecture</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                <tr>
-                  <td className="py-2.5 px-3 font-medium text-gray-800">Linux (Debian / Ubuntu)</td>
-                  <td className="py-2.5 px-3 text-gray-600">.deb package</td>
-                  <td className="py-2.5 px-3 font-mono text-xs text-indigo-700">axiodb-control_&lt;version&gt;_amd64.deb</td>
-                  <td className="py-2.5 px-3 text-gray-600">x64, arm64</td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 px-3 font-medium text-gray-800">Linux (Universal)</td>
-                  <td className="py-2.5 px-3 text-gray-600">.AppImage</td>
-                  <td className="py-2.5 px-3 font-mono text-xs text-indigo-700">axiodb-control-&lt;version&gt;.AppImage</td>
-                  <td className="py-2.5 px-3 text-gray-600">x64, arm64</td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 px-3 font-medium text-gray-800">Windows (10 / 11)</td>
-                  <td className="py-2.5 px-3 text-gray-600">NSIS Installer (.exe)</td>
-                  <td className="py-2.5 px-3 font-mono text-xs text-indigo-700">AxioDB-Control-Setup-&lt;version&gt;.exe</td>
-                  <td className="py-2.5 px-3 text-gray-600">x64</td>
-                </tr>
-                <tr>
-                  <td className="py-2.5 px-3 font-medium text-gray-800">macOS</td>
-                  <td className="py-2.5 px-3 text-gray-600">App Bundle (.zip)</td>
-                  <td className="py-2.5 px-3 font-mono text-xs text-indigo-700">AxioDB.Control-&lt;version&gt;.zip</td>
-                  <td className="py-2.5 px-3 text-gray-600">Intel &amp; Apple Silicon</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Local Storage Architecture */}
-      <div
-        ref={storageReveal.ref}
-        className={`bg-white rounded-lg p-5 sm:p-8 lg:p-8 mb-8 border border-gray-200 shadow-md reveal-on-scroll ${storageReveal.isVisible ? "is-visible" : ""}`}
-      >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-blue-500 rounded-lg">
-            <HardDrive className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              Local Storage Architecture
+            <h2 className="font-bold text-indigo-900 mb-1">
+              One important thing to know
             </h2>
-            <p className="text-sm text-gray-600">
-              Powered by AxioDB itself — pure embedded NoSQL storage without SQLite or native bindings
+            <p className="text-sm text-indigo-800 leading-relaxed">
+              AxioDB Control is the{" "}
+              <strong>client application</strong>. It connects to an AxioDB
+              server that is already running. The server must expose the HTTP
+              Control API on port <code className="font-mono">27018</code>.
             </p>
           </div>
         </div>
+      </div>
 
-        <p className="text-gray-600 leading-relaxed mb-6">
-          AxioDB Control uses an embedded instance of <code className="px-1.5 py-0.5 bg-gray-100 rounded font-mono text-xs">axiodb</code> inside
-          its Electron main process to store saved server connection profiles, user preferences,
-          and UI states. Data is organized into append-only JSONL files with dual-write in-memory caching.
-        </p>
-
-        <div className="mb-6">
-          <CodeBlock code={LOCAL_STORAGE_CODE} language="typescript" />
-        </div>
-
-        <h3 className="text-lg font-bold text-gray-900 mb-3">On-Disk Storage Locations</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          All connection profiles and settings are stored locally on your machine in the standard Electron user data directory:
-        </p>
-
-        <div className="overflow-x-auto mb-4">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 text-left text-gray-700">
-                <th className="py-2 px-3 font-semibold">Operating System</th>
-                <th className="py-2 px-3 font-semibold">Local AxioDB Data Path</th>
-                <th className="py-2 px-3 font-semibold">Managed Collections</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              <tr>
-                <td className="py-2.5 px-3 font-medium text-gray-800">Linux</td>
-                <td className="py-2.5 px-3 font-mono text-xs text-indigo-700">~/.config/AxioDB Control/.axiodb-control/AppData/</td>
-                <td className="py-2.5 px-3 text-gray-600">connections, settings</td>
-              </tr>
-              <tr>
-                <td className="py-2.5 px-3 font-medium text-gray-800">Windows</td>
-                <td className="py-2.5 px-3 font-mono text-xs text-indigo-700">%APPDATA%\AxioDB Control\.axiodb-control\AppData\</td>
-                <td className="py-2.5 px-3 text-gray-600">connections, settings</td>
-              </tr>
-              <tr>
-                <td className="py-2.5 px-3 font-medium text-gray-800">macOS</td>
-                <td className="py-2.5 px-3 font-mono text-xs text-indigo-700">~/Library/Application Support/AxioDB Control/.axiodb-control/AppData/</td>
-                <td className="py-2.5 px-3 text-gray-600">connections, settings</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-          <div className="flex items-center gap-2 mb-1">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-            <p className="text-sm font-semibold text-emerald-800">Secure Credential Persistence</p>
-          </div>
-          <p className="text-xs text-emerald-700">
-            Connection passwords and tokens are preserved safely within your operating system user directory.
-            Profiles are deduplicated by <code className="px-1 py-0.5 bg-white rounded font-mono">host:port:username</code>,
-            and password auto-fill triggers automatically when selecting a saved connection profile.
+      <div
+        ref={quickStartReveal.ref}
+        id="quick-start"
+        className={`bg-white rounded-lg p-5 sm:p-8 mb-8 border border-gray-200 shadow-md reveal-on-scroll ${quickStartReveal.isVisible ? "is-visible" : ""}`}
+      >
+        <div className="mb-8">
+          <p className="text-sm font-bold uppercase tracking-wide text-indigo-600 mb-2">
+            Quick start
           </p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+            Get connected in three steps
+          </h2>
+          <p className="text-gray-600">
+            Start with the normal path. You can find platform details and
+            alternate commands further down this page.
+          </p>
+        </div>
+
+        <div className="space-y-8">
+          <div className="grid md:grid-cols-[auto_1fr] gap-4">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-bold">
+              1
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Install AxioDB Control
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Download the installer for your computer from{" "}
+                <a
+                  href="https://github.com/nexoral/AxioDB/releases"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-600 hover:underline font-semibold"
+                >
+                  GitHub Releases
+                </a>
+                . Open the downloaded file and follow the installer steps.
+              </p>
+              <div className="grid sm:grid-cols-3 gap-3 text-sm">
+                <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+                  <p className="font-semibold text-gray-900">Windows</p>
+                  <p className="text-gray-600 mt-1">NSIS installer (.exe)</p>
+                </div>
+                <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+                  <p className="font-semibold text-gray-900">macOS</p>
+                  <p className="text-gray-600 mt-1">App bundle (.zip)</p>
+                </div>
+                <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
+                  <p className="font-semibold text-gray-900">Linux</p>
+                  <p className="text-gray-600 mt-1">.deb or AppImage</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-[auto_1fr] gap-4">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-bold">
+              2
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Start the HTTP server
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Choose the mode you need. The HTTP server always uses port{" "}
+                <code className="font-mono">27018</code>; there is no
+                <code className="font-mono">Port</code> option in
+                <code className="font-mono">AxioDB</code>.
+              </p>
+              <div className="grid lg:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-800 mb-2">
+                    GUI + HTTP API
+                  </p>
+                  <CodeBlock
+                    code={SERVER_GUI_CONFIG_CODE}
+                    language="typescript"
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-800 mb-2">
+                    HTTP API only
+                  </p>
+                  <CodeBlock
+                    code={SERVER_HTTP_CONFIG_CODE}
+                    language="typescript"
+                  />
+                </div>
+              </div>
+              <div className="mt-4 rounded-lg bg-gray-50 border border-gray-200 p-4 text-sm text-gray-600 space-y-2">
+                <p>
+                  <strong className="text-gray-900">GUI: true</strong> enables
+                  both the browser dashboard and the HTTP API.
+                </p>
+                <p>
+                  <strong className="text-gray-900">
+                    HTTP: true, GUI: false
+                  </strong>{" "}
+                  enables the HTTP API for another client or application
+                  without serving the dashboard.
+                </p>
+                <p>
+                  The server listens on{" "}
+                  <code className="font-mono">0.0.0.0:27018</code>, so another
+                  machine can reach it using the server&apos;s IP address if
+                  the network firewall allows it. The built-in authentication
+                  still protects API actions.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-[auto_1fr] gap-4">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-100 text-indigo-700 font-bold">
+              3
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Add the server in the app
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Open AxioDB Control, create a connection, and enter:
+              </p>
+              <div className="grid sm:grid-cols-3 gap-3 mb-4">
+                <div className="rounded-lg border border-gray-200 p-3">
+                  <p className="text-xs font-semibold uppercase text-gray-500">
+                    Host
+                  </p>
+                  <p className="font-mono text-gray-900 mt-1">
+                    localhost (or server IP)
+                  </p>
+                </div>
+                <div className="rounded-lg border border-gray-200 p-3">
+                  <p className="text-xs font-semibold uppercase text-gray-500">
+                    Port
+                  </p>
+                  <p className="font-mono text-gray-900 mt-1">27018</p>
+                </div>
+                <div className="rounded-lg border border-gray-200 p-3">
+                  <p className="text-xs font-semibold uppercase text-gray-500">
+                    Login
+                  </p>
+                  <p className="text-gray-900 mt-1">
+                    <code className="font-mono">admin</code> /{" "}
+                    <code className="font-mono">admin</code> first time
+                  </p>
+                </div>
+              </div>
+              <p className="flex items-start gap-2 text-sm text-emerald-700">
+                <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
+                Click <strong>Test connection</strong>, then select the
+                database you want to work with.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Features & Capabilities */}
       <div
         ref={featuresReveal.ref}
-        className={`bg-white rounded-lg p-5 sm:p-8 lg:p-8 mb-8 border border-gray-200 shadow-md reveal-on-scroll ${featuresReveal.isVisible ? "is-visible" : ""}`}
+        className={`bg-white rounded-lg p-5 sm:p-8 mb-8 border border-gray-200 shadow-md reveal-on-scroll ${featuresReveal.isVisible ? "is-visible" : ""}`}
       >
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Key Features</h2>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="p-5 bg-gray-50 rounded-xl border border-gray-200 hover:border-indigo-300 transition-colors">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-indigo-500 rounded-lg text-white">
-                <Server className="h-5 w-5" />
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg">Connection Hub &amp; Auto-Fill</h3>
-            </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Manage multiple AxioDB server profiles across staging, development, and production.
-              Select any profile to auto-populate the endpoint, port, username, and saved credentials.
-              Cards feature visual &quot;Password saved&quot; badges and instant connection testing.
-            </p>
-          </div>
-
-          <div className="p-5 bg-gray-50 rounded-xl border border-gray-200 hover:border-indigo-300 transition-colors">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-emerald-500 rounded-lg text-white">
-                <Activity className="h-5 w-5" />
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg">Live Health &amp; Latency Ping</h3>
-            </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              AxioDB Control executes an automatic 10-second background heartbeat to <code className="px-1 py-0.5 bg-white rounded text-xs">/api/health</code>.
-              Roundtrip latency (ms) is updated live in the titlebar and status bar with a pulsing green connection status indicator.
-            </p>
-          </div>
-
-          <div className="p-5 bg-gray-50 rounded-xl border border-gray-200 hover:border-indigo-300 transition-colors">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-purple-500 rounded-lg text-white">
-                <Layers className="h-5 w-5" />
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg">Card-Based Document Explorer</h3>
-            </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Every document is displayed as an individual card with <code className="px-1 py-0.5 bg-white rounded text-xs">#documentId</code> header,
-              structured field previews for the first 10 fields, and a &quot;Show more&quot; toggle to view large documents.
-              Quick hover actions allow immediate Copy, Edit, and Delete.
-            </p>
-          </div>
-
-          <div className="p-5 bg-gray-50 rounded-xl border border-gray-200 hover:border-indigo-300 transition-colors">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-amber-500 rounded-lg text-white">
-                <Download className="h-5 w-5" />
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg">Binary Database Export &amp; Backup</h3>
-            </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Right-click any database in the sidebar to initiate a binary <code className="px-1 py-0.5 bg-white rounded text-xs">.tar.gz</code> archive
-              export. The app streams the compressed backup directly from the HTTP API to native system save dialogs with real-time spinner indicators.
-            </p>
-          </div>
-
-          <div className="p-5 bg-gray-50 rounded-xl border border-gray-200 hover:border-indigo-300 transition-colors">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-blue-500 rounded-lg text-white">
-                <FileText className="h-5 w-5" />
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg">Visual Query Console</h3>
-            </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Run MongoDB-style JSON queries with operators like <code className="px-1 py-0.5 bg-white rounded text-xs">$gt</code>,
-              <code className="px-1 py-0.5 bg-white rounded text-xs">$regex</code>, and <code className="px-1 py-0.5 bg-white rounded text-xs">$in</code>.
-              Inspect matching documents, analyze query timings, and paginate results without external tooling.
-            </p>
-          </div>
-
-          <div className="p-5 bg-gray-50 rounded-xl border border-gray-200 hover:border-indigo-300 transition-colors">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-pink-500 rounded-lg text-white">
-                <Zap className="h-5 w-5" />
-              </div>
-              <h3 className="font-bold text-gray-900 text-lg">Bouncy-Ball Splash Screen</h3>
-            </div>
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Eliminates the initial white-flash typical in desktop Electron applications.
-              A smooth bouncy-balls loader initializes the window seamlessly before presenting the dashboard interface.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Server Configuration */}
-      <div
-        ref={architectureReveal.ref}
-        className={`bg-white rounded-lg p-5 sm:p-8 lg:p-8 mb-8 border border-gray-200 shadow-md reveal-on-scroll ${architectureReveal.isVisible ? "is-visible" : ""}`}
-      >
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Configuring the Server for GUI Access</h2>
-        <p className="text-gray-600 mb-4">
-          To enable AxioDB Control GUI to connect to your AxioDB node, start the HTTP Control API by setting <code className="px-1.5 py-0.5 bg-gray-100 rounded font-mono text-xs font-semibold">GUI: true</code>:
-        </p>
-
         <div className="mb-6">
-          <CodeBlock code={SERVER_CONFIG_CODE} language="typescript" />
-        </div>
-
-        <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-sm font-semibold text-gray-800 mb-2">CLI / Environment Variable Flag:</p>
-          <p className="text-sm text-gray-600">
-            You can also activate the HTTP Control API via environment variables when running in Docker or systemd:
+          <p className="text-sm font-bold uppercase tracking-wide text-indigo-600 mb-2">
+            After you connect
           </p>
-          <div className="mt-2">
-            <code className="px-2 py-1 bg-white rounded border border-gray-200 text-xs font-mono text-indigo-700">
-              AXIODB_GUI=true AXIODB_AUTH=true AXIODB_ADMIN_USER=admin AXIODB_ADMIN_PASS=secret node server.js
-            </code>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            What can you do?
+          </h2>
+          <p className="text-gray-600">
+            The main workspace is designed around the tasks you do most often.
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="flex gap-3 rounded-lg bg-gray-50 border border-gray-200 p-4">
+            <Database className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-bold text-gray-900">Browse your data</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Open databases and collections, then view documents in an easy
+                card layout.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 rounded-lg bg-gray-50 border border-gray-200 p-4">
+            <FileText className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-bold text-gray-900">Run queries</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Filter documents with JSON queries and inspect the results
+                without using a terminal.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 rounded-lg bg-gray-50 border border-gray-200 p-4">
+            <Play className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-bold text-gray-900">Edit documents</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Copy, edit, or delete documents directly from the document
+                viewer.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 rounded-lg bg-gray-50 border border-gray-200 p-4">
+            <Download className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-bold text-gray-900">Create backups</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Export a database as a <code className="font-mono">.tar.gz</code>{" "}
+                archive from the database menu.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-3 rounded-lg bg-gray-50 border border-gray-200 p-4 sm:col-span-2">
+            <ShieldCheck className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-bold text-gray-900">See connection health</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                The app checks the server regularly and shows connection
+                status and latency while you work.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Supported Platforms */}
-      <div
-        ref={platformsReveal.ref}
-        className={`bg-white rounded-lg p-5 sm:p-8 lg:p-8 mb-8 border border-gray-200 shadow-md reveal-on-scroll ${platformsReveal.isVisible ? "is-visible" : ""}`}
-      >
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Supported Platforms</h2>
-        <p className="text-gray-600 mb-4">
-          AxioDB Control is compiled natively for modern 64-bit desktop operating systems:
-        </p>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 text-left text-gray-700">
-                <th className="py-2 px-3 font-semibold">Operating System</th>
-                <th className="py-2 px-3 font-semibold">Supported Versions</th>
-                <th className="py-2 px-3 font-semibold">Architectures</th>
-                <th className="py-2 px-3 font-semibold">Distribution Package</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              <tr>
-                <td className="py-2.5 px-3 font-medium text-gray-800">Linux</td>
-                <td className="py-2.5 px-3 text-gray-600">Ubuntu 20.04+, Debian 11+, Fedora, Arch</td>
-                <td className="py-2.5 px-3 text-gray-600">x86_64 (amd64), aarch64 (arm64)</td>
-                <td className="py-2.5 px-3 font-mono text-xs text-indigo-700">.deb, .AppImage</td>
-              </tr>
-              <tr>
-                <td className="py-2.5 px-3 font-medium text-gray-800">Windows</td>
-                <td className="py-2.5 px-3 text-gray-600">Windows 10, Windows 11, Windows Server 2019+</td>
-                <td className="py-2.5 px-3 text-gray-600">x86_64 (amd64)</td>
-                <td className="py-2.5 px-3 font-mono text-xs text-indigo-700">NSIS Installer (.exe)</td>
-              </tr>
-              <tr>
-                <td className="py-2.5 px-3 font-medium text-gray-800">macOS</td>
-                <td className="py-2.5 px-3 text-gray-600">macOS 12 Monterey or later</td>
-                <td className="py-2.5 px-3 text-gray-600">Intel (x64) &amp; Apple Silicon (M1/M2/M3/M4)</td>
-                <td className="py-2.5 px-3 font-mono text-xs text-indigo-700">Zip (.zip bundle)</td>
-              </tr>
-            </tbody>
-          </table>
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-5 mb-8">
+        <div className="flex items-start gap-3">
+          <ShieldCheck className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+          <div>
+            <h2 className="font-bold text-amber-900 mb-1">
+              Keep your server safe
+            </h2>
+            <p className="text-sm text-amber-800 leading-relaxed">
+              Do not expose port <code className="font-mono">27018</code> to
+              the public internet without proper network protection. Use
+              authentication, a firewall, and a private network or VPN for
+              remote connections.
+            </p>
+          </div>
         </div>
+      </div>
+
+      <div
+        ref={helpReveal.ref}
+        className={`bg-white rounded-lg p-5 sm:p-8 border border-gray-200 shadow-md reveal-on-scroll ${helpReveal.isVisible ? "is-visible" : ""}`}
+      >
+        <div className="flex items-start gap-3 mb-6">
+          <HelpCircle className="h-6 w-6 text-indigo-600 mt-0.5" />
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Need a different setup?
+            </h2>
+            <p className="text-gray-600 mt-1">
+              Keep the beginner path above as your reference. These sections
+              cover less common setups and implementation details.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <details className="group rounded-lg border border-gray-200">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 font-semibold text-gray-900">
+              Install with a command
+              <ChevronRight className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-90" />
+            </summary>
+            <div className="border-t border-gray-200 p-4">
+              <p className="text-sm text-gray-600 mb-2">
+                Use these commands when you prefer a terminal or are setting up
+                a machine remotely.
+              </p>
+              <p className="text-sm font-semibold text-gray-800 mb-1">
+                Linux / macOS
+              </p>
+              <CodeBlock code={INSTALL_GUI_LINUX} language="bash" />
+              <p className="text-sm font-semibold text-gray-800 mb-1 mt-4">
+                Windows PowerShell
+              </p>
+              <CodeBlock code={INSTALL_GUI_WINDOWS} language="powershell" />
+            </div>
+          </details>
+
+          <details className="group rounded-lg border border-gray-200">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 font-semibold text-gray-900">
+              Configure with environment variables
+              <ChevronRight className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-90" />
+            </summary>
+            <div className="border-t border-gray-200 p-4">
+              <p className="text-sm text-gray-600 mb-2">
+                This Docker example starts both the web GUI and HTTP API. The
+                AxioDB Docker runner reads these environment variables.
+              </p>
+              <CodeBlock code={ENVIRONMENT_CONFIG_CODE} language="bash" />
+              <p className="text-sm text-gray-500 mt-3">
+                For HTTP-only Docker mode, use{" "}
+                <code className="font-mono">AXIODB_GUI=false</code> with{" "}
+                <code className="font-mono">AXIODB_HTTP=true</code> for
+                instead. When using the built-in HTTP server directly from
+                Node.js, set <code className="font-mono">GUI</code> and{" "}
+                <code className="font-mono">HTTP</code> in the
+                <code className="font-mono">AxioDB</code> options object.
+                The default seeded login is{" "}
+                <code className="font-mono">admin/admin</code>; change it
+                immediately after the first login.
+              </p>
+            </div>
+          </details>
+
+          <details className="group rounded-lg border border-gray-200">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 font-semibold text-gray-900">
+              Supported versions and local settings
+              <ChevronRight className="h-5 w-5 text-gray-500 transition-transform group-open:rotate-90" />
+            </summary>
+            <div className="border-t border-gray-200 p-4 text-sm text-gray-600 space-y-4">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">
+                  Supported desktop systems
+                </h3>
+                <p>
+                  Linux (Ubuntu 20.04+, Debian 11+, Fedora, and Arch), Windows
+                  10/11 and Windows Server 2019+, and macOS 12 Monterey or
+                  later. Linux supports x86_64 and arm64; Windows supports
+                  x86_64; macOS supports Intel and Apple Silicon.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-1">
+                  Where connection profiles are saved
+                </h3>
+                <p>
+                  AxioDB Control stores connection profiles and preferences in
+                  Electron&apos;s local user-data directory. They are kept on
+                  the computer running the GUI and are not stored in your
+                  AxioDB database.
+                </p>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <div className="mt-6 pt-6 border-t border-gray-200 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+          <a
+            href="/troubleshooting"
+            className="inline-flex items-center gap-1.5 text-indigo-600 hover:underline font-semibold"
+          >
+            Troubleshooting
+            <ArrowRight className="h-4 w-4" />
+          </a>
+          <a
+            href="/server-api"
+            className="inline-flex items-center gap-1.5 text-indigo-600 hover:underline font-semibold"
+          >
+            HTTP Control API reference
+            <ArrowRight className="h-4 w-4" />
+          </a>
+          <a
+            href="/installation"
+            className="inline-flex items-center gap-1.5 text-indigo-600 hover:underline font-semibold"
+          >
+            AxioDB installation
+            <ArrowRight className="h-4 w-4" />
+          </a>
+          <a
+            href="https://github.com/nexoral/AxioDB/tree/main/electron"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-indigo-600 hover:underline font-semibold"
+          >
+            Electron source
+            <ExternalLink className="h-4 w-4" />
+          </a>
+        </div>
+      </div>
+
+      <div className="mt-8 text-center text-sm text-gray-500">
+        <Terminal className="inline h-4 w-4 mr-1" />
+        Prefer the terminal? See the{" "}
+        <a href="/cli" className="text-indigo-600 hover:underline font-semibold">
+          AxioDB CLI guide
+        </a>
+        .
       </div>
     </section>
   );
