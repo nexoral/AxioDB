@@ -47,23 +47,24 @@ const machine = {
   ram: "7.1 GB DDR4",
   os: "Ubuntu Linux 6.8.0",
   node: "v26.8.1",
-  date: "September 5, 2026",
+  date: "September 25, 2026",
 };
 
 const suiteTimings = [
-  { name: "CRUD Operations", time: 3737, tests: 30, color: "emerald" },
-  { name: "Transactions", time: 625, tests: 22, color: "blue" },
-  { name: "Read / Query", time: 146794, tests: 40, color: "violet" },
-  { name: "Aggregation", time: 458, tests: 50, color: "cyan" },
-  { name: "Auth & RBAC", time: 5954, tests: 32, color: "amber" },
-  { name: "HTTP API", time: 1461, tests: 38, color: "orange" },
-  { name: "TCP Auth", time: 2725, tests: 20, color: "rose" },
-  { name: "TCP No-Auth", time: 627, tests: 6, color: "pink" },
-  { name: "TCP Transactions", time: 1393, tests: 17, color: "indigo" },
-  { name: "TCP TLS", time: 641, tests: 3, color: "slate" },
-  { name: "Crash Recovery", time: 5731, tests: 3, color: "red" },
-  { name: "MCP Confirm", time: 40, tests: 11, color: "teal" },
-  { name: "MCP Functional", time: 1726, tests: 6, color: "fuchsia" },
+  { name: "CRUD Operations", time: 4149, tests: 39, color: "emerald" },
+  { name: "Transactions", time: 681, tests: 23, color: "blue" },
+  { name: "Read / Query", time: 24499, tests: 39, color: "violet" },
+  { name: "Aggregation", time: 457, tests: 63, color: "cyan" },
+  { name: "Auth & RBAC", time: 6121, tests: 35, color: "amber" },
+  { name: "HTTP API", time: 1511, tests: 47, color: "orange" },
+  { name: "TCP Auth", time: 3260, tests: 25, color: "rose" },
+  { name: "TCP No-Auth", time: 918, tests: 5, color: "pink" },
+  { name: "TCP Transactions", time: 1419, tests: 22, color: "indigo" },
+  { name: "TCP TLS", time: 836, tests: 3, color: "slate" },
+  { name: "Crash Recovery", time: 6196, tests: 3, color: "red" },
+  { name: "MCP Confirm", time: 49, tests: 10, color: "teal" },
+  { name: "MCP Functional", time: 1242, tests: 4, color: "fuchsia" },
+  { name: "Cache Options", time: 1438, tests: 11, color: "lime" },
 ];
 
 const crudOps = [
@@ -239,7 +240,7 @@ const Performance: React.FC = () => {
     <section id="performance" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB Performance Benchmarks - Real Query Timings Across Dataset Sizes"
-        description="Measured performance benchmarks for AxioDB query operations across 1K to 100K document datasets. All tests run with npm test full suite (13/13 passing)."
+        description="Measured performance benchmarks for AxioDB query operations across 1K to 100K document datasets. All tests run with npm test full suite (14/14 passing)."
         path="/performance"
       />
 
@@ -257,7 +258,7 @@ const Performance: React.FC = () => {
               Benchmarked
             </span>
             <span className="text-sm bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-bold">
-              13/13 Passing
+              14/14 Passing
             </span>
           </div>
 
@@ -297,7 +298,7 @@ const Performance: React.FC = () => {
           { icon: <Zap className="h-5 w-5" />, label: "Indexed Query", value: "1-2 ms", sub: "Constant across all sizes", ring: "ring-emerald-200 bg-emerald-50", text: "text-emerald-700", iconBg: "bg-emerald-500" },
           { icon: <Activity className="h-5 w-5" />, label: "Doc ID Lookup", value: "<1 ms", sub: "Direct file-per-doc read", ring: "ring-emerald-200 bg-emerald-50", text: "text-emerald-700", iconBg: "bg-emerald-500" },
           { icon: <Gauge className="h-5 w-5" />, label: "Cache Hit", value: "<1 ms", sub: "In-memory cached result", ring: "ring-blue-200 bg-blue-50", text: "text-blue-700", iconBg: "bg-blue-500" },
-          { icon: <CheckCircle2 className="h-5 w-5" />, label: "Test Coverage", value: `${totalTests} tests`, sub: "13 suites, all passing", ring: "ring-violet-200 bg-violet-50", text: "text-violet-700", iconBg: "bg-violet-500" },
+          { icon: <CheckCircle2 className="h-5 w-5" />, label: "Test Coverage", value: `${totalTests} tests`, sub: "14 suites, all passing", ring: "ring-violet-200 bg-violet-50", text: "text-violet-700", iconBg: "bg-violet-500" },
         ].map((c) => (
           <div key={c.label} className={`rounded-xl p-5 border-2 ${c.ring} shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5`}>
             <div className="flex items-center gap-2 mb-3">

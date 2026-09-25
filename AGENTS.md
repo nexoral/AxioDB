@@ -7,13 +7,13 @@
 * No `any`. Use `unknown` + guard. No `eval`, `setTimeout` hacks, temp fixes.
 * Singleton: `new AxioDB()` twice throws; tests run isolated child processes.
 * All registries JSONL append-only, last-line-wins, truncated when empty; filenames via `General` `source/config/Keys/Keys.ts` — never hardcode.
-* Dual-write indexes: memory + disk; random TTL `5-15m` `Math.floor(Math.random()*(15-5+1)+5)*60*1000`.
+* Dual-write indexes: memory + disk; random TTL `5-15m` — `InMemoryCache` randomizes between the configurable `minTTL`/`maxTTL` options; `IndexCache` hardcodes `Math.floor(Math.random()*(MAX_TTL_MS-MIN_TTL_MS+1)+MIN_TTL_MS)`.
 * Inputs validated (reject non-object/array), path sanitized `replace(/[^a-zA-Z0-9-_]/g,'_')+path.join`, never log secrets/stack.
 
 ## Rules — non-negotiable
 
 1. `npm run build` after every change — never ship TS errors.
-2. `Test/modules/` must be updated for any feature; `npm test` all 13 suites `crud|transaction|read|auth|tcp-auth|tcp-noauth|tcp-tls|crash-recovery|mcp-confirm|http-api|tcp-transaction|mcp-functional`.
+2. `Test/modules/` must be updated for any feature; `npm test` all 14 suites `crud|transaction|read|aggregation|auth|http-api|tcp-auth|tcp-noauth|tcp-transaction|tcp-tls|crash-recovery|mcp-confirm|mcp-functional|cache-options`.
 3. Never leave incomplete work — Done checklist must pass.
 4. Read before edit; follow existing patterns.
 5. Production-grade only.
@@ -31,7 +31,7 @@ README, `Document/` (`npm run dev` 5173), `Dockerfile` ports/env, JSDoc with `@p
 
 ```bash
 npm run build              # mandatory
-npm test                   # all 13
+npm test                   # all 14
 npm test <suite>           # see Rules 2
 npm run lint               # ESLint
 cd Document && npm run dev # docs 5173
@@ -52,7 +52,7 @@ python3 -c "import graphify" 2>/dev/null && python3 -c "from graphify.watch impo
 ## Done checklist
 
 - [ ] `npm run build` passes
-- [ ] `Test/modules/` updated, `npm test` 13/13
+- [ ] `Test/modules/` updated, `npm test` 14/14
 - [ ] `npm run lint` passes
 - [ ] Docs updated (README, Document, Dockerfile, JSDoc)
 - [ ] Changelog if major/breaking

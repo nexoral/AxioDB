@@ -6,7 +6,6 @@ import { General } from "../config/Keys/Keys";
 import path from "path";
 import fs from "fs";
 import Database from "./Database/database.operation";
-// import startWebServer from "../server/Fastify";
 
 // Helper Classes
 import Converter from "../Helper/Converter.helper";

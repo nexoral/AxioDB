@@ -90,8 +90,9 @@ source/
 ```bash
 npm run build              # TypeScript → lib/ (MANDATORY after every change)
 npm test                   # All suites (separate processes)
-npm test <suite>           # crud | transaction | read | auth | tcp-auth | tcp-noauth
-                           # tcp-tls | crash-recovery | mcp-confirm
+npm test <suite>           # crud | transaction | read | aggregation | auth | http-api
+                           # tcp-auth | tcp-noauth | tcp-transaction | tcp-tls
+                           # crash-recovery | mcp-confirm | mcp-functional | cache-options
 npm run lint               # ESLint
 node Test/modules/crud.test.js  # Run one suite directly
 cd Document && npm run dev      # Docs site (localhost:5173)
