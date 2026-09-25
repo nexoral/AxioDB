@@ -2,7 +2,7 @@ import path from "path";
 
 export enum ServerKeys {
   PORT = 27018,
-  LOCALHOST = "127.0.1",
+  LOCALHOST = "127.0.0.1",
   DEFAULT_KEY_EXPIRE = "24h",
   DEFAULT_KEY_ISSUER = "AxioDB Server",
   DEFAULT_KEY_AUDIENCE = "AxioDB Client",
@@ -75,6 +75,16 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         method: "GET",
         path: "/api/routes",
         description: "List all available API routes",
+      },
+      {
+        method: "GET",
+        path: "/api/system",
+        description: "Server runtime details: version, platform, CPU, memory, cache, and running services with their ports",
+      },
+      {
+        method: "GET",
+        path: "/api/dashboard-stats",
+        description: "Aggregated dashboard statistics for the GUI overview page",
       },
     ],
   },
@@ -192,6 +202,19 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         method: "GET",
         description: "Get specific documents from a collection by ID",
         path: "/api/operation/all/by-id/?dbName&collectionName&documentId",
+      },
+      {
+        method: "GET",
+        description: "Get the total document count of a collection",
+        path: "/api/operation/total/?dbName&collectionName",
+      },
+      {
+        method: "POST",
+        description: "Get specific documents from a collection by a list of IDs",
+        path: "/api/operation/all/by-ids/?dbName&collectionName",
+        payload: {
+          documentIds: "array",
+        },
       },
       {
         method: "POST",
@@ -325,6 +348,11 @@ export const AvailableRoutes: RouteGroupInterface[] = [
         method: "GET",
         path: "/api/auth/roles/permissions",
         description: "List the full predefined permission catalogue",
+      },
+      {
+        method: "DELETE",
+        path: "/api/auth/roles/:roleName",
+        description: "Delete a custom role",
       },
     ],
   },

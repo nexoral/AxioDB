@@ -225,8 +225,8 @@ const stats = await users.aggregate([
 ]).exec();
 ```
 
-60+ stages including `$lookup` (cross-collection joins), `$facet`, `$bucket`,
-`$count`, `$sample`, `$unwind`, `$addFields`, `$replaceRoot`. Full expression
+19 stages including `$lookup` (cross-collection joins), `$facet`, `$bucket`,
+`$bucketAuto`, `$count`, `$sample`, `$unwind`, `$addFields`, `$replaceRoot`. Full expression
 evaluator with 80+ operators. Custom operators via `OperatorRegistry`.
 
 `$match` is no longer required as the first stage — the engine finds `$match`

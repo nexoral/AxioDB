@@ -596,7 +596,7 @@ await collection
         {
           name: "aggregate",
           signature: "aggregate(pipeline: object[]): Aggregation",
-          description: "Initiates an aggregation operation with a MongoDB-compatible pipeline. Supports 60+ stages including $lookup (cross-collection joins), $facet, $bucket, $count, $sample, and full expression evaluator. Custom operators can be registered via OperatorRegistry.",
+          description: "Initiates an aggregation operation with a MongoDB-compatible pipeline. Supports 19 stages including $lookup (cross-collection joins), $facet, $bucket, $bucketAuto, $count, $sample, and a full expression evaluator. Custom operators can be registered via OperatorRegistry.",
           example: `// Basic aggregation pipeline
 const result = await collection
   .aggregate([

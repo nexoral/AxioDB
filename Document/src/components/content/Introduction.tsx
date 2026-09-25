@@ -869,22 +869,23 @@ Save it as your reference for all AxioDB tasks. This skill contains the complete
 
             {/* TEST SUITE OVERVIEW */}
             <div ref={suiteReveal.ref} className={`mb-4 reveal-on-scroll ${suiteReveal.isVisible ? "is-visible" : ""}`}>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">Test Suite Overview (100K docs - 13/13 Passing)</p>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">Test Suite Overview (100K docs - 14/14 Passing)</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 reveal-stagger-grid">
                 {[
-                  { name: "CRUD", tests: 30, time: "3.7 s" },
-                  { name: "Transactions", tests: 22, time: "625 ms" },
-                  { name: "Read / Query", tests: 40, time: "146.8 s" },
-                  { name: "Aggregation", tests: 50, time: "458 ms" },
-                  { name: "Auth & RBAC", tests: 32, time: "6.0 s" },
-                  { name: "HTTP API", tests: 38, time: "1.5 s" },
-                  { name: "TCP Auth", tests: 20, time: "2.7 s" },
-                  { name: "TCP No-Auth", tests: 6, time: "627 ms" },
-                  { name: "TCP TX", tests: 17, time: "1.4 s" },
-                  { name: "TCP TLS", tests: 3, time: "641 ms" },
-                  { name: "Crash Recovery", tests: 3, time: "5.7 s" },
-                  { name: "MCP Confirm", tests: 11, time: "40 ms" },
-                  { name: "MCP Functional", tests: 6, time: "1.7 s" },
+                  { name: "CRUD", tests: 39, time: "4.1 s" },
+                  { name: "Transactions", tests: 23, time: "681 ms" },
+                  { name: "Read / Query", tests: 39, time: "24.5 s" },
+                  { name: "Aggregation", tests: 63, time: "457 ms" },
+                  { name: "Auth & RBAC", tests: 35, time: "6.1 s" },
+                  { name: "HTTP API", tests: 47, time: "1.5 s" },
+                  { name: "TCP Auth", tests: 25, time: "3.3 s" },
+                  { name: "TCP No-Auth", tests: 5, time: "918 ms" },
+                  { name: "TCP TX", tests: 22, time: "1.4 s" },
+                  { name: "TCP TLS", tests: 3, time: "836 ms" },
+                  { name: "Crash Recovery", tests: 3, time: "6.2 s" },
+                  { name: "MCP Confirm", tests: 10, time: "49 ms" },
+                  { name: "MCP Functional", tests: 4, time: "1.2 s" },
+                  { name: "Cache Options", tests: 11, time: "1.4 s" },
                 ].map((suite) => (
                   <div key={suite.name} className="bg-gray-50 px-2 py-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all text-center">
                     <p className="text-[10px] text-gray-500 font-semibold truncate">{suite.name}</p>

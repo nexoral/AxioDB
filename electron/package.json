@@ -1,7 +1,7 @@
 {
   "name": "axiodb-control",
   "productName": "AxioDB Control",
-  "version": "22.11.0",
+  "version": "22.13.1",
   "description": "Desktop GUI management application for AxioDB",
   "main": "dist-electron/main.cjs",
   "homepage": "https://axiodb.in",
@@ -31,7 +31,7 @@
   "dependencies": {
     "@heroicons/react": "^1.0.6",
     "@tailwindcss/vite": "^4.1.10",
-    "axiodb": "^22.10.8",
+    "axiodb": "^22.11.0",
     "axios": "^1.12.0",
     "framer-motion": "^12.23.12",
     "react": "^19.1.0",

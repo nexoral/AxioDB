@@ -43,7 +43,7 @@ sync_root() {
 
 sync_cli() {
   local NEW_VERSION="$1"
-  echo -n "$NEW_VERSION" > cli/VERSION
+  echo -n "${NEW_VERSION}" > cli/VERSION
   sed -i "s/var cliVersion = \".*\"/var cliVersion = \"$NEW_VERSION\"/" cli/cmd/version.go
   echo -e "  ${GREEN}Updated${NC} cli/VERSION + cli/cmd/version.go"
 }
@@ -67,16 +67,50 @@ sync_document() {
     echo -e "  ${GREEN}Updated${NC} Document/package.json"
   fi
   if [ -f "Document/public/llms.txt" ]; then
-    sed -i "s/Current version: [0-9]\+\.[0-9]\+\.[0-9]\+/Current version: $NEW_VERSION/" Document/public/llms.txt
+    sed -i "s/Current version: [0-9]\+\.[0-9]\+\.[0-9]\+/Current version: ${NEW_VERSION}/" Document/public/llms.txt
     echo -e "  ${GREEN}Updated${NC} Document/public/llms.txt"
   fi
   if [ -f "Document/public/llms-full.txt" ]; then
-    sed -i "s/Version: [0-9]\+\.[0-9]\+\.[0-9]\+/Version: $NEW_VERSION/" Document/public/llms-full.txt
+    sed -i "s/Version: [0-9]\+\.[0-9]\+\.[0-9]\+/Version: ${NEW_VERSION}/" Document/public/llms-full.txt
     echo -e "  ${GREEN}Updated${NC} Document/public/llms-full.txt"
   fi
   if [ -f "Document/index.html" ]; then
     sed -i "s/\"softwareVersion\": \"[^\"]*\"/\"softwareVersion\": \"$NEW_VERSION\"/" Document/index.html
     echo -e "  ${GREEN}Updated${NC} Document/index.html"
+  fi
+  # Installer filenames shown on the /gui page (ControlGui.tsx) are versioned
+  # artifacts users type verbatim - they must track the release.
+  # NOTE: ${CURRENT_VERSION} must stay brace-delimited. Written as
+  # $CURRENT_VERSION_amd64, bash parses the variable name as
+  # "CURRENT_VERSION_amd64" (underscore is a legal name character) and the
+  # substitution silently does nothing.
+  if [ -f "Document/src/components/content/ControlGui.tsx" ]; then
+    sed -i "s/axiodb-control_${CURRENT_VERSION}_amd64\.deb/axiodb-control_${NEW_VERSION}_amd64.deb/g" \
+           Document/src/components/content/ControlGui.tsx
+    sed -i "s/axiodb-control-${CURRENT_VERSION}\.AppImage/axiodb-control-${NEW_VERSION}.AppImage/g" \
+           Document/src/components/content/ControlGui.tsx
+    echo -e "  ${GREEN}Updated${NC} ControlGui.tsx installer filenames"
+  fi
+  # The newest changelog entry's version must equal package.json (AGENTS.md rule).
+  if [ -f "Document/src/data/changelog.ts" ]; then
+    sed -i "0,/version: \"${CURRENT_VERSION}\"/s//version: \"$NEW_VERSION\"/" Document/src/data/changelog.ts
+    echo -e "  ${GREEN}Updated${NC} Document/src/data/changelog.ts (newest entry)"
+  fi
+}
+
+sync_docs() {
+  local NEW_VERSION="$1"
+  if [ -f "CONTRIBUTING.md" ]; then
+    sed -i "s|^└── package.json               # [0-9]\+\.[0-9]\+\.[0-9]\+|└── package.json               # $NEW_VERSION|" CONTRIBUTING.md
+    echo -e "  ${GREEN}Updated${NC} CONTRIBUTING.md"
+  fi
+}
+
+sync_electron_version_label() {
+  local NEW_VERSION="$1"
+  if [ -f "electron/src/layout/StatusBar.jsx" ]; then
+    sed -i "s/AxioDB Control v$CURRENT_VERSION/AxioDB Control v$NEW_VERSION/g" electron/src/layout/StatusBar.jsx
+    echo -e "  ${GREEN}Updated${NC} electron/src/layout/StatusBar.jsx"
   fi
 }
 
@@ -89,10 +123,15 @@ sync_document() {
 sync_version() {
   local NEW_VERSION="$1"
 
-  if ! echo "$NEW_VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  if ! echo "${NEW_VERSION}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
     echo -e "${RED}Error: Invalid version format. Use semver (e.g., $(echo "$REMOTE_VERSION" | awk -F. '{print $1+1".0.0"}'))${NC}"
     exit 1
   fi
+
+  # Version currently on disk. Several targets (changelog headline, installer
+  # filenames, the Electron status bar) key their sed patterns off the *old*
+  # value, so it has to be read before sync_root rewrites package.json.
+  CURRENT_VERSION=$(grep -o '"version": "[^"]*' "$LOCAL_PACKAGE_JSON" | cut -d'"' -f4)
 
   echo ""
   echo -e "${CYAN}Updating version to $NEW_VERSION...${NC}"
@@ -110,23 +149,28 @@ sync_version() {
   local ran_any=false
   for target in "${targets[@]}"; do
     case "$target" in
-      root)    sync_root "$NEW_VERSION";     ran_any=true ;;
-      cli)     sync_cli "$NEW_VERSION";      ran_any=true ;;
-      electron) sync_electron "$NEW_VERSION"; ran_any=true ;;
-      gui)     sync_gui "$NEW_VERSION";     ran_any=true ;;
-      document) sync_document "$NEW_VERSION"; ran_any=true ;;
+      root)    sync_root "${NEW_VERSION}";     ran_any=true ;;
+      cli)     sync_cli "${NEW_VERSION}";      ran_any=true ;;
+      electron) sync_electron "${NEW_VERSION}"; sync_electron_version_label "${NEW_VERSION}"; ran_any=true ;;
+      gui)     sync_gui "${NEW_VERSION}";      ran_any=true ;;
+      document) sync_document "${NEW_VERSION}"; ran_any=true ;;
       *)       echo -e "  ${YELLOW}Unknown target: $target (skipped)${NC}" ;;
     esac
   done
 
+  # Root docs (CONTRIBUTING.md) mirror the root package version, so they are
+  # always synced alongside it rather than being a separately selectable target.
+  sync_docs "${NEW_VERSION}"
+
   # Fallback: if only invalid targets were passed, run everything
   if [ "$ran_any" = false ]; then
     echo -e "  ${YELLOW}No valid targets selected — syncing ALL.${NC}"
-    sync_root "$NEW_VERSION"
-    sync_cli "$NEW_VERSION"
-    sync_electron "$NEW_VERSION"
-    sync_gui "$NEW_VERSION"
-    sync_document "$NEW_VERSION"
+    sync_root "${NEW_VERSION}"
+    sync_cli "${NEW_VERSION}"
+    sync_electron "${NEW_VERSION}"
+    sync_electron_version_label "${NEW_VERSION}"
+    sync_gui "${NEW_VERSION}"
+    sync_document "${NEW_VERSION}"
   fi
 
   echo ""
@@ -144,11 +188,11 @@ select_targets() {
 
   # Target registry — add new targets here
   local labels=(
-    "1) Root package.json (package.json)"
+    "1) Root package.json (package.json + CONTRIBUTING.md)"
     "2) CLI (cli/VERSION + cli/cmd/version.go)"
-    "3) Electron GUI (electron/package.json)"
+    "3) Electron GUI (electron/package.json + src/layout/StatusBar.jsx)"
     "4) Web GUI (GUI/package.json)"
-    "5) Document site (Document/package.json + llms.txt + llms-full.txt + index.html)"
+    "5) Document site (package.json + llms.txt + llms-full.txt + index.html + ControlGui.tsx + changelog.ts)"
   )
 
   printf '  %s\n' "${labels[@]}"
@@ -158,15 +202,6 @@ select_targets() {
   echo ""
   echo "  Separate multiple choices with spaces, e.g.  '2 5'  for CLI + Document only."
   echo "  Start typing your selection, then press ENTER."
-
-  # Track which are toggled
-  local -A toggles
-  local i
-  for ((i = 1; i <= ${#labels[@]}; i++)); do
-    toggles[$i]=true   # all selected by default
-  done
-
-  local all_selected=true
 
   # Read user input non-interactively if piped, otherwise interactively
   local input
@@ -266,13 +301,13 @@ echo ""
 echo "Suggested next version: $(echo "$REMOTE_VERSION" | awk -F. '{print $1"."$2+1".0"}')"
 read -p "Enter new version: " NEW_VERSION
 
-if [ -z "$NEW_VERSION" ]; then
+if [ -z "${NEW_VERSION}" ]; then
   echo -e "${RED}No version entered. Aborting.${NC}"
   exit 1
 fi
 
 # Validate the new version is higher than remote
-if ! ver_gt "$NEW_VERSION" "$REMOTE_VERSION"; then
+if ! ver_gt "${NEW_VERSION}" "$REMOTE_VERSION"; then
   echo -e "${RED}Error: New version ($NEW_VERSION) must be higher than remote ($REMOTE_VERSION)${NC}"
   exit 1
 fi
@@ -280,4 +315,4 @@ fi
 # Prompt for target selection
 select_targets
 
-sync_version "$NEW_VERSION"
+sync_version "${NEW_VERSION}"

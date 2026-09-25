@@ -26,14 +26,14 @@ const INSTALL_GUI_LINUX = `curl -fsSL https://raw.githubusercontent.com/nexoral/
 const INSTALL_GUI_WINDOWS = `irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | CHOICE=2 iex`;
 
 const MANUAL_DEB = `# Install on Debian / Ubuntu / Mint
-sudo dpkg -i axiodb-control_22.11.0_amd64.deb
+sudo dpkg -i axiodb-control_22.13.1_amd64.deb
 
 # Launch AxioDB Control
 axiodb-control`;
 
 const MANUAL_APPIMAGE = `# Make AppImage executable and launch
-chmod +x axiodb-control-22.11.0.AppImage
-./axiodb-control-22.11.0.AppImage`;
+chmod +x axiodb-control-22.13.1.AppImage
+./axiodb-control-22.13.1.AppImage`;
 
 const LOCAL_STORAGE_CODE = `// Inside Electron Main Process (main.cts):
 import { AxioDB } from "axiodb";

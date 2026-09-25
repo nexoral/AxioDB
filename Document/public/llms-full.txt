@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 22.11.0 | License: MIT | Node.js >= 20.0.0
+Version: 22.13.1 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -501,7 +501,7 @@ Login rate limiting: 5 failed attempts from one IP within a trailing 15-minute w
 
 ## AxioDBCloud — Remote TCP Access
 
-Same API as embedded AxioDB, over a TCP connection. The wire protocol has exactly **32 commands** (`source/tcp/types/command.types.ts`):
+Same API as embedded AxioDB, over a TCP connection. The wire protocol has exactly **30 commands** (`source/tcp/types/command.types.ts`):
 
 `PING`, `HEALTH`, `DISCONNECT`, `AUTHENTICATE`, `CREATE_DB`, `DELETE_DB`, `DB_EXISTS`, `GET_INSTANCE_INFO`, `CREATE_COLLECTION`, `DELETE_COLLECTION`, `COLLECTION_EXISTS`, `GET_COLLECTION_INFO`, `INSERT_DOCUMENT`, `INSERT_MANY_DOCUMENTS`, `QUERY_DOCUMENTS`, `QUERY_BY_ID`, `UPDATE_DOCUMENT_BY_ID`, `UPDATE_DOCUMENTS_BY_QUERY`, `DELETE_DOCUMENT_BY_ID`, `DELETE_DOCUMENTS_BY_QUERY`, `AGGREGATE`, `TOTAL_DOCUMENTS`, `CREATE_INDEX`, `DROP_INDEX`, `LIST_INDEXES`, `BEGIN_TRANSACTION`, `COMMIT_TRANSACTION`, `ROLLBACK_TRANSACTION`, `SAVEPOINT`, `ROLLBACK_TO_SAVEPOINT`, `RELEASE_SAVEPOINT`, `FIND_BY_IDS`
 
@@ -650,7 +650,7 @@ docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
 
 ---
 
-## Performance (100,000-document benchmark — full npm test, 13/13 suites)
+## Performance (100,000-document benchmark — full npm test, 14/14 suites)
 
 Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js v26.8.1. Full details: https://axiodb.in/performance
 
@@ -662,7 +662,7 @@ Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js 
 - Transaction insert + commit: ~38ms · Transaction update + commit: ~32ms · Rollback: ~8ms · Savepoint: ~24ms
 - HTTP API: insert ~35ms, query ~12ms, update ~26ms · TCP: CRUD ~40ms, TLS CRUD ~93ms
 - Crash recovery (SIGKILL during writes): ~2s, no data corruption
-- Aggregation pipeline: 1-4ms (in-memory) · MCP functional: ~1.7s (6 tests)
+- Aggregation pipeline: 1-4ms (in-memory) · MCP functional: ~1.2s (4 tests)
 
 ---
 
@@ -970,7 +970,7 @@ source/
 │   ├── Collection/                 insert, query, update, delete, aggregate, index, transaction entry points
 │   ├── CRUD Operation/             Create / Reader / Update / Delete operations
 │   ├── Index/Index.service.ts      Index storage (JSONL, append-only) + metadata
-│   ├── Aggregation/                Pipeline engine, 60+ stages, $lookup, expression evaluator, OperatorRegistry
+│   ├── Aggregation/                Pipeline engine, 19 stages, $lookup, expression evaluator, OperatorRegistry
 │   ├── Transaction/                Transaction, Session, WAL, LockManager, TransactionRegistry
 │   └── Auth/                       SessionStore (memory-only), LoginRateLimiter, RBAC checks
 ├── engine/Filesystem/              FileManager, FolderManager — all low-level disk I/O

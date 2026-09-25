@@ -139,14 +139,14 @@ supported.
 * **Zero native deps** — pure JS, no `node-gyp`, no `electron-rebuild`
 * **MongoDB-style queries** — `{ age: { $gt: 25 } }`, 19 operators + `hint()` + `findByIds()`
 * **ACID transactions** — `savepoint`/`rollbackTo`/`WAL`, crashes recover via `Transaction.recoverTransactions()`
-* **Aggregation** — 60+ stages, `$lookup` joins, `OperatorRegistry` custom ops
+* **Aggregation** — 19 stages, `$lookup` joins, `OperatorRegistry` custom ops
 * **InMemoryCache + indexes** — per-instance cache, dual-write, auto `IndexCache`
 * **Configurable cache** — `{ Cache, minTTL, maxTTL, cacheClearUp }` controls the per-instance InMemoryCache (default `5–15m` randomized TTL, `Cache: false` disables it) → [axiodb.in/api-reference](https://axiodb.in/api-reference)
 * **Ports:** GUI `27018` · TCP `27019` `AxioDBCloud` · MCP `27020` Docker-only
 
 > **Docs:** `axiodb.in` is the single source — this README is a quick start only.
 
-* **AxioDBCloud (TCP)** — remote `AxioDBCloud` client, 32 commands, optional `TCPAuth` + `TLS` → [axiodb.in/cloud](https://axiodb.in/cloud)
+* **AxioDBCloud (TCP)** — remote `AxioDBCloud` client, 30 commands, optional `TCPAuth` + `TLS` → [axiodb.in/cloud](https://axiodb.in/cloud)
 * **CLI (Go)** — `axiodb document insert/query` `--hint` `find-by-ids` `transaction begin/commit` `user change-password` (HTTP `27018` for management, TCP `27019` for data) → [axiodb.in/cli](https://axiodb.in/cli)
 * **Docker** — `theankansaha/axiodb` `AXIODB_GUI/TCP/MCP` `27018/27019/27020` → [axiodb.in/docker](https://axiodb.in/docker)
 * **MCP Server** — 43 tools `axiodb_login` → `sessionId` + `withConfirmation` `Docker/mcp/tools/*.js` → [axiodb.in/mcp-server](https://axiodb.in/mcp-server)
