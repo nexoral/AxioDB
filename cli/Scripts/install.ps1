@@ -134,8 +134,8 @@ function Install-GUI {
     Write-ColorOutput "Installing GUI (Electron)..." "Blue"
     Write-ColorOutput "========================" "DarkGray"
 
-    $GUI_INSTALLER = "AxioDB.Control-${VERSION}.exe"
-    $GUI_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/${GUI_INSTALLER}"
+    $GUI_INSTALLER = "AxioDB_Control_${VERSION}.exe"
+    $GUI_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/AxioDB_Control_${VERSION}.exe"
 
     Write-ColorOutput "[*] Downloading $GUI_INSTALLER..." "White"
 
