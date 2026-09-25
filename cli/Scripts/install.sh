@@ -129,24 +129,34 @@ install_gui() {
     TMP_DIR=$(mktemp -d)
     cd "$TMP_DIR"
 
+    # Fetch release info from GitHub API
+    echo -e "${YELLOW}Fetching release info...${NC}"
+    RELEASE_JSON=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")
+    
     if [ "$OS" = "linux" ]; then
-        # Try .deb first (for Debian/Ubuntu), fallback to .AppImage
-        DEB_FILE="axiodb-control_${VERSION}_amd64.deb"
-        APPIMAGE_FILE="axiodb-control-${VERSION}.AppImage"
-
-        DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${DEB_FILE}"
-        echo -e "${YELLOW}Downloading ${DEB_FILE}...${NC}"
-
-        if curl -fsSL -o "$DEB_FILE" "$DOWNLOAD_URL" 2>/dev/null; then
-            echo -e "${YELLOW}Installing .deb package...${NC}"
-            sudo dpkg -i "$DEB_FILE" 2>/dev/null || sudo apt-get install -f -y
-            echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
-            echo "Run 'axiodb-control' or find it in your application menu"
-        else
+        # Find .deb or .AppImage from release assets
+        DEB_FILE=$(echo "$RELEASE_JSON" | grep -o '"name": *"[^"]*\.deb"' | head -1 | sed 's/.*"\([^"]*\.deb\)".*/\1/')
+        APPIMAGE_FILE=$(echo "$RELEASE_JSON" | grep -o '"name": *"[^"]*\.AppImage"' | head -1 | sed 's/.*"\([^"]*\.AppImage\)".*/\1/')
+        
+        if [ -n "$DEB_FILE" ]; then
+            DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${DEB_FILE}"
+            echo -e "${YELLOW}Downloading ${DEB_FILE}...${NC}"
+            
+            if curl -fsSL -o "$DEB_FILE" "$DOWNLOAD_URL"; then
+                echo -e "${YELLOW}Installing .deb package...${NC}"
+                sudo dpkg -i "$DEB_FILE" 2>/dev/null || sudo apt-get install -f -y
+                echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
+                echo "Run 'axiodb-control' or find it in your application menu"
+            else
+                echo -e "${RED}Failed to download GUI installer${NC}"
+                rm -rf "$TMP_DIR"
+                exit 1
+            fi
+        elif [ -n "$APPIMAGE_FILE" ]; then
             DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${APPIMAGE_FILE}"
             echo -e "${YELLOW}Downloading ${APPIMAGE_FILE}...${NC}"
-
-            if curl -fsSL -o "$APPIMAGE_FILE" "$DOWNLOAD_URL" 2>/dev/null; then
+            
+            if curl -fsSL -o "$APPIMAGE_FILE" "$DOWNLOAD_URL"; then
                 chmod +x "$APPIMAGE_FILE"
                 sudo mv "$APPIMAGE_FILE" /usr/local/bin/axiodb-control
                 echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
@@ -156,19 +166,31 @@ install_gui() {
                 rm -rf "$TMP_DIR"
                 exit 1
             fi
+        else
+            echo -e "${RED}No Linux GUI installer found in release${NC}"
+            rm -rf "$TMP_DIR"
+            exit 1
         fi
     elif [ "$OS" = "darwin" ]; then
-        ZIP_FILE="AxioDB.Control-${VERSION}.zip"
-        DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${ZIP_FILE}"
-        echo -e "${YELLOW}Downloading ${ZIP_FILE}...${NC}"
-
-        if curl -fsSL -o "$ZIP_FILE" "$DOWNLOAD_URL" 2>/dev/null; then
-            unzip -q "$ZIP_FILE"
-            sudo cp -r "AxioDB Control.app" /Applications/
-            echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
-            echo "Find 'AxioDB Control' in your Applications folder"
+        # Find .zip from release assets
+        ZIP_FILE=$(echo "$RELEASE_JSON" | grep -o '"name": *"[^"]*\.zip"' | head -1 | sed 's/.*"\([^"]*\.zip\)".*/\1/')
+        
+        if [ -n "$ZIP_FILE" ]; then
+            DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${ZIP_FILE}"
+            echo -e "${YELLOW}Downloading ${ZIP_FILE}...${NC}"
+            
+            if curl -fsSL -o "$ZIP_FILE" "$DOWNLOAD_URL"; then
+                unzip -q "$ZIP_FILE"
+                sudo cp -r "AxioDB Control.app" /Applications/
+                echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
+                echo "Find 'AxioDB Control' in your Applications folder"
+            else
+                echo -e "${RED}Failed to download GUI installer${NC}"
+                rm -rf "$TMP_DIR"
+                exit 1
+            fi
         else
-            echo -e "${RED}Failed to download GUI installer${NC}"
+            echo -e "${RED}No macOS GUI installer found in release${NC}"
             rm -rf "$TMP_DIR"
             exit 1
         fi

@@ -177,6 +177,9 @@ function Install-GUI {
     # Launch the NSIS installer
     Start-Process -FilePath $TMP_FILE -Wait
 
+    # Clean up temp installer file
+    Remove-Item $TMP_FILE -Force -ErrorAction SilentlyContinue
+
     Write-Host ""
     Write-ColorOutput "AxioDB GUI installation complete!" "Green"
     Write-ColorOutput "Find 'AxioDB Control' in your Start Menu or Desktop" "White"
