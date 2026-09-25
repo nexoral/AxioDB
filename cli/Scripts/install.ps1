@@ -134,8 +134,36 @@ function Install-GUI {
     Write-ColorOutput "Installing GUI (Electron)..." "Blue"
     Write-ColorOutput "========================" "DarkGray"
 
-    $GUI_INSTALLER = "AxioDB_Control_${VERSION}.exe"
-    $GUI_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/AxioDB_Control_${VERSION}.exe"
+    # Try multiple filename patterns (like Linux does)
+    $GUI_PATTERNS = @(
+        "AxioDB_Control_${VERSION}.exe",
+        "axiodb-control_${VERSION}.exe",
+        "AxioDB.Control-${VERSION}.exe",
+        "axiodb-control-${VERSION}.exe"
+    )
+
+    $GUI_URL = $null
+    $GUI_INSTALLER = $null
+
+    foreach ($pattern in $GUI_PATTERNS) {
+        $testUrl = "https://github.com/$REPO/releases/download/cli-v${VERSION}/${pattern}"
+        try {
+            $response = Invoke-WebRequest -Uri $testUrl -Method Head -UseBasicParsing -ErrorAction SilentlyContinue
+            if ($response.StatusCode -eq 200) {
+                $GUI_URL = $testUrl
+                $GUI_INSTALLER = $pattern
+                Write-ColorOutput "[+] Found: $GUI_INSTALLER" "Green"
+                break
+            }
+        } catch {
+            # Try next pattern
+        }
+    }
+
+    if (-not $GUI_URL) {
+        Write-ColorOutput "[X] Failed to find GUI installer" "Red"
+        exit 1
+    }
 
     Write-ColorOutput "[*] Downloading $GUI_INSTALLER..." "White"
 
