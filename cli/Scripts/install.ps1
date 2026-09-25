@@ -134,34 +134,26 @@ function Install-GUI {
     Write-ColorOutput "Installing GUI (Electron)..." "Blue"
     Write-ColorOutput "========================" "DarkGray"
 
-    # Try multiple filename patterns (like Linux does)
-    $GUI_PATTERNS = @(
-        "AxioDB_Control_${VERSION}.exe",
-        "axiodb-control_${VERSION}.exe",
-        "AxioDB.Control-${VERSION}.exe",
-        "axiodb-control-${VERSION}.exe"
-    )
-
-    $GUI_URL = $null
-    $GUI_INSTALLER = $null
-
-    foreach ($pattern in $GUI_PATTERNS) {
-        $testUrl = "https://github.com/$REPO/releases/download/cli-v${VERSION}/${pattern}"
-        try {
-            $response = Invoke-WebRequest -Uri $testUrl -Method Head -UseBasicParsing -ErrorAction SilentlyContinue
-            if ($response.StatusCode -eq 200) {
-                $GUI_URL = $testUrl
-                $GUI_INSTALLER = $pattern
-                Write-ColorOutput "[+] Found: $GUI_INSTALLER" "Green"
-                break
-            }
-        } catch {
-            # Try next pattern
+    # Find GUI installer from GitHub API
+    Write-ColorOutput "[*] Fetching release info..." "White"
+    
+    try {
+        $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$REPO/releases/latest" -UseBasicParsing
+        $assets = $release.assets
+        
+        # Find .exe file for Windows
+        $guiAsset = $assets | Where-Object { $_.name -match "\.exe$" } | Select-Object -First 1
+        
+        if ($guiAsset) {
+            $GUI_INSTALLER = $guiAsset.name
+            $GUI_URL = $guiAsset.browser_download_url
+            Write-ColorOutput "[+] Found: $GUI_INSTALLER" "Green"
+        } else {
+            Write-ColorOutput "[X] No Windows GUI installer found in release" "Red"
+            exit 1
         }
-    }
-
-    if (-not $GUI_URL) {
-        Write-ColorOutput "[X] Failed to find GUI installer" "Red"
+    } catch {
+        Write-ColorOutput "[X] Failed to fetch release info: $_" "Red"
         exit 1
     }
 
@@ -172,7 +164,7 @@ function Install-GUI {
     try {
         Invoke-WebRequest -Uri $GUI_URL -OutFile $TMP_FILE -UseBasicParsing
     } catch {
-        Write-ColorOutput "[X] Failed to download GUI installer" "Red"
+        Write-ColorOutput "[X] Failed to download GUI installer: $_" "Red"
         exit 1
     }
 
