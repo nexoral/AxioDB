@@ -10,7 +10,8 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "axiodb",
 	Short: "AxioDB CLI - Connect to AxioDB via TCP protocol",
-	Long:  `AxioDB CLI provides a command-line interface to interact with AxioDB database servers using the TCP protocol.`,
+	Long: `AxioDB CLI provides a command-line interface to interact with AxioDB database servers
+using the TCP protocol. Use "axiodb serve" to start an isolated temporary local server.`,
 }
 
 func Execute() {

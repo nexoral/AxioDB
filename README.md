@@ -93,14 +93,38 @@ Set `CHOICE` before piping to select without the menu:
 curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash
 
 # GUI (Desktop app) — Windows
-irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | CHOICE=2 iex
+$env:CHOICE=2; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
 
-# Both CLI + GUI
+# Both CLI + GUI — Linux
 curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=3 bash
+
+# Both CLI + GUI — Windows
+$env:CHOICE=3; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
 ```
 
 You can also download installers directly from
 [GitHub Releases](https://github.com/nexoral/AxioDB/releases).
+
+#### Start a temporary local server
+
+The CLI can start a disposable local AxioDB server for development. It installs
+the published `axiodb` npm package into a temporary directory, keeps the server
+attached to the terminal, and deletes its data when you press `Ctrl+C`.
+Node.js ≥20 and npm are required; the command offers platform-specific
+installation help when they are missing.
+
+```bash
+axiodb serve http       # HTTP API only: http://localhost:27018/api
+axiodb serve tcp        # TCP without authentication: axiodb://localhost:27019
+axiodb serve tcp-auth   # TCP authentication only
+axiodb serve full       # HTTP + authenticated TCP, GUI disabled
+```
+
+The HTTP and TCP ports are fixed at `27018` and `27019`. The `tcp-auth` preset
+seeds `admin/admin`, but the server requires the first password change through
+HTTP/GUI and TCP currently has no password-change command, so this preset is
+intended for inspecting the authentication server setup rather than immediate
+authenticated client access.
 
 
 ## Basic CRUD

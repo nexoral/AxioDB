@@ -129,6 +129,18 @@ EOF
 axiodb transaction run transfer.json --db mydb --collection accounts \\
   -c axiodb://127.0.0.1:27019 -u admin -p secret`;
 
+const USAGE_SERVE = `# Start a temporary HTTP API server
+axiodb serve http
+
+# Start a temporary unauthenticated TCP server
+axiodb serve tcp
+
+# Start TCP authentication only
+axiodb serve tcp-auth
+
+# Start HTTP + authenticated TCP (GUI disabled)
+axiodb serve full`;
+
 const CliPage: React.FC = () => {
   const heroReveal = useScrollReveal<HTMLDivElement>();
   const installReveal = useScrollReveal<HTMLDivElement>();
@@ -264,6 +276,44 @@ const CliPage: React.FC = () => {
             See <a href="/installation" className="underline">Installation</a> for full details.
           </p>
         </div>
+      </div>
+
+      {/* Temporary Server */}
+      <div className="bg-white rounded-lg p-5 sm:p-8 lg:p-8 mb-8 border border-gray-200 shadow-md">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Start a Temporary Server</h2>
+        <p className="text-gray-600 mb-4">
+          Use <code className="px-1 py-0.5 bg-gray-100 rounded">serve</code> for local
+          development. The CLI creates a temporary <code className="px-1 py-0.5 bg-gray-100 rounded">AxioDB</code>
+          data folder, installs the matching npm package, and keeps the server attached
+          to your terminal. Press <code className="px-1 py-0.5 bg-gray-100 rounded">Ctrl+C</code>
+          to stop it and remove the temporary data.
+        </p>
+        <CodeBlock code={USAGE_SERVE} language="bash" />
+        <div className="mt-4 grid md:grid-cols-2 gap-4 text-sm">
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="font-semibold text-gray-800 mb-2">Presets</p>
+            <ul className="text-gray-600 space-y-1">
+              <li><code>http</code> — HTTP API only on port 27018</li>
+              <li><code>tcp</code> — unauthenticated TCP on port 27019</li>
+              <li><code>tcp-auth</code> — authenticated TCP only</li>
+              <li><code>full</code> — HTTP + authenticated TCP, GUI disabled</li>
+            </ul>
+          </div>
+          <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <p className="font-semibold text-amber-800 mb-2">TCP-auth note</p>
+            <p className="text-amber-700">
+              The server seeds <code>admin/admin</code>, but TCP rejects that
+              account until its password is changed through HTTP/GUI. TCP has
+              no password-change command yet, so this mode is for testing the
+              authentication server setup.
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-4">
+          Node.js 20+ and npm are required. The command uses fixed ports 27018
+          (HTTP) and 27019 (TCP), and reports the temporary data path and
+          enabled endpoints when startup succeeds.
+        </p>
       </div>
 
       {/* Connection String */}
