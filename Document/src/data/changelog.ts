@@ -12,6 +12,21 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.13.1",
+    date: "2026-09-26",
+    title: "Documentation accuracy pass, dead-code removal, and route manifest sync",
+    changes: [
+      "Fixed: aggregation stage count corrected from '60+ stages' to the 19 that are actually implemented (15 in `BUILT_IN_STAGE_OPERATORS` plus `$lookup`, `$facet`, `$bucket`, `$bucketAuto` handled inline in `Aggregation.Operation.ts`) — the inflated figure had propagated into the README, API reference, `llms-full.txt`, and the agent skill",
+      "Fixed: AxioDBCloud wire protocol corrected from '32 commands' to the 30 present in `source/tcp/types/command.types.ts`",
+      "Fixed: test suite count corrected from 13 to 14 (`aggregation` and `cache-options` were missing from every documented list) in AGENTS.md, CONTRIBUTING.md, copilot-instructions, and the performance/intro pages",
+      "Fixed: per-suite test counts and timings re-measured against a real `npm test` run — CRUD 39, Aggregation 63, HTTP API 47, TCP Auth 25, Read/Query 39 (24.5 s, previously mis-stated as 146.8 s), and the rest; 329 tests across 14 suites",
+      "Fixed: `AvailableRoutes` (served by `GET /api/routes`) resynchronized with the router — it was missing 13 real endpoints including `/api/system`, `/api/dashboard-stats`, `/api/operation/total/`, `/api/operation/all/by-ids/`, and `DELETE /api/auth/roles/:roleName`; now an exact 41/41 match",
+      "Fixed: `ServerKeys.LOCALHOST` corrected from the malformed `127.0.0.1` to `127.0.0.1`, which had made the pre-flight port check resolve against a non-existent address",
+      "Removed: dead `WebServer` enum in `source/config/Keys/Keys.ts` (ports 2025-2029, describing a pre-v22 architecture) that had zero references anywhere in the codebase, plus a commented-out `startWebServer` import pointing at a deleted `server/Fastify` module",
+      "Verified: `serverApi.ts` and `openapi.json` confirmed at an exact 41-endpoint match in both directions, agent skill SHA-256 digest in sync, and version `22.13.1` present in all five required locations",
+    ],
+  },
+  {
     version: "22.11.0",
     date: "2026-09-21",
     title: "Electron desktop app npm integration, .npmignore engine fix, dedicated GUI documentation",
