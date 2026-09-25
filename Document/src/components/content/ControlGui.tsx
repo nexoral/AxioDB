@@ -23,7 +23,7 @@ import { useScrollReveal } from "../../hooks/useScrollReveal";
 
 const INSTALL_GUI_LINUX = `curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash`;
 
-const INSTALL_GUI_WINDOWS = `irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | CHOICE=2 iex`;
+const INSTALL_GUI_WINDOWS = `$env:CHOICE=2; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex`;
 
 const MANUAL_DEB = `# Install on Debian / Ubuntu / Mint
 sudo dpkg -i axiodb-control_22.14.1_amd64.deb

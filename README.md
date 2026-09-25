@@ -93,10 +93,13 @@ Set `CHOICE` before piping to select without the menu:
 curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash
 
 # GUI (Desktop app) — Windows
-irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | CHOICE=2 iex
+$env:CHOICE=2; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
 
-# Both CLI + GUI
+# Both CLI + GUI — Linux
 curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=3 bash
+
+# Both CLI + GUI — Windows
+$env:CHOICE=3; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
 ```
 
 You can also download installers directly from
