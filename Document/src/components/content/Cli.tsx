@@ -284,7 +284,7 @@ const CliPage: React.FC = () => {
         <p className="text-gray-600 mb-4">
           Use <code className="px-1 py-0.5 bg-gray-100 rounded">serve</code> for local
           development. The CLI creates a temporary <code className="px-1 py-0.5 bg-gray-100 rounded">AxioDB</code>
-          data folder, installs the matching npm package, and keeps the server attached
+          data folder, installs the published npm package, and keeps the server attached
           to your terminal. Press <code className="px-1 py-0.5 bg-gray-100 rounded">Ctrl+C</code>
           to stop it and remove the temporary data.
         </p>
