@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "22.14.1",
+    version: "22.15.1",
     date: "2026-09-26",
     title: "Documentation accuracy pass, dead-code removal, and route manifest sync",
     changes: [
