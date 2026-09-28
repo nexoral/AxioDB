@@ -57,7 +57,7 @@ console.log("Database 'ProductsDB' created");
       />
       <h1 className="text-3xl font-bold mb-6">Create Database</h1>
       <p className="text-gray-600 mb-8">
-        AxioDB constructor follows the pattern: <code className="bg-gray-100 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-100 px-2 py-1 rounded">&#123;GUI?, HTTP?, RootName?, CustomPath?, TCP?, TCPAuth?, TLS?, TLSCertPath?, TLSKeyPath?, Cache?, minTTL?, maxTTL?, cacheClearUp?&#125;</code>.
+        AxioDB constructor follows the pattern: <code className="bg-gray-100 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-100 px-2 py-1 rounded">&#123;GUI?, HTTP?, RootName?, CustomPath?, TCP?, TCPAuth?, AdminPassword?, TLS?, TLSCertPath?, TLSKeyPath?, Cache?, minTTL?, maxTTL?, cacheClearUp?&#125;</code>.
         This pattern provides better readability and flexibility.
       </p>
 
@@ -72,6 +72,7 @@ console.log("Database 'ProductsDB' created");
           <li><strong>CustomPath</strong> (string, optional): Custom storage path - defaults to current directory</li>
           <li><strong>TCP</strong> (boolean, optional): Enable the AxioDBCloud TCP server on port 27019 - defaults to false</li>
           <li><strong>TCPAuth</strong> (boolean, optional): Require username/password authentication (same RBAC users as the GUI) on TCP connections - defaults to false</li>
+          <li><strong>AdminPassword</strong> (string, optional): Password the admin account is seeded with on first start, skipping the forced first-login change - defaults to the built-in admin/admin</li>
           <li><strong>TLS</strong> (boolean, optional): Encrypt the TCP server with TLS - requires TLSCertPath + TLSKeyPath PEM files - defaults to false</li>
           <li><strong>Cache</strong> (boolean, optional): Enable the per-instance InMemoryCache - defaults to true (set false to disable caching entirely)</li>
           <li><strong>minTTL</strong> (number, optional): Minimum randomized cache TTL in minutes - defaults to 5</li>

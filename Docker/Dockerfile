@@ -37,6 +37,8 @@ ENV AXIODB_TCP=true
 ENV AXIODB_TCP_AUTH_ENABLED=true
 ENV AXIODB_TLS=false
 ENV AXIODB_ROOT_NAME=AxioDB
+# AXIODB_ADMIN_PASSWORD is deliberately left unset - supply it at `docker run` time
+# with `-e AXIODB_ADMIN_PASSWORD=...` to seed the admin account with a known password.
 ENV AXIODB_MCP=false
 ENV AXIODB_MCP_PORT=27020
 

@@ -7,6 +7,12 @@ const (
 	TCPPort  = 27019
 )
 
+// Seeded admin credentials, mirroring source/config/Keys/Permissions.ts.
+const (
+	DefaultAdminUsername = "admin"
+	DefaultAdminPassword = "admin"
+)
+
 type Mode string
 
 const (
@@ -47,6 +53,13 @@ func (c ModeConfig) HasTCP() bool {
 	return c.TCP
 }
 
-func (c ModeConfig) RequiresTCPAuthWarning() bool {
-	return c.TCP && c.TCPAuth && !c.HTTP
+// UsesTCPAuth reports whether the mode requires TCP authentication.
+func (c ModeConfig) UsesTCPAuth() bool {
+	return c.TCP && c.TCPAuth
+}
+
+// SeesAuth reports whether the mode creates the shared admin account, which is
+// the only case where seeding a custom admin password has any effect.
+func (c ModeConfig) SeesAuth() bool {
+	return c.HTTP || c.UsesTCPAuth()
 }

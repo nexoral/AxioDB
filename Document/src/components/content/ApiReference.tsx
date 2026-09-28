@@ -42,8 +42,8 @@ const ApiReference: React.FC = () => {
       methods: [
         {
           name: "constructor",
-          signature: "new AxioDB(options?: { GUI?: boolean, HTTP?: boolean, RootName?: string, CustomPath?: string, TCP?: boolean, TCPAuth?: boolean, TLS?: boolean, TLSCertPath?: string, TLSKeyPath?: string, Cache?: boolean, minTTL?: number, maxTTL?: number, cacheClearUp?: number })",
-          description: "Creates a new AxioDB instance using an options object. This is the main entry point for AxioDB. Only one instance is allowed per application (singleton pattern). The GUI option enables/disables the web-based GUI dashboard at localhost:27018. HTTP enables the HTTP API server (auto-enables when GUI is on; GUI: true + HTTP: false throws error). TCP option enables the TCP server on port 27019. TCPAuth requires username/password authentication (same RBAC users as the GUI) for TCP connections - defaults to false. TLS encrypts the TCP server (requires TLSCertPath/TLSKeyPath PEM files). Cache (default true) enables the per-instance InMemoryCache; minTTL/maxTTL bound the randomized cache TTL in minutes (defaults 5/15) and cacheClearUp sets the cleanup interval in seconds (default 86400). Each instance owns its cache - it is passed down to databases, collections, read/update/delete paths, transactions, and the HTTP/TCP/MCP surfaces.",
+          signature: "new AxioDB(options?: { GUI?: boolean, HTTP?: boolean, RootName?: string, CustomPath?: string, TCP?: boolean, TCPAuth?: boolean, AdminPassword?: string, TLS?: boolean, TLSCertPath?: string, TLSKeyPath?: string, Cache?: boolean, minTTL?: number, maxTTL?: number, cacheClearUp?: number })",
+          description: "Creates a new AxioDB instance using an options object. This is the main entry point for AxioDB. Only one instance is allowed per application (singleton pattern). The GUI option enables/disables the web-based GUI dashboard at localhost:27018. HTTP enables the HTTP API server (auto-enables when GUI is on; GUI: true + HTTP: false throws error). TCP option enables the TCP server on port 27019. TCPAuth requires username/password authentication (same RBAC users as the GUI) for TCP connections - defaults to false. AdminPassword sets the password the admin account is seeded with on first start, skipping the forced first-login change; omit it to keep the default admin/admin. TLS encrypts the TCP server (requires TLSCertPath/TLSKeyPath PEM files). Cache (default true) enables the per-instance InMemoryCache; minTTL/maxTTL bound the randomized cache TTL in minutes (defaults 5/15) and cacheClearUp sets the cleanup interval in seconds (default 86400). Each instance owns its cache - it is passed down to databases, collections, read/update/delete paths, transactions, and the HTTP/TCP/MCP surfaces.",
           example: `// Basic initialization with GUI enabled
 const db = new AxioDB({ GUI: true });
 
@@ -58,6 +58,9 @@ const db = new AxioDB({ GUI: false });
 
 // TCP server with authentication required
 const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'MyDB', CustomPath: './data' });
+
+// Same, but choose the admin password yourself so TCP logins work right away
+const db = new AxioDB({ TCP: true, TCPAuth: true, AdminPassword: 'my-secret-password' });
 
 // TLS-encrypted TCP server
 const db = new AxioDB({ TCP: true, TLS: true, TLSCertPath: './cert.pem', TLSKeyPath: './key.pem' });

@@ -114,17 +114,22 @@ Node.js ≥20 and npm are required; the command offers platform-specific
 installation help when they are missing.
 
 ```bash
-axiodb serve http       # HTTP API only: http://localhost:27018/api
-axiodb serve tcp        # TCP without authentication: axiodb://localhost:27019
-axiodb serve tcp-auth   # TCP authentication only
-axiodb serve full       # HTTP + authenticated TCP, GUI disabled
+axiodb serve http                 # HTTP API only: http://localhost:27018/api
+axiodb serve tcp                  # TCP without authentication: axiodb://localhost:27019
+axiodb serve tcp-auth             # TCP authentication only
+axiodb serve full                 # HTTP + authenticated TCP, GUI disabled
+axiodb serve tcp-auth mypassword  # same, seeding admin with mypassword
 ```
 
-The HTTP and TCP ports are fixed at `27018` and `27019`. The `tcp-auth` preset
-seeds `admin/admin`, but the server requires the first password change through
-HTTP/GUI and TCP currently has no password-change command, so this preset is
-intended for inspecting the authentication server setup rather than immediate
-authenticated client access.
+The HTTP and TCP ports are fixed at `27018` and `27019`. The `http`, `tcp-auth`
+and `full` presets seed the shared `admin` account; pass an optional password as
+the second argument to choose it yourself and skip the forced first-login change.
+Without one, `admin/admin` is seeded and TCP refuses it until the password is
+changed through HTTP/GUI, since TCP has no password-change command. The `tcp`
+preset creates no admin account and rejects the password argument.
+
+When embedding, the same option is `AdminPassword` in the `AxioDB` constructor.
+In Docker it is `AXIODB_ADMIN_PASSWORD`.
 
 
 ## Basic CRUD

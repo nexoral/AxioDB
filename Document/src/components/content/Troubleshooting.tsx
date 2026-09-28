@@ -74,7 +74,10 @@ await client.createDB("MyDB");         // works`}
         <code className="px-1.5 py-0.5 bg-white rounded">http://localhost:27018</code>, sign in,
         and complete the password change there — there's no TCP command for this yet. Then
         reconnect with the new password, or use a different account that has already completed
-        its change.
+        its change. If the account is the seeded one and you are starting a fresh database,
+        pass <code className="px-1.5 py-0.5 bg-white rounded">AdminPassword</code> (or{" "}
+        <code className="px-1.5 py-0.5 bg-white rounded">AXIODB_ADMIN_PASSWORD</code> in Docker)
+        instead — that seeds the account ready to use, with no forced change.
       </p>
     ),
   },

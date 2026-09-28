@@ -4,14 +4,14 @@ import "testing"
 
 func TestParseMode(t *testing.T) {
 	tests := []struct {
-		name       string
-		want       ModeConfig
-		authNotice bool
+		name        string
+		want        ModeConfig
+		usesTCPAuth bool
 	}{
 		{name: "http", want: ModeConfig{Mode: ModeHTTP, HTTP: true}},
 		{name: "tcp", want: ModeConfig{Mode: ModeTCP, TCP: true}},
-		{name: "tcp-auth", want: ModeConfig{Mode: ModeTCPAuth, TCP: true, TCPAuth: true}, authNotice: true},
-		{name: "full", want: ModeConfig{Mode: ModeFull, HTTP: true, TCP: true, TCPAuth: true}},
+		{name: "tcp-auth", want: ModeConfig{Mode: ModeTCPAuth, TCP: true, TCPAuth: true}, usesTCPAuth: true},
+		{name: "full", want: ModeConfig{Mode: ModeFull, HTTP: true, TCP: true, TCPAuth: true}, usesTCPAuth: true},
 	}
 
 	for _, test := range tests {
@@ -23,8 +23,8 @@ func TestParseMode(t *testing.T) {
 			if got != test.want {
 				t.Fatalf("ParseMode() = %+v, want %+v", got, test.want)
 			}
-			if got.RequiresTCPAuthWarning() != test.authNotice {
-				t.Fatalf("RequiresTCPAuthWarning() = %v, want %v", got.RequiresTCPAuthWarning(), test.authNotice)
+			if got.UsesTCPAuth() != test.usesTCPAuth {
+				t.Fatalf("UsesTCPAuth() = %v, want %v", got.UsesTCPAuth(), test.usesTCPAuth)
 			}
 		})
 	}

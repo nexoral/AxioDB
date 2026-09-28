@@ -360,6 +360,7 @@ await client.connect(); // resolves even if some pool members were rejected`}
               code={`const db = new AxioDB({
   TCP: true,
   TCPAuth: true,           // Require authentication on every TCP connection
+  AdminPassword: 'secret', // Optional: seeds admin ready to use, no forced change
   RootName: 'MyDatabase',
   CustomPath: './data',
 });`}
@@ -394,7 +395,7 @@ await client2.login('admin', 'admin');`}
                 <li>• Every command except PING/DISCONNECT/AUTHENTICATE requires a prior successful login on that connection</li>
                 <li>• Same role permissions as the GUI, checked per command (e.g. a View-role user gets 403 on CREATE_DB)</li>
                 <li>• Shared per-IP login rate limiter with the GUI: 5 failed attempts in 15 minutes locks that IP out for 15 minutes (429)</li>
-                <li>• Accounts still needing their forced password change are rejected outright (403) - complete it via the GUI first</li>
+                <li>• Accounts still needing their forced password change are rejected outright (403) - complete it via the GUI first, or seed the admin account with <code>AdminPassword</code></li>
                 <li>• A password reset, role change, or deletion via the GUI immediately forces an already-open TCP connection to re-authenticate</li>
               </ul>
             </div>

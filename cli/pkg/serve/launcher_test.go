@@ -18,6 +18,7 @@ func TestServerScriptUsesSupportedAxioDBOptions(t *testing.T) {
 		`HTTP: true`,
 		`TCP: true`,
 		`TCPAuth: true`,
+		`AdminPassword: process.env.AXIODB_ADMIN_PASSWORD || undefined`,
 		`RootName: "AxioDB"`,
 		`CustomPath: __dirname`,
 	} {
@@ -26,7 +27,7 @@ func TestServerScriptUsesSupportedAxioDBOptions(t *testing.T) {
 		}
 	}
 
-	for _, unsupported := range []string{"Port:", "AdminUser:", "AdminPassword:", ".init("} {
+	for _, unsupported := range []string{"Port:", "AdminUser:", ".init("} {
 		if strings.Contains(script, unsupported) {
 			t.Errorf("generated server.js contains unsupported option or method %q:\n%s", unsupported, script)
 		}

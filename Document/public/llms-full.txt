@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 22.15.1 | License: MIT | Node.js >= 20.0.0
+Version: 22.16.0 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -107,6 +107,7 @@ new AxioDB(options?: {
   CustomPath?: string;    // Custom storage path (default: current working directory)
   TCP?: boolean;          // Enable AxioDBCloud TCP server on port 27019 (default: false)
   TCPAuth?: boolean;      // Require username/password on TCP connections, same RBAC as GUI (default: false)
+  AdminPassword?: string; // Password the admin account is seeded with on first start, skipping the forced change (default: "admin")
   TLS?: boolean;          // Encrypt the TCP server with TLS (default: false)
   TLSCertPath?: string;   // Path to a PEM cert file - required if TLS: true
   TLSKeyPath?: string;    // Path to the matching PEM private key - required if TLS: true
@@ -487,7 +488,7 @@ Username: admin
 Password: admin
 ```
 
-Forced password change on first login, for every account, not just the default one — no way around it other than completing it via the GUI. Predefined roles:
+Forced password change on first login, for every account, not just the default one — no way around it other than completing it via the GUI, or passing `AdminPassword` on first start so the seeded account starts clean. Predefined roles:
 
 | Role | Access |
 |------|--------|

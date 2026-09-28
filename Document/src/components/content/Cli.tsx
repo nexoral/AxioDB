@@ -139,7 +139,12 @@ axiodb serve tcp
 axiodb serve tcp-auth
 
 # Start HTTP + authenticated TCP (GUI disabled)
-axiodb serve full`;
+axiodb serve full
+
+# Choose the admin password instead of admin/admin
+axiodb serve tcp-auth my-secret-password
+axiodb serve full my-secret-password
+axiodb serve http my-secret-password`;
 
 const CliPage: React.FC = () => {
   const heroReveal = useScrollReveal<HTMLDivElement>();
@@ -300,12 +305,13 @@ const CliPage: React.FC = () => {
             </ul>
           </div>
           <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-            <p className="font-semibold text-amber-800 mb-2">TCP-auth note</p>
+            <p className="font-semibold text-amber-800 mb-2">Admin password</p>
             <p className="text-amber-700">
-              The server seeds <code>admin/admin</code>, but TCP rejects that
-              account until its password is changed through HTTP/GUI. TCP has
-              no password-change command yet, so this mode is for testing the
-              authentication server setup.
+              Without a password, <code>admin/admin</code> is seeded and TCP
+              rejects it until the password is changed through HTTP/GUI — TCP has
+              no password-change command. Pass one as the second argument to seed
+              a usable account instead. Not accepted by <code>tcp</code>, which
+              creates no admin account.
             </p>
           </div>
         </div>
