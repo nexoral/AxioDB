@@ -12,14 +12,15 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "22.16.0",
+    version: "22.17.1",
     date: "2026-09-28",
     title: "AdminPassword option: seed the admin account with a password you choose",
     changes: [
       "Added: `AdminPassword` option in `AxioDBOptions` — sets the password the `admin` account is seeded with when the `config` database is first created, and clears `mustChangePassword` on it so the account can log in over TCP immediately instead of being rejected",
       "Added: `axiodb serve <http|tcp-auth|full> [password]` — optional second argument in the Go CLI that seeds the running temporary server with the given password; passed to the child process via `AXIODB_ADMIN_PASSWORD` so it is never written into the generated `server.js`",
+      "Changed: `axiodb serve tcp-auth` now requires the password argument and fails at startup without it — it has no HTTP surface, so the seeded `admin/admin` (forced password change pending) could never be rotated, and TCP has no password-change command, so the mode previously started a port that no client could ever authenticate to. `http` and `full` keep it optional because their control server can rotate the password",
       "Added: `AXIODB_ADMIN_PASSWORD` environment variable for the Docker image (`Docker/runner.js`), giving headless TCP-auth deployments a way out of the GUI-only password rotation",
-      "Fixed: `axiodb serve tcp-auth` with no HTTP surface was a dead end — it seeded `admin/admin` with `mustChangePassword: true`, and TCP has no password-change command, so no client could ever authenticate; it is now usable via the optional password argument",
+      "Changed: the Docker image now exits at startup when TCP authentication is on and `AXIODB_HTTP` is off without `AXIODB_ADMIN_PASSWORD` set — that combination seeds `admin/admin` with a pending forced change that only the HTTP API/GUI can complete, so the container would have come up on port 27019 with no account able to authenticate. Plain `docker run` with no env vars is unaffected, since `AXIODB_HTTP` mirrors `AXIODB_GUI` and defaults to `true`",
       "Security: this is additive and backwards compatible — omitting the option leaves the existing `admin`/`admin` + forced-change behaviour untouched, and the value is only consulted when the users collection is empty, so a container restart never resets a rotated password",
       "Note: `mustChangePassword: false` also lifts the `requireFreshPassword` gate on the HTTP/GUI, so the password passed is a standing credential until changed — it is deliberately not settable in the Dockerfile, only at `docker run` time",
     ],

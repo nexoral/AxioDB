@@ -627,6 +627,7 @@ docker run -d \
 | `AXIODB_HTTP` | mirrors GUI | REST API on port 27018 |
 | `AXIODB_TCP` | `true` | TCP server on port 27019 |
 | `AXIODB_TCP_AUTH_ENABLED` | `true` | Require TCP auth (shared RBAC with GUI) |
+| `AXIODB_ADMIN_PASSWORD` | *(none)* | Password `admin` is seeded with on first start. **Required** when TCP auth is on and `AXIODB_HTTP` is off, or the container exits at startup |
 | `AXIODB_TLS` | `false` | Encrypt TCP with TLS |
 | `AXIODB_TLS_CERT_PATH` | *(none)* | In-container path to PEM cert |
 | `AXIODB_TLS_KEY_PATH` | *(none)* | In-container path to PEM key |

@@ -126,6 +126,11 @@ const Docker: React.FC = () => {
                     <td className="py-2">Require username/password on TCP connections (same RBAC accounts as the GUI)</td>
                   </tr>
                   <tr className="border-b border-gray-200">
+                    <td className="py-2 pr-4 font-mono text-xs">AXIODB_ADMIN_PASSWORD</td>
+                    <td className="py-2 pr-4"><em>none</em></td>
+                    <td className="py-2">Password the <code>admin</code> account is seeded with on first start. Required when TCP auth is on and <code>AXIODB_HTTP</code> is off, otherwise the container refuses to start</td>
+                  </tr>
+                  <tr className="border-b border-gray-200">
                     <td className="py-2 pr-4 font-mono text-xs">AXIODB_TLS</td>
                     <td className="py-2 pr-4"><code>false</code></td>
                     <td className="py-2">Encrypt TCP connections with TLS instead of plaintext (see below)</td>
@@ -183,6 +188,34 @@ docker run -d \\
   -p 27018:27018 \\
   -p 27019:27019 \\
   -e AXIODB_TCP_AUTH_ENABLED=false \\
+  -v axiodb-data:/app \\
+  theankansaha/axiodb`}
+            />
+          </div>
+
+          <div className="bg-white p-6 rounded-xl border border-gray-200">
+            <div className="flex items-center gap-3 mb-4">
+              <ShieldCheck className="h-6 w-6 text-emerald-500" />
+              <h3 className="text-xl font-bold text-gray-900">
+                Headless (no GUI/HTTP) with TCP Auth
+              </h3>
+            </div>
+            <p className="text-gray-600 mb-4">
+              With <code className="px-1 py-0.5 bg-gray-100 rounded">AXIODB_GUI=false</code> the
+              HTTP control server goes with it, so the seeded{" "}
+              <code className="px-1 py-0.5 bg-gray-100 rounded">admin</code>/<code className="px-1 py-0.5 bg-gray-100 rounded">admin</code>{" "}
+              can no longer be rotated &mdash; and TCP rejects it until it is. Pass{" "}
+              <code className="px-1 py-0.5 bg-gray-100 rounded">AXIODB_ADMIN_PASSWORD</code> to
+              seed a working account, or the container exits at startup.
+            </p>
+            <CodeBlock
+              language="bash"
+              code={`docker run -d \\
+  --name axiodb-server \\
+  -p 27019:27019 \\
+  -e AXIODB_GUI=false \\
+  -e AXIODB_TCP_AUTH_ENABLED=true \\
+  -e AXIODB_ADMIN_PASSWORD=my-secret-password \\
   -v axiodb-data:/app \\
   theankansaha/axiodb`}
             />

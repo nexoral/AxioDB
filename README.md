@@ -118,15 +118,16 @@ axiodb serve http                 # HTTP API only: http://localhost:27018/api
 axiodb serve tcp                  # TCP without authentication: axiodb://localhost:27019
 axiodb serve tcp-auth             # TCP authentication only
 axiodb serve full                 # HTTP + authenticated TCP, GUI disabled
-axiodb serve tcp-auth mypassword  # same, seeding admin with mypassword
+axiodb serve tcp-auth mypassword  # required for tcp-auth
+axiodb serve full mypassword     # optional for http/full
 ```
 
-The HTTP and TCP ports are fixed at `27018` and `27019`. The `http`, `tcp-auth`
-and `full` presets seed the shared `admin` account; pass an optional password as
-the second argument to choose it yourself and skip the forced first-login change.
-Without one, `admin/admin` is seeded and TCP refuses it until the password is
-changed through HTTP/GUI, since TCP has no password-change command. The `tcp`
-preset creates no admin account and rejects the password argument.
+The HTTP and TCP ports are fixed at `27018` and `27019`. Pass an optional
+password as the second argument to seed the shared `admin` account, skipping the
+forced first-login change. `tcp-auth` requires it — it has no HTTP surface, so
+the default `admin/admin` could never be rotated and every TCP login would be
+rejected. `http` and `full` make it optional, since the control server can rotate
+it. The `tcp` preset creates no admin account and rejects the argument.
 
 When embedding, the same option is `AdminPassword` in the `AxioDB` constructor.
 In Docker it is `AXIODB_ADMIN_PASSWORD`.

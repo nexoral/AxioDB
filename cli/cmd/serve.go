@@ -27,10 +27,13 @@ var serveCmd = &cobra.Command{
 	Short: "Start a temporary local AxioDB server",
 	Long: `Start a temporary local AxioDB server.
 
-The optional password applies to the http, tcp-auth and full modes, which create the
-admin account. It seeds that account so logins work immediately, instead of the
-default admin/admin, which TCP refuses until the password is changed through the
-HTTP API or GUI. The tcp mode creates no admin account and rejects the argument.`,
+The optional password seeds the shared admin account so logins work immediately,
+instead of the default admin/admin, which TCP refuses until the password is changed
+through the HTTP API or GUI.
+
+tcp-auth requires it - it has no HTTP surface, so the seeded password could never be
+rotated and every TCP login would be rejected. http and full make it optional, since
+the control server can rotate it. tcp creates no admin account and rejects it.`,
 	Args:      cobra.RangeArgs(1, 2),
 	ValidArgs: []string{"http", "tcp", "tcp-auth", "full"},
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -172,6 +175,13 @@ func installAxioDB(ctx context.Context, npmPath, tempDir string, output, errorOu
 }
 
 func validatePassword(config serve.ModeConfig, password string) error {
+	if config.NeedsPassword() && password == "" {
+		// tcp-auth has no HTTP surface, so the seeded admin/admin could never be
+		// rotated - TCP would reject every login. Fail here instead of handing back
+		// a port nobody can authenticate to.
+		return fmt.Errorf("%q mode requires a password, because TCP refuses the seeded %s/%s account and there is no HTTP surface to change it",
+			config.Mode, serve.DefaultAdminUsername, serve.DefaultAdminPassword)
+	}
 	if password == "" {
 		return nil
 	}
@@ -195,8 +205,11 @@ func printReady(output io.Writer, config serve.ModeConfig, password string) {
 			fmt.Fprintln(output, "  TCP auth: enabled")
 		}
 	}
-	if password == "" && config.SeesAuth() {
-		fmt.Fprintf(output, "  Admin:    %s / %s\n", serve.DefaultAdminUsername, serve.DefaultAdminPassword)
+	if password == "" && config.UsesTCPAuth() {
+		// http/full have a control server to rotate through; tcp-auth now requires a
+		// password, so it can never reach this branch.
+		fmt.Fprintf(output, "  Admin:    %s / %s - change it in the HTTP API or GUI before using TCP\n",
+			serve.DefaultAdminUsername, serve.DefaultAdminPassword)
 	}
 }
 

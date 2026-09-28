@@ -156,7 +156,11 @@ role-based access control system:
 
 - ✅ Role-based access control (Super Admin / Admin / View) shared by the GUI and TCP server
 - ✅ A seeded `admin` account is forced to change its password (`mustChangePassword`) before
-  any protected GUI route or authenticated TCP command will work
+  any protected GUI route or authenticated TCP command will work — unless the server was started
+  with `AdminPassword` (`AXIODB_ADMIN_PASSWORD` in Docker), which seeds the account ready to use
+- ⚠️ The forced change can only be completed through the HTTP API/GUI, so a server with TCP
+  authentication and no HTTP surface has no recovery path. The CLI (`axiodb serve tcp-auth`) and the
+  Docker image both refuse to start in that state rather than come up with a port nobody can log into
 - ⚠️ TCP authentication is opt-in via `TCPAuth: true` (or `AXIODB_TCP_AUTH_ENABLED=true` in Docker,
   which is the container's default) - without it, any client that can reach the TCP port has
   full database access over an unencrypted protocol

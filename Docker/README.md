@@ -73,6 +73,23 @@ docker run -d \
   theankansaha/axiodb
 ```
 
+### Headless (no GUI/HTTP) with TCP Authentication
+
+`AXIODB_HTTP` mirrors `AXIODB_GUI`, so `AXIODB_GUI=false` takes the control server with it. That
+leaves the seeded `admin/admin` with no way to be rotated, and TCP rejects it until it is - so the
+container refuses to start unless you set a password up front:
+
+```bash
+docker run -d \
+  --name axiodb-server \
+  -p 27019:27019 \
+  -e AXIODB_GUI=false \
+  -e AXIODB_TCP_AUTH_ENABLED=true \
+  -e AXIODB_ADMIN_PASSWORD=my-secret-password \
+  -v axiodb-data:/app \
+  theankansaha/axiodb
+```
+
 ## =� Accessing the Services
 
 Once the container is running:
@@ -230,7 +247,7 @@ for full details.
 | `AXIODB_HTTP` | mirrors `AXIODB_GUI` | Enable the HTTP API server on port 27018 — auto-enables when GUI is on; `AXIODB_GUI=true` + `AXIODB_HTTP=false` is an error |
 | `AXIODB_TCP` | `true` | Enable the AxioDBCloud TCP server on port 27019 |
 | `AXIODB_TCP_AUTH_ENABLED` | `true` | Require username/password authentication on TCP connections (same RBAC accounts as the GUI) |
-| `AXIODB_ADMIN_PASSWORD` | *(none)* | Password the `admin` account is seeded with on first start, skipping the forced first-login change. Ignored when the data volume already has a `config` database |
+| `AXIODB_ADMIN_PASSWORD` | *(none)* | Password the `admin` account is seeded with on first start, skipping the forced first-login change. **Required** when TCP auth is on and `AXIODB_HTTP` is off, or the container refuses to start. Ignored when the data volume already has a `config` database |
 | `AXIODB_TLS` | `false` | Encrypt TCP connections with TLS instead of plaintext |
 | `AXIODB_TLS_CERT_PATH` | *(none)* | Path inside the container to a PEM cert file — required when `AXIODB_TLS=true` |
 | `AXIODB_TLS_KEY_PATH` | *(none)* | Path inside the container to the matching PEM private key — required when `AXIODB_TLS=true` |

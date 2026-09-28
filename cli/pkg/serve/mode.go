@@ -63,3 +63,9 @@ func (c ModeConfig) UsesTCPAuth() bool {
 func (c ModeConfig) SeesAuth() bool {
 	return c.HTTP || c.UsesTCPAuth()
 }
+
+// NeedsPassword reports whether the mode authenticates TCP without a control
+// server to rotate the seeded password through, leaving the password mandatory.
+func (c ModeConfig) NeedsPassword() bool {
+	return c.UsesTCPAuth() && !c.HTTP
+}
