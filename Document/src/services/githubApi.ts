@@ -168,14 +168,12 @@ class GitHubApiService {
     };
   }
 
-  getBadgeUrl(type: 'npm' | 'github-actions' | 'socket' | 'stars' | 'forks'): string {
+  getBadgeUrl(type: 'npm' | 'github-actions' | 'stars' | 'forks'): string {
     switch (type) {
       case 'npm':
         return 'https://badge.fury.io/js/axiodb.svg';
       case 'github-actions':
         return `https://github.com/${this.owner}/${this.repo}/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main`;
-      case 'socket':
-        return 'https://socket.dev/api/badge/npm/package/axiodb';
       case 'stars':
         return `https://img.shields.io/github/stars/${this.owner}/${this.repo}?style=social`;
       case 'forks':

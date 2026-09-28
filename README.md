@@ -1,41 +1,40 @@
 # AxioDB: The Embedded Database for Node.js
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
-[![npm version shields](https://img.shields.io/npm/v/axiodb?logo=npm&label=npm)](https://www.npmjs.com/package/axiodb)
 [![npm downloads total](https://img.shields.io/npm/dt/axiodb.svg)](https://www.npmjs.com/package/axiodb)
 [![npm downloads yearly](https://img.shields.io/npm/dy/axiodb.svg)](https://www.npmjs.com/package/axiodb)
 [![npm downloads weekly](https://img.shields.io/npm/dw/axiodb.svg)](https://www.npmjs.com/package/axiodb)
 [![npm downloads monthly](https://img.shields.io/npm/dm/axiodb.svg)](https://www.npmjs.com/package/axiodb)
+[![jsDelivr hits](https://img.shields.io/jsdelivr/npm/hm/axiodb.svg)](https://www.jsdelivr.com/package/npm/axiodb)
 [![install size](https://img.shields.io/npm/unpacked-size/axiodb?label=install%20size)](https://www.npmjs.com/package/axiodb)
-[![jsDelivr hits](https://img.shields.io/jsdelivr/npm/hm/axiodb?label=jsDelivr)](https://www.jsdelivr.com/package/npm/axiodb)
 [![npm types](https://img.shields.io/npm/types/axiodb?label=types)](https://www.npmjs.com/package/axiodb)
+[![Zero native deps](https://img.shields.io/badge/dependencies-0%20native-success)](https://www.npmjs.com/package/axiodb)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org)
+[![Tested on Node.js](https://img.shields.io/badge/tested%20on-20%20%7C%2021%20%7C%2022%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-blue)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
+[![Bun tested](https://img.shields.io/badge/Bun%20tested-v1.4.0-black?logo=bun)](https://bun.sh)
+[![Deno partial](https://img.shields.io/badge/Deno-partial%209%2F12-red)](https://deno.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Stars](https://img.shields.io/github/stars/nexoral/AxioDB?style=social)](https://github.com/nexoral/AxioDB)
+[![GitHub Forks](https://img.shields.io/github/forks/nexoral/AxioDB?style=social)](https://github.com/nexoral/AxioDB/forks)
+[![Contributors](https://img.shields.io/github/contributors/nexoral/AxioDB)](https://github.com/nexoral/AxioDB/graphs/contributors)
+[![Last Commit](https://img.shields.io/github/last-commit/nexoral/AxioDB)](https://github.com/nexoral/AxioDB/commits/main)
 
 [![Push to Registry](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml/badge.svg?branch=main)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
 [![CodeQL](https://github.com/nexoral/AxioDB/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/nexoral/AxioDB/actions/workflows/github-code-scanning/codeql)
-[![Socket Security](https://socket.dev/api/badge/npm/package/axiodb)](https://socket.dev/npm/package/axiodb)
-[![GitHub Stars](https://img.shields.io/github/stars/nexoral/AxioDB?style=social)](https://github.com/nexoral/AxioDB)
 
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org)
-[![Tested on Node.js](https://img.shields.io/badge/tested%20on-20%20%7C%2021%20%7C%2022%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-blue)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue)](https://www.typescriptlang.org/)
-[![Zero Dependencies](https://img.shields.io/badge/dependencies-0%20native-success)](https://www.npmjs.com/package/axiodb)
+👉 **[Official Documentation — axiodb.in](https://axiodb.in/)**: full guides, API reference, and examples. This README is a quick start.
 
-👉 **[Official Documentation — axiodb.in](https://axiodb.in/)**: Full guides, API reference, and examples. This README is a quick start — see the site for everything else.
+## Quick start
 
----
-
-## What is AxioDB?
-
-**Embedded database for Node.js, zero native deps.** Replaces SQLite, LowDB, NeDB & raw JSON files. `npm install axiodb` and you have a database — MongoDB-style queries, ACID transactions, no server, no `node-gyp`, no `electron-rebuild`.
-
-**Problem:** `better-sqlite3` needs compiled binaries, `electron-rebuild` on every Electron update, per-platform builds. Plain JSON files have no query/cache/index.
-
-**Solution:** AxioDB is a file-based document database with ACID transactions and MongoDB-style queries on plain JavaScript objects.
+```bash
+npm install axiodb
+```
 
 ```javascript
 const { AxioDB } = require('axiodb');
-const db = new AxioDB({ GUI: true }); // Dashboard at http://localhost:27018
+
+const db = new AxioDB({ GUI: true });          // Dashboard at http://localhost:27018
 const users = await (await db.createDB('AppDB')).createCollection('users');
 
 await users.insert({ name: 'Alice', age: 30 });
@@ -43,32 +42,86 @@ const { data } = await users.query({ age: { $gt: 25 } }).Sort({ age: -1 }).Limit
 console.log(data.documents);
 ```
 
-## Objective
+No server to run, no `node-gyp`, no `electron-rebuild`. Requires Node.js ≥20 (also verified on Bun v1.4.0).
 
-**Great for:** Electron, CLI tools, embedded systems, local-first apps, rapid prototyping.
+## Why AxioDB
 
-**Sweet spot:** Local applications, desktop apps, CLI tools, and services that need a simple document database without a separate database server.
+**The problem.** `better-sqlite3` needs compiled binaries and an `electron-rebuild` on every Electron update. Plain JSON files have no query layer, no cache, and no indexes. NeDB has been unmaintained since 2016.
 
-**Not for:** datasets beyond ~500K documents, hundreds of concurrent users, JOINs, replication/sharding — use PostgreSQL/MongoDB. Full scope and measured limits: [axiodb.in/limitations](https://axiodb.in/limitations).
+**The solution.** A file-based document database with MongoDB-style queries and real ACID transactions, running on plain JavaScript objects — pure JS, so it installs on any platform Node.js runs on.
 
----
+## When to use it
+
+**Great for** Electron apps, CLI tools, embedded and local-first software, and rapid prototyping.
+
+**Sweet spot** 10K–500K documents in a local application that wants a real database without a database server.
+
+**Not for** datasets beyond ~500K documents, hundreds of concurrent users, JOINs, or replication/sharding — use PostgreSQL or MongoDB there. Measured limits, including per-document disk overhead and scan costs: [axiodb.in/limitations](https://axiodb.in/limitations).
+
+## Features
+
+**Core** — the embedded engine
+
+* **MongoDB-style queries** — `{ age: { $gt: 25 } }`, 19 operators, plus `.hint()` and `.findByIds()`
+* **ACID transactions** — commit/rollback, savepoints, write-ahead log, crash recovery via `Transaction.recoverTransactions()`
+* **Aggregation** — 19 stages including `$lookup` joins, extensible through `OperatorRegistry`
+* **Indexes** — dual-write memory + disk index, served by a TTL-backed `IndexCache`
+* **InMemoryCache** — per-instance, invalidated on write, tunable via `{ Cache, minTTL, maxTTL, cacheClearUp }`
+
+**Self-hostable server** — the same engine, reachable remotely
+
+* **Embedded** — `new AxioDB({...})` in-process, no server, the default
+* **HTTP API** — port 27018, 41 documented endpoints, REST and OpenAPI
+* **AxioDBCloud (TCP)** — port 27019, 32 commands, optional `TCPAuth` and TLS
+* **MCP server** — port 27020, 43 tools for AI agents, bundled in the Docker image only
+* **Docker** — `theankansaha/axiodb`, every surface configurable by environment variable
+
+**Clients and apps**
+
+* **Dashboard** — browser UI served by the HTTP surface, for browsing collections and running queries
+* **AxioDBCloud client** — the TypeScript client for the TCP surface, with connection pooling and auto-reconnect
+* **CLI** — Go binary for 12 platforms: interactive REPL, TLS, export/import
+* **Desktop app** — Electron GUI for Linux, macOS, and Windows
+
+## Stability
+
+AxioDB is **actively developed and not yet at 1.0**. Semantic versioning is followed, but treat minor releases with care and keep independent backups of your data directory.
+
+| Tier | What it covers |
+|---|---|
+| **Stable** | Core CRUD, queries, indexes, transactions, aggregation, InMemoryCache |
+| **Usable, evolving** | HTTP API, AxioDBCloud TCP, Dashboard, CLI, RBAC, MCP server |
+| **Experimental** | Deno support, currently passing 9 of 12 engine tests — worker threads are pending |
+
+Data at rest is stored as plain JSON files, not encrypted. Encrypt the volume if that matters to you.
+
+## Testing
+
+The full suite is **329 tests across 14 suites**, all passing, each in an isolated child process. Benchmarked at 100,000 documents on an AMD Ryzen 5 5500U / Node v26.8.1:
+
+| Operation | Time |
+|---|---|
+| Indexed query | 1–2 ms |
+| `documentId` lookup | <1 ms |
+| Cache hit | <1 ms |
+| Insert single | ~31 ms |
+| Rollback | ~8 ms |
+
+Full per-suite breakdown: [axiodb.in/performance](https://axiodb.in/performance).
+
+Run it yourself with `npm test`.
 
 ## Installation
 
-### npm (Library)
+### npm — the library
 
 ```bash
 npm install axiodb
-# Node.js ≥20 (also verified on Bun v1.4.0)
 ```
 
-### CLI & Desktop GUI (System-wide)
+### CLI and Desktop GUI — system-wide
 
-AxioDB ships a CLI tool and a native Desktop GUI (Electron). The installer
-presents a menu — **1) CLI**, **2) GUI**, **3) Both** — when run interactively,
-and defaults to CLI when piped (`curl | bash`).
-
-#### Quick Install (interactive)
+AxioDB ships a Go CLI and an Electron desktop app for Linux, macOS, and Windows. The installer shows a menu when run interactively — **1)** CLI, **2)** GUI, **3)** both — and defaults to CLI when piped.
 
 ```bash
 # Linux / macOS
@@ -78,64 +131,42 @@ curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/ins
 irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
 ```
 
-#### Non-Interactive (choose what you want)
-
-Set `CHOICE` before piping to select without the menu:
+In scripts and CI, set `CHOICE` before piping to skip the menu:
 
 | `CHOICE` | Installs |
 |----------|----------|
-| `1` | CLI only |
-| `2` | GUI (Desktop) only |
+| `1` | CLI only (also the default when piped) |
+| `2` | Desktop GUI only |
 | `3` | CLI + GUI |
 
 ```bash
-# GUI (Desktop app) — Linux
+# Desktop GUI — Linux
 curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash
 
-# GUI (Desktop app) — Windows
+# Desktop GUI — Windows
 $env:CHOICE=2; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
 
-# Both CLI + GUI — Linux
+# CLI + GUI — Linux
 curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=3 bash
 
-# Both CLI + GUI — Windows
+# CLI + GUI — Windows
 $env:CHOICE=3; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
 ```
 
-You can also download installers directly from
-[GitHub Releases](https://github.com/nexoral/AxioDB/releases).
+Prebuilt binaries are also on [GitHub Releases](https://github.com/nexoral/AxioDB/releases).
 
-#### Start a temporary local server
-
-The CLI can start a disposable local AxioDB server for development. It installs
-the published `axiodb` npm package into a temporary directory, keeps the server
-attached to the terminal, and deletes its data when you press `Ctrl+C`.
-Node.js ≥20 and npm are required; the command offers platform-specific
-installation help when they are missing.
+### Docker
 
 ```bash
-axiodb serve http                 # HTTP API only: http://localhost:27018/api
-axiodb serve tcp                  # TCP without authentication: axiodb://localhost:27019
-axiodb serve tcp-auth             # TCP authentication only
-axiodb serve full                 # HTTP + authenticated TCP, GUI disabled
-axiodb serve tcp-auth mypassword  # required for tcp-auth
-axiodb serve full mypassword     # optional for http/full
+docker run -d --name axiodb-server \
+  -p 27018:27018 -p 27019:27019 \
+  -v axiodb-data:/app \
+  theankansaha/axiodb
 ```
 
-The HTTP and TCP ports are fixed at `27018` and `27019`. Pass an optional
-password as the second argument to seed the shared `admin` account, skipping the
-forced first-login change. `tcp-auth` requires it — it has no HTTP surface, so
-the default `admin/admin` could never be rotated and every TCP login would be
-rejected. `http` and `full` make it optional, since the control server can rotate
-it. The `tcp` preset creates no admin account and rejects the argument.
-
-When embedding, the same option is `AdminPassword` in the `AxioDB` constructor.
-In Docker it is `AXIODB_ADMIN_PASSWORD`.
+All surfaces default to on, with a seeded `admin` account. See [Docker/README.md](Docker/README.md) for every environment variable.
 
 ## Basic CRUD
-
-CRUD means **Create, Read, Update, and Delete**. The following example creates a database and
-collection, then demonstrates each basic operation:
 
 ```javascript
 const { AxioDB } = require('axiodb');
@@ -144,51 +175,57 @@ const db = new AxioDB();
 const database = await db.createDB('AppDB');
 const users = await database.createCollection('users');
 
-// Create: insert a document. AxioDB adds documentId and updatedAt automatically.
+// Create — documentId and updatedAt are added automatically.
 const created = await users.insert({ name: 'Alice', email: 'alice@example.com', age: 30 });
 const userId = created.data.documentId;
 
-// Read: query documents and execute the chainable reader.
+// Read — the reader is chainable and lazy until .exec().
 const result = await users.query({ age: { $gte: 18 } }).exec();
-console.log(result.data.documents);
 
-// Update: update the first document matching the query.
+// Update — the first document matching the query.
 await users.update({ documentId: userId }).UpdateOne({ age: 31 });
 
-// Delete: delete the first document matching the query.
+// Delete — the first document matching the query.
 await users.delete({ documentId: userId }).deleteOne();
 ```
 
-Use `UpdateMany()` or `deleteMany()` when the operation should affect every matching document.
-Updates are flat merges; MongoDB update operators such as `$inc`, `$set`, and `$push` are not
-supported.
+Use `UpdateMany()` and `deleteMany()` to affect every match. Updates are flat merges — MongoDB update operators like `$inc`, `$set`, and `$push` are not supported.
 
-## Features
+## Running a local server
 
-* **Zero native deps** — pure JS, no `node-gyp`, no `electron-rebuild`
-* **MongoDB-style queries** — `{ age: { $gt: 25 } }`, 19 operators + `hint()` + `findByIds()`
-* **ACID transactions** — `savepoint`/`rollbackTo`/`WAL`, crashes recover via `Transaction.recoverTransactions()`
-* **Aggregation** — 19 stages, `$lookup` joins, `OperatorRegistry` custom ops
-* **InMemoryCache + indexes** — per-instance cache, dual-write, auto `IndexCache`
-* **Configurable cache** — `{ Cache, minTTL, maxTTL, cacheClearUp }` controls the per-instance InMemoryCache (default `5–15m` randomized TTL, `Cache: false` disables it) → [axiodb.in/api-reference](https://axiodb.in/api-reference)
-* **Ports:** GUI `27018` · TCP `27019` `AxioDBCloud` · MCP `27020` Docker-only
+`axiodb serve` starts a disposable AxioDB for development: it installs the published npm package into a temporary directory, keeps the server attached to your terminal, and deletes the data on `Ctrl+C`. Requires Node.js ≥20 and npm.
 
-> **Docs:** `axiodb.in` is the single source — this README is a quick start only.
+```bash
+axiodb serve http                 # HTTP API only
+axiodb serve tcp                  # TCP, no authentication
+axiodb serve tcp-auth mypassword  # authenticated TCP
+axiodb serve full                 # HTTP + authenticated TCP
+```
 
-* **AxioDBCloud (TCP)** — remote `AxioDBCloud` client, 32 commands, optional `TCPAuth` + `TLS` → [axiodb.in/cloud](https://axiodb.in/cloud)
-* **CLI (Go)** — `axiodb document insert/query` `--hint` `find-by-ids` `transaction begin/commit` `user change-password` (HTTP `27018` for management, TCP `27019` for data) → [axiodb.in/cli](https://axiodb.in/cli)
-* **Docker** — `theankansaha/axiodb` `AXIODB_GUI/TCP/MCP` `27018/27019/27020` → [axiodb.in/docker](https://axiodb.in/docker)
-* **MCP Server** — 43 tools `axiodb_login` → `sessionId` + `withConfirmation` `Docker/mcp/tools/*.js` → [axiodb.in/mcp-server](https://axiodb.in/mcp-server)
-* **GUI + RBAC** — `Super Admin/Admin/View`, `mustChangePassword`, `LoginRateLimiter` → [axiodb.in/security](https://axiodb.in/security)
-* **API & Types** — `Document/src/data/serverApi.ts` 41 endpoints `openapi.json`, TS 6.0 strict → [axiodb.in/api-reference](https://axiodb.in/api-reference) [axiodb.in/server-api](https://axiodb.in/server-api)
+Ports are fixed at `27018` (HTTP) and `27019` (TCP). The optional password seeds the shared `admin` account; `tcp-auth` requires one, since it has no HTTP surface to rotate the password through. Embedding uses the `AdminPassword` constructor option, and Docker uses `AXIODB_ADMIN_PASSWORD`.
 
----
+## Documentation
 
-## Contributing, License & Support
+| Page | Covers |
+|---|---|
+| [axiodb.in](https://axiodb.in/) | Documentation home |
+| [Create a database](https://axiodb.in/create-database) | Constructor options, collections, indexes |
+| [API reference](https://axiodb.in/api-reference) | Full method signatures and types |
+| [AxioDBCloud](https://axiodb.in/cloud) | Remote TCP access, TLS, authentication |
+| [Server API](https://axiodb.in/server-api) | The 41 HTTP endpoints |
+| [CLI](https://axiodb.in/cli) | Go CLI reference |
+| [Docker](https://axiodb.in/docker) | Image and environment variables |
+| [Security](https://axiodb.in/security) | RBAC roles, password policy, rate limits |
+| [MCP server](https://axiodb.in/mcp-server) | AI agent integration |
+| [Limitations](https://axiodb.in/limitations) | Scope and measured limits |
+| [Comparison](https://axiodb.in/comparison) | Against SQLite, JSON files, lowdb, nedb, better-sqlite3 |
 
-* **Contributing:** see [CONTRIBUTING.md](CONTRIBUTING.md) + [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-* **Security:** see [SECURITY.md](SECURITY.md) — `admin/admin` must change password, report via GitHub Security Advisories
-* **License:** MIT — [LICENSE](LICENSE)
-* **Support:** ⭐ star, 🐛 issues, 💡 discussions — [https://github.com/nexoral/AxioDB](https://github.com/nexoral/AxioDB) · [sponsor](https://github.com/sponsors/AnkanSaha)
+## Contributing, security & license
 
-**Author:** Ankan Saha · **Docs:** `cd Document && npm run dev` `http://localhost:5173`
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+Security issues: report privately through [GitHub Security Advisories](https://github.com/nexoral/AxioDB/security/advisories/new). Policy details in [SECURITY.md](SECURITY.md).
+
+Released under the [MIT License](LICENSE). Author: Ankan Saha.
+
+Support the project with a ⭐ on [GitHub](https://github.com/nexoral/AxioDB) or through [GitHub Sponsors](https://github.com/sponsors/AnkanSaha).

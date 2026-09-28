@@ -149,7 +149,6 @@ const Introduction: React.FC = () => {
   const badgeUrls = {
     npm: githubApi.getBadgeUrl('npm'),
     codeql: githubApi.getBadgeUrl('github-actions'),
-    socket: githubApi.getBadgeUrl('socket'),
     stars: githubApi.getBadgeUrl('stars')
   };
 
@@ -266,11 +265,6 @@ const Introduction: React.FC = () => {
             <img
               src={badgeUrls.codeql}
               alt="CodeQL"
-              className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
-            />
-            <img
-              src={badgeUrls.socket}
-              alt="Socket Security"
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
             <img
