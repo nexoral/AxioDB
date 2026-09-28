@@ -28,7 +28,7 @@ const Features: React.FC = () => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-emerald-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-emerald-500 rounded-[3px] shadow-sm">
               <CheckCircle2 className="h-10 w-10 text-white" />
             </div>
             <div>
@@ -52,11 +52,11 @@ const Features: React.FC = () => {
 
       {/* Core Features Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-accent-600 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-accent-600 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-accent-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-accent-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Shield className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -71,11 +71,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-purple-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-purple-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-purple-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-purple-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Code2 className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -103,11 +103,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-orange-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-orange-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-orange-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-orange-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-orange-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Zap className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -122,11 +122,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-green-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-green-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-green-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-green-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Lock className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -141,11 +141,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-cyan-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-cyan-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-sky-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-cyan-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-cyan-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <BarChart3 className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -177,11 +177,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-yellow-600 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-yellow-600 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-orange-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-yellow-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-yellow-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Cpu className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -197,11 +197,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-emerald-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-emerald-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-emerald-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-emerald-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Zap className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -217,11 +217,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-teal-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-teal-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-teal-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-teal-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Layers className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -236,11 +236,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-fuchsia-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-fuchsia-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-fuchsia-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-fuchsia-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Database className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -258,11 +258,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-violet-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-violet-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-violet-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-violet-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-violet-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Settings className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -280,11 +280,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-rose-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-rose-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-rose-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-rose-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Search className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -302,11 +302,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-amber-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-amber-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-orange-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-amber-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-amber-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Settings className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -320,11 +320,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-emerald-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-emerald-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-emerald-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-emerald-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Zap className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -350,11 +350,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-sky-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-sky-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-sky-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-sky-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-sky-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Code2 className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -383,11 +383,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-fuchsia-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-fuchsia-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-fuchsia-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-fuchsia-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <BarChart3 className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -405,11 +405,11 @@ const Features: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-lime-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-lime-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-lime-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-lime-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Database className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">

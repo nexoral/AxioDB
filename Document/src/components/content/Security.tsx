@@ -26,7 +26,7 @@ const Security: React.FC = () => {
 
       {/* Animated Security Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-green-200 hover:border-accent-600 transform hover:-translate-y-1 animate-fade-in-up">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-green-200 hover:border-accent-600 transform hover:-translate-y-1 animate-fade-in-up">
           <div className="flex items-center gap-2 mb-4">
             <Database className="h-8 w-8 text-purple-500" />
             <h3 className="text-lg font-bold text-purple-700">
@@ -42,7 +42,7 @@ const Security: React.FC = () => {
             unauthorized access or corruption.
           </p>
         </div>
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-green-200 hover:border-accent-600 transform hover:-translate-y-1 animate-fade-in-up">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-green-200 hover:border-accent-600 transform hover:-translate-y-1 animate-fade-in-up">
           <div className="flex items-center gap-2 mb-4">
             <Zap className="h-8 w-8 text-orange-500" />
             <h3 className="text-lg font-bold text-orange-300">
@@ -57,7 +57,7 @@ const Security: React.FC = () => {
       </div>
 
       {/* Security Diagram */}
-      <div className="bg-green-50 rounded-xl p-8 shadow-lg mb-12 flex flex-col items-center">
+      <div className="bg-green-50 rounded-[3px] p-8 shadow-sm mb-12 flex flex-col items-center">
         <h3 className="text-2xl font-bold mb-4 text-green-700">
           How AxioDB Secures Your Data
         </h3>
@@ -74,7 +74,7 @@ const Security: React.FC = () => {
       </div>
 
       {/* Control Server Authentication (RBAC) */}
-      <div className="bg-gray-100 rounded-lg p-8 shadow-lg border border-green-200 mb-8 animate-fade-in-up">
+      <div className="bg-gray-100 rounded-lg p-8 shadow-sm border border-green-200 mb-8 animate-fade-in-up">
         <h3 className="text-xl font-bold mb-4 text-green-700 flex items-center gap-2">
           <Users className="h-6 w-6" /> Control Server Authentication (RBAC)
         </h3>

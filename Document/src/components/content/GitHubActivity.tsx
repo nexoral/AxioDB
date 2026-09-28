@@ -67,7 +67,7 @@ const GitHubActivity: React.FC = () => {
       {repo && (
         <div className="bg-white rounded-lg p-8 border border-gray-200">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-accent-600 rounded-xl">
+            <div className="p-3 bg-accent-600 rounded-[3px]">
               <GitBranch className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -77,25 +77,25 @@ const GitHubActivity: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-gray-200 rounded-xl p-4 text-center">
+            <div className="bg-gray-200 rounded-[3px] p-4 text-center">
               <Star className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
               <div className="text-2xl font-bold text-gray-900">{repo.stargazers_count}</div>
               <div className="text-sm text-gray-600">Stars</div>
             </div>
             
-            <div className="bg-gray-200 rounded-xl p-4 text-center">
+            <div className="bg-gray-200 rounded-[3px] p-4 text-center">
               <GitFork className="h-8 w-8 text-accent-600 mx-auto mb-2" />
               <div className="text-2xl font-bold text-gray-900">{repo.forks_count}</div>
               <div className="text-sm text-gray-600">Forks</div>
             </div>
 
-            <div className="bg-gray-200 rounded-xl p-4 text-center">
+            <div className="bg-gray-200 rounded-[3px] p-4 text-center">
               <ExternalLink className="h-8 w-8 text-green-500 mx-auto mb-2" />
               <div className="text-2xl font-bold text-gray-900">{repo.open_issues_count}</div>
               <div className="text-sm text-gray-600">Open Issues</div>
             </div>
 
-            <div className="bg-gray-200 rounded-xl p-4 text-center">
+            <div className="bg-gray-200 rounded-[3px] p-4 text-center">
               <Calendar className="h-8 w-8 text-purple-500 mx-auto mb-2" />
               <div className="text-2xl font-bold text-gray-900">
                 {githubApi.formatRelativeTime(repo.updated_at)}
@@ -122,7 +122,7 @@ const GitHubActivity: React.FC = () => {
       {formattedLanguages.length > 0 && (
         <div className="bg-gray-100 rounded-lg p-8 border border-gray-200">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-green-600 rounded-xl">
+            <div className="p-3 bg-green-600 rounded-[3px]">
               <Code2 className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -165,7 +165,7 @@ const GitHubActivity: React.FC = () => {
       {maintainer && (
         <div className="bg-accent-50 rounded-lg p-8 border border-purple-200">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-purple-600 rounded-xl">
+            <div className="p-3 bg-purple-600 rounded-[3px]">
               <User className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -178,7 +178,7 @@ const GitHubActivity: React.FC = () => {
             <img
               src={maintainer.avatar_url}
               alt={maintainer.name}
-              className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
+              className="w-20 h-20 rounded-full border-4 border-white shadow-sm"
             />
             <div className="flex-1">
               <h4 className="text-xl font-bold text-gray-900 mb-1">
@@ -213,7 +213,7 @@ const GitHubActivity: React.FC = () => {
       {commits.length > 0 && (
         <div className="bg-gray-100 rounded-lg p-8 border border-gray-200">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-orange-600 rounded-xl">
+            <div className="p-3 bg-orange-600 rounded-[3px]">
               <GitBranch className="h-6 w-6 text-white" />
             </div>
             <div>

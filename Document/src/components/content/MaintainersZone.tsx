@@ -81,7 +81,7 @@ const MaintainersZone = () => {
         path="/maintainers-zone"
       />
       {/* Terminal-style Welcome */}
-      <div className="relative bg-ink-950 rounded-xl p-6 mb-8 shadow-lg border border-gray-200 overflow-hidden">
+      <div className="relative bg-ink-950 rounded-[3px] p-6 mb-8 shadow-sm border border-gray-200 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-4 bg-gray-800 flex items-center justify-start px-4 gap-2">
           <div className="w-3 h-3 bg-red-500 rounded-full"></div>
           <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
@@ -114,14 +114,14 @@ const MaintainersZone = () => {
           <div className="flex flex-col lg:flex-row items-center gap-8">
             <div className="relative">
               {loading ? (
-                <div className="w-32 h-32 rounded-xl border-4 border-accent-200 shadow-sm bg-gray-100 animate-pulse flex items-center justify-center">
+                <div className="w-32 h-32 rounded-[3px] border-4 border-accent-200 shadow-sm bg-gray-100 animate-pulse flex items-center justify-center">
                   <FaSpinner className="animate-spin text-gray-400" />
                 </div>
               ) : (
                 <img
                   src={githubUser?.avatar_url || "https://avatars.githubusercontent.com/u/56942638?v=4"}
                   alt="Ankan Saha Avatar"
-                  className="w-32 h-32 rounded-xl border-4 border-accent-400/50 shadow-md"
+                  className="w-32 h-32 rounded-[3px] border-4 border-accent-400/50 shadow-md"
                 />
               )}
               <div className="absolute -bottom-2 -right-2 bg-green-500 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center">
@@ -154,7 +154,7 @@ const MaintainersZone = () => {
                 </a>
                 <a
                   href="mailto:ankansahaofficial@gmail.com"
-                  className="inline-flex items-center gap-2 bg-accent-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:bg-accent-700 transition-all duration-200 transform hover:scale-105"
+                  className="inline-flex items-center gap-2 bg-accent-600 text-white px-6 py-3 rounded-lg font-semibold shadow-sm hover:bg-accent-700 transition-all duration-200 transform hover:scale-105"
                 >
                   <FaEnvelope /> Let's Chat
                 </a>
@@ -196,7 +196,7 @@ const MaintainersZone = () => {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`group flex flex-col items-center p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-gray-200 transition-all duration-300 transform hover:scale-105 ${getHoverColor(link.name)}`}
+                className={`group flex flex-col items-center p-4 bg-white/10 backdrop-blur-sm rounded-[3px] border border-gray-200 transition-all duration-300 transform hover:scale-105 ${getHoverColor(link.name)}`}
               >
                 <span className="text-3xl mb-2 text-gray-900 group-hover:scale-110 transition-transform">
                   {link.icon}
@@ -211,7 +211,7 @@ const MaintainersZone = () => {
 
         {/* Call to Action */}
         <div className="text-center">
-          <div className="inline-flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-gray-200">
+          <div className="inline-flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-[3px] p-6 border border-gray-200">
             <div className="text-4xl">💬</div>
             <div className="text-left">
               <h3 className="text-xl font-bold text-gray-900 mb-1">Got an Idea?</h3>

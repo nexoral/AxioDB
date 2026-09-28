@@ -11,6 +11,8 @@ interface SidebarProps {
   isOpen: boolean;
   activeSection: string;
   setActiveSection: (section: string) => void;
+  /** Called after a link is followed, so the overlay closes behind the user. */
+  onNavigate: () => void;
 }
 
 const sidebarSections: SidebarSection[] = [
@@ -26,12 +28,6 @@ const sidebarSections: SidebarSection[] = [
         label: "Current Limitations",
         path: "/limitations",
       },
-    ],
-  },
-  {
-    title: "Animated Execution",
-    items: [
-      { id: "execution", label: "Watch AxioDB Run", path: "/execution" },
     ],
   },
   {
@@ -161,7 +157,7 @@ const sidebarSections: SidebarSection[] = [
   },
 ];
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection, onNavigate }) => {
   const [expandedSections, setExpandedSections] = useState<string[]>(
     sidebarSections.map((section) => section.title),
   );
@@ -179,6 +175,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
   const handleNavClick = (path: string, id: string) => {
     setActiveSection(id);
     navigate(path);
+    onNavigate();
 
     if (path.includes("#")) {
       setTimeout(() => {
@@ -192,56 +189,48 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setActiveSection }) => {
 
   return (
     <aside
-      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white border-r border-gray-200 transition-all duration-300 overflow-y-auto z-40 scrollbar-hide ${isOpen ? "w-[85vw] max-w-xs translate-x-0" : "w-[85vw] max-w-xs -translate-x-full md:translate-x-0 md:w-64" }`}
+      className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-gray-50 border-r border-gray-200 shadow-sm transition-transform duration-300 overflow-y-auto z-40 scrollbar-hide w-64 ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      }`}
       style={{
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
       }}
     >
       <nav className="p-4">
-        <div className="mb-6">
-          <div className="text-lg font-semibold text-gray-900 mb-2">
+        <div className="mb-5">
+          <div className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
             Documentation
-          </div>
-          <div className="bg-accent-50 rounded-lg p-3 mb-4 border border-accent-200">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">👋</span>
-              <span className="text-sm font-semibold text-accent-600">
-                Hey there, Dev!
-              </span>
-            </div>
-            <p className="text-xs text-accent-600 leading-relaxed">
-              Start with <span className="font-mono bg-accent-100/50 px-1 rounded">Hello World</span> or jump to any section you need!
-            </p>
           </div>
           <div className="border-b border-gray-200 mb-4"></div>
         </div>
 
         {sidebarSections.map((section) => (
-          <div key={section.title} className="mb-4">
+          <div key={section.title} className="mb-3">
             <button
-              className="flex items-center justify-between w-full text-left text-gray-600 hover:text-accent-600 font-medium"
+              className="flex items-center justify-between w-full text-left text-xs font-semibold uppercase tracking-wider text-gray-400 hover:text-gray-600 transition-colors"
               onClick={() => toggleSection(section.title)}
             >
               <span>{section.title}</span>
               {expandedSections.includes(section.title) ? (
-                <ChevronDown size={18} />
+                <ChevronDown size={14} />
               ) : (
-                <ChevronRight size={18} />
+                <ChevronRight size={14} />
               )}
             </button>
 
             {expandedSections.includes(section.title) && (
-              <ul className="mt-2 space-y-1 pl-4">
+              <ul className="mt-1.5 space-y-0.5">
                 {section.items.map((item) => (
                   <li key={item.id}>
                     <Link
                       to={item.path}
-                      className={`block py-1 text-sm ${location.pathname === item.path ||
+                      className={`block py-1 pl-3 border-l-2 text-sm transition-colors ${
+                        location.pathname === item.path ||
                         (location.hash && item.path.includes(location.hash))
-                        ? "text-accent-600 font-medium"
-                        : "text-gray-500 hover:text-accent-600"
-                        }`}
+                          ? "border-accent-500 text-accent-700 font-medium"
+                          : "border-transparent text-gray-600 hover:text-accent-600"
+                      }`}
                       onClick={() => handleNavClick(item.path, item.id)}
                     >
                       {item.label}

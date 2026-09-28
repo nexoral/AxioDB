@@ -24,7 +24,7 @@ const Community: React.FC = () => {
 
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-accent-500 rounded-xl shadow-lg animate-glow">
+              <div className="p-3 bg-accent-500 rounded-[3px] shadow-sm animate-glow">
                 <GitPullRequest className="h-10 w-10 text-white" />
               </div>
               <div>
@@ -47,11 +47,11 @@ const Community: React.FC = () => {
         </div>
 
         {/* Contributing Guide */}
-        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200">
+        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-sm transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 bg-accent-500 rounded-xl shadow-lg">
+              <div className="p-3 bg-accent-500 rounded-[3px] shadow-sm">
                 <GitPullRequest className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -65,9 +65,9 @@ const Community: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="relative bg-accent-50 p-6 rounded-xl border border-accent-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="relative bg-accent-50 p-6 rounded-[3px] border border-accent-200 shadow-sm hover:shadow-sm transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-accent-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                  <div className="bg-accent-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-sm">
                     1
                   </div>
                   <h4 className="font-bold text-accent-700">
@@ -80,9 +80,9 @@ const Community: React.FC = () => {
                 </p>
               </div>
 
-              <div className="relative bg-green-50 p-6 rounded-xl border border-green-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="relative bg-green-50 p-6 rounded-[3px] border border-green-200 shadow-sm hover:shadow-sm transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                  <div className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-sm">
                     2
                   </div>
                   <h4 className="font-bold text-green-700">
@@ -95,9 +95,9 @@ const Community: React.FC = () => {
                 </p>
               </div>
 
-              <div className="relative bg-accent-50 p-6 rounded-xl border border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="relative bg-accent-50 p-6 rounded-[3px] border border-purple-200 shadow-sm hover:shadow-sm transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                  <div className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-sm">
                     3
                   </div>
                   <h4 className="font-bold text-purple-700">
@@ -110,9 +110,9 @@ const Community: React.FC = () => {
                 </p>
               </div>
 
-              <div className="relative bg-orange-50 p-6 rounded-xl border border-yellow-700 shadow-sm hover:shadow-md transition-shadow">
+              <div className="relative bg-orange-50 p-6 rounded-[3px] border border-yellow-700 shadow-sm hover:shadow-sm transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-yellow-500 text-gray-900 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                  <div className="bg-yellow-500 text-gray-900 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-sm">
                     4
                   </div>
                   <h4 className="font-bold text-amber-700">
@@ -125,9 +125,9 @@ const Community: React.FC = () => {
                 </p>
               </div>
 
-              <div className="relative bg-accent-50 p-6 rounded-xl border border-fuchsia-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="relative bg-accent-50 p-6 rounded-[3px] border border-fuchsia-200 shadow-sm hover:shadow-sm transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-fuchsia-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                  <div className="bg-fuchsia-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-sm">
                     5
                   </div>
                   <h4 className="font-bold text-fuchsia-700">
@@ -140,9 +140,9 @@ const Community: React.FC = () => {
                 </p>
               </div>
 
-              <div className="relative bg-accent-50 p-6 rounded-xl border border-rose-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="relative bg-accent-50 p-6 rounded-[3px] border border-rose-200 shadow-sm hover:shadow-sm transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-rose-500 text-gray-900 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-lg">
+                  <div className="bg-rose-500 text-gray-900 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold shadow-sm">
                     6
                   </div>
                   <h4 className="font-bold text-rose-700">
@@ -163,7 +163,7 @@ const Community: React.FC = () => {
 
           <div className="relative z-10 flex items-start gap-4">
             <div className="flex-shrink-0">
-              <div className="p-3 bg-accent-500 rounded-xl shadow-lg">
+              <div className="p-3 bg-accent-500 rounded-[3px] shadow-sm">
                 <ExternalLink className="h-8 w-8 text-white" />
               </div>
             </div>
@@ -180,7 +180,7 @@ const Community: React.FC = () => {
                 href="https://github.com/nexoral/AxioDB/blob/main/CONTRIBUTING.md"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-accent-600 hover:bg-accent-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300"
+                className="inline-flex items-center gap-2 bg-accent-600 hover:bg-accent-700 text-white px-6 py-3 rounded-lg font-semibold shadow-sm hover:shadow-sm transform hover:-translate-y-0.5 transition-all duration-300"
               >
                 <Github className="h-5 w-5" />
                 View Contributing Guide
@@ -198,7 +198,7 @@ const Community: React.FC = () => {
 
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-green-500 rounded-xl shadow-lg animate-glow">
+              <div className="p-3 bg-green-500 rounded-[3px] shadow-sm animate-glow">
                 <Scale className="h-10 w-10 text-white" />
               </div>
               <div>
@@ -218,11 +218,11 @@ const Community: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200">
+        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-sm transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200">
           <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 mb-6">
-              <div className="p-3 bg-green-500 rounded-xl shadow-lg">
+              <div className="p-3 bg-green-500 rounded-[3px] shadow-sm">
                 <Scale className="h-8 w-8 text-white" />
               </div>
               <div className="w-full min-w-0">
@@ -238,7 +238,7 @@ const Community: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <div className="bg-gray-50 rounded-[3px] p-6 border border-gray-200">
               <pre className="text-green-700 text-xs sm:text-sm font-mono overflow-x-auto overscroll-x-contain">
                 {`MIT License
 
@@ -269,7 +269,7 @@ SOFTWARE.`}
                 href="https://github.com/AnkanSaha/AxioDB/blob/main/LICENSE"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-300"
+                className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold shadow-sm hover:shadow-sm transform hover:-translate-y-0.5 transition-all duration-300"
               >
                 <Scale className="h-5 w-5" />
                 View Full License
@@ -287,7 +287,7 @@ SOFTWARE.`}
 
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-purple-500 rounded-xl shadow-lg animate-glow">
+              <div className="p-3 bg-purple-500 rounded-[3px] shadow-sm animate-glow">
                 <Heart className="h-10 w-10 text-white" />
               </div>
               <div>
@@ -308,11 +308,11 @@ SOFTWARE.`}
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200">
+        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-sm transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 bg-purple-500 rounded-xl shadow-lg">
+              <div className="p-3 bg-purple-500 rounded-[3px] shadow-sm">
                 <Users className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -326,12 +326,12 @@ SOFTWARE.`}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="group relative bg-accent-50 p-6 rounded-xl border border-accent-200 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              <div className="group relative bg-accent-50 p-6 rounded-[3px] border border-accent-200 shadow-sm hover:shadow-sm transition-all duration-300 transform hover:-translate-y-1">
                 <div className="flex items-center gap-4">
                   <img
                     src="https://github.com/ankansaha.png"
                     alt="Ankan Saha - Project Lead"
-                    className="w-16 h-16 rounded-full border-2 border-white shadow-lg group-hover:scale-110 transition-transform duration-300"
+                    className="w-16 h-16 rounded-full border-2 border-white shadow-sm group-hover:scale-110 transition-transform duration-300"
                   />
                   <div className="flex-1">
                     <a
@@ -354,9 +354,9 @@ SOFTWARE.`}
                 </div>
               </div>
 
-              <div className="group relative bg-green-50 p-6 rounded-xl border border-green-200 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+              <div className="group relative bg-green-50 p-6 rounded-[3px] border border-green-200 shadow-sm hover:shadow-sm transition-all duration-300 transform hover:-translate-y-1">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-teal-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 rounded-full bg-teal-500 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300">
                     <Users className="h-8 w-8 text-white" />
                   </div>
                   <div className="flex-1">
@@ -381,7 +381,7 @@ SOFTWARE.`}
 
           <div className="relative z-10 flex items-start gap-4">
             <div className="flex-shrink-0">
-              <div className="p-3 bg-purple-500 rounded-xl shadow-lg">
+              <div className="p-3 bg-purple-500 rounded-[3px] shadow-sm">
                 <Heart className="h-8 w-8 text-white" />
               </div>
             </div>

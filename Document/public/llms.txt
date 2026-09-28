@@ -121,7 +121,6 @@ Machine-readable limits and the full boundary table: https://axiodb.in/llms-full
 - [Troubleshooting](https://axiodb.in/troubleshooting)
 - [Changelog](https://axiodb.in/changelog)
 - [Performance Benchmarks](https://axiodb.in/performance)
-- [Animated Execution](https://axiodb.in/execution)
 - [Maintainer's Zone](https://axiodb.in/maintainers-zone)
 
 ## For AI Agents

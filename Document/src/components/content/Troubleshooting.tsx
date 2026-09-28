@@ -187,7 +187,7 @@ const Troubleshooting: React.FC = () => {
         {items.map((item) => (
           <div
             key={item.title}
-            className="bg-white p-6 rounded-xl border border-gray-200"
+            className="bg-white p-6 rounded-[3px] border border-gray-200"
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-amber-100/30 rounded-lg">

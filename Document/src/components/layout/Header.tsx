@@ -1,5 +1,5 @@
-import { Menu, MoreHorizontal, Search, X, Star, GitFork } from "lucide-react";
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import { Menu, Search, X, Star, GitFork } from "lucide-react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 interface HeaderProps {
@@ -18,28 +18,11 @@ interface SearchResult {
   description: string;
 }
 
-interface TopNavLink {
-  label: string;
-  path: string;
-}
-
-const TOP_NAV_LINKS: TopNavLink[] = [
-  { label: "Features", path: "/features" },
-  { label: "Comparison", path: "/comparison" },
-  { label: "Installation", path: "/installation" },
-  { label: "Usage", path: "/usage" },
-  { label: "API", path: "/api-reference" },
-  { label: "Maintainer's Zone", path: "/maintainers-zone" },
-];
-
 const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
-  const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [githubStats, setGithubStats] = useState<GitHubStats>({ stars: 0, forks: 0 });
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const mobileNavRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -63,15 +46,6 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
     { title: "Community & Contributing", path: "/community", description: "Join the community and contribute to AxioDB" },
     { title: "Maintainer's Zone", path: "/maintainers-zone", description: "Resources and guides for maintainers" },
   ], []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // Fetch GitHub stats
   useEffect(() => {
@@ -130,190 +104,106 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [searchOpen]);
 
-  // Close the mobile top-nav panel on outside click, escape, or route change.
-  useEffect(() => {
-    if (!isMobileNavOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (mobileNavRef.current && !mobileNavRef.current.contains(event.target as Node)) {
-        setIsMobileNavOpen(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setIsMobileNavOpen(false);
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isMobileNavOpen]);
-
-  useEffect(() => {
-    setIsMobileNavOpen(false);
-  }, [location.pathname]);
-
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-        ? "bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm py-2"
-        : "bg-white py-4"
-        }`}
-    >
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
       <div className="w-full px-4 lg:px-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
             <button
-              className="md:hidden p-2 rounded-md text-gray-500 hover:text-accent-600"
+              className="flex items-center justify-center h-9 w-9 shrink-0 rounded-[3px] border border-gray-300 text-gray-700 hover:border-accent-500 hover:text-accent-600 transition-colors"
               onClick={toggleSidebar}
-              aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+              aria-label={isSidebarOpen ? "Close navigation" : "Open navigation"}
+              aria-expanded={isSidebarOpen}
             >
-              {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
+              {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
 
-            {/* Separate trigger for the top-level nav links (Features/Comparison/etc.) -
-                distinct from the docs Sidebar toggle above, since they're different
-                navigation concerns. */}
-            <div className="relative md:hidden" ref={mobileNavRef}>
-              <button
-                className="p-2 rounded-md text-gray-500 hover:text-accent-600"
-                onClick={() => setIsMobileNavOpen((open) => !open)}
-                aria-label={isMobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
-                aria-expanded={isMobileNavOpen}
-              >
-                {isMobileNavOpen ? <X size={22} /> : <MoreHorizontal size={22} />}
-              </button>
-
-              {isMobileNavOpen && (
-                <div className="absolute top-full left-0 mt-2 w-56 max-w-[80vw] bg-white rounded-[3px] shadow-lg border border-gray-200 py-2 z-50">
-                  {TOP_NAV_LINKS.map((link) => (
-                    <Link
-                      key={link.path}
-                      to={link.path}
-                      onClick={() => setIsMobileNavOpen(false)}
-                      className={`block px-4 py-2 text-sm font-medium ${location.pathname === link.path
-                        ? "text-accent-600"
-                        : "text-gray-600 hover:text-accent-600"
-                        }`}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <Link
-              to="/"
-              className="flex items-center gap-2 text-gray-900 group"
-            >
-              <img src="/AXioDB.png" alt="AxioDB Logo" className="h-8 w-8 group-hover:scale-110 transition-transform" />
-              <div className="flex flex-col">
-                <span className="text-xl font-bold">AxioDB Docs</span>
-                <span className="text-xs text-gray-500 hidden md:block">
-                  Built for developers ⚡
-                </span>
-              </div>
+            <Link to="/" className="flex items-center gap-2 group">
+              <img
+                src="/AXioDB.png"
+                alt="AxioDB Logo"
+                className="h-7 w-7 group-hover:opacity-80 transition-opacity"
+              />
+              <span className="text-lg font-semibold text-gray-900">AxioDB</span>
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center gap-6">
-            {TOP_NAV_LINKS.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`text-sm font-medium transition-colors ${location.pathname === link.path
-                  ? "text-accent-600"
-                  : "text-gray-600 hover:text-accent-600"
-                  }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
           <div className="flex items-center gap-2">
-            {/* GitHub Stats Badges */}
-            <a
-              href="https://github.com/nexoral/AxioDB"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-white hover:bg-gray-50 border border-gray-200 transition-colors group"
-              aria-label="GitHub Stars"
-            >
-              <Star size={16} className="text-yellow-500 group-hover:fill-yellow-500 transition-all" />
-              <span className="text-sm font-semibold text-gray-600">
-                {githubStats.stars.toLocaleString()}
-              </span>
-            </a>
-
-            <a
-              href="https://github.com/nexoral/AxioDB/fork"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-white hover:bg-gray-50 border border-gray-200 transition-colors group"
-              aria-label="GitHub Forks"
-            >
-              <GitFork size={16} className="text-accent-600 transition-all" />
-              <span className="text-sm font-semibold text-gray-600">
-                {githubStats.forks.toLocaleString()}
-              </span>
-            </a>
-
             <div
-              className={`relative ${searchOpen ? "w-[min(70vw,16rem)]" : "w-10"} transition-all duration-300`}
+              className={`relative ${searchOpen ? "w-[min(70vw,18rem)]" : "w-10"} transition-all duration-300`}
             >
-              {searchOpen && (
+              {searchOpen ? (
                 <>
                   <input
                     type="text"
                     placeholder="Search documentation..."
-                    className="w-full py-2 px-4 pr-10 rounded-[3px] border border-gray-300 bg-white text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-500"
+                    className="w-full h-9 py-2 px-3 pr-16 rounded-[3px] border border-gray-300 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-accent-500"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     autoFocus
                   />
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 border border-gray-200 rounded-[3px] px-1.5 py-0.5 pointer-events-none">
+                    ⌘ K
+                  </span>
+                </>
+              ) : (
+                <button
+                  className="h-9 w-9 flex items-center justify-center rounded-[3px] border border-gray-200 text-gray-500 hover:text-accent-600 transition-colors"
+                  onClick={() => setSearchOpen(true)}
+                  aria-label="Open search"
+                >
+                  <Search size={18} />
+                </button>
+              )}
 
-                  {/* Search Results Dropdown */}
-                  {searchQuery.trim() !== "" && (
-                    <div className="absolute top-full mt-2 w-[min(90vw,24rem)] right-0 bg-white rounded-[3px] shadow-lg border border-gray-200 max-h-96 overflow-y-auto z-50">
-                      {searchResults.length > 0 ? (
-                        <div className="p-2">
-                          {searchResults.map((result) => (
-                            <button
-                              key={result.path}
-                              onClick={() => handleSearchResultClick(result.path)}
-                              className="w-full text-left px-3 py-2.5 rounded-[3px] hover:bg-gray-50 transition-colors group"
-                            >
-                              <div className="font-medium text-gray-900 group-hover:text-accent-600">
-                                {result.title}
-                              </div>
-                              <div className="text-sm text-gray-500 line-clamp-2 mt-0.5">
-                                {result.description}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="px-4 py-8 text-center text-gray-500">
-                          <Search size={32} className="mx-auto mb-2 opacity-50" />
-                          <p className="text-sm">No results found for "{searchQuery}"</p>
-                        </div>
-                      )}
+              {/* Search Results Dropdown */}
+              {searchOpen && searchQuery.trim() !== "" && (
+                <div className="absolute top-full mt-2 w-[min(90vw,24rem)] right-0 bg-white rounded-[3px] border border-gray-200 max-h-96 overflow-y-auto z-50 shadow-sm">
+                  {searchResults.length > 0 ? (
+                    <div className="p-2">
+                      {searchResults.map((result) => (
+                        <button
+                          key={result.path}
+                          onClick={() => handleSearchResultClick(result.path)}
+                          className="w-full text-left px-3 py-2.5 rounded-[3px] hover:bg-gray-50 transition-colors group"
+                        >
+                          <div className="font-medium text-sm text-gray-900 group-hover:text-accent-600">
+                            {result.title}
+                          </div>
+                          <div className="text-sm text-gray-500 line-clamp-2 mt-0.5">
+                            {result.description}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="px-4 py-8 text-center text-gray-500">
+                      <Search size={32} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No results found for "{searchQuery}"</p>
                     </div>
                   )}
-                </>
+                </div>
               )}
-              <button
-                className={`p-2 rounded-md text-gray-500 hover:text-accent-600 ${searchOpen ? "absolute right-1 top-1/2 transform -translate-y-1/2" : ""}`}
-                onClick={() => setSearchOpen(!searchOpen)}
-                aria-label={searchOpen ? "Close search" : "Open search"}
-              >
-                {searchOpen ? <X size={20} /> : <Search size={20} />}
-              </button>
             </div>
+
+            {/* GitHub link sits in the icon cluster rather than as two stat pills -
+                the star/fork counts moved into the sidebar's community section. */}
+            <a
+              href="https://github.com/nexoral/AxioDB"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-1.5 h-9 px-2.5 rounded-[3px] border border-gray-200 text-gray-500 hover:text-accent-600 transition-colors"
+              aria-label={`GitHub — ${githubStats.stars.toLocaleString()} stars, ${githubStats.forks.toLocaleString()} forks`}
+            >
+              <Star size={16} className="transition-colors" />
+              <span className="text-xs font-medium">
+                {githubStats.stars.toLocaleString()}
+              </span>
+              <GitFork size={16} className="transition-colors" />
+              <span className="text-xs font-medium">
+                {githubStats.forks.toLocaleString()}
+              </span>
+            </a>
           </div>
         </div>
       </div>

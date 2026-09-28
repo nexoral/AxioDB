@@ -54,7 +54,7 @@ const ServerApiReference: React.FC = () => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-fuchsia-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-fuchsia-500 rounded-[3px] shadow-sm">
               <Globe className="h-10 w-10 text-white" />
             </div>
             <div>
@@ -115,7 +115,7 @@ const ServerApiReference: React.FC = () => {
         {apiCategories.map((category) => (
           <div
             key={category.title}
-            className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden"
+            className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
           >
             <button
               className="flex items-center justify-between w-full p-6 text-left bg-gray-50 hover:bg-gray-100 transition-all"

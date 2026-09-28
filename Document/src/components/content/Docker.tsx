@@ -52,7 +52,7 @@ const Docker: React.FC = () => {
           Simple: Run the Container
         </h2>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <div className="bg-white p-6 rounded-[3px] border border-gray-200">
           <CodeBlock
             language="bash"
             code={`docker run -d \\
@@ -90,7 +90,7 @@ const Docker: React.FC = () => {
         </h2>
 
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-6 rounded-[3px] border border-gray-200">
             <h3 className="text-xl font-bold mb-4 text-gray-900">
               Environment Variables
             </h3>
@@ -171,7 +171,7 @@ const Docker: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-6 rounded-[3px] border border-gray-200">
             <div className="flex items-center gap-3 mb-4">
               <ShieldOff className="h-6 w-6 text-amber-500" />
               <h3 className="text-xl font-bold text-gray-900">
@@ -193,7 +193,7 @@ docker run -d \\
             />
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-6 rounded-[3px] border border-gray-200">
             <div className="flex items-center gap-3 mb-4">
               <ShieldCheck className="h-6 w-6 text-emerald-500" />
               <h3 className="text-xl font-bold text-gray-900">
@@ -221,7 +221,7 @@ docker run -d \\
             />
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-6 rounded-[3px] border border-gray-200">
             <div className="flex items-center gap-3 mb-4">
               <ShieldCheck className="h-6 w-6 text-emerald-500" />
               <h3 className="text-xl font-bold text-gray-900">
@@ -258,7 +258,7 @@ docker run -d --name axiodb-server \\
             </p>
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-6 rounded-[3px] border border-gray-200">
             <div className="flex items-center gap-3 mb-4">
               <HardDrive className="h-6 w-6 text-accent-600" />
               <h3 className="text-xl font-bold text-gray-900">
@@ -280,7 +280,7 @@ docker run -d --name axiodb-server \\
             />
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-6 rounded-[3px] border border-gray-200">
             <div className="flex items-center gap-3 mb-4">
               <Layers className="h-6 w-6 text-fuchsia-500" />
               <h3 className="text-xl font-bold text-gray-900">
@@ -348,7 +348,7 @@ volumes:
             />
           </div>
 
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-6 rounded-[3px] border border-gray-200">
             <div className="flex items-center gap-3 mb-4">
               <GitBranch className="h-6 w-6 text-slate-500" />
               <h3 className="text-xl font-bold text-gray-900">
@@ -375,7 +375,7 @@ volumes:
       </section>
 
       {/* Next Steps */}
-      <section className="bg-sky-600 text-white p-8 rounded-xl">
+      <section className="bg-sky-600 text-white p-8 rounded-[3px]">
         <h2 className="text-3xl font-bold mb-4">Connect to Your Container</h2>
         <p className="text-xl mb-6 text-sky-100">
           Once the container is running, connect to it with AxioDBCloud.

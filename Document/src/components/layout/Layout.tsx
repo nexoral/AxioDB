@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import Footer from "./Footer";
 import { useWebMcp } from "../../hooks/useWebMcp";
 
 const Layout: React.FC = () => {
+  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("introduction");
 
@@ -70,26 +72,31 @@ const Layout: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-white text-gray-900 flex flex-col">
       <Header
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         isSidebarOpen={isSidebarOpen}
       />
 
-      <div className="flex">
+      <div className="flex flex-1">
+        {/* The sidebar floats above the content as an overlay rather than
+            pushing it sideways, so pages get the full viewport width whether it
+            is open or closed. */}
         <Sidebar
           isOpen={isSidebarOpen}
           activeSection={activeSection}
           setActiveSection={setActiveSection}
+          onNavigate={() => setIsSidebarOpen(false)}
         />
 
-        {/* md:ml-64 mirrors Sidebar's md:w-64 - keep both in sync if either changes */}
-        <main className="flex-1 pt-16 pb-16 transition-all duration-300 md:ml-64">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-6xl">
+        <main className="flex-1 pt-16 min-w-0">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
             <Outlet />
           </div>
         </main>
       </div>
+
+      <Footer />
     </div>
   );
 };

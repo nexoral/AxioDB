@@ -154,7 +154,7 @@ console.log(paginatedDocuments);`,
 
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-green-500 rounded-xl shadow-lg animate-glow">
+            <div className="p-3 bg-green-500 rounded-[3px] shadow-sm animate-glow">
               <BookOpen className="h-10 w-10 text-white" />
             </div>
             <div>
@@ -181,7 +181,7 @@ console.log(paginatedDocuments);`,
 
         <div className="relative z-10 flex items-start gap-4">
           <div className="flex-shrink-0">
-            <div className="p-3 bg-amber-500 rounded-xl shadow-sm">
+            <div className="p-3 bg-amber-500 rounded-[3px] shadow-sm">
               <AlertCircle className="h-8 w-8 text-white" />
             </div>
           </div>
@@ -214,11 +214,11 @@ console.log(paginatedDocuments);`,
       </div>
 
       {/* Interactive Examples Section */}
-      <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-8 lg:p-10 mb-16 border border-gray-200">
+      <div className="group relative bg-white rounded-lg shadow-md hover:shadow-sm transition-all duration-300 p-8 lg:p-10 mb-16 border border-gray-200">
         <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-8">
-            <div className="p-3 bg-accent-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-accent-500 rounded-[3px] shadow-sm">
               <Play className="h-8 w-8 text-white" />
             </div>
             <div>
@@ -238,7 +238,7 @@ console.log(paginatedDocuments);`,
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                 <button
-                  className="group relative w-full sm:w-auto bg-accent-500 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
+                  className="group relative w-full sm:w-auto bg-accent-500 text-white px-8 py-4 rounded-[3px] font-semibold text-lg shadow-sm hover:shadow-sm transform hover:-translate-y-1 transition-all duration-300"
                   onClick={() => {
                     setCodeType("commonjs");
                     setStep("selectExampleType");
@@ -250,7 +250,7 @@ console.log(paginatedDocuments);`,
                   </div>
                 </button>
                 <button
-                  className="group relative w-full sm:w-auto bg-purple-500 text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
+                  className="group relative w-full sm:w-auto bg-purple-500 text-white px-8 py-4 rounded-[3px] font-semibold text-lg shadow-sm hover:shadow-sm transform hover:-translate-y-1 transition-all duration-300"
                   onClick={() => {
                     setCodeType("es6");
                     setStep("selectExampleType");
@@ -313,7 +313,7 @@ console.log(paginatedDocuments);`,
                   return (
                     <button
                       key={example.key}
-                      className={`group relative bg-gray-50 border border-gray-200 text-gray-900 p-6 rounded-xl hover:border-gray-300 font-semibold shadow-lg hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300`}
+                      className={`group relative bg-gray-50 border border-gray-200 text-gray-900 p-6 rounded-[3px] hover:border-gray-300 font-semibold shadow-sm hover:shadow-sm transform hover:-translate-y-1 transition-all duration-300`}
                       onClick={() => {
                         setExampleType(example.key as any);
                         setStep("showExample");
@@ -342,7 +342,7 @@ console.log(paginatedDocuments);`,
                   Production-ready code example for {exampleType} operations
                 </p>
               </div>
-              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+              <div className="bg-gray-50 rounded-[3px] p-6 border border-gray-200">
                 <CodeBlock
                   code={examples[codeType][exampleType]}
                   language="javascript"
@@ -364,11 +364,11 @@ console.log(paginatedDocuments);`,
       {/* Complete Examples Section */}
       <div className="space-y-12">
         {/* CommonJS Example */}
-        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-8 lg:p-10 border border-gray-200">
+        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-sm transition-all duration-300 p-8 lg:p-10 border border-gray-200">
           <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 bg-green-500 rounded-xl shadow-lg">
+              <div className="p-3 bg-green-500 rounded-[3px] shadow-sm">
                 <Code2 className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -380,7 +380,7 @@ console.log(paginatedDocuments);`,
                 </p>
               </div>
             </div>
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <div className="bg-gray-50 rounded-[3px] p-6 border border-gray-200">
               <CodeBlock
                 language="javascript"
                 code={`const { AxioDB } = require("axiodb");
@@ -475,11 +475,11 @@ main();`}
         </div>
 
         {/* ES6 Module Example */}
-        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-8 lg:p-10 border border-gray-200">
+        <div className="group relative bg-white rounded-lg shadow-md hover:shadow-sm transition-all duration-300 p-8 lg:p-10 border border-gray-200">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 bg-purple-500 rounded-xl shadow-lg">
+              <div className="p-3 bg-purple-500 rounded-[3px] shadow-sm">
                 <Sparkles className="h-8 w-8 text-white" />
               </div>
               <div>
@@ -491,7 +491,7 @@ main();`}
                 </p>
               </div>
             </div>
-            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <div className="bg-gray-50 rounded-[3px] p-6 border border-gray-200">
               <CodeBlock
                 language="javascript"
                 code={`import { AxioDB } from "axiodb";

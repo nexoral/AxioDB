@@ -50,30 +50,32 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
   return (
     <div
       ref={typewriterRef}
-      className="relative group rounded-[3px] overflow-hidden my-4 sm:my-6 border border-ink-700 shadow-sm"
+      className="relative group rounded-[3px] overflow-hidden my-4 sm:my-6 border border-gray-200 bg-white"
       // Structural hooks for scripts/generate-markdown.ts, which rebuilds fenced
-      // code blocks from this prerendered markup: it needs the language and it
-      // needs to skip the chrome (language chip + copy button) around the code.
+      // code blocks from this prerendered markup. It reads the language from this
+      // element, expects <pre> to be a DIRECT child of it, walks `code > div` for
+      // one <div> per line, and skips spans carrying data-line-number. Changing
+      // this nesting breaks the generated AxioDB_Docs markdown.
       data-code-language={language}
     >
       <div
         data-code-header
-        className="flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 bg-ink-800 text-gray-500 border-b border-ink-700"
+        className="flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2 bg-gray-50 text-gray-500 border-b border-gray-200"
       >
         <span className="text-xs sm:text-sm font-mono">{language}</span>
         <button
           onClick={handleCopy}
-          className="text-gray-500 hover:text-gray-900 transition-colors p-1 rounded"
+          className="text-gray-500 hover:text-accent-600 transition-colors p-1 rounded"
           aria-label="Copy code"
         >
           {copied ? (
-            <Check size={18} className="text-green-600" />
+            <Check size={18} className="text-accent-600" />
           ) : (
             <Copy size={18} />
           )}
         </button>
       </div>
-      <Highlight code={normalizedCode} language={resolveLanguage(language)} theme={themes.vsDark}>
+      <Highlight code={normalizedCode} language={resolveLanguage(language)} theme={themes.github}>
         {({ className, style, tokens, getLineProps, getTokenProps }) => {
           // Distributes the reveal budget across tokens in document order so
           // every visible character stays inside its correctly-colored token
@@ -82,8 +84,8 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
 
           return (
             <pre
-              className={`${className} overflow-x-auto overscroll-x-contain p-3 sm:p-4 text-xs sm:text-sm leading-relaxed`}
-              style={{ ...style, backgroundColor: "#120E10" }}
+              className={`${className} overflow-x-auto overscroll-x-contain p-3 sm:p-4 text-xs sm:text-sm leading-relaxed font-mono`}
+              style={{ ...style, backgroundColor: "#ffffff" }}
             >
               <code className="font-mono">
                 {tokens.map((line, lineIndex) => {
@@ -92,7 +94,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ code, language }) => {
                     <div key={lineIndex} {...lineProps}>
                       <span
                         data-line-number
-                        className="inline-block w-5 sm:w-8 shrink-0 select-none text-right pr-2 sm:pr-3 text-slate-600"
+                        className="inline-block w-5 sm:w-8 shrink-0 select-none text-right pr-2 sm:pr-3 text-gray-400"
                       >
                         {lineIndex + 1}
                       </span>
