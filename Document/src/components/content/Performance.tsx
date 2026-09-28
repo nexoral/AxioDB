@@ -169,7 +169,7 @@ const perfDot = (ms: number): string => {
 };
 
 const OpTable: React.FC<{ title: string; icon: React.ReactNode; ops: { label: string; time: number; note?: string }[] }> = ({ title, icon, ops }) => (
-  <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+  <div className="bg-white rounded-[3px] border border-gray-200 shadow-sm overflow-hidden">
     <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
       {icon}
       <h3 className="font-bold text-gray-800 text-sm">{title}</h3>
@@ -200,7 +200,7 @@ const ScaleBar: React.FC<{
   const maxVal = Math.max(...rows.map((r) => r[opKey] as number));
 
   return (
-    <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-shadow group">
+    <div className="bg-white rounded-[3px] p-5 border border-gray-200 shadow-sm hover:shadow-sm transition-shadow group">
       <div className="flex items-baseline justify-between mb-3">
         <div>
           <span className="text-sm font-bold text-gray-800">{label}</span>
@@ -245,13 +245,13 @@ const Performance: React.FC = () => {
       />
 
       {/* ── Hero ─────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-accent-50 via-white to-emerald-50 rounded-2xl p-5 sm:p-8 lg:p-12 mb-12 border border-accent-200 shadow-lg animate-fade-in">
+      <div className="relative overflow-hidden bg-gradient-to-br from-accent-50 via-white to-emerald-50 rounded-[3px] p-5 sm:p-8 lg:p-12 mb-12 border border-accent-200 shadow-sm animate-fade-in">
         <div className="absolute -top-20 -right-20 w-80 h-80 bg-accent-200/30 rounded-full blur-3xl animate-blob-drift"></div>
         <div className="absolute -bottom-16 -left-16 w-60 h-60 bg-emerald-200/30 rounded-full blur-3xl"></div>
 
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2.5 bg-accent-600 rounded-xl shadow-lg animate-glow">
+            <div className="p-2.5 bg-accent-600 rounded-[3px] shadow-sm animate-glow">
               <BarChart3 className="h-8 w-8 text-white" />
             </div>
             <span className="text-sm bg-accent-100 text-accent-700 px-3 py-1 rounded-full font-bold uppercase tracking-wide">
@@ -300,7 +300,7 @@ const Performance: React.FC = () => {
           { icon: <Gauge className="h-5 w-5" />, label: "Cache Hit", value: "<1 ms", sub: "In-memory cached result", ring: "ring-blue-200 bg-blue-50", text: "text-blue-700", iconBg: "bg-blue-500" },
           { icon: <CheckCircle2 className="h-5 w-5" />, label: "Test Coverage", value: `${totalTests} tests`, sub: "14 suites, all passing", ring: "ring-violet-200 bg-violet-50", text: "text-violet-700", iconBg: "bg-violet-500" },
         ].map((c) => (
-          <div key={c.label} className={`rounded-xl p-5 border-2 ${c.ring} shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5`}>
+          <div key={c.label} className={`rounded-[3px] p-5 border-2 ${c.ring} shadow-sm hover:shadow-sm transition-all hover:-translate-y-0.5`}>
             <div className="flex items-center gap-2 mb-3">
               <span className={`p-1.5 ${c.iconBg} rounded-lg text-white shadow-sm`}>{c.icon}</span>
               <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{c.label}</span>
@@ -323,7 +323,7 @@ const Performance: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {suiteTimings.map((s) => (
-            <div key={s.name} className="bg-white rounded-xl px-4 py-3 border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between">
+            <div key={s.name} className="bg-white rounded-[3px] px-4 py-3 border border-gray-200 shadow-sm hover:shadow-sm transition-shadow flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className={`h-4 w-4 text-${s.color}-500`} />
                 <div>
@@ -349,7 +349,7 @@ const Performance: React.FC = () => {
           How read operations scale across dataset sizes. All timings in milliseconds.
         </p>
 
-        <div className="overflow-x-auto rounded-2xl border border-gray-200 shadow-md">
+        <div className="overflow-x-auto rounded-[3px] border border-gray-200 shadow-md">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-900 text-white">
@@ -503,7 +503,7 @@ const Performance: React.FC = () => {
           ].map((card) => (
             <div
               key={card.title}
-              className={`bg-white rounded-xl p-5 border border-${card.color}-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5 group`}
+              className={`bg-white rounded-[3px] p-5 border border-${card.color}-100 shadow-sm hover:shadow-sm transition-all hover:-translate-y-0.5 group`}
             >
               <div className={`inline-flex p-2 rounded-lg bg-${card.color}-50 text-${card.color}-600 mb-3 group-hover:scale-110 transition-transform`}>
                 {card.icon}
@@ -516,7 +516,7 @@ const Performance: React.FC = () => {
       </div>
 
       {/* ── Methodology ──────────────────────────────────────── */}
-      <div className="bg-gray-50 rounded-2xl p-6 sm:p-8 border border-gray-200">
+      <div className="bg-gray-50 rounded-[3px] p-6 sm:p-8 border border-gray-200">
         <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
           <CheckCircle2 className="h-5 w-5 text-accent-600" />
           Methodology

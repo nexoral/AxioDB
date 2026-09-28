@@ -43,7 +43,7 @@ const Comparison: React.FC = () => {
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* NeDB */}
-          <div className="bg-white rounded-xl p-6 border-2 border-red-200 shadow-lg hover:shadow-xl transition-all">
+          <div className="bg-white rounded-[3px] p-6 border-2 border-red-200 shadow-sm hover:shadow-sm transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">💀</span>
@@ -90,7 +90,7 @@ const Comparison: React.FC = () => {
           </div>
 
           {/* LokiJS */}
-          <div className="bg-white rounded-xl p-6 border-2 border-red-200 shadow-lg hover:shadow-xl transition-all">
+          <div className="bg-white rounded-[3px] p-6 border-2 border-red-200 shadow-sm hover:shadow-sm transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">🪦</span>
@@ -144,7 +144,7 @@ const Comparison: React.FC = () => {
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* LowDB */}
-          <div className="bg-white rounded-xl p-6 border-2 border-orange-200 shadow-lg hover:shadow-xl transition-all">
+          <div className="bg-white rounded-[3px] p-6 border-2 border-orange-200 shadow-sm hover:shadow-sm transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">📄</span>
@@ -195,7 +195,7 @@ const Comparison: React.FC = () => {
           </div>
 
           {/* better-sqlite3 */}
-          <div className="bg-white rounded-xl p-6 border-2 border-orange-200 shadow-lg hover:shadow-xl transition-all">
+          <div className="bg-white rounded-[3px] p-6 border-2 border-orange-200 shadow-sm hover:shadow-sm transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">🔧</span>
@@ -254,7 +254,7 @@ const Comparison: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900">Feature Comparison Matrix</h2>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-lg">
+        <div className="overflow-x-auto rounded-[3px] border border-gray-200 shadow-sm">
           <table className="w-full min-w-[800px]">
             <thead>
               <tr className="bg-gray-900 text-white">
@@ -377,7 +377,7 @@ const Comparison: React.FC = () => {
       </div>
 
       {/* Migration Guide */}
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 sm:p-8 mb-12 border border-green-200 shadow-lg">
+      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-[3px] p-6 sm:p-8 mb-12 border border-green-200 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <RefreshCw className="h-6 w-6 text-green-600" />
           <h2 className="text-2xl font-bold text-gray-900">Switch in 5 Minutes</h2>
@@ -385,7 +385,7 @@ const Comparison: React.FC = () => {
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* From LowDB */}
-          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-md">
+          <div className="bg-white rounded-[3px] p-5 border border-gray-200 shadow-md">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xl">📄</span>
               <span className="font-bold text-gray-900">From LowDB</span>
@@ -407,7 +407,7 @@ const Comparison: React.FC = () => {
           </div>
 
           {/* From NeDB */}
-          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-md">
+          <div className="bg-white rounded-[3px] p-5 border border-gray-200 shadow-md">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-xl">💀</span>
               <span className="font-bold text-gray-900">From NeDB</span>
@@ -432,7 +432,7 @@ const Comparison: React.FC = () => {
         <div className="mt-6 text-center">
           <a
             href="/installation"
-            className="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition-all shadow-lg hover:shadow-md transform hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition-all shadow-sm hover:shadow-sm transform hover:-translate-y-0.5"
           >
             Install AxioDB Now
             <ArrowRight className="h-5 w-5" />
@@ -441,7 +441,7 @@ const Comparison: React.FC = () => {
       </div>
 
       {/* Performance Benchmark */}
-      <div className="bg-gray-900 rounded-xl p-6 sm:p-8 mb-12 shadow-xl">
+      <div className="bg-gray-900 rounded-[3px] p-6 sm:p-8 mb-12 shadow-sm">
         <h3 className="text-2xl font-bold mb-6 text-white">
           Performance Benchmark (50,000 documents)
         </h3>
@@ -479,14 +479,14 @@ const Comparison: React.FC = () => {
         <div className="flex flex-wrap justify-center gap-4">
           <a
             href="/installation"
-            className="inline-flex items-center gap-2 bg-accent-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-accent-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 bg-accent-600 text-white px-8 py-4 rounded-[3px] font-bold text-lg hover:bg-accent-700 transition-all shadow-sm hover:shadow-sm transform hover:-translate-y-0.5"
           >
             npm install axiodb
             <ArrowRight className="h-5 w-5" />
           </a>
           <a
             href="/usage"
-            className="inline-flex items-center gap-2 bg-gray-100 text-gray-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition-all"
+            className="inline-flex items-center gap-2 bg-gray-100 text-gray-900 px-8 py-4 rounded-[3px] font-bold text-lg hover:bg-gray-200 transition-all"
           >
             Read the Docs
           </a>

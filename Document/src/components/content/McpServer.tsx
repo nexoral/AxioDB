@@ -150,7 +150,7 @@ const McpServer: React.FC = () => {
           Quick Start
         </h2>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200 space-y-4">
+        <div className="bg-white p-6 rounded-[3px] border border-gray-200 space-y-4">
           <p className="text-gray-600">
             The MCP server is <strong>opt-in</strong> and disabled by default — set{" "}
             <code className="px-1.5 py-0.5 bg-white rounded">AXIODB_MCP=true</code>{" "}
@@ -308,7 +308,7 @@ url = "http://localhost:27020/mcp"`}
           Real Login, Real RBAC — Not a Docker Env Var
         </h2>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200 space-y-4">
+        <div className="bg-white p-6 rounded-[3px] border border-gray-200 space-y-4">
           <p className="text-gray-600">
             Every tool except <code className="px-1.5 py-0.5 bg-white rounded">axiodb_login</code>{" "}
             requires a <code className="px-1.5 py-0.5 bg-white rounded">sessionId</code>. Call{" "}
@@ -360,7 +360,7 @@ url = "http://localhost:27020/mcp"`}
           {toolGroups.map((group) => (
             <div
               key={group.title}
-              className="bg-white p-6 rounded-xl border border-gray-200"
+              className="bg-white p-6 rounded-[3px] border border-gray-200"
             >
               <h3 className="text-lg font-bold text-gray-900 mb-1">
                 {group.title}
@@ -403,7 +403,7 @@ url = "http://localhost:27020/mcp"`}
           ever add.
         </p>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200 mb-6">
+        <div className="bg-white p-6 rounded-[3px] border border-gray-200 mb-6">
           <CodeBlock
             language="text"
             code={`Agent: axiodb_delete_collection({ sessionId, dbName: "shop", collectionName: "orders" })
@@ -418,7 +418,7 @@ url = "http://localhost:27020/mcp"`}
           />
         </div>
 
-        <div className="bg-gray-100 rounded-xl border border-gray-200 overflow-x-auto mb-6">
+        <div className="bg-gray-100 rounded-[3px] border border-gray-200 overflow-x-auto mb-6">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-200">
@@ -459,7 +459,7 @@ url = "http://localhost:27020/mcp"`}
           <Database className="h-8 w-8 text-accent-600" />
           Example: Insert &amp; Query From an Agent
         </h2>
-        <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <div className="bg-white p-6 rounded-[3px] border border-gray-200">
           <CodeBlock
             language="text"
             code={`1. axiodb_login({ username: "admin", password: "admin" })
@@ -488,7 +488,7 @@ url = "http://localhost:27020/mcp"`}
           <ShieldCheck className="h-8 w-8 text-emerald-500" />
           Security Notes
         </h2>
-        <div className="bg-white p-6 rounded-xl border border-gray-200">
+        <div className="bg-white p-6 rounded-[3px] border border-gray-200">
           <ul className="list-disc list-inside text-gray-600 space-y-2">
             <li>Every write/read tool is permission-checked against the caller&apos;s actual role on every call, not just at login</li>
             <li>An invalid, expired, or missing <code className="px-1 py-0.5 bg-white rounded">sessionId</code> is rejected before it ever reaches a database operation</li>
@@ -499,7 +499,7 @@ url = "http://localhost:27020/mcp"`}
       </section>
 
       {/* Next Steps */}
-      <section className="bg-fuchsia-600 text-white p-8 rounded-xl">
+      <section className="bg-fuchsia-600 text-white p-8 rounded-[3px]">
         <h2 className="text-3xl font-bold mb-4">Give Your Agent a Database</h2>
         <p className="text-xl mb-6 text-fuchsia-100">
           Deploy the container, enable AXIODB_MCP, and register it with your MCP client.

@@ -213,7 +213,7 @@ console.log("Transaction completed successfully!");`,
 
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-purple-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-purple-500 rounded-[3px] shadow-sm">
               <Rocket className="h-10 w-10 text-white" />
             </div>
             <div>
@@ -278,7 +278,7 @@ console.log("Transaction completed successfully!");`,
         </Button>
       </div>
 
-      <div className="bg-gray-100 rounded-lg p-8 lg:p-10 shadow-md border border-gray-200 mb-12 transition-all duration-300 hover:shadow-lg">
+      <div className="bg-gray-100 rounded-lg p-8 lg:p-10 shadow-md border border-gray-200 mb-12 transition-all duration-300 hover:shadow-sm">
         <h3 className="font-bold text-2xl mb-6 text-gray-900">
           {activeFeature === "multi-db" &&
             "Multi-Database Architecture & Collection Management"}
@@ -312,11 +312,11 @@ console.log("Transaction completed successfully!");`,
 
       {/* Feature Enhancement Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-accent-600 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-accent-600 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-accent-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-accent-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Code className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -381,11 +381,11 @@ console.log("Transaction completed successfully!");`,
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-green-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-green-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-green-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-green-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <GitBranch className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -442,11 +442,11 @@ console.log("Transaction completed successfully!");`,
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-orange-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-orange-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-orange-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-orange-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-orange-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <RefreshCw className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
@@ -509,11 +509,11 @@ console.log("Transaction completed successfully!");`,
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-purple-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-purple-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-purple-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+              <div className="p-3 bg-purple-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Database className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">

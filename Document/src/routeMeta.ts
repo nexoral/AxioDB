@@ -37,6 +37,5 @@ export const routeMeta: RouteMeta[] = [
   { path: "/troubleshooting", label: "Troubleshooting" },
   { path: "/changelog", label: "Changelog" },
   { path: "/performance", label: "Performance Benchmarks" },
-  { path: "/execution", label: "Animated Execution" },
   { path: "/maintainers-zone", label: "Maintainer's Zone" },
 ];

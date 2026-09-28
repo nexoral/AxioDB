@@ -64,7 +64,7 @@ const GitHubProfileSection: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="bg-gray-100 rounded-lg p-8 shadow-lg border border-gray-200">
+      <div className="bg-gray-100 rounded-lg p-8 shadow-sm border border-gray-200">
         <div className="flex items-center justify-center py-12">
           <FaSpinner className="animate-spin text-4xl text-accent-600" />
           <span className="ml-3 text-lg text-gray-600">Loading GitHub data...</span>
@@ -95,7 +95,7 @@ const GitHubProfileSection: React.FC = () => {
               <img
                 src={user.avatar_url}
                 alt={user.name}
-                className="w-32 h-32 rounded-xl border-4 border-accent-400/50 shadow-md"
+                className="w-32 h-32 rounded-[3px] border-4 border-accent-400/50 shadow-md"
               />
               <div className="absolute -bottom-2 -right-2 bg-green-500 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center">
                 <span className="text-xs">🟢</span>
@@ -146,7 +146,7 @@ const GitHubProfileSection: React.FC = () => {
                 href={user.html_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg"
+                className="inline-flex items-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-sm"
               >
                 <FaGithub />
                 View Full GitHub Profile
@@ -159,7 +159,7 @@ const GitHubProfileSection: React.FC = () => {
 
 
       {/* Pinned Repositories */}
-      <div className="bg-gray-100 rounded-lg p-8 shadow-lg border border-gray-200">
+      <div className="bg-gray-100 rounded-lg p-8 shadow-sm border border-gray-200">
         <h3 className="text-2xl font-bold mb-6 text-gray-900 flex items-center gap-3">
           <FaStar className="text-yellow-500" />
           Featured Repositories
@@ -167,7 +167,7 @@ const GitHubProfileSection: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {pinnedRepos.map((repo) => (
-            <div key={repo.name} className="bg-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-200 border hover:border-accent-600">
+            <div key={repo.name} className="bg-gray-200 rounded-[3px] p-6 hover:shadow-sm transition-all duration-200 border hover:border-accent-600">
               <div className="flex items-start justify-between mb-3">
                 <h4 className="font-bold text-gray-900 text-lg truncate">
                   {repo.name}

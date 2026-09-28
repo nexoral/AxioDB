@@ -39,7 +39,7 @@ const Changelog: React.FC = () => {
         {changelog.map((entry, index) => (
           <div
             key={`${entry.version}-${entry.date}-${index}`}
-            className="bg-white p-6 rounded-xl border border-gray-200"
+            className="bg-white p-6 rounded-[3px] border border-gray-200"
           >
             <div className="flex flex-wrap items-center gap-3 mb-3">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-violet-100/30 rounded-full">

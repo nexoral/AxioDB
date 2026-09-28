@@ -33,7 +33,7 @@ const Installation: React.FC = () => {
 
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-accent-500 rounded-xl shadow-lg animate-glow">
+            <div className="p-3 bg-accent-500 rounded-[3px] shadow-sm animate-glow">
               <PackageOpen className="h-10 w-10 text-white" />
             </div>
             <div>
@@ -56,7 +56,7 @@ const Installation: React.FC = () => {
 
       {/* Installation Steps */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-accent-600 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-accent-600 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-4">
@@ -74,7 +74,7 @@ const Installation: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-green-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-green-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-4">
@@ -92,7 +92,7 @@ const Installation: React.FC = () => {
           </div>
         </div>
 
-        <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 border border-gray-200 hover:border-purple-200 transform hover:-translate-y-1">
+        <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-purple-200 transform hover:-translate-y-1">
           <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-4">
@@ -112,11 +112,11 @@ const Installation: React.FC = () => {
       </div>
 
       {/* Main Installation Command */}
-      <div className="group relative bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200 hover:border-accent-600">
+      <div className="group relative bg-white rounded-lg shadow-md hover:shadow-sm transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200 hover:border-accent-600">
         <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-accent-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+            <div className="p-3 bg-accent-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
               <Terminal className="h-8 w-8 text-white" />
             </div>
             <div>
@@ -129,11 +129,11 @@ const Installation: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
+          <div className="bg-gray-50 rounded-[3px] p-6 mb-6 border border-gray-200">
             <CodeBlock code={installationCode} language="bash" />
           </div>
 
-          <div className="bg-accent-50 p-6 rounded-xl border border-accent-200">
+          <div className="bg-accent-50 p-6 rounded-[3px] border border-accent-200">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
                 <div className="p-2 bg-accent-500 rounded-lg">
@@ -160,11 +160,11 @@ const Installation: React.FC = () => {
       </div>
 
       {/* CLI Installation */}
-      <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200 hover:border-emerald-600">
+      <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200 hover:border-emerald-600">
         <div className="absolute inset-0 bg-emerald-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-emerald-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+            <div className="p-3 bg-emerald-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
               <Command className="h-8 w-8 text-white" />
             </div>
             <div>
@@ -194,7 +194,7 @@ const Installation: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-200">
+          <div className="bg-emerald-50 p-6 rounded-[3px] border border-emerald-200">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
                 <div className="p-2 bg-emerald-600 rounded-lg">
@@ -227,11 +227,11 @@ const Installation: React.FC = () => {
       </div>
 
       {/* AxioDB Control Desktop GUI */}
-      <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-lg transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200 hover:border-indigo-600">
+      <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200 hover:border-indigo-600">
         <div className="absolute inset-0 bg-indigo-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-indigo-500 rounded-xl shadow-lg group-hover:shadow-md transition-shadow">
+            <div className="p-3 bg-indigo-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
               <Monitor className="h-8 w-8 text-white" />
             </div>
             <div>
@@ -265,11 +265,11 @@ const Installation: React.FC = () => {
       </div>
 
       {/* System Requirements */}
-      <div className="group relative bg-white rounded-lg shadow-lg hover:shadow-md transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200">
+      <div className="group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 lg:p-10 mb-12 border border-gray-200">
         <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-8">
-            <div className="p-3 bg-green-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-green-500 rounded-[3px] shadow-sm">
               <CheckCircle2 className="h-8 w-8 text-white" />
             </div>
             <div>
@@ -283,7 +283,7 @@ const Installation: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white p-6 rounded-[3px] border border-gray-200 shadow-sm hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                 <strong className="text-gray-900 text-lg">
@@ -295,7 +295,7 @@ const Installation: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white p-6 rounded-[3px] border border-gray-200 shadow-sm hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-3 h-3 bg-accent-500 rounded-full"></div>
                 <strong className="text-gray-900 text-lg">
@@ -307,7 +307,7 @@ const Installation: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white p-6 rounded-[3px] border border-gray-200 shadow-sm hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                 <strong className="text-gray-900 text-lg">
@@ -319,7 +319,7 @@ const Installation: React.FC = () => {
               </p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white p-6 rounded-[3px] border border-gray-200 shadow-sm hover:shadow-sm transition-shadow">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
                 <strong className="text-gray-900 text-lg">
@@ -340,7 +340,7 @@ const Installation: React.FC = () => {
 
         <div className="relative z-10 flex items-start gap-4">
           <div className="flex-shrink-0">
-            <div className="p-3 bg-green-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-green-500 rounded-[3px] shadow-sm">
               <Zap className="h-8 w-8 text-white" />
             </div>
           </div>

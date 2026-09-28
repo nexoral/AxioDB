@@ -62,7 +62,7 @@ const AxioDBCloud: React.FC = () => {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-green-50 p-6 rounded-xl border border-green-200">
+          <div className="bg-green-50 p-6 rounded-[3px] border border-green-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-green-500 rounded-lg">
                 <CheckCircle className="h-6 w-6 text-white" />
@@ -76,7 +76,7 @@ const AxioDBCloud: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-accent-50 p-6 rounded-xl border border-accent-200">
+          <div className="bg-accent-50 p-6 rounded-[3px] border border-accent-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-accent-500 rounded-lg">
                 <Server className="h-6 w-6 text-white" />
@@ -90,7 +90,7 @@ const AxioDBCloud: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-accent-50 p-6 rounded-xl border border-purple-200">
+          <div className="bg-accent-50 p-6 rounded-[3px] border border-purple-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-purple-500 rounded-lg">
                 <RefreshCw className="h-6 w-6 text-white" />
@@ -104,7 +104,7 @@ const AxioDBCloud: React.FC = () => {
             </p>
           </div>
 
-          <div className="bg-orange-50 p-6 rounded-xl border border-orange-200">
+          <div className="bg-orange-50 p-6 rounded-[3px] border border-orange-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-orange-500 rounded-lg">
                 <Activity className="h-6 w-6 text-white" />
@@ -129,7 +129,7 @@ const AxioDBCloud: React.FC = () => {
 
         <div className="space-y-6">
           {/* Docker Method - pointer to dedicated page */}
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-6 rounded-[3px] border border-gray-200">
             <div className="flex items-center gap-3 mb-4">
               <Package className="h-6 w-6 text-accent-600" />
               <h3 className="text-2xl font-bold text-gray-900">
@@ -154,7 +154,7 @@ const AxioDBCloud: React.FC = () => {
           </div>
 
           {/* Node.js Method */}
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-6 rounded-[3px] border border-gray-200">
             <div className="flex items-center gap-3 mb-4">
               <Terminal className="h-6 w-6 text-green-500" />
               <h3 className="text-2xl font-bold text-gray-900">
@@ -202,7 +202,7 @@ console.log('AxioDB TCP Server running on port 27019');`}
           Client Usage
         </h2>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
+        <div className="bg-white p-6 rounded-[3px] border border-gray-200 space-y-6">
           <div>
             <h3 className="text-xl font-bold mb-3 text-gray-900">
               Basic Connection
@@ -345,7 +345,7 @@ await client.connect(); // resolves even if some pool members were rejected`}
           TCP Authentication (NEW!)
         </h2>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
+        <div className="bg-white p-6 rounded-[3px] border border-gray-200 space-y-6">
           <p className="text-gray-600">
             TCP connections are unauthenticated by default (unchanged from before). Opt in with{" "}
             <code className="px-2 py-1 bg-white rounded">TCPAuth: true</code> to require a
@@ -420,7 +420,7 @@ await client2.login('admin', 'admin');`}
           TLS Encryption (NEW!)
         </h2>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200 space-y-6">
+        <div className="bg-white p-6 rounded-[3px] border border-gray-200 space-y-6">
           <p className="text-gray-600">
             By default, the TCP protocol is <strong>plaintext</strong> - anyone who can capture
             network traffic between client and server (e.g. Wireshark on a shared network) can
@@ -547,7 +547,7 @@ docker run -d --name axiodb-server \\
 
         <div className="space-y-6">
           {/* CRUD Operations */}
-          <div className="bg-white p-6 rounded-xl border border-gray-200">
+          <div className="bg-white p-6 rounded-[3px] border border-gray-200">
             <h3 className="text-xl font-bold mb-4 text-gray-900">
               CRUD Operations
             </h3>
@@ -584,7 +584,7 @@ const stats = await users.aggregate([
           </div>
 
           {/* Real-world Example */}
-          <div className="bg-accent-50 p-6 rounded-xl border border-fuchsia-200">
+          <div className="bg-accent-50 p-6 rounded-[3px] border border-fuchsia-200">
             <h3 className="text-xl font-bold mb-4 text-gray-900">
               Real-World Example: E-commerce App
             </h3>
@@ -710,7 +710,7 @@ main().catch(console.error);`}
           ].map((useCase, idx) => (
             <div
               key={idx}
-              className={`bg-${useCase.color}-50 p-6 rounded-xl border border-${useCase.color}-200`}
+              className={`bg-${useCase.color}-50 p-6 rounded-[3px] border border-${useCase.color}-200`}
             >
               <useCase.icon className={`h-12 w-12 text-${useCase.color}-400 mb-4`} />
               <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -725,7 +725,7 @@ main().catch(console.error);`}
       </section>
 
       {/* Next Steps */}
-      <section className="bg-accent-600 text-white p-8 rounded-xl">
+      <section className="bg-accent-600 text-white p-8 rounded-[3px]">
         <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
         <p className="text-xl mb-6 text-accent-100">
           Deploy AxioDB in minutes and start connecting from anywhere.

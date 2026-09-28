@@ -944,7 +944,7 @@ await transaction.commit();`,
 
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-6">
-            <div className="p-3 bg-accent-500 rounded-xl shadow-lg">
+            <div className="p-3 bg-accent-500 rounded-[3px] shadow-sm">
               <BookOpen className="h-10 w-10 text-white" />
             </div>
             <div>
