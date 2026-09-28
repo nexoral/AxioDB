@@ -1,10 +1,10 @@
 import Fastify from "fastify";
-import fastifyCors from "@fastify/cors";
-import fastifyStatic from "@fastify/static";
-import fastifyCookie from "@fastify/cookie";
+import registerCors from "../../utility/Cors.utils";
+import registerStatic from "../../utility/StaticFile.utils";
+import { registerCookies } from "../../utility/Cookie.utils";
 import path from "path";
 import fs from "fs";
-import { CORS_CONFIG, SECURITY_HEADERS, ServerKeys, staticPath } from "./keys";
+import { SECURITY_HEADERS, ServerKeys, staticPath } from "./keys";
 import checkPortAndDocker from "./PortFreeChecker";
 import { AxioDB } from "../../Services/Indexation.operation";
 import router from "../router/Router";
@@ -38,18 +38,11 @@ export default async function createAxioDBControlServer(
     }
   });
 
-  await AxioDBControlServer.register(fastifyCors, {
-    origin: CORS_CONFIG.ORIGIN,
-    methods: CORS_CONFIG.METHODS,
-    allowedHeaders: CORS_CONFIG.ALLOWED_HEADERS,
-    credentials: CORS_CONFIG.ALLOW_CREDENTIALS,
-    exposedHeaders: CORS_CONFIG.EXPOSED_HEADERS,
-    maxAge: CORS_CONFIG.MAX_AGE, // preflight cache duration
-  });
+  registerCors(AxioDBControlServer);
 
   // Cookie support for session-based authentication (no signing secret needed -
   // the cookie value is meaningless without a matching entry in SessionStore's map)
-  await AxioDBControlServer.register(fastifyCookie);
+  registerCookies(AxioDBControlServer);
 
   AxioDBControlServer.addHook("onSend", async (_request, reply) => {
     for (const [header, value] of Object.entries(SECURITY_HEADERS)) {
@@ -71,11 +64,7 @@ export default async function createAxioDBControlServer(
   );
 
   if (guiEnabled) {
-    await AxioDBControlServer.register(fastifyStatic, {
-      root: staticPath,
-      prefix: "/",
-      decorateReply: false,
-    });
+    registerStatic(AxioDBControlServer, { root: staticPath });
 
     AxioDBControlServer.get("/", async (request, reply) => {
       const indexPath = path.join(staticPath, "index.html");
