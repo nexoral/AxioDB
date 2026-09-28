@@ -45,7 +45,7 @@ Before creating bug reports, please check the [existing issues](https://github.c
 ## Bug: Range query returns stale results after index creation
 
 **Environment:**
-- AxioDB: 13.0.0
+- AxioDB: 22.17.1
 - Node.js: 20.10.0
 - OS: Ubuntu 22.04
 

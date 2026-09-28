@@ -365,13 +365,14 @@ const Introduction: React.FC = () => {
               ))}
             </div>
             <p className="text-sm text-gray-500 leading-relaxed">
-              All 12 engine test suites — CRUD, transactions, reads, indexed
-              queries & searches, auth, TCP/TLS, HTTP API, and crash recovery —
-              pass on the machine's Node (v26.8.1) and Bun (v1.4.0), including
-              the worker-thread data paths (reads of ≥100-file collections,
-              searches over ≥10,000 documents). Node 20+ is the supported
-              baseline; Bun is verified on the installed v1.4.0 only. Deno
-              passes 9/12 — worker threads are pending there.
+              All 14 test suites — CRUD, transactions, reads, aggregation,
+              auth, HTTP API, TCP (auth/no-auth/transaction/TLS), crash
+              recovery, MCP, and cache options — pass on the machine's Node
+              (v26.8.1) and Bun (v1.4.0), including the worker-thread data
+              paths (reads of ≥100-file collections, searches over ≥10,000
+              documents). Node 20+ is the supported baseline; Bun is verified on
+              the installed v1.4.0 only. Deno passes 9/12 engine tests —
+              worker threads are pending there.
             </p>
           </div>
 

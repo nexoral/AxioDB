@@ -60,7 +60,7 @@
             "description": "Success - Returns system information",
             "content": {
               "application/json": {
-                "example": "{\n  \"statusCode\": 200,\n  \"status\": \"success\",\n  \"message\": \"AxioDB Information\",\n  \"data\": {\n    \"Package_Name\": \"axiodb\",\n    \"AxioDB_Version\": \"3.31.105\",\n    \"Author_Name\": \"Ankan Saha\",\n    \"License\": \"MIT\",\n    \"AuthorDetails\": { /* author info */ }\n  }\n}"
+                "example": "{\n  \"statusCode\": 200,\n  \"status\": \"success\",\n  \"message\": \"AxioDB Information\",\n  \"data\": {\n    \"Package_Name\": \"axiodb\",\n    \"AxioDB_Version\": \"22.17.1\",\n    \"Author_Name\": \"Ankan Saha\",\n    \"License\": \"MIT\",\n    \"AuthorDetails\": { /* author info */ }\n  }\n}"
               }
             }
           }

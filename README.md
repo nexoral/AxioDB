@@ -49,7 +49,7 @@ console.log(data.documents);
 
 **Sweet spot:** Local applications, desktop apps, CLI tools, and services that need a simple document database without a separate database server.
 
-**Not for:** 10M+ docs, hundreds of concurrent users, JOINs, replication/sharding — use PostgreSQL/MongoDB.
+**Not for:** datasets beyond ~500K documents, hundreds of concurrent users, JOINs, replication/sharding — use PostgreSQL/MongoDB. Full scope and measured limits: [axiodb.in/limitations](https://axiodb.in/limitations).
 
 ---
 
@@ -132,7 +132,6 @@ it. The `tcp` preset creates no admin account and rejects the argument.
 When embedding, the same option is `AdminPassword` in the `AxioDB` constructor.
 In Docker it is `AXIODB_ADMIN_PASSWORD`.
 
-
 ## Basic CRUD
 
 CRUD means **Create, Read, Update, and Delete**. The following example creates a database and
@@ -176,7 +175,7 @@ supported.
 
 > **Docs:** `axiodb.in` is the single source — this README is a quick start only.
 
-* **AxioDBCloud (TCP)** — remote `AxioDBCloud` client, 30 commands, optional `TCPAuth` + `TLS` → [axiodb.in/cloud](https://axiodb.in/cloud)
+* **AxioDBCloud (TCP)** — remote `AxioDBCloud` client, 32 commands, optional `TCPAuth` + `TLS` → [axiodb.in/cloud](https://axiodb.in/cloud)
 * **CLI (Go)** — `axiodb document insert/query` `--hint` `find-by-ids` `transaction begin/commit` `user change-password` (HTTP `27018` for management, TCP `27019` for data) → [axiodb.in/cli](https://axiodb.in/cli)
 * **Docker** — `theankansaha/axiodb` `AXIODB_GUI/TCP/MCP` `27018/27019/27020` → [axiodb.in/docker](https://axiodb.in/docker)
 * **MCP Server** — 43 tools `axiodb_login` → `sessionId` + `withConfirmation` `Docker/mcp/tools/*.js` → [axiodb.in/mcp-server](https://axiodb.in/mcp-server)

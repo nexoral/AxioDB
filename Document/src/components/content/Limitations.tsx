@@ -117,8 +117,13 @@ const Limitations: React.FC = () => {
               <strong className="text-gray-700">
                 Transactions:
               </strong>{" "}
-              No ACID transactions across multiple collections. For transaction
-              requirements, use PostgreSQL or MongoDB with transactions enabled.
+              ACID transactions are supported, with COMMIT/ROLLBACK, savepoints, a
+              write-ahead log, and crash recovery via{" "}
+              <code className="px-1 py-0.5 bg-gray-100 rounded">
+                Transaction.recoverTransactions()
+              </code>
+              . A transaction is scoped to one collection — there is no cross-collection
+              or multi-document atomic commit.
             </div>
           </li>
         </ul>

@@ -6,9 +6,9 @@ We actively support the following versions of AxioDB with security updates. Plea
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 20.x.x  | ✅ Yes             |
-| 11.x.x  | ⚠️ Security fixes only |
-| < 11.0  | ❌ No              |
+| 22.x.x  | ✅ Yes             |
+| 21.x.x  | ⚠️ Security fixes only |
+| < 21.0  | ❌ No              |
 
 **Recommendation:** Always use the latest version of AxioDB for the best security, performance, and features.
 
@@ -68,7 +68,7 @@ Please include the following information in your report:
 
 1. **Triage**: We assess the severity and impact of the reported vulnerability
 2. **Fix Development**: We develop and test a fix in a private repository
-3. **Release**: Security fixes are released as patch versions (e.g., 3.31.105)
+3. **Release**: Security fixes are released as patch versions (e.g., 22.17.2)
 4. **Disclosure**: After release, we publish a security advisory with details
 5. **Credit**: We credit researchers who responsibly disclose vulnerabilities (unless they prefer to remain anonymous)
 
