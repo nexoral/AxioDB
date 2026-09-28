@@ -81,6 +81,51 @@ console.log("Database 'ProductsDB' created");
         </ul>
       </div>
 
+      <h3 className="text-2xl font-semibold mb-4">Setting the Admin Password (No GUI)</h3>
+      <p className="text-gray-600 mb-4">
+        On first start AxioDB seeds an <code className="bg-gray-100 px-2 py-1 rounded">admin/admin</code>{" "}
+        account and flags it <code className="bg-gray-100 px-2 py-1 rounded">mustChangePassword: true</code>.{" "}
+        The forced change can only be completed through the HTTP API or the GUI - so if you start
+        the server with <code className="bg-gray-100 px-2 py-1 rounded">GUI: false</code> and{" "}
+        <code className="bg-gray-100 px-2 py-1 rounded">TCPAuth: true</code>, there would be no way
+        to choose a password and TCP would reject every login. Pass{" "}
+        <code className="bg-gray-100 px-2 py-1 rounded">AdminPassword</code> to seed the account
+        ready to use instead.
+      </p>
+      <CodeBlock
+        code={`const db = new AxioDB({
+  TCP: true,
+  TCPAuth: true,
+  GUI: false,
+  AdminPassword: 'my-secret-password',
+});
+
+// admin / my-secret-password can log in over TCP immediately`}
+        language="javascript"
+      />
+      <div className="bg-accent-100/20 border-l-4 border-accent-500 p-4 rounded-r-lg mb-8">
+        <ul className="space-y-2 text-gray-600 text-sm">
+          <li>
+            <strong>One account, every surface.</strong> Embedded, HTTP, GUI, TCP and MCP all
+            read the same <code>config</code> database, so this password is the same everywhere.
+          </li>
+          <li>
+            <strong>First start only.</strong> The value is read solely when the{" "}
+            <code>users</code> collection is created. Once your data directory exists, restarting
+            never resets a password you have since changed.
+          </li>
+          <li>
+            <strong>Opt-in.</strong> Omit it and the default <code>admin/admin</code> + forced
+            change behaviour is exactly as before - no breaking change.
+          </li>
+          <li>
+            <strong>Same option in the CLI and Docker.</strong>{" "}
+            <code>axiodb serve tcp-auth &lt;password&gt;</code> and the{" "}
+            <code>AXIODB_ADMIN_PASSWORD</code> environment variable both map to it.
+          </li>
+        </ul>
+      </div>
+
       <h3 className="text-2xl font-semibold mb-4">Basic Instance (With GUI)</h3>
       <p className="text-gray-600 mb-4">
         Most common use case - enable the built-in GUI for data inspection.

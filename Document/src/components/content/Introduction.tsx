@@ -226,7 +226,7 @@ const Introduction: React.FC = () => {
   const whyAxioDBReveal = useScrollReveal<HTMLDivElement>();
   const featureCardsReveal = useScrollReveal<HTMLDivElement>();
   const quoteReveal = useScrollReveal<HTMLDivElement>();
-  const painPointsReveal = useScrollReveal<HTMLDivElement>();
+  const whatsNewReveal = useScrollReveal<HTMLDivElement>();
   const originStoryReveal = useScrollReveal<HTMLDivElement>();
   const competitorCalloutReveal = useScrollReveal<HTMLDivElement>();
 
@@ -1006,51 +1006,6 @@ Save it as your reference for all AxioDB tasks. This skill contains the complete
             </div>
           </div>
 
-          {/* Hello World Code Example */}
-          <div className="bg-gray-50 text-gray-900 rounded-[3px] p-6 mb-8 shadow-sm border border-gray-200">
-            <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-              <div className="flex-shrink-0">
-                <div className="p-2 bg-green-600 rounded-lg">
-                  <Code className="h-6 w-6" />
-                </div>
-              </div>
-              <div className="flex-1 w-full min-w-0">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="bg-green-600 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide">
-                    🚀 Quick Start
-                  </span>
-                  <span className="text-green-600 text-sm">Get running in 30 seconds</span>
-                </div>
-                <h3 className="text-lg font-semibold mb-3">Hello World with AxioDB</h3>
-                <div className="bg-accent-100/20 border border-accent-600/30 rounded-lg p-3 mb-3">
-                  <div className="flex items-center gap-2 text-accent-600 text-sm">
-                    <span>ℹ️</span>
-                    <span className="font-semibold">Node.js & Bun supported:</span>
-                    <span>AxioDB runs on Node.js ≥20 or Bun (v1.4.0) servers, not in browsers</span>
-                  </div>
-                </div>
-                <CodeBlock code={HELLO_WORLD_CODE} language="javascript" />
-                <div className="flex flex-wrap gap-3">
-                  <a
-                    href="/installation"
-                    className="inline-flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 shadow-sm hover:shadow-sm transform hover:-translate-y-0.5 transition-all duration-200"
-                  >
-                    <Download className="h-4 w-4" />
-                    Install Now
-                    <ArrowRight className="h-4 w-4" />
-                  </a>
-                  <a
-                    href="/usage"
-                    className="inline-flex items-center gap-2 bg-gray-200 text-gray-900 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
-                  >
-                    <Code className="h-4 w-4" />
-                    View Examples
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* AxioDBCloud Promotional Banner - NEW! */}
           <div
             ref={cloudBannerReveal.ref}
@@ -1278,17 +1233,16 @@ Save it as your reference for all AxioDB tasks. This skill contains the complete
         ref={whyAxioDBReveal.ref}
         className={`relative bg-gray-50 rounded-[3px] p-5 sm:p-8 lg:p-12 mb-16 border border-gray-200 shadow-sm reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}
       >
-        <div className="max-w-5xl">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+        <div className="w-full">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
             Why AxioDB?
           </h2>
-          <div className="prose prose-xl prose-invert max-w-none">
-            <p className="text-xl lg:text-2xl leading-relaxed text-gray-600 mb-6">
-              SQLite requires native C bindings that cause deployment headaches. JSON files have no
-              querying or caching. MongoDB needs a separate server. AxioDB combines the best of all:
-              embedded like SQLite, NoSQL queries like MongoDB, intelligent caching built-in.
-            </p>
-            <div className="grid md:grid-cols-3 gap-6 text-base lg:text-lg reveal-stagger-grid">
+          <p className="text-lg lg:text-xl leading-relaxed text-gray-600 mb-8 max-w-4xl">
+            SQLite requires native C bindings that cause deployment headaches. JSON files have no
+            querying or caching. MongoDB needs a separate server. AxioDB combines the best of all:
+            embedded like SQLite, NoSQL queries like MongoDB, intelligent caching built-in.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-base">
               <div className={`space-y-2 reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-accent-500 rounded-full"></div>
@@ -1335,8 +1289,19 @@ Save it as your reference for all AxioDB tasks. This skill contains the complete
                   aggregation pipelines, schema-less documents.
                 </p>
               </div>
+              <div className={`space-y-2 reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="font-semibold text-gray-700">
+                    ACID Transactions
+                  </span>
+                </div>
+                <p className="text-gray-600 ml-4">
+                  Commit, rollback and savepoints over a write-ahead log, with crash
+                  recovery — not something you bolt on later.
+                </p>
+              </div>
             </div>
-          </div>
         </div>
       </div>
 
@@ -1446,78 +1411,103 @@ Save it as your reference for all AxioDB tasks. This skill contains the complete
         </div>
       </div>
 
-      {/* Pain Points Section: why not SQLite, JSON files, or MongoDB */}
+      {/* What's New Section */}
       <div
-        ref={painPointsReveal.ref}
-        className={`relative reveal-on-scroll ${painPointsReveal.isVisible ? "is-visible animate-fade-in-up" : ""}`}
+        ref={whatsNewReveal.ref}
+        className={`relative mb-16 reveal-on-scroll ${whatsNewReveal.isVisible ? "is-visible animate-fade-in-up" : ""}`}
       >
-        <div className="mt-8 flex flex-col items-center">
-          <div className={`max-w-3xl text-center mb-6 ${painPointsReveal.isVisible ? "animate-slide-in-right" : ""}`}>
-            <h3 className="text-2xl font-bold text-accent-600 mb-4">
-              The Problem With the Usual Options
-            </h3>
-            <div className="text-left bg-gray-100 rounded-[3px] p-6 mb-6 shadow-sm border border-gray-200">
-              <div className="space-y-4 mb-4">
-                <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">SQLite:</h4>
-                  <ul className="space-y-1 text-gray-600 pl-6 text-sm">
-                    <li>✗ Requires native C bindings (better-sqlite3, node-sqlite3)</li>
-                    <li>✗ <code className="bg-gray-200 px-1.5 py-0.5 rounded">electron-rebuild</code> on every Electron update, platform-specific compilation</li>
-                    <li>✗ SQL strings instead of JavaScript objects</li>
-                    <li>✗ Schema migrations when your data model changes</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">JSON Files:</h4>
-                  <ul className="space-y-1 text-gray-600 pl-6 text-sm">
-                    <li>✗ Full file read/write for every operation</li>
-                    <li>✗ No built-in querying, indexing, or caching</li>
-                    <li>✗ Linear O(n) search performance</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">MongoDB (Server):</h4>
-                  <ul className="space-y-1 text-gray-600 pl-6 text-sm">
-                    <li>✗ Requires a separate server process</li>
-                    <li>✗ Overkill for small-to-medium, single-app datasets</li>
-                    <li>✗ Not suitable for embedded/desktop scenarios</li>
-                  </ul>
-                </div>
-              </div>
-              <p className="text-lg text-gray-600 mb-2">
-                AxioDB is pure JavaScript, embedded, with MongoDB-style queries built in:
-              </p>
-              <ul className="space-y-2 text-gray-600">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
-                  <span>Works everywhere Node.js runs—no rebuild, no native dependencies</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
-                  <span>MongoDB-style queries: <code className="bg-gray-200 px-2 py-1 rounded">{`{age: {$gt: 25}}`}</code></span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 font-bold">✓</span>
-                  <span>Schema-less JSON documents—no migrations</span>
-                </li>
-              </ul>
-              <p className="text-sm text-gray-600 mt-4">
-                See the full <a href="/comparison" className="underline font-medium">feature-by-feature comparison</a> against
-                SQLite, JSON files, lowdb, nedb, and better-sqlite3.
-              </p>
-            </div>
-            <div className="flex justify-center gap-4 animate-glow">
-              <a href="/installation" className="inline-block">
-                <button className="bg-accent-600 text-white px-6 py-3 rounded-lg font-semibold shadow-sm hover:bg-accent-700 transition-all duration-200 transform hover:scale-105">
-                  🚀 npm install axiodb
-                </button>
-              </a>
-              <a href="/usage" className="inline-block">
-                <button className="bg-gray-100 text-gray-900 px-6 py-3 rounded-lg font-semibold shadow-sm hover:bg-gray-200 transition-all duration-200 transform hover:scale-105">
-                  📚 Read the Docs
-                </button>
-              </a>
-            </div>
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-50 border border-accent-200 rounded-full text-xs font-semibold uppercase tracking-wide text-accent-700 mb-4">
+          What's New
+        </div>
+        <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          AdminPassword — set the admin password at startup
+        </h2>
+        <p className="text-lg text-gray-600 mb-8 max-w-4xl">
+          The seeded <code className="font-mono">admin/admin</code> account is flagged{" "}
+          <code className="font-mono">mustChangePassword</code>, and only the HTTP API or GUI can
+          clear that flag. Start the server with the GUI disabled and there was no way to choose a
+          password — TCP rejected every login and nothing could recover it.{" "}
+          <code className="font-mono">AdminPassword</code> closes that gap.
+        </p>
+
+        {/* How to set it, per surface */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white border border-gray-200 rounded-[3px] p-5">
+            <h3 className="font-semibold text-gray-900 mb-3">In your app</h3>
+            <CodeBlock
+              language="javascript"
+              code={`const db = new AxioDB({
+  TCP: true,
+  TCPAuth: true,
+  GUI: false,
+  AdminPassword: 'my-secret-password',
+});`}
+            />
+          </div>
+          <div className="bg-white border border-gray-200 rounded-[3px] p-5">
+            <h3 className="font-semibold text-gray-900 mb-3">In the CLI</h3>
+            <CodeBlock
+              language="bash"
+              code={`axiodb serve tcp-auth my-secret-password
+axiodb serve full my-secret-password`}
+            />
+          </div>
+          <div className="bg-white border border-gray-200 rounded-[3px] p-5">
+            <h3 className="font-semibold text-gray-900 mb-3">In Docker</h3>
+            <CodeBlock
+              language="bash"
+              code={`docker run -d \\
+  -e AXIODB_GUI=false \\
+  -e AXIODB_ADMIN_PASSWORD=my-secret-password \\
+  theankansaha/axiodb`}
+            />
+          </div>
+        </div>
+
+        {/* What it guarantees, plus the fail-fast rules it now backs */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-gray-50 border border-gray-200 rounded-[3px] p-5">
+            <h3 className="font-semibold text-gray-900 mb-3">What you get</h3>
+            <ul className="space-y-2 text-gray-600">
+              <li className="flex items-start gap-2">
+                <span className="text-green-600 font-bold">✓</span>
+                <span>One account across embedded, HTTP, GUI, TCP, MCP and the CLI — they all read the same <code className="font-mono">config</code> database</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-600 font-bold">✓</span>
+                <span>Sets <code className="font-mono">mustChangePassword: false</code>, so logins work immediately</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-600 font-bold">✓</span>
+                <span>Read on first start only — a container restart never resets a password you have since changed</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-600 font-bold">✓</span>
+                <span>Additive: omit it and the <code className="font-mono">admin/admin</code> + forced-change behaviour is unchanged</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-gray-50 border border-gray-200 rounded-[3px] p-5">
+            <h3 className="font-semibold text-gray-900 mb-3">Now enforced, not just documented</h3>
+            <ul className="space-y-2 text-gray-600">
+              <li className="flex items-start gap-2">
+                <span className="text-amber-600 font-bold">!</span>
+                <span><code className="font-mono">axiodb serve tcp-auth</code> <strong>requires</strong> a password and exits without one</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-amber-600 font-bold">!</span>
+                <span>The Docker image refuses to start when TCP auth is on, <code className="font-mono">AXIODB_HTTP</code> is off and no password is set</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-gray-600">—</span>
+                <span><code className="font-mono">http</code> and <code className="font-mono">full</code> keep it optional: their control server can rotate the password</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-gray-600">—</span>
+                <span><Link to="/create-database" className="underline">Full option reference →</Link></span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
