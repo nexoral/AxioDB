@@ -19,13 +19,26 @@ import (
 
 const npmInstallTimeout = 10 * time.Minute
 
+// adminPasswordEnv is read by the generated server.js to seed the admin account.
+const adminPasswordEnv = "AXIODB_ADMIN_PASSWORD"
+
 var serveCmd = &cobra.Command{
-	Use:       "serve <http|tcp|tcp-auth|full>",
-	Short:     "Start a temporary local AxioDB server",
-	Args:      cobra.ExactArgs(1),
+	Use:   "serve <http|tcp|tcp-auth|full> [password]",
+	Short: "Start a temporary local AxioDB server",
+	Long: `Start a temporary local AxioDB server.
+
+The optional password applies to the http, tcp-auth and full modes, which create the
+admin account. It seeds that account so logins work immediately, instead of the
+default admin/admin, which TCP refuses until the password is changed through the
+HTTP API or GUI. The tcp mode creates no admin account and rejects the argument.`,
+	Args:      cobra.RangeArgs(1, 2),
 	ValidArgs: []string{"http", "tcp", "tcp-auth", "full"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runServe(cmd, args[0])
+		var password string
+		if len(args) == 2 {
+			password = args[1]
+		}
+		return runServe(cmd, args[0], password)
 	},
 }
 
@@ -33,9 +46,12 @@ func init() {
 	rootCmd.AddCommand(serveCmd)
 }
 
-func runServe(cmd *cobra.Command, modeName string) (runErr error) {
+func runServe(cmd *cobra.Command, modeName, password string) (runErr error) {
 	config, err := serve.ParseMode(modeName)
 	if err != nil {
+		return err
+	}
+	if err := validatePassword(config, password); err != nil {
 		return err
 	}
 
@@ -78,6 +94,10 @@ func runServe(cmd *cobra.Command, modeName string) (runErr error) {
 	child.Dir = tempDir
 	child.Stdout = output
 	child.Stderr = errorOutput
+	// Passed via the environment so the credential is not written to server.js.
+	if password != "" {
+		child.Env = append(os.Environ(), adminPasswordEnv+"="+password)
+	}
 
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
@@ -108,7 +128,7 @@ func runServe(cmd *cobra.Command, modeName string) (runErr error) {
 		return err
 	}
 
-	printReady(output, config)
+	printReady(output, config, password)
 	fmt.Fprintln(output, "Press Ctrl+C to stop the server and delete its temporary data.")
 
 	select {
@@ -151,7 +171,20 @@ func installAxioDB(ctx context.Context, npmPath, tempDir string, output, errorOu
 	return nil
 }
 
-func printReady(output io.Writer, config serve.ModeConfig) {
+func validatePassword(config serve.ModeConfig, password string) error {
+	if password == "" {
+		return nil
+	}
+	if !config.SeesAuth() {
+		return fmt.Errorf("a password needs an admin account, which %q mode never creates", config.Mode)
+	}
+	if password == serve.DefaultAdminPassword {
+		return fmt.Errorf("password must differ from the default %q, otherwise TCP refuses the account", serve.DefaultAdminPassword)
+	}
+	return nil
+}
+
+func printReady(output io.Writer, config serve.ModeConfig, password string) {
 	fmt.Fprintln(output, "Server started.")
 	if config.HasHTTP() {
 		fmt.Fprintf(output, "  HTTP API: http://localhost:%d/api\n", serve.HTTPPort)
@@ -162,8 +195,8 @@ func printReady(output io.Writer, config serve.ModeConfig) {
 			fmt.Fprintln(output, "  TCP auth: enabled")
 		}
 	}
-	if config.RequiresTCPAuthWarning() {
-		fmt.Fprintln(output, "  Warning: tcp-auth seeds admin/admin, but TCP rejects it until the password is changed through HTTP/GUI.")
+	if password == "" && config.SeesAuth() {
+		fmt.Fprintf(output, "  Admin:    %s / %s\n", serve.DefaultAdminUsername, serve.DefaultAdminPassword)
 	}
 }
 

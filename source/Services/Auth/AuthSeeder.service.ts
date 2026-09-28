@@ -28,9 +28,11 @@ import {
  */
 export default class AuthSeeder {
   private readonly axioDBInstance: AxioDB;
+  private readonly adminPassword?: string;
 
-  constructor(axioDBInstance: AxioDB) {
+  constructor(axioDBInstance: AxioDB, adminPassword?: string) {
     this.axioDBInstance = axioDBInstance;
+    this.adminPassword = adminPassword;
   }
 
   public async seedIfNeeded(): Promise<void> {
@@ -82,12 +84,13 @@ export default class AuthSeeder {
   }
 
   private async seedDefaultAdmin(usersCollection: Collection): Promise<void> {
-    const passwordHash = await PasswordHasher.hashPassword(DEFAULT_ADMIN_PASSWORD);
+    const password = this.adminPassword || DEFAULT_ADMIN_PASSWORD;
+    const passwordHash = await PasswordHasher.hashPassword(password);
     const document: UserDocument = {
       username: DEFAULT_ADMIN_USERNAME,
       passwordHash,
       role: SUPER_ADMIN_ROLE,
-      mustChangePassword: true,
+      mustChangePassword: !this.adminPassword,
       isActive: true,
       createdAt: new Date().toISOString(),
     };

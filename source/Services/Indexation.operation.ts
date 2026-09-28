@@ -61,6 +61,7 @@ export class AxioDB {
   private HTTP: boolean = false;
   private TCP: boolean = false;
   private TCPAuth: boolean = false;
+  private readonly AdminPassword?: string;
   private TLS: boolean = false;
   private ready: Promise<void>;
   private _initializing = false;
@@ -73,7 +74,7 @@ export class AxioDB {
     }
     AxioDB._instance = this;
 
-    const { GUI, RootName, CustomPath, TCP, TCPAuth, TLS, TLSCertPath, TLSKeyPath, Cache, minTTL, maxTTL, cacheClearUp } = options;
+    const { GUI, RootName, CustomPath, TCP, TCPAuth, AdminPassword, TLS, TLSCertPath, TLSKeyPath, Cache, minTTL, maxTTL, cacheClearUp } = options;
 
     this.RootName = RootName || General.DBMS_Name;
     this.currentPATH = path.resolve(CustomPath || ".");
@@ -92,6 +93,7 @@ export class AxioDB {
     this.HTTP = options.HTTP !== undefined ? options.HTTP : (this.GUI ? true : false);
     this.TCP = TCP !== undefined ? TCP : false;
     this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false;
+    this.AdminPassword = AdminPassword;
     this.TLS = TLS !== undefined ? TLS : false;
     this.TLSCertPath = TLSCertPath;
     this.TLSKeyPath = TLSKeyPath;
@@ -149,7 +151,7 @@ export class AxioDB {
       }
     }
     if (this.GUI || this.HTTP || (this.TCP && this.TCPAuth)) {
-      await new AuthSeeder(this).seedIfNeeded();
+      await new AuthSeeder(this, this.AdminPassword).seedIfNeeded();
       LoginRateLimiter.startCleanupSweep();
     }
     if (this.HTTP) {

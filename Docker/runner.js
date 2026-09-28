@@ -50,6 +50,10 @@ if (options.GUI && process.env.AXIODB_HTTP !== undefined && !options.HTTP) {
   process.exit(1);
 }
 
+if (process.env.AXIODB_ADMIN_PASSWORD) {
+  options.AdminPassword = process.env.AXIODB_ADMIN_PASSWORD;
+}
+
 if (process.env.AXIODB_CUSTOM_PATH) {
   options.CustomPath = process.env.AXIODB_CUSTOM_PATH;
 }

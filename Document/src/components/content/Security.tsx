@@ -104,7 +104,10 @@ const Security: React.FC = () => {
           </li>
           <li>
             <strong>Forced password change:</strong> Every account, including the seeded <code className="bg-white px-1 py-0.5 rounded">admin</code>,
-            must change its password on first login before any other action is permitted.
+            must change its password on first login before any other action is permitted — unless the
+            server was started with <code className="bg-white px-1 py-0.5 rounded">AdminPassword</code>{" "}
+            (<code className="bg-white px-1 py-0.5 rounded">AXIODB_ADMIN_PASSWORD</code> in Docker), which
+            seeds the admin account ready to use.
           </li>
           <li>
             <strong>Three predefined roles:</strong> <em>Super Admin</em> (full access, including user/role management),{" "}

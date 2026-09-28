@@ -9,6 +9,12 @@ export interface AxioDBOptions {
   TCP?: boolean;
   /** Require username/password authentication (same RBAC users as the GUI) for TCP connections. Defaults to false. */
   TCPAuth?: boolean;
+  /**
+   * Initial password for the seeded `admin` account, applied only when the `config` database
+   * is first created. Sets `mustChangePassword: false` so the account is immediately usable
+   * over TCP; omitting it keeps the default `admin`/`admin` and the existing rotation gate.
+   */
+  AdminPassword?: string;
   /** Encrypt TCP connections with TLS instead of plaintext. Requires `TLSCertPath` and `TLSKeyPath`. Defaults to false - existing plaintext deployments are unaffected unless this is explicitly turned on. */
   TLS?: boolean;
   /** Path to a PEM-encoded TLS certificate file. Required when `TLS: true`. */

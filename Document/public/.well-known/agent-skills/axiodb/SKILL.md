@@ -299,6 +299,7 @@ const db = new AxioDB({
 });
 
 // Default credentials: admin / admin (forced password change on first login)
+// Or pass AdminPassword: "<your password>" to seed a usable account instead
 // Create users/roles via the GUI (GUI: true) or HTTP API
 ```
 
