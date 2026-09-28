@@ -327,7 +327,7 @@ const Installation: React.FC = () => {
                 </strong>
               </div>
               <p className="text-gray-600">
-                Zero external dependencies
+                Three runtime dependencies — all pure JavaScript
               </p>
             </div>
           </div>

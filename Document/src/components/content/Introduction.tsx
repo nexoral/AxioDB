@@ -299,7 +299,7 @@ const Introduction: React.FC = () => {
             />
             <img
               src="https://img.shields.io/badge/dependencies-0%20native-success"
-              alt="Zero Dependencies"
+              alt="Zero native dependencies"
               className="h-6 rounded shadow-sm hover:shadow-md transition-shadow"
             />
           </div>

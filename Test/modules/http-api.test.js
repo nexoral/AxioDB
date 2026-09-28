@@ -70,8 +70,24 @@ class HTTPAPITests extends TestRunner {
       { name: 'Charlie', email: 'charlie@test.com', age: 35, active: true },
     ]);
     this.documentIds = insertResult.data.id;
-    await new Promise((r) => setTimeout(r, 500));
+    await this.waitForServerReady();
     this.log('Test environment ready', 'success');
+  }
+
+  // The control server starts asynchronously, so a fixed sleep races it - on a
+  // loaded CI runner 500ms is not always enough and every request then fails with
+  // ECONNREFUSED. Poll the unauthenticated health endpoint until it answers.
+  async waitForServerReady(retries = 100, delayMs = 200) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await request('GET', '/api/health');
+        if (response.status < 500) return;
+      } catch {
+        // server not listening yet
+      }
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+    throw new Error('HTTP server did not become ready in time');
   }
 
   async tearDown() {
