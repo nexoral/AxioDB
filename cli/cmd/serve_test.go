@@ -11,12 +11,13 @@ func TestValidatePassword(t *testing.T) {
 	tests := []struct {
 		mode, password, wantErr string
 	}{
-		{mode: "tcp-auth"},
+		{mode: "tcp-auth", password: "s3cret"},
+		{mode: "full"},
 		{mode: "http"},
 		{mode: "tcp"},
-		{mode: "tcp-auth", password: "s3cret"},
 		{mode: "full", password: "s3cret"},
 		{mode: "http", password: "s3cret"},
+		{mode: "tcp-auth", wantErr: "requires a password"},
 		{mode: "tcp", password: "s3cret", wantErr: "never creates"},
 		{mode: "tcp-auth", password: serve.DefaultAdminPassword, wantErr: "must differ from the default"},
 		{mode: "http", password: serve.DefaultAdminPassword, wantErr: "must differ from the default"},

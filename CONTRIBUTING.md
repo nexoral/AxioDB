@@ -45,7 +45,7 @@ Before creating bug reports, please check the [existing issues](https://github.c
 ## Bug: Range query returns stale results after index creation
 
 **Environment:**
-- AxioDB: 13.0.0
+- AxioDB: 22.17.1
 - Node.js: 20.10.0
 - OS: Ubuntu 22.04
 
@@ -158,7 +158,7 @@ AxioDB/
 ├── Docker/                    # Dockerfile 27018/27019/27020 + mcpServer.js 43 tools
 ├── GUI/                       # Vite React GUI
 ├── cli/                       # Go CLI 12 platforms
-└── package.json               # 22.15.1
+└── package.json               # 22.17.1
 ```
 
 ## Coding Standards

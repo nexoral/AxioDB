@@ -6,9 +6,9 @@ We actively support the following versions of AxioDB with security updates. Plea
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 20.x.x  | ✅ Yes             |
-| 11.x.x  | ⚠️ Security fixes only |
-| < 11.0  | ❌ No              |
+| 22.x.x  | ✅ Yes             |
+| 21.x.x  | ⚠️ Security fixes only |
+| < 21.0  | ❌ No              |
 
 **Recommendation:** Always use the latest version of AxioDB for the best security, performance, and features.
 
@@ -68,7 +68,7 @@ Please include the following information in your report:
 
 1. **Triage**: We assess the severity and impact of the reported vulnerability
 2. **Fix Development**: We develop and test a fix in a private repository
-3. **Release**: Security fixes are released as patch versions (e.g., 3.31.105)
+3. **Release**: Security fixes are released as patch versions (e.g., 22.17.2)
 4. **Disclosure**: After release, we publish a security advisory with details
 5. **Credit**: We credit researchers who responsibly disclose vulnerabilities (unless they prefer to remain anonymous)
 
@@ -156,7 +156,11 @@ role-based access control system:
 
 - ✅ Role-based access control (Super Admin / Admin / View) shared by the GUI and TCP server
 - ✅ A seeded `admin` account is forced to change its password (`mustChangePassword`) before
-  any protected GUI route or authenticated TCP command will work
+  any protected GUI route or authenticated TCP command will work — unless the server was started
+  with `AdminPassword` (`AXIODB_ADMIN_PASSWORD` in Docker), which seeds the account ready to use
+- ⚠️ The forced change can only be completed through the HTTP API/GUI, so a server with TCP
+  authentication and no HTTP surface has no recovery path. The CLI (`axiodb serve tcp-auth`) and the
+  Docker image both refuse to start in that state rather than come up with a port nobody can log into
 - ⚠️ TCP authentication is opt-in via `TCPAuth: true` (or `AXIODB_TCP_AUTH_ENABLED=true` in Docker,
   which is the container's default) - without it, any client that can reach the TCP port has
   full database access over an unencrypted protocol

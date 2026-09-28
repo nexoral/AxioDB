@@ -51,7 +51,7 @@ export const apiCategories: ApiCategory[] = [
   "message": "AxioDB Information",
   "data": {
     "Package_Name": "axiodb",
-    "AxioDB_Version": "3.31.105",
+    "AxioDB_Version": "22.17.1",
     "Author_Name": "Ankan Saha",
     "License": "MIT",
     "AuthorDetails": { /* author info */ }
