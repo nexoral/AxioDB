@@ -37,6 +37,7 @@ import { InMemoryCache } from "../Memory/memory.operation";
  * @param {string} options.CustomPath - Custom path for database storage. Defaults to current directory.
  * @param {boolean} options.TCP - Enable/disable TCP server (port 27019). Defaults to false.
  * @param {boolean} options.TCPAuth - Require username/password authentication (same RBAC users as the GUI) for TCP connections. Defaults to false.
+ * @param {string} options.AdminPassword - Password the admin account is seeded with when the config database is first created, clearing its forced password change so it can authenticate over TCP immediately. Defaults to the built-in admin/admin, which TCP rejects until rotated through the HTTP/GUI. Ignored once the users collection already exists.
  * @param {boolean} options.Cache - Enable the built-in InMemoryCache shared across the whole instance. Defaults to true.
  * @param {number} options.minTTL - Minimum cache entry lifetime in minutes. Defaults to 5.
  * @param {number} options.maxTTL - Maximum cache entry lifetime in minutes. Defaults to 15.
