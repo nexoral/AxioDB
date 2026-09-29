@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
     <language>en</language>
-    <lastBuildDate>Tue, 29 Sep 2026 00:38:59 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 29 Sep 2026 00:52:00 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v22.19.1 — AdminPassword option: seed the admin account with a password you choose</title>
