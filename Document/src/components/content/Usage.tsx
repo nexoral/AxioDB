@@ -142,11 +142,13 @@ console.log(paginatedDocuments);`,
   };
 
   return (
+    <>
     <section id="usage" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB Basic Usage - CRUD Operations & Query Guide"
         description="Learn AxioDB's CRUD operations, chainable query API, and basic usage patterns with CommonJS and ES6 examples."
         path="/usage"
+        ogType="article"
       />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 mb-16 border border-green-200 shadow-md">
@@ -186,9 +188,9 @@ console.log(paginatedDocuments);`,
             </div>
           </div>
           <div className="flex-1">
-            <h3 className="text-2xl font-bold text-gray-900 mb-3">
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Instance Management Architecture
-            </h3>
+            </h2>
             <div className="space-y-4 text-lg text-gray-700 leading-relaxed">
               <p>
                 AxioDB employs a <strong>single instance architecture</strong>{" "}
@@ -222,9 +224,9 @@ console.log(paginatedDocuments);`,
               <Play className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900">
                 Interactive Code Examples
-              </h3>
+              </h2>
               <p className="text-gray-600">
                 Explore different operations with live code samples
               </p>
@@ -586,6 +588,10 @@ main();`}
         </div>
       </div>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/advanced-features" className="text-accent-600 hover:underline">Advanced Features</a> · <a href="/api-reference" className="text-accent-600 hover:underline">API Reference</a> · <a href="/create-collection" className="text-accent-600 hover:underline">Create Collection</a></p>
+    </div>
+    </>
   );
 };
 

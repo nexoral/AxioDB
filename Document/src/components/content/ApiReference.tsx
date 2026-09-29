@@ -932,11 +932,13 @@ await transaction.commit();`,
   ];
 
   return (
+    <>
     <section id="api-reference" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB API Reference - Complete JavaScript/TypeScript Documentation"
         description="Complete SDK API reference for AxioDB: Database, Collection, Reader, Aggregation, and Transaction classes with method signatures and examples."
         path="/api-reference"
+        ogType="article"
       />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 mb-12 border border-accent-200 shadow-md">
@@ -966,27 +968,27 @@ await transaction.commit();`,
             {/* Quick Navigation Guide */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
               <div className="bg-accent-100/30 rounded-lg p-4 border border-accent-200">
-                <h3 className="font-semibold text-accent-700 mb-2 flex items-center gap-2">
+                <h2 className="font-semibold text-accent-700 mb-2 flex items-center gap-2">
                   <span className="text-2xl">🚀</span> Getting Started
-                </h3>
+                </h2>
                 <p className="text-sm text-accent-600">
                   Start with <code className="bg-accent-100 text-accent-800 px-1 rounded">AxioDB</code> and <code className="bg-accent-100 text-accent-800 px-1 rounded">Database</code> sections
                 </p>
               </div>
 
               <div className="bg-green-100/30 rounded-lg p-4 border border-green-200">
-                <h3 className="font-semibold text-green-700 mb-2 flex items-center gap-2">
+                <h2 className="font-semibold text-green-700 mb-2 flex items-center gap-2">
                   <span className="text-2xl">📝</span> CRUD Operations
-                </h3>
+                </h2>
                 <p className="text-sm text-green-700">
                   See <code className="bg-green-100 text-green-800 px-1 rounded">Insert</code>, <code className="bg-green-100 text-green-800 px-1 rounded">Query</code>, <code className="bg-green-100 text-green-800 px-1 rounded">Update</code>, <code className="bg-green-100 text-green-800 px-1 rounded">Delete</code> sections
                 </p>
               </div>
 
               <div className="bg-purple-100/30 rounded-lg p-4 border border-purple-200">
-                <h3 className="font-semibold text-purple-700 mb-2 flex items-center gap-2">
+                <h2 className="font-semibold text-purple-700 mb-2 flex items-center gap-2">
                   <span className="text-2xl">📊</span> Advanced
-                </h3>
+                </h2>
                 <p className="text-sm text-purple-700">
                   Explore <code className="bg-purple-100 text-purple-800 px-1 rounded">Aggregation</code> for complex data analysis
                 </p>
@@ -1007,9 +1009,9 @@ await transaction.commit();`,
               className="flex items-center justify-between w-full p-4 text-left bg-gray-200 hover:bg-gray-300"
               onClick={() => toggleSection(section.title)}
             >
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold text-gray-900">
                 {section.title}
-              </h3>
+              </h2>
               {expandedSections.includes(section.title) ? (
                 <ChevronDown size={20} className="text-gray-600" />
               ) : (
@@ -1105,9 +1107,9 @@ await transaction.commit();`,
       <div className="mt-12 space-y-6">
         {/* Query Operators Reference Card */}
         <div className="bg-orange-50 rounded-lg p-6 border border-amber-200">
-          <h3 className="text-xl font-bold text-amber-700 mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-amber-700 mb-4 flex items-center gap-2">
             <span className="text-2xl">🔍</span> Query Operators Reference
-          </h3>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <h4 className="font-semibold text-amber-700 mb-2">Comparison</h4>
@@ -1140,9 +1142,9 @@ await transaction.commit();`,
 
         {/* Response Interface Info */}
         <div className="bg-green-50 rounded-lg p-6 border border-green-200">
-          <h3 className="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-green-700 mb-4 flex items-center gap-2">
             <span className="text-2xl">📦</span> Response Interface Structure
-          </h3>
+          </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div>
               <h4 className="font-semibold text-green-700 mb-2">Success Response</h4>
@@ -1171,9 +1173,9 @@ await transaction.commit();`,
 
         {/* Best Practices */}
         <div className="bg-accent-50 rounded-lg p-6 border border-purple-200">
-          <h3 className="text-xl font-bold text-purple-700 mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-purple-700 mb-4 flex items-center gap-2">
             <span className="text-2xl">💡</span> Best Practices & Tips
-          </h3>
+          </h2>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-purple-700">
             <li className="flex items-start gap-2">
               <span className="text-purple-700 mt-0.5">✓</span>
@@ -1219,6 +1221,10 @@ await transaction.commit();`,
         </div>
       </div>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/server-api" className="text-accent-600 hover:underline">Server API</a> · <a href="/advanced-features" className="text-accent-600 hover:underline">Advanced Features</a> · <a href="/usage" className="text-accent-600 hover:underline">Usage</a></p>
+    </div>
+    </>
   );
 };
 

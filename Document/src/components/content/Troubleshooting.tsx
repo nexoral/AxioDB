@@ -154,11 +154,13 @@ await client.createDB("MyDB");         // works`}
 
 const Troubleshooting: React.FC = () => {
   return (
+    <>
     <div className="space-y-12">
       <Seo
         title="Troubleshooting | AxioDB Documentation"
         description="Common AxioDB connection and authentication errors - AxioDBCloud, TCP auth, rate limiting, and Docker issues - with fixes."
         path="/troubleshooting"
+        ogType="article"
       />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 border border-amber-200 shadow-md">
@@ -202,6 +204,10 @@ const Troubleshooting: React.FC = () => {
         ))}
       </section>
     </div>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/installation" className="text-accent-600 hover:underline">Installation</a> · <a href="/security" className="text-accent-600 hover:underline">Security</a> · <a href="/docker" className="text-accent-600 hover:underline">Docker</a></p>
+    </div>
+    </>
   );
 };
 

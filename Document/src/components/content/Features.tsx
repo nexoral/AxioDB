@@ -16,11 +16,13 @@ import Seo from "../ui/Seo";
 
 const Features: React.FC = () => {
   return (
+    <>
     <section id="features" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB Features - Production-Ready NoSQL Database for Node.js"
         description="Explore AxioDB's caching, indexing, transactions, and GUI features for embedded Node.js applications."
         path="/features"
+        ogType="article"
       />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 mb-16 border border-emerald-200 shadow-md">
@@ -429,6 +431,10 @@ const Features: React.FC = () => {
       </div>
 
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/comparison" className="text-accent-600 hover:underline">Comparison</a> · <a href="/installation" className="text-accent-600 hover:underline">Installation</a> · <a href="/performance" className="text-accent-600 hover:underline">Performance</a></p>
+    </div>
+    </>
   );
 };
 

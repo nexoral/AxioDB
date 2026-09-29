@@ -49,11 +49,13 @@ console.log("Database 'ProductsDB' created");
   };
 
   return (
+    <>
     <section className="pt-12 scroll-mt-20">
       <Seo
         title="Create Database in AxioDB - Quick Start Guide"
         description="How to create and configure an AxioDB database instance, with GUI, custom root name, and custom path options."
         path="/create-database"
+        ogType="article"
       />
       <h1 className="text-3xl font-bold mb-6">Create Database</h1>
       <p className="text-gray-600 mb-8">
@@ -180,6 +182,10 @@ console.log("Database 'ProductsDB' created");
         </ul>
       </div>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/create-collection" className="text-accent-600 hover:underline">Create Collection</a> · <a href="/usage" className="text-accent-600 hover:underline">Usage</a></p>
+    </div>
+    </>
   );
 };
 

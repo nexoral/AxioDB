@@ -290,6 +290,7 @@ const Introduction: React.FC = () => {
   ];
 
   return (
+    <>
     <section id="introduction" className="scroll-mt-20">
       <Seo
         title="AxioDB - The Embedded Database for Node.js | Introduction"
@@ -1513,6 +1514,10 @@ axiodb serve full my-secret-password`}
       </div>
 
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/features" className="text-accent-600 hover:underline">Features</a> · <a href="/installation" className="text-accent-600 hover:underline">Installation</a> · <a href="/comparison" className="text-accent-600 hover:underline">Comparison</a></p>
+    </div>
+    </>
   );
 };
 

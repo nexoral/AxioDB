@@ -237,11 +237,13 @@ const Performance: React.FC = () => {
   const totalTests = suiteTimings.reduce((s, t) => s + t.tests, 0);
 
   return (
+    <>
     <section id="performance" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB Performance Benchmarks - Real Query Timings Across Dataset Sizes"
         description="Measured performance benchmarks for AxioDB query operations across 1K to 100K document datasets. All tests run with npm test full suite (14/14 passing)."
         path="/performance"
+        ogType="article"
       />
 
       {/* ── Hero ─────────────────────────────────────────────── */}
@@ -538,6 +540,10 @@ const Performance: React.FC = () => {
         </div>
       </div>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/comparison" className="text-accent-600 hover:underline">Comparison</a> · <a href="/features" className="text-accent-600 hover:underline">Features</a></p>
+    </div>
+    </>
   );
 };
 

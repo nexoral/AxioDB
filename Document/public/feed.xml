@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>AxioDB Changelog</title>
+    <link>https://axiodb.in/changelog</link>
+    <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
+    <language>en</language>
+    <lastBuildDate>Tue, 29 Sep 2026 00:38:59 GMT</lastBuildDate>
+    <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AxioDB v22.19.1 — AdminPassword option: seed the admin account with a password you choose</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-22.19.1</guid>
+      <pubDate>Mon, 28 Sep 2026 00:00:00 GMT</pubDate>
+      <description>Docs: README feature list regrouped into Core / Self-hostable server / Clients and apps — Docker moved out of 'Tooling' (it is a way to run the server, not a tool) and the Dashboard, AxioDBCloud client and Desktop app were split out of the server surfaces, since they are the things that talk to a surface rather than being one | Docs: restored the full `CHOICE` installer examples to the README (a table plus the four `CHOICE=2`/`CHOICE=3` Linux and Windows invocations) which had been reduced to a single sentence during the restructure; the values are verified against the `case` block in `cli/Scripts/install.sh` | Removed: `@fastify/cors`, `@fastify/cookie` and `@fastify/static` — replaced by first-party modules in `source/utility/` (`Cors.utils.ts`, `Cookie.utils.ts`, `StaticFile.utils.ts`), cutting `dependencies` from six packages to three. `fastify`, `tar` and `@fastify/multipart` stay declared, since Node has no built-in HTTP framework, tar container reader, or multipart/form-data parser and reimplementing them would put hand-written code on the security path (tar parsing consumes untrusted bytes; Fastify's `preHandler` short-circuit is what the auth guard depends on). Static file serving keeps explicit path containment — `resolveWithinRoot` rejects any request resolving outside the root, layered behind the existing dot-dot guard</description>
+    </item>
+    <item>
+      <title>AxioDB v22.15.1 — Documentation accuracy pass, dead-code removal, and route manifest sync</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-22.15.1</guid>
+      <pubDate>Sat, 26 Sep 2026 00:00:00 GMT</pubDate>
+      <description>Fixed: aggregation stage count corrected from '60+ stages' to the 19 that are actually implemented (15 in `BUILT_IN_STAGE_OPERATORS` plus `$lookup`, `$facet`, `$bucket`, `$bucketAuto` handled inline in `Aggregation.Operation.ts`) — the inflated figure had propagated into the README, API reference, `llms-full.txt`, and the agent skill | Fixed: AxioDBCloud wire protocol corrected from '32 commands' to the 30 present in `source/tcp/types/command.types.ts` | Fixed: test suite count corrected from 13 to 14 (`aggregation` and `cache-options` were missing from every documented list) in AGENTS.md, CONTRIBUTING.md, copilot-instructions, and the performance/intro pages</description>
+    </item>
+    <item>
+      <title>AxioDB v22.11.0 — Electron desktop app npm integration, .npmignore engine fix, dedicated GUI documentation</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-22.11.0</guid>
+      <pubDate>Mon, 21 Sep 2026 00:00:00 GMT</pubDate>
+      <description>Fixed: npm packaging rules — corrected .npmignore rule from `cli/` to `/cli/` (preventing `lib/engine/cli/worker_process.js` from being stripped) and added `/electron/` so desktop GUI source and release artifacts are excluded from npm package deployments | Refactored: Electron desktop app (`AxioDB Control`) now directly imports `AxioDB` from the installed `axiodb` npm package (`import { AxioDB } from &quot;axiodb&quot;`) instead of using brittle relative path require hacks into `../../lib/` | Fixed: Electron storage IPC handlers — added strict type narrowing and safe fallbacks for query results across `store:getConnections`, `store:saveConnection`, `store:getSetting`, and `store:setSetting`</description>
+    </item>
+    <item>
+      <title>AxioDB v22.9.7 — Electron desktop app: card-based documents, splash screen, installer unification, version sync</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-22.9.7</guid>
+      <pubDate>Mon, 21 Sep 2026 00:00:00 GMT</pubDate>
+      <description>New: Electron desktop GUI (`electron/`) — a full-featured desktop application mirroring the web GUI, with connection management, database/collection/document CRUD, query console, and live health/Latency monitoring | New: Splash screen with animated bouncy-balls loader — eliminates the first-open white flash when the Electron window initializes (transparent: false, backgroundColor: #f8fafc, closed via ready-to-show event) | New: Card-based document view in Electron Documents page — each document rendered as a card with Copy/Edit/Delete hover actions, _id hidden and displayed as #documentId, first 10 fields shown with 'Show more' to expand the rest</description>
+    </item>
+    <item>
+      <title>AxioDB v22.1.2 — Security hardening: path traversal, shell injection, ReDoS, verbose errors, security headers</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-22.1.2</guid>
+      <pubDate>Sun, 06 Sep 2026 00:00:00 GMT</pubDate>
+      <description>Fixed: path traversal — user-controlled database/collection names are now run through PathSanitizer in `createDB`, `deleteDatabase`, `deleteCollection`, and `isCollectionExists` | Fixed: shell injection — `WorkerProcess.exec` (shell string) replaced with spawn-based `execCommandSafely` (no shell, args passed verbatim) for the `du`/`wc`/`powershell` calls in FolderManager/FileManager | Fixed: ReDoS — new `RegexGuard` helper statically rejects nested unbounded quantifiers (`(a+)+`) and overlapping alternation (`(a|aa)+`) in `$regex` / `$regexMatch` / `$match`, enforcing a 512-character pattern cap</description>
+    </item>
+    <item>
+      <title>AxioDB v21.7.8 — Instance-scoped InMemoryCache with configurable TTL lifecycle</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-21.7.8</guid>
+      <pubDate>Sat, 05 Sep 2026 00:00:00 GMT</pubDate>
+      <description>Breaking: the module-level InMemoryCache singleton (default export) is gone — every AxioDB instance now owns one cache, built in the constructor and passed down to databases, collections, read/update/delete paths, transactions, and the HTTP/TCP/MCP surfaces | New: `Cache?: boolean` (default true) — `Cache: false` disables caching entirely (reads always hit disk); `minTTL`/`maxTTL` (minutes, default 5/15) bound the per-entry randomized TTL; `cacheClearUp` (seconds, default 86400) sets the cleanup sweep interval | Changed: `InMemoryCache` is now a named export (`import { InMemoryCache }`) with `InMemoryCacheOptions`; the legacy `new InMemoryCache(cacheClearUpSeconds)` overload still works; invalid TTLs (`&lt;= 0`, `maxTTL &lt; minTTL`) throw</description>
+    </item>
+    <item>
+      <title>AxioDB v20.4.1 — Docs &amp; version sync: 41 endpoints, 32 cmds, 43 tools consistency</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-20.4.1</guid>
+      <pubDate>Tue, 01 Sep 2026 00:00:00 GMT</pubDate>
+      <description>Fixed: version drift — root package.json 20.4.1 vs Document 20.4.0 — synced Document/package.json, GUI/package.json, cli/VERSION, llms.txt, llms-full.txt, index.html, changelog to 20.4.1 | Fixed: stale '32 tools' in openapi.json:5, generate-seo-files.ts:210, index.html:262 FAQ — updated to 43 tools to match 43 distinct MCP tools on disk</description>
+    </item>
+    <item>
+      <title>AxioDB v20.4.0 — Test stability: read suite threshold fix for Node 26 CI</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-20.4.0</guid>
+      <pubDate>Tue, 01 Sep 2026 00:00:00 GMT</pubDate>
+      <description>Fixed: read.test.js 'Exact match on indexed field is fast' flaky on Node 26 (881ms &gt; 500ms on shared runner) — added warm-up query and raised threshold 500 → 1000ms | CI: added Gates 4-7 before matrix (HTTP API, TCP Transaction, TCP TLS, MCP Functional) in Push.yml and auto_ci.yml; auto_ci Gate 8 now non-matrix single 20.x; all versions bumped to 20.4.0</description>
+    </item>
+    <item>
+      <title>AxioDB v20.3.3 — Docs: short tagline, badge fixes, and dynamic Socket score</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-20.3.3</guid>
+      <pubDate>Tue, 01 Sep 2026 00:00:00 GMT</pubDate>
+      <description>Docs: renamed tagline to 'SQLite Alternative for JavaScript' across README, package description, Introduction, Header, llms.txt, llms-full.txt | Fixed: Document site TypeScript TS2339 — added 'stars' to badgeUrls type (githubApi.getBadgeUrl('stars')); kept Socket full score via socket.dev/api/badge (dynamic), removed broken shields.io/socket, bundlephobia/minzip, Snyk 404 badges | Docs: added install size, jsDelivr hits, npm types, GitHub Stars dynamic badges to README and site hero; all numbers remain live from npm/GitHub/Socket</description>
+    </item>
+    <item>
+      <title>AxioDB v20.3.2 — Security: @fastify/static route guard bypass and supply-chain vulnerabilities patched</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-20.3.2</guid>
+      <pubDate>Tue, 01 Sep 2026 00:00:00 GMT</pubDate>
+      <description>Security: patched GHSA-83w8-p2f5-377r / CVE-2026-15074 — @fastify/static 9.3.0 → 10.1.3 fixes route-guard bypass via non-leading .. and %2E%2E path segments (CVSS 7.5); also patched GHSA-8pvw-jcv7-9cmj, GHSA-v2hh-gcrm-f6hx, GHSA-7p8r-x3mc-p8w7, GHSA-c96f-x56v-gq3h, GHSA-r292-9mhp-454m | Updated: @fastify/static 10.1.3, tar 7.5.22, find-my-way 9.9.0, fast-uri 3.1.6 — npm audit 0 vulnerabilities</description>
+    </item>
+    <item>
+      <title>AxioDB v20.3.1 — ACID transactions over TCP with savepoints and connection-pinned client proxy</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-20.3.1</guid>
+      <pubDate>Tue, 01 Sep 2026 00:00:00 GMT</pubDate>
+      <description>New: ACID transactions over TCP — BEGIN/COMMIT/ROLLBACK commands routed through a per-connection TransactionManager with WAL-backed durability, Wait-Die deadlock avoidance, and 30-second timeout | New: savepoints over TCP — SAVEPOINT, ROLLBACK_TO_SAVEPOINT, RELEASE_SAVEPOINT commands for partial rollback within a transaction | New: connection-pinned client — TransactionProxy pins all transactional operations to a single TCP connection so in-flight writes are visible to subsequent reads within the same transaction</description>
+    </item>
+    <item>
+      <title>AxioDB v19.2.0 — Index hints, batch read, zero `any` types, ESLint, and structured Logger</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-19.2.0</guid>
+      <pubDate>Tue, 01 Sep 2026 00:00:00 GMT</pubDate>
+      <description>New: index hints on queries — `collection.query({ status: 'active' }).hint('status').exec()` forces the query engine to use a specific index instead of scanning | New: batch document read — `collection.findByIds(['id1', 'id2'])` retrieves multiple documents by ID in a single call; exposed over HTTP (POST /api/operation/all/by-ids/) and TCP (FIND_BY_IDS command) | Quality: all `any` types removed from the TypeScript source — every file in source/ now uses proper types (Record&lt;string, unknown&gt;, unknown, Document, etc.), zero `any` remaining</description>
+    </item>
+    <item>
+      <title>AxioDB v15.2.0 — AxioDB CLI — Go-based command line interface with MongoDB shell syntax</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-15.2.0</guid>
+      <pubDate>Thu, 27 Aug 2026 00:00:00 GMT</pubDate>
+      <description>New: AxioDB CLI — a Go-based command line tool for interacting with AxioDB servers via the TCP protocol. | New: Interactive REPL mode with MongoDB shell syntax — use, show dbs, show collections, db.coll.find(), db.coll.insert(), and all CRUD operations. | New: All 21 TCP commands supported — database, collection, document CRUD, aggregation, indexing, ping, disconnect.</description>
+    </item>
+    <item>
+      <title>AxioDB v15.1.0 — Aggregation engine rewrite: 60+ operators, $lookup cross-collection joins, custom operator registry</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-15.1.0</guid>
+      <pubDate>Tue, 25 Aug 2026 00:00:00 GMT</pubDate>
+      <description>New: $lookup stage for cross-collection joins — supports both equality join (localField/foreignField) and pipeline-based join with $let/$$var binding. Foreign collection data is loaded via a resolver function threaded from Database through Collection to Aggregation. | New: OperatorRegistry — static class for registering custom stage operators, accumulators, and expression operators. Custom operators integrate seamlessly with built-in operators in the pipeline execution loop. | New: Full expression evaluator supporting 80+ operators — arithmetic ($add, $subtract, $multiply, $divide, $mod, $abs, $ceil, $floor, $sqrt, $pow, $round), string ($concat, $substr, $toLower, $toUpper, $trim, $split, $replaceOne, $replaceAll, $regexMatch), comparison ($eq, $gt, $gte, $lt, $lte, $ne, $cmp), logical ($and, $or, $not, $cond, $ifNull, $switch), array ($filter, $map, $reduce, $arrayElemAt, $concatArrays, $size, $slice, $range, $sortArray, $reverseArray, $zip), date ($year, $month, $dayOfMonth, $hour, $minute, $second, $dayOfWeek, $dayOfYear, $week, $dateToString, $dateFromString, $dateDiff, $dateAdd, $dateSubtract), type ($type, $convert, $toString, $toInt, $toDouble, $toBool, $isNumber, $isArray), set ($setEquals, $setIntersection, $setUnion, $setDifference, $setIsSubset), and misc ($literal, $getField, $mergeObjects, $let).</description>
+    </item>
+    <item>
+      <title>AxioDB v15.0.0 — Every non-document file is now JSONL, plus a self-deletion guard and a document-count fix</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-15.0.0</guid>
+      <pubDate>Sun, 09 Aug 2026 00:00:00 GMT</pubDate>
+      <description>Breaking, on-disk: the per-database collection registry moved from collection.meta (one JSON array) to collection.meta.jsonl (one appended line per collection). There is no migration - a database created before this release opens with an empty collection list until its collections are recreated. The .axiodb document files themselves are untouched. | Breaking, on-disk: the transaction registry moved from .transactions/txn-meta.json to .transactions/txn-meta.jsonl, and WAL files from {transactionId}.wal to {transactionId}.wal.jsonl. Any transaction still in flight across the upgrade is not recovered. | Performance: registering a transaction, changing its status, and removing it used to each read, parse, and rewrite the whole registry with an fsync - three full rewrites per transaction, each growing with the number of concurrent transactions. All three are now a single appended, fsync'd line, and the file is truncated whenever no transaction is left in flight.</description>
+    </item>
+    <item>
+      <title>AxioDB v14.1.5 — Human-in-the-loop confirmation for the MCP server's destructive tools</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-14.1.5</guid>
+      <pubDate>Thu, 30 Jul 2026 00:00:00 GMT</pubDate>
+      <description>The 9 MCP tools that destroy or overwrite data (delete_database, delete_collection, delete_document, update_document, drop_index, delete_user, delete_role, update_user_role, reset_user_password) now ask a human through the MCP client's own confirmation prompt (elicitation/create) before touching the database, naming the exact target - decline, cancel, or an unchecked box aborts with 409 and never reaches a controller | Every one of the 43 MCP tools now ships readOnlyHint/destructiveHint/idempotentHint annotations, so clients can auto-approve reads and hold writes for review | Added authenticated MCP transactions with insert, update, delete, savepoints, commit, and rollback</description>
+    </item>
+    <item>
+      <title>AxioDB v14.1.4 — Transaction durability hardening, single-fsync WAL batching, and 30-char document IDs</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-14.1.4</guid>
+      <pubDate>Sat, 25 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Fixed: a WAL append or .tmp staging-write failure during commit was silently swallowed - appendLog()/WriteFile() return an Error result instead of throwing, so the commit proceeded and mutated a document with no log to recover from. Both are now checked and abort the commit, routing into the existing rollback path. | Fixed: rollback left orphaned .tmp staging files behind (executeOperations can now throw mid-loop after staging some files); rollback() sweeps them. | Fixed: rollbackIndexUpdates only discarded the staged map, but stageIndexUpdates mutates the shared in-memory index cache in place (IndexCache.getIndex returns the live object) - a rolled-back transaction left a phantom index entry pointing at a never-written document, causing post-rollback &quot;Failed to read file&quot; noise and wasted reads. Rollback now invalidates the touched index fields so the next read reloads a clean copy from disk.</description>
+    </item>
+    <item>
+      <title>AxioDB v13.1.3 — Fixed a process-exit hang; added real crash-recovery test coverage</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-13.1.3</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Fixed: InMemoryCache's background eviction interval had no unref(), so any short-lived script or CLI process using AxioDB (a stated core use case) would never exit on its own without an explicit process.exit() call - it now unrefs the same way IndexCache's cleanup interval already did | Added a real crash-recovery test suite (npm test crash-recovery): spawns a child process hammering inserts/updates, SIGKILLs it mid-write with no graceful shutdown, then verifies from a fresh process that every recovered document is complete and valid, and the WAL is cleaned up - this is the one guarantee this project had only reasoned about, never actually tested, until now | Added regression tests for this release's index-reordering fix, the cache-invalidation-scope fix, and the &quot;no match&quot; error contract for UpdateOne/UpdateMany/deleteOne/deleteMany</description>
+    </item>
+    <item>
+      <title>AxioDB v13.1.1 — Update and delete are now WAL-backed (full ACID coverage)</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-13.1.1</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>UpdateOne/UpdateMany/deleteOne/deleteMany now route through the same Transaction/WAL machinery insert() already used, instead of a separate ad-hoc lock-and-write path | Fixed: a failed index-sync after a successful document write used to be silently swallowed (fire-and-forget), leaving the index out of sync with no way to recover on crash - it's now staged and committed atomically with the document change, with WAL redo/undo on failure | Removed the now-redundant per-call LockManager/DocumentLoader-reread/DeleteIndex/InsertIndex wiring from UpdateOperation and DeleteOperation - Transaction already does locking, the fresh re-read under lock, and index staging correctly</description>
+    </item>
+    <item>
+      <title>AxioDB v13.0.0 — Encryption removed; sorted-index range queries; batched inserts</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-13.0.0</guid>
+      <pubDate>Fri, 24 Jul 2026 00:00:00 GMT</pubDate>
+      <description>BREAKING: removed per-collection AES-256 encryption (isEncrypted/encryptionKey params on createCollection and every downstream API) - unnecessary overhead for an embedded database; existing encrypted collections will not be readable after upgrading | CryptoHelper/CryptoGraphy helpers, and every isEncrypted/encryptionKey parameter across Collection, Reader, Update, Delete, Aggregation, Transaction, Session, and the HTTP/TCP APIs, removed | Range queries ($gt/$gte/$lt/$lte) on indexed fields now resolve via a sorted-value binary search instead of a full collection scan</description>
+    </item>
+    <item>
+      <title>AxioDB v12.10.20+ — MCP Server for AI agent integration</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-12.10.20+</guid>
+      <pubDate>Sun, 12 Jul 2026 00:00:00 GMT</pubDate>
+      <description>MCP server (Model Context Protocol) added to the Docker image, opt-in via AXIODB_MCP=true, exposing 32 tools over Streamable HTTP on port 27020 | Real login required (axiodb_login) - every tool is gated by the logged-in user's actual RBAC role, mirroring the HTTP Control Server's permissions exactly | Full coverage: database/collection/document CRUD, aggregation, indexes, dashboard stats, and user/role management (including a new role-deletion capability, added to both the HTTP API and MCP)</description>
+    </item>
+    <item>
+      <title>AxioDB v11.9.13+ — AxioDBCloud connection pooling, rate limiting &amp; TLS</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-11.9.13+</guid>
+      <pubDate>Sat, 11 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Connection pooling for AxioDBCloud with least-busy routing (fewest in-flight requests) instead of round-robin | Per-IP concurrent connection cap and connection-attempt rate limiting on the TCP server | TLS/SSL encryption support for TCP connections</description>
+    </item>
+    <item>
+      <title>AxioDB v9.7.7 — Session-based GUI auth &amp; TCP authentication</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-9.7.7</guid>
+      <pubDate>Fri, 10 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Session-based authentication with cookie support for the Control Server GUI | TCP authentication (RBAC) and index management commands added to AxioDBCloud</description>
+    </item>
+    <item>
+      <title>AxioDB v9.6.1 — AxioDB constructor refactor</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-9.6.1</guid>
+      <pubDate>Fri, 27 Mar 2026 00:00:00 GMT</pubDate>
+      <description>AxioDB constructor refactored to accept a single options object instead of positional arguments</description>
+    </item>
+    <item>
+      <title>AxioDB v8.33.235 — ACID compliance milestone &amp; CI matrix testing</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-8.33.235</guid>
+      <pubDate>Mon, 23 Mar 2026 00:00:00 GMT</pubDate>
+      <description>Pseudo-ACID transaction compliance across CRUD operations | CI test matrix expanded across multiple Node.js versions | Query optimization in Reader and Searcher classes</description>
+    </item>
+    <item>
+      <title>AxioDB v7.33.234 — Path-traversal hardening</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-7.33.234</guid>
+      <pubDate>Sun, 15 Mar 2026 00:00:00 GMT</pubDate>
+      <description>DocumentLoader and PathSanitizer utilities added to centralize safe file handling | Formal contributor rules and development guidelines added to the repo</description>
+    </item>
+    <item>
+      <title>AxioDB v6.33.128 — AxioDBCloud (TCP remote access) begins</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-6.33.128</guid>
+      <pubDate>Fri, 13 Mar 2026 00:00:00 GMT</pubDate>
+      <description>TCP server and ConnectionManager implemented - the foundation of AxioDBCloud remote access | Protocol error handling and HTTP-vs-TCP-port misconfiguration detection</description>
+    </item>
+    <item>
+      <title>AxioDB v6.33.127 — Smarter caching &amp; index cleanup</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-6.33.127</guid>
+      <pubDate>Wed, 11 Mar 2026 00:00:00 GMT</pubDate>
+      <description>Selective cache invalidation and randomized TTL to avoid cache-stampede synchronization | DeleteIndex service for removing documents from indexes | IndexCache gained TTL-based expiry and cleanup</description>
+    </item>
+    <item>
+      <title>AxioDB v5.33.127 — ACID transactions with Write-Ahead Log</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-5.33.127</guid>
+      <pubDate>Tue, 10 Mar 2026 00:00:00 GMT</pubDate>
+      <description>TransactionIndexManager, TransactionRegistry, and Write-Ahead Log (WAL) services implemented | Foundation for session-based transactions with commit/rollback</description>
+    </item>
+    <item>
+      <title>AxioDB v3.31.104 — Worker-thread performance overhaul</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-3.31.104</guid>
+      <pubDate>Fri, 31 Oct 2025 00:00:00 GMT</pubDate>
+      <description>File processing parallelized with Promise.all across worker threads | Reader/search operations tuned to use all available CPU cores | Sorting utility optimized to use native comparison</description>
+    </item>
+    <item>
+      <title>AxioDB v2.30.93 — Database export/import</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-2.30.93</guid>
+      <pubDate>Sun, 31 Aug 2025 00:00:00 GMT</pubDate>
+      <description>Database export as a compressed .tar.gz archive | Database import from an uploaded archive | Advanced JSON query search support</description>
+    </item>
+    <item>
+      <title>AxioDB v2.28.81 — API reference page &amp; transaction tokens</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-2.28.81</guid>
+      <pubDate>Sun, 24 Aug 2025 00:00:00 GMT</pubDate>
+      <description>API reference documentation page added to the Control Server GUI | Transaction token support added to the HTTP API</description>
+    </item>
+    <item>
+      <title>AxioDB v2.28.77 — Dashboard caching &amp; transaction tokens</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-2.28.77</guid>
+      <pubDate>Wed, 20 Aug 2025 00:00:00 GMT</pubDate>
+      <description>Caching and transaction token support for collections and databases | Dashboard stats retrieval integrated with the cache layer</description>
+    </item>
+    <item>
+      <title>AxioDB v2.24.71 — Full CRUD document management UI</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-2.24.71</guid>
+      <pubDate>Mon, 11 Aug 2025 00:00:00 GMT</pubDate>
+      <description>Create, read, update, delete, and aggregate operations added to the Control Server GUI as modal-driven workflows | Advanced search with JSON query and document-ID lookup in the Documents page</description>
+    </item>
+    <item>
+      <title>AxioDB v2.19.65 — Database management UI &amp; JWT key management</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-2.19.65</guid>
+      <pubDate>Sun, 27 Jul 2025 00:00:00 GMT</pubDate>
+      <description>Database management routes/controller and GUI dashboard (Zustand state management) | JWT-based key management for database instances</description>
+    </item>
+    <item>
+      <title>AxioDB v2.18.54 — Engine refactor &amp; worker-based search</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-2.18.54</guid>
+      <pubDate>Mon, 23 Jun 2025 00:00:00 GMT</pubDate>
+      <description>Legacy FileManager/FolderManager replaced by the current engine/ module structure | HashmapSearch replaced by worker-thread-based Searcher for parallel file reads</description>
+    </item>
+    <item>
+      <title>AxioDB v2.13.47 — Control Server (HTTP GUI) foundation</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-2.13.47</guid>
+      <pubDate>Sat, 21 Jun 2025 00:00:00 GMT</pubDate>
+      <description>AxioDB Control Server implemented on Fastify with health check and routes endpoints | Tailwind CSS integrated into the GUI</description>
+    </item>
+    <item>
+      <title>AxioDB v2.11.29 — GUI authentication &amp; schema validation</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-2.11.29</guid>
+      <pubDate>Sat, 14 Jun 2025 00:00:00 GMT</pubDate>
+      <description>JWT-based authentication checks added to the GUI | Schema validation for user registration and collection data</description>
+    </item>
+    <item>
+      <title>AxioDB v2.10.19 — Initial Docker support</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-2.10.19</guid>
+      <pubDate>Sun, 08 Jun 2025 00:00:00 GMT</pubDate>
+      <description>First Docker setup: package.json, tsconfig.json, and a schema generator utility for containerized deployments</description>
+    </item>
+    <item>
+      <title>AxioDB v1.5.8 — Cache invalidation on writes</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-1.5.8</guid>
+      <pubDate>Wed, 02 Apr 2025 00:00:00 GMT</pubDate>
+      <description>Cache clearing wired into update and delete operations, and a clearAllCache method added</description>
+    </item>
+    <item>
+      <title>AxioDB v1.4.3 — Aggregation pipelines</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-1.4.3</guid>
+      <pubDate>Wed, 26 Mar 2025 00:00:00 GMT</pubDate>
+      <description>aggregate() method added to Collection with MongoDB-style pipeline stages | $match filtering extended to support regex and object matching</description>
+    </item>
+    <item>
+      <title>AxioDB v1.3.9 — Full CRUD operation suite</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-1.3.9</guid>
+      <pubDate>Thu, 20 Mar 2025 00:00:00 GMT</pubDate>
+      <description>Reader class: query, sort, skip/limit pagination, and total-count support | DeleteOperation: deleteOne and deleteMany with detailed error handling | UpdateOperation: UpdateOne and UpdateMany with schema-aware partial updates</description>
+    </item>
+    <item>
+      <title>AxioDB v1.1.4 — Encryption support</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-1.1.4</guid>
+      <pubDate>Fri, 28 Feb 2025 00:00:00 GMT</pubDate>
+      <description>CryptoHelper class added for AES encryption/decryption of collection data</description>
+    </item>
+    <item>
+      <title>AxioDB v1.1.2 — Core Collection &amp; Database classes</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-1.1.2</guid>
+      <pubDate>Fri, 14 Feb 2025 00:00:00 GMT</pubDate>
+      <description>Collection and Database classes implemented - the foundation of the document store | FileManager/FolderManager error handling improved</description>
+    </item>
+    <item>
+      <title>AxioDB v1.0.16 — Initial Web GUI</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-1.0.16</guid>
+      <pubDate>Wed, 25 Dec 2024 00:00:00 GMT</pubDate>
+      <description>First GUI setup with Vite and React, alongside a server-file restructure</description>
+    </item>
+    <item>
+      <title>AxioDB v1.0.14 — In-memory caching</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-1.0.14</guid>
+      <pubDate>Mon, 23 Dec 2024 00:00:00 GMT</pubDate>
+      <description>InMemoryCache class added, with TTL-based expiry for cached query results</description>
+    </item>
+    <item>
+      <title>AxioDB v1.0.0 — Fastify server &amp; first insert</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-1.0.0</guid>
+      <pubDate>Sat, 07 Dec 2024 00:00:00 GMT</pubDate>
+      <description>Fastify HTTP server integrated into the project | The `Configuration` class was renamed to `AxioDB` | First working document insert feature</description>
+    </item>
+    <item>
+      <title>AxioDB v1.0.0 — Project inception</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-1.0.0</guid>
+      <pubDate>Tue, 01 Oct 2024 00:00:00 GMT</pubDate>
+      <description>Initial commit: repository scaffolding, FileManager/FolderManager engine, and an initial `Configuration` class (later renamed to `AxioDB`)</description>
+    </item>
+  </channel>
+</rss>

@@ -22,11 +22,13 @@ import {
 
 const AxioDBCloud: React.FC = () => {
   return (
+    <>
     <div className="space-y-12">
       <Seo
         title="AxioDBCloud - Remote Database Access | AxioDB Documentation"
         description="Connect to AxioDB remotely over TCP with AxioDBCloud - simple and authenticated (TCPAuth) connection modes, Docker deployment, and the same API as embedded AxioDB."
         path="/cloud"
+        ogType="article"
       />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 border border-accent-200 shadow-md">
@@ -748,6 +750,10 @@ main().catch(console.error);`}
         </div>
       </section>
     </div>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/security" className="text-accent-600 hover:underline">Security</a> · <a href="/cli" className="text-accent-600 hover:underline">CLI</a> · <a href="/docker" className="text-accent-600 hover:underline">Docker</a></p>
+    </div>
+    </>
   );
 };
 

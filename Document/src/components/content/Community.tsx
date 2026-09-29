@@ -11,11 +11,13 @@ import Seo from "../ui/Seo";
 
 const Community: React.FC = () => {
   return (
+    <>
     <div>
       <Seo
         title="AxioDB Community - Join, Contribute & Get Support"
         description="Contribute to AxioDB, join the community, and find support resources and acknowledgments."
         path="/community"
+        ogType="article"
       />
       <section id="contributing" className="pt-12 scroll-mt-20">
         {/* Contributing Hero Header */}
@@ -402,6 +404,10 @@ SOFTWARE.`}
         </div>
       </section>
     </div>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/maintainers-zone" className="text-accent-600 hover:underline">Maintainer's Zone</a> · <a href="/features" className="text-accent-600 hover:underline">Features</a></p>
+    </div>
+    </>
   );
 };
 

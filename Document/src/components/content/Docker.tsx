@@ -16,11 +16,13 @@ import {
 
 const Docker: React.FC = () => {
   return (
+    <>
     <div className="space-y-12">
       <Seo
         title="Docker Deployment | AxioDB Documentation"
         description="Run AxioDB in Docker - simple docker run quick start, then advanced env vars, volumes, and Docker Compose configuration."
         path="/docker"
+        ogType="article"
       />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 border border-sky-200 shadow-md">
@@ -398,6 +400,10 @@ volumes:
         </div>
       </section>
     </div>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/security" className="text-accent-600 hover:underline">Security</a> · <a href="/cli" className="text-accent-600 hover:underline">CLI</a> · <a href="/mcp-server" className="text-accent-600 hover:underline">MCP Server</a></p>
+    </div>
+    </>
   );
 };
 

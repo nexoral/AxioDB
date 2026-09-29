@@ -18,20 +18,22 @@ console.log("Collection created:", collection);
   };
 
   return (
+    <>
     <section className="pt-12 scroll-mt-20">
       <Seo
         title="Create Collection in AxioDB"
         description="Create collections in AxioDB with a single call - schema-less by default."
         path="/create-collection"
+        ogType="article"
       />
       <h1 className="text-3xl font-bold mb-6">Create Collection</h1>
 
       {/* Parameter Block */}
       <div className="bg-accent-100/20 border-l-4 border-accent-500 p-4 rounded-r-lg mb-8">
-        <h3 className="flex items-center text-lg font-semibold text-accent-600 mb-2">
+        <h2 className="flex items-center text-lg font-semibold text-accent-600 mb-2">
           <AlertCircle className="h-5 w-5 mr-2" />
           Collection Creation Parameters
-        </h3>
+        </h2>
         <p className="text-gray-600">
           The{" "}
           <code className="bg-white px-1 py-0.5 rounded">
@@ -49,11 +51,15 @@ console.log("Collection created:", collection);
       </p>
 
       {/* Full API Examples */}
-      <h3 className="text-2xl font-semibold mb-4">
+      <h2 className="text-2xl font-semibold mb-4">
         Create a Collection
-      </h3>
+      </h2>
       <CodeBlock code={codeExamples.basic} language="javascript" />
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/create-database" className="text-accent-600 hover:underline">Create Database</a> · <a href="/usage" className="text-accent-600 hover:underline">Usage</a> · <a href="/advanced-features" className="text-accent-600 hover:underline">Advanced Features</a></p>
+    </div>
+    </>
   );
 };
 

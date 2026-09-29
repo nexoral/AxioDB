@@ -74,11 +74,13 @@ const MaintainersZone = () => {
 
 
   return (
+    <>
     <div className="p-6 animate-fade-in">
       <Seo
         title="AxioDB Maintainer's Zone - Resources for Core Team"
         description="Resources, links, and contact information for AxioDB maintainers and core contributors."
         path="/maintainers-zone"
+        ogType="article"
       />
       {/* Terminal-style Welcome */}
       <div className="relative bg-ink-950 rounded-[3px] p-6 mb-8 shadow-sm border border-gray-200 overflow-hidden">
@@ -227,6 +229,10 @@ const MaintainersZone = () => {
         </div>
       </div>
     </div>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/community" className="text-accent-600 hover:underline">Community</a> · <a href="/changelog" className="text-accent-600 hover:underline">Changelog</a></p>
+    </div>
+    </>
   );
 };
 

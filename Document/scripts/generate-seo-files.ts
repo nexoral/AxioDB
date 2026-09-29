@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 import { routeMeta } from "../src/routeMeta.ts";
 import { apiCategories } from "../src/data/serverApi.ts";
 import type { ApiEndpoint } from "../src/data/serverApi.ts";
+import { changelog } from "../src/data/changelog.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SITE_URL = "https://axiodb.in";
@@ -290,6 +291,51 @@ function buildAgentSkillsIndex(skillMd: string): string {
   )}\n`;
 }
 
+/** RSS 2.0 feed generated from the changelog data. */
+function buildRssFeed(): string {
+  const items = changelog
+    .map(
+      (entry) => `    <item>
+      <title>AxioDB v${entry.version} — ${escapeXml(entry.title)}</title>
+      <link>${SITE_URL}/changelog</link>
+      <guid isPermaLink="false">axiodb-${entry.version}</guid>
+      <pubDate>${new Date(entry.date).toUTCString()}</pubDate>
+      <description>${escapeXml(entry.changes.slice(0, 3).join(" | "))}</description>
+    </item>`,
+    )
+    .join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>AxioDB Changelog</title>
+    <link>${SITE_URL}/changelog</link>
+    <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
+    <language>en</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml" />
+${items}
+  </channel>
+</rss>
+`;
+}
+
+function escapeXml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/** Patch the JSON-LD version and dateModified in index.html so they never drift. */
+function patchIndexHtml(indexPath: string): void {
+  let html = readFileSync(indexPath, "utf-8");
+  const latestDate = changelog[0]?.date ?? today;
+  const latestVersion = changelog[0]?.version ?? "0.0.0";
+
+  html = html.replace(/"softwareVersion":\s*"[^"]*"/, `"softwareVersion": "${latestVersion}"`);
+  html = html.replace(/"dateModified":\s*"[^"]*"/g, `"dateModified": "${latestDate}"`);
+
+  writeFileSync(indexPath, html);
+}
+
 const publicDir = resolve(__dirname, "../public");
 const wellKnownDir = resolve(publicDir, ".well-known");
 
@@ -301,9 +347,11 @@ writeFileSync(
   resolve(wellKnownDir, "agent-skills/index.json"),
   buildAgentSkillsIndex(readFileSync(resolve(wellKnownDir, "agent-skills/axiodb/SKILL.md"), "utf-8")),
 );
+writeFileSync(resolve(publicDir, "feed.xml"), buildRssFeed());
+patchIndexHtml(resolve(__dirname, "../index.html"));
 
 const endpointCount = apiCategories.reduce((n, c) => n + c.endpoints.length, 0);
 console.log(
   `[generate-seo-files] sitemap.xml + llms.txt for ${routeMeta.length} routes; ` +
-    `openapi.json + api-catalog for ${endpointCount} endpoints; agent-skills index.`,
+    `openapi.json + api-catalog for ${endpointCount} endpoints; agent-skills index; feed.xml; index.html schema patched.`,
 );

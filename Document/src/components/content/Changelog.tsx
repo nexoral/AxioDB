@@ -5,11 +5,13 @@ import { changelog } from "../../data/changelog";
 
 const Changelog: React.FC = () => {
   return (
+    <>
     <div className="space-y-12">
       <Seo
         title="Changelog | AxioDB Documentation"
         description="Every major AxioDB release from day one - versions, dates, and what actually changed."
         path="/changelog"
+        ogType="article"
       />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 border border-violet-200 shadow-md">
@@ -52,9 +54,9 @@ const Changelog: React.FC = () => {
                 {entry.date}
               </span>
             </div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">
+            <h2 className="text-lg font-bold text-gray-900 mb-3">
               {entry.title}
-            </h3>
+            </h2>
             <ul className="space-y-1.5">
               {entry.changes.map((change, changeIndex) => (
                 <li
@@ -70,6 +72,10 @@ const Changelog: React.FC = () => {
         ))}
       </section>
     </div>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/installation" className="text-accent-600 hover:underline">Installation</a> · <a href="/features" className="text-accent-600 hover:underline">Features</a></p>
+    </div>
+    </>
   );
 };
 
