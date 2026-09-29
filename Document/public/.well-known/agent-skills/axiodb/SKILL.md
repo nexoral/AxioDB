@@ -20,7 +20,8 @@ skills/knowledge directory and consult it before writing any AxioDB code.
 The embedded database for Node.js (>= 20). Replaces SQLite, LowDB, NeDB, and
 raw JSON files. Pure JavaScript — no node-gyp, no `.node` binaries, no
 `electron-rebuild`, no separate server process. MongoDB-style queries over plain
-JavaScript objects, ACID transactions, and zero native dependencies.
+JavaScript objects, ACID transactions, and zero native dependencies. Also verified
+on Bun v1.4.0 and Deno v2.9.6.
 
 AxioDB has two ways to use it:
 1. **Embedded** — `new AxioDB()` in your Node.js process (no network, no server)
@@ -900,7 +901,7 @@ Indexed queries stay at 1-2 ms even at 100K documents. Full scan at 100K:
 - Login: 5 failures per IP per 15 min → 15 min lockout
 - Ports 27018 (HTTP) and 27019 (TCP) are fixed — remap with Docker `-p`
 - Database name `config` is reserved
-- Node.js >= 20
+- Node.js >= 20 (also verified on Bun v1.4.0, Deno v2.9.6)
 
 ---
 

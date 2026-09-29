@@ -284,7 +284,7 @@ const Introduction: React.FC = () => {
       alt: "Tested on Node.js",
     },
     { src: "https://img.shields.io/badge/Bun%20tested-v1.4.0-black?logo=bun", alt: "Bun tested v1.4.0" },
-    { src: "https://img.shields.io/badge/Deno-partial%209%2F12-red", alt: "Deno partial support" },
+    { src: "https://img.shields.io/badge/Deno%20tested-v2.9.6-black?logo=deno", alt: "Deno tested v2.9.6" },
     { src: "https://img.shields.io/badge/TypeScript-6.0-blue", alt: "TypeScript" },
     { src: "https://img.shields.io/badge/dependencies-0%20native-success", alt: "Zero native dependencies" },
   ];
@@ -442,8 +442,8 @@ const Introduction: React.FC = () => {
               (v26.8.1) and Bun (v1.4.0), including the worker-thread data
               paths (reads of ≥100-file collections, searches over ≥10,000
               documents). Node 20+ is the supported baseline; Bun is verified on
-              the installed v1.4.0 only. Deno passes 9/12 engine tests —
-              worker threads are pending there.
+              the installed v1.4.0 only. Deno (v2.9.6) passes all 100 runtime
+              tests including Bun compiled binaries.
             </p>
           </div>
 

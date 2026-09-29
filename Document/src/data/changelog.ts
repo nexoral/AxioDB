@@ -12,6 +12,17 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.21.2",
+    date: "2026-09-29",
+    title: "Multi-runtime verification — Node, Bun, Deno all passing",
+    changes: [
+      "Verified: 100-feature runtime test suite passing on Node.js v26.8.1, Bun v1.4.0 (TS/JS runtime + TS/JS compiled binaries), and Deno v2.9.6",
+      "Docs: Deno badge updated from partial 9/12 to tested v2.9.6 across README, llms.txt, llms-full.txt, SKILL.md, and docs-site Introduction page",
+      "Docs: Bun compiled binary support confirmed and documented",
+      "Docs: all runtime version claims synchronized across all surfaces",
+    ],
+  },
+  {
     version: "22.21.1",
     date: "2026-09-29",
     title: "Footer redesign, SEO audit, version controller improvements",

@@ -16,7 +16,7 @@
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org)
 [![Tested on Node.js](https://img.shields.io/badge/tested%20on-20%20%7C%2021%20%7C%2022%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-blue)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
 [![Bun tested](https://img.shields.io/badge/Bun%20tested-v1.4.0-black?logo=bun)](https://bun.sh)
-[![Deno partial](https://img.shields.io/badge/Deno-partial%209%2F12-red)](https://deno.com)
+[![Deno tested](https://img.shields.io/badge/Deno%20tested-v2.9.6-black?logo=deno)](https://deno.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Stars](https://img.shields.io/github/stars/nexoral/AxioDB?style=social)](https://github.com/nexoral/AxioDB)
@@ -46,7 +46,7 @@ const { data } = await users.query({ age: { $gt: 25 } }).Sort({ age: -1 }).Limit
 console.log(data.documents);
 ```
 
-No server to run, no `node-gyp`, no `electron-rebuild`. Requires Node.js ≥20 (also verified on Bun v1.4.0).
+No server to run, no `node-gyp`, no `electron-rebuild`. Requires Node.js ≥20 (also verified on Bun v1.4.0 and Deno v2.9.6).
 
 ## Why AxioDB
 
@@ -94,8 +94,8 @@ AxioDB is **actively developed and not yet at 1.0**. Semantic versioning is foll
 | Tier | What it covers |
 |---|---|
 | **Stable** | Core CRUD, queries, indexes, transactions, aggregation, InMemoryCache |
-| **Usable, evolving** | HTTP API, AxioDBCloud TCP, Dashboard, CLI, RBAC, MCP server |
-| **Experimental** | Deno support, currently passing 9 of 12 engine tests — worker threads are pending |
+| **Usable, evolving** | HTTP API, AxioDBCloud TCP, Dashboard, CLI, RBAC, MCP server, Bun compiled binaries |
+| **Verified** | Deno v2.9.6 (all 100 runtime tests passing), Bun v1.4.0 |
 
 Data at rest is stored as plain JSON files, not encrypted. Encrypt the volume if that matters to you.
 
