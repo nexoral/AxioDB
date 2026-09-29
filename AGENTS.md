@@ -1,6 +1,27 @@
-# Codex Agent Instructions for AxioDB
+# AxioDB — Agent Instructions
 
 **AxioDB** — SQL alternative for JS. Embedded NoSQL, zero native deps, TS 6.0 strict → CJS, Node ≥20, singleton, file-per-doc, `InMemoryCache`, Worker Threads, ACID, GUI 27018, TCP 27019.
+
+## Directory Layout
+
+```
+source/
+  config/        # DB init, Keys, constants
+  Services/      # Collection, Database, Index, Transaction, Auth, Aggregation
+  engine/        # Core query engine, storage engine
+  Memory/        # InMemoryCache, IndexCache
+  tcp/           # TCP server (27019), handler/
+  server/        # HTTP Fastify (27018), router/ + controller/
+  client/        # *Proxy.ts — TCP client wrappers
+  Helper/        # Static stateless helpers
+  utility/       # Shared utils (ResponseHelper, etc.)
+Test/
+  modules/       # 14 test suites (JS, node-based)
+  helpers/       # TestRunner, assertions, fixtures
+Docker/          # Dockerfile, MCP config
+Document/        # Vite docs site (port 5173), SEO scripts, AI artifacts
+cli/             # CLI commands
+```
 
 ## Constraints — never violate
 
@@ -23,9 +44,59 @@
 
 SOLID + DRY: duplicate logic (2+ files) → `source/Helper/{Feature}.helper.ts` static stateless. Naming: files `{Feature}.{operation|service|helper}.ts`, PascalCase classes, camelCase verbs, `UPPER_SNAKE_CASE` consts. Magic strings → enums/`as const`. Nesting >3 → refactor. Try-catch every async; log detailed, return friendly via `ResponseHelper`. Perf: cache before disk, `Promise.all`, `Map` not `Array.find` loop.
 
+## Don't (anti-patterns)
+
+```ts
+// ❌ Never hardcode filenames — use Keys.ts
+const dir = './data/MyDB';
+
+// ❌ Never use any — use unknown + type guard
+function parse(input: any) { ... }
+
+// ❌ Never nest >3 levels — extract helper
+if (a) { if (b) { if (c) { if (d) { ... } } } }
+
+// ❌ Never use Array.find in hot paths — use Map
+items.find(i => i.id === targetId);
+```
+
+## Tests
+
+Framework: custom `TestRunner` + `assert` from `Test/helpers/`. Run all: `npm test`. Single suite: `npm test crud`. New test file: `Test/modules/{feature}.test.js`, extend `TestRunner`, use `fixtures` for data, clean up in `setUp()`/`tearDown()`.
+
+```js
+const TestRunner = require('../helpers/TestRunner');
+const { assert } = require('../helpers/assertions');
+
+class MyTests extends TestRunner {
+  constructor() { super('My Test Suite'); }
+  async setUp() { /* create temp dir, init DB */ }
+  async tearDown() { /* rm temp dir */ }
+}
+```
+
+## Version sync (13 places — all must match)
+
+* `package.json` → `"version"`
+* `package-lock.json` → auto via `npm install`
+* `GUI/package.json` → `"version"`
+* `electron/package.json` → `"version"`
+* `Document/package.json` → `"version"`
+* `cli/VERSION` → plain text version
+* `cli/cmd/version.go` → `var cliVersion`
+* `Document/src/data/changelog.ts` → latest entry
+* `Document/src/components/layout/Footer.tsx` → displayed version
+* `Document/public/llms.txt` → version line
+* `Document/public/llms-full.txt` → version line
+* `Document/index.html` → JSON-LD `softwareVersion`
+* `Document/public/feed.xml` → RSS feed title + guid
+* `Docker/README.md` → shield badge version
+
+Regen AI artifacts: `cd Document && npx tsx scripts/generate-seo-files.ts`
+
 ## Documentation — same commit as code
 
-README, `Document/` (`npm run dev` 5173), `Dockerfile` ports/env, JSDoc with `@param/@returns/@throws/@example`, `Document/src/data/changelog.ts` only major/breaking (version = `package.json`), `Document/public/` AI artifacts: hand-written `llms.txt`, `llms-full.txt`, `SKILL.md`, JSON-LD `index.html`; generated `openapi.json`, `api-catalog`, `sitemap.xml`, `agent-skills/index.json` (sha256). Regen: `cd Document && npx tsx scripts/generate-seo-files.ts` (prebuild). Single source `Document/src/data/serverApi.ts` → docs + `openapi.json`. Version identical `package.json`, changelog, `llms.txt`, `llms-full.txt`, `index.html`. Never blur: core · Dashboard · HTTP API 27018 · TCP 27019 · MCP 27020 Docker-only.
+README, `Document/` (`npm run dev` 5173), `Dockerfile` ports/env, JSDoc with `@param/@returns/@throws/@example`. Single source: `Document/src/data/serverApi.ts` → docs + `openapi.json`. Never blur: core · Dashboard · HTTP API 27018 · TCP 27019 · MCP 27020 Docker-only.
 
 ## Commands
 
@@ -39,15 +110,34 @@ cd Document && npm run dev # docs 5173
 
 Workflows: `Services/Collection/collection.operation.ts` → typed try-catch → HTTP `server/router+controller` → TCP `tcp/handler` → tests → docs+AI → build/test. Helper: `Helper/{Feature}.helper.ts`. TCP: `tcp/handler/{cmd}.ts` + `client/{Feature}Proxy.ts` → command map → tests → docs.
 
-## graphify — optional local tooling, never fail task
+## Graphify (optional)
 
-* `graphify query "<question>"` default search, fallback to grep only if empty.
-* For arch read `graphify-out/GRAPH_REPORT.md`; if `wiki/index.md` exists use it.
-* After any file change, rebuild once from root if installed:
-```bash
-python3 -c "import graphify" 2>/dev/null && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" || echo "graphify not installed - skipping"
-```
-`graphify-out/` gitignored.
+After file changes, if graphify is available and `graphify-out/` exists, rebuild: `python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))"`
+
+## Ask before action
+
+Always ask user permission before:
+* `git commit` — confirm message and changes
+* `git push` — confirm branch and remote
+* `npm test` (full suite) — may be slow
+* Launching sub-agents (explore/plan) — costly and time-consuming; user may already know the answer or have a better approach
+
+Do NOT ask for:
+* `npm test <suite>` (scoped) — run directly
+* `npm run build` — run directly
+* `npm run lint` — run directly
+
+## Never assume
+
+* If confused or unclear about anything — ask the user. Don't guess.
+* Do web search when you need external data or documentation.
+* Ask mid-task too, not just at the start. If something looks wrong or ambiguous during implementation, stop and ask.
+* Always prefer asking over assuming. Wrong assumptions waste more time than a quick question.
+
+## Git
+
+* Branches: `main` (production), `maintainer/<name>` (personal). Never force-push `main`.
+* Commits: conventional format — `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`. One logical change per commit.
 
 ## Done checklist
 
@@ -56,9 +146,7 @@ python3 -c "import graphify" 2>/dev/null && python3 -c "from graphify.watch impo
 - [ ] `npm run lint` passes
 - [ ] Docs updated (README, Document, Dockerfile, JSDoc)
 - [ ] Changelog if major/breaking
-- [ ] AI artifacts updated + regenerated, version synced (5 places)
-- [ ] Graph rebuilt if installed
+- [ ] AI artifacts updated + regenerated, version synced (13 places)
 - [ ] No `any`, SOLID+DRY, patterns (singleton/dual-write/TTL) followed
 - [ ] Security validated
 - [ ] No perf regressions
-- [ ] No breaking changes or approved
