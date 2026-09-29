@@ -68,7 +68,7 @@ const Footer: React.FC = () => (
           </p>
           <div className="flex items-center gap-2 mb-4">
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] bg-accent-600 text-white text-xs font-semibold">
-              v22.20.0
+              v22.21.1
             </span>
             <a
               href="https://www.npmjs.com/package/axiodb"
