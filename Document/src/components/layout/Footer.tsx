@@ -4,7 +4,7 @@ import { Github, Star, GitFork, Package, ExternalLink, Heart } from "lucide-reac
 
 interface FooterSection {
   title: string;
-  links: { label: string; href: string }[];
+  links: { label: string; href: string; external?: boolean }[];
 }
 
 const FOOTER_SECTIONS: FooterSection[] = [
@@ -42,6 +42,7 @@ const FOOTER_SECTIONS: FooterSection[] = [
       { label: "Troubleshooting", href: "/troubleshooting" },
       { label: "Comparison", href: "/comparison" },
       { label: "Changelog", href: "/changelog" },
+      { label: "RSS Feed", href: "/feed.xml", external: true },
     ],
   },
 ];
@@ -119,12 +120,23 @@ const Footer: React.FC = () => (
             <ul className="space-y-2">
               {section.links.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    to={link.href}
-                    className="text-sm text-gray-500 hover:text-accent-600 transition-colors"
-                  >
-                    {link.label}
-                  </Link>
+                  {link.external ? (
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-gray-500 hover:text-accent-600 transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      to={link.href}
+                      className="text-sm text-gray-500 hover:text-accent-600 transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
