@@ -6,15 +6,14 @@ import (
 )
 
 func TestServerScriptUsesSupportedAxioDBOptions(t *testing.T) {
-	script := ServerScript(ModeConfig{
-		Mode:    ModeFull,
-		HTTP:    true,
-		TCP:     true,
-		TCPAuth: true,
-	})
+	config, err := ParseMode("full")
+	if err != nil {
+		t.Fatalf("ParseMode(full) error = %v", err)
+	}
+	script := ServerScript(config)
 
 	for _, expected := range []string{
-		`GUI: false`,
+		`GUI: true`,
 		`HTTP: true`,
 		`TCP: true`,
 		`TCPAuth: true`,

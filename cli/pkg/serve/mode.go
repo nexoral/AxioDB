@@ -39,7 +39,7 @@ func ParseMode(value string) (ModeConfig, error) {
 	case ModeTCPAuth:
 		return ModeConfig{Mode: ModeTCPAuth, TCP: true, TCPAuth: true}, nil
 	case ModeFull:
-		return ModeConfig{Mode: ModeFull, HTTP: true, TCP: true, TCPAuth: true}, nil
+		return ModeConfig{Mode: ModeFull, GUI: true, HTTP: true, TCP: true, TCPAuth: true}, nil
 	default:
 		return ModeConfig{}, fmt.Errorf("unknown serve mode %q (expected http, tcp, tcp-auth, or full)", value)
 	}

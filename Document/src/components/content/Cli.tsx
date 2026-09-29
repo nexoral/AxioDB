@@ -138,7 +138,7 @@ axiodb serve tcp
 # Start TCP authentication only (password required)
 axiodb serve tcp-auth
 
-# Start HTTP + authenticated TCP (GUI disabled)
+# Start HTTP + authenticated TCP + Dashboard (GUI enabled)
 axiodb serve full
 
 # Choose the admin password instead of admin/admin
