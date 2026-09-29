@@ -59,6 +59,11 @@ export const routes: RouteRecord[] = [
       { path: "performance", element: <Performance /> },
       { path: "maintainers-zone", element: <MaintainersZone /> },
       { path: "why-choose-axiodb", element: <Introduction /> },
+      // Explicit route so vite-react-ssg emits a real /404.html, which
+      // functions/_middleware.js serves with a 404 status. The catch-all below
+      // only runs client-side after hydration - the SSG pass has no path to
+      // prerender it from.
+      { path: "404", element: <NotFound /> },
       { path: "*", element: <NotFound /> },
     ],
   },
