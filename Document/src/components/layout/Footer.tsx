@@ -43,6 +43,7 @@ const FOOTER_SECTIONS: FooterSection[] = [
       { label: "Comparison", href: "/comparison" },
       { label: "Changelog", href: "/changelog" },
       { label: "RSS Feed", href: "/feed.xml", external: true },
+      { label: "Blog", href: "https://blog.axiodb.in", external: true },
     ],
   },
 ];
