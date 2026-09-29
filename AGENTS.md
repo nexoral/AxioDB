@@ -111,7 +111,6 @@ cd Document && npm run dev # docs 5173
 Workflows: `Services/Collection/collection.operation.ts` → typed try-catch → HTTP `server/router+controller` → TCP `tcp/handler` → tests → docs+AI → build/test. Helper: `Helper/{Feature}.helper.ts`. TCP: `tcp/handler/{cmd}.ts` + `client/{Feature}Proxy.ts` → command map → tests → docs.
 
 ## Graphify (optional)
-
 After file changes, if graphify is available and `graphify-out/` exists, rebuild: `python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))"`
 
 ## Ask before action
@@ -131,8 +130,7 @@ Do NOT ask for:
 
 * If confused or unclear about anything — ask the user. Don't guess.
 * Do web search when you need external data or documentation.
-* Ask mid-task too, not just at the start. If something looks wrong or ambiguous during implementation, stop and ask.
-* Always prefer asking over assuming. Wrong assumptions waste more time than a quick question.
+* Ask mid-task too, not just at the start. Always prefer asking over assuming — wrong assumptions waste more time than a quick question.
 
 ## Git
 
