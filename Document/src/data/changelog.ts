@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "22.19.1",
+    version: "22.20.0",
     date: "2026-09-28",
     title: "AdminPassword option: seed the admin account with a password you choose",
     changes: [

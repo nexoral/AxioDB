@@ -1,4 +1,8 @@
-# AxioDB: The Embedded Database for Node.js
+<p align="center">
+  <img src="https://axiodb.in/AXioDB.png" alt="AxioDB Logo" width="120" height="120" />
+</p>
+
+<h1 align="center">AxioDB: The Embedded Database for Node.js</h1>
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
 [![npm downloads total](https://img.shields.io/npm/dt/axiodb.svg)](https://www.npmjs.com/package/axiodb)
