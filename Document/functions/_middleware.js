@@ -54,29 +54,36 @@ export async function onRequest({ request, env, next }) {
   // Real 404: a route with no prerendered HTML behind it. The ASSETS fetch
   // bypasses the SPA rewrite, so it 404s where a normal request would get the
   // homepage shell back.
+  //
+  // Two shapes to try, in order: the extensionless asset (/.well-known/
+  // api-catalog is a real file served under that literal name), then the
+  // prerendered page (the "*.html" SSG emits for each route). Anything that
+  // matches neither genuinely does not exist.
   const page = url.pathname.replace(/\/+$/, "");
-  const prerendered = await env.ASSETS.fetch(
-    new URL(page === "" ? "/index.html" : `${page}.html`, url),
-  );
+  const candidates =
+    page === "" ? ["/index.html"] : [page, `${page}.html`];
 
-  if (!prerendered.ok) {
-    const notFound = await env.ASSETS.fetch(new URL("/404.html", url));
-    const body = notFound.ok
-      ? await notFound.text()
-      : "<!doctype html><title>404</title><h1>404 Not Found</h1>";
-
-    return new Response(body, {
-      status: 404,
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "public, max-age=600",
-        "X-Robots-Tag": "noindex, follow",
-      },
-    });
+  for (const candidate of candidates) {
+    const asset = await env.ASSETS.fetch(new URL(candidate, url));
+    if (asset.ok) {
+      const html = await next();
+      const response = new Response(html.body, html);
+      response.headers.append("Vary", "Accept");
+      return response;
+    }
   }
 
-  const html = await next();
-  const response = new Response(html.body, html);
-  response.headers.append("Vary", "Accept");
-  return response;
+  const notFound = await env.ASSETS.fetch(new URL("/404.html", url));
+  const body = notFound.ok
+    ? await notFound.text()
+    : "<!doctype html><title>404</title><h1>404 Not Found</h1>";
+
+  return new Response(body, {
+    status: 404,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "public, max-age=600",
+      "X-Robots-Tag": "noindex, follow",
+    },
+  });
 }
