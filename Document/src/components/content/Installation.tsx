@@ -25,7 +25,7 @@ const Installation: React.FC = () => {
     <section id="installation" className="pt-12 scroll-mt-20">
       <Seo
         title="Install AxioDB - NPM Package Installation Guide"
-        description="Install AxioDB with npm in seconds - replaces SQLite, LowDB, NeDB & raw JSON. Zero native dependencies, no compilation, works on Node.js 20+."
+        description="Install AxioDB with npm in seconds - replaces SQLite, LowDB, NeDB & raw JSON. Zero native dependencies, no compilation, works on Node.js 20+, Bun, and Deno."
         path="/installation"
         ogType="article"
       />
@@ -148,12 +148,10 @@ const Installation: React.FC = () => {
                 </p>
                 <p className="text-sm text-accent-700 leading-relaxed">
                   AxioDB requires{" "}
-                  <strong>Node.js version 20.0.0 or higher</strong>. Verify your
-                  Node.js version with{" "}
-                  <code className="bg-white px-2 py-1 rounded-md text-xs font-mono border border-accent-200">
-                    node --version
-                  </code>{" "}
-                  before installation.
+                  <strong>Node.js ≥ 20.0.0</strong>,{" "}
+                  <strong>Bun ≥ 1.4.0</strong>, or{" "}
+                  <strong>Deno ≥ 2.9.6</strong>. Verify your
+                  runtime version before installation.
                 </p>
               </div>
             </div>
@@ -293,7 +291,31 @@ const Installation: React.FC = () => {
                 </strong>
               </div>
               <p className="text-gray-600">
-                v20.0.0 or higher recommended
+                v20.0.0 or higher
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-[3px] border border-gray-200 shadow-sm hover:shadow-sm transition-shadow">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <strong className="text-gray-900 text-lg">
+                  Bun Runtime
+                </strong>
+              </div>
+              <p className="text-gray-600">
+                v1.4.0 or higher (including compiled binaries)
+              </p>
+            </div>
+
+            <div className="bg-white p-6 rounded-[3px] border border-gray-200 shadow-sm hover:shadow-sm transition-shadow">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <strong className="text-gray-900 text-lg">
+                  Deno Runtime
+                </strong>
+              </div>
+              <p className="text-gray-600">
+                v2.9.6 or higher (all 100 runtime tests passing)
               </p>
             </div>
 
