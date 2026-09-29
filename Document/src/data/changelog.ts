@@ -12,6 +12,23 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.21.1",
+    date: "2026-09-29",
+    title: "Footer redesign, SEO audit, version controller improvements",
+    changes: [
+      "Docs: footer redesigned with brand column (logo, tagline, version badge, npm link, GitHub/Stars/Forks icons), 4 organized link columns (Get Started, API & Data, Surfaces, Resources), RSS Feed and Blog links, and bottom bar with MIT license and maintainer credit",
+      "Docs: Seo component now auto-populates datePublished/dateModified from the latest changelog entry — all 22 pages get article freshness signals without per-page edits",
+      "Docs: sitemap.xml lastmod uses the changelog's latest date instead of the build date — Google ignores dates that change on every deploy",
+      "Docs: Docker/README.md version badge synced from stale 22.17.1 to current",
+      "Docs: CONTRIBUTING.md and SECURITY.md now cross-link to axiodb.in documentation",
+      "Docs: removed stale Animated Execution section from llms-full.txt (referenced /execution page that doesn't exist)",
+      "Docs: Blog link (blog.axiodb.in) added to footer Resources column",
+      "Docs: full SEO audit via Firecrawl — all 24 sitemap URLs crawled, all returning 200 with unique titles, descriptions, OG tags, and canonical URLs",
+      "Changed: versionController.sh now includes Docker/README.md version badge as target 6, and runs the full post-build pipeline (docs build + graph rebuild) when all targets are selected",
+      "Changed: versionController.sh default target set expanded from root/cli/electron/gui/document to include docker",
+    ],
+  },
+  {
     version: "22.20.0",
     date: "2026-09-28",
     title: "AdminPassword option: seed the admin account with a password you choose",

@@ -2,6 +2,8 @@
 
 First off, thank you for considering contributing to AxioDB! 🎉 It's people like you that make AxioDB such a great tool for the Node.js community.
 
+👉 **[Full documentation — axiodb.in](https://axiodb.in/)**: guides, API reference, and examples. Also see the [Security Policy](SECURITY.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)

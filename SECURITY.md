@@ -1,5 +1,7 @@
 # Security Policy
 
+👉 **[Full documentation — axiodb.in](https://axiodb.in/)**: security model, RBAC, TCP authentication, and password policy. Also see [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute.
+
 ## Supported Versions
 
 We actively support the following versions of AxioDB with security updates. Please ensure you are using a supported version to receive critical security patches and updates.

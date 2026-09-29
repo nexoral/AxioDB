@@ -25,7 +25,9 @@ import { changelog } from "../src/data/changelog.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SITE_URL = "https://axiodb.in";
-const today = new Date().toISOString().slice(0, 10);
+// Use the latest changelog date — reflects when content actually changed,
+// not the build date. Google ignores <lastmod> that changes on every deploy.
+const lastmod = changelog[0]?.date ?? new Date().toISOString().slice(0, 10);
 
 function buildSitemap(): string {
   const urls = routeMeta
@@ -33,7 +35,7 @@ function buildSitemap(): string {
       const isHome = path === "/";
       return `  <url>
     <loc>${SITE_URL}${path}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>${isHome ? "weekly" : "monthly"}</changefreq>
     <priority>${isHome ? "1.0" : "0.8"}</priority>
   </url>`;
@@ -45,13 +47,13 @@ function buildSitemap(): string {
 ${urls}
   <url>
     <loc>${SITE_URL}/llms.txt</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>${SITE_URL}/llms-full.txt</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${lastmod}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -327,7 +329,7 @@ function escapeXml(s: string): string {
 /** Patch the JSON-LD version and dateModified in index.html so they never drift. */
 function patchIndexHtml(indexPath: string): void {
   let html = readFileSync(indexPath, "utf-8");
-  const latestDate = changelog[0]?.date ?? today;
+  const latestDate = changelog[0]?.date ?? lastmod;
   const latestVersion = changelog[0]?.version ?? "0.0.0";
 
   html = html.replace(/"softwareVersion":\s*"[^"]*"/, `"softwareVersion": "${latestVersion}"`);

@@ -106,6 +106,14 @@ sync_docs() {
   fi
 }
 
+sync_docker() {
+  local NEW_VERSION="$1"
+  if [ -f "Docker/README.md" ]; then
+    sed -i "s/badge\/AxioDB-[0-9]\+\.[0-9]\+\.[0-9]\+/badge\/AxioDB-${NEW_VERSION}/g" Docker/README.md
+    echo -e "  ${GREEN}Updated${NC} Docker/README.md version badge"
+  fi
+}
+
 sync_electron_version_label() {
   local NEW_VERSION="$1"
   if [ -f "electron/src/layout/StatusBar.jsx" ]; then
@@ -140,13 +148,14 @@ sync_version() {
   # Build the final list of targets to sync
   local targets=()
   if [ ${#SELECTED_TARGETS[@]} -eq 0 ]; then
-    targets=(root cli electron gui document)
+    targets=(root cli electron gui document docker)
   else
     targets=("${SELECTED_TARGETS[@]}")
   fi
 
   # Map each target to its sync function
   local ran_any=false
+  local ran_all=false
   for target in "${targets[@]}"; do
     case "$target" in
       root)    sync_root "${NEW_VERSION}";     ran_any=true ;;
@@ -154,6 +163,8 @@ sync_version() {
       electron) sync_electron "${NEW_VERSION}"; sync_electron_version_label "${NEW_VERSION}"; ran_any=true ;;
       gui)     sync_gui "${NEW_VERSION}";      ran_any=true ;;
       document) sync_document "${NEW_VERSION}"; ran_any=true ;;
+      docker)  sync_docker "${NEW_VERSION}";   ran_any=true ;;
+      all)     ran_all=true;                   ran_any=true ;;
       *)       echo -e "  ${YELLOW}Unknown target: $target (skipped)${NC}" ;;
     esac
   done
@@ -171,6 +182,31 @@ sync_version() {
     sync_electron_version_label "${NEW_VERSION}"
     sync_gui "${NEW_VERSION}"
     sync_document "${NEW_VERSION}"
+    sync_docker "${NEW_VERSION}"
+    ran_all=true
+  fi
+
+  # When all targets are selected (empty input, "a", or "all"), run the full
+  # post-version-bump pipeline: rebuild the docs site (which regenerates
+  # sitemap, llms, openapi, feed, markdown twins via pre+postbuild), and
+  # rebuild the graphify graph if installed.
+  if [ "$ran_all" = true ] || [ ${#SELECTED_TARGETS[@]} -eq 0 ]; then
+    echo ""
+    echo -e "${CYAN}Running post-version-bump pipeline...${NC}"
+
+    if [ -f "Document/package.json" ]; then
+      echo -e "  ${CYAN}Building docs site (SEO files + prerender + markdown twins)...${NC}"
+      if (cd Document && npm run build) 2>&1 | tail -1; then
+        echo -e "  ${GREEN}Docs build complete${NC}"
+      else
+        echo -e "  ${YELLOW}Docs build failed — run 'cd Document && npm run build' manually${NC}"
+      fi
+    fi
+
+    python3 -c "import graphify" 2>/dev/null && \
+      python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" 2>&1 | tail -1 && \
+      echo -e "  ${GREEN}Graph rebuilt${NC}" || \
+      echo -e "  ${YELLOW}graphify not installed - skipping${NC}"
   fi
 
   echo ""
@@ -193,6 +229,7 @@ select_targets() {
     "3) Electron GUI (electron/package.json + src/layout/StatusBar.jsx)"
     "4) Web GUI (GUI/package.json)"
     "5) Document site (package.json + llms.txt + llms-full.txt + index.html + ControlGui.tsx + changelog.ts)"
+    "6) Docker (Docker/README.md version badge)"
   )
 
   printf '  %s\n' "${labels[@]}"
@@ -228,6 +265,7 @@ select_targets() {
       3) SELECTED_TARGETS+=("electron") ;;
       4) SELECTED_TARGETS+=("gui") ;;
       5) SELECTED_TARGETS+=("document") ;;
+      6) SELECTED_TARGETS+=("docker") ;;
       *) echo -e "  ${YELLOW}Unknown option: $part (ignored)${NC}" ;;
     esac
   done

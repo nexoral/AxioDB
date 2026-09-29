@@ -1,6 +1,9 @@
 import React from "react";
 import { Head } from "vite-react-ssg";
 import { getBreadcrumbSchema } from "../../data/breadcrumbs";
+import { changelog } from "../../data/changelog";
+
+const LATEST_DATE = changelog[0]?.date ?? new Date().toISOString().slice(0, 10);
 
 interface SeoProps {
   /** Full page title, e.g. "API Reference | AxioDB Documentation" */
@@ -37,8 +40,8 @@ const Seo: React.FC<SeoProps> = ({
   description,
   path,
   ogType = "website",
-  datePublished,
-  dateModified,
+  datePublished = LATEST_DATE,
+  dateModified = LATEST_DATE,
   schema,
 }) => {
   const url = `${SITE_URL}${path}`;

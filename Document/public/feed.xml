@@ -5,12 +5,19 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
     <language>en</language>
-    <lastBuildDate>Tue, 29 Sep 2026 00:52:00 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 29 Sep 2026 09:32:48 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v22.19.1 — AdminPassword option: seed the admin account with a password you choose</title>
+      <title>AxioDB v22.21.1 — Footer redesign, SEO audit, version controller improvements</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-22.19.1</guid>
+      <guid isPermaLink="false">axiodb-22.21.1</guid>
+      <pubDate>Tue, 29 Sep 2026 00:00:00 GMT</pubDate>
+      <description>Docs: footer redesigned with brand column (logo, tagline, version badge, npm link, GitHub/Stars/Forks icons), 4 organized link columns (Get Started, API &amp; Data, Surfaces, Resources), RSS Feed and Blog links, and bottom bar with MIT license and maintainer credit | Docs: Seo component now auto-populates datePublished/dateModified from the latest changelog entry — all 22 pages get article freshness signals without per-page edits | Docs: sitemap.xml lastmod uses the changelog's latest date instead of the build date — Google ignores dates that change on every deploy</description>
+    </item>
+    <item>
+      <title>AxioDB v22.20.0 — AdminPassword option: seed the admin account with a password you choose</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-22.20.0</guid>
       <pubDate>Mon, 28 Sep 2026 00:00:00 GMT</pubDate>
       <description>Docs: README feature list regrouped into Core / Self-hostable server / Clients and apps — Docker moved out of 'Tooling' (it is a way to run the server, not a tool) and the Dashboard, AxioDBCloud client and Desktop app were split out of the server surfaces, since they are the things that talk to a surface rather than being one | Docs: restored the full `CHOICE` installer examples to the README (a table plus the four `CHOICE=2`/`CHOICE=3` Linux and Windows invocations) which had been reduced to a single sentence during the restructure; the values are verified against the `case` block in `cli/Scripts/install.sh` | Removed: `@fastify/cors`, `@fastify/cookie` and `@fastify/static` — replaced by first-party modules in `source/utility/` (`Cors.utils.ts`, `Cookie.utils.ts`, `StaticFile.utils.ts`), cutting `dependencies` from six packages to three. `fastify`, `tar` and `@fastify/multipart` stay declared, since Node has no built-in HTTP framework, tar container reader, or multipart/form-data parser and reimplementing them would put hand-written code on the security path (tar parsing consumes untrusted bytes; Fastify's `preHandler` short-circuit is what the auth guard depends on). Static file serving keeps explicit path containment — `resolveWithinRoot` rejects any request resolving outside the root, layered behind the existing dot-dot guard</description>
     </item>
