@@ -201,11 +201,13 @@ console.log("Transaction completed successfully!");`,
   };
 
   return (
+    <>
     <section id="advanced-features" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB Advanced Features - Aggregation, Multi-DB & Optimization"
         description="Advanced AxioDB features: aggregation pipelines, multi-database architecture, ACID transactions, and performance optimization."
         path="/advanced-features"
+        ogType="article"
       />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 mb-16 border border-purple-200 shadow-md">
@@ -580,6 +582,10 @@ console.log("Transaction completed successfully!");`,
         </div>
       </div>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/api-reference" className="text-accent-600 hover:underline">API Reference</a> · <a href="/usage" className="text-accent-600 hover:underline">Usage</a></p>
+    </div>
+    </>
   );
 };
 

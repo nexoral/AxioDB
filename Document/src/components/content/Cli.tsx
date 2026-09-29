@@ -153,11 +153,13 @@ const CliPage: React.FC = () => {
   const platformsReveal = useScrollReveal<HTMLDivElement>();
 
   return (
+    <>
     <section id="cli" className="scroll-mt-20">
       <Seo
         title="AxioDB CLI - Command Line Interface"
         description="CLI tool for AxioDB. Connection string format, global flags reference, interactive REPL with MongoDB shell syntax, TLS encryption, TCP authentication, 12 platform builds."
         path="/cli"
+        ogType="article"
       />
 
       {/* Hero */}
@@ -554,6 +556,10 @@ const CliPage: React.FC = () => {
         </div>
       </div>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/docker" className="text-accent-600 hover:underline">Docker</a> · <a href="/cloud" className="text-accent-600 hover:underline">AxioDBCloud</a> · <a href="/installation" className="text-accent-600 hover:underline">Installation</a></p>
+    </div>
+    </>
   );
 };
 

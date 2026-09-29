@@ -21,11 +21,13 @@ const Installation: React.FC = () => {
   const installationCode = INSTALL_NPM;
 
   return (
+    <>
     <section id="installation" className="pt-12 scroll-mt-20">
       <Seo
         title="Install AxioDB - NPM Package Installation Guide"
         description="Install AxioDB with npm in seconds - replaces SQLite, LowDB, NeDB & raw JSON. Zero native dependencies, no compilation, works on Node.js 20+."
         path="/installation"
+        ogType="article"
       />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 mb-16 border border-accent-200 shadow-md">
@@ -63,9 +65,9 @@ const Installation: React.FC = () => {
               <div className="p-2 bg-accent-500 rounded-lg shadow-md">
                 <span className="text-gray-900 font-bold text-lg">1</span>
               </div>
-              <h3 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl font-bold text-gray-900">
                 Install Package
-              </h3>
+              </h2>
             </div>
             <p className="text-gray-600 leading-relaxed">
               Run the npm install command to add AxioDB to your project
@@ -81,9 +83,9 @@ const Installation: React.FC = () => {
               <div className="p-2 bg-green-500 rounded-lg shadow-md">
                 <span className="text-gray-900 font-bold text-lg">2</span>
               </div>
-              <h3 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl font-bold text-gray-900">
                 Import & Initialize
-              </h3>
+              </h2>
             </div>
             <p className="text-gray-600 leading-relaxed">
               Import AxioDB into your project and create your first database
@@ -99,9 +101,9 @@ const Installation: React.FC = () => {
               <div className="p-2 bg-purple-500 rounded-lg shadow-md">
                 <span className="text-gray-900 font-bold text-lg">3</span>
               </div>
-              <h3 className="text-xl font-bold text-gray-900">
+              <h2 className="text-xl font-bold text-gray-900">
                 Start Building
-              </h3>
+              </h2>
             </div>
             <p className="text-gray-600 leading-relaxed">
               Begin creating databases, collections, and documents with
@@ -120,9 +122,9 @@ const Installation: React.FC = () => {
               <Terminal className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900">
                 Package Installation
-              </h3>
+              </h2>
               <p className="text-gray-600">
                 Install AxioDB via npm with the latest version
               </p>
@@ -168,9 +170,9 @@ const Installation: React.FC = () => {
               <Command className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900">
                 AxioDB CLI
-              </h3>
+              </h2>
               <p className="text-gray-600">
                 Command-line tool for managing databases and documents from your terminal
               </p>
@@ -235,9 +237,9 @@ const Installation: React.FC = () => {
               <Monitor className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900">
                 AxioDB Control Desktop GUI
-              </h3>
+              </h2>
               <p className="text-gray-600">
                 Cross-platform visual management client for Linux, macOS, and Windows
               </p>
@@ -273,9 +275,9 @@ const Installation: React.FC = () => {
               <CheckCircle2 className="h-8 w-8 text-white" />
             </div>
             <div>
-              <h3 className="text-2xl font-bold text-gray-900">
+              <h2 className="text-2xl font-bold text-gray-900">
                 System Requirements
-              </h3>
+              </h2>
               <p className="text-gray-600">
                 Minimal requirements for maximum compatibility
               </p>
@@ -358,6 +360,10 @@ const Installation: React.FC = () => {
         </div>
       </div>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/usage" className="text-accent-600 hover:underline">Usage</a> · <a href="/create-database" className="text-accent-600 hover:underline">Create Database</a> · <a href="/docker" className="text-accent-600 hover:underline">Docker</a></p>
+    </div>
+    </>
   );
 };
 

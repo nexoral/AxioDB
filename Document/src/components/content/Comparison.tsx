@@ -4,11 +4,13 @@ import Seo from "../ui/Seo";
 
 const Comparison: React.FC = () => {
   return (
+    <>
     <section id="comparison" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB vs SQLite, LowDB, NeDB - Embedded Database Comparison"
         description="Why AxioDB is the best embedded JavaScript database. Feature-by-feature comparison against SQLite, LowDB, NeDB, better-sqlite3, and JSON files."
         path="/comparison"
+        ogType="article"
       />
 
       {/* Hero Header */}
@@ -493,6 +495,10 @@ const Comparison: React.FC = () => {
         </div>
       </div>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/installation" className="text-accent-600 hover:underline">Installation</a> · <a href="/features" className="text-accent-600 hover:underline">Features</a> · <a href="/performance" className="text-accent-600 hover:underline">Performance</a></p>
+    </div>
+    </>
   );
 };
 

@@ -4,11 +4,13 @@ import Seo from "../ui/Seo";
 
 const Security: React.FC = () => {
   return (
+    <>
     <section id="security" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB Security - RBAC & Data Protection"
         description="RBAC authentication and security best practices for AxioDB's GUI and AxioDBCloud TCP server."
         path="/security"
+        ogType="article"
       />
       <div className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 mb-12 border border-green-200 shadow-md animate-fade-in">
         <div className="absolute top-0 right-0 w-48 h-48 bg-accent-100/40 rounded-full blur-3xl animate-float"></div>
@@ -169,6 +171,10 @@ const Security: React.FC = () => {
         file in the project repository.
       </p>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/docker" className="text-accent-600 hover:underline">Docker</a> · <a href="/cloud" className="text-accent-600 hover:underline">AxioDBCloud</a> · <a href="/mcp-server" className="text-accent-600 hover:underline">MCP Server</a></p>
+    </div>
+    </>
   );
 };
 

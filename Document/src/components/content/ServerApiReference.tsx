@@ -42,11 +42,13 @@ const ServerApiReference: React.FC = () => {
   };
 
   return (
+    <>
     <section id="server-api-reference" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB Server API Reference - Comprehensive Guide to RESTful Endpoints"
         description="REST API reference for the AxioDB Control Server: authentication, database, collection, index, and document endpoints."
         path="/server-api"
+        ogType="article"
       />
       {/* Hero Header */}
       <div className="relative overflow-hidden bg-gray-100 rounded-lg p-5 sm:p-8 lg:p-12 mb-12 border border-fuchsia-200 shadow-md">
@@ -79,28 +81,28 @@ const ServerApiReference: React.FC = () => {
             {/* Quick Info Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
               <div className="bg-fuchsia-100/30 rounded-lg p-4 border border-fuchsia-200">
-                <h3 className="font-semibold text-fuchsia-700 mb-2 flex items-center gap-2">
+                <h2 className="font-semibold text-fuchsia-700 mb-2 flex items-center gap-2">
                   <Server className="h-5 w-5" />
                   Base URL
-                </h3>
+                </h2>
                 <code className="text-sm text-fuchsia-600 break-all">
                   http://localhost:27018
                 </code>
               </div>
 
               <div className="bg-purple-100/30 rounded-lg p-4 border border-purple-200">
-                <h3 className="font-semibold text-purple-700 mb-2">
+                <h2 className="font-semibold text-purple-700 mb-2">
                   Content-Type
-                </h3>
+                </h2>
                 <code className="text-sm text-purple-700">
                   application/json
                 </code>
               </div>
 
               <div className="bg-pink-100/30 rounded-lg p-4 border border-pink-200">
-                <h3 className="font-semibold text-pink-700 mb-2">
+                <h2 className="font-semibold text-pink-700 mb-2">
                   Authentication
-                </h3>
+                </h2>
                 <p className="text-sm text-pink-300">
                   Session cookie (httpOnly) via <code>/api/auth/login</code>, RBAC-enforced
                 </p>
@@ -122,9 +124,9 @@ const ServerApiReference: React.FC = () => {
               onClick={() => toggleCategory(category.title)}
             >
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                <h2 className="text-2xl font-bold text-gray-900 mb-1">
                   {category.title}
-                </h3>
+                </h2>
                 <p className="text-sm text-gray-600">
                   {category.description}
                 </p>
@@ -274,9 +276,9 @@ const ServerApiReference: React.FC = () => {
       <div className="mt-12 space-y-6">
         {/* Error Response Format */}
         <div className="bg-orange-50 rounded-lg p-6 border border-red-800">
-          <h3 className="text-xl font-bold text-red-700 mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-red-700 mb-4 flex items-center gap-2">
             <span className="text-2xl">⚠️</span> Error Response Format
-          </h3>
+          </h2>
           <p className="text-red-300 mb-3">
             All error responses follow this consistent format:
           </p>
@@ -294,9 +296,9 @@ const ServerApiReference: React.FC = () => {
 
         {/* Usage Tips */}
         <div className="bg-accent-50 rounded-lg p-6 border border-accent-200">
-          <h3 className="text-xl font-bold text-accent-700 mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-accent-700 mb-4 flex items-center gap-2">
             <span className="text-2xl">💡</span> Usage Tips
-          </h3>
+          </h2>
           <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-accent-600">
             <li className="flex items-start gap-2">
               <span className="text-accent-600 mt-0.5">✓</span>
@@ -334,6 +336,10 @@ const ServerApiReference: React.FC = () => {
         </div>
       </div>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/api-reference" className="text-accent-600 hover:underline">API Reference</a> · <a href="/security" className="text-accent-600 hover:underline">Security</a> · <a href="/docker" className="text-accent-600 hover:underline">Docker</a></p>
+    </div>
+    </>
   );
 };
 

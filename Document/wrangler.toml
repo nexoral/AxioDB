@@ -21,30 +21,6 @@ build_command = "npm run build"
 build_output_directory = "AxioDB_Docs"
 root_directory = "."
 
-# Custom headers for better performance
-[[pages.headers]]
-for = "/*"
-[pages.headers.values]
-X-Frame-Options = "DENY"
-X-Content-Type-Options = "nosniff"
-X-XSS-Protection = "1; mode=block"
-Referrer-Policy = "strict-origin-when-cross-origin"
-
-[[pages.headers]]
-for = "/assets/*"
-[pages.headers.values]
-Cache-Control = "public, max-age=31536000, immutable"
-
-[[pages.headers]]
-for = "*.js"
-[pages.headers.values]
-Cache-Control = "public, max-age=31536000, immutable"
-
-[[pages.headers]]
-for = "*.css"
-[pages.headers.values]
-Cache-Control = "public, max-age=31536000, immutable"
-
 # Redirects for SPA routing
 [[pages.redirects]]
 from = "/*"

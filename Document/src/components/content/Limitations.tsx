@@ -4,11 +4,13 @@ import Seo from "../ui/Seo";
 
 const Limitations: React.FC = () => {
   return (
+    <>
     <section id="limitations" className="pt-12 scroll-mt-20">
       <Seo
         title="Limitations & Scale Considerations | AxioDB Documentation"
         description="Understand AxioDB's design scope: optimized for 10K-500K documents, single-instance, single-collection transactions - and when to use PostgreSQL or MongoDB instead."
         path="/limitations"
+        ogType="article"
       />
       <div className="relative overflow-hidden bg-white rounded-lg p-5 sm:p-8 lg:p-12 mb-12 border border-gray-200 shadow-md">
         <div className="absolute top-0 right-0 w-48 h-48 bg-accent-100/40 rounded-full blur-3xl"></div>
@@ -140,6 +142,10 @@ const Limitations: React.FC = () => {
         </div>
       </div>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/comparison" className="text-accent-600 hover:underline">Comparison</a> · <a href="/features" className="text-accent-600 hover:underline">Features</a></p>
+    </div>
+    </>
   );
 };
 

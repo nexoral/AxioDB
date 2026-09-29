@@ -5,6 +5,26 @@ import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import { useWebMcp } from "../../hooks/useWebMcp";
 
+const SITE_URL = "https://axiodb.in";
+
+const navSchema = {
+  "@context": "https://schema.org",
+  "@type": "SiteNavigationElement",
+  "name": [
+    { "@type": "SiteNavigationElement", "name": "Introduction", "url": `${SITE_URL}/` },
+    { "@type": "SiteNavigationElement", "name": "Features", "url": `${SITE_URL}/features` },
+    { "@type": "SiteNavigationElement", "name": "Installation", "url": `${SITE_URL}/installation` },
+    { "@type": "SiteNavigationElement", "name": "Usage", "url": `${SITE_URL}/usage` },
+    { "@type": "SiteNavigationElement", "name": "API Reference", "url": `${SITE_URL}/api-reference` },
+    { "@type": "SiteNavigationElement", "name": "Server API", "url": `${SITE_URL}/server-api` },
+    { "@type": "SiteNavigationElement", "name": "Docker", "url": `${SITE_URL}/docker` },
+    { "@type": "SiteNavigationElement", "name": "CLI", "url": `${SITE_URL}/cli` },
+    { "@type": "SiteNavigationElement", "name": "Security", "url": `${SITE_URL}/security` },
+    { "@type": "SiteNavigationElement", "name": "Comparison", "url": `${SITE_URL}/comparison` },
+    { "@type": "SiteNavigationElement", "name": "MCP Server", "url": `${SITE_URL}/mcp-server` },
+  ],
+};
+
 const Layout: React.FC = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -73,6 +93,7 @@ const Layout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white text-gray-900 flex flex-col">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(navSchema) }} />
       <Header
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         isSidebarOpen={isSidebarOpen}

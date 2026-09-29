@@ -111,11 +111,13 @@ const toolGroups: { title: string; permissionNote: string; tools: string[] }[] =
 
 const McpServer: React.FC = () => {
   return (
+    <>
     <div className="space-y-12">
       <Seo
         title="MCP Server | AxioDB Documentation"
         description="Let AI agents (Claude, and any MCP-compatible client) talk to your AxioDB instance directly - 43 tools, real login, and the exact same RBAC as the web GUI."
         path="/mcp-server"
+        ogType="article"
       />
 
       {/* Hero Section */}
@@ -531,6 +533,10 @@ url = "http://localhost:27020/mcp"`}
         </div>
       </section>
     </div>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/docker" className="text-accent-600 hover:underline">Docker</a> · <a href="/security" className="text-accent-600 hover:underline">Security</a> · <a href="/api-reference" className="text-accent-600 hover:underline">API Reference</a></p>
+    </div>
+    </>
   );
 };
 

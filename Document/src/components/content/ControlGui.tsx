@@ -47,11 +47,13 @@ const ControlGui: React.FC = () => {
   const helpReveal = useScrollReveal<HTMLDivElement>();
 
   return (
+    <>
     <section id="gui" className="scroll-mt-20">
       <Seo
         title="AxioDB Control GUI - Desktop Database Manager"
         description="Learn how to install AxioDB Control, connect it to an AxioDB server, and manage your data from a desktop app."
         path="/gui"
+        ogType="article"
       />
 
       <div
@@ -499,6 +501,10 @@ const ControlGui: React.FC = () => {
         .
       </div>
     </section>
+    <div className="mt-12 pt-8 border-t border-gray-200">
+      <p className="text-sm text-gray-500">See also: <a href="/installation" className="text-accent-600 hover:underline">Installation</a> · <a href="/docker" className="text-accent-600 hover:underline">Docker</a> · <a href="/security" className="text-accent-600 hover:underline">Security</a></p>
+    </div>
+    </>
   );
 };
 

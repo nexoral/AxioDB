@@ -23,6 +23,7 @@ import McpServer from "./components/content/McpServer";
 import Troubleshooting from "./components/content/Troubleshooting";
 import Changelog from "./components/content/Changelog";
 import Performance from "./components/content/Performance";
+import NotFound from "./components/content/NotFound";
 
 // Route table consumed by vite-react-ssg to know which pages to prerender at
 // build time, and by react-router-dom at runtime for client-side navigation.
@@ -58,6 +59,7 @@ export const routes: RouteRecord[] = [
       { path: "performance", element: <Performance /> },
       { path: "maintainers-zone", element: <MaintainersZone /> },
       { path: "why-choose-axiodb", element: <Introduction /> },
+      { path: "*", element: <NotFound /> },
     ],
   },
 ];

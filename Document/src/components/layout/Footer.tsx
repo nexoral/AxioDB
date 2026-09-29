@@ -21,7 +21,7 @@ const Footer: React.FC = () => (
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] bg-accent-600 text-white text-xs font-semibold">
-            v22.17.1
+            v22.19.1
           </span>
           <span className="text-sm text-gray-500">Latest</span>
         </div>
