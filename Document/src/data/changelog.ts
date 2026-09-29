@@ -12,6 +12,15 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.21.3",
+    date: "2026-09-29",
+    title: "CLI serve full enables GUI dashboard",
+    changes: [
+      "Changed: `axiodb serve full` now starts with GUI enabled (Dashboard at http://localhost:27018), matching the intent of a full-stack serve mode",
+      "Changed: other serve modes (http, tcp, tcp-auth) remain unchanged",
+    ],
+  },
+  {
     version: "22.21.2",
     date: "2026-09-29",
     title: "Multi-runtime verification — Node, Bun, Deno all passing",

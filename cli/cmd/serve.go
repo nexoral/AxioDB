@@ -196,8 +196,11 @@ func validatePassword(config serve.ModeConfig, password string) error {
 
 func printReady(output io.Writer, config serve.ModeConfig, password string) {
 	fmt.Fprintln(output, "Server started.")
+	if config.GUI {
+		fmt.Fprintf(output, "  Dashboard: http://localhost:%d\n", serve.HTTPPort)
+	}
 	if config.HasHTTP() {
-		fmt.Fprintf(output, "  HTTP API: http://localhost:%d/api\n", serve.HTTPPort)
+		fmt.Fprintf(output, "  HTTP API:  http://localhost:%d/api\n", serve.HTTPPort)
 	}
 	if config.HasTCP() {
 		fmt.Fprintf(output, "  TCP:      axiodb://localhost:%d\n", serve.TCPPort)
