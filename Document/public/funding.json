@@ -1,0 +1,61 @@
+{
+  "version": "v1.1.0",
+  "entity": {
+    "type": "individual",
+    "role": "maintainer",
+    "name": "Ankan Saha",
+    "email": "internal@nexoral.in",
+    "description": "Systems engineer and open-source maintainer based in West Bengal, India. Creator of AxioDB, an embedded ACID document database for Node.js and Bun with 27,000+ annual npm downloads.",
+    "webpageUrl": {
+      "url": "https://ankan.in"
+    }
+  },
+  "projects": [
+    {
+      "guid": "axiodb",
+      "name": "AxioDB",
+      "description": "Zero-dependency, pure TypeScript embedded ACID document database for Node.js and Bun. Eliminates native C++ compilation (node-gyp) overhead while providing durability, indexing, and high-concurrency document operations for local and edge environments.",
+      "webpageUrl": {
+        "url": "https://axiodb.in"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/nexoral/AxioDB"
+      },
+      "licenses": [
+        "spdx:MIT"
+      ],
+      "tags": [
+        "database",
+        "typescript",
+        "nodejs",
+        "embedded",
+        "acid",
+        "developer-tools"
+      ]
+    }
+  ],
+  "funding": {
+    "channels": [
+      {
+        "guid": "bank-transfer",
+        "type": "bank",
+        "address": "Indian Bank Account (Details provided upon grant approval)",
+        "description": "Direct NEFT/IMPS bank transfer for FOSS United grant disbursement."
+      }
+    ],
+    "plans": [
+      {
+        "guid": "axiodb-dev-grant",
+        "status": "active",
+        "name": "AxioDB Engine Scaling & Concurrency Benchmarks",
+        "description": "3-month milestone funding plan to support full-time open-source development: 1) In-memory B-Tree indexer for sub-millisecond query filters; 2) Automated ACID crash-recovery test suite testing process kill durability (SIGKILL resistance); 3) Zero-copy streaming JSON reader for bounded memory consumption under multi-gigabyte collections; 4) Public benchmark dashboard comparing AxioDB with LevelDB and SQLite.",
+        "amount": 75000,
+        "currency": "INR",
+        "frequency": "one-time",
+        "channels": [
+          "bank-transfer"
+        ]
+      }
+    ]
+  }
+}
