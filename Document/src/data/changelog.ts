@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "22.22.1",
+    version: "22.22.2",
     date: "2026-09-29",
     title: "CLI serve full enables GUI dashboard",
     changes: [
