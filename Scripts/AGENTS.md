@@ -10,6 +10,7 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Scripts/
 versionController.sh   version sync engine + interactive target picker (see below)
 BinBuilder.sh          cross-compiles the Go CLI → cli/bin/axiodb_{os}_{arch} (5 platforms)
 PackageBuilder.sh      wraps the linux binary into .deb/.rpm-style packages via xpack
+AiGraphBuilder.sh      installs graphify (pipx-first) + optionally builds the code graph
 setup.sh               installs the .git/hooks/pre-commit hook (no-op without .git)
 ```
 
@@ -18,7 +19,7 @@ setup.sh               installs the .git/hooks/pre-commit hook (no-op without .g
 * Fetches remote `package.json`, compares with local, prompts for a new (higher) semver, then rewrites every versioned file.
 * Targets (interactive menu): `root`, `cli`, `electron`, `gui`, `document`, `docker`; **`root` also syncs `CONTRIBUTING.md`** (not separately selectable).
 * Defaults to **all** targets (empty input, `a`, or `all`).
-* On an all-targets run it also runs the post-bump pipeline: `cd Document && npm run build` (regenerates sitemap/llms/openapi/feed/markdown) and rebuilds the graphify graph if installed.
+* On an all-targets run it also runs the post-bump pipeline: `cd Document && npm run build` (regenerates sitemap/llms/openapi/feed/markdown) and, only if graphify is installed **and** `graphify-out/` exists, rebuilds the graph. It never installs graphify or creates a graph — that is `AiGraphBuilder.sh`'s job.
 * Non-interactive: `./Scripts/versionController.sh <version>`.
 
 Full target → file map (each sed is the authoritative location):
@@ -32,6 +33,17 @@ Full target → file map (each sed is the authoritative location):
 | document | `Document/package.json` · `public/llms.txt` · `public/llms-full.txt` · `Document/index.html` · `src/components/content/ControlGui.tsx` (installer filenames) · `src/data/changelog.ts` |
 | docker | `Docker/README.md` (badge) |
 
+## AiGraphBuilder.sh
+
+Standalone helper for the optional graphify graph (`AGENTS.md` → "Graphify (optional)") and the first-time installer/creator that `versionController.sh` deliberately is not — that step only rebuilds a graph that already exists.
+
+* Prints machine OS/arch/distro/shell, then resolves the Python interpreter — the shebang of an existing `graphify` first (covers pipx/venv), then `python3`, then `python` — and reports its version.
+* Three states: graphify missing → offer to install, then ask to build; graphify present → ask to build; `graphify-out/graph.json` present → say so, then ask to rebuild.
+* Installs **pipx-first** (`graphifyy` on PyPI exposes the `graphify` command): pipx itself via apt → brew → `pip install --user`, with `--break-system-packages` only as a last resort (PEP 668 externally-managed environments). Falls back to the pipx venv interpreter when the console script is not on `PATH` yet.
+* Builds with `graphify.watch._rebuild_code(Path('.'))` — AST-only, no LLM — writing `graphify-out/graph.json` + `GRAPH_REPORT.md`.
+* Handles no-Python (OS-specific hint, exit 1) and Python-2-only hosts.
+* Every prompt defaults to **No**: nothing is installed and no graph is written without an explicit `y`.
+
 ## Hard rules
 
 * When a new versioned file is introduced anywhere in the repo, **add it to the matching `sync_*` function** here — otherwise it silently drifts. Cross-check the 13-place list in root `AGENTS.md`.
@@ -39,6 +51,7 @@ Full target → file map (each sed is the authoritative location):
 * `BinBuilder.sh` injects the version via `-ldflags -X github.com/nexoral/axiodb-cli/cmd.cliVersion`; keep the package path in sync with `cli/`.
 * Scripts must be idempotent and fail fast (`set -e`), and must not leave half-synced state.
 * `setup.sh` is also run by npm's postinstall; it exits cleanly when `.git` is absent.
+* Any graphify step (here and in `AiGraphBuilder.sh`) must stay gated on an install/presence check — never assume graphify exists.
 
 ## Running
 
@@ -46,6 +59,7 @@ Full target → file map (each sed is the authoritative location):
 ./Scripts/versionController.sh          # interactive: pick version + targets
 ./Scripts/versionController.sh 22.22.0  # non-interactive, all targets
 ./Scripts/BinBuilder.sh                 # build CLI binaries
+./Scripts/AiGraphBuilder.sh             # install graphify + optionally build the code graph
 ./Scripts/setup.sh                      # install pre-commit hook
 ```
 
@@ -55,3 +69,4 @@ Full target → file map (each sed is the authoritative location):
 - [ ] Any new versioned file wired into the correct `sync_*` function
 - [ ] `versionController.sh` maps still match the root 13-place version list
 - [ ] Destructive steps (branch/remote operations) are not added without asking the user
+- [ ] `AiGraphBuilder.sh` still gates install + build behind an explicit `y`
