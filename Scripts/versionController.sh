@@ -189,7 +189,7 @@ sync_version() {
   # When all targets are selected (empty input, "a", or "all"), run the full
   # post-version-bump pipeline: rebuild the docs site (which regenerates
   # sitemap, llms, openapi, feed, markdown twins via pre+postbuild), and
-  # rebuild the graphify graph if installed.
+  # rebuild the graphify graph if installed AND graphify-out/ exists.
   if [ "$ran_all" = true ] || [ ${#SELECTED_TARGETS[@]} -eq 0 ]; then
     echo ""
     echo -e "${CYAN}Running post-version-bump pipeline...${NC}"
@@ -203,10 +203,10 @@ sync_version() {
       fi
     fi
 
-    python3 -c "import graphify" 2>/dev/null && \
+    [ -d "graphify-out" ] && python3 -c "import graphify" 2>/dev/null && \
       python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" 2>&1 | tail -1 && \
       echo -e "  ${GREEN}Graph rebuilt${NC}" || \
-      echo -e "  ${YELLOW}graphify not installed - skipping${NC}"
+      echo -e "  ${YELLOW}graphify or graphify-out/ not present - skipping${NC}"
   fi
 
   echo ""
