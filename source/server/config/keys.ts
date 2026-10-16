@@ -371,7 +371,7 @@ export const AuthorInfo: AuthorInfoType = {
   name: "Ankan Saha",
   Designation: "Software Engineer",
   Country: "India",
-  Email: "connect@ankan.in",
+  Email: "dev@axiodb.in",
   LinkedIn: "https://www.linkedin.com/in/theankansaha/",
   github: "https://github.com/AnkanSaha",
 };

@@ -67,7 +67,7 @@ const MaintainersZone = () => {
     { name: "GitHub", url: "https://github.com/AnkanSaha", icon: <FaGithub /> },
     {
       name: "Gmail",
-      url: "mailto:ankansahaofficial@gmail.com",
+      url: "mailto:dev@axiodb.in",
       icon: <FaEnvelope />,
     },
   ];
@@ -155,7 +155,7 @@ const MaintainersZone = () => {
                   <FaGithub /> View GitHub
                 </a>
                 <a
-                  href="mailto:ankansahaofficial@gmail.com"
+                  href="mailto:dev@axiodb.in"
                   className="inline-flex items-center gap-2 bg-accent-600 text-white px-6 py-3 rounded-lg font-semibold shadow-sm hover:bg-accent-700 transition-all duration-200 transform hover:scale-105"
                 >
                   <FaEnvelope /> Let's Chat
@@ -220,7 +220,7 @@ const MaintainersZone = () => {
               <p className="text-gray-600 text-sm">Let's discuss your next project or contribution to AxioDB!</p>
             </div>
             <a
-              href="mailto:ankansahaofficial@gmail.com"
+              href="mailto:dev@axiodb.in"
               className="bg-accent-600 hover:bg-accent-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
             >
               Say Hi! 👋

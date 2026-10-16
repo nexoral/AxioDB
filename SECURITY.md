@@ -39,7 +39,7 @@ We take security seriously and appreciate the security community's efforts to re
 
 ### Alternative Method: Email
 
-Send an email to **ankansahaofficial@gmail.com** with:
+Send an email to **dev@axiodb.in** with:
 
 - **Subject**: `[SECURITY] AxioDB Vulnerability Report`
 - **Description**: Clear description of the vulnerability
@@ -180,7 +180,7 @@ role-based access control system:
 
 For security-related questions or concerns:
 
-- **Email**: ankansahaofficial@gmail.com
+- **Email**: dev@axiodb.in
 - **GitHub**: [Report a vulnerability](https://github.com/nexoral/AxioDB/security/advisories/new)
 
 ## Hall of Fame
