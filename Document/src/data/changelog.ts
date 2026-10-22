@@ -12,6 +12,18 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.23.1",
+    date: "2026-10-22",
+    title: "Docs-site performance: optimized logo, zero CLS, instant LCP, route code-splitting",
+    changes: [
+      "Performance: the header/footer/favicon logo no longer loads the 1022×1022 / 840 KB `AXioDB.png` on every page — a dedicated 64px `logo.png` (WebP + PNG fallback via `<picture>`, 2.8 KB / 10.8 KB) now serves the 28px brand mark with identical artwork, cutting per-page image bytes by ~830 KB",
+      "Performance: fixed cumulative layout shift (CLS) on the home page — the 18 shield/CodeQL/GitHub badge images now reserve explicit width/height, so the hero badge strip no longer reflows as each SVG loads and pushes the section below it down (CLS ~0.15 → ~0.001, and 0 on mobile)",
+      "Performance: improved LCP — the hero entrance previously faded from `opacity: 0`, which kept the page's largest contentful element (the headline) unpainted while it animated; it now starts at `opacity: 0.4`, so the heading paints immediately and desktop LCP dropped from ~2.7 s to ~0.45 s",
+      "Performance: route-level code splitting — the 22 page components are now `React.lazy` chunks behind a single Suspense boundary, so the home page no longer ships the other 20 routes' code; unused initial JavaScript fell from ~115 KiB to ~29 KiB and the Lighthouse mobile performance score improved to ~99",
+      "Chore: version synced 22.22.2 → 22.23.1 across package.json, package-lock, GUI, electron, cli, Document/package.json, Docker README, llms.txt, llms-full.txt, index.html, feed.xml",
+    ],
+  },
+  {
     version: "22.22.2",
     date: "2026-09-29",
     title: "CLI serve full enables GUI dashboard",

@@ -265,28 +265,35 @@ const Introduction: React.FC = () => {
     stars: githubApi.getBadgeUrl('stars')
   };
 
+  // Each badge renders 24px tall (h-6). Widths vary by shield label and must be
+  // reserved with explicit width/height so the strip doesn't reflow (and push
+  // content below it) when the SVGs load — that reflow is the site's CLS. The
+  // widths below are the badges' rendered widths at 24px height; numeric badges
+  // (downloads, stars) drift slightly as their figures change, but reserving the
+  // space keeps the layout stable regardless.
   const BADGES = [
-    { src: badgeUrls.npm, alt: "npm version" },
-    { src: "https://img.shields.io/npm/v/axiodb?logo=npm&label=npm", alt: "npm shields" },
-    { src: "https://img.shields.io/npm/dt/axiodb.svg", alt: "npm downloads total" },
-    { src: "https://img.shields.io/npm/dy/axiodb.svg", alt: "npm downloads yearly" },
-    { src: "https://img.shields.io/npm/dw/axiodb.svg", alt: "npm downloads weekly" },
-    { src: "https://img.shields.io/npm/dm/axiodb.svg", alt: "npm downloads monthly" },
-    { src: "https://img.shields.io/npm/unpacked-size/axiodb?label=install%20size", alt: "install size" },
-    { src: "https://img.shields.io/jsdelivr/npm/hm/axiodb?label=jsDelivr", alt: "jsDelivr hits" },
-    { src: "https://img.shields.io/npm/types/axiodb?label=types", alt: "TypeScript types" },
-    { src: "https://img.shields.io/badge/License-MIT-yellow.svg", alt: "License MIT" },
-    { src: badgeUrls.codeql, alt: "CodeQL" },
-    { src: badgeUrls.stars, alt: "GitHub Stars" },
-    { src: "https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen", alt: "Node.js Version" },
+    { src: badgeUrls.npm, alt: "npm version", width: 168 },
+    { src: "https://img.shields.io/npm/v/axiodb?logo=npm&label=npm", alt: "npm shields", width: 134 },
+    { src: "https://img.shields.io/npm/dt/axiodb.svg", alt: "npm downloads total", width: 120 },
+    { src: "https://img.shields.io/npm/dy/axiodb.svg", alt: "npm downloads yearly", width: 154 },
+    { src: "https://img.shields.io/npm/dw/axiodb.svg", alt: "npm downloads weekly", width: 161 },
+    { src: "https://img.shields.io/npm/dm/axiodb.svg", alt: "npm downloads monthly", width: 173 },
+    { src: "https://img.shields.io/npm/unpacked-size/axiodb?label=install%20size", alt: "install size", width: 125 },
+    { src: "https://img.shields.io/jsdelivr/npm/hm/axiodb?label=jsDelivr", alt: "jsDelivr hits", width: 147 },
+    { src: "https://img.shields.io/npm/types/axiodb?label=types", alt: "TypeScript types", width: 130 },
+    { src: "https://img.shields.io/badge/License-MIT-yellow.svg", alt: "License MIT", width: 99 },
+    { src: badgeUrls.codeql, alt: "CodeQL", width: 156 },
+    { src: badgeUrls.stars, alt: "GitHub Stars", width: 99 },
+    { src: "https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen", alt: "Node.js Version", width: 120 },
     {
       src: "https://img.shields.io/badge/tested%20on-20%20%7C%2021%20%7C%2022%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-blue",
       alt: "Tested on Node.js",
+      width: 296,
     },
-    { src: "https://img.shields.io/badge/Bun%20tested-v1.4.0-black?logo=bun", alt: "Bun tested v1.4.0" },
-    { src: "https://img.shields.io/badge/Deno%20tested-v2.9.6-black?logo=deno", alt: "Deno tested v2.9.6" },
-    { src: "https://img.shields.io/badge/TypeScript-6.0-blue", alt: "TypeScript" },
-    { src: "https://img.shields.io/badge/dependencies-0%20native-success", alt: "Zero native dependencies" },
+    { src: "https://img.shields.io/badge/Bun%20tested-v1.4.0-black?logo=bun", alt: "Bun tested v1.4.0", width: 158 },
+    { src: "https://img.shields.io/badge/Deno%20tested-v2.9.6-black?logo=deno", alt: "Deno tested v2.9.6", width: 167 },
+    { src: "https://img.shields.io/badge/TypeScript-6.0-blue", alt: "TypeScript", width: 116 },
+    { src: "https://img.shields.io/badge/dependencies-0%20native-success", alt: "Zero native dependencies", width: 168 },
   ];
 
   return (
@@ -376,6 +383,8 @@ const Introduction: React.FC = () => {
             key={badge.alt}
             src={badge.src}
             alt={badge.alt}
+            width={badge.width}
+            height={24}
             className="h-6 rounded-[3px]"
           />
         ))}
