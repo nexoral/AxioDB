@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "22.23.1",
+    version: "22.23.2",
     date: "2026-10-22",
     title: "Docs-site performance: optimized logo, zero CLS, instant LCP, route code-splitting",
     changes: [
