@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
     <language>en</language>
-    <lastBuildDate>Thu, 22 Oct 2026 22:56:42 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 22 Oct 2026 23:16:21 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v22.23.2 — Docs-site performance: optimized logo, zero CLS, instant LCP, route code-splitting</title>
