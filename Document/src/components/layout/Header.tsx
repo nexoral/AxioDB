@@ -124,11 +124,16 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
             </button>
 
             <Link to="/" className="flex items-center gap-2 group">
-              <img
-                src="/AXioDB.png"
-                alt="AxioDB Logo"
-                className="h-7 w-7 group-hover:opacity-80 transition-opacity"
-              />
+              <picture>
+                <source srcSet="/logo.webp" type="image/webp" />
+                <img
+                  src="/logo.png"
+                  alt="AxioDB Logo"
+                  width={64}
+                  height={64}
+                  className="h-7 w-7 group-hover:opacity-80 transition-opacity"
+                />
+              </picture>
               <span className="text-lg font-semibold text-gray-900">AxioDB</span>
             </Link>
           </div>

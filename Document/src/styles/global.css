@@ -75,10 +75,13 @@ html {
 }
 
 /* Advanced animations */
+/* The hero heading is the page's LCP element. Fading it from opacity:0 delays
+   when it counts as painted (LCP). Starting from a near-visible 0.4 keeps the
+   entrance effect while letting the heading paint immediately. */
 @keyframes fade-in {
   from {
-    opacity: 0;
-    transform: translateY(20px);
+    opacity: 0.4;
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -140,7 +143,7 @@ html {
 
 /* Animation classes */
 .animate-fade-in {
-  animation: fade-in 0.8s ease-out;
+  animation: fade-in 0.6s ease-out;
 }
 
 .animate-slide-in-right {
