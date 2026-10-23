@@ -1,6 +1,6 @@
 # AxioDB — Agent Instructions
 
-**AxioDB** — SQL alternative for JS. Embedded NoSQL, zero native deps, TS 6.0 strict → CJS, Node ≥20, singleton, file-per-doc, `InMemoryCache`, Worker Threads, ACID, GUI 27018, TCP 27019.
+**AxioDB** — SQL alternative for JS. Embedded NoSQL, zero native deps, TS 6.0 strict → CJS, Node ≥20 (engine minimum; Docker runs on Node 23), singleton, file-per-doc, `InMemoryCache`, Worker Threads, ACID, GUI 27018, TCP 27019.
 
 ## Directory Layout
 

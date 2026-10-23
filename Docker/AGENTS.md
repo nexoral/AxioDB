@@ -2,12 +2,12 @@
 
 Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Docker/` specifics — read the root first.
 
-**Role** — ships the compiled core (`lib/`) plus three surfaces in one container: HTTP GUI/API **27018**, TCP AxioDBCloud **27019**, opt-in MCP server **27020**. Image `theankansaha/axiodb`.
+**Role** — ships the compiled core (`lib/`) plus three surfaces in one container: HTTP GUI/API **27018**, TCP AxioDBCloud **27019**, opt-in MCP server **27020**. Image `theankansaha/axiodb`. Container runtime runs on Node 23 (`node:23-alpine`), while base engine maintains Node ≥20 compatibility.
 
 ## Layout
 
 ```
-Dockerfile        node:23-alpine; drops to non-root `axiodb`; HEALTHCHECK → healthcheck.js
+Dockerfile        node:23-alpine (Node 23 container runtime); drops to non-root `axiodb`; HEALTHCHECK → healthcheck.js
 runner.js         entrypoint: maps env → AxioDB options, validates combos, UV_THREADPOOL_SIZE
 healthcheck.js    probes GUI /health + a real TCP PING/PONG round-trip
 mcpServer.js      boots the MCP server when AXIODB_MCP=true
