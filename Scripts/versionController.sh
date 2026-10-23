@@ -96,6 +96,11 @@ sync_document() {
     sed -i "0,/version: \"${CURRENT_VERSION}\"/s//version: \"$NEW_VERSION\"/" Document/src/data/changelog.ts
     echo -e "  ${GREEN}Updated${NC} Document/src/data/changelog.ts (newest entry)"
   fi
+  # Footer displayed version badge (AGENTS.md rule).
+  if [ -f "Document/src/components/layout/Footer.tsx" ]; then
+    sed -i "s/v[0-9]\+\.[0-9]\+\.[0-9]\+/v${NEW_VERSION}/" Document/src/components/layout/Footer.tsx
+    echo -e "  ${GREEN}Updated${NC} Document/src/components/layout/Footer.tsx"
+  fi
 }
 
 sync_docs() {
