@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
     <language>en</language>
-    <lastBuildDate>Thu, 22 Oct 2026 19:55:39 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 23 Oct 2026 11:25:08 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v22.23.1 — CLI serve full enables GUI dashboard</title>

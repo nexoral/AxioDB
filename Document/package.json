@@ -7,7 +7,7 @@
     "dev": "vite --host",
     "prebuild": "tsx scripts/generate-seo-files.ts",
     "build": "vite-react-ssg build",
-    "postbuild": "tsx scripts/generate-markdown.ts",
+    "postbuild": "tsx scripts/generate-markdown.ts && node scripts/inline-css.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
