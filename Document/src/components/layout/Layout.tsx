@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
@@ -112,7 +112,13 @@ const Layout: React.FC = () => {
 
         <main className="flex-1 pt-16 min-w-0">
           <div className="w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-            <Outlet />
+            {/* Suspense boundary for per-route lazy chunks. Page components are
+                code-split (see App.tsx); prerendered HTML is complete because
+                vite-react-ssg awaits them, and at runtime only the active
+                route's chunk is fetched. */}
+            <Suspense fallback={null}>
+              <Outlet />
+            </Suspense>
           </div>
         </main>
       </div>
