@@ -12,6 +12,15 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.25.4",
+    date: "2026-10-24",
+    title: "Dev container / Codespaces bootstrap with a full prebuilt workspace",
+    changes: [
+      "Chore: devcontainer rebuilt on the Ubuntu 24.04 base image with Node 24, Go, and Docker features — the postCreate script now installs + builds every surface of the monorepo (core, Document, GUI, Electron, Go CLI) so a fresh Codespace is ready to develop, run, and test immediately",
+      "Chore: devcontainer mirrors the local VSCode extension set (25 extensions) and editor settings (formatting, color theme, icon theme, fonts) so Codespaces behave like the host machine",
+    ],
+  },
+  {
     version: "22.24.4",
     date: "2026-09-29",
     title: "CLI serve full enables GUI dashboard",

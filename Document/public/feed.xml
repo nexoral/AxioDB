@@ -5,8 +5,15 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
     <language>en</language>
-    <lastBuildDate>Fri, 23 Oct 2026 20:51:12 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 24 Oct 2026 08:53:19 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AxioDB v22.25.4 — Dev container / Codespaces bootstrap with a full prebuilt workspace</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-22.25.4</guid>
+      <pubDate>Sat, 24 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Chore: devcontainer rebuilt on the Ubuntu 24.04 base image with Node 24, Go, and Docker features — the postCreate script now installs + builds every surface of the monorepo (core, Document, GUI, Electron, Go CLI) so a fresh Codespace is ready to develop, run, and test immediately | Chore: devcontainer mirrors the local VSCode extension set (25 extensions) and editor settings (formatting, color theme, icon theme, fonts) so Codespaces behave like the host machine</description>
+    </item>
     <item>
       <title>AxioDB v22.24.4 — CLI serve full enables GUI dashboard</title>
       <link>https://axiodb.in/changelog</link>

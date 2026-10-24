@@ -38,7 +38,12 @@ ver_gt() {
 sync_root() {
   local NEW_VERSION="$1"
   sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.json
-  echo -e "  ${GREEN}Updated${NC} package.json (root)"
+  # package-lock.json used to drift ("auto via npm install" never actually ran
+  # after a bump). Sync its two version fields: the top-level one and the ""
+  # root-package entry inside "packages".
+  sed -i "0,/^  \"version\": \"[^\"]*\"/s//  \"version\": \"$NEW_VERSION\"/" package-lock.json
+  sed -i "0,/^      \"version\": \"[^\"]*\"/s//      \"version\": \"$NEW_VERSION\"/" package-lock.json
+  echo -e "  ${GREEN}Updated${NC} package.json + package-lock.json (root)"
 }
 
 sync_cli() {
@@ -78,19 +83,6 @@ sync_document() {
     sed -i "s/\"softwareVersion\": \"[^\"]*\"/\"softwareVersion\": \"$NEW_VERSION\"/" Document/index.html
     echo -e "  ${GREEN}Updated${NC} Document/index.html"
   fi
-  # Installer filenames shown on the /gui page (ControlGui.tsx) are versioned
-  # artifacts users type verbatim - they must track the release.
-  # NOTE: ${CURRENT_VERSION} must stay brace-delimited. Written as
-  # $CURRENT_VERSION_amd64, bash parses the variable name as
-  # "CURRENT_VERSION_amd64" (underscore is a legal name character) and the
-  # substitution silently does nothing.
-  if [ -f "Document/src/components/content/ControlGui.tsx" ]; then
-    sed -i "s/axiodb-control_${CURRENT_VERSION}_amd64\.deb/axiodb-control_${NEW_VERSION}_amd64.deb/g" \
-           Document/src/components/content/ControlGui.tsx
-    sed -i "s/axiodb-control-${CURRENT_VERSION}\.AppImage/axiodb-control-${NEW_VERSION}.AppImage/g" \
-           Document/src/components/content/ControlGui.tsx
-    echo -e "  ${GREEN}Updated${NC} ControlGui.tsx installer filenames"
-  fi
   # The newest changelog entry's version must equal package.json (AGENTS.md rule).
   if [ -f "Document/src/data/changelog.ts" ]; then
     sed -i "0,/version: \"${CURRENT_VERSION}\"/s//version: \"$NEW_VERSION\"/" Document/src/data/changelog.ts
@@ -121,8 +113,10 @@ sync_docker() {
 
 sync_electron_version_label() {
   local NEW_VERSION="$1"
+  # Match any existing version, not just CURRENT_VERSION — the label drifted to
+  # 22.20.0 once and an exact-match sed silently stopped fixing it.
   if [ -f "electron/src/layout/StatusBar.jsx" ]; then
-    sed -i "s/AxioDB Control v$CURRENT_VERSION/AxioDB Control v$NEW_VERSION/g" electron/src/layout/StatusBar.jsx
+    sed -i "s/AxioDB Control v[0-9]\+\.[0-9]\+\.[0-9]\+/AxioDB Control v$NEW_VERSION/g" electron/src/layout/StatusBar.jsx
     echo -e "  ${GREEN}Updated${NC} electron/src/layout/StatusBar.jsx"
   fi
 }
@@ -229,11 +223,11 @@ select_targets() {
 
   # Target registry — add new targets here
   local labels=(
-    "1) Root package.json (package.json + CONTRIBUTING.md)"
+    "1) Root package.json (package.json + package-lock.json + CONTRIBUTING.md)"
     "2) CLI (cli/VERSION + cli/cmd/version.go)"
     "3) Electron GUI (electron/package.json + src/layout/StatusBar.jsx)"
     "4) Web GUI (GUI/package.json)"
-    "5) Document site (package.json + llms.txt + llms-full.txt + index.html + ControlGui.tsx + changelog.ts)"
+    "5) Document site (package.json + llms.txt + llms-full.txt + index.html + changelog.ts + Footer.tsx)"
     "6) Docker (Docker/README.md version badge)"
   )
 
