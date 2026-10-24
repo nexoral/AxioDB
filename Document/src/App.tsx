@@ -1,29 +1,35 @@
-import { StrictMode } from "react";
+import { StrictMode, lazy } from "react";
 import type { RouteRecord } from "vite-react-ssg";
 import Layout from "./components/layout/Layout";
-import Introduction from "./components/content/Introduction";
-import Features from "./components/content/Features";
-import Limitations from "./components/content/Limitations";
-import Installation from "./components/content/Installation";
-import Usage from "./components/content/Usage";
-import AdvancedFeatures from "./components/content/AdvancedFeatures";
-import ApiReference from "./components/content/ApiReference";
-import ServerApiReference from "./components/content/ServerApiReference";
-import Security from "./components/content/Security";
-import Community from "./components/content/Community";
-import Comparison from "./components/content/Comparison";
-import CreateDatabase from "./components/content/CreateDatabase";
-import CreateCollection from "./components/content/CreateCollection";
-import MaintainersZone from "./components/content/MaintainersZone";
-import AxioDBCloud from "./components/content/AxioDBCloud";
-import Cli from "./components/content/Cli";
-import ControlGui from "./components/content/ControlGui";
-import Docker from "./components/content/Docker";
-import McpServer from "./components/content/McpServer";
-import Troubleshooting from "./components/content/Troubleshooting";
-import Changelog from "./components/content/Changelog";
-import Performance from "./components/content/Performance";
-import NotFound from "./components/content/NotFound";
+
+// The 21 page components are code-split per route so the initial bundle only
+// ships the code the current route needs (the home page no longer parses and
+// evaluates every documentation page's code on every visit). Each file has a
+// default export; vite-react-ssg awaits these during the prerender pass, so the
+// statically generated HTML is complete. Suspense is handled in Layout.tsx.
+const Introduction = lazy(() => import("./components/content/Introduction"));
+const Features = lazy(() => import("./components/content/Features"));
+const Limitations = lazy(() => import("./components/content/Limitations"));
+const Installation = lazy(() => import("./components/content/Installation"));
+const Usage = lazy(() => import("./components/content/Usage"));
+const AdvancedFeatures = lazy(() => import("./components/content/AdvancedFeatures"));
+const ApiReference = lazy(() => import("./components/content/ApiReference"));
+const ServerApiReference = lazy(() => import("./components/content/ServerApiReference"));
+const Security = lazy(() => import("./components/content/Security"));
+const Community = lazy(() => import("./components/content/Community"));
+const Comparison = lazy(() => import("./components/content/Comparison"));
+const CreateDatabase = lazy(() => import("./components/content/CreateDatabase"));
+const CreateCollection = lazy(() => import("./components/content/CreateCollection"));
+const MaintainersZone = lazy(() => import("./components/content/MaintainersZone"));
+const AxioDBCloud = lazy(() => import("./components/content/AxioDBCloud"));
+const Cli = lazy(() => import("./components/content/Cli"));
+const ControlGui = lazy(() => import("./components/content/ControlGui"));
+const Docker = lazy(() => import("./components/content/Docker"));
+const McpServer = lazy(() => import("./components/content/McpServer"));
+const Troubleshooting = lazy(() => import("./components/content/Troubleshooting"));
+const Changelog = lazy(() => import("./components/content/Changelog"));
+const Performance = lazy(() => import("./components/content/Performance"));
+const NotFound = lazy(() => import("./components/content/NotFound"));
 
 // Route table consumed by vite-react-ssg to know which pages to prerender at
 // build time, and by react-router-dom at runtime for client-side navigation.
