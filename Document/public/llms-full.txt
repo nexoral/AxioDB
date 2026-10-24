@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 22.23.3 | License: MIT | Node.js >= 20.0.0
+Version: 22.25.4 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in

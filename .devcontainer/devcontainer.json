@@ -1,77 +1,200 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-  "name": "Node.js & TypeScript",
-  "hostRequirements": {
-    "cpus": 2, // 2 CPUs are required for the universal image
-    "gpu": true, // GPU is required for the universal image
-    "storage": "20gb", // 20gb is the minimum requirement for the universal image
-    "memory": "4gb" // 4gb is the minimum requirement for the universal image
+  "name": "AxioDB Dev (Node.js + TypeScript + Go)",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    },
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "latest"
+    }
   },
-  // // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-  // "image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye",
-  // Use 'features' to add new features.
-  // "features": {},
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
   "forwardPorts": [
-    27018
+    27018,
+    27019,
+    5173
   ],
+  "otherPortsAttributes": {
+    "onAutoForward": "notify"
+  },
   "postCreateCommand": "./.devcontainer/postCreateCommand.sh",
+  "remoteUser": "root",
   "customizations": {
     "vscode": {
       "extensions": [
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "GitHub.copilot",
-        "GitHub.copilot-chat",
-        "eamodio.gitlens",
-        "mongodb.mongodb-vscode",
-        "ms-azuretools.vscode-docker",
-        "cweijan.vscode-database-client2",
-        "ms-vscode.vscode-typescript-next",
-        "wix.vscode-import-cost",
-        "sburg.vscode-javascript-booster",
-        "visualstudioexptteam.vscodeintellicode",
-        "Orta.vscode-jest",
-        "firsttris.vscode-jest-runner",
-        "DavidAnson.vscode-markdownlint",
-        "rangav.vscode-thunder-client",
-        "redhat.vscode-yaml",
-        "formulahendry.code-runner",
-        "ms-vscode-remote.remote-containers",
-        "christian-kohler.path-intellisense",
+        "bradlc.vscode-tailwindcss",
         "christian-kohler.npm-intellisense",
-        "streetsidesoftware.code-spell-checker"
+        "commandcode.commandcode-vscode",
+        "dbaeumer.vscode-eslint",
+        "docker.docker",
+        "eamodio.gitlens",
+        "github.codespaces",
+        "github.github-vscode-theme",
+        "github.remotehub",
+        "golang.go",
+        "hashicorp.terraform",
+        "mongodb.mongodb-vscode",
+        "ms-azuretools.vscode-containers",
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode-remote.remote-ssh",
+        "ms-vscode-remote.remote-ssh-edit",
+        "ms-vscode-remote.remote-explorer",
+        "ms-vscode-remote.remote-repositories",
+        "ms-vscode-remote.remote-server",
+        "ms-vscode.vscode-speech",
+        "ms-vsliveshare.vsliveshare",
+        "pkief.material-icon-theme",
+        "redhat.vscode-yaml",
+        "tomoki1207.pdf",
+        "vscode-icons-team.vscode-icons"
       ],
       "settings": {
+        "terminal.integrated.enableMultiLinePasteWarning": false,
+        "javascript.updateImportsOnFileMove.enabled": "always",
+        "typescript.updateImportsOnFileMove.enabled": "always",
+        "prettier.enable": true,
+        "prettier.requireConfig": true,
+        "prettier.disableLanguages": [],
+        "git.suggestSmartCommit": false,
+        "git.confirmSync": false,
+        "git.autofetch": true,
+        "git.replaceTagsWhenPull": true,
+        "diffEditor.ignoreTrimWhitespace": false,
         "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
         "editor.tabSize": 2,
-        "files.autoSave": "afterDelay",
-        "files.autoSaveDelay": 1000,
-        "editor.codeActionsOnSave": {
-          "source.fixAll.eslint": true,
-          "source.organizeImports": true
+        "editor.detectIndentation": false,
+        "editor.multiCursorModifier": "ctrlCmd",
+        "editor.accessibilitySupport": "off",
+        "editor.renderWhitespace": "all",
+        "editor.fontFamily": "'Victor Mono', 'JetBrains Mono', monospace",
+        "editor.fontLigatures": true,
+        "editor.fontSize": 18,
+        "editor.fontWeight": "500",
+        "editor.letterSpacing": 1.3,
+        "editor.lineHeight": 24,
+        "editor.cursorBlinking": "smooth",
+        "editor.unicodeHighlight.allowedCharacters": {
+          "️": true
         },
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.suggestSelection": "first",
-        "editor.suggest.insertMode": "replace",
-        "editor.suggest.snippetsPreventQuickSuggestions": false,
-        "editor.suggest.showKeywords": true,
-        "editor.suggest.showStatusBar": true,
-        "editor.suggest.showIcons": true,
-        "editor.suggest.showMethods": true,
-        "editor.suggest.showSnippets": true,
-        "editor.suggest.showWords": true,
-        "editor.suggest.showColors": true,
-        "editor.suggest.showFiles": true,
-        "editor.suggest.showReferences": true,
-        "editor.suggest.showUserSnippets": true,
-        "editor.suggest.showText": true,
-        "editor.suggest.showTypeParameters": true
+        "editor.tokenColorCustomizations": {
+          "[*Light*]": {
+            "textMateRules": [
+              {
+                "scope": "ref.matchtext",
+                "settings": {
+                  "foreground": "#000"
+                }
+              }
+            ]
+          },
+          "[*Dark*]": {
+            "textMateRules": [
+              {
+                "scope": "ref.matchtext",
+                "settings": {
+                  "foreground": "#fff"
+                }
+              }
+            ]
+          },
+          "comments": {
+            "fontStyle": "italic",
+            "foreground": "#ffa07a"
+          },
+          "keywords": {
+            "fontStyle": "bold italic",
+            "foreground": "#ff79c6"
+          },
+          "strings": {
+            "foreground": "#50fa7b"
+          },
+          "functions": {
+            "fontStyle": "bold",
+            "foreground": "#8be9fd"
+          },
+          "variables": {
+            "foreground": "#ffdd57"
+          }
+        },
+        "files.autoSave": "afterDelay",
+        "workbench.iconTheme": "vscode-icons",
+        "workbench.colorTheme": "GitHub Dark Colorblind (Beta)",
+        "workbench.startupEditor": "none",
+        "workbench.sideBar.location": "right",
+        "workbench.settings.applyToAllProfiles": [
+          "github.copilot.chat.scopeSelection"
+        ],
+        "window.customTitleBarVisibility": "auto",
+        "explorer.confirmDelete": false,
+        "update.showReleaseNotes": false,
+        "security.workspace.trust.untrustedFiles": "open",
+        "redhat.telemetry.enabled": true,
+        "database-client.autoSync": true,
+        "docker.extension.enableComposeLanguageServer": false,
+        "docker.commands.attach": "${containerCommand} exec -it ${containerId} ${shellCommand}",
+        "containers.commands.attach": "${containerCommand} exec -it ${containerId} ${shellCommand}",
+        "containers.containerClient": "com.microsoft.visualstudio.containers.docker",
+        "containers.orchestratorClient": "com.microsoft.visualstudio.orchestrators.dockercompose",
+        "gitlens.advanced.messages": {
+          "suppressIntegrationRequestTimedOutWarning": true
+        },
+        "github.copilot.enable": {
+          "*": true,
+          "plaintext": true,
+          "markdown": true,
+          "scminput": true,
+          "javascriptreact": true,
+          "typescript": true,
+          "go": true
+        },
+        "github.copilot.nextEditSuggestions.enabled": true,
+        "github.copilot.chat.scopeSelection": true,
+        "github.copilot.chat.codesearch.enabled": true,
+        "github.copilot.chat.agent.thinkingTool": true,
+        "github.copilot.chat.commitMessageGeneration.instructions": [],
+        "github.copilot.chat.followUps": "always",
+        "[javascript]": {
+          "editor.defaultFormatter": "vscode.typescript-language-features"
+        },
+        "[javascriptreact]": {
+          "editor.defaultFormatter": "vscode.typescript-language-features"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "vscode.typescript-language-features"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "vscode.typescript-language-features"
+        },
+        "[html]": {
+          "editor.defaultFormatter": "vscode.html-language-features"
+        },
+        "[dockerfile]": {
+          "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+        },
+        "[dockercompose]": {
+          "editor.insertSpaces": true,
+          "editor.tabSize": 2,
+          "editor.autoIndent": "advanced",
+          "editor.quickSuggestions": {
+            "other": true,
+            "comments": false,
+            "strings": true
+          },
+          "editor.defaultFormatter": "redhat.vscode-yaml"
+        },
+        "[github-actions-workflow]": {
+          "editor.defaultFormatter": "redhat.vscode-yaml"
+        }
       }
     }
-  },
-  "remoteUser": "root",
-  "otherPortsAttributes": {
-    "onAutoForward": "notify"
   }
 }
