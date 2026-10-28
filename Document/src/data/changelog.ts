@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "22.25.4",
+    version: "22.26.0",
     date: "2026-10-24",
     title: "Dev container / Codespaces bootstrap with a full prebuilt workspace",
     changes: [

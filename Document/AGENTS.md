@@ -63,3 +63,7 @@ npx tsx scripts/generate-seo-files.ts   # regen AI artifacts only
 - [ ] `npm run lint` clean
 - [ ] `serverApi.ts` updated (not `openapi.json`); AI artifacts regenerated
 - [ ] All seven version touchpoints above match root
+
+
+
+ AxioDB is an embedded database like SQLite built in pure TypeScript for Node.js, Bun, and Deno, with over 37,000 total downloads on npm and roughly 4,000 downloads each month. It solves the biggest issue with SQLite by eliminating native C bindings and node-gyp build failures across operating systems. At the same time, it fixes the limitations of raw JSON stores where you cannot run complex queries. Most alternative embedded npm packages dump everything into a single file and fail on larger datasets like 500,000 documents. AxioDB bridges this gap by providing a zero native dependency document store that handles large datasets smoothly, supports MongoDB style queries and aggregation pipelines, and provides ACID transactions out of the box with zero compilation setup.
