@@ -1,11 +1,12 @@
 {
   "name": "axiodb",
-  "version": "22.26.0",
+  "version": "22.27.0",
   "description": "The embedded database for Node.js. Replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, zero native dependencies, and built-in InMemoryCache. No compilation, no platform issues. Perfect for desktop apps, CLI tools, and embedded systems.",
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
   "scripts": {
     "test": "node ./Test/run.js",
+    "benchmark": "node -e \"if (!require('fs').existsSync('./lib/config/DB.js')) require('child_process').execSync('npm run build', { stdio: 'inherit' });\" && node ./benchmark/run.js",
     "build": "tsc",
     "lint": "eslint source/",
     "lint:fix": "eslint source/ --fix"

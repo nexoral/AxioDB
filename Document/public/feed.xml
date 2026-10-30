@@ -5,12 +5,19 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
     <language>en</language>
-    <lastBuildDate>Wed, 28 Oct 2026 17:15:47 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 30 Oct 2026 18:08:45 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v22.26.0 — Dev container / Codespaces bootstrap with a full prebuilt workspace</title>
+      <title>AxioDB v22.27.0 — Performance &amp; scale benchmark suite, sub-ms indexed metrics, storage footprint comparison</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-22.26.0</guid>
+      <guid isPermaLink="false">axiodb-22.27.0</guid>
+      <pubDate>Fri, 30 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Benchmark: added standalone high-scale benchmark suite (benchmark/run.js) measuring WAL-backed ingestion throughput, percentiles (p25, p50, p75, p90, p95, p99), indexed vs unindexed read/update/delete operations, and memory consumption | Benchmark: added automated memory tracking (heapUsed, RSS) and on-disk directory footprint measurement (data vs index overhead) with cross-engine comparisons against SQLite, LowDB, and raw JSON | Benchmark: automated pre-check in package.json to verify lib/ build before execution, with zero-leakage temporary file cleanup</description>
+    </item>
+    <item>
+      <title>AxioDB v22.27.0 — Dev container / Codespaces bootstrap with a full prebuilt workspace</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-22.27.0</guid>
       <pubDate>Sat, 24 Oct 2026 00:00:00 GMT</pubDate>
       <description>Chore: devcontainer rebuilt on the Ubuntu 24.04 base image with Node 24, Go, and Docker features — the postCreate script now installs + builds every surface of the monorepo (core, Document, GUI, Electron, Go CLI) so a fresh Codespace is ready to develop, run, and test immediately | Chore: devcontainer mirrors the local VSCode extension set (25 extensions) and editor settings (formatting, color theme, icon theme, fonts) so Codespaces behave like the host machine</description>
     </item>

@@ -12,7 +12,18 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "22.26.0",
+    version: "22.27.0",
+    date: "2026-10-30",
+    title: "Performance & scale benchmark suite, sub-ms indexed metrics, storage footprint comparison",
+    changes: [
+      "Benchmark: added standalone high-scale benchmark suite (benchmark/run.js) measuring WAL-backed ingestion throughput, percentiles (p25, p50, p75, p90, p95, p99), indexed vs unindexed read/update/delete operations, and memory consumption",
+      "Benchmark: added automated memory tracking (heapUsed, RSS) and on-disk directory footprint measurement (data vs index overhead) with cross-engine comparisons against SQLite, LowDB, and raw JSON",
+      "Benchmark: automated pre-check in package.json to verify lib/ build before execution, with zero-leakage temporary file cleanup",
+      "Docs: added comprehensive Benchmarking & Performance Verification section to README with 1-command verification and ready-to-copy CLI configurations",
+    ],
+  },
+  {
+    version: "22.27.0",
     date: "2026-10-24",
     title: "Dev container / Codespaces bootstrap with a full prebuilt workspace",
     changes: [
