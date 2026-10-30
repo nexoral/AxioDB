@@ -4,6 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { execSync } = require('child_process');
+const DEFAULT_BENCHMARK_DIR = path.resolve(__dirname, './Benchmark_TempData');
+let activeBenchmarkDir = DEFAULT_BENCHMARK_DIR;
 
 // Auto-build if lib is missing
 const libEntry = path.resolve(__dirname, '../lib/config/DB.js');
@@ -42,7 +44,7 @@ function parseArgs() {
     updateQueries: 100,    // Indexed updates
     deleteQueries: 50,     // Indexed deletes
     keepData: false,       // Auto-delete temp data by default
-    dir: path.resolve(__dirname, './Benchmark_TempData')
+    dir: DEFAULT_BENCHMARK_DIR
   };
 
   for (const arg of args) {
@@ -58,6 +60,11 @@ function parseArgs() {
     } else if (arg.startsWith('--unindexed=')) {
       const val = parseInt(arg.split('=')[1], 10);
       if (!isNaN(val) && val > 0) options.unindexedSamples = val;
+    } else if (arg.startsWith('--dir=')) {
+      const customDir = arg.split('=')[1];
+      if (customDir && customDir.trim()) {
+        options.dir = path.resolve(customDir.trim());
+      }
     } else if (arg === '--keep') {
       options.keepData = true;
     } else if (arg === '--help' || arg === '-h') {
@@ -73,6 +80,7 @@ Options:
   --batch=N        Batch chunk size for insertMany (default: 3000)
   --queries=N      Number of random indexed lookups to test (default: 500)
   --unindexed=N    Number of unindexed full-scan operations to sample (default: 25)
+  --dir=PATH       Custom benchmark temp directory (default: ./benchmark/Benchmark_TempData)
   --keep           Keep benchmark database files after run (default: auto-clean)
   --help, -h       Show this help message
 `);
@@ -103,6 +111,16 @@ function bytesToReadable(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function safeRate(count, durationMs) {
+  if (count <= 0 || durationMs <= 0) return 0;
+  return Math.round((count / durationMs) * 1000);
+}
+
+function clampWorkload(requested, available, minimum = 0) {
+  if (available <= 0) return 0;
+  return Math.max(minimum, Math.min(requested, available));
 }
 
 // Calculate directory sizes recursively (Total vs Data-only vs Indexes)
@@ -222,6 +240,7 @@ function generateBatch(startIdx, count) {
 
 async function runBenchmark() {
   const opts = parseArgs();
+  activeBenchmarkDir = opts.dir;
   const initMem = process.memoryUsage();
 
   console.log(`\n${c.bright}${c.cyan}╔═══════════════════════════════════════════════════════════════════╗${c.reset}`);
@@ -246,6 +265,12 @@ async function runBenchmark() {
 
   process.on('SIGINT', () => {
     console.log(`\n${c.yellow}Benchmark interrupted. Cleaning up test data...${c.reset}`);
+    cleanup();
+    process.exit(1);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log(`\n${c.yellow}Benchmark terminated. Cleaning up test data...${c.reset}`);
     cleanup();
     process.exit(1);
   });
@@ -307,7 +332,7 @@ async function runBenchmark() {
   }
 
   const totalIngestTimeMs = nsToMs(process.hrtime.bigint() - ingestStartTime);
-  const overallIngestRate = Math.round((totalInserted / (totalIngestTimeMs / 1000)));
+  const overallIngestRate = safeRate(totalInserted, totalIngestTimeMs);
 
   console.log(`\n  ${c.green}✓ Ingestion Complete: ${totalInserted.toLocaleString()} docs in ${(totalIngestTimeMs / 1000).toFixed(2)}s (${c.bright}${overallIngestRate.toLocaleString()} docs/sec${c.reset}${c.green})${c.reset}`);
 
@@ -319,17 +344,35 @@ async function runBenchmark() {
   storageFootprint = calculateDirSizes(opts.dir);
   console.log(`  ${c.dim}Directory Size:${c.reset} Total: ${bytesToReadable(storageFootprint.totalBytes)} | Data only (no index): ${bytesToReadable(storageFootprint.withoutIndexBytes)} | Indexes: ${bytesToReadable(storageFootprint.indexBytes)}`);
 
+  const readQueryCount = clampWorkload(opts.queries, totalInserted, 1);
+  const unindexedReadSamples = clampWorkload(opts.unindexedSamples, totalInserted, 1);
+  const indexedUpdateCount = clampWorkload(opts.updateQueries, totalInserted, 1);
+  const indexedDeleteCount = clampWorkload(opts.deleteQueries, totalInserted, 0);
+  const remainingAfterIndexedDeletes = Math.max(totalInserted - indexedDeleteCount, 0);
+  const unindexedDeleteCount = clampWorkload(opts.unindexedSamples, remainingAfterIndexedDeletes, 0);
+
+  if (
+    readQueryCount !== opts.queries ||
+    unindexedReadSamples !== opts.unindexedSamples ||
+    indexedUpdateCount !== opts.updateQueries ||
+    indexedDeleteCount !== opts.deleteQueries ||
+    unindexedDeleteCount !== opts.unindexedSamples
+  ) {
+    console.log(`\n  ${c.yellow}⚠ Adjusted benchmark operation counts for current dataset size (${totalInserted.toLocaleString()} docs).${c.reset}`);
+    console.log(`  ${c.dim}Indexed reads:${c.reset} ${readQueryCount} | ${c.dim}Unindexed reads:${c.reset} ${unindexedReadSamples} | ${c.dim}Indexed updates:${c.reset} ${indexedUpdateCount} | ${c.dim}Indexed deletes:${c.reset} ${indexedDeleteCount} | ${c.dim}Unindexed deletes:${c.reset} ${unindexedDeleteCount}`);
+  }
+
   // -------------------------------------------------------------
   // PHASE 2: Read Latency: Indexed vs Unindexed
   // -------------------------------------------------------------
   console.log(`\n${c.bright}${c.blue}[3/6] Testing Read Latency (Indexed vs Unindexed)...${c.reset}`);
 
   // 2A: Indexed Point Reads
-  console.log(`  ${c.dim}• Testing Indexed Point Reads (${opts.queries.toLocaleString()} random exact matches)...${c.reset}`);
+  console.log(`  ${c.dim}• Testing Indexed Point Reads (${readQueryCount.toLocaleString()} random exact matches)...${c.reset}`);
   const indexedReadLatencies = [];
   const readStart = process.hrtime.bigint();
 
-  for (let q = 0; q < opts.queries; q++) {
+  for (let q = 0; q < readQueryCount; q++) {
     const targetId = Math.floor(Math.random() * totalInserted);
     const targetEmail = `user_${targetId}@bench.axiodb.org`;
 
@@ -343,18 +386,18 @@ async function runBenchmark() {
   }
 
   const totalReadTimeMs = nsToMs(process.hrtime.bigint() - readStart);
-  const readQPS = Math.round((opts.queries / (totalReadTimeMs / 1000)));
+  const readQPS = safeRate(readQueryCount, totalReadTimeMs);
   const indexedReadStats = calculatePercentiles(indexedReadLatencies);
 
-  console.log(`  ${c.green}✓ Indexed Reads:${c.reset} ${indexedReadLatencies.length}/${opts.queries} successful (${c.bright}${readQPS.toLocaleString()} QPS${c.reset})`);
+  console.log(`  ${c.green}✓ Indexed Reads:${c.reset} ${indexedReadLatencies.length}/${readQueryCount} successful (${c.bright}${readQPS.toLocaleString()} QPS${c.reset})`);
   printPercentiles(indexedReadStats);
 
   // 2B: Unindexed Reads (Full Collection Scan)
-  console.log(`\n  ${c.dim}• Testing Unindexed Point Reads (${opts.unindexedSamples} full-scan lookups on 'unindexedTag')...${c.reset}`);
+  console.log(`\n  ${c.dim}• Testing Unindexed Point Reads (${unindexedReadSamples} full-scan lookups on 'unindexedTag')...${c.reset}`);
   const unindexedReadLatencies = [];
   const unindexedReadStart = process.hrtime.bigint();
 
-  for (let q = 0; q < opts.unindexedSamples; q++) {
+  for (let q = 0; q < unindexedReadSamples; q++) {
     const targetId = Math.floor(Math.random() * totalInserted);
     const targetTag = `tag_${targetId}`;
 
@@ -368,10 +411,10 @@ async function runBenchmark() {
   }
 
   const totalUnindexedReadTime = nsToMs(process.hrtime.bigint() - unindexedReadStart);
-  const unindexedReadQPS = Math.round((opts.unindexedSamples / (totalUnindexedReadTime / 1000)));
+  const unindexedReadQPS = safeRate(unindexedReadSamples, totalUnindexedReadTime);
   const unindexedReadStats = calculatePercentiles(unindexedReadLatencies);
 
-  console.log(`  ${c.green}✓ Unindexed Reads:${c.reset} ${unindexedReadLatencies.length}/${opts.unindexedSamples} successful (${unindexedReadQPS.toLocaleString()} QPS)`);
+  console.log(`  ${c.green}✓ Unindexed Reads:${c.reset} ${unindexedReadLatencies.length}/${unindexedReadSamples} successful (${unindexedReadQPS.toLocaleString()} QPS)`);
   printPercentiles(unindexedReadStats);
 
   const indexAdvantage = (Number(unindexedReadStats.avg) / Math.max(Number(indexedReadStats.avg), 0.001)).toFixed(1);
@@ -383,10 +426,10 @@ async function runBenchmark() {
   console.log(`\n${c.bright}${c.blue}[4/6] Testing Update Latency (UpdateOne: Indexed vs Unindexed)...${c.reset}`);
 
   // 3A: Indexed Updates
-  console.log(`  ${c.dim}• Testing Indexed UpdateOne (${opts.updateQueries} queries on indexed 'email')...${c.reset}`);
+  console.log(`  ${c.dim}• Testing Indexed UpdateOne (${indexedUpdateCount} queries on indexed 'email')...${c.reset}`);
   const indexedUpdateLatencies = [];
 
-  for (let u = 0; u < opts.updateQueries; u++) {
+  for (let u = 0; u < indexedUpdateCount; u++) {
     const targetId = Math.floor(Math.random() * totalInserted);
     const targetEmail = `user_${targetId}@bench.axiodb.org`;
 
@@ -400,14 +443,14 @@ async function runBenchmark() {
   }
 
   const indexedUpdateStats = calculatePercentiles(indexedUpdateLatencies);
-  console.log(`  ${c.green}✓ Indexed Updates:${c.reset} ${indexedUpdateLatencies.length}/${opts.updateQueries} successful`);
+  console.log(`  ${c.green}✓ Indexed Updates:${c.reset} ${indexedUpdateLatencies.length}/${indexedUpdateCount} successful`);
   printPercentiles(indexedUpdateStats);
 
   // 3B: Unindexed Updates
-  console.log(`\n  ${c.dim}• Testing Unindexed UpdateOne (${opts.unindexedSamples} queries on 'unindexedTag')...${c.reset}`);
+  console.log(`\n  ${c.dim}• Testing Unindexed UpdateOne (${unindexedReadSamples} queries on 'unindexedTag')...${c.reset}`);
   const unindexedUpdateLatencies = [];
 
-  for (let u = 0; u < opts.unindexedSamples; u++) {
+  for (let u = 0; u < unindexedReadSamples; u++) {
     const targetId = Math.floor(Math.random() * totalInserted);
     const targetTag = `tag_${targetId}`;
 
@@ -421,7 +464,7 @@ async function runBenchmark() {
   }
 
   const unindexedUpdateStats = calculatePercentiles(unindexedUpdateLatencies);
-  console.log(`  ${c.green}✓ Unindexed Updates:${c.reset} ${unindexedUpdateLatencies.length}/${opts.unindexedSamples} successful`);
+  console.log(`  ${c.green}✓ Unindexed Updates:${c.reset} ${unindexedUpdateLatencies.length}/${unindexedReadSamples} successful`);
   printPercentiles(unindexedUpdateStats);
 
   // -------------------------------------------------------------
@@ -430,10 +473,10 @@ async function runBenchmark() {
   console.log(`\n${c.bright}${c.blue}[5/6] Testing Delete Latency (deleteOne: Indexed vs Unindexed)...${c.reset}`);
 
   // 4A: Indexed Deletes
-  console.log(`  ${c.dim}• Testing Indexed deleteOne (${opts.deleteQueries} deletions by indexed 'email')...${c.reset}`);
+  console.log(`  ${c.dim}• Testing Indexed deleteOne (${indexedDeleteCount} deletions by indexed 'email')...${c.reset}`);
   const indexedDeleteLatencies = [];
 
-  for (let d = 0; d < opts.deleteQueries; d++) {
+  for (let d = 0; d < indexedDeleteCount; d++) {
     const targetId = totalInserted - 1 - d;
     if (targetId < 0) break;
     const targetEmail = `user_${targetId}@bench.axiodb.org`;
@@ -448,15 +491,15 @@ async function runBenchmark() {
   }
 
   const indexedDeleteStats = calculatePercentiles(indexedDeleteLatencies);
-  console.log(`  ${c.green}✓ Indexed Deletions:${c.reset} ${indexedDeleteLatencies.length}/${opts.deleteQueries} successful`);
+  console.log(`  ${c.green}✓ Indexed Deletions:${c.reset} ${indexedDeleteLatencies.length}/${indexedDeleteCount} successful`);
   printPercentiles(indexedDeleteStats);
 
   // 4B: Unindexed Deletes
-  console.log(`\n  ${c.dim}• Testing Unindexed deleteOne (${opts.unindexedSamples} deletions by 'unindexedTag')...${c.reset}`);
+  console.log(`\n  ${c.dim}• Testing Unindexed deleteOne (${unindexedDeleteCount} deletions by 'unindexedTag')...${c.reset}`);
   const unindexedDeleteLatencies = [];
 
-  for (let d = 0; d < opts.unindexedSamples; d++) {
-    const targetId = totalInserted - 1 - opts.deleteQueries - d;
+  for (let d = 0; d < unindexedDeleteCount; d++) {
+    const targetId = totalInserted - 1 - indexedDeleteCount - d;
     if (targetId < 0) break;
     const targetTag = `tag_${targetId}`;
 
@@ -470,7 +513,7 @@ async function runBenchmark() {
   }
 
   const unindexedDeleteStats = calculatePercentiles(unindexedDeleteLatencies);
-  console.log(`  ${c.green}✓ Unindexed Deletions:${c.reset} ${unindexedDeleteLatencies.length}/${opts.unindexedSamples} successful`);
+  console.log(`  ${c.green}✓ Unindexed Deletions:${c.reset} ${unindexedDeleteLatencies.length}/${unindexedDeleteCount} successful`);
   printPercentiles(unindexedDeleteStats);
 
   // -------------------------------------------------------------
@@ -479,23 +522,32 @@ async function runBenchmark() {
   console.log(`\n${c.bright}${c.blue}[6/6] Testing InMemoryCache & ACID Transaction Integrity...${c.reset}`);
 
   // Cache test
-  const cacheSampleId = Math.floor(Math.random() * (totalInserted - opts.deleteQueries - opts.unindexedSamples - 10));
-  const cacheSampleEmail = `user_${cacheSampleId}@bench.axiodb.org`;
+  let warmStats = calculatePercentiles([]);
+  let cacheSpeedupLabel = 'N/A (insufficient remaining documents)';
+  const remainingForCache = totalInserted - indexedDeleteCount - unindexedDeleteCount;
 
-  const coldStart = process.hrtime.bigint();
-  await collection.query({ email: cacheSampleEmail }).exec();
-  const coldMs = nsToMs(process.hrtime.bigint() - coldStart);
+  if (remainingForCache > 0) {
+    const cacheSampleId = Math.floor(Math.random() * remainingForCache);
+    const cacheSampleEmail = `user_${cacheSampleId}@bench.axiodb.org`;
 
-  const warmLatencies = [];
-  for (let i = 0; i < 100; i++) {
-    const wStart = process.hrtime.bigint();
+    const coldStart = process.hrtime.bigint();
     await collection.query({ email: cacheSampleEmail }).exec();
-    warmLatencies.push(nsToMs(process.hrtime.bigint() - wStart));
-  }
-  const warmStats = calculatePercentiles(warmLatencies);
-  const cacheSpeedup = (Number(coldMs) / Math.max(Number(warmStats.avg), 0.001)).toFixed(1);
+    const coldMs = nsToMs(process.hrtime.bigint() - coldStart);
 
-  console.log(`  ${c.green}✓ Cache Acceleration:${c.reset} Cold: ${coldMs.toFixed(3)} ms → Warm: ${warmStats.avg} ms (${c.bright}${cacheSpeedup}x faster${c.reset})`);
+    const warmLatencies = [];
+    for (let i = 0; i < 100; i++) {
+      const wStart = process.hrtime.bigint();
+      await collection.query({ email: cacheSampleEmail }).exec();
+      warmLatencies.push(nsToMs(process.hrtime.bigint() - wStart));
+    }
+    warmStats = calculatePercentiles(warmLatencies);
+    const cacheSpeedup = (Number(coldMs) / Math.max(Number(warmStats.avg), 0.001)).toFixed(1);
+    cacheSpeedupLabel = `${cacheSpeedup}x faster`;
+
+    console.log(`  ${c.green}✓ Cache Acceleration:${c.reset} Cold: ${coldMs.toFixed(3)} ms → Warm: ${warmStats.avg} ms (${c.bright}${cacheSpeedupLabel}${c.reset})`);
+  } else {
+    console.log(`  ${c.yellow}⚠ Cache Acceleration test skipped:${c.reset} no documents remained after delete phases.`);
+  }
 
   // ACID Atomic Commit Test (1,000 documents)
   console.log(`  ${c.dim}• Testing Atomic Commit (1,000 records in 1 transaction)...${c.reset}`);
@@ -563,7 +615,7 @@ async function runBenchmark() {
   console.log(`  ${c.bright}Unindexed Update (p50):${c.reset}        ${unindexedUpdateStats.p50} ms (p95: ${unindexedUpdateStats.p95}ms)`);
   console.log(`  ${c.bright}Indexed Delete (p50):${c.reset}          ${indexedDeleteStats.p50} ms (p95: ${indexedDeleteStats.p95}ms)`);
   console.log(`  ${c.bright}Unindexed Delete (p50):${c.reset}        ${unindexedDeleteStats.p50} ms (p95: ${unindexedDeleteStats.p95}ms)`);
-  console.log(`  ${c.bright}Cache Acceleration:${c.reset}            ${c.green}${cacheSpeedup}x faster${c.reset} (${warmStats.avg}ms warm cache)`);
+  console.log(`  ${c.bright}Cache Acceleration:${c.reset}            ${cacheSpeedupLabel.includes('x faster') ? `${c.green}${cacheSpeedupLabel}${c.reset}` : cacheSpeedupLabel} (${warmStats.avg}ms warm cache)`);
   console.log(`  ${c.bright}ACID Commit Latency:${c.reset}           ${txCommitMs.toFixed(2)} ms for 1,000 atomic documents`);
   console.log(`  ${c.bright}ACID Rollback Integrity:${c.reset}      ${c.green}100% Consistent (0 data leakage)${c.reset}`);
   console.log(`  ${c.bright}System Available RAM:${c.reset}         ${(os.freemem() / 1e9).toFixed(2)} GB / ${(os.totalmem() / 1e9).toFixed(2)} GB`);
@@ -604,6 +656,6 @@ async function runBenchmark() {
 
 runBenchmark().catch((err) => {
   console.error(`\n${c.red}Benchmark execution encountered an error:${c.reset}`, err);
-  cleanDirectory(path.resolve(__dirname, './Benchmark_TempData'));
+  cleanDirectory(activeBenchmarkDir);
   process.exit(1);
 });
