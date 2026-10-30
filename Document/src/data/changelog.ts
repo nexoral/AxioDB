@@ -12,14 +12,15 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "22.27.0",
-    date: "2026-10-30",
-    title: "Performance & scale benchmark suite, sub-ms indexed metrics, storage footprint comparison",
+    version: "22.27.1",
+    date: "2026-10-31",
+    title: "Performance & scale benchmark suite with dynamic engineering recommendations & storage analysis",
     changes: [
       "Benchmark: added standalone high-scale benchmark suite (benchmark/run.js) measuring WAL-backed ingestion throughput, percentiles (p25, p50, p75, p90, p95, p99), indexed vs unindexed read/update/delete operations, and memory consumption",
+      "Benchmark: added dynamic engineering recommendations engine that evaluates real-time run metrics (index advantage multiplier, targeted mutation speedups, storage footprint overhead, in-memory cache acceleration, and host RAM headroom)",
+      "Benchmark: enhanced CLI argument parser supporting both space-separated and equals-separated parameters (--docs, --batch, --queries, --dir)",
       "Benchmark: added automated memory tracking (heapUsed, RSS) and on-disk directory footprint measurement (data vs index overhead) with cross-engine comparisons against SQLite, LowDB, and raw JSON",
-      "Benchmark: automated pre-check in package.json to verify lib/ build before execution, with zero-leakage temporary file cleanup",
-      "Docs: added comprehensive Benchmarking & Performance Verification section to README with 1-command verification and ready-to-copy CLI configurations",
+      "Docs: updated /cli page download button to direct to GitHub expanded releases view, and added interactive benchmark guide to /performance page and README",
     ],
   },
   {

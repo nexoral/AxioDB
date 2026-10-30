@@ -211,7 +211,7 @@ const CliPage: React.FC = () => {
 
           <div className="flex flex-wrap gap-3">
             <a
-              href="https://github.com/nexoral/AxioDB/releases?q=cli-v&expanded=true"
+              href="https://github.com/nexoral/AxioDB/releases?expanded=true"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-emerald-700 shadow-sm transition-all"
