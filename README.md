@@ -115,6 +115,89 @@ Full per-suite breakdown: [axiodb.in/performance](https://axiodb.in/performance)
 
 Run it yourself with `npm test`.
 
+## ⚡ Benchmarking & Performance Verification
+
+If you are evaluating AxioDB, testing performance for your application, or verifying throughput and ACID rollback guarantees, you can run the built-in benchmark suite on your own machine. 
+
+No configuration or database setup is needed: simply clone the repository, install dependencies, and run:
+
+```bash
+git clone https://github.com/nexoral/AxioDB.git
+cd AxioDB
+npm install
+npm run benchmark
+```
+
+> **Automated Pre-Check:** The benchmark script checks if compiled files exist in `lib/`. If not, it automatically runs `npm run build` before starting. It also handles cleanup automatically, deleting the temporary benchmark directory upon completion or on `Ctrl+C`.
+
+---
+
+### Default Benchmark Configuration
+
+Running `npm run benchmark` without arguments executes the default verification profile:
+* **Scale:** **`15,000` documents** inserted via WAL-backed `insertMany`.
+* **Batch Size:** Chunked into **`3,000` documents** per batch to ensure optimal V8 heap utilization.
+* **Indexed Point Reads:** 500 random lookups on the indexed `email` field (reporting **Min, p25, p50, p75, p90, p95, p99, Max, and Avg** latencies).
+* **Unindexed Scans:** 25 random lookups requiring a full collection scan (calculating the exact **Index Advantage multiplier**).
+* **Updates & Deletions:** Compares indexed vs unindexed `UpdateOne` and `deleteOne` latency.
+* **Cache Acceleration:** Measures cold lookups against warm `InMemoryCache` speedup (typically **~50x+ faster**).
+* **ACID Transactions:** Verifies an atomic batch commit (1,000 documents) and an atomic batch rollback (1,000 documents) confirming **zero data leakage**.
+* **Storage Footprint:** Measures physical directory size on disk (**With Indexes** vs. **Data Only**) and compares against estimated storage for SQLite, LowDB, and raw JSON files.
+
+---
+
+### Command-Line Arguments & Flags
+
+You can customize the benchmark scale, batch chunking, query samples, and cleanup behavior:
+
+| Flag | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `--docs=N` | `number` | `15000` | Total number of documents to insert and index (e.g. `5000`, `50000`, `100000`, `500000`). |
+| `--batch=N` | `number` | `3000` | Chunk size per `insertMany` batch to keep memory lean. |
+| `--queries=N` | `number` | `500` | Number of random indexed point queries to measure for latency percentiles. |
+| `--unindexed=N` | `number` | `25` | Number of unindexed full-scan lookups, updates, and deletes to sample. |
+| `--keep` | `boolean` | `false` | Preserves the temporary benchmark database on disk for inspection instead of auto-deleting. |
+| `--help`, `-h` | `boolean` | — | Displays the help menu with all options and usage examples. |
+
+---
+
+### Ready-to-Copy Benchmark Commands
+
+#### 1. Default Benchmark (15k docs)
+```bash
+npm run benchmark
+```
+
+#### 2. Quick Smoke Test (5,000 docs — fast ~2s run)
+```bash
+npm run benchmark -- --docs=5000 --batch=1000 --queries=100 --unindexed=10
+```
+
+#### 3. Mid-Scale Test (50,000 docs, 5k batches)
+```bash
+npm run benchmark -- --docs=50000 --batch=5000 --queries=500
+```
+
+#### 4. High-Volume Stress Test (100,000 docs, 10k batches)
+```bash
+npm run benchmark -- --docs=100000 --batch=10000 --queries=1000
+```
+
+#### 5. Maximum Capacity Stress Test (500,000 docs)
+```bash
+npm run benchmark -- --docs=500000 --batch=10000 --queries=1000 --unindexed=15
+```
+
+#### 6. Inspect Physical Storage & Indexes on Disk (`--keep`)
+```bash
+# Run benchmark and prevent automatic cleanup of the data directory
+npm run benchmark -- --docs=15000 --keep
+
+# Inspect the created .axiodb document files and indexes/*.jsonl files:
+ls -lh benchmark/Benchmark_TempData/BenchmarkDB/BenchDB/Users
+ls -lh benchmark/Benchmark_TempData/BenchmarkDB/BenchDB/Users/indexes
+```
+
 ## Installation
 
 ### npm — the library
