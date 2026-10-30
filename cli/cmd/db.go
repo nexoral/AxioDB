@@ -84,7 +84,7 @@ var dbExistsCmd = &cobra.Command{
 		fmt.Printf("Database '%s' exists: %v\n", args[0], exists)
 		return nil
 	},
-}
+};
 
 var dbInfoCmd = &cobra.Command{
 	Use:   "info",
