@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import Seo from "../ui/Seo";
+import CodeBlock from "../ui/CodeBlock";
 
 interface BenchmarkRow {
   size: number;
@@ -514,6 +515,149 @@ const Performance: React.FC = () => {
               <p className="text-sm text-gray-600 leading-relaxed">{card.body}</p>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ── Run It Yourself: Standalone Benchmark Suite ────── */}
+      <div className="mb-14 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-850 rounded-[3px] p-6 sm:p-8 text-white border border-gray-800 shadow-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-gray-800">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-500/20 text-accent-300 text-xs font-semibold mb-2 border border-accent-500/30">
+              <Zap className="h-3.5 w-3.5 text-accent-400" />
+              <span>Reproducible Benchmark Suite</span>
+            </div>
+            <h2 className="text-2xl font-extrabold text-white tracking-tight">
+              Run the Benchmark Suite on Your Machine
+            </h2>
+            <p className="text-sm text-gray-400 mt-1 max-w-2xl">
+              Verify throughput, sub-millisecond latencies, and ACID rollback integrity on your own hardware with a single command. Zero manual database setup required.
+            </p>
+          </div>
+        </div>
+
+        {/* 1-Command Quickstart */}
+        <div className="mb-8">
+          <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <Terminal className="h-4 w-4 text-accent-400" />
+            1-Command Quickstart
+          </h3>
+          <CodeBlock
+            code={`git clone https://github.com/nexoral/AxioDB.git\ncd AxioDB\nnpm install\nnpm run benchmark`}
+            language="bash"
+          />
+          <p className="text-xs text-gray-400 mt-2">
+            Automated pre-check: If compiled files in <code className="text-accent-300">lib/</code> are missing, it runs <code className="text-accent-300">npm run build</code> first. Automatically removes all temporary benchmark data on completion.
+          </p>
+        </div>
+
+        {/* Default Profile & Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="bg-gray-800/60 rounded-[3px] p-4 border border-gray-700/60">
+            <h4 className="text-xs font-bold text-accent-400 uppercase tracking-wider mb-2">Default Benchmark Profile</h4>
+            <ul className="text-xs text-gray-300 space-y-1.5">
+              <li>• <strong className="text-white">15,000 Documents</strong> inserted in <strong className="text-white">3,000 document batches</strong></li>
+              <li>• <strong className="text-white">Indexed Point Reads:</strong> 500 queries reporting Min, p25, p50, p75, p90, p95, p99</li>
+              <li>• <strong className="text-white">Unindexed Full Scans:</strong> 25 queries testing full collection traversal</li>
+              <li>• <strong className="text-white">Index Advantage:</strong> Live calculation of indexed speedup multiplier</li>
+            </ul>
+          </div>
+          <div className="bg-gray-800/60 rounded-[3px] p-4 border border-gray-700/60">
+            <h4 className="text-xs font-bold text-accent-400 uppercase tracking-wider mb-2">Engine Verification Checks</h4>
+            <ul className="text-xs text-gray-300 space-y-1.5">
+              <li>• <strong className="text-white">Updates & Deletions:</strong> Indexed vs unindexed UpdateOne and deleteOne</li>
+              <li>• <strong className="text-white">InMemoryCache:</strong> Cold read vs 100 warm queries (~50x+ acceleration)</li>
+              <li>• <strong className="text-white">ACID Rollback:</strong> 1,000 writes staged then rolled back (0 leaked records)</li>
+              <li>• <strong className="text-white">Storage Footprint:</strong> On-disk size vs SQLite, LowDB, and raw JSON</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* CLI Arguments Table */}
+        <div className="mb-8">
+          <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
+            Available CLI Arguments & Flags
+          </h3>
+          <div className="overflow-x-auto rounded-[3px] border border-gray-800 bg-gray-950/60">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-gray-800/80 text-gray-300 font-semibold border-b border-gray-700">
+                <tr>
+                  <th className="py-2.5 px-3 font-mono text-accent-300">Flag</th>
+                  <th className="py-2.5 px-3">Type</th>
+                  <th className="py-2.5 px-3">Default</th>
+                  <th className="py-2.5 px-3">Description</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800 text-gray-300 font-mono">
+                <tr>
+                  <td className="py-2 px-3 text-accent-400 font-bold">--docs=N</td>
+                  <td className="py-2 px-3 text-gray-400">number</td>
+                  <td className="py-2 px-3 text-white">15000</td>
+                  <td className="py-2 px-3 font-sans text-gray-300">Total documents to insert and index (e.g. 5000, 50000, 100000, 500000)</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3 text-accent-400 font-bold">--batch=N</td>
+                  <td className="py-2 px-3 text-gray-400">number</td>
+                  <td className="py-2 px-3 text-white">3000</td>
+                  <td className="py-2 px-3 font-sans text-gray-300">Chunk size per insertMany batch to keep memory lean</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3 text-accent-400 font-bold">--queries=N</td>
+                  <td className="py-2 px-3 text-gray-400">number</td>
+                  <td className="py-2 px-3 text-white">500</td>
+                  <td className="py-2 px-3 font-sans text-gray-300">Number of random indexed lookups to test for percentiles</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3 text-accent-400 font-bold">--unindexed=N</td>
+                  <td className="py-2 px-3 text-gray-400">number</td>
+                  <td className="py-2 px-3 text-white">25</td>
+                  <td className="py-2 px-3 font-sans text-gray-300">Number of unindexed full-scan lookups/updates/deletes to sample</td>
+                </tr>
+                <tr>
+                  <td className="py-2 px-3 text-accent-400 font-bold">--keep</td>
+                  <td className="py-2 px-3 text-gray-400">boolean</td>
+                  <td className="py-2 px-3 text-white">false</td>
+                  <td className="py-2 px-3 font-sans text-gray-300">Preserves test database files on disk for inspection instead of auto-cleaning</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Ready-to-Copy Command Recipes */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
+            Ready-to-Copy Command Combinations
+          </h3>
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs text-gray-400 mb-1 font-semibold">1. Quick Smoke Test (5,000 docs — fast ~2s run):</p>
+              <CodeBlock
+                code="npm run benchmark -- --docs=5000 --batch=1000 --queries=100 --unindexed=10"
+                language="bash"
+              />
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1 font-semibold">2. High-Volume Stress Test (100,000 docs):</p>
+              <CodeBlock
+                code="npm run benchmark -- --docs=100000 --batch=10000 --queries=1000"
+                language="bash"
+              />
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1 font-semibold">3. Maximum Capacity Scale Test (500,000 docs):</p>
+              <CodeBlock
+                code="npm run benchmark -- --docs=500000 --batch=10000 --queries=1000 --unindexed=15"
+                language="bash"
+              />
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 mb-1 font-semibold">4. Inspect Physical Files and Index JSONL on Disk (--keep):</p>
+              <CodeBlock
+                code={`npm run benchmark -- --docs=15000 --keep\nls -lh benchmark/Benchmark_TempData/BenchmarkDB/BenchDB/Users\nls -lh benchmark/Benchmark_TempData/BenchmarkDB/BenchDB/Users/indexes`}
+                language="bash"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
