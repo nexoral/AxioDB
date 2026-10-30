@@ -75,12 +75,14 @@ html {
 }
 
 /* Advanced animations */
-/* The hero heading is the page's LCP element. Fading it from opacity:0 delays
-   when it counts as painted (LCP). Starting from a near-visible 0.4 keeps the
-   entrance effect while letting the heading paint immediately. */
+/* The hero heading + description are the page's LCP element. Any opacity < 1
+   during the entrance animation defers when the browser counts them as painted,
+   which on mobile (4x CPU throttle, real network) pushes LCP to interactive. So
+   the hero stays fully opaque and only slides up slightly — the entrance is
+   preserved without hiding the LCP text behind a fade. */
 @keyframes fade-in {
   from {
-    opacity: 0.4;
+    opacity: 1;
     transform: translateY(12px);
   }
   to {
@@ -424,15 +426,18 @@ html {
   animation: gradient-flow 8s ease-in-out infinite;
 }
 
+/* Composited pulse (transform + opacity only): animating box-shadow forces a
+   paint every frame (flagged by Lighthouse as a non-composited animation), so
+   the "NEW" badge subtlely scales/fades instead of painting a spreading ring. */
 @keyframes pulse-ring {
-  0% {
-    box-shadow: 0 0 0 0 rgba(95, 160, 78, 0.45);
-  }
-  70% {
-    box-shadow: 0 0 0 14px rgba(95, 160, 78, 0);
-  }
+  0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(95, 160, 78, 0);
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.6;
   }
 }
 

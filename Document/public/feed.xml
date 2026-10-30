@@ -24,7 +24,14 @@
     <item>
       <title>AxioDB v22.24.4 — CLI serve full enables GUI dashboard</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-22.24.4</guid>
+      <guid isPermaLink="false">axiodb-22.23.3</guid>
+      <pubDate>Thu, 22 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Performance: the header/footer/favicon logo no longer loads the 1022×1022 / 840 KB `AXioDB.png` on every page — a dedicated 64px `logo.png` (WebP + PNG fallback via `&lt;picture&gt;`, 2.8 KB / 10.8 KB) now serves the 28px brand mark with identical artwork, cutting per-page image bytes by ~830 KB | Performance: fixed cumulative layout shift (CLS) on the home page — the 18 shield/CodeQL/GitHub badge images now reserve explicit width/height, so the hero badge strip no longer reflows as each SVG loads and pushes the section below it down (CLS ~0.15 → ~0.001, and 0 on mobile) | Performance: improved LCP — the hero entrance previously faded from `opacity: 0`, which kept the page's largest contentful element (the headline) unpainted while it animated; it now starts at `opacity: 0.4`, so the heading paints immediately and desktop LCP dropped from ~2.7 s to ~0.45 s</description>
+    </item>
+    <item>
+      <title>AxioDB v22.22.2 — CLI serve full enables GUI dashboard</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-22.22.2</guid>
       <pubDate>Tue, 29 Sep 2026 00:00:00 GMT</pubDate>
       <description>Changed: `axiodb serve full` now starts with GUI enabled (Dashboard at http://localhost:27018), matching the intent of a full-stack serve mode | Changed: other serve modes (http, tcp, tcp-auth) remain unchanged</description>
     </item>
