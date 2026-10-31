@@ -160,7 +160,7 @@ AxioDB/
 ├── Docker/                    # Dockerfile 27018/27019/27020 + mcpServer.js 43 tools
 ├── GUI/                       # Vite React GUI
 ├── cli/                       # Go CLI 12 platforms
-└── package.json               # 22.27.1
+└── package.json               # 22.28.0
 ```
 
 ## Coding Standards
