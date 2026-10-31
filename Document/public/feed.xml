@@ -5,12 +5,12 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
     <language>en</language>
-    <lastBuildDate>Fri, 30 Oct 2026 18:44:49 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 31 Oct 2026 07:51:32 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v22.27.1 — Performance &amp; scale benchmark suite with dynamic engineering recommendations &amp; storage analysis</title>
+      <title>AxioDB v22.28.0 — Performance &amp; scale benchmark suite with dynamic engineering recommendations &amp; storage analysis</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-22.27.1</guid>
+      <guid isPermaLink="false">axiodb-22.28.0</guid>
       <pubDate>Sat, 31 Oct 2026 00:00:00 GMT</pubDate>
       <description>Benchmark: added standalone high-scale benchmark suite (benchmark/run.js) measuring WAL-backed ingestion throughput, percentiles (p25, p50, p75, p90, p95, p99), indexed vs unindexed read/update/delete operations, and memory consumption | Benchmark: added dynamic engineering recommendations engine that evaluates real-time run metrics (index advantage multiplier, targeted mutation speedups, storage footprint overhead, in-memory cache acceleration, and host RAM headroom) | Benchmark: enhanced CLI argument parser supporting both space-separated and equals-separated parameters (--docs, --batch, --queries, --dir)</description>
     </item>

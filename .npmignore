@@ -42,6 +42,7 @@ test.js
 bun-test.mjs
 *.test.js
 *.spec.js
+benchmark/
 
 # Source maps (dev-only, not needed at runtime)
 *.js.map
@@ -70,6 +71,7 @@ AxioDB/
 opencode.json
 .graphifyignore
 graphify-out/
+funding.json
 
 # Dependencies
 node_modules/
