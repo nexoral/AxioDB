@@ -27,6 +27,7 @@ docker-compose.yml
 AGENTS.md
 CLAUDE.md
 GEMINI.md
+skill/
 
 # Documentation (covered by README.md and official docs site)
 Document/

@@ -93,7 +93,6 @@ class MyTests extends TestRunner {
 * `Document/public/feed.xml` → RSS feed title + guid
 * `Docker/README.md` → shield badge version
 * `skill/SKILL.md` → version tag
-
 Regen AI artifacts: `cd Document && npx tsx scripts/generate-seo-files.ts`
 
 ## Documentation — same commit as code

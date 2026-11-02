@@ -12,6 +12,16 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.28.1",
+    date: "2026-11-02",
+    title: "AxioDB Agent Skill ecosystem and packaging optimizations",
+    changes: [
+      "Skill: introduced complete progressive-disclosure agent skill (skill/) with technical runbooks, architecture specifications, and surface boundary definitions (MCP Docker-only)",
+      "Scripts: added targeted operational scripts for component installation (install_axiodb.sh), multi-profile Docker orchestration (run_docker.sh), and system diagnostics (diagnose.sh)",
+      "Sync: integrated skill version tracking into versionController.sh and added skill/ to .npmignore",
+    ],
+  },
+  {
     version: "22.28.0",
     date: "2026-10-31",
     title: "Performance & scale benchmark suite with dynamic engineering recommendations & storage analysis",
