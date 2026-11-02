@@ -19,8 +19,8 @@ const Docker: React.FC = () => {
     <>
     <div className="space-y-12">
       <Seo
-        title="Docker Deployment | AxioDB Documentation"
-        description="Run AxioDB in Docker - simple docker run quick start, then advanced env vars, volumes, and Docker Compose configuration."
+        title="Docker Deployment - Containerized AxioDB & MCP Server | AxioDB"
+        description="Deploy AxioDB via Docker: HTTP REST API (27018), TCP remote access (27019), and containerized Model Context Protocol (MCP) server (27020) for AI agents."
         path="/docker"
         ogType="article"
       />

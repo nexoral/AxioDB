@@ -21,8 +21,8 @@ console.log("Collection created:", collection);
     <>
     <section className="pt-12 scroll-mt-20">
       <Seo
-        title="Create Collection in AxioDB"
-        description="Create collections in AxioDB with a single call - schema-less by default."
+        title="Create Collection in AxioDB - Schema-less Document Store"
+        description="Create collections in AxioDB with a single call — dynamic schema-less JSON storage ideal for TypeScript and AI agent workflows."
         path="/create-collection"
         ogType="article"
       />

@@ -19,8 +19,8 @@ const Features: React.FC = () => {
     <>
     <section id="features" className="pt-12 scroll-mt-20">
       <Seo
-        title="AxioDB Features - Production-Ready NoSQL Database for Node.js"
-        description="Explore AxioDB's caching, indexing, transactions, and GUI features for embedded Node.js applications."
+        title="AxioDB Features - Embedded NoSQL Database for TypeScript & AI Agents"
+        description="Explore AxioDB's features: zero-native TypeScript NoSQL engine, in-memory caching, ACID transactions, dual-write indexing, and agent state storage across Node.js, Bun & Deno."
         path="/features"
         ogType="article"
       />

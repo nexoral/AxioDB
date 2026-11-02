@@ -2,7 +2,8 @@
   <img src="https://axiodb.in/AXioDB.png" alt="AxioDB Logo" width="120" height="120" />
 </p>
 
-<h1 align="center">AxioDB: The Embedded Database for Node.js</h1>
+<h1 align="center">Embedded NoSQL Database for TypeScript & AI Agents</h1>
+<p align="center"><b>Zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno.</b></p>
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
 [![npm downloads total](https://img.shields.io/npm/dt/axiodb.svg)](https://www.npmjs.com/package/axiodb)
@@ -23,9 +24,6 @@
 [![GitHub Forks](https://img.shields.io/github/forks/nexoral/AxioDB?style=social)](https://github.com/nexoral/AxioDB/forks)
 [![Contributors](https://img.shields.io/github/contributors/nexoral/AxioDB)](https://github.com/nexoral/AxioDB/graphs/contributors)
 [![Last Commit](https://img.shields.io/github/last-commit/nexoral/AxioDB)](https://github.com/nexoral/AxioDB/commits/main)
-
-[![Push to Registry](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml/badge.svg?branch=main)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
-[![CodeQL](https://github.com/nexoral/AxioDB/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/nexoral/AxioDB/actions/workflows/github-code-scanning/codeql)
 
 👉 **[Official Documentation — axiodb.in](https://axiodb.in/)**: full guides, API reference, and examples. This README is a quick start.
 
@@ -48,19 +46,33 @@ console.log(data.documents);
 
 No server to run, no `node-gyp`, no `electron-rebuild`. Requires Node.js ≥20 (also verified on Bun v1.4.0 and Deno v2.9.6).
 
+### 🤖 AI Agent Skill
+
+Building with Claude Code, Cursor, Copilot, Antigravity, or Windsurf? Install the official AxioDB skill so your AI agent generates verified query syntax, accurate transaction patterns, and avoids hallucinated APIs:
+
+```bash
+npx skills add nexoral/AxioDB --skill skill
+```
+
 ## Why AxioDB
 
-**The problem.** `better-sqlite3` needs compiled binaries and an `electron-rebuild` on every Electron update. Plain JSON files have no query layer, no cache, and no indexes. NeDB has been unmaintained since 2016.
-
-**The solution.** A file-based document database with MongoDB-style queries and real ACID transactions, running on plain JavaScript objects — pure JS, so it installs on any platform Node.js runs on.
+* 🧠 **Native JSON for AI Agents & Modern Apps:** AI agents (Claude Code, Cursor, LangChain, custom autonomous loops) generate dynamic, unstructured JSON — chat history, tool execution results, scratchpads, and structured session state. SQLite forces rigid tables and migrations onto dynamic agent data, while raw JSON files risk corruption on concurrent writes. AxioDB provides native document storage, indexing, and MongoDB-style querying without schema friction.
+* ⚡ **Zero Native Dependencies:** Pure JavaScript/TypeScript. No `node-gyp`, no C++ build toolchains, and no ABI version mismatch crashes across Node.js, Bun, Deno, or Electron. It installs in seconds on any environment, container, or edge runner.
+* 🛡️ **ACID Transactions & Crash Resilience:** Write-Ahead Logging (WAL), savepoints, atomic temp-file renames, and automatic crash recovery (`Transaction.recoverTransactions()`) protect against data corruption even during unexpected crashes.
+* 🚀 **In-Memory Cache & Dual-Write Indexes:** Instant sub-millisecond point lookups via an in-memory cache with randomized TTL jitter to prevent cache stampedes, backed by durable disk-based secondary indexes.
+* 🤖 **Built for Autonomous AI Workflows:** Ships with an official AI Agent Skill (`npx skills add nexoral/AxioDB --skill skill`) and includes an optional Docker-hosted Model Context Protocol (MCP) server with 43 tools for seamless agent integration.
 
 ## When to use it
 
-**Great for** Electron apps, CLI tools, embedded and local-first software, and rapid prototyping.
+**Great for:**
+* **AI Agent Memory & State Stores** — Persist conversation logs, tool execution traces, in-flight agent state, and structured task queues locally without spinning up a cloud database or wrestling with SQL migrations.
+* **Local-First & Desktop Applications** — Electron apps, desktop software, and local-first tools that need reliable embedded persistence without `node-gyp` or native rebuild failures.
+* **CLI Tools & Developer Utilities** — Standalone command-line tools that need structured, indexed queryable storage in pure JS.
+* **Edge & Microservices Prototyping** — Run seamlessly on Node.js, Bun, and Deno with identical behavior and zero environment lock-in.
 
-**Sweet spot** 10K–500K documents in a local application that wants a real database without a database server.
+**Sweet spot:** 10K–500K documents in an embedded, local, or agentic workflow that wants a real database without a database server.
 
-**Not for** datasets beyond ~500K documents, hundreds of concurrent users, JOINs, or replication/sharding — use PostgreSQL or MongoDB there. Measured limits, including per-document disk overhead and scan costs: [axiodb.in/limitations](https://axiodb.in/limitations).
+**Not for:** Datasets beyond ~500K documents, hundreds of concurrent users, JOINs, or replication/sharding — use PostgreSQL or MongoDB there. Measured limits, including per-document disk overhead and scan costs: [axiodb.in/limitations](https://axiodb.in/limitations).
 
 ## Features
 
@@ -206,6 +218,12 @@ ls -lh benchmark/Benchmark_TempData/BenchmarkDB/BenchDB/Users/indexes
 npm install axiodb
 ```
 
+### AI Agent Skill — for AI coding assistants
+
+```bash
+npx skills add nexoral/AxioDB --skill skill
+```
+
 ### CLI and Desktop GUI — system-wide
 
 AxioDB ships a Go CLI and an Electron desktop app for Linux, macOS, and Windows. The installer shows a menu when run interactively — **1)** CLI, **2)** GUI, **3)** both — and defaults to CLI when piped.
@@ -304,6 +322,7 @@ Ports are fixed at `27018` (HTTP) and `27019` (TCP). The optional password seeds
 | [Docker](https://axiodb.in/docker) | Image and environment variables |
 | [Security](https://axiodb.in/security) | RBAC roles, password policy, rate limits |
 | [MCP server](https://axiodb.in/mcp-server) | AI agent integration |
+| [Agent Skill](https://axiodb.in/.well-known/agent-skills/axiodb/SKILL.md) | AI agent progressive disclosure reference & runbooks |
 | [Limitations](https://axiodb.in/limitations) | Scope and measured limits |
 | [Comparison](https://axiodb.in/comparison) | Against SQLite, JSON files, lowdb, nedb, better-sqlite3 |
 

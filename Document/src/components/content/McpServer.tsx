@@ -114,8 +114,8 @@ const McpServer: React.FC = () => {
     <>
     <div className="space-y-12">
       <Seo
-        title="MCP Server | AxioDB Documentation"
-        description="Let AI agents (Claude, and any MCP-compatible client) talk to your AxioDB instance directly - 43 tools, real login, and the exact same RBAC as the web GUI."
+        title="MCP Server - Model Context Protocol for AI Agents | AxioDB"
+        description="Connect AI agents (Claude, Cursor, Windsurf) directly to AxioDB via Model Context Protocol (MCP) — 43 tools, structured JSON persistence, and RBAC authentication."
         path="/mcp-server"
         ogType="article"
       />
