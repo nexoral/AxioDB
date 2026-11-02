@@ -24,9 +24,6 @@
 [![Contributors](https://img.shields.io/github/contributors/nexoral/AxioDB)](https://github.com/nexoral/AxioDB/graphs/contributors)
 [![Last Commit](https://img.shields.io/github/last-commit/nexoral/AxioDB)](https://github.com/nexoral/AxioDB/commits/main)
 
-[![Push to Registry](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml/badge.svg?branch=main)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
-[![CodeQL](https://github.com/nexoral/AxioDB/actions/workflows/github-code-scanning/codeql/badge.svg?branch=main)](https://github.com/nexoral/AxioDB/actions/workflows/github-code-scanning/codeql)
-
 👉 **[Official Documentation — axiodb.in](https://axiodb.in/)**: full guides, API reference, and examples. This README is a quick start.
 
 ## Quick start
@@ -47,6 +44,14 @@ console.log(data.documents);
 ```
 
 No server to run, no `node-gyp`, no `electron-rebuild`. Requires Node.js ≥20 (also verified on Bun v1.4.0 and Deno v2.9.6).
+
+### 🤖 AI Agent Skill
+
+Building with Claude Code, Cursor, Copilot, Antigravity, or Windsurf? Install the official AxioDB skill so your AI agent generates verified query syntax, accurate transaction patterns, and avoids hallucinated APIs:
+
+```bash
+npx skills add nexoral/AxioDB --skill skill
+```
 
 ## Why AxioDB
 
@@ -206,6 +211,12 @@ ls -lh benchmark/Benchmark_TempData/BenchmarkDB/BenchDB/Users/indexes
 npm install axiodb
 ```
 
+### AI Agent Skill — for AI coding assistants
+
+```bash
+npx skills add nexoral/AxioDB --skill skill
+```
+
 ### CLI and Desktop GUI — system-wide
 
 AxioDB ships a Go CLI and an Electron desktop app for Linux, macOS, and Windows. The installer shows a menu when run interactively — **1)** CLI, **2)** GUI, **3)** both — and defaults to CLI when piped.
@@ -304,6 +315,7 @@ Ports are fixed at `27018` (HTTP) and `27019` (TCP). The optional password seeds
 | [Docker](https://axiodb.in/docker) | Image and environment variables |
 | [Security](https://axiodb.in/security) | RBAC roles, password policy, rate limits |
 | [MCP server](https://axiodb.in/mcp-server) | AI agent integration |
+| [Agent Skill](https://axiodb.in/.well-known/agent-skills/axiodb/SKILL.md) | AI agent progressive disclosure reference & runbooks |
 | [Limitations](https://axiodb.in/limitations) | Scope and measured limits |
 | [Comparison](https://axiodb.in/comparison) | Against SQLite, JSON files, lowdb, nedb, better-sqlite3 |
 
