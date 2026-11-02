@@ -206,6 +206,24 @@ const Introduction: React.FC = () => {
   const [monthlyDownloads, setMonthlyDownloads] = useState<number | null>(null);
   const [isLoadingDownloads, setIsLoadingDownloads] = useState(true);
   const [skillCopied, setSkillCopied] = useState(false);
+  const [commandCopied, setCommandCopied] = useState(false);
+
+  const copyCommand = async (cmd: string) => {
+    try {
+      await navigator.clipboard.writeText(cmd);
+      setCommandCopied(true);
+      setTimeout(() => setCommandCopied(false), 2000);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = cmd;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setCommandCopied(true);
+      setTimeout(() => setCommandCopied(false), 2000);
+    }
+  };
 
   // Scroll-triggered reveal state for each below-the-fold section of the
   // page (see useScrollReveal). The hero itself animates immediately on
@@ -219,6 +237,7 @@ const Introduction: React.FC = () => {
   const terminalReveal = useScrollReveal<HTMLDivElement>();
   const mcpBannerReveal = useScrollReveal<HTMLAnchorElement>();
   const skillBannerReveal = useScrollReveal<HTMLDivElement>();
+  const skillPackageBannerReveal = useScrollReveal<HTMLDivElement>();
   const cliBannerReveal = useScrollReveal<HTMLAnchorElement>();
   const desktopGuiBannerReveal = useScrollReveal<HTMLAnchorElement>();
   const cloudBannerReveal = useScrollReveal<HTMLDivElement>();
@@ -602,19 +621,12 @@ const Introduction: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={async () => {
-                    const prompt = `Fetch and save the AxioDB Agent Skill from this URL:
-
-${window.location.origin}/.well-known/agent-skills/axiodb/SKILL.md
-
-Read that skill & save it for you & for all available AI Agents in this machine.
-
-Save it as your reference for all AxioDB tasks. This skill contains the complete API reference for the embedded library and TCP client, correct syntax for queries/updates/transactions/aggregation, common mistakes to avoid, and implementation patterns. Always consult this skill before writing AxioDB code.`;
+                    const prompt = `Fetch and save the AxioDB Agent Skill from this URL:\n\n${window.location.origin}/.well-known/agent-skills/axiodb/SKILL.md\n\nRead that skill & save it for you & for all available AI Agents in this machine.\n\nSave it as your reference for all AxioDB tasks. This skill contains the complete API reference for the embedded library and TCP client, correct syntax for queries/updates/transactions/aggregation, common mistakes to avoid, and implementation patterns. Always consult this skill before writing AxioDB code.`;
                     try {
                       await navigator.clipboard.writeText(prompt);
                       setSkillCopied(true);
                       setTimeout(() => setSkillCopied(false), 2000);
                     } catch {
-                      // fallback for non-HTTPS
                       const textarea = document.createElement("textarea");
                       textarea.value = prompt;
                       document.body.appendChild(textarea);
@@ -730,6 +742,57 @@ Save it as your reference for all AxioDB tasks. This skill contains the complete
               <ArrowRight className="h-6 w-6 text-indigo-600 group-hover:translate-x-1 transition-transform duration-300" />
             </div>
           </a>
+
+          {/* New Feature Banner: Agent Skill Package */}
+          <div
+            ref={skillPackageBannerReveal.ref}
+            className={`group flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-sky-50 px-6 py-5 rounded-[3px] border-2 border-sky-200 shadow-md hover:shadow-sm transition-all duration-300 mb-8 reveal-on-scroll ${skillPackageBannerReveal.isVisible ? "is-visible" : ""}`}
+          >
+            <div className="flex items-start gap-4 flex-1">
+              <div className="flex items-center justify-center w-12 h-12 bg-sky-600 rounded-[3px] shadow-sm group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                <Terminal className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="text-xs bg-sky-600 text-white px-2.5 py-1 rounded-full font-bold shadow-md animate-pulse-ring">
+                    NEW
+                  </span>
+                  <span className="text-lg font-black text-sky-800">
+                    AxioDB Agent Skill Package
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600">
+                  Progressive-disclosure skill package for AI coding agents — 100% verified query syntax, zero context bloat, and automated operational scripts.
+                </p>
+              </div>
+            </div>
+
+            {/* Code Block Command */}
+            <div className="flex items-center justify-between gap-3 bg-gray-900 px-4 py-2.5 rounded-[3px] font-mono text-xs text-white border border-gray-800 w-full lg:w-auto flex-shrink-0">
+              <div className="flex items-center gap-2 overflow-x-auto py-0.5">
+                <span className="text-gray-500 select-none">$</span>
+                <span className="text-sky-300 font-medium select-all">npx skills add nexoral/AxioDB --skill skill</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyCommand("npx skills add nexoral/AxioDB --skill skill")}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium transition-colors border border-gray-700 flex-shrink-0"
+                title="Copy command"
+              >
+                {commandCopied ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    <span className="text-emerald-400">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5 text-gray-400" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
           <div className="mb-8">
             {/* ACID Compliance Banner */}
             <div className="flex items-center justify-center gap-3 bg-orange-50 px-6 py-4 rounded-[3px] border-2 border-amber-200 shadow-md mb-6">

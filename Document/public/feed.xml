@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
     <language>en</language>
-    <lastBuildDate>Mon, 02 Nov 2026 16:09:07 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 02 Nov 2026 18:29:32 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v22.28.1 — AxioDB Agent Skill ecosystem and packaging optimizations</title>
