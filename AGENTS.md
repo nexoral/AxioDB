@@ -21,6 +21,7 @@ Test/
 Docker/          # Dockerfile, MCP config
 Document/        # Vite docs site (port 5173), SEO scripts, AI artifacts
 cli/             # CLI commands
+skill/           # Agent skill, runbooks, references, scripts
 ```
 
 ## Constraints — never violate
@@ -75,7 +76,7 @@ class MyTests extends TestRunner {
 }
 ```
 
-## Version sync (13 places — all must match)
+## Version sync (15 places — all must match)
 
 * `package.json` → `"version"`
 * `package-lock.json` → auto via `npm install`
@@ -91,6 +92,7 @@ class MyTests extends TestRunner {
 * `Document/index.html` → JSON-LD `softwareVersion`
 * `Document/public/feed.xml` → RSS feed title + guid
 * `Docker/README.md` → shield badge version
+* `skill/SKILL.md` → version tag
 
 Regen AI artifacts: `cd Document && npx tsx scripts/generate-seo-files.ts`
 
@@ -144,7 +146,7 @@ Do NOT ask for:
 - [ ] `npm run lint` passes
 - [ ] Docs updated (README, Document, Dockerfile, JSDoc)
 - [ ] Changelog if major/breaking
-- [ ] AI artifacts updated + regenerated, version synced (13 places)
+- [ ] AI artifacts updated + regenerated, version synced (15 places)
 - [ ] No `any`, SOLID+DRY, patterns (singleton/dual-write/TTL) followed
 - [ ] Security validated
 - [ ] No perf regressions
