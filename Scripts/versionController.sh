@@ -111,6 +111,15 @@ sync_docker() {
   fi
 }
 
+sync_skill() {
+  local NEW_VERSION="$1"
+  if [ -f "skill/SKILL.md" ]; then
+    sed -i "s/(version [0-9]\+\.[0-9]\+\.[0-9]\+)/(version ${NEW_VERSION})/g" skill/SKILL.md
+    sed -i "s/(v[0-9]\+\.[0-9]\+\.[0-9]\+)/(v${NEW_VERSION})/g" skill/SKILL.md
+    echo -e "  ${GREEN}Updated${NC} skill/SKILL.md"
+  fi
+}
+
 sync_electron_version_label() {
   local NEW_VERSION="$1"
   # Match any existing version, not just CURRENT_VERSION — the label drifted to
@@ -147,7 +156,7 @@ sync_version() {
   # Build the final list of targets to sync
   local targets=()
   if [ ${#SELECTED_TARGETS[@]} -eq 0 ]; then
-    targets=(root cli electron gui document docker)
+    targets=(root cli electron gui document docker skill)
   else
     targets=("${SELECTED_TARGETS[@]}")
   fi
@@ -163,6 +172,7 @@ sync_version() {
       gui)     sync_gui "${NEW_VERSION}";      ran_any=true ;;
       document) sync_document "${NEW_VERSION}"; ran_any=true ;;
       docker)  sync_docker "${NEW_VERSION}";   ran_any=true ;;
+      skill)   sync_skill "${NEW_VERSION}";    ran_any=true ;;
       all)     ran_all=true;                   ran_any=true ;;
       *)       echo -e "  ${YELLOW}Unknown target: $target (skipped)${NC}" ;;
     esac
@@ -182,6 +192,7 @@ sync_version() {
     sync_gui "${NEW_VERSION}"
     sync_document "${NEW_VERSION}"
     sync_docker "${NEW_VERSION}"
+    sync_skill "${NEW_VERSION}"
     ran_all=true
   fi
 
@@ -229,6 +240,7 @@ select_targets() {
     "4) Web GUI (GUI/package.json)"
     "5) Document site (package.json + llms.txt + llms-full.txt + index.html + changelog.ts + Footer.tsx)"
     "6) Docker (Docker/README.md version badge)"
+    "7) Skill (skill/SKILL.md)"
   )
 
   printf '  %s\n' "${labels[@]}"
@@ -265,6 +277,7 @@ select_targets() {
       4) SELECTED_TARGETS+=("gui") ;;
       5) SELECTED_TARGETS+=("document") ;;
       6) SELECTED_TARGETS+=("docker") ;;
+      7) SELECTED_TARGETS+=("skill") ;;
       *) echo -e "  ${YELLOW}Unknown option: $part (ignored)${NC}" ;;
     esac
   done

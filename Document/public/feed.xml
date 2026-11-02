@@ -5,8 +5,15 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
     <language>en</language>
-    <lastBuildDate>Sat, 31 Oct 2026 07:51:32 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 02 Nov 2026 18:29:32 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AxioDB v22.28.1 — AxioDB Agent Skill ecosystem and packaging optimizations</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-22.28.1</guid>
+      <pubDate>Mon, 02 Nov 2026 00:00:00 GMT</pubDate>
+      <description>Skill: introduced complete progressive-disclosure agent skill (skill/) with technical runbooks, architecture specifications, and surface boundary definitions (MCP Docker-only) | Scripts: added targeted operational scripts for component installation (install_axiodb.sh), multi-profile Docker orchestration (run_docker.sh), and system diagnostics (diagnose.sh) | Sync: integrated skill version tracking into versionController.sh and added skill/ to .npmignore</description>
+    </item>
     <item>
       <title>AxioDB v22.28.0 — Performance &amp; scale benchmark suite with dynamic engineering recommendations &amp; storage analysis</title>
       <link>https://axiodb.in/changelog</link>
