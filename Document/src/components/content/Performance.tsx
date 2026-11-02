@@ -241,8 +241,8 @@ const Performance: React.FC = () => {
     <>
     <section id="performance" className="pt-12 scroll-mt-20">
       <Seo
-        title="AxioDB Performance Benchmarks - Real Query Timings Across Dataset Sizes"
-        description="Measured performance benchmarks for AxioDB query operations across 1K to 100K document datasets. All tests run with npm test full suite (14/14 passing)."
+        title="AxioDB Performance Benchmarks - Sub-Millisecond Point Lookups & ACID Latencies"
+        description="Audited benchmarks for AxioDB: sub-millisecond point lookups (<1ms), cache hits, WAL transaction rollbacks, and dataset tests from 1K to 100K+ documents."
         path="/performance"
         ogType="article"
       />

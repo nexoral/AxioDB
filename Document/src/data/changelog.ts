@@ -12,6 +12,18 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.28.2",
+    date: "2026-11-03",
+    title: "Brand repositioning for TypeScript & AI Agents and documentation architecture refinements",
+    changes: [
+      "Positioning: re-aligned brand identity to 'Embedded NoSQL Database for TypeScript & AI Agents' with a clear Why • When • How value proposition",
+      "Homepage: streamlined documentation landing page by removing dense benchmark grids in favor of a verified performance callout linking to /performance",
+      "Hero: added interactive AI agent state persistence demo tab with simplified code navigation (Quick start, AI agent state, Insert, Query, Transaction, Docker)",
+      "Comparison: modernized competitor evaluation across LowDB, NeDB, and SQLite focusing on concurrency safety, ACID recovery, and zero compilation",
+      "Metadata: updated package keywords, SEO tags, and AI agent artifacts (llms.txt, agent skills)",
+    ],
+  },
+  {
     version: "22.28.1",
     date: "2026-11-02",
     title: "AxioDB Agent Skill ecosystem and packaging optimizations",

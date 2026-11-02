@@ -1,9 +1,9 @@
 # AxioDB Docker Image
 
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
-[![AxioDB](https://img.shields.io/badge/AxioDB-22.28.1-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
+[![AxioDB](https://img.shields.io/badge/AxioDB-22.28.2-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
 
-This Docker image provides the embedded database for Node.js — replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, and zero native dependencies. It includes a REST API server, TCP remote access (AxioDBCloud), web GUI dashboard, and an optional MCP server for AI agent integration.
+This Docker image provides AxioDB: Embedded NoSQL Database for TypeScript & AI Agents — zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno. It includes a REST API server, TCP remote access (AxioDBCloud), web GUI dashboard, and an optional MCP server for AI agent integration.
 
 ## =� What's Included
 

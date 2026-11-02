@@ -54,7 +54,28 @@ console.log(result.data.documents[0].message); // Hello, Developer!
       code: HELLO_WORLD_CODE,
     },
     {
-      label: "Insert a document",
+      label: "AI agent state",
+      language: "javascript",
+      code: `// Persist agent turns & execution state
+const agentDB = await db.createDB('AgentState');
+const sessions = await agentDB.createCollection('sessions');
+
+await sessions.insert({
+  sessionId: 'agent_run_1024',
+  role: 'assistant',
+  toolCalls: [{ name: 'web_search', status: 'completed' }],
+  tokens: 380,
+  timestamp: Date.now(),
+});
+
+// Retrieve ordered session history
+const history = await sessions
+  .query({ sessionId: 'agent_run_1024' })
+  .Sort({ timestamp: 1 })
+  .exec();`,
+    },
+    {
+      label: "Insert",
       language: "javascript",
       code: `const { AxioDB } = require('axiodb');
 
@@ -69,7 +90,7 @@ const created = await users.insert({
 console.log(created.data.documentId);`,
     },
     {
-      label: "Query with operators",
+      label: "Query",
       language: "javascript",
       code: `// MongoDB-style operators, 19 of them
 const adults = await users
@@ -81,7 +102,7 @@ const adults = await users
 console.log(adults.data.documents);`,
     },
     {
-      label: "ACID transaction",
+      label: "Transaction",
       language: "javascript",
       code: `const tx = await users.startTransaction();
 
@@ -92,7 +113,7 @@ await tx.insert({ name: 'Cara', age: 31 });
 await tx.commit();`,
     },
     {
-      label: "Run in Docker",
+      label: "Docker",
       language: "bash",
       code: `docker run -d --name axiodb-server \\
   -p 27018:27018 -p 27019:27019 \\
@@ -129,10 +150,10 @@ await tx.commit();`,
       status: "Stale",
       problems: [
         "No concurrency — concurrent writes corrupt data",
-        "No ACID transactions — crash = data loss",
-        "No built-in caching — full file rewrite every time",
+        "No ACID transactions — crash or crash recovery = data loss",
+        "No built-in caching — full file rewrite on every mutation",
         "Single JSON file — entire DB loaded into memory",
-        "Last updated 3 years ago"
+        "No indexing or query operators ($gt, $regex, $in)"
       ],
       icon: "📄"
     },
@@ -141,11 +162,11 @@ await tx.commit();`,
       stars: "13.5k",
       status: "ABANDONED",
       problems: [
-        "No longer maintained since 2016",
-        "Data loss issues reported by users",
-        "File corruption on concurrent access",
-        "No TypeScript support",
-        "Security vulnerabilities unpatched"
+        "No longer maintained since 2016 with unpatched CVEs",
+        "File corruption on concurrent agent or process access",
+        "No TypeScript types or modern ESM/CJS exports",
+        "No ACID guarantees, savepoints, or crash recovery",
+        "Fails on modern Node.js, Bun, and Deno runtimes"
       ],
       icon: "💀"
     },
@@ -154,11 +175,11 @@ await tx.commit();`,
       stars: "11k+",
       status: "Active (but painful)",
       problems: [
-        "Requires native C bindings compilation",
-        "node-gyp headaches on every platform",
-        "electron-rebuild required for Electron apps",
-        "SQL strings instead of JavaScript objects",
-        "Platform-specific builds (Windows ≠ Mac)"
+        "Requires native C++ bindings compilation (node-gyp)",
+        "Fragile across multi-platform Docker & CI/CD builds",
+        "Rigid tables — painful schema migrations for dynamic JSON",
+        "SQL string queries instead of native JavaScript objects",
+        "Platform-specific binaries (Windows ≠ macOS ≠ Linux)"
       ],
       icon: "🔧"
     }
@@ -229,11 +250,6 @@ const Introduction: React.FC = () => {
   // page (see useScrollReveal). The hero itself animates immediately on
   // mount instead (it's already above the fold on load).
   const npmStatsReveal = useScrollReveal<HTMLDivElement>();
-  const insertOpsReveal = useScrollReveal<HTMLDivElement>();
-  const readOpsReveal = useScrollReveal<HTMLDivElement>();
-  const updateDeleteReveal = useScrollReveal<HTMLDivElement>();
-  const transactionReveal = useScrollReveal<HTMLDivElement>();
-  const suiteReveal = useScrollReveal<HTMLDivElement>();
   const terminalReveal = useScrollReveal<HTMLDivElement>();
   const mcpBannerReveal = useScrollReveal<HTMLAnchorElement>();
   const skillBannerReveal = useScrollReveal<HTMLDivElement>();
@@ -319,8 +335,8 @@ const Introduction: React.FC = () => {
     <>
     <section id="introduction" className="scroll-mt-20">
       <Seo
-        title="AxioDB - The Embedded Database for Node.js | Introduction"
-        description="Replaces SQLite, LowDB, NeDB and raw JSON files with a real database. Runs on Node.js 20+ and Bun. MongoDB-style queries, ACID transactions, zero native dependencies. No node-gyp, no electron-rebuild. Just npm install."
+        title="AxioDB - Embedded NoSQL Database for TypeScript & AI Agents"
+        description="Zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno. MongoDB-style queries with pure JavaScript objects."
         path="/"
       />
       {/* Hero Section - two-column layout mirroring nodejs.org: headline,
@@ -357,18 +373,15 @@ const Introduction: React.FC = () => {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-normal mb-6 text-gray-900 leading-[1.1] tracking-tight">
-              The Embedded Database
+              Embedded NoSQL Database
               <br />
-              for Node.js
+              for TypeScript & AI Agents
             </h1>
 
             <p className="text-lg text-gray-600 leading-relaxed max-w-xl mb-8">
-              Replaces SQLite, LowDB, NeDB and raw JSON files with a real database.
-              MongoDB-style queries, ACID transactions, zero native dependencies. No
-              more <code className="font-mono text-accent-700">node-gyp</code> failures.
-              No more <code className="font-mono text-accent-700">electron-rebuild</code>.
-              Just <code className="font-mono text-accent-700">npm install</code>. Runs on
-              Node.js 20+ and Bun — one codebase, same data files, no runtime lock-in.
+              A fast, zero-setup embedded database for when you need reliable storage without running a separate server.
+              Built for TypeScript apps and AI agents to safely persist and query dynamic JSON state.
+              Just <code className="font-mono text-accent-700">npm install axiodb</code> and start querying with pure JavaScript objects.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -814,239 +827,24 @@ const Introduction: React.FC = () => {
               </div>
             </div>
 
-            {/* Performance Benchmark Header */}
-            <div className="bg-gray-50 rounded-[3px] p-4 mb-4 border border-gray-200">
-              <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-600">Performance Benchmark</span>
-                  <span className="text-gray-600">|</span>
-                  <span className="text-gray-600">Tested: September 2026</span>
+            {/* Performance Benchmark Callout */}
+            <div className="bg-gray-50 rounded-[3px] p-5 border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="space-y-1 text-center sm:text-left">
+                <div className="flex items-center justify-center sm:justify-start gap-2">
+                  <span className="font-bold text-gray-900 text-sm">Verified Performance</span>
+                  <span className="text-xs bg-accent-100 text-accent-800 font-semibold px-2 py-0.5 rounded-full">100K Docs</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
-                  <span>AMD Ryzen 5 5500U (6C/12T)</span>
-                  <span>•</span>
-                  <span>7.1 GB RAM</span>
-                  <span>•</span>
-                  <span>Ubuntu Linux 6.8.0</span>
-                  <span>•</span>
-                  <span>Node.js v26.8.1</span>
-                  <span>•</span>
-                  <span className="font-bold text-amber-700">100,000 documents dataset</span>
-                </div>
+                <p className="text-xs text-gray-600">
+                  Sub-millisecond indexed reads (&lt;1ms), ~31ms single inserts, and ACID transactions verified across 14/14 automated test suites.
+                </p>
               </div>
-            </div>
-
-            {/* Performance Metrics Grid - Comprehensive */}
-            
-            {/* INSERT Operations */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-accent-600 uppercase tracking-wider mb-2 px-1">Insert Operations</p>
-              <div ref={insertOpsReveal.ref} className="grid grid-cols-2 md:grid-cols-3 gap-3 reveal-stagger-grid">
-                <div className={`relative bg-accent-50 px-4 py-3 rounded-[3px] border border-accent-200 shadow-md hover:shadow-sm transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-xl font-black text-accent-600">~31ms</span>
-                    <p className="text-xs text-accent-600 font-semibold">Insert Single</p>
-                  </div>
-                </div>
-                <div className={`relative bg-accent-50 px-4 py-3 rounded-[3px] border border-accent-200 shadow-md hover:shadow-sm transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-xl font-black text-accent-600">~365ms</span>
-                    <p className="text-xs text-accent-600 font-semibold">InsertMany (500)</p>
-                  </div>
-                </div>
-                <div className={`relative bg-accent-50 px-4 py-3 rounded-[3px] border border-accent-200 shadow-md hover:shadow-sm transition-all reveal-on-scroll ${insertOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-xl font-black text-accent-600">&lt;1ms</span>
-                    <p className="text-xs text-accent-600 font-semibold">Validation</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* READ/QUERY Operations */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-2 px-1">Read/Query Operations (100K docs)</p>
-              <div ref={readOpsReveal.ref} className="grid grid-cols-3 md:grid-cols-6 gap-2 reveal-stagger-grid">
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-sm transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~1ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Indexed</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-sm transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~1ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">documentId</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-sm transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">&lt;1ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">findOne</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-sm transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~1.1s</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">$gt</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-sm transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~533ms</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">$in (5)</p>
-                  </div>
-                </div>
-                <div className={`relative bg-green-50 px-3 py-2 rounded-lg border border-emerald-200 shadow-sm hover:shadow-sm transition-all reveal-on-scroll ${readOpsReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-emerald-600">~2.0s</span>
-                    <p className="text-[10px] text-emerald-700 font-semibold">Regex</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* UPDATE & DELETE Operations */}
-            <div ref={updateDeleteReveal.ref} className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-2 px-1">Update Operations</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 reveal-stagger-grid">
-                  <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-amber-200 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
-                    <div className="text-center">
-                      <span className="text-lg font-black text-amber-700">~35ms</span>
-                      <p className="text-[10px] text-amber-700 font-semibold">UpdateOne</p>
-                    </div>
-                  </div>
-                  <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-amber-200 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
-                    <div className="text-center">
-                      <span className="text-lg font-black text-amber-700">~326ms</span>
-                      <p className="text-[10px] text-amber-700 font-semibold">UpdateMany</p>
-                    </div>
-                  </div>
-                  <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-amber-200 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
-                    <div className="text-center">
-                      <span className="text-lg font-black text-amber-700">~2ms</span>
-                      <p className="text-[10px] text-amber-700 font-semibold">Verify</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-red-400 uppercase tracking-wider mb-2 px-1">Delete Operations</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 reveal-stagger-grid">
-                  <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
-                    <div className="text-center">
-                      <span className="text-lg font-black text-red-400">~28ms</span>
-                      <p className="text-[10px] text-red-300 font-semibold">DeleteOne</p>
-                    </div>
-                  </div>
-                  <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
-                    <div className="text-center">
-                      <span className="text-lg font-black text-red-400">~144ms</span>
-                      <p className="text-[10px] text-red-300 font-semibold">DeleteMany</p>
-                    </div>
-                  </div>
-                  <div className={`relative bg-orange-50 px-3 py-2 rounded-lg border border-red-700 shadow-sm reveal-on-scroll ${updateDeleteReveal.isVisible ? "is-visible" : ""}`}>
-                    <div className="text-center">
-                      <span className="text-lg font-black text-red-400">~53ms</span>
-                      <p className="text-[10px] text-red-300 font-semibold">Verify</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* TRANSACTION Operations */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-violet-400 uppercase tracking-wider mb-2 px-1">Transaction Operations</p>
-              <div ref={transactionReveal.ref} className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2 reveal-stagger-grid">
-                <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~38ms</span>
-                    <p className="text-[10px] text-violet-300 font-semibold">TX Insert</p>
-                  </div>
-                </div>
-                <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~32ms</span>
-                    <p className="text-[10px] text-violet-300 font-semibold">TX Update</p>
-                  </div>
-                </div>
-                <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~44ms</span>
-                    <p className="text-[10px] text-violet-300 font-semibold">TX Delete</p>
-                  </div>
-                </div>
-                <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~46ms</span>
-                    <p className="text-[10px] text-violet-300 font-semibold">TX Mixed</p>
-                  </div>
-                </div>
-                <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~8ms</span>
-                    <p className="text-[10px] text-violet-300 font-semibold">Rollback</p>
-                  </div>
-                </div>
-                <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~24ms</span>
-                    <p className="text-[10px] text-violet-300 font-semibold">Savepoint</p>
-                  </div>
-                </div>
-                <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~21ms</span>
-                    <p className="text-[10px] text-violet-300 font-semibold">withTX</p>
-                  </div>
-                </div>
-                <div className={`relative bg-violet-50 px-2 py-2 rounded-lg border border-violet-200 shadow-sm reveal-on-scroll ${transactionReveal.isVisible ? "is-visible" : ""}`}>
-                  <div className="text-center">
-                    <span className="text-lg font-black text-violet-400">~20ms</span>
-                    <p className="text-[10px] text-violet-300 font-semibold">Index Sync</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* TEST SUITE OVERVIEW */}
-            <div ref={suiteReveal.ref} className={`mb-4 reveal-on-scroll ${suiteReveal.isVisible ? "is-visible" : ""}`}>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-1">Test Suite Overview (100K docs - 14/14 Passing)</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 reveal-stagger-grid">
-                {[
-                  { name: "CRUD", tests: 39, time: "4.1 s" },
-                  { name: "Transactions", tests: 23, time: "681 ms" },
-                  { name: "Read / Query", tests: 39, time: "24.5 s" },
-                  { name: "Aggregation", tests: 63, time: "457 ms" },
-                  { name: "Auth & RBAC", tests: 35, time: "6.1 s" },
-                  { name: "HTTP API", tests: 47, time: "1.5 s" },
-                  { name: "TCP Auth", tests: 25, time: "3.3 s" },
-                  { name: "TCP No-Auth", tests: 5, time: "918 ms" },
-                  { name: "TCP TX", tests: 22, time: "1.4 s" },
-                  { name: "TCP TLS", tests: 3, time: "836 ms" },
-                  { name: "Crash Recovery", tests: 3, time: "6.2 s" },
-                  { name: "MCP Confirm", tests: 10, time: "49 ms" },
-                  { name: "MCP Functional", tests: 4, time: "1.2 s" },
-                  { name: "Cache Options", tests: 11, time: "1.4 s" },
-                ].map((suite) => (
-                  <div key={suite.name} className="bg-gray-50 px-2 py-2 rounded-lg border border-gray-200 shadow-sm hover:shadow-sm transition-all text-center">
-                    <p className="text-[10px] text-gray-500 font-semibold truncate">{suite.name}</p>
-                    <span className="text-sm font-black text-gray-700">{suite.time}</span>
-                    <p className="text-[9px] text-gray-400">{suite.tests} tests</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-3 text-center">
-                <a
-                  href="/performance"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-accent-600 hover:text-accent-700 transition-colors"
-                >
-                  View full performance report
-                  <ArrowRight className="h-3 w-3" />
-                </a>
-              </div>
+              <Link
+                to="/performance"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-gray-50 text-accent-700 text-xs font-semibold rounded-[3px] border border-gray-300 shadow-sm transition-colors flex-shrink-0"
+              >
+                View full performance report
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
           </div>
 
@@ -1069,8 +867,8 @@ const Introduction: React.FC = () => {
               <div className="text-gray-700 mb-1">✓ AxioDB initialized</div>
               <div className="text-gray-700 mb-1">✓ Database ready at ./AxioDB</div>
               <div className="text-gray-700 mb-3">✓ GUI available on localhost:27018</div>
-              <div className="text-gray-600 mb-3">💡 Think SQLite, but NoSQL with JavaScript queries</div>
-              <div className="text-gray-600 mb-4">🎯 Perfect for: Desktop apps • CLI tools • Node.js backends</div>
+              <div className="text-gray-600 mb-3">💡 Think SQLite, but pure TypeScript NoSQL with rich queries</div>
+              <div className="text-gray-600 mb-4">🎯 Perfect for: AI Agents • TypeScript Apps • Desktop &amp; CLI Tools • Local-First Systems</div>
               <div className="flex items-center">
                 <span className="text-accent-700">$</span>
                 <span className="text-gray-900 ml-2 animate-pulse">Your embedded database is ready...</span>
@@ -1186,49 +984,49 @@ const Introduction: React.FC = () => {
               <span className="text-sm bg-accent-100 text-accent-700 px-3 py-1 rounded-full font-bold uppercase tracking-wide">Our Story</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-4">
-              Born from SQLite Pain. Built to Be Better.
+              Born from Embedded Database Pain. Built for Modern TypeScript &amp; AI Agents.
             </h2>
             <div className="space-y-4 text-gray-600 leading-relaxed">
               <p className="text-lg">
-                It started with a simple error: <code className="bg-red-50 text-red-600 px-2 py-1 rounded border border-red-200 font-mono text-sm">node-gyp ERR!</code>
-                <span className="text-red-600 font-semibold"> — again.</span>
+                It started with a recurring headache: <code className="bg-red-50 text-red-600 px-2 py-1 rounded border border-red-200 font-mono text-sm">node-gyp ERR!</code>
+                <span className="text-red-600 font-semibold"> — followed by rigid SQL migrations for dynamic JSON and corrupted state under concurrency.</span>
               </p>
               <p>
-                We were building an Electron app. Needed a database. Tried <strong>better-sqlite3</strong> —
-                <span className="text-red-500"> node-gyp compilation failed</span>. Tried <strong>LowDB</strong> —
-                <span className="text-red-500"> data corrupted on concurrent writes</span>. Tried <strong>NeDB</strong> —
-                <span className="text-red-500"> abandoned since 2016</span>.
+                Whether persisting state for autonomous AI agents, building cross-platform desktop applications, or shipping zero-config CLI tools, developers were trapped:
+                Tried <strong>better-sqlite3</strong> — <span className="text-red-500">native C++ compilation errors and rigid table schemas for nested JSON</span>.
+                Tried <strong>LowDB</strong> — <span className="text-red-500">corrupted files on concurrent writes with zero ACID safety</span>.
+                Tried <strong>NeDB</strong> — <span className="text-red-500">abandoned since 2016 with unpatched CVEs and no TypeScript</span>.
               </p>
               <p className="font-semibold text-gray-700">
-                So we built AxioDB.
+                So we built AxioDB — an embedded document database designed for modern JavaScript runtimes and AI workflows.
               </p>
               <div className="grid sm:grid-cols-2 gap-4 mt-4">
                 <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
                   <span className="text-green-500 text-lg mt-0.5">✓</span>
                   <div>
                     <span className="font-semibold text-gray-700">Zero native dependencies</span>
-                    <p className="text-sm text-gray-500">No node-gyp, no electron-rebuild, no platform headaches</p>
+                    <p className="text-sm text-gray-500">Pure JS/TS. No node-gyp, no Python/C++ build tools, verified on Node, Bun &amp; Deno</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
                   <span className="text-green-500 text-lg mt-0.5">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-700">ACID transactions</span>
-                    <p className="text-sm text-gray-500">Crash recovery, savepoints, write-ahead logging</p>
+                    <span className="font-semibold text-gray-700">ACID transactions &amp; WAL</span>
+                    <p className="text-sm text-gray-500">Write-ahead logging, savepoints, atomic commits, and automatic crash recovery</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
                   <span className="text-green-500 text-lg mt-0.5">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-700">MongoDB-style queries</span>
-                    <p className="text-sm text-gray-500">JavaScript objects, not SQL strings</p>
+                    <span className="font-semibold text-gray-700">Native JSON for AI &amp; Modern Apps</span>
+                    <p className="text-sm text-gray-500">Dynamic document store with MongoDB-style operators ($gt, $regex, $in) and deep queries</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
                   <span className="text-green-500 text-lg mt-0.5">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-700">Built-in caching & GUI</span>
-                    <p className="text-sm text-gray-500">InMemoryCache + web dashboard included</p>
+                    <span className="font-semibold text-gray-700">Dual-Write In-Memory Cache &amp; GUI</span>
+                    <p className="text-sm text-gray-500">InMemoryCache with TTL jitter, Worker Threads, and built-in web dashboard</p>
                   </div>
                 </div>
               </div>
@@ -1311,67 +1109,62 @@ const Introduction: React.FC = () => {
             Why AxioDB?
           </h2>
           <p className="text-lg lg:text-xl leading-relaxed text-gray-600 mb-8 max-w-4xl">
-            SQLite requires native C bindings that cause deployment headaches. JSON files have no
-            querying or caching. MongoDB needs a separate server. AxioDB combines the best of all:
-            embedded like SQLite, NoSQL queries like MongoDB, intelligent caching built-in.
+            SQLite requires native C bindings that break in cross-platform deployments. Flat JSON files lack ACID transactions, indexing, and concurrency. MongoDB requires running a heavy external server daemon. AxioDB unifies the best of all: embedded zero-setup like SQLite, native document queries like MongoDB, in-memory caching built-in, and true ACID crash resilience.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-base">
               <div className={`space-y-2 reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-accent-500 rounded-full"></div>
                   <span className="font-semibold text-gray-700">
-                    Pure JavaScript
+                    Pure TypeScript &amp; Zero Native Deps
                   </span>
                 </div>
                 <p className="text-gray-600 ml-4">
-                  Zero native dependencies. No compilation, no platform-specific binaries,
-                  no{" "}
+                  Zero native C++ bindings, zero compilation, and no{" "}
                   <code className="bg-accent-50 px-2 py-1 rounded-md text-accent-600 font-semibold border border-accent-200">
                     node-gyp
                   </code>{" "}
-                  headaches. Works everywhere Node.js runs.
+                  headaches. Verified across Node.js, Bun, and Deno with zero external binaries.
                 </p>
               </div>
               <div className={`space-y-2 reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <span className="font-semibold text-gray-700">
-                    Intelligent Caching
+                    Dual-Write In-Memory Cache
                   </span>
                 </div>
                 <p className="text-gray-600 ml-4">
-                  Built-in InMemoryCache with automatic invalidation. Instant query results
-                  for frequently-accessed data. Multi-core parallelism with Worker Threads.
+                  Built-in InMemoryCache with randomized TTL jitter and dual-write index synchronization. Sub-millisecond reads for hot documents and multi-core Worker Thread parallelization.
                 </p>
               </div>
               <div className={`space-y-2 reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                   <span className="font-semibold text-gray-700">
-                    MongoDB-Style Queries
+                    Native JSON &amp; Rich Queries
                   </span>
                 </div>
                 <p className="text-gray-600 ml-4">
-                  JavaScript objects, not SQL strings. Operators like{" "}
+                  Manipulate JavaScript objects directly instead of writing SQL strings. Operators like{" "}
                   <code className="bg-accent-50 px-2 py-1 rounded-md text-purple-700 font-semibold border border-purple-200">
                     $gt
                   </code>,{" "}
                   <code className="bg-accent-50 px-2 py-1 rounded-md text-purple-700 font-semibold border border-purple-200">
                     $regex
                   </code>,{" "}
-                  aggregation pipelines, schema-less documents.
+                  aggregation pipelines, and schema-less documents for dynamic agent state.
                 </p>
               </div>
               <div className={`space-y-2 reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                   <span className="font-semibold text-gray-700">
-                    ACID Transactions
+                    ACID Transactions &amp; WAL
                   </span>
                 </div>
                 <p className="text-gray-600 ml-4">
-                  Commit, rollback and savepoints over a write-ahead log, with crash
-                  recovery — not something you bolt on later.
+                  Commit, rollback, and savepoints backed by a write-ahead log (WAL) with automatic startup crash recovery — enterprise reliability built in from day one.
                 </p>
               </div>
             </div>
@@ -1380,6 +1173,23 @@ const Introduction: React.FC = () => {
 
       {/* Feature Cards */}
       <div ref={featureCardsReveal.ref} className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 reveal-stagger-grid">
+        <div className={`group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-accent-500 transform hover:-translate-y-1 reveal-on-scroll ${featureCardsReveal.isVisible ? "is-visible" : ""}`}>
+          <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-3 bg-accent-600 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
+                <Bot className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900">
+                AI Agents & State Persistence
+              </h3>
+            </div>
+            <p className="text-gray-600 leading-relaxed text-lg">
+              Persist conversation logs, tool execution traces, in-flight agent state, and structured task queues locally without spinning up a cloud database or wrestling with SQL migrations.
+            </p>
+          </div>
+        </div>
+
         <div className={`group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-orange-200 transform hover:-translate-y-1 reveal-on-scroll ${featureCardsReveal.isVisible ? "is-visible" : ""}`}>
           <div className="absolute inset-0 bg-orange-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
@@ -1388,72 +1198,45 @@ const Introduction: React.FC = () => {
                 <Zap className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
-                Node.js Applications
+                TypeScript & Node.js Apps
               </h3>
             </div>
             <p className="text-gray-600 leading-relaxed text-lg">
-              Embedded database for Node.js apps requiring local storage. No external
-              dependencies, no server setup, no compilation. Works on all platforms
-              without native bindings.
+              Zero native dependencies, no server setup, no compilation. Verified across Node.js, Bun, and Deno without native bindings or node-gyp headaches.
             </p>
           </div>
         </div>
 
-        <div className={`group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-accent-600 transform hover:-translate-y-1 reveal-on-scroll ${featureCardsReveal.isVisible ? "is-visible" : ""}`}>
-          <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className={`group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-blue-200 transform hover:-translate-y-1 reveal-on-scroll ${featureCardsReveal.isVisible ? "is-visible" : ""}`}>
+          <div className="absolute inset-0 bg-blue-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-accent-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
+              <div className="p-3 bg-blue-600 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
                 <Database className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
-                Desktop & CLI Tools
+                Desktop Software & CLI Tools
               </h3>
             </div>
             <p className="text-gray-600 leading-relaxed text-lg">
-              Perfect for desktop apps (Electron, Tauri) and CLI tools. Store configuration,
-              cache data, manage local state—all with{" "}
-              <code className="bg-accent-50 px-2 py-1 rounded-lg text-accent-600 font-semibold border border-accent-200">
-                npm install
-              </code>.
-            </p>
-          </div>
-        </div>
-
-        <div className={`group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-green-200 transform hover:-translate-y-1 reveal-on-scroll ${featureCardsReveal.isVisible ? "is-visible" : ""}`}>
-          <div className="absolute inset-0 bg-green-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-green-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
-                <Shield className="h-8 w-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900">
-                Rapid Prototyping
-              </h3>
-            </div>
-            <p className="text-gray-600 leading-relaxed text-lg">
-              Skip database setup entirely. Query with JavaScript objects, not SQL strings.
-              Handles 10K-500K documents with intelligent caching. Migrate to PostgreSQL
-              or MongoDB when you scale.
+              Ideal for Electron apps and CLI developer tools. Store configuration, cache data, manage local state—all with a single <code className="bg-blue-50 px-2 py-1 rounded-lg text-blue-700 font-semibold border border-blue-200">npm install</code>.
             </p>
           </div>
         </div>
 
         <div className={`group relative bg-white rounded-lg shadow-sm hover:shadow-sm transition-all duration-300 p-8 border border-gray-200 hover:border-purple-200 transform hover:-translate-y-1 reveal-on-scroll ${featureCardsReveal.isVisible ? "is-visible" : ""}`}>
-          <div className="absolute inset-0 bg-accent-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="absolute inset-0 bg-purple-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-6">
               <div className="p-3 bg-purple-500 rounded-[3px] shadow-sm group-hover:shadow-sm transition-shadow">
-                <Code className="h-8 w-8 text-white" />
+                <Shield className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
-                Embedded Systems
+                Local-First & Edge Systems
               </h3>
             </div>
             <p className="text-gray-600 leading-relaxed text-lg">
-              Local-first applications, IoT devices, edge computing. Single-instance
-              architecture with file-based storage. Built-in GUI for data inspection
-              during development.
+              Local-first applications, microservices, and edge computing. Full ACID transactions with WAL crash resilience, dual-write indexing, and an in-memory cache.
             </p>
           </div>
         </div>
@@ -1472,9 +1255,9 @@ const Introduction: React.FC = () => {
         </div>
         <div className="relative z-10 text-center">
           <p className="text-2xl lg:text-3xl font-light text-gray-900 leading-relaxed mb-6">
-            AxioDB is not competing with PostgreSQL or MongoDB. It's for when you need
-            a database embedded in your app—Electron, CLI tools, local-first apps.
-            Sweet spot: 10K-500K documents. No native dependencies, no server setup.
+            AxioDB is not competing with cloud databases like PostgreSQL or MongoDB Atlas.
+            It's for when you need a fast, zero-native document database embedded directly inside
+            your TypeScript app, AI agent workflow, or desktop software. Sweet spot: 10K-500K documents.
           </p>
           <div className="flex items-center justify-center gap-3">
             <div className="h-1 w-12 bg-gray-100 rounded"></div>

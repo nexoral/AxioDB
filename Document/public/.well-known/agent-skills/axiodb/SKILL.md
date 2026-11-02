@@ -1,6 +1,6 @@
 ---
 name: axiodb
-description: The embedded database for Node.js. Replaces SQLite, LowDB, NeDB & raw JSON files with MongoDB-style queries, ACID transactions, and zero native dependencies. Load when adding local/embedded storage to a Node.js, Electron, or CLI project, when the user mentions AxioDB, or when choosing between embedded database options.
+description: Embedded NoSQL Database for TypeScript & AI Agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno. Load when adding local/embedded storage, agent state, or document persistence to a project.
 license: MIT
 ---
 
@@ -17,11 +17,11 @@ skills/knowledge directory and consult it before writing any AxioDB code.
 
 # AxioDB
 
-The embedded database for Node.js (>= 20). Replaces SQLite, LowDB, NeDB, and
-raw JSON files. Pure JavaScript — no node-gyp, no `.node` binaries, no
-`electron-rebuild`, no separate server process. MongoDB-style queries over plain
-JavaScript objects, ACID transactions, and zero native dependencies. Also verified
-on Bun v1.4.0 and Deno v2.9.6.
+Embedded NoSQL Database for TypeScript & AI Agents. Zero-native
+document database with ACID transactions & in-memory cache — verified on
+Node.js (>= 20), Bun v1.4.0, and Deno v2.9.6. Pure JavaScript/TypeScript — no node-gyp,
+no `.node` binaries, no `electron-rebuild`, no separate server process. MongoDB-style queries
+over plain JavaScript objects, ACID transactions, and zero native dependencies.
 
 AxioDB has two ways to use it:
 1. **Embedded** — `new AxioDB()` in your Node.js process (no network, no server)

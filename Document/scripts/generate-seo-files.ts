@@ -312,7 +312,7 @@ function buildRssFeed(): string {
   <channel>
     <title>AxioDB Changelog</title>
     <link>${SITE_URL}/changelog</link>
-    <description>Release notes and version history for AxioDB, the embedded database for Node.js.</description>
+    <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml" />
