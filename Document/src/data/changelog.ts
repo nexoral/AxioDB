@@ -12,6 +12,16 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "23.29.6",
+    date: "2026-11-03",
+    title: "Native Bun test suite and multi-runtime matrix testing",
+    changes: [
+      "Bun Testing: added complete native Bun test suite across all 14 test modules in Test/bun/ with npm run bun-test CLI support",
+      "CI Matrix: added parallel Gate 8 Bun matrix testing across the last 6 Bun versions in Push.yml in a dedicated Bun environment",
+      "Release Safety: gated npm, GitHub packages, and Docker Hub publishes on both Node.js and Bun matrix test suites",
+    ],
+  },
+  {
     version: "23.29.5",
     date: "2026-11-03",
     title: "Optimized in-memory search threshold and elevated direct read concurrency",
