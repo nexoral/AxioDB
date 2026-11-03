@@ -299,7 +299,7 @@ jobs:
       - name: Run MCP Functional tests
         run: npm run node-test mcp-functional
 
-  test:
+  node_matrix_test:
     needs: [detect_changes, auth_rbac_gate, tcp_auth_rbac_gate, tcp_noauth_compat_gate, http_api_gate, tcp_transaction_gate, tcp_tls_gate, mcp_functional_gate]
     if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
@@ -308,8 +308,8 @@ jobs:
     strategy:
       matrix:
         node-version: [20.x, 21.x, 22.x, 23.x, 24.x, 25.x, 26.x]
-      fail-fast: false  # Continue testing other versions even if one fails
-    name: "Gate 8 — Full Matrix Test (Node ${{ matrix.node-version }})"
+      fail-fast: false
+    name: "Gate 8 — Node Matrix Test (Node ${{ matrix.node-version }})"
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -318,7 +318,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'  # Cache npm dependencies
+          cache: 'npm'
 
       - name: Cache node modules
         uses: actions/cache@v4
@@ -350,8 +350,49 @@ jobs:
       - name: Run MCP Confirmation tests
         run: npm run node-test mcp-confirm
 
+  bun_matrix_test:
+    needs: [detect_changes, auth_rbac_gate, tcp_auth_rbac_gate, tcp_noauth_compat_gate, http_api_gate, tcp_transaction_gate, tcp_tls_gate, mcp_functional_gate]
+    if: needs.detect_changes.outputs.run_test == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        bun-version: [latest, 1.4.4, 1.4.3, 1.4.2, 1.4.1, 1.4.0]
+      fail-fast: false
+    name: "Gate 8 — Bun Matrix Test (Bun ${{ matrix.bun-version }})"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun ${{ matrix.bun-version }}
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ matrix.bun-version }}
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build
+        run: bun run build
+
+      - name: Run CRUD tests
+        run: bun run bun-test crud
+
+      - name: Run Transaction tests
+        run: bun run bun-test transaction
+
+      - name: Run Read Optimization tests
+        run: bun run bun-test read
+
+      - name: Run Crash Recovery tests
+        run: bun run bun-test crash-recovery
+
+      - name: Run MCP Confirmation tests
+        run: bun run bun-test mcp-confirm
+
   publish_to_npm:
-    needs: [detect_changes, test]
+    needs: [detect_changes, node_matrix_test, bun_matrix_test]
     if: needs.detect_changes.outputs.run_npm_github == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -386,7 +427,7 @@ jobs:
         run: npm publish --access public
 
   publish_to_github:
-    needs: [detect_changes, test]
+    needs: [detect_changes, node_matrix_test, bun_matrix_test]
     if: needs.detect_changes.outputs.run_npm_github == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -413,7 +454,7 @@ jobs:
         run: npm publish --registry=https://npm.pkg.github.com --scope=@${{ secrets.GIT_USER_NAME }} --access public
 
   publish_to_dockerhub:
-    needs: [detect_changes, test]
+    needs: [detect_changes, node_matrix_test, bun_matrix_test]
     if: needs.detect_changes.outputs.run_docker == 'true'
     runs-on: ubuntu-latest
     permissions:
