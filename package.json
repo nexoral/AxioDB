@@ -74,11 +74,8 @@
     "type": "git",
     "url": "https://github.com/nexoral/AxioDB"
   },
-  "dependencies": {
-    "@fastify/multipart": "^9.0.3",
-    "fastify": "^5.8.5"
-  },
   "devDependencies": {
+    "@types/node": "^26.6.6",
     "@typescript-eslint/eslint-plugin": "^8.69.0",
     "@typescript-eslint/parser": "^8.69.0",
     "eslint": "^10.9.1",

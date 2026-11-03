@@ -1,4 +1,4 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { AxioHttpRequest, AxioHttpResponse } from "../../../Helper/http/HttpTypes";
 import { StatusCodes } from "../../../config/Keys/StatusCode";
 import buildResponse, { ResponseBuilder, sendResponse } from "../../helper/responseBuilder.helper";
 import AuthService from "../../../Services/Auth/AuthService.service";
@@ -17,12 +17,12 @@ export default class UserManagementController {
     this.authService = new AuthService();
   }
 
-  public async listUsers(request: FastifyRequest, reply: FastifyReply): Promise<ResponseBuilder> {
+  public async listUsers(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
     const users = await this.authService.listUsers();
     return sendResponse(reply, buildResponse(StatusCodes.OK, "List of Users", users));
   }
 
-  public async createUser(request: FastifyRequest, reply: FastifyReply): Promise<ResponseBuilder> {
+  public async createUser(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
     const { username, password, role } = request.body as CreateUserRequestBody;
 
     if (!username || typeof username !== "string" || username.trim() === "") {
@@ -53,8 +53,8 @@ export default class UserManagementController {
   }
 
   public async resetUserPassword(
-    request: FastifyRequest,
-    reply: FastifyReply,
+    request: AxioHttpRequest,
+    reply: AxioHttpResponse,
   ): Promise<ResponseBuilder> {
     const { username } = request.params as { username: string };
     const { newPassword } = request.body as ResetPasswordRequestBody;
@@ -77,8 +77,8 @@ export default class UserManagementController {
   }
 
   public async updateUserRole(
-    request: FastifyRequest,
-    reply: FastifyReply,
+    request: AxioHttpRequest,
+    reply: AxioHttpResponse,
   ): Promise<ResponseBuilder> {
     const { username } = request.params as { username: string };
     const { role } = request.body as UpdateUserRoleRequestBody;
@@ -94,7 +94,7 @@ export default class UserManagementController {
     return sendResponse(reply, buildResponse(StatusCodes.OK, result.message));
   }
 
-  public async deleteUser(request: FastifyRequest, reply: FastifyReply): Promise<ResponseBuilder> {
+  public async deleteUser(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
     const { username } = request.params as { username: string };
 
     const actorUsername = request.authUser?.username;

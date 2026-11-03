@@ -1,21 +1,21 @@
-import { FastifyInstance, FastifyPluginOptions } from "fastify";
+import HttpRouter from "../../../Helper/http/HttpRouter.helper";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import CollectionController from "../../controller/Collections/Collection.controller";
 import { requireAuth, requireFreshPassword } from "../../middleware/auth.middleware";
 import { requirePermission } from "../../middleware/permission.middleware";
 import { PERMISSIONS } from "../../../config/Keys/Permissions";
 
-interface RouterOptions extends FastifyPluginOptions {
+interface RouterOptions {
   AxioDBInstance: AxioDB;
 }
 
 export default async function collectionRouter(
-  fastify: FastifyInstance,
+  router: HttpRouter,
   options: RouterOptions,
 ) {
   const { AxioDBInstance } = options;
 
-  fastify.get(
+  router.get(
     "/all/",
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.COLLECTION_VIEW)],
@@ -25,7 +25,7 @@ export default async function collectionRouter(
     },
   );
 
-  fastify.post(
+  router.post(
     "/create-collection",
     {
       preHandler: [
@@ -37,7 +37,7 @@ export default async function collectionRouter(
     async (request) => new CollectionController(AxioDBInstance).createCollection(request),
   );
 
-  fastify.delete(
+  router.delete(
     "/delete-collection/",
     {
       preHandler: [

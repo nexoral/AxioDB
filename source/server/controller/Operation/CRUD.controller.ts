@@ -1,7 +1,7 @@
 import { StatusCodes } from "../../../config/Keys/StatusCode";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse from "../../helper/responseBuilder.helper";
-import { FastifyRequest } from "fastify";
+import { AxioHttpRequest } from "../../../Helper/http/HttpTypes";
 import Database from "../../../Services/Database/database.operation";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
 import Logger from "../../../Helper/Logger.helper";
@@ -13,8 +13,8 @@ export default class CRUDController {
     this.AxioDBInstance = AxioDBInstance;
   }
 
-  public async getAllDocuments(request: FastifyRequest) {
-    const { dbName, collectionName, page: rawPage } = request.query as {
+  public async getAllDocuments(request: AxioHttpRequest) {
+    const { dbName, collectionName, page: rawPage } = request.query as unknown as {
       dbName: string;
       collectionName: string;
       page: number;
@@ -58,8 +58,8 @@ export default class CRUDController {
     );
   }
 
-  public async getDocumentsByQuery(request: FastifyRequest) {
-    const { dbName, collectionName, page } = request.query as {
+  public async getDocumentsByQuery(request: AxioHttpRequest) {
+    const { dbName, collectionName, page } = request.query as unknown as {
       dbName: string;
       collectionName: string;
       page: number;
@@ -111,7 +111,7 @@ export default class CRUDController {
     );
   }
 
-  public async getDocumentsById(request: FastifyRequest) {
+  public async getDocumentsById(request: AxioHttpRequest) {
     const { dbName, collectionName, documentId } = request.query as {
       dbName: string;
       collectionName: string;
@@ -148,7 +148,7 @@ export default class CRUDController {
     );
   }
 
-  public async getDocumentsByIds(request: FastifyRequest) {
+  public async getDocumentsByIds(request: AxioHttpRequest) {
     const { dbName, collectionName } = request.query as {
       dbName: string;
       collectionName: string;
@@ -186,7 +186,7 @@ export default class CRUDController {
     );
   }
 
-  public async createNewDocument(request: FastifyRequest) {
+  public async createNewDocument(request: AxioHttpRequest) {
     const { dbName, collectionName } = request.query as {
       dbName: string;
       collectionName: string;
@@ -224,7 +224,7 @@ export default class CRUDController {
     );
   }
 
-  public async createManyNewDocument(request: FastifyRequest) {
+  public async createManyNewDocument(request: AxioHttpRequest) {
     const { dbName, collectionName } = request.query as {
       dbName: string;
       collectionName: string;
@@ -262,7 +262,7 @@ export default class CRUDController {
     );
   }
 
-  public async updateDocumentById(request: FastifyRequest) {
+  public async updateDocumentById(request: AxioHttpRequest) {
     const { dbName, collectionName, documentId } = request.query as {
       dbName: string;
       collectionName: string;
@@ -306,8 +306,8 @@ export default class CRUDController {
     );
   }
 
-  public async updateDocumentByQuery(request: FastifyRequest) {
-    const { dbName, collectionName, isMany } = request.query as {
+  public async updateDocumentByQuery(request: AxioHttpRequest) {
+    const { dbName, collectionName, isMany } = request.query as unknown as {
       dbName: string;
       collectionName: string;
       isMany: boolean;
@@ -359,7 +359,7 @@ export default class CRUDController {
     return buildResponse(StatusCodes.OK, "Document updated successfully");
   }
 
-  public async deleteDocumentById(request: FastifyRequest) {
+  public async deleteDocumentById(request: AxioHttpRequest) {
     const { dbName, collectionName, documentId } = request.query as {
       dbName: string;
       collectionName: string;
@@ -397,8 +397,8 @@ export default class CRUDController {
     return buildResponse(StatusCodes.OK, "Document deleted successfully");
   }
 
-  public async deleteDocumentByQuery(request: FastifyRequest) {
-    const { dbName, collectionName, isMany } = request.query as {
+  public async deleteDocumentByQuery(request: AxioHttpRequest) {
+    const { dbName, collectionName, isMany } = request.query as unknown as {
       dbName: string;
       collectionName: string;
       isMany: boolean;
@@ -450,7 +450,7 @@ export default class CRUDController {
    *   ]
    * }
    */
-  public async runAggregation(request: FastifyRequest) {
+  public async runAggregation(request: AxioHttpRequest) {
     const { dbName, collectionName } = request.query as {
       dbName: string;
       collectionName: string;

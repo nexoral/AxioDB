@@ -3,7 +3,7 @@ import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse, {
   ResponseBuilder,
 } from "../../helper/responseBuilder.helper";
-import { FastifyReply, FastifyRequest } from "fastify";
+import { AxioHttpRequest, AxioHttpResponse } from "../../../Helper/http/HttpTypes";
 import {
   tarGzFolder,
   unzipFile,
@@ -37,7 +37,7 @@ export default class DatabaseController {
   }
 
   public async createDatabase(
-    request: FastifyRequest,
+    request: AxioHttpRequest,
   ): Promise<ResponseBuilder> {
     const { name } = request.body as { name: string };
 
@@ -70,7 +70,7 @@ export default class DatabaseController {
   }
 
   public async deleteDatabase(
-    request: FastifyRequest,
+    request: AxioHttpRequest,
   ): Promise<ResponseBuilder> {
     const { dbName } = request.query as { dbName: string };
     if (isReservedDatabaseName(dbName)) {
@@ -98,7 +98,7 @@ export default class DatabaseController {
    * Creates a temporary tar.gz of the database directory, streams it to the client, and
    * deletes the temp file once the stream closes (whether it finished or errored).
    */
-  public async exportDatabase(request: FastifyRequest, reply: FastifyReply) {
+  public async exportDatabase(request: AxioHttpRequest, reply: AxioHttpResponse) {
     const { dbName } = request.query as { dbName: string };
 
     try {
@@ -150,7 +150,7 @@ export default class DatabaseController {
 
       const stream = fs.createReadStream(responseZipTar);
 
-      stream.on("error", async (error) => {
+      stream.on("error", async (error: unknown) => {
         Logger.error("Stream error:", error);
         try {
           await fs.promises.unlink(responseZipTar);
@@ -186,7 +186,7 @@ export default class DatabaseController {
    * upload be discarded completely: an archive that fails validation never existed as far
    * as the live data directory is concerned, so there is no partial database to clean up.
    */
-  public async importDatabase(request: FastifyRequest, reply: FastifyReply) {
+  public async importDatabase(request: AxioHttpRequest, reply: AxioHttpResponse) {
     const username = request.authUser?.username ?? "another user";
     const data = await request.file();
 
@@ -296,7 +296,7 @@ export default class DatabaseController {
       } catch (error: unknown) {
         // Staging lives in the OS temp directory, which is frequently a different
         // filesystem - rename cannot cross one, so fall back to a copy.
-        if ((error as NodeJS.ErrnoException)?.code !== "EXDEV") throw error;
+        if ((error as { code?: string })?.code !== "EXDEV") throw error;
         await fs.promises.cp(source, destination, { recursive: true });
       }
 
@@ -318,7 +318,7 @@ export default class DatabaseController {
       // rejection, or crash. Nothing an invalid archive produced survives this.
       await fs.promises
         .rm(workDir, { recursive: true, force: true })
-        .catch((cleanupError) => {
+        .catch((cleanupError: unknown) => {
           Logger.error("Error cleaning up import staging directory:", cleanupError);
         });
     }

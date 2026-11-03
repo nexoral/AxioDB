@@ -3,7 +3,7 @@ import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode } from '../../config/keys';
 import CRUDController from '../../../server/controller/Operation/CRUD.controller';
 import { Document } from '../../../config/Interfaces/shared.types';
-import { FastifyRequest } from 'fastify';
+import { AxioHttpRequest } from '../../../Helper/http/HttpTypes';
 import TransactionManager from '../../connection/TransactionManager';
 import SafeErrorMessage from '../../../Helper/SafeErrorMessage.helper';
 
@@ -49,7 +49,7 @@ export default class OperationHandler {
       query: { dbName: dbName!, collectionName: collectionName! },
       body: data,
     };
-    const result = await this.controller.createNewDocument(mockRequest as unknown as FastifyRequest);
+    const result = await this.controller.createNewDocument(mockRequest as unknown as AxioHttpRequest);
     return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
   }
 
@@ -73,7 +73,7 @@ export default class OperationHandler {
       query: { dbName: dbName!, collectionName: collectionName! },
       body: documents as Document[],
     };
-    const result = await this.controller.createManyNewDocument(mockRequest as unknown as FastifyRequest);
+    const result = await this.controller.createManyNewDocument(mockRequest as unknown as AxioHttpRequest);
     return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
   }
 
@@ -103,7 +103,7 @@ export default class OperationHandler {
     const mockRequest: MockRequest = {
       query: { dbName: dbName!, collectionName: collectionName!, documentId: documentId! },
     };
-    const result = await this.controller.getDocumentsById(mockRequest as unknown as FastifyRequest);
+    const result = await this.controller.getDocumentsById(mockRequest as unknown as AxioHttpRequest);
     return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
   }
 
@@ -137,7 +137,7 @@ export default class OperationHandler {
       query: { dbName: dbName!, collectionName: collectionName!, documentId: documentId! },
       body: updateData as Document,
     };
-    const result = await this.controller.updateDocumentById(mockRequest as unknown as FastifyRequest);
+    const result = await this.controller.updateDocumentById(mockRequest as unknown as AxioHttpRequest);
     return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
   }
 
@@ -160,7 +160,7 @@ export default class OperationHandler {
       query: { dbName: dbName!, collectionName: collectionName!, isMany: String(isMany) },
       body: { query, update: updateData } as unknown as Document,
     };
-    const result = await this.controller.updateDocumentByQuery(mockRequest as unknown as FastifyRequest);
+    const result = await this.controller.updateDocumentByQuery(mockRequest as unknown as AxioHttpRequest);
     return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
   }
 
@@ -181,7 +181,7 @@ export default class OperationHandler {
     const mockRequest: MockRequest = {
       query: { dbName: dbName!, collectionName: collectionName!, documentId: documentId! },
     };
-    const result = await this.controller.deleteDocumentById(mockRequest as unknown as FastifyRequest);
+    const result = await this.controller.deleteDocumentById(mockRequest as unknown as AxioHttpRequest);
     return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
   }
 
@@ -204,7 +204,7 @@ export default class OperationHandler {
       query: { dbName: dbName!, collectionName: collectionName!, isMany: String(isMany) },
       body: { query } as unknown as Document,
     };
-    const result = await this.controller.deleteDocumentByQuery(mockRequest as unknown as FastifyRequest);
+    const result = await this.controller.deleteDocumentByQuery(mockRequest as unknown as AxioHttpRequest);
     return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
   }
 
@@ -214,7 +214,7 @@ export default class OperationHandler {
       query: { dbName: dbName!, collectionName: collectionName! },
       body: { aggregation: pipeline } as unknown as Document,
     };
-    const result = await this.controller.runAggregation(mockRequest as unknown as FastifyRequest);
+    const result = await this.controller.runAggregation(mockRequest as unknown as AxioHttpRequest);
     return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };
   }
 
