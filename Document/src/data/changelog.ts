@@ -12,6 +12,17 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "23.29.4",
+    date: "2026-11-03",
+    title: "Zero-dependency native HTTP server and high-performance persistent worker pool",
+    changes: [
+      "Zero-Dependencies: fully eliminated fastify and multipart runtime packages in favor of native node:http server in source/Helper/http/ with 0 runtime dependencies",
+      "Worker Pool: introduced persistent WorkerPool helper to eliminate 30-50ms thread startup penalty and boost unindexed scan throughput by 3.5x",
+      "Concurrency: instituted 128-file batch limits across workers to eliminate OS EMFILE file descriptor exhaustion risks",
+      "Memory: reused fileManager and converter instances across file scans, eliminating 10,000+ redundant class allocations",
+    ],
+  },
+  {
     version: "22.28.3",
     date: "2026-11-03",
     title: "Zero-dependency archive engine with native USTAR TAR helper",
