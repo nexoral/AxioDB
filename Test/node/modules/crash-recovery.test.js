@@ -7,7 +7,7 @@
  * Everything else in this repo tests "does the logic look right" - this suite tests
  * "does it survive an actual, uncontrolled process death mid-write". AxioDB is a
  * singleton per process, so both the crashing side and the post-crash verification
- * side run as separate spawned `node` processes (same reason Test/run.js isolates
+ * side run as separate spawned `node` processes (same reason Test/node/run.js isolates
  * every suite into its own process).
  */
 

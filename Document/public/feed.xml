@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Tue, 03 Nov 2026 03:51:40 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 03 Nov 2026 04:10:38 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v23.29.5 — Optimized in-memory search threshold and elevated direct read concurrency</title>

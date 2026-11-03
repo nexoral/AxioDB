@@ -155,7 +155,7 @@ AxioDB/
 │   ├── Memory/                # InMemoryCache
 │   └── config/Keys/           # General, Permissions
 ├── lib/                       # Compiled JS (tsc, gitignored)
-├── Test/modules/              # 14 suites (isolated child processes, singleton)
+├── Test/node/modules/         # 14 suites (isolated child processes, singleton)
 ├── Document/                  # React docs site 5173 (single source serverApi.ts → openapi.json)
 ├── Docker/                    # Dockerfile 27018/27019/27020 + mcpServer.js 43 tools
 ├── GUI/                       # Vite React GUI

@@ -2,7 +2,7 @@
 
 // Human-in-the-loop gate for the destructive MCP tools. Deliberately free of any `../lib`
 // or SDK imports so it stays unit-testable outside the Docker image (see
-// Test/modules/mcp-confirm.test.js) - it only ever talks to the McpServer it is handed.
+// Test/node/modules/mcp-confirm.test.js) - it only ever talks to the McpServer it is handed.
 
 // A single boolean field: the elicitation `message` carries the whole warning, this is just
 // the operator's yes/no on it.
