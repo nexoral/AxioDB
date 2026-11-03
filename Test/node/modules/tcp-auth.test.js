@@ -8,9 +8,9 @@ const fs = require('fs');
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 
-const { AxioDB } = require('../../lib/config/DB.js');
-const { MessageFramer, MessageBuffer } = require('../../lib/tcp/config/protocol');
-const { CommandType } = require('../../lib/tcp/types/command.types');
+const { AxioDB } = require('../../../lib/config/DB.js');
+const { MessageFramer, MessageBuffer } = require('../../../lib/tcp/config/protocol');
+const { CommandType } = require('../../../lib/tcp/types/command.types');
 
 const TCP_HOST = '127.0.0.1';
 const TCP_PORT = 27019;
@@ -201,11 +201,11 @@ class TcpAuthTests extends TestRunner {
 
     // Reset the shared rate limiter directly so the lockout triggered above doesn't
     // block the legitimate logins that follow (all these tests share one loopback IP).
-    require('../../lib/Services/Auth/LoginRateLimiter.service').default.clearAll();
+    require('../../../lib/Services/Auth/LoginRateLimiter.service').default.clearAll();
 
     let adminClient;
     let viewClient;
-    const AuthService = require('../../lib/Services/Auth/AuthService.service').default;
+    const AuthService = require('../../../lib/Services/Auth/AuthService.service').default;
     const authService = new AuthService();
 
     await this.describe('User bootstrap (stand-in for GUI user management + forced password change)', async () => {
@@ -334,7 +334,7 @@ class TcpAuthTests extends TestRunner {
 
     await this.describe('AxioDBCloud client - constructor credentials', async () => {
       await this.test('connect() auto-authenticates when credentials are supplied', async () => {
-        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        const { AxioDBCloud } = require('../../../lib/config/DB.js');
         const client = new AxioDBCloud(`axiodb://${TCP_HOST}:${TCP_PORT}`, {
           username: 'tcpadmin',
           password: 'TcpAdminPass1',
@@ -348,7 +348,7 @@ class TcpAuthTests extends TestRunner {
       });
 
       await this.test('Bad credentials reject connect() without triggering background reconnects', async () => {
-        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        const { AxioDBCloud } = require('../../../lib/config/DB.js');
         const client = new AxioDBCloud(`axiodb://${TCP_HOST}:${TCP_PORT}`, {
           username: 'tcpadmin',
           password: 'wrong-password',
@@ -369,7 +369,7 @@ class TcpAuthTests extends TestRunner {
 
     await this.describe('AxioDBCloud client - connection pooling (maxPoolSize)', async () => {
       await this.test('connect() opens a default pool of 10 connections', async () => {
-        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        const { AxioDBCloud } = require('../../../lib/config/DB.js');
         const client = new AxioDBCloud(`axiodb://${TCP_HOST}:${TCP_PORT}`, {
           username: 'tcpadmin',
           password: 'TcpAdminPass1',
@@ -383,7 +383,7 @@ class TcpAuthTests extends TestRunner {
       });
 
       await this.test('connect() respects a custom maxPoolSize', async () => {
-        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        const { AxioDBCloud } = require('../../../lib/config/DB.js');
         const client = new AxioDBCloud(`axiodb://${TCP_HOST}:${TCP_PORT}`, {
           username: 'tcpadmin',
           password: 'TcpAdminPass1',
@@ -397,7 +397,7 @@ class TcpAuthTests extends TestRunner {
       });
 
       await this.test('commands still succeed when routed across a pooled connection', async () => {
-        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        const { AxioDBCloud } = require('../../../lib/config/DB.js');
         const client = new AxioDBCloud(`axiodb://${TCP_HOST}:${TCP_PORT}`, {
           username: 'tcpadmin',
           password: 'TcpAdminPass1',
@@ -418,7 +418,7 @@ class TcpAuthTests extends TestRunner {
       });
 
       await this.test('sendCommand() routes to the least-busy connection, not round-robin', async () => {
-        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        const { AxioDBCloud } = require('../../../lib/config/DB.js');
         const client = new AxioDBCloud(`axiodb://${TCP_HOST}:${TCP_PORT}`, {
           username: 'tcpadmin',
           password: 'TcpAdminPass1',
@@ -450,7 +450,7 @@ class TcpAuthTests extends TestRunner {
 
     await this.describe('AxioDBCloud client - error handling regression', async () => {
       await this.test('connect() to an unreachable port rejects cleanly without crashing the process', async () => {
-        const { AxioDBCloud } = require('../../lib/config/DB.js');
+        const { AxioDBCloud } = require('../../../lib/config/DB.js');
         // Deliberately does NOT attach client.on('error', ...) - this is exactly the
         // scenario that used to crash the whole process via Node's "throw on unhandled
         // EventEmitter 'error' event" behavior, even with a .catch() on connect().

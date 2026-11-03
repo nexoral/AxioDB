@@ -8,9 +8,9 @@ const fs = require('fs');
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 
-const { AxioDB } = require('../../lib/config/DB.js');
-const { MessageFramer, MessageBuffer } = require('../../lib/tcp/config/protocol');
-const { CommandType } = require('../../lib/tcp/types/command.types');
+const { AxioDB } = require('../../../lib/config/DB.js');
+const { MessageFramer, MessageBuffer } = require('../../../lib/tcp/config/protocol');
+const { CommandType } = require('../../../lib/tcp/types/command.types');
 
 const TCP_HOST = '127.0.0.1';
 const TCP_PORT = 27019;
@@ -160,7 +160,7 @@ class TcpNoAuthTests extends TestRunner {
 
     await this.describe('Per-IP connection limit (MAX_CONNECTIONS_PER_IP)', async () => {
       await this.test('a single IP is rejected once it exceeds MAX_CONNECTIONS_PER_IP concurrent sockets', async () => {
-        const { MAX_CONNECTIONS_PER_IP } = require('../../lib/tcp/config/keys');
+        const { MAX_CONNECTIONS_PER_IP } = require('../../../lib/tcp/config/keys');
 
         // All connect from 127.0.0.1 (this test process), so this alone should be
         // enough to hit the per-IP cap without needing MAX_CONNECTIONS (global, 1000).
@@ -203,10 +203,10 @@ class TcpNoAuthTests extends TestRunner {
 
     await this.describe('Connection-attempt rate limiting (CONNECTION_RATE_LIMIT_MAX_ATTEMPTS)', async () => {
       await this.test('a burst of connection attempts from one IP triggers a temporary rate-limit lockout, independent of MAX_CONNECTIONS_PER_IP', async () => {
-        const { CONNECTION_RATE_LIMIT_MAX_ATTEMPTS } = require('../../lib/tcp/config/keys');
+        const { CONNECTION_RATE_LIMIT_MAX_ATTEMPTS } = require('../../../lib/tcp/config/keys');
         // Same singleton instance the running TCP server uses (test process hosts both) -
         // clearAll() at the end so this lockout doesn't leak into later tests/files sharing 127.0.0.1.
-        const ConnectionRateLimiter = require('../../lib/tcp/connection/ConnectionRateLimiter').default;
+        const ConnectionRateLimiter = require('../../../lib/tcp/connection/ConnectionRateLimiter').default;
 
         try {
           // Every attempt counts towards the limiter regardless of outcome (accepted or

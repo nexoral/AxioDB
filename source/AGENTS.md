@@ -25,7 +25,8 @@ utility/    BufferLoaderWithWorker, Searcher, SortData, StaticFile, ZipUnzip, Co
 ```bash
 npm run build   # tsc → lib/ — MANDATORY after every change
 npm run lint    # eslint source/
-npm test crud   # one suite; `npm test` = all 14 (ask first, slow)
+npm test crud        # legacy alias (npm run node-test crud)
+npm run node-test crud # one suite; `npm run node-test` = all 14 (ask first, slow)
 ```
 
 ## Hard rules

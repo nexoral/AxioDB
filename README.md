@@ -125,7 +125,7 @@ The full suite is **329 tests across 14 suites**, all passing, each in an isolat
 
 Full per-suite breakdown: [axiodb.in/performance](https://axiodb.in/performance).
 
-Run it yourself with `npm test`.
+Run it yourself with `npm run node-test` (or `npm test`).
 
 ## ⚡ Benchmarking & Performance Verification
 

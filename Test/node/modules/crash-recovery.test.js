@@ -16,7 +16,7 @@ const { assert } = require('../helpers/assertions');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
-const { General } = require('../../lib/config/Keys/Keys.js');
+const { General } = require('../../../lib/config/Keys/Keys.js');
 
 const LIB_DB_PATH = path.resolve(__dirname, '../../lib/config/DB.js');
 

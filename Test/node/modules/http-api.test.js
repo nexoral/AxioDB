@@ -6,7 +6,7 @@ const { assert } = require('../helpers/assertions');
 const fs = require('fs');
 const http = require('http');
 
-const { AxioDB } = require('../../lib/config/DB.js');
+const { AxioDB } = require('../../../lib/config/DB.js');
 
 const PORT = 27018;
 

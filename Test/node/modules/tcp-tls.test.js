@@ -10,8 +10,8 @@ const selfsigned = require('selfsigned');
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 
-const { AxioDB, AxioDBCloud } = require('../../lib/config/DB.js');
-const { MessageFramer, MessageBuffer } = require('../../lib/tcp/config/protocol');
+const { AxioDB, AxioDBCloud } = require('../../../lib/config/DB.js');
+const { MessageFramer, MessageBuffer } = require('../../../lib/tcp/config/protocol');
 
 const TCP_HOST = '127.0.0.1';
 const TCP_PORT = 27019;

@@ -35,7 +35,7 @@ skill/           # Agent skill, runbooks, references, scripts
 ## Rules — non-negotiable
 
 1. `npm run build` after every change — never ship TS errors.
-2. `Test/modules/` must be updated for any feature; `npm test` all 14 suites `crud|transaction|read|aggregation|auth|http-api|tcp-auth|tcp-noauth|tcp-transaction|tcp-tls|crash-recovery|mcp-confirm|mcp-functional|cache-options`.
+2. `Test/node/modules/` must be updated for any feature; `npm run node-test` all 14 suites `crud|transaction|read|aggregation|auth|http-api|tcp-auth|tcp-noauth|tcp-transaction|tcp-tls|crash-recovery|mcp-confirm|mcp-functional|cache-options`.
 3. Never leave incomplete work — Done checklist must pass.
 4. Read before edit; follow existing patterns.
 5. Production-grade only.
@@ -63,7 +63,7 @@ items.find(i => i.id === targetId);
 
 ## Tests
 
-Framework: custom `TestRunner` + `assert` from `Test/helpers/`. Run all: `npm test`. Single suite: `npm test crud`. New test file: `Test/modules/{feature}.test.js`, extend `TestRunner`, use `fixtures` for data, clean up in `setUp()`/`tearDown()`.
+Framework: custom `TestRunner` + `assert` from `Test/node/helpers/`. Run all: `npm run node-test`. Single suite: `npm run node-test crud`. New test file: `Test/node/modules/{feature}.test.js`, extend `TestRunner`, use `fixtures` for data, clean up in `setUp()`/`tearDown()`.
 
 ```js
 const TestRunner = require('../helpers/TestRunner');
@@ -103,8 +103,8 @@ README, `Document/` (`npm run dev` 5173), `Dockerfile` ports/env, JSDoc with `@p
 
 ```bash
 npm run build              # mandatory
-npm test                   # all 14
-npm test <suite>           # see Rules 2
+npm run node-test          # all 14
+npm run node-test <suite>  # see Rules 2
 npm run lint               # ESLint
 cd Document && npm run dev # docs 5173
 ```
@@ -119,11 +119,11 @@ After file changes, if graphify is available and `graphify-out/` exists, rebuild
 Always ask user permission before:
 * `git commit` — confirm message and changes
 * `git push` — confirm branch and remote
-* `npm test` (full suite) — may be slow
+* `npm run node-test` (full suite) — may be slow
 * Launching sub-agents (explore/plan) — costly and time-consuming; user may already know the answer or have a better approach
 
 Do NOT ask for:
-* `npm test <suite>` (scoped) — run directly
+* `npm run node-test <suite>` (scoped) — run directly
 * `npm run build` — run directly
 * `npm run lint` — run directly
 
@@ -141,7 +141,7 @@ Do NOT ask for:
 ## Done checklist
 
 - [ ] `npm run build` passes
-- [ ] `Test/modules/` updated, `npm test` 14/14
+- [ ] `Test/node/modules/` updated, `npm run node-test` 14/14
 - [ ] `npm run lint` passes
 - [ ] Docs updated (README, Document, Dockerfile, JSDoc)
 - [ ] Changelog if major/breaking

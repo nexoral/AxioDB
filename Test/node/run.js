@@ -75,7 +75,7 @@ function runTestModule(name, modulePath) {
     `;
     
     const child = spawn('node', ['-e', runnerCode], {
-      cwd: path.join(__dirname, '..'),
+      cwd: path.join(__dirname, '../..'),
       stdio: 'inherit'
     });
     

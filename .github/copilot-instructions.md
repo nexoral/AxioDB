@@ -7,7 +7,7 @@ InMemoryCache, Worker Threads, ACID transactions, Web GUI, TCP remote access.
 ## Core rules (NON-NEGOTIABLE)
 
 1. **Build after every change**: `npm run build`. Catch TypeScript errors now, not in production.
-2. **Test every feature change**: `Test/modules/` (`crud`, `transaction`, `read`, `auth`,
+2. **Test every feature change**: `Test/node/modules/` (`crud`, `transaction`, `read`, `auth`,
    `tcp-auth`, `tcp-noauth`, `tcp-tls`, `crash-recovery`, `mcp-confirm`). Separate processes -
    the singleton forbids sharing one.
 3. **Never leave work incomplete** - see the Done checklist at the bottom.
@@ -89,12 +89,12 @@ source/
 
 ```bash
 npm run build              # TypeScript → lib/ (MANDATORY after every change)
-npm test                   # All suites (separate processes)
-npm test <suite>           # crud | transaction | read | aggregation | auth | http-api
+npm run node-test          # All suites (separate processes)
+npm run node-test <suite>  # crud | transaction | read | aggregation | auth | http-api
                            # tcp-auth | tcp-noauth | tcp-transaction | tcp-tls
                            # crash-recovery | mcp-confirm | mcp-functional | cache-options
 npm run lint               # ESLint
-node Test/modules/crud.test.js  # Run one suite directly
+node Test/node/modules/crud.test.js  # Run one suite directly
 cd Document && npm run dev      # Docs site (localhost:5173)
 ```
 
@@ -125,7 +125,7 @@ skipping tests · missing docs · stale or hand-edited AI artifacts · magic str
 ## Done checklist - ALL must pass
 
 - [ ] `npm run build` passes
-- [ ] Tests added/updated, `npm test` passes
+- [ ] Tests added/updated, `npm run node-test` passes
 - [ ] `npm run lint` passes
 - [ ] Docs updated (README, Document/, Dockerfile, JSDoc) + changelog if major/breaking
 - [ ] AI artifacts updated **and regenerated**; version identical everywhere

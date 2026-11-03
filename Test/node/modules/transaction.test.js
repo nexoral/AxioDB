@@ -6,8 +6,8 @@ const { assert } = require('../helpers/assertions');
 const fixtures = require('../helpers/fixtures');
 const fs = require('fs');
 
-const { AxioDB } = require('../../lib/config/DB.js');
-const { General } = require('../../lib/config/Keys/Keys.js');
+const { AxioDB } = require('../../../lib/config/DB.js');
+const { General } = require('../../../lib/config/Keys/Keys.js');
 
 class TransactionTests extends TestRunner {
   constructor() {
@@ -259,7 +259,7 @@ class TransactionTests extends TestRunner {
         // registry entry. The registry-driven recovery loop never sees it, so without
         // an explicit sweep it survives forever (the flaky crash-recovery failure).
         // This reproduces that state deterministically - no SIGKILL timing needed.
-        const Transaction = require('../../lib/Services/Transaction/Transaction.service.js').default;
+        const Transaction = require('../../../lib/Services/Transaction/Transaction.service.js').default;
         const collectionPath = this.collection.path;
         const txnDir = `${collectionPath}/.transactions`;
         fs.mkdirSync(txnDir, { recursive: true });
@@ -426,9 +426,9 @@ class TransactionTests extends TestRunner {
     // these drive the services directly rather than through the collection API.
     await this.describe('Transaction registry & WAL JSONL format', async () => {
       const TransactionRegistry =
-        require('../../lib/Services/Transaction/TransactionRegistry.service.js').default;
+        require('../../../lib/Services/Transaction/TransactionRegistry.service.js').default;
       const WriteAheadLog =
-        require('../../lib/Services/Transaction/WriteAheadLog.service.js').default;
+        require('../../../lib/Services/Transaction/WriteAheadLog.service.js').default;
 
       const registryPath = () =>
         `${this.collection.path}/.transactions/${General.Transaction_Registry_File}`;

@@ -7,7 +7,7 @@ const path = require('path');
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 
-const { withConfirmation, READ_ONLY, ADDITIVE, DESTRUCTIVE } = require('../../Docker/mcp/confirmation.helper');
+const { withConfirmation, READ_ONLY, ADDITIVE, DESTRUCTIVE } = require('../../../Docker/mcp/confirmation.helper');
 
 const TOOLS_DIR = path.join(__dirname, '..', '..', 'Docker', 'mcp', 'tools');
 

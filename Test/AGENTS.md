@@ -7,12 +7,16 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Test/` s
 ## Layout
 
 ```
-run.js                    orchestrator — spawns each suite in a child process
-helpers/TestRunner.js     base class: test(), describe(), run(), printResults()
-helpers/assertions.js     assert.* (isSuccess, isError, throws, equal, includes, …)
-helpers/fixtures.js       shared sample data
-modules/*.test.js         the suites
-key.js                    legacy benchmark data (Data_To_Loop_*, schema, …)
+AGENTS.md                 agent instructions (root of Test/ only)
+bun/                      Bun test suite
+deno/                     Deno test suite
+node/
+  run.js                  orchestrator — spawns each suite in a child process
+  helpers/TestRunner.js   base class: test(), describe(), run(), printResults()
+  helpers/assertions.js   assert.* (isSuccess, isError, throws, equal, includes, …)
+  helpers/fixtures.js     shared sample data
+  modules/*.test.js       the suites
+  key.js                  legacy benchmark data (Data_To_Loop_*, schema, …)
 ```
 
 ## The 14 suites
@@ -22,8 +26,8 @@ key.js                    legacy benchmark data (Data_To_Loop_*, schema, …)
 ## Commands
 
 ```bash
-npm test              # all suites (ask before running — slow)
-npm test crud         # one suite — run directly, no permission needed
+npm run node-test              # all suites (ask before running — slow)
+npm run node-test crud         # one suite — run directly, no permission needed
 ```
 
 ## Why child processes

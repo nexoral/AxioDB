@@ -131,7 +131,7 @@ npm run build
 4. **Run tests:**
 
 ```bash
-npm test
+npm run node-test
 ```
 
 5. **Create a branch for your work:**
@@ -250,10 +250,10 @@ Fixes #456
 
 ```bash
 # Run all tests
-npm test
+npm run node-test
 
 # Run specific test file
-node ./Test/run.js
+node ./Test/node/run.js
 ```
 
 ### Writing Tests

@@ -5,7 +5,7 @@ const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 const fs = require('fs');
 
-const { AxioDB } = require('../../lib/config/DB.js');
+const { AxioDB } = require('../../../lib/config/DB.js');
 
 const BASE_URL = 'http://localhost:27018/api';
 
@@ -153,7 +153,7 @@ class AuthTests extends TestRunner {
 
     // Reset the shared rate limiter directly so the lockout above doesn't block the
     // legitimate logins the rest of this suite depends on.
-    require('../../lib/Services/Auth/LoginRateLimiter.service').default.clearAll();
+    require('../../../lib/Services/Auth/LoginRateLimiter.service').default.clearAll();
 
     await this.describe('Unauthenticated access', async () => {
       await this.test('Protected route without a cookie returns 401', async () => {
@@ -398,7 +398,7 @@ class AuthTests extends TestRunner {
       await this.test('A valid archive that is not an AxioDB export is rejected and leaves no trash', async () => {
         const os = require('os');
         const pathMod = require('path');
-        const { tarGzFolder } = require('../../lib/utility/ZipUnzip.utils.js');
+        const { tarGzFolder } = require('../../../lib/utility/ZipUnzip.utils.js');
 
         // Well-formed .tar.gz, just not one of ours.
         const work = fs.mkdtempSync(pathMod.join(os.tmpdir(), 'axiodb-notours-'));
@@ -544,9 +544,9 @@ class AuthTests extends TestRunner {
         const zlib = require('zlib');
         const os = require('os');
         const pathMod = require('path');
-        const TarHelper = require('../../lib/Helper/Tar.helper.js').default;
+        const TarHelper = require('../../../lib/Helper/Tar.helper.js').default;
         const { unzipFile, UnsafeArchiveError } =
-          require('../../lib/utility/ZipUnzip.utils.js');
+          require('../../../lib/utility/ZipUnzip.utils.js');
 
         const work = fs.mkdtempSync(pathMod.join(os.tmpdir(), 'axiodb-bomb-'));
         const bombPath = pathMod.join(work, 'bomb.tar.gz');
@@ -609,8 +609,8 @@ class AuthTests extends TestRunner {
         const zlib = require('zlib');
         const os = require('os');
         const pathMod = require('path');
-        const TarHelper = require('../../lib/Helper/Tar.helper.js').default;
-        const { unzipFile } = require('../../lib/utility/ZipUnzip.utils.js');
+        const TarHelper = require('../../../lib/Helper/Tar.helper.js').default;
+        const { unzipFile } = require('../../../lib/utility/ZipUnzip.utils.js');
 
         const work = fs.mkdtempSync(pathMod.join(os.tmpdir(), 'axiodb-slip-'));
         const dest = pathMod.join(work, 'out');
