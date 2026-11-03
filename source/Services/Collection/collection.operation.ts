@@ -123,7 +123,8 @@ export default class Collection {
    *         or if the caller lacks necessary permissions).
    */
   public async dropIndex(indexName: string){
-    return await this.IndexManager.dropIndex(indexName)
+    await this.indexCache.invalidateIndex(indexName);
+    return await this.IndexManager.dropIndex(indexName);
   }
 
   /**

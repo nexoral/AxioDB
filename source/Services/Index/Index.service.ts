@@ -35,26 +35,41 @@ export class IndexManager {
 
   /**
    * Serialize IndexData shape for JSONL file storage.
-   * Line 1 = header (fieldName + sortedValues), remaining lines = [key, [docIds]].
+   * Line 1 = header (fieldName + sortedValues), remaining lines = [key, [docIds or integer pointers]].
    */
-  public static serializeIndexData(indexData: { fieldName: string; indexEntries: Record<string, string[]>; sortedValues?: number[] }): string {
+  public static serializeIndexData(
+    indexData: { fieldName: string; indexEntries: Record<string, string[]>; sortedValues?: number[] },
+    docMapLookup?: Map<string, number>
+  ): string {
     const lines: string[] = [];
     const header = { h: 2, f: indexData.fieldName, s: indexData.sortedValues ?? [] };
     lines.push(JSON.stringify(header));
     const ext = General.DBMS_File_EXT;
     const extLen = ext.length;
+    const usePointers = Boolean(docMapLookup && indexData.fieldName !== "documentId");
+
     for (const [key, files] of Object.entries(indexData.indexEntries)) {
-      const stripped = files.map(file => file.endsWith(ext) ? file.slice(0, -extLen) : file);
-      lines.push(JSON.stringify([key, stripped]));
+      const formatted = files.map(file => {
+        const stripped = file.endsWith(ext) ? file.slice(0, -extLen) : file;
+        if (usePointers) {
+          const pointer = docMapLookup?.get(stripped);
+          if (pointer !== undefined) return pointer;
+        }
+        return stripped;
+      });
+      lines.push(JSON.stringify([key, formatted]));
     }
     return lines.join("\n") + "\n";
   }
 
   /**
    * Deserialize JSONL lines back into an IndexData object.
-   * Supports format v2 ([key, docIds]) and backward-compatible v1 ({k, v}).
+   * Supports format v2 ([key, docIds/pointers]) and backward-compatible v1 ({k, v}).
    */
-  public static deserializeIndexData(lines: string[]): { fieldName: string; indexEntries: Record<string, string[]>; sortedValues: number[] } | null {
+  public static deserializeIndexData(
+    lines: string[],
+    docMap?: string[]
+  ): { fieldName: string; indexEntries: Record<string, string[]>; sortedValues: number[] } | null {
     if (lines.length === 0) return null;
     const decoder = new TextDecoder();
     try {
@@ -74,6 +89,9 @@ export class IndexManager {
               const key = String(entry[0]);
               const rawFiles = Array.isArray(entry[1]) ? entry[1] : [entry[1]];
               indexEntries[key] = rawFiles.map((f: unknown) => {
+                if (typeof f === 'number' && docMap && docMap[f] !== undefined) {
+                  return `${docMap[f]}${ext}`;
+                }
                 const s = String(f);
                 return s.endsWith(ext) ? s : `${s}${ext}`;
               });
