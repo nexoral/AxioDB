@@ -32,11 +32,15 @@ class ReadOptimizationTests extends TestRunner {
     // Create indexes before inserting data
     await this.collection.newIndex('name', 'email', 'age', 'category');
 
-    // Generate and insert large dataset (50000 docs for realistic benchmark)
-    this.largeDataset = fixtures.generateUsers(10000);
-    await this.collection.insertMany(this.largeDataset);
+    // Generate and insert large dataset (100,000 docs) in batches of 10,000
+    const totalDocs = 100000;
+    const batchSize = 10000;
+    for (let i = 0; i < totalDocs; i += batchSize) {
+      const batch = fixtures.generateUsers(batchSize, i);
+      await this.collection.insertMany(batch);
+    }
 
-    this.log(`Test environment ready with ${this.largeDataset.length} documents`, 'success');
+    this.log(`Test environment ready with ${totalDocs} documents`, 'success');
   }
 
   async tearDown() {
@@ -423,8 +427,8 @@ class ReadOptimizationTests extends TestRunner {
 
         assert.isSuccess(result);
         assert.equal(result.data.documents.length, 5);
-        // With 10K docs and worker thread overhead, allow up to 2 seconds
-        assert.performanceWithin(duration, 2000, 'Small limit should enable early termination');
+        // With 100K docs and worker thread overhead, allow up to 5 seconds
+        assert.performanceWithin(duration, 5000, 'Small limit should enable early termination');
         this.log(`     Limit 5 query completed in ${duration}ms`, 'gray');
       });
 

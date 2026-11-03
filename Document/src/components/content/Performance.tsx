@@ -35,102 +35,21 @@ interface BenchmarkRow {
 }
 
 const benchmarkData: BenchmarkRow[] = [
-  { size: 1000, indexed: 1, documentId: 0, gtRange: 61, gteLteRange: 50, inOp5: 41, inOp50: 76, limit5: 73, regex: 79, sort: 57, fullScan: 72, indexedQuery: 2, cacheFirst: 59, cacheHit: 0 },
-  { size: 5000, indexed: 2, documentId: 0, gtRange: 97, gteLteRange: 89, inOp5: 55, inOp50: 235, limit5: 173, regex: 229, sort: 105, fullScan: 241, indexedQuery: 2, cacheFirst: 110, cacheHit: 0 },
-  { size: 10000, indexed: 1, documentId: 1, gtRange: 174, gteLteRange: 111, inOp5: 85, inOp50: 455, limit5: 267, regex: 466, sort: 171, fullScan: 333, indexedQuery: 1, cacheFirst: 112, cacheHit: 0 },
-  { size: 50000, indexed: 2, documentId: 1, gtRange: 657, gteLteRange: 631, inOp5: 251, inOp50: 1278, limit5: 1111, regex: 1150, sort: 760, fullScan: 1050, indexedQuery: 1, cacheFirst: 338, cacheHit: 0 },
-  { size: 100000, indexed: 1, documentId: 1, gtRange: 1123, gteLteRange: 807, inOp5: 533, inOp50: 2047, limit5: 1709, regex: 1959, sort: 1217, fullScan: 1781, indexedQuery: 1, cacheFirst: 703, cacheHit: 0 },
+  { size: 1000, indexed: 1, documentId: 0, gtRange: 12, gteLteRange: 8, inOp5: 5, inOp50: 45, limit5: 38, regex: 32, sort: 18, fullScan: 36, indexedQuery: 1, cacheFirst: 15, cacheHit: 0 },
+  { size: 5000, indexed: 1, documentId: 0, gtRange: 35, gteLteRange: 22, inOp5: 12, inOp50: 140, limit5: 115, regex: 98, sort: 52, fullScan: 110, indexedQuery: 1, cacheFirst: 42, cacheHit: 0 },
+  { size: 10000, indexed: 1, documentId: 1, gtRange: 68, gteLteRange: 45, inOp5: 22, inOp50: 255, limit5: 210, regex: 185, sort: 98, fullScan: 215, indexedQuery: 1, cacheFirst: 80, cacheHit: 0 },
+  { size: 50000, indexed: 1, documentId: 1, gtRange: 260, gteLteRange: 152, inOp5: 70, inOp50: 960, limit5: 745, regex: 680, sort: 350, fullScan: 780, indexedQuery: 1, cacheFirst: 230, cacheHit: 0 },
+  { size: 100000, indexed: 1, documentId: 1, gtRange: 494, gteLteRange: 286, inOp5: 125, inOp50: 1805, limit5: 1339, regex: 1215, sort: 652, fullScan: 1365, indexedQuery: 1, cacheFirst: 414, cacheHit: 0 },
 ];
 
 const machine = {
   cpu: "AMD Ryzen 5 5500U",
   cores: "6C / 12T @ 2.1 GHz",
-  ram: "7.1 GB DDR4",
-  os: "Ubuntu Linux 6.8.0",
+  ram: "7.6 GB DDR4",
+  os: "Ubuntu Linux 7.0.0",
   node: "v26.8.1",
-  date: "September 25, 2026",
+  date: "November 3, 2026",
 };
-
-const suiteTimings = [
-  { name: "CRUD Operations", time: 4149, tests: 39, color: "emerald" },
-  { name: "Transactions", time: 681, tests: 23, color: "blue" },
-  { name: "Read / Query", time: 24499, tests: 39, color: "violet" },
-  { name: "Aggregation", time: 457, tests: 63, color: "cyan" },
-  { name: "Auth & RBAC", time: 6121, tests: 35, color: "amber" },
-  { name: "HTTP API", time: 1511, tests: 47, color: "orange" },
-  { name: "TCP Auth", time: 3260, tests: 25, color: "rose" },
-  { name: "TCP No-Auth", time: 918, tests: 5, color: "pink" },
-  { name: "TCP Transactions", time: 1419, tests: 22, color: "indigo" },
-  { name: "TCP TLS", time: 836, tests: 3, color: "slate" },
-  { name: "Crash Recovery", time: 6196, tests: 3, color: "red" },
-  { name: "MCP Confirm", time: 49, tests: 10, color: "teal" },
-  { name: "MCP Functional", time: 1242, tests: 4, color: "fuchsia" },
-  { name: "Cache Options", time: 1438, tests: 11, color: "lime" },
-];
-
-const crudOps = [
-  { label: "Insert Single", time: 31, note: "1 document" },
-  { label: "InsertMany (500 docs)", time: 365, note: "batch insert" },
-  { label: "Find by Index", time: 3, note: "exact match" },
-  { label: "Find by documentId", time: 0, note: "direct lookup" },
-  { label: "Find $gt", time: 55, note: "range scan" },
-  { label: "Find $in", time: 2, note: "set lookup" },
-  { label: "Find $ne / $nin", time: 56, note: "negation" },
-  { label: "Find Limit/Skip/Sort", time: 70, note: "pagination" },
-  { label: "findOne", time: 0, note: "first match" },
-  { label: "Update Single", time: 35, note: "1 document" },
-  { label: "Update Multiple", time: 326, note: "batch update" },
-  { label: "Delete Single", time: 28, note: "1 document" },
-  { label: "Delete Multiple", time: 144, note: "batch delete" },
-];
-
-const transactionOps = [
-  { label: "Insert + Commit", time: 38 },
-  { label: "Update + Commit", time: 32 },
-  { label: "Delete + Commit", time: 44 },
-  { label: "Mixed Operations", time: 46 },
-  { label: "Rollback", time: 8 },
-  { label: "Savepoint Create + Rollback", time: 24 },
-  { label: "withTransaction (auto-commit)", time: 21 },
-  { label: "Index sync after commit", time: 20 },
-];
-
-const httpOps = [
-  { label: "POST /auth/login", time: 92 },
-  { label: "PATCH /auth/change-password", time: 127 },
-  { label: "GET /db/databases", time: 35 },
-  { label: "POST /db/create-database", time: 2 },
-  { label: "POST /operation/create/", time: 35 },
-  { label: "GET /operation/all/by-id/", time: 3 },
-  { label: "POST /operation/all/by-query/", time: 12 },
-  { label: "PUT /operation/update/by-id/", time: 26 },
-  { label: "DELETE /operation/delete/by-id/", time: 29 },
-  { label: "POST /operation/create-many/", time: 31 },
-  { label: "POST /operation/aggregate/", time: 4 },
-  { label: "GET /dashboard-stats", time: 34 },
-];
-
-const tcpOps = [
-  { label: "Auth + CRUD", time: 40, note: "authenticated" },
-  { label: "Connection Pool (10)", time: 184, note: "pool init" },
-  { label: "Custom Pool Size", time: 84, note: "pool init" },
-  { label: "TLS CRUD", time: 93, note: "encrypted" },
-  { label: "Rate Limit Lockout", time: 101, note: "per-IP" },
-  { label: "Disconnect Auto-Rollback", time: 509, note: "safety" },
-  { label: "Index Hint via TCP", time: 82, note: "query hint" },
-];
-
-const crashOps = [
-  { label: "SIGKILL during inserts", time: 1722, note: "recovers cleanly" },
-  { label: "SIGKILL during updates", time: 1936, note: "valid before/after" },
-  { label: "SIGKILL during indexed inserts", time: 2030, note: "index consistent" },
-];
-
-const mcpOps = [
-  { label: "DB / Collection / Document", time: 214 },
-  { label: "Transaction handlers", time: 7 },
-  { label: "User / Role / Dashboard", time: 889 },
-];
 
 const queryOps = [
   { key: "indexed", label: "Indexed", desc: "Exact match on indexed field" },
@@ -148,11 +67,6 @@ const queryOps = [
 const fmt = (n: number) => (n === 0 ? "<1 ms" : `${n.toLocaleString()} ms`);
 const fmtSize = (n: number) =>
   n >= 1000 ? `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}K` : `${n}`;
-const fmtTime = (ms: number) => {
-  if (ms < 1000) return `${ms} ms`;
-  return `${(ms / 1000).toFixed(ms % 1000 === 0 ? 0 : 1)} s`;
-};
-
 const perfBadge = (ms: number): string => {
   if (ms <= 2) return "text-emerald-700 bg-emerald-50 border-emerald-300";
   if (ms <= 100) return "text-emerald-800 bg-emerald-50/60 border-emerald-200";
@@ -168,29 +82,6 @@ const perfDot = (ms: number): string => {
   if (ms <= 1000) return "bg-orange-400";
   return "bg-rose-400";
 };
-
-const OpTable: React.FC<{ title: string; icon: React.ReactNode; ops: { label: string; time: number; note?: string }[] }> = ({ title, icon, ops }) => (
-  <div className="bg-white rounded-[3px] border border-gray-200 shadow-sm overflow-hidden">
-    <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
-      {icon}
-      <h3 className="font-bold text-gray-800 text-sm">{title}</h3>
-    </div>
-    <div className="divide-y divide-gray-100">
-      {ops.map((op) => (
-        <div key={op.label} className="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50/60 transition-colors">
-          <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${perfDot(op.time)}`}></span>
-            <span className="text-sm text-gray-700">{op.label}</span>
-            {op.note && <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">{op.note}</span>}
-          </div>
-          <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded-md border ${perfBadge(op.time)}`}>
-            {fmt(op.time)}
-          </span>
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
 const ScaleBar: React.FC<{
   rows: BenchmarkRow[];
@@ -235,7 +126,7 @@ const ScaleBar: React.FC<{
 };
 
 const Performance: React.FC = () => {
-  const totalTests = suiteTimings.reduce((s, t) => s + t.tests, 0);
+  const totalTests = 329;
 
   return (
     <>
@@ -312,34 +203,6 @@ const Performance: React.FC = () => {
             <p className="text-xs text-gray-400 mt-1">{c.sub}</p>
           </div>
         ))}
-      </div>
-
-      {/* ── Suite Overview ───────────────────────────────────── */}
-      <div className="mb-14">
-        <div className="flex items-center gap-2 mb-1">
-          <BarChart3 className="h-5 w-5 text-accent-600" />
-          <h2 className="text-xl font-bold text-gray-900">Test Suite Overview</h2>
-        </div>
-        <p className="text-sm text-gray-500 mb-5">
-          All 13 test suites at 100K documents. Each suite runs in an isolated child process.
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {suiteTimings.map((s) => (
-            <div key={s.name} className="bg-white rounded-[3px] px-4 py-3 border border-gray-200 shadow-sm hover:shadow-sm transition-shadow flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className={`h-4 w-4 text-${s.color}-500`} />
-                <div>
-                  <span className="text-sm font-semibold text-gray-800">{s.name}</span>
-                  <span className="text-[10px] text-gray-400 ml-2">{s.tests} tests</span>
-                </div>
-              </div>
-              <span className="text-xs font-bold font-mono text-gray-600 bg-gray-50 px-2 py-0.5 rounded-md">
-                {fmtTime(s.time)}
-              </span>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* ── Query Scaling Table ──────────────────────────────── */}
@@ -420,26 +283,6 @@ const Performance: React.FC = () => {
         </div>
       </div>
 
-      {/* ── CRUD / Transaction / HTTP / TCP / Crash / MCP ────── */}
-      <div className="mb-14">
-        <div className="flex items-center gap-2 mb-1">
-          <Terminal className="h-5 w-5 text-accent-600" />
-          <h2 className="text-xl font-bold text-gray-900">Operation Breakdown</h2>
-        </div>
-        <p className="text-sm text-gray-500 mb-6">
-          Individual operation timings from every test suite at 100K documents.
-        </p>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <OpTable title="CRUD Operations" icon={<Database className="h-4 w-4 text-emerald-600" />} ops={crudOps} />
-          <OpTable title="Transactions (ACID)" icon={<Shield className="h-4 w-4 text-blue-600" />} ops={transactionOps} />
-          <OpTable title="HTTP API Endpoints" icon={<Activity className="h-4 w-4 text-orange-600" />} ops={httpOps} />
-          <OpTable title="TCP / AxioDBCloud" icon={<Terminal className="h-4 w-4 text-rose-600" />} ops={tcpOps} />
-          <OpTable title="Crash Recovery" icon={<Zap className="h-4 w-4 text-red-600" />} ops={crashOps} />
-          <OpTable title="MCP Server (AI)" icon={<Cpu className="h-4 w-4 text-fuchsia-600" />} ops={mcpOps} />
-        </div>
-      </div>
-
       {/* ── Insights ─────────────────────────────────────────── */}
       <div className="mb-14">
         <div className="flex items-center gap-2 mb-6">
@@ -489,7 +332,7 @@ const Performance: React.FC = () => {
               icon: <TrendingUp className="h-5 w-5" />,
               color: "orange",
               title: "Full scan scales linearly",
-              body: `From 72 ms at 1K to ${benchmarkData[4].fullScan.toLocaleString()} ms at 100K — linear scaling expected for file-per-document scans.`,
+              body: `From ${benchmarkData[0].fullScan.toLocaleString()} ms at 1K to ${benchmarkData[4].fullScan.toLocaleString()} ms at 100K — linear scaling expected for file-per-document scans.`,
             },
             {
               icon: <BarChart3 className="h-5 w-5" />,
