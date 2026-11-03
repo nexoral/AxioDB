@@ -19,6 +19,7 @@ class McpFunctionalTests extends TestRunner {
     this.testDir = './Test/TestMcpFunctional';
     this.db = null;
     this.handlers = new Map();
+    this.dockerLibCreated = false;
   }
 
   async setUp() {
@@ -26,6 +27,18 @@ class McpFunctionalTests extends TestRunner {
     this.db = new AxioDB({ GUI: false, RootName: 'McpFunctionalTestDB', CustomPath: this.testDir });
     const AuthSeeder = require('../../../lib/Services/Auth/AuthSeeder.service').default;
     await new AuthSeeder(this.db).seedIfNeeded();
+
+    const dockerLibPath = path.resolve(__dirname, '../../../Docker/lib');
+    const actualLibPath = path.resolve(__dirname, '../../../lib');
+    if (!fs.existsSync(dockerLibPath)) {
+      try {
+        fs.symlinkSync(actualLibPath, dockerLibPath, 'junction');
+        this.dockerLibCreated = true;
+      } catch {
+        // Ignored
+      }
+    }
+
     const fakeServer = {
       server: { getClientCapabilities: () => ({}) },
       registerTool: (name, _definition, handler) => this.handlers.set(name, handler),
@@ -35,7 +48,7 @@ class McpFunctionalTests extends TestRunner {
       if (request === 'zod') return zodStub;
       const libMarker = request.indexOf('lib/');
       if (libMarker >= 0) {
-        return originalLoad.call(this, path.join(__dirname, '..', '..', request.slice(libMarker)), parent, isMain);
+        return originalLoad.call(this, path.join(__dirname, '..', '..', '..', request.slice(libMarker)), parent, isMain);
       }
       return originalLoad.call(this, request, parent, isMain);
     };
@@ -58,6 +71,14 @@ class McpFunctionalTests extends TestRunner {
   }
 
   async tearDown() {
+    if (this.dockerLibCreated) {
+      const dockerLibPath = path.resolve(__dirname, '../../../Docker/lib');
+      try {
+        fs.unlinkSync(dockerLibPath);
+      } catch {
+        // Ignored
+      }
+    }
     if (fs.existsSync(this.testDir)) fs.rmSync(this.testDir, { recursive: true, force: true });
   }
 

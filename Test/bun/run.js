@@ -1,0 +1,182 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/no-require-imports */
+
+/**
+ * AxioDB Bun Test Suite Runner
+ * 
+ * Due to AxioDB singleton pattern, tests must run in separate processes.
+ * 
+ * Usage:
+ *   npm run bun-test                 # Run all tests in Bun (sequentially in child processes)
+ *   npm run bun-test crud            # Run only CRUD tests in Bun
+ *   npm run bun-test transaction     # Run only transaction tests in Bun
+ *   npm run bun-test read            # Run only read optimization tests in Bun
+ *   npm run bun-test auth            # Run only GUI RBAC tests in Bun
+ *   npm run bun-test tcp-auth        # Run only TCP (AxioDBCloud) RBAC tests in Bun
+ *   npm run bun-test tcp-noauth      # Run only TCP zero-auth backward-compat tests in Bun
+ *   npm run bun-test tcp-tls         # Run only TCP TLS tests in Bun
+ *   npm run bun-test crash-recovery  # Run only real-SIGKILL crash-recovery tests in Bun
+ *   npm run bun-test mcp-confirm     # Run only MCP destructive-tool confirmation tests in Bun
+ *   npm run bun-test cache-options   # Run only InMemoryCache option/instance tests in Bun
+ */
+
+const { spawn } = require('child_process');
+const path = require('path');
+
+// Color helpers
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[36m',
+  gray: '\x1b[90m'
+};
+
+// Available test modules (run as separate processes)
+const testModules = {
+  crud: './modules/crud.test.js',
+  transaction: './modules/transaction.test.js',
+  read: './modules/read.test.js',
+  aggregation: './modules/aggregation.test.js',
+  auth: './modules/auth.test.js',
+  'http-api': './modules/http-api.test.js',
+  'tcp-auth': './modules/tcp-auth.test.js',
+  'tcp-noauth': './modules/tcp-noauth.test.js',
+  'tcp-transaction': './modules/tcp-transaction.test.js',
+  'tcp-tls': './modules/tcp-tls.test.js',
+  'crash-recovery': './modules/crash-recovery.test.js',
+  'mcp-confirm': './modules/mcp-confirm.test.js',
+  'mcp-functional': './modules/mcp-functional.test.js',
+  'cache-options': './modules/cache-options.test.js'
+};
+
+/**
+ * Run a single test module in a child process
+ */
+function runTestModule(name, modulePath) {
+  return new Promise((resolve) => {
+    const startTime = Date.now();
+    
+    // Create a simple runner script inline
+    const absModulePath = path.resolve(__dirname, modulePath);
+    const runnerCode = `
+      const TestClass = require('${absModulePath}');
+      const suite = new TestClass();
+      suite.run().then(results => {
+        suite.printResults();
+        process.exit(results.failed > 0 ? 1 : 0);
+      }).catch(err => {
+        console.error('Suite error:', err.message);
+        process.exit(1);
+      });
+    `;
+    
+    const runtime = process.versions?.bun ? 'bun' : (process.execPath || 'bun');
+    const child = spawn(runtime, ['-e', runnerCode], {
+      cwd: path.join(__dirname, '../..'),
+      stdio: 'inherit'
+    });
+    
+    child.on('close', (code) => {
+      resolve({
+        name,
+        exitCode: code,
+        duration: Date.now() - startTime
+      });
+    });
+  });
+}
+
+/**
+ * Main test runner - runs tests sequentially in separate processes
+ */
+async function runAllTests() {
+  const args = process.argv.slice(2);
+  const specificSuite = args[0]?.toLowerCase();
+
+  console.log('\n' + '═'.repeat(70));
+  console.log(`${colors.bright}${colors.blue}   AxioDB Complete Test Suite${colors.reset}`);
+  console.log('═'.repeat(70));
+  console.log(`   Started at: ${new Date().toISOString()}`);
+  console.log('   Note: Each suite runs in isolated process (singleton pattern)');
+  console.log('═'.repeat(70));
+
+  const results = {
+    passed: 0,
+    failed: 0,
+    suites: [],
+    startTime: Date.now()
+  };
+
+  // Determine which suites to run
+  let suitesToRun = Object.entries(testModules);
+  if (specificSuite && testModules[specificSuite]) {
+    suitesToRun = [[specificSuite, testModules[specificSuite]]];
+    console.log(`\n   Running only: ${specificSuite} tests\n`);
+  } else if (specificSuite) {
+    console.log(`${colors.yellow}   Unknown suite: ${specificSuite}${colors.reset}`);
+    console.log(`   Available suites: ${Object.keys(testModules).join(', ')}`);
+    process.exit(1);
+  }
+
+  // Run each test suite in a separate process
+  for (const [name, modulePath] of suitesToRun) {
+    console.log(`\n${colors.bright}Running ${name} tests...${colors.reset}\n`);
+    
+    const result = await runTestModule(name, modulePath);
+    results.suites.push(result);
+    
+    if (result.exitCode === 0) {
+      results.passed++;
+    } else {
+      results.failed++;
+    }
+  }
+
+  // Print final summary
+  const totalDuration = Date.now() - results.startTime;
+  printFinalSummary(results, totalDuration);
+
+  // Exit with appropriate code
+  process.exit(results.failed > 0 ? 1 : 0);
+}
+
+/**
+ * Print the final aggregated summary
+ */
+function printFinalSummary(results, duration) {
+  console.log('\n' + '═'.repeat(70));
+  console.log(`${colors.bright}   FINAL SUMMARY${colors.reset}`);
+  console.log('═'.repeat(70));
+
+  // Per-suite breakdown
+  results.suites.forEach(suite => {
+    const status = suite.exitCode === 0 
+      ? `${colors.green}✓ PASSED${colors.reset}` 
+      : `${colors.red}✗ FAILED${colors.reset}`;
+    console.log(`   ${suite.name}: ${status} (${suite.duration}ms)`);
+  });
+
+  console.log('\n   ' + '─'.repeat(50));
+  console.log(`   ${colors.bright}Suites Passed:${colors.reset}  ${results.passed}/${results.suites.length}`);
+  console.log(`   ${colors.bright}Total Duration:${colors.reset} ${duration}ms`);
+
+  console.log('\n' + '═'.repeat(70));
+  
+  if (results.failed === 0) {
+    console.log(`${colors.green}${colors.bright}   🎉 ALL TEST SUITES PASSED!${colors.reset}`);
+  } else {
+    console.log(`${colors.red}${colors.bright}   ⚠️  ${results.failed} SUITE(S) FAILED${colors.reset}`);
+  }
+  
+  console.log('═'.repeat(70) + '\n');
+}
+
+// Run tests
+runAllTests().catch(error => {
+  console.error('Fatal error running test suite:', error);
+  process.exit(1);
+});

@@ -9,7 +9,7 @@ const { assert } = require('../helpers/assertions');
 
 const { withConfirmation, READ_ONLY, ADDITIVE, DESTRUCTIVE } = require('../../../Docker/mcp/confirmation.helper');
 
-const TOOLS_DIR = path.join(__dirname, '..', '..', 'Docker', 'mcp', 'tools');
+const TOOLS_DIR = path.join(__dirname, '..', '..', '..', 'Docker', 'mcp', 'tools');
 
 // Tools that carry destructiveHint but deliberately have no elicitation gate, with the reason.
 const UNGATED_DESTRUCTIVE = {

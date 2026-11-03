@@ -187,8 +187,9 @@ class CacheOptionsTests extends TestRunner {
             await db.deleteDatabase('DB');
           })();
         `;
-        const stdout = execFileSync(process.execPath, ['-e', script], {
-          cwd: path.resolve(__dirname, '../..'),
+        const runtime = process.versions?.bun ? 'bun' : (process.execPath || 'node');
+        const stdout = execFileSync(runtime, ['-e', script], {
+          cwd: path.resolve(__dirname, '../../..'),
           encoding: 'utf8',
         });
         const line = stdout.split('\n').find((l) => l.startsWith('CHILD_RESULT='));

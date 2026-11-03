@@ -6,6 +6,7 @@
   "types": "./lib/config/DB.d.ts",
   "scripts": {
     "node-test": "node ./Test/node/run.js",
+    "bun-test": "bun ./Test/bun/run.js",
     "test": "npm run node-test --",
     "benchmark": "node -e \"if (!require('fs').existsSync('./lib/config/DB.js')) require('child_process').execSync('npm run build', { stdio: 'inherit' });\" && node ./benchmark/run.js",
     "build": "tsc",
