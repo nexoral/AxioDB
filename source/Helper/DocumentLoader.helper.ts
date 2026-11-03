@@ -16,6 +16,7 @@ export default class DocumentLoader {
     documentFiles?: string[],
     includeFileName: boolean = false,
     query?: Record<string, unknown>,
+    maxFiles?: number,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const dataFilesList: string[] = [];
@@ -30,7 +31,11 @@ export default class DocumentLoader {
           const axiodbFiles = files.filter((file: string) =>
             file.endsWith(".axiodb")
           );
-          dataFilesList.push(...axiodbFiles);
+          if (maxFiles !== undefined && maxFiles > 0) {
+            dataFilesList.push(...axiodbFiles.slice(0, maxFiles));
+          } else {
+            dataFilesList.push(...axiodbFiles);
+          }
         } else {
           return this.ResponseHelper.Error("Failed to read directory");
         }

@@ -176,8 +176,11 @@ class ReadOptimizationTests extends TestRunner {
       });
 
       await this.test('UpdateMany evicts only the cached queries for documents it actually touched', async () => {
-        const queryA = { age: { $gt: 30, $lt: 35 } };
+        const queryA = { category: 'EvictBatchTest' };
         const queryB = { age: { $gt: 55, $lt: 60 } }; // disjoint - UpdateMany below never touches these documents
+
+        await this.collection.insert({ name: 'EvictTest1', age: 21, category: 'EvictBatchTest' });
+        await this.collection.insert({ name: 'EvictTest2', age: 22, category: 'EvictBatchTest' });
 
         await this.collection.query(queryA).exec();
         await this.collection.query(queryB).exec();
@@ -446,6 +449,27 @@ class ReadOptimizationTests extends TestRunner {
         const page2Ids = page2.data.documents.map(d => d.documentId);
         const overlap = page1Ids.filter(id => page2Ids.includes(id));
         assert.equal(overlap.length, 0, 'Pages should not overlap');
+      });
+
+      await this.test('Sorted pagination preserves order without overlap', async () => {
+        const page1 = await this.collection.query({}).Sort({ age: 1 }).Skip(0).Limit(10).exec();
+        const page2 = await this.collection.query({}).Sort({ age: 1 }).Skip(10).Limit(10).exec();
+
+        assert.isSuccess(page1);
+        assert.isSuccess(page2);
+        assert.equal(page1.data.documents.length, 10);
+        assert.equal(page2.data.documents.length, 10);
+
+        // 1. Zero overlap between pages
+        const page1Ids = page1.data.documents.map(d => d.documentId);
+        const page2Ids = page2.data.documents.map(d => d.documentId);
+        const overlap = page1Ids.filter(id => page2Ids.includes(id));
+        assert.equal(overlap.length, 0, 'Sorted pages should not overlap');
+
+        // 2. Monotonic sort order maintained across the page boundary
+        const p1MaxAge = Math.max(...page1.data.documents.map(d => d.age));
+        const p2MinAge = Math.min(...page2.data.documents.map(d => d.age));
+        assert.ok(p1MaxAge <= p2MinAge, 'Page 1 max age must be <= Page 2 min age');
       });
     });
 

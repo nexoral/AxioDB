@@ -220,7 +220,7 @@ export class ReadIndex extends IndexManager {
  * @throws May propagate errors from `fileManager.ReadFile` or `converter.ToObject` if those
  *         operations throw or reject.
  */
-  protected async findMatchingIndexMeta(document: Record<string, unknown>): Promise<IndexMetaEntry[] | undefined> {
+  public async findMatchingIndexMeta(document: Record<string, unknown>): Promise<IndexMetaEntry[] | undefined> {
     const lines = await this.fileManager.ReadLines(this.indexMetaPath);
     if (lines.length === 0) return undefined;
     const entries = lines.map(line => this.converter.ToObject(line) as IndexMetaEntry);

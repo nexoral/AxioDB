@@ -154,7 +154,14 @@ export default class Reader {
 
           if (typeof fieldValue === 'object' && fieldValue !== null) {
             const fieldObj = fieldValue as Record<string, unknown>;
-            if ('$in' in fieldObj) {
+            if ('$eq' in fieldObj) {
+              const matchedIndexes = await indexReader.findMatchingIndexMeta(this.baseQuery);
+              const isFieldIndexed = Boolean(matchedIndexes && matchedIndexes.length > 0);
+              indexedFileNames = await indexReader.getFileFromIndex({ [fieldName]: fieldObj.$eq });
+              if (isFieldIndexed && indexedFileNames.length === 0) {
+                return this.ResponseHelper.Success({ documents: [] });
+              }
+            } else if ('$in' in fieldObj) {
               indexedFileNames = await indexReader.getFilesForInOperator(fieldName, fieldObj.$in as unknown[]);
             } else if ('$regex' in fieldObj) {
               const prefixInfo = this.detectPrefixPattern(fieldObj.$regex as string | RegExp, fieldObj.$options as string | undefined);
@@ -164,16 +171,17 @@ export default class Reader {
                   prefixInfo.prefix,
                   prefixInfo.caseInsensitive
                 );
-              } else {
-                indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
               }
             } else if ('$gt' in fieldObj || '$gte' in fieldObj || '$lt' in fieldObj || '$lte' in fieldObj) {
               indexedFileNames = await indexReader.getFilesForRangeOperator(fieldName, fieldObj as { $gt?: number; $gte?: number; $lt?: number; $lte?: number });
-            } else {
-              indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
             }
           } else {
+            const matchedIndexes = await indexReader.findMatchingIndexMeta(this.baseQuery);
+            const isFieldIndexed = Boolean(matchedIndexes && matchedIndexes.length > 0);
             indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
+            if (isFieldIndexed && indexedFileNames.length === 0) {
+              return this.ResponseHelper.Success({ documents: [] });
+            }
           }
         } else {
           indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
@@ -184,9 +192,6 @@ export default class Reader {
       let usedIndex = false;
 
       if (indexedFileNames && indexedFileNames.length > 0) {
-        // Optimization: If the query only filters on the single indexed field,
-        // no sort is specified, and a limit is requested, only read (skip + limit)
-        // matching files from disk rather than reading all matches.
         let filesToLoad = indexedFileNames;
         if (
           Object.keys(this.baseQuery).length === 1 &&
@@ -203,8 +208,14 @@ export default class Reader {
         ReadResponse = await this.LoadAllBufferRawData(filesToLoad);
         usedIndex = true;
       } else {
-        // No index match - full collection scan required
-        ReadResponse = await this.LoadAllBufferRawData();
+        const maxFiles =
+          Object.keys(this.baseQuery).length === 0 &&
+          Object.keys(this.sort).length === 0 &&
+          this.limit !== undefined &&
+          this.limit > 0
+            ? (this.skip || 0) + this.limit
+            : undefined;
+        ReadResponse = await this.LoadAllBufferRawData(undefined, maxFiles);
       }
 
       if (!("data" in ReadResponse)) {
@@ -402,6 +413,7 @@ export default class Reader {
    */
   private async LoadAllBufferRawData(
     documentIdDirectFile?: string[] | undefined,
+    maxFiles?: number,
   ): Promise<SuccessInterface | ErrorInterface> {
     // Use shared DocumentLoader helper (DRY - consolidates duplicated code)
     const result = await DocumentLoader.loadDocuments(
@@ -409,6 +421,7 @@ export default class Reader {
       documentIdDirectFile,
       false, // Don't include fileName for Reader
       this.baseQuery,
+      maxFiles,
     );
 
     // Store result in AllData if successful
