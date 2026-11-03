@@ -1,27 +1,27 @@
-import { FastifyInstance, FastifyPluginOptions } from "fastify";
+import HttpRouter from "../../../Helper/http/HttpRouter.helper";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import CRUDController from "../../controller/Operation/CRUD.controller";
 import { requireAuth, requireFreshPassword } from "../../middleware/auth.middleware";
 import { requirePermission } from "../../middleware/permission.middleware";
 import { PERMISSIONS } from "../../../config/Keys/Permissions";
 
-interface RouterOptions extends FastifyPluginOptions {
+interface RouterOptions {
   AxioDBInstance: AxioDB;
 }
 
 export default async function OperationRouter(
-  fastify: FastifyInstance,
+  router: HttpRouter,
   options: RouterOptions,
 ) {
   const { AxioDBInstance } = options;
 
-  fastify.get(
+  router.get(
     "/all/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_VIEW)] },
     async (request) => new CRUDController(AxioDBInstance).getAllDocuments(request),
   );
 
-  fastify.get(
+  router.get(
     "/total/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_VIEW)] },
     async (request) => {
@@ -39,25 +39,25 @@ export default async function OperationRouter(
     },
   );
 
-  fastify.post(
+  router.post(
     "/all/by-query/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_QUERY)] },
     async (request) => new CRUDController(AxioDBInstance).getDocumentsByQuery(request),
   );
 
-  fastify.get(
+  router.get(
     "/all/by-id/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_VIEW)] },
     async (request) => new CRUDController(AxioDBInstance).getDocumentsById(request),
   );
 
-  fastify.post(
+  router.post(
     "/all/by-ids/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_VIEW)] },
     async (request) => new CRUDController(AxioDBInstance).getDocumentsByIds(request),
   );
 
-  fastify.post(
+  router.post(
     "/create/",
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_CREATE)],
@@ -65,7 +65,7 @@ export default async function OperationRouter(
     async (request) => new CRUDController(AxioDBInstance).createNewDocument(request),
   );
 
-  fastify.post(
+  router.post(
     "/create-many/",
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_CREATE)],
@@ -73,7 +73,7 @@ export default async function OperationRouter(
     async (request) => new CRUDController(AxioDBInstance).createManyNewDocument(request),
   );
 
-  fastify.put(
+  router.put(
     "/update/by-id/",
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_UPDATE)],
@@ -81,7 +81,7 @@ export default async function OperationRouter(
     async (request) => new CRUDController(AxioDBInstance).updateDocumentById(request),
   );
 
-  fastify.put(
+  router.put(
     "/update/by-query/",
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_UPDATE)],
@@ -89,7 +89,7 @@ export default async function OperationRouter(
     async (request) => new CRUDController(AxioDBInstance).updateDocumentByQuery(request),
   );
 
-  fastify.delete(
+  router.delete(
     "/delete/by-id/",
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_DELETE)],
@@ -97,7 +97,7 @@ export default async function OperationRouter(
     async (request) => new CRUDController(AxioDBInstance).deleteDocumentById(request),
   );
 
-  fastify.delete(
+  router.delete(
     "/delete/by-query/",
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_DELETE)],
@@ -105,7 +105,7 @@ export default async function OperationRouter(
     async (request) => new CRUDController(AxioDBInstance).deleteDocumentByQuery(request),
   );
 
-  fastify.post(
+  router.post(
     "/aggregate/",
     {
       preHandler: [

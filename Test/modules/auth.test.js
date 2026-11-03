@@ -396,9 +396,9 @@ class AuthTests extends TestRunner {
       });
 
       await this.test('A valid archive that is not an AxioDB export is rejected and leaves no trash', async () => {
-        const tar = require('tar');
         const os = require('os');
         const pathMod = require('path');
+        const { tarGzFolder } = require('../../lib/utility/ZipUnzip.utils.js');
 
         // Well-formed .tar.gz, just not one of ours.
         const work = fs.mkdtempSync(pathMod.join(os.tmpdir(), 'axiodb-notours-'));
@@ -406,7 +406,7 @@ class AuthTests extends TestRunner {
         fs.mkdirSync(src);
         fs.writeFileSync(pathMod.join(src, 'holiday.jpg'), 'not a database');
         const archive = pathMod.join(work, 'NotADatabase.tar.gz');
-        await tar.c({ gzip: true, file: archive, cwd: work }, ['NotADatabase']);
+        await tarGzFolder(src, archive);
 
         const form = new FormData();
         form.append('file', new Blob([fs.readFileSync(archive)]), 'NotADatabase.tar.gz');
@@ -542,9 +542,9 @@ class AuthTests extends TestRunner {
         // The 42.zip shape: a few MB that expands to gigabytes. The guard has to abort while
         // decompressing - checking the size afterwards is too late, the disk is already full.
         const zlib = require('zlib');
-        const tar = require('tar');
         const os = require('os');
         const pathMod = require('path');
+        const TarHelper = require('../../lib/Helper/Tar.helper.js').default;
         const { unzipFile, UnsafeArchiveError } =
           require('../../lib/utility/ZipUnzip.utils.js');
 
@@ -554,12 +554,11 @@ class AuthTests extends TestRunner {
         fs.mkdirSync(dest);
 
         const TOTAL = 512 * 1024 * 1024; // declared uncompressed size
-        const header = new tar.Header({
-          path: 'BombDB/huge.bin', size: TOTAL, type: 'File',
-          mode: 0o644, mtime: new Date(), uid: 0, gid: 0,
+        const block = TarHelper.encodeHeader({
+          name: 'BombDB/huge.bin',
+          size: TOTAL,
+          type: 'File',
         });
-        const block = Buffer.alloc(512);
-        header.encode(block, 0);
 
         const gzip = zlib.createGzip({ level: 9 });
         const sink = fs.createWriteStream(bombPath);
@@ -607,24 +606,31 @@ class AuthTests extends TestRunner {
       });
 
       await this.test('Archive entries cannot escape the destination directory', async () => {
-        const tar = require('tar');
+        const zlib = require('zlib');
         const os = require('os');
         const pathMod = require('path');
+        const TarHelper = require('../../lib/Helper/Tar.helper.js').default;
         const { unzipFile } = require('../../lib/utility/ZipUnzip.utils.js');
 
         const work = fs.mkdtempSync(pathMod.join(os.tmpdir(), 'axiodb-slip-'));
         const dest = pathMod.join(work, 'out');
-        const staging = pathMod.join(work, 'src');
         fs.mkdirSync(dest);
-        fs.mkdirSync(staging);
-        fs.writeFileSync(pathMod.join(staging, 'evil.txt'), 'pwned');
 
         const archive = pathMod.join(work, 'slip.tar.gz');
-        // preservePaths lets us *write* the traversal entry; extraction must still refuse it.
-        await tar.c(
-          { gzip: true, file: archive, cwd: staging, preservePaths: true },
-          ['evil.txt']
-        );
+        const header = TarHelper.encodeHeader({
+          name: '../evil.txt',
+          size: 5,
+          type: 'File',
+        });
+
+        const gzip = zlib.createGzip();
+        const sink = fs.createWriteStream(archive);
+        gzip.pipe(sink);
+        gzip.write(header);
+        gzip.write(Buffer.from('pwned'));
+        gzip.write(Buffer.alloc(512 - 5));
+        gzip.end(Buffer.alloc(1024));
+        await new Promise((resolve) => sink.on('close', resolve));
 
         let failed = null;
         try {

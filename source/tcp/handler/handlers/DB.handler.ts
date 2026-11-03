@@ -2,7 +2,7 @@ import { AxioDB } from '../../../Services/Indexation.operation';
 import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode, SuccessMessage } from '../../config/keys';
 import DatabaseController from '../../../server/controller/Database/Databse.controller';
-import { FastifyRequest } from 'fastify';
+import { AxioHttpRequest } from '../../../Helper/http/HttpTypes';
 import SafeErrorMessage from '../../../Helper/SafeErrorMessage.helper';
 
 type Params = TCPRequest['params'];
@@ -57,7 +57,7 @@ export default class DBHandler {
       query: { dbName: dbName! },
     };
 
-    const result = await this.controller.deleteDatabase(mockRequest as unknown as FastifyRequest);
+    const result = await this.controller.deleteDatabase(mockRequest as unknown as AxioHttpRequest);
 
     return {
       id: requestId,

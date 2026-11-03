@@ -1,24 +1,23 @@
-import { FastifyInstance } from "fastify";
+import HttpRouter from "../../../Helper/http/HttpRouter.helper";
 import AuthController from "../../controller/Auth/Auth.controller";
 import { requireAuth } from "../../middleware/auth.middleware";
 
-// Auth Router - login is public, everything else requires a valid session.
-export default async function authRouter(fastify: FastifyInstance): Promise<void> {
-  fastify.post("/login", async (request, reply) => new AuthController().login(request, reply));
+export default async function authRouter(router: HttpRouter): Promise<void> {
+  router.post("/login", async (request, reply) => new AuthController().login(request, reply));
 
-  fastify.post(
+  router.post(
     "/logout",
     { preHandler: [requireAuth] },
     async (request, reply) => new AuthController().logout(request, reply),
   );
 
-  fastify.get(
+  router.get(
     "/me",
     { preHandler: [requireAuth] },
     async (request, reply) => new AuthController().me(request, reply),
   );
 
-  fastify.patch(
+  router.patch(
     "/change-password",
     { preHandler: [requireAuth] },
     async (request, reply) => new AuthController().changePassword(request, reply),

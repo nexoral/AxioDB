@@ -2,7 +2,7 @@ import { AxioDB } from '../../../Services/Indexation.operation';
 import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode } from '../../config/keys';
 import CollectionController from '../../../server/controller/Collections/Collection.controller';
-import { FastifyRequest } from 'fastify';
+import { AxioHttpRequest } from '../../../Helper/http/HttpTypes';
 import SafeErrorMessage from '../../../Helper/SafeErrorMessage.helper';
 
 type Params = TCPRequest['params'];
@@ -58,7 +58,7 @@ export default class CollectionHandler {
       query: { dbName: dbName!, collectionName: collectionName! },
     };
 
-    const result = await this.controller.deleteCollection(mockRequest as unknown as FastifyRequest);
+    const result = await this.controller.deleteCollection(mockRequest as unknown as AxioHttpRequest);
 
     return {
       id: requestId,
@@ -104,7 +104,7 @@ export default class CollectionHandler {
       query: { databaseName: dbName! },
     };
 
-    const result = await this.controller.getCollections(mockRequest as unknown as FastifyRequest);
+    const result = await this.controller.getCollections(mockRequest as unknown as AxioHttpRequest);
 
     return {
       id: requestId,

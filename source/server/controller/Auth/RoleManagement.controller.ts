@@ -1,4 +1,4 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { AxioHttpRequest, AxioHttpResponse } from "../../../Helper/http/HttpTypes";
 import { StatusCodes } from "../../../config/Keys/StatusCode";
 import buildResponse, { ResponseBuilder, sendResponse } from "../../helper/responseBuilder.helper";
 import AuthService from "../../../Services/Auth/AuthService.service";
@@ -12,12 +12,12 @@ export default class RoleManagementController {
     this.authService = new AuthService();
   }
 
-  public async listRoles(request: FastifyRequest, reply: FastifyReply): Promise<ResponseBuilder> {
+  public async listRoles(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
     const roles = await this.authService.listRoles();
     return sendResponse(reply, buildResponse(StatusCodes.OK, "List of Roles", roles));
   }
 
-  public async createRole(request: FastifyRequest, reply: FastifyReply): Promise<ResponseBuilder> {
+  public async createRole(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
     const { roleName, permissions } = request.body as CreateRoleRequestBody;
 
     if (!roleName || typeof roleName !== "string" || roleName.trim() === "") {
@@ -47,7 +47,7 @@ export default class RoleManagementController {
     );
   }
 
-  public async deleteRole(request: FastifyRequest, reply: FastifyReply): Promise<ResponseBuilder> {
+  public async deleteRole(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
     const { roleName } = request.params as { roleName: string };
 
     const result = await this.authService.deleteRole(roleName);
@@ -58,8 +58,8 @@ export default class RoleManagementController {
   }
 
   public async listPermissions(
-    request: FastifyRequest,
-    reply: FastifyReply,
+    request: AxioHttpRequest,
+    reply: AxioHttpResponse,
   ): Promise<ResponseBuilder> {
     return sendResponse(
       reply,

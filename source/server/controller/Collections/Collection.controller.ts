@@ -3,7 +3,7 @@ import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse, {
   ResponseBuilder,
 } from "../../helper/responseBuilder.helper";
-import { FastifyRequest } from "fastify";
+import { AxioHttpRequest } from "../../../Helper/http/HttpTypes";
 import countDocumentsInFolder from "../../helper/documentCounterInFolder.helper";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
 import Logger from "../../../Helper/Logger.helper";
@@ -15,7 +15,7 @@ export default class CollectionController {
   }
 
   public async createCollection(
-    request: FastifyRequest,
+    request: AxioHttpRequest,
   ): Promise<ResponseBuilder> {
     const { dbName, collectionName } = request.body as {
       dbName: string;
@@ -59,7 +59,7 @@ export default class CollectionController {
   }
 
   public async getCollections(
-    request: FastifyRequest,
+    request: AxioHttpRequest,
   ): Promise<ResponseBuilder> {
     const { databaseName } = request.query as { databaseName: string };
 
@@ -111,7 +111,7 @@ export default class CollectionController {
   }
 
   public async deleteCollection(
-    request: FastifyRequest,
+    request: AxioHttpRequest,
   ): Promise<ResponseBuilder> {
     const { dbName, collectionName } = request.query as {
       dbName: string;

@@ -1,21 +1,21 @@
-import { FastifyInstance, FastifyPluginOptions } from "fastify";
+import HttpRouter from "../../../Helper/http/HttpRouter.helper";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import IndexController from "../../controller/Index/Index.controller";
 import { requireAuth, requireFreshPassword } from "../../middleware/auth.middleware";
 import { requirePermission } from "../../middleware/permission.middleware";
 import { PERMISSIONS } from "../../../config/Keys/Permissions";
 
-interface RouterOptions extends FastifyPluginOptions {
+interface RouterOptions {
   AxioDBInstance: AxioDB;
 }
 
 export default async function indexRouter(
-  fastify: FastifyInstance,
+  router: HttpRouter,
   options: RouterOptions,
 ) {
   const { AxioDBInstance } = options;
 
-  fastify.get(
+  router.get(
     "/list",
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.INDEX_VIEW)],
@@ -23,7 +23,7 @@ export default async function indexRouter(
     async (request) => new IndexController(AxioDBInstance).getIndexes(request),
   );
 
-  fastify.post(
+  router.post(
     "/create",
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.INDEX_CREATE)],
@@ -31,7 +31,7 @@ export default async function indexRouter(
     async (request) => new IndexController(AxioDBInstance).createIndex(request),
   );
 
-  fastify.delete(
+  router.delete(
     "/delete",
     {
       preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.INDEX_DELETE)],

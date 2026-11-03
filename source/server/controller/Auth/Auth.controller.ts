@@ -1,4 +1,4 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import { AxioHttpRequest, AxioHttpResponse } from "../../../Helper/http/HttpTypes";
 import { StatusCodes } from "../../../config/Keys/StatusCode";
 import buildResponse, { ResponseBuilder, sendResponse } from "../../helper/responseBuilder.helper";
 import AuthService from "../../../Services/Auth/AuthService.service";
@@ -22,7 +22,7 @@ export default class AuthController {
     this.authService = new AuthService();
   }
 
-  public async login(request: FastifyRequest, reply: FastifyReply): Promise<ResponseBuilder> {
+  public async login(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
     const { username, password } = request.body as LoginRequestBody;
 
     if (!username || typeof username !== "string") {
@@ -68,7 +68,7 @@ export default class AuthController {
     );
   }
 
-  public async logout(request: FastifyRequest, reply: FastifyReply): Promise<ResponseBuilder> {
+  public async logout(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
     const sid = this.extractSid(request);
     if (sid) {
       SessionStore.revokeSession(sid);
@@ -77,7 +77,7 @@ export default class AuthController {
     return sendResponse(reply, buildResponse(StatusCodes.OK, "Logged out successfully"));
   }
 
-  public async me(request: FastifyRequest, reply: FastifyReply): Promise<ResponseBuilder> {
+  public async me(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
     const authUser = request.authUser;
     if (!authUser) {
       return sendResponse(reply, buildResponse(StatusCodes.UNAUTHORIZED, "Not authenticated"));
@@ -94,8 +94,8 @@ export default class AuthController {
   }
 
   public async changePassword(
-    request: FastifyRequest,
-    reply: FastifyReply,
+    request: AxioHttpRequest,
+    reply: AxioHttpResponse,
   ): Promise<ResponseBuilder> {
     const authUser = request.authUser;
     if (!authUser) {
@@ -145,7 +145,7 @@ export default class AuthController {
     );
   }
 
-  private setSessionCookie(reply: FastifyReply, sid: string): void {
+  private setSessionCookie(reply: AxioHttpResponse, sid: string): void {
     const cookieValue = CookieCodec.encode({ sid, iat: Date.now() });
     reply.setCookie(SESSION_COOKIE_NAME, cookieValue, {
       httpOnly: true,
@@ -156,7 +156,7 @@ export default class AuthController {
     });
   }
 
-  private extractSid(request: FastifyRequest): string | null {
+  private extractSid(request: AxioHttpRequest): string | null {
     const rawCookie = request.cookies[SESSION_COOKIE_NAME];
     const payload = rawCookie ? CookieCodec.decode(rawCookie) : null;
     return payload ? payload.sid : null;

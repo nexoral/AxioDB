@@ -25,20 +25,20 @@ yarn add axiodb@latest
 
 The AxioDB CLI provides a MongoDB-style interactive REPL, admin commands, and temporary server spinning.
 
-### One-Line Install Script (Linux & macOS)
+### Download from GitHub Releases
 
+Pre-compiled standalone binaries with SHA-256 checksums are published on [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest):
+
+- **Linux (x64 / arm64)**: `axiodb_linux_amd64` / `axiodb_linux_arm64`
+- **macOS (Intel / Apple Silicon)**: `axiodb_darwin_amd64` / `axiodb_darwin_arm64`
+- **Windows (x64 / arm64)**: `axiodb_windows_amd64.exe` / `axiodb_windows_arm64.exe`
+
+Quick setup example on Linux/macOS:
 ```bash
-# Interactive installation (Menu: 1 -> CLI, 2 -> GUI, 3 -> Both)
-curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | bash
-
-# Non-interactive CLI-only installation
-curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=1 bash
-```
-
-### Windows Installation (PowerShell)
-
-```powershell
-irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
+# Download binary (replace linux_amd64 with your OS/architecture)
+curl -fsSL https://github.com/nexoral/AxioDB/releases/latest/download/axiodb_linux_amd64 -o axiodb
+chmod +x axiodb
+sudo mv axiodb /usr/local/bin/
 ```
 
 ### Verify CLI Installation
@@ -54,19 +54,11 @@ axiodb --help
 
 AxioDB provides a cross-platform desktop application featuring visual database inspection, card-based document viewing, and live performance metrics.
 
-### Automated Script Install
+### Download from GitHub Releases
 
-```bash
-# Linux: Install Desktop GUI (.deb or .AppImage)
-curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash
-
-# Linux: Install both CLI and Desktop GUI
-curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=3 bash
-```
-
-### Manual Binary Download (GitHub Releases)
+Download the installer or portable package for your platform from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest):
 - **Linux**: Download `.deb` (Debian/Ubuntu) or `.AppImage` (portable).
-- **macOS**: Download `.zip`, extract, and drag `AxioDB Control.app` into `/Applications`.
+- **macOS**: Download `.zip`, extract, and move `AxioDB Control.app` into `/Applications`.
 - **Windows**: Download `.exe` installer (NSIS) and run the setup wizard.
 
 ---
@@ -120,10 +112,10 @@ axiodb serve http
 axiodb serve tcp
 
 # 3. Start TCP server with authentication and initial admin password
-axiodb serve tcp-auth my-admin-password
+axiodb serve tcp-auth "<ADMIN_PASSWORD>"
 
 # 4. Start Full stack (HTTP 27018 + TCP 27019 with auth)
-axiodb serve full my-admin-password
+axiodb serve full "<ADMIN_PASSWORD>"
 ```
 
 ### Option B: Ephemeral In-Memory / Isolated Temp Directory in Code

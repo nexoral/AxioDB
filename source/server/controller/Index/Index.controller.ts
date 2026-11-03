@@ -3,7 +3,7 @@ import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse, {
   ResponseBuilder,
 } from "../../helper/responseBuilder.helper";
-import { FastifyRequest } from "fastify";
+import { AxioHttpRequest } from "../../../Helper/http/HttpTypes";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
 import Logger from "../../../Helper/Logger.helper";
 
@@ -15,7 +15,7 @@ export default class IndexController {
   }
 
   /** Reads `dbName`/`collectionName` from the query string. */
-  public async getIndexes(request: FastifyRequest): Promise<ResponseBuilder> {
+  public async getIndexes(request: AxioHttpRequest): Promise<ResponseBuilder> {
     const { dbName, collectionName } = request.query as {
       dbName: string;
       collectionName: string;
@@ -54,7 +54,7 @@ export default class IndexController {
   }
 
   /** Reads `dbName`/`collectionName`/`fieldNames` from the request body. */
-  public async createIndex(request: FastifyRequest): Promise<ResponseBuilder> {
+  public async createIndex(request: AxioHttpRequest): Promise<ResponseBuilder> {
     const { dbName, collectionName, fieldNames } = request.body as {
       dbName: string;
       collectionName: string;
@@ -98,7 +98,7 @@ export default class IndexController {
   }
 
   /** Reads `dbName`/`collectionName`/`indexName` from the query string. */
-  public async deleteIndex(request: FastifyRequest): Promise<ResponseBuilder> {
+  public async deleteIndex(request: AxioHttpRequest): Promise<ResponseBuilder> {
     const { dbName, collectionName, indexName } = request.query as {
       dbName: string;
       collectionName: string;

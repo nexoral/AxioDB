@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyPluginOptions } from "fastify";
+import HttpRouter from "../../Helper/http/HttpRouter.helper";
 import { AuthorInfo, AvailableRoutes } from "../config/keys";
 import buildResponse, {
   ResponseBuilder,
@@ -27,18 +27,17 @@ type PackageInterface = {
   license: string;
 };
 
-interface RouterOptions extends FastifyPluginOptions {
+interface RouterOptions {
   AxioDBInstance: AxioDB;
 }
 
 export default async function mainRouter(
-  fastify: FastifyInstance,
+  router: HttpRouter,
   options: RouterOptions,
-  done: () => void,
 ): Promise<void> {
   const { AxioDBInstance } = options;
 
-  fastify.get("/info", async () => {
+  router.get("/info", async () => {
     const PackageFile: PackageInterface = JSON.parse(
       await readFile("./package.json", "utf-8"),
     );
@@ -56,10 +55,7 @@ export default async function mainRouter(
     return Reply;
   });
 
-  // Unauthenticated on purpose - this is the liveness probe used by Docker's healthcheck.
-  // It stays deliberately thin: process id, memory, platform and Node version are useful to
-  // an operator but they also fingerprint the host, so they live behind auth on /system.
-  fastify.get("/health", async () => {
+  router.get("/health", async () => {
     const Reply: ResponseBuilder = buildResponse(
       StatusCodes.OK,
       "Server is healthy",
@@ -72,11 +68,7 @@ export default async function mainRouter(
     return Reply;
   });
 
-  /**
-   * Operational detail for the Status page. Authenticated and permission-gated, because it
-   * reports host characteristics that are worth withholding from an anonymous caller.
-   */
-  fastify.get(
+  router.get(
     "/system",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DASHBOARD_VIEW)] },
     async () => {
@@ -118,7 +110,6 @@ export default async function mainRouter(
           path: (instanceData?.CurrentPath as string) ?? null,
           totalDatabases: ((instanceData?.ListOfDatabases as unknown[])?.length) ?? 0,
         },
-        // Ports are fixed in code; the TCP/MCP surfaces are opt-in at startup.
         services: [
           { name: "Dashboard + HTTP API", port: 27018, running: true },
           { name: "AxioDBCloud TCP", port: 27019, running: Boolean(process.env.AXIODB_TCP === "true") },
@@ -128,7 +119,7 @@ export default async function mainRouter(
     },
   );
 
-  fastify.get("/routes", async (request, reply) => {
+  router.get("/routes", async (request, reply) => {
     const Reply: ResponseBuilder = buildResponse(
       StatusCodes.OK,
       "Available routes",
@@ -137,7 +128,7 @@ export default async function mainRouter(
     return reply.status(200).send(Reply);
   });
 
-  fastify.get(
+  router.get(
     "/dashboard-stats",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DASHBOARD_VIEW)] },
     async () => {
@@ -145,34 +136,31 @@ export default async function mainRouter(
     },
   );
 
-  fastify.register(dbRouter, {
+  await router.register(dbRouter, {
     prefix: "/db",
     AxioDBInstance: AxioDBInstance,
   });
 
-  fastify.register(collectionRouter, {
+  await router.register(collectionRouter, {
     prefix: "/collection",
     AxioDBInstance: AxioDBInstance,
   });
 
-  fastify.register(OperationRouter, {
+  await router.register(OperationRouter, {
     prefix: "/operation",
     AxioDBInstance: AxioDBInstance,
   });
 
-  fastify.register(indexRouter, {
+  await router.register(indexRouter, {
     prefix: "/index",
     AxioDBInstance: AxioDBInstance,
   });
 
-  // login is public; session/password endpoints inside require auth
-  fastify.register(authRouter, { prefix: "/auth" });
+  await router.register(authRouter, { prefix: "/auth" });
+  await router.register(userManagementRouter, { prefix: "/auth/users" });
+  await router.register(roleManagementRouter, { prefix: "/auth/roles" });
 
-  // Super Admin only (enforced inside these routers)
-  fastify.register(userManagementRouter, { prefix: "/auth/users" });
-  fastify.register(roleManagementRouter, { prefix: "/auth/roles" });
-
-  fastify.setNotFoundHandler((request, reply) => {
+  router.setNotFoundHandler((request, reply) => {
     return reply
       .status(404)
       .send(
@@ -182,6 +170,4 @@ export default async function mainRouter(
         ),
       );
   });
-
-  done();
 }

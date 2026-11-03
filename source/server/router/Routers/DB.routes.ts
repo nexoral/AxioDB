@@ -1,34 +1,21 @@
-import { FastifyInstance, FastifyPluginOptions } from "fastify";
+import HttpRouter from "../../../Helper/http/HttpRouter.helper";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import DatabaseController from "../../controller/Database/Databse.controller";
-import fastifyMultipart from "@fastify/multipart";
 import { requireAuth, requireFreshPassword } from "../../middleware/auth.middleware";
 import { requirePermission } from "../../middleware/permission.middleware";
 import { PERMISSIONS } from "../../../config/Keys/Permissions";
 
-interface RouterOptions extends FastifyPluginOptions {
+interface RouterOptions {
   AxioDBInstance: AxioDB;
 }
 
 export default async function dbRouter(
-  fastify: FastifyInstance,
+  router: HttpRouter,
   options: RouterOptions,
 ): Promise<void> {
   const { AxioDBInstance } = options;
-  // No fileSize cap: a database export is legitimately as large as the database, and any
-  // number chosen here would either reject a real import or fail to stop a bomb - the size
-  // of an archive says nothing about how far it expands. Expansion ratio and free disk
-  // space are enforced during extraction instead (see ZipUnzip.utils).
-  //
-  // `files` and `fieldSize` are still bounded: those cost nothing legitimate to constrain.
-  fastify.register(fastifyMultipart, {
-    limits: {
-      files: 1,
-      fieldSize: 1024 * 1024,
-    },
-  });
 
-  fastify.get(
+  router.get(
     "/databases",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DB_VIEW)] },
     async () => {
@@ -36,26 +23,26 @@ export default async function dbRouter(
     },
   );
 
-  fastify.post(
+  router.post(
     "/create-database",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DB_CREATE)] },
     async (request) => new DatabaseController(AxioDBInstance).createDatabase(request),
   );
 
-  fastify.delete(
+  router.delete(
     "/delete-database",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DB_DELETE)] },
     async (request) => new DatabaseController(AxioDBInstance).deleteDatabase(request),
   );
 
-  fastify.get(
+  router.get(
     "/export-database/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DB_EXPORT)] },
     async (request, reply) =>
       new DatabaseController(AxioDBInstance).exportDatabase(request, reply),
   );
 
-  fastify.post(
+  router.post(
     "/import-database/",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DB_IMPORT)] },
     async (request, reply) =>

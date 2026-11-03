@@ -17,13 +17,20 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 PROFILE="${1:-standard}"
-PASSWORD="${2:-AdminPass123!}"
+PASSWORD="${2:-${AXIODB_ADMIN_PASSWORD:-}}"
 CONTAINER_NAME="${CONTAINER_NAME:-axiodb-server}"
 VOLUME_NAME="${VOLUME_NAME:-axiodb-data}"
 IMAGE="${IMAGE:-theankansaha/axiodb:latest}"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo -e "${RED}Error: Docker is not installed or not in PATH.${NC}"
+  exit 1
+fi
+
+if [ "$PROFILE" != "no-auth" ] && [ -z "$PASSWORD" ]; then
+  echo -e "${RED}Error: Admin password required for profile '${PROFILE}'.${NC}"
+  echo "Usage: $0 ${PROFILE} <admin_password>"
+  echo "Or export AXIODB_ADMIN_PASSWORD=<admin_password>"
   exit 1
 fi
 

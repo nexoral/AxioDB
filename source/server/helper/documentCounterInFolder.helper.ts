@@ -17,6 +17,6 @@ export default async function countDocumentsInFolder(
 ): Promise<number> {
   const items = await fs.readdir(folderPath, { withFileTypes: true });
   return items.filter(
-    (item) => item.isFile() && item.name.endsWith(General.DBMS_File_EXT),
+    (item: { isFile(): boolean; name: string }) => item.isFile() && item.name.endsWith(General.DBMS_File_EXT),
   ).length;
 }

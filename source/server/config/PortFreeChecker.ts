@@ -5,7 +5,7 @@ export function isPortInUse(port: number, host = ServerKeys.LOCALHOST) {
   return new Promise((resolve) => {
     const server = net
       .createServer()
-      .once("error", (err: NodeJS.ErrnoException) => {
+      .once("error", (err: { code?: string }) => {
         if (err.code === "EADDRINUSE") {
           resolve(true);
         } else {

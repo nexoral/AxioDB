@@ -1,15 +1,13 @@
-import Fastify from "fastify";
-import registerCors from "../../utility/Cors.utils";
-import registerStatic from "../../utility/StaticFile.utils";
-import { registerCookies } from "../../utility/Cookie.utils";
 import path from "path";
 import fs from "fs";
-import { SECURITY_HEADERS, ServerKeys, staticPath } from "./keys";
+import { ServerKeys, staticPath } from "./keys";
 import checkPortAndDocker from "./PortFreeChecker";
 import { AxioDB } from "../../Services/Indexation.operation";
-import router from "../router/Router";
+import mainRouter from "../router/Router";
 import SessionStore from "../../Services/Auth/SessionStore.service";
 import Logger from "../../Helper/Logger.helper";
+import HttpRouter from "../../Helper/http/HttpRouter.helper";
+import HttpServerHelper from "../../Helper/http/HttpServer.helper";
 
 export default async function createAxioDBControlServer(
   AxioDBInstance: AxioDB,
@@ -17,62 +15,16 @@ export default async function createAxioDBControlServer(
 ): Promise<void> {
   await checkPortAndDocker(ServerKeys.PORT);
 
-  const AxioDBControlServer = Fastify({
-    logger: false,
-    trustProxy: true,
-    bodyLimit: 52428800, // 50MB
-  });
-
-  AxioDBControlServer.addHook("onRequest", async (request, reply) => {
-    const requestPath = (request.raw.url ?? "").split("?", 1)[0];
-    const hasDotDotSegment = /(?:^|\/)(?:\.\.|%2e%2e)(?:\/|$)/i.test(
-      requestPath,
-    );
-
-    if (hasDotDotSegment) {
-      await reply.code(400).send({
-        statusCode: 400,
-        status: false,
-        message: "Invalid request path",
-      });
-    }
-  });
-
-  registerCors(AxioDBControlServer);
-
-  // Cookie support for session-based authentication (no signing secret needed -
-  // the cookie value is meaningless without a matching entry in SessionStore's map)
-  registerCookies(AxioDBControlServer);
-
-  AxioDBControlServer.addHook("onSend", async (_request, reply) => {
-    for (const [header, value] of Object.entries(SECURITY_HEADERS)) {
-      reply.header(header, value);
-    }
-  });
-
-  AxioDBControlServer.addContentTypeParser(
-    "application/json",
-    { parseAs: "string", bodyLimit: 52428800 },
-    (req, body, done) => {
-      try {
-        const json = JSON.parse(body as string);
-        done(null, json);
-      } catch (err) {
-        done(err as Error, undefined);
-      }
-    },
-  );
+  const rootRouter = new HttpRouter();
 
   if (guiEnabled) {
-    registerStatic(AxioDBControlServer, { root: staticPath });
-
-    AxioDBControlServer.get("/", async (request, reply) => {
+    rootRouter.get("/", async (_request, reply) => {
       const indexPath = path.join(staticPath, "index.html");
       const stream = fs.createReadStream(indexPath);
       return reply.type("text/html").send(stream);
     });
   } else {
-    AxioDBControlServer.get("/", async (request, reply) => {
+    rootRouter.get("/", async (_request, reply) => {
       return reply.type("application/json").send({
         message: "AxioDB HTTP API is running. GUI is disabled. Enable it with GUI: true.",
         api: "/api/health",
@@ -80,22 +32,25 @@ export default async function createAxioDBControlServer(
     });
   }
 
-  AxioDBControlServer.register(router, {
+  await rootRouter.register(mainRouter, {
     prefix: "/api",
     AxioDBInstance,
   });
 
+  const server = new HttpServerHelper(rootRouter, {
+    guiEnabled,
+    staticPath,
+    bodyLimit: 52428800,
+  });
+
   try {
-    await AxioDBControlServer.listen({
-      port: Number(ServerKeys.PORT),
-      host: "0.0.0.0",
-    });
+    await server.listen(Number(ServerKeys.PORT), "0.0.0.0");
     SessionStore.startCleanupSweep();
     Logger.info(
       `AxioDB Control Server is running on http://localhost:${ServerKeys.PORT}`,
     );
   } catch (err) {
-    AxioDBControlServer.log.error(err);
+    Logger.error("Failed to start AxioDB Control Server:", err);
     process.exit(1);
   }
 }

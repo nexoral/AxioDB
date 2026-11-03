@@ -40,8 +40,8 @@ export class ImportConflictError extends Error {
 export function readExportedDatabaseName(stagingDir: string): string {
   const entries = fs.readdirSync(stagingDir, { withFileTypes: true });
 
-  const directories = entries.filter((entry) => entry.isDirectory());
-  const strayFiles = entries.filter((entry) => !entry.isDirectory());
+  const directories = entries.filter((entry: { isDirectory(): boolean }) => entry.isDirectory());
+  const strayFiles = entries.filter((entry: { isDirectory(): boolean }) => !entry.isDirectory());
 
   if (directories.length === 0) {
     throw new InvalidExportError(

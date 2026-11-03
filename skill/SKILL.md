@@ -1,13 +1,13 @@
 ---
 name: skill
 description: >-
-  Expert operational guide, runbook, and architectural reference for AxioDB (version 22.28.2).
+  Expert operational guide, runbook, and architectural reference for AxioDB (version 22.28.3).
   Use this skill when developing, querying, installing, configuring, troubleshooting,
   or automating AxioDB embedded NoSQL, TCP remote access (AxioDBCloud), Docker containers,
   MCP server integration, Web/Desktop GUI, or CLI operations.
 ---
 
-# AxioDB Operational Skill (v22.28.2)
+# AxioDB Operational Skill (v22.28.3)
 
 AxioDB is an embedded NoSQL database for TypeScript & AI agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js (>=20), Bun, and Deno.
 
@@ -26,8 +26,8 @@ Choose the appropriate mode based on the user's requirement:
 | **Containerized Deployment** | Docker Image | `27018` & `27019` | Run [run_docker.sh](scripts/run_docker.sh) |
 | **AI Agent Tool Calling** | MCP Server | Port `27020` | **Docker-only** (`AXIODB_MCP=true`) |
 | **Browser Database Management** | Web GUI | Port `27018` | Start with `GUI: true` or `AXIODB_GUI=true` |
-| **Desktop App (No Browser)** | Electron GUI | Desktop OS | Run [install_axiodb.sh --gui](scripts/install_axiodb.sh) |
-| **Terminal / Scripts / REPL** | CLI Tool | Terminal | Run [install_axiodb.sh --cli](scripts/install_axiodb.sh) |
+| **Desktop App (No Browser)** | Electron GUI | Desktop OS | Download from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest) |
+| **Terminal / Scripts / REPL** | CLI Tool | Terminal | Download from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest) |
 | **Unit Testing / CI Mocking** | Ephemeral Instance | Temp Folder | Read [installation-and-setup.md](references/installation-and-setup.md) |
 
 ---
@@ -54,34 +54,24 @@ For deep architectural details, consult [architecture-and-scope.md](references/a
 
 ## 3. Operational Workflows
 
-### A. Installing Components
-When asked to install AxioDB components, execute the helper script:
+### A. Installing AxioDB
+Install the core database library directly into your project via npm:
 ```bash
-# Install npm package
-./skill/scripts/install_axiodb.sh --npm
-
-# Install CLI binary
-./skill/scripts/install_axiodb.sh --cli
-
-# Install Desktop GUI
-./skill/scripts/install_axiodb.sh --gui
-
-# Install both CLI and GUI
-./skill/scripts/install_axiodb.sh --all
+npm install axiodb
 ```
-For manual installation and platform matrices, read [installation-and-setup.md](references/installation-and-setup.md).
+For native Desktop GUI or CLI binaries, download directly from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest). For platform matrices and setup options, read [installation-and-setup.md](references/installation-and-setup.md).
 
 ### B. Launching Docker Containers
 When asked to start AxioDB via Docker, use the pre-configured runner:
 ```bash
 # Standard profile (HTTP 27018 + TCP 27019 with auth)
-./skill/scripts/run_docker.sh standard "MyPassword123!"
+./skill/scripts/run_docker.sh standard "<ADMIN_PASSWORD>"
 
 # Headless TCP profile (no GUI/HTTP, port 27019 with seeded password)
-./skill/scripts/run_docker.sh headless "MyPassword123!"
+./skill/scripts/run_docker.sh headless "<ADMIN_PASSWORD>"
 
 # MCP profile for AI agents (Ports 27018, 27019, 27020)
-./skill/scripts/run_docker.sh mcp "MyPassword123!"
+./skill/scripts/run_docker.sh mcp "<ADMIN_PASSWORD>"
 
 # Unauthenticated profile (trusted private network only)
 ./skill/scripts/run_docker.sh no-auth
@@ -121,7 +111,7 @@ const results = await users
 ```typescript
 import { AxioDBCloud } from "axiodb";
 
-const client = new AxioDBCloud("axiodb://admin:Password123!@localhost:27019", {
+const client = new AxioDBCloud("axiodb://admin:<ADMIN_PASSWORD>@localhost:27019", {
   maxPoolSize: 10,
   timeout: 10000,
 });

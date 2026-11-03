@@ -5,8 +5,15 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Mon, 02 Nov 2026 23:22:52 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 03 Nov 2026 02:22:03 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AxioDB v22.28.3 — Zero-dependency archive engine with native USTAR TAR helper</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-22.28.3</guid>
+      <pubDate>Tue, 03 Nov 2026 00:00:00 GMT</pubDate>
+      <description>Engine: replaced external `tar` package with native, zero-dependency `TarHelper` implementing standard POSIX USTAR archive packing and streaming extraction | Security: preserved multi-layer safety limits including decompression bomb ratio guards, inode exhaustion caps, and Zip Slip path traversal containment | Dependencies: removed `tar` and `@types/tar` from package dependencies, advancing AxioDB closer to a pure zero-dependency runtime</description>
+    </item>
     <item>
       <title>AxioDB v22.28.2 — Brand repositioning for TypeScript &amp; AI Agents and documentation architecture refinements</title>
       <link>https://axiodb.in/changelog</link>

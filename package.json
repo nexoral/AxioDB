@@ -1,6 +1,6 @@
 {
   "name": "axiodb",
-  "version": "22.28.2",
+  "version": "22.28.3",
   "description": "Embedded NoSQL Database for TypeScript & AI Agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno.",
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
@@ -74,13 +74,8 @@
     "type": "git",
     "url": "https://github.com/nexoral/AxioDB"
   },
-  "dependencies": {
-    "@fastify/multipart": "^9.0.3",
-    "fastify": "^5.8.5",
-    "tar": "^7.5.16"
-  },
   "devDependencies": {
-    "@types/tar": "^6.1.13",
+    "@types/node": "^26.6.6",
     "@typescript-eslint/eslint-plugin": "^8.69.0",
     "@typescript-eslint/parser": "^8.69.0",
     "eslint": "^10.9.1",
