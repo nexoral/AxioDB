@@ -201,7 +201,8 @@ export default class DeleteOperation {
     const result = await DocumentLoader.loadDocuments(
       this.path,
       documentIdDirectFile,
-      true  // Include fileName for Delete operations
+      true, // Include fileName for Delete operations
+      this.baseQuery,
     );
 
     // Store result in allDataWithFileName if successful

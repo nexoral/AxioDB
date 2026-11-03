@@ -5,12 +5,12 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Tue, 03 Nov 2026 04:41:27 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 03 Nov 2026 18:06:47 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v23.29.6 — Native Bun test suite and multi-runtime matrix testing</title>
+      <title>AxioDB v23.30.1 — Native Bun test suite and multi-runtime matrix testing</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-23.29.6</guid>
+      <guid isPermaLink="false">axiodb-23.30.1</guid>
       <pubDate>Tue, 03 Nov 2026 00:00:00 GMT</pubDate>
       <description>Bun Testing: added complete native Bun test suite across all 14 test modules in Test/bun/ with npm run bun-test CLI support | CI Matrix: added parallel Gate 8 Bun matrix testing across the last 6 Bun versions in Push.yml in a dedicated Bun environment | Release Safety: gated npm, GitHub packages, and Docker Hub publishes on both Node.js and Bun matrix test suites</description>
     </item>

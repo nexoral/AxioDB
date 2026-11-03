@@ -226,7 +226,8 @@ export default class UpdateOperation {
     const result = await DocumentLoader.loadDocuments(
       this.path,
       documentIdDirectFile,
-      true  // Include fileName for Update operations
+      true, // Include fileName for Update operations
+      this.baseQuery,
     );
 
     // Store result in allDataWithFileName if successful

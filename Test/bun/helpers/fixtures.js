@@ -7,21 +7,22 @@ const fixtures = {
   /**
    * Generate sample users
    */
-  generateUsers(count = 100) {
+  generateUsers(count = 100, startIndex = 0) {
     const users = [];
     const firstNames = ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank', 'Grace', 'Henry', 'Ivy', 'Jack'];
     const domains = ['example.com', 'test.org', 'demo.io', 'sample.net'];
 
     for (let i = 0; i < count; i++) {
-      const firstName = firstNames[i % firstNames.length];
-      const domain = domains[i % domains.length];
+      const idx = startIndex + i;
+      const firstName = firstNames[idx % firstNames.length];
+      const domain = domains[idx % domains.length];
       users.push({
-        name: `${firstName}${i}`,
-        email: `${firstName.toLowerCase()}${i}@${domain}`,
-        age: 20 + (i % 50),
-        active: i % 3 !== 0,
+        name: `${firstName}${idx}`,
+        email: `${firstName.toLowerCase()}${idx}@${domain}`,
+        age: 20 + (idx % 50),
+        active: idx % 3 !== 0,
         score: Math.floor(Math.random() * 100),
-        createdAt: new Date(Date.now() - i * 86400000).toISOString()
+        createdAt: new Date(Date.now() - idx * 86400000).toISOString()
       });
     }
     return users;

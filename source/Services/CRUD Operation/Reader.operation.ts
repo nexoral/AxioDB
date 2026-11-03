@@ -184,8 +184,23 @@ export default class Reader {
       let usedIndex = false;
 
       if (indexedFileNames && indexedFileNames.length > 0) {
+        // Optimization: If the query only filters on the single indexed field,
+        // no sort is specified, and a limit is requested, only read (skip + limit)
+        // matching files from disk rather than reading all matches.
+        let filesToLoad = indexedFileNames;
+        if (
+          Object.keys(this.baseQuery).length === 1 &&
+          Object.keys(this.sort).length === 0 &&
+          this.limit !== undefined &&
+          this.limit > 0
+        ) {
+          const needed = (this.skip || 0) + this.limit;
+          if (filesToLoad.length > needed) {
+            filesToLoad = filesToLoad.slice(0, needed);
+          }
+        }
         // Index hit - load only indexed files (much faster)
-        ReadResponse = await this.LoadAllBufferRawData(indexedFileNames);
+        ReadResponse = await this.LoadAllBufferRawData(filesToLoad);
         usedIndex = true;
       } else {
         // No index match - full collection scan required
@@ -210,7 +225,16 @@ export default class Reader {
       } else {
         // Apply searcher for complex queries or partial index matches
         const searcher: Searcher = new Searcher(ReadResponse.data as Record<string, unknown>[]);
-        SearchedData = await searcher.find(this.baseQuery);
+        const searchLimit =
+          Object.keys(this.sort).length === 0 && this.limit !== undefined && this.limit > 0
+            ? (this.skip || 0) + this.limit
+            : undefined;
+        SearchedData = await searcher.find(
+          this.baseQuery,
+          undefined,
+          this.FindOneStatus,
+          searchLimit,
+        );
       }
 
       // Fire-and-forget: Cache asynchronously
@@ -383,7 +407,8 @@ export default class Reader {
     const result = await DocumentLoader.loadDocuments(
       this.path,
       documentIdDirectFile,
-      false  // Don't include fileName for Reader
+      false, // Don't include fileName for Reader
+      this.baseQuery,
     );
 
     // Store result in AllData if successful

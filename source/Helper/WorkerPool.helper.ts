@@ -14,6 +14,15 @@ interface WorkerEntry {
   activeJob: WorkerJob<unknown, unknown> | null;
 }
 
+export function calculateOptimalWorkers(): number {
+  const cpus = os.cpus().length;
+  const freeMemoryMB = Math.floor(os.freemem() / (1024 * 1024));
+  const cpuCap = Math.max(2, Math.floor(cpus / 2));
+  const diskCap = 16;
+  const memCap = Math.max(2, Math.floor(freeMemoryMB / 250));
+  return Math.min(diskCap, cpuCap, memCap);
+}
+
 export default class WorkerPool {
   private static readonly pools: Map<string, WorkerPool> = new Map();
   private readonly workers: WorkerEntry[] = [];
@@ -24,7 +33,7 @@ export default class WorkerPool {
 
   constructor(scriptPath: string, maxWorkers?: number) {
     this.scriptPath = scriptPath;
-    this.maxWorkers = maxWorkers ?? Math.min(4, Math.max(1, os.cpus().length));
+    this.maxWorkers = maxWorkers ?? calculateOptimalWorkers();
   }
 
   public static getPool(scriptPath: string, maxWorkers?: number): WorkerPool {

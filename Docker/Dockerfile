@@ -47,5 +47,6 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD ["node", "healthcheck.js"]
 
 # Best-effort fd soft-limit bump (real fix if capped: `docker run --ulimit nofile=...`);
+# Sets V8 heap limit to ~75% container memory before startup if not explicitly passed;
 # exec keeps node as PID 1 so it gets SIGTERM directly for graceful shutdown
-CMD ["sh", "-c", "ulimit -n 65536 2>/dev/null; exec node runner.js"]
+CMD ["sh", "-c", "ulimit -n 65536 2>/dev/null; if [ -z \"$NODE_OPTIONS\" ] || ! echo \"$NODE_OPTIONS\" | grep -q 'max-old-space-size'; then MEM_MB=$(node -e \"const fs=require('fs'),os=require('os');let m;try{const v=fs.readFileSync('/sys/fs/cgroup/memory.max','utf8').trim();if(v!=='max')m=Math.floor(Number(v)/(1024*1024));}catch{}if(!m){try{const v=Number(fs.readFileSync('/sys/fs/cgroup/memory/memory.limit_in_bytes','utf8').trim());if(v>0&&v<9e18)m=Math.floor(v/(1024*1024));}catch{}}if(!m)m=Math.floor(os.totalmem()/(1024*1024));console.log(Math.max(512,Math.floor(m*0.75)));\"); export NODE_OPTIONS=\"${NODE_OPTIONS:+${NODE_OPTIONS} }--max-old-space-size=${MEM_MB}\"; fi; exec node runner.js"]

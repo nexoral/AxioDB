@@ -110,7 +110,12 @@ export default class Aggregation {
       }
     }
 
-    const result = await DocumentLoader.loadDocuments(this.path, undefined, false);
+    const result = await DocumentLoader.loadDocuments(
+      this.path,
+      undefined,
+      false,
+      matchExpr ?? undefined,
+    );
     if ("data" in result) {
       this.AllData = result.data as Record<string, unknown>[];
       Console.green(`${this.AllData.length} Documents Loaded for Aggregation`);
