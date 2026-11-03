@@ -14,7 +14,8 @@ export default class DocumentLoader {
   static async loadDocuments(
     collectionPath: string,
     documentFiles?: string[],
-    includeFileName: boolean = false
+    includeFileName: boolean = false,
+    query?: Record<string, unknown>,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const dataFilesList: string[] = [];
@@ -39,7 +40,8 @@ export default class DocumentLoader {
       const resultData = await ReaderWithWorker(
         dataFilesList,
         collectionPath,
-        includeFileName
+        includeFileName,
+        query,
       );
 
       return this.ResponseHelper.Success(resultData);

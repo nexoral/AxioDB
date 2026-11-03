@@ -4,6 +4,7 @@ import FileManager from "../Filesystem/FileManager";
 import Converter from "../../Helper/Converter.helper";
 import { SuccessInterface } from "../../config/Interfaces/Helper/response.helper.interface";
 import Logger from "../../Helper/Logger.helper";
+import Searcher from "../../utility/Searcher.utils";
 
 interface ErrorInterface {
   error: string;
@@ -17,8 +18,10 @@ async function processFiles(
   chunk: string[],
   basePath: string,
   storeFileName: boolean,
+  query?: Record<string, unknown>,
 ): Promise<unknown[]> {
   const result: unknown[] = [];
+  const hasQuery = Boolean(query && Object.keys(query).length > 0);
 
   for (let i = 0; i < chunk.length; i += BATCH_SIZE) {
     const batch = chunk.slice(i, i + BATCH_SIZE);
@@ -29,13 +32,19 @@ async function processFiles(
 
         if ("data" in readFileResponse) {
           const fileData = readFileResponse.data as string;
+          const parsedData = converter.ToObject(fileData) as Record<string, unknown>;
+
+          if (hasQuery && !Searcher.matchesQuery(parsedData, query!)) {
+            return null;
+          }
+
           if (storeFileName) {
             return {
               fileName,
-              data: converter.ToObject(fileData),
+              data: parsedData,
             };
           } else {
-            return converter.ToObject(fileData);
+            return parsedData;
           }
         } else {
           Logger.error(`Failed to read file: ${fileName}`);
@@ -66,6 +75,7 @@ if (parentPort) {
       chunk: string[];
       path: string;
       storeFileName?: boolean;
+      query?: Record<string, unknown>;
     };
 
     try {
@@ -73,6 +83,7 @@ if (parentPort) {
         payload.chunk,
         payload.path,
         Boolean(payload.storeFileName),
+        payload.query,
       );
       parentPort?.postMessage({
         jobId: payload.jobId,
@@ -89,13 +100,14 @@ if (parentPort) {
 
 // Support legacy one-shot execution if workerData is provided
 if (workerData && workerData.chunk) {
-  const { chunk, path: basePath, storeFileName } = workerData as {
+  const { chunk, path: basePath, storeFileName, query } = workerData as {
     chunk: string[];
     path: string;
     storeFileName?: boolean;
+    query?: Record<string, unknown>;
   };
 
-  processFiles(chunk, basePath, Boolean(storeFileName))
+  processFiles(chunk, basePath, Boolean(storeFileName), query)
     .then((results) => {
       if (parentPort) {
         parentPort.postMessage(results);

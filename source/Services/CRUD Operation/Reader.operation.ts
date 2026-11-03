@@ -383,7 +383,8 @@ export default class Reader {
     const result = await DocumentLoader.loadDocuments(
       this.path,
       documentIdDirectFile,
-      false  // Don't include fileName for Reader
+      false, // Don't include fileName for Reader
+      this.baseQuery,
     );
 
     // Store result in AllData if successful
