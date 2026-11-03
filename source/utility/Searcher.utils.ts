@@ -21,6 +21,7 @@ interface CompiledQuery {
 }
 
 export default class Searcher {
+  private static inSetCache = new WeakMap<object, Set<unknown>>();
   private data: Record<string, unknown>[];
   private isUpdated: boolean = false;
   private compiledQueries: CompiledQuery[] | null = null;
@@ -333,10 +334,14 @@ export default class Searcher {
         }
 
         if ("$in" in qv && Array.isArray(qv["$in"])) {
-          // Use Set for O(1) lookup on large arrays
+          // Use Set for O(1) lookup on large arrays (cached via WeakMap to avoid re-allocating per document)
           const inArray = qv["$in"] as unknown[];
           if (inArray.length > 10) {
-            const inSet = new Set(inArray);
+            let inSet = Searcher.inSetCache.get(inArray);
+            if (!inSet) {
+              inSet = new Set(inArray);
+              Searcher.inSetCache.set(inArray, inSet);
+            }
             if (!inSet.has(itemValue)) return false;
           } else {
             if (!inArray.includes(itemValue)) return false;
@@ -423,10 +428,14 @@ export default class Searcher {
         if ("$nin" in qv && Array.isArray(qv["$nin"])) {
           const ninArray = qv["$nin"] as unknown[];
           if (ninArray.length > 10) {
-            const ninSet = new Set(ninArray);
+            let ninSet = Searcher.inSetCache.get(ninArray);
+            if (!ninSet) {
+              ninSet = new Set(ninArray);
+              Searcher.inSetCache.set(ninArray, ninSet);
+            }
             if (ninSet.has(itemValue)) return false;
           } else {
-            if (ninArray.includes(itemValue)) return false;
+            if (!ninArray.includes(itemValue)) return false;
           }
           continue;
         }
