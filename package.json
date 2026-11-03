@@ -76,11 +76,9 @@
   },
   "dependencies": {
     "@fastify/multipart": "^9.0.3",
-    "fastify": "^5.8.5",
-    "tar": "^7.5.16"
+    "fastify": "^5.8.5"
   },
   "devDependencies": {
-    "@types/tar": "^6.1.13",
     "@typescript-eslint/eslint-plugin": "^8.69.0",
     "@typescript-eslint/parser": "^8.69.0",
     "eslint": "^10.9.1",

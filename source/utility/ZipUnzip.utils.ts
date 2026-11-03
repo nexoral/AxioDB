@@ -1,9 +1,9 @@
 import fs from "fs";
 import path from "path";
 import zlib from "zlib";
-import * as tar from "tar";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
+import TarHelper from "../Helper/Tar.helper";
 
 /** Thrown when an archive breaches a safety limit. Callers should answer 400, not 500. */
 export class UnsafeArchiveError extends Error {
@@ -84,25 +84,15 @@ export async function tarGzFolder(
   sourceFolder: string,
   outPath: string,
 ): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const gzip = zlib.createGzip();
-    const dest = fs.createWriteStream(outPath);
+  const gzip = zlib.createGzip();
+  const dest = fs.createWriteStream(outPath);
+  const pipePromise = pipeline(gzip, dest);
 
-    tar
-      .c(
-        {
-          gzip: false, // let zlib handle gzip
-          cwd: path.dirname(sourceFolder),
-        },
-        [path.basename(sourceFolder)],
-      )
-      .pipe(gzip)
-      .pipe(dest)
-      .on("finish", () => {
-        resolve(outPath);
-      })
-      .on("error", reject);
-  });
+  await TarHelper.packFolder(sourceFolder, gzip);
+  gzip.end();
+  await pipePromise;
+
+  return outPath;
 }
 
 /**
@@ -201,26 +191,15 @@ export async function unzipFile(
     inputMeter,
     zlib.createUnzip(),
     meter,
-    tar.x({
-      C: destFolder,
-      // Never honour absolute paths or ".." held inside the archive.
-      preservePaths: false,
-      // node-tar types this callback as receiving ReadEntry | Stats; on extraction it is
-      // always a ReadEntry, which is the only shape carrying `type`.
-      filter: (entryPath: string, entry: tar.ReadEntry | fs.Stats) => {
-        entryCount += 1;
-        const type = "type" in entry ? String(entry.type) : "File";
+    TarHelper.createExtractor(destFolder, (entryPath, type) => {
+      entryCount += 1;
+      if (entryCount > maxEntries) {
+        rejection = `Archive contains more than ${maxEntries} entries.`;
+      } else if (!isSafeEntry(entryPath, type)) {
+        rejection = `Archive contains an unsafe entry: ${entryPath}`;
+      }
 
-        if (entryCount > maxEntries) {
-          rejection = `Archive contains more than ${maxEntries} entries.`;
-        } else if (!isSafeEntry(entryPath, type)) {
-          rejection = `Archive contains an unsafe entry: ${entryPath}`;
-        }
-
-        // Returning false skips the entry, so nothing unsafe is ever written. The archive
-        // is then failed as a whole below rather than silently importing a partial copy.
-        return rejection === null;
-      },
+      return rejection === null;
     }),
   );
 
