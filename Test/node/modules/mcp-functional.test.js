@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
-const { AxioDB } = require('../../lib/config/DB.js');
+const { AxioDB } = require('../../../lib/config/DB.js');
 
 // The MCP SDK is intentionally Docker-only. Tool modules only need these schema builders at
 // registration time, so a tiny schema stub lets this suite exercise real handlers locally.
@@ -19,13 +19,26 @@ class McpFunctionalTests extends TestRunner {
     this.testDir = './Test/TestMcpFunctional';
     this.db = null;
     this.handlers = new Map();
+    this.dockerLibCreated = false;
   }
 
   async setUp() {
     if (fs.existsSync(this.testDir)) fs.rmSync(this.testDir, { recursive: true, force: true });
     this.db = new AxioDB({ GUI: false, RootName: 'McpFunctionalTestDB', CustomPath: this.testDir });
-    const AuthSeeder = require('../../lib/Services/Auth/AuthSeeder.service').default;
+    const AuthSeeder = require('../../../lib/Services/Auth/AuthSeeder.service').default;
     await new AuthSeeder(this.db).seedIfNeeded();
+
+    const dockerLibPath = path.resolve(__dirname, '../../../Docker/lib');
+    const actualLibPath = path.resolve(__dirname, '../../../lib');
+    if (!fs.existsSync(dockerLibPath)) {
+      try {
+        fs.symlinkSync(actualLibPath, dockerLibPath, 'junction');
+        this.dockerLibCreated = true;
+      } catch {
+        // Ignored
+      }
+    }
+
     const fakeServer = {
       server: { getClientCapabilities: () => ({}) },
       registerTool: (name, _definition, handler) => this.handlers.set(name, handler),
@@ -35,21 +48,21 @@ class McpFunctionalTests extends TestRunner {
       if (request === 'zod') return zodStub;
       const libMarker = request.indexOf('lib/');
       if (libMarker >= 0) {
-        return originalLoad.call(this, path.join(__dirname, '..', '..', request.slice(libMarker)), parent, isMain);
+        return originalLoad.call(this, path.join(__dirname, '..', '..', '..', request.slice(libMarker)), parent, isMain);
       }
       return originalLoad.call(this, request, parent, isMain);
     };
     try {
       const tools = [
-        ['auth', require('../../Docker/mcp/tools/auth.tools')],
-        ['database', require('../../Docker/mcp/tools/database.tools')],
-        ['collection', require('../../Docker/mcp/tools/collection.tools')],
-        ['document', require('../../Docker/mcp/tools/document.tools')],
-        ['index', require('../../Docker/mcp/tools/index.tools')],
-        ['dashboard', require('../../Docker/mcp/tools/dashboard.tools')],
-        ['user', require('../../Docker/mcp/tools/user.tools')],
-        ['role', require('../../Docker/mcp/tools/role.tools')],
-        ['transaction', require('../../Docker/mcp/tools/transaction.tools')],
+        ['auth', require('../../../Docker/mcp/tools/auth.tools')],
+        ['database', require('../../../Docker/mcp/tools/database.tools')],
+        ['collection', require('../../../Docker/mcp/tools/collection.tools')],
+        ['document', require('../../../Docker/mcp/tools/document.tools')],
+        ['index', require('../../../Docker/mcp/tools/index.tools')],
+        ['dashboard', require('../../../Docker/mcp/tools/dashboard.tools')],
+        ['user', require('../../../Docker/mcp/tools/user.tools')],
+        ['role', require('../../../Docker/mcp/tools/role.tools')],
+        ['transaction', require('../../../Docker/mcp/tools/transaction.tools')],
       ];
       for (const [, register] of tools) register(fakeServer, this.db);
     } finally {
@@ -58,6 +71,14 @@ class McpFunctionalTests extends TestRunner {
   }
 
   async tearDown() {
+    if (this.dockerLibCreated) {
+      const dockerLibPath = path.resolve(__dirname, '../../../Docker/lib');
+      try {
+        fs.unlinkSync(dockerLibPath);
+      } catch {
+        // Ignored
+      }
+    }
     if (fs.existsSync(this.testDir)) fs.rmSync(this.testDir, { recursive: true, force: true });
   }
 

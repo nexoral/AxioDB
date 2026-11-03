@@ -8,17 +8,17 @@
  * Due to AxioDB singleton pattern, tests must run in separate processes.
  * 
  * Usage:
- *   node Test/run.js           # Run all tests (sequentially in child processes)
- *   node Test/run.js crud      # Run only CRUD tests
- *   node Test/run.js transaction  # Run only transaction tests
- *   node Test/run.js read      # Run only read optimization tests
- *   node Test/run.js auth      # Run only GUI RBAC tests
- *   node Test/run.js tcp-auth  # Run only TCP (AxioDBCloud) RBAC tests
- *   node Test/run.js tcp-noauth  # Run only TCP zero-auth backward-compat tests
- *   node Test/run.js tcp-tls   # Run only TCP TLS tests
- *   node Test/run.js crash-recovery  # Run only real-SIGKILL crash-recovery tests
- *   node Test/run.js mcp-confirm  # Run only MCP destructive-tool confirmation tests
- *   node Test/run.js cache-options  # Run only InMemoryCache option/instance tests
+ *   npm run node-test                 # Run all tests (sequentially in child processes)
+ *   npm run node-test crud            # Run only CRUD tests
+ *   npm run node-test transaction     # Run only transaction tests
+ *   npm run node-test read            # Run only read optimization tests
+ *   npm run node-test auth            # Run only GUI RBAC tests
+ *   npm run node-test tcp-auth        # Run only TCP (AxioDBCloud) RBAC tests
+ *   npm run node-test tcp-noauth      # Run only TCP zero-auth backward-compat tests
+ *   npm run node-test tcp-tls         # Run only TCP TLS tests
+ *   npm run node-test crash-recovery  # Run only real-SIGKILL crash-recovery tests
+ *   npm run node-test mcp-confirm     # Run only MCP destructive-tool confirmation tests
+ *   npm run node-test cache-options   # Run only InMemoryCache option/instance tests
  */
 
 const { spawn } = require('child_process');
@@ -75,7 +75,7 @@ function runTestModule(name, modulePath) {
     `;
     
     const child = spawn('node', ['-e', runnerCode], {
-      cwd: path.join(__dirname, '..'),
+      cwd: path.join(__dirname, '../..'),
       stdio: 'inherit'
     });
     

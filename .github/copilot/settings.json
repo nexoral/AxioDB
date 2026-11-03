@@ -16,9 +16,9 @@
   },
 
   "test": {
-    "command": "npm test",
+    "command": "npm run node-test",
     "required": true,
-    "location": "Test/modules/"
+    "location": "Test/node/modules/"
   },
 
   "codeStyle": {
@@ -31,7 +31,7 @@
 
   "instructions": [
     "CRITICAL: Always run 'npm run build' after ANY code change - TypeScript errors in production are unacceptable",
-    "CRITICAL: Update tests in Test/modules/ for ANY feature change (crud.test.js, transaction.test.js, read.test.js)",
+    "CRITICAL: Update tests in Test/node/modules/ for ANY feature change (crud.test.js, transaction.test.js, read.test.js)",
     "CRITICAL: Never leave tasks incomplete - Done means: build passes, tests pass, docs updated, no regressions",
     "Follow SOLID principles - Single responsibility, DRY, no code duplication",
     "TypeScript strict mode - No 'any' types, use proper interfaces, null checks, type guards",
@@ -104,8 +104,8 @@
   "completionCriteria": {
     "required": [
       "npm run build passes",
-      "Tests added/updated in Test/modules/",
-      "npm test passes",
+      "Tests added/updated in Test/node/modules/",
+      "npm run node-test passes",
       "npm run lint passes",
       "Documentation updated (README, Document/, Dockerfile)",
       "No breaking changes (or explicitly approved)",
@@ -116,10 +116,10 @@
 
   "commands": {
     "build": "npm run build",
-    "test": "npm test",
-    "testCrud": "npm test crud",
-    "testTransaction": "npm test transaction",
-    "testRead": "npm test read",
+    "test": "npm run node-test",
+    "testCrud": "npm run node-test crud",
+    "testTransaction": "npm run node-test transaction",
+    "testRead": "npm run node-test read",
     "lint": "npm run lint",
     "docs": "cd Document && npm run dev"
   }

@@ -190,7 +190,7 @@ export default class Searcher {
     const effectiveLimit = findOne ? 1 : limit;
     
     // For small datasets, findOne, or when limit is small - use optimized linear search
-    if (findOne || (effectiveLimit && effectiveLimit < 1000) || this.data.length < 10000) {
+    if (findOne || (effectiveLimit && effectiveLimit < 1000) || this.data.length < 50000) {
       const result: Record<string, unknown>[] = [];
       for (let i = 0; i < this.data.length; i++) {
         const rawItem = this.data[i];

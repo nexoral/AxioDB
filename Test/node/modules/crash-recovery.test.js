@@ -7,7 +7,7 @@
  * Everything else in this repo tests "does the logic look right" - this suite tests
  * "does it survive an actual, uncontrolled process death mid-write". AxioDB is a
  * singleton per process, so both the crashing side and the post-crash verification
- * side run as separate spawned `node` processes (same reason Test/run.js isolates
+ * side run as separate spawned `node` processes (same reason Test/node/run.js isolates
  * every suite into its own process).
  */
 
@@ -16,9 +16,9 @@ const { assert } = require('../helpers/assertions');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
-const { General } = require('../../lib/config/Keys/Keys.js');
+const { General } = require('../../../lib/config/Keys/Keys.js');
 
-const LIB_DB_PATH = path.resolve(__dirname, '../../lib/config/DB.js');
+const LIB_DB_PATH = path.resolve(__dirname, '../../../lib/config/DB.js');
 
 /**
  * Spawns `node -e <code>` and resolves with its stdout once it exits on its own

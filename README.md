@@ -99,18 +99,6 @@ npx skills add nexoral/AxioDB --skill skill
 * **CLI** — Go binary for 12 platforms: interactive REPL, TLS, export/import
 * **Desktop app** — Electron GUI for Linux, macOS, and Windows
 
-## Stability
-
-AxioDB is **actively developed and not yet at 1.0**. Semantic versioning is followed, but treat minor releases with care and keep independent backups of your data directory.
-
-| Tier | What it covers |
-|---|---|
-| **Stable** | Core CRUD, queries, indexes, transactions, aggregation, InMemoryCache |
-| **Usable, evolving** | HTTP API, AxioDBCloud TCP, Dashboard, CLI, RBAC, MCP server, Bun compiled binaries |
-| **Verified** | Deno v2.9.6 (all 100 runtime tests passing), Bun v1.4.0 |
-
-Data at rest is stored as plain JSON files, not encrypted. Encrypt the volume if that matters to you.
-
 ## Testing
 
 The full suite is **329 tests across 14 suites**, all passing, each in an isolated child process. Benchmarked at 100,000 documents on an AMD Ryzen 5 5500U / Node v26.8.1:
@@ -125,7 +113,7 @@ The full suite is **329 tests across 14 suites**, all passing, each in an isolat
 
 Full per-suite breakdown: [axiodb.in/performance](https://axiodb.in/performance).
 
-Run it yourself with `npm test`.
+Run it yourself with `npm run node-test`.
 
 ## ⚡ Benchmarking & Performance Verification
 

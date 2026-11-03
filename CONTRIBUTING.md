@@ -131,7 +131,7 @@ npm run build
 4. **Run tests:**
 
 ```bash
-npm test
+npm run node-test
 ```
 
 5. **Create a branch for your work:**
@@ -155,12 +155,12 @@ AxioDB/
 │   ├── Memory/                # InMemoryCache
 │   └── config/Keys/           # General, Permissions
 ├── lib/                       # Compiled JS (tsc, gitignored)
-├── Test/modules/              # 14 suites (isolated child processes, singleton)
+├── Test/node/modules/         # 14 suites (isolated child processes, singleton)
 ├── Document/                  # React docs site 5173 (single source serverApi.ts → openapi.json)
 ├── Docker/                    # Dockerfile 27018/27019/27020 + mcpServer.js 43 tools
 ├── GUI/                       # Vite React GUI
 ├── cli/                       # Go CLI 12 platforms
-└── package.json               # 23.29.4
+└── package.json               # 23.29.6
 ```
 
 ## Coding Standards
@@ -250,10 +250,10 @@ Fixes #456
 
 ```bash
 # Run all tests
-npm test
+npm run node-test
 
 # Run specific test file
-node ./Test/run.js
+node ./Test/node/run.js
 ```
 
 ### Writing Tests

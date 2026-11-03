@@ -7,12 +7,20 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Test/` s
 ## Layout
 
 ```
-run.js                    orchestrator — spawns each suite in a child process
-helpers/TestRunner.js     base class: test(), describe(), run(), printResults()
-helpers/assertions.js     assert.* (isSuccess, isError, throws, equal, includes, …)
-helpers/fixtures.js       shared sample data
-modules/*.test.js         the suites
-key.js                    legacy benchmark data (Data_To_Loop_*, schema, …)
+AGENTS.md                 agent instructions (root of Test/ only)
+bun/                      Bun test suite
+  run.js                  orchestrator — spawns each suite in a child process with Bun
+  helpers/                TestRunner, assertions, fixtures
+  modules/*.test.js       the 14 suites running under Bun
+  key.js                  legacy benchmark data
+deno/                     Deno test suite
+node/
+  run.js                  orchestrator — spawns each suite in a child process with Node
+  helpers/TestRunner.js   base class: test(), describe(), run(), printResults()
+  helpers/assertions.js   assert.* (isSuccess, isError, throws, equal, includes, …)
+  helpers/fixtures.js     shared sample data
+  modules/*.test.js       the suites
+  key.js                  legacy benchmark data (Data_To_Loop_*, schema, …)
 ```
 
 ## The 14 suites
@@ -22,13 +30,15 @@ key.js                    legacy benchmark data (Data_To_Loop_*, schema, …)
 ## Commands
 
 ```bash
-npm test              # all suites (ask before running — slow)
-npm test crud         # one suite — run directly, no permission needed
+npm run node-test              # all suites under Node (ask before running — slow)
+npm run node-test crud         # one suite under Node — run directly, no permission needed
+npm run bun-test               # all suites under Bun (ask before running — slow)
+npm run bun-test crud          # one suite under Bun — run directly, no permission needed
 ```
 
 ## Why child processes
 
-`new AxioDB()` is a **singleton** — a second instance in the same process throws. `run.js` therefore spawns one `node` child per suite with `cwd` at the repo root. Never require two DB instances in one suite.
+`new AxioDB()` is a **singleton** — a second instance in the same process throws. `run.js` therefore spawns one `node` (or `bun`) child per suite with `cwd` at the repo root. Never require two DB instances in one suite.
 
 ## Writing a suite
 
@@ -37,7 +47,7 @@ const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 const fixtures = require('../helpers/fixtures');
 const fs = require('fs');
-const { AxioDB } = require('../../lib/config/DB.js');   // compiled output, not source/
+const { AxioDB } = require('../../../lib/config/DB.js');   // compiled output, not source/
 
 class MyTests extends TestRunner {
   constructor() { super('My Test Suite'); }
@@ -58,7 +68,7 @@ Then register the file in the `testModules` map in `run.js` (key = suite name us
 
 ## Hard rules
 
-* Require from `../../lib/...` — tests run against the build. Rebuild before trusting results.
+* Require from `../../../lib/...` — tests run against the build. Rebuild before trusting results.
 * Use `fixtures` for data, not inline literals, where a fixture fits.
 * Always clean up in `setUp()` **and** `tearDown()` — leave no temp dirs; tests must be re-runnable and parallel-safe.
 * A `setUp()`/`runTests()` throw already counts as a failure (see `TestRunner.run`) — don't swallow it.

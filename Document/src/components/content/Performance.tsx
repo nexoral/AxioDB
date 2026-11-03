@@ -271,7 +271,7 @@ const Performance: React.FC = () => {
           <p className="text-lg text-gray-600 font-light max-w-3xl mb-8">
             Full test suite results at <strong className="text-gray-800">100,000 documents</strong> — CRUD, queries,
             transactions, HTTP API, TCP, crash recovery, and MCP. Every number from{" "}
-            <code className="text-accent-700 bg-accent-100/60 px-1.5 py-0.5 rounded text-sm font-semibold">npm test</code>.
+            <code className="text-accent-700 bg-accent-100/60 px-1.5 py-0.5 rounded text-sm font-semibold">npm run node-test</code>.
           </p>
 
           <div className="flex flex-wrap gap-3">
@@ -669,7 +669,7 @@ const Performance: React.FC = () => {
         </h3>
         <div className="grid sm:grid-cols-2 gap-3 text-sm text-gray-600">
           {[
-            "Each dataset size runs the full npm test suite — 13 test suites in isolated child processes",
+            "Each dataset size runs the full npm run node-test suite — 14 test suites in isolated child processes",
             "Timings captured from real test output logs — end-to-end execution including index lookup, file I/O, and filtering",
             "Data generated with fixtures.generateUsers(N) — names, emails, ages (20-69 cycling), consistent across all sizes",
             "Indexes created on name, email, and age fields before dataset insertion",

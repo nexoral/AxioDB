@@ -8,9 +8,9 @@ const fs = require('fs');
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 
-const { AxioDB } = require('../../lib/config/DB.js');
-const { MessageFramer, MessageBuffer } = require('../../lib/tcp/config/protocol');
-const { CommandType } = require('../../lib/tcp/types/command.types');
+const { AxioDB } = require('../../../lib/config/DB.js');
+const { MessageFramer, MessageBuffer } = require('../../../lib/tcp/config/protocol');
+const { CommandType } = require('../../../lib/tcp/types/command.types');
 
 const TCP_HOST = '127.0.0.1';
 const TCP_PORT = 27019;

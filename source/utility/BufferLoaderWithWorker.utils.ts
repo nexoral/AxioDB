@@ -10,7 +10,7 @@ export default async function ReaderWithWorker(
   path: string,
   storeFileName = false,
 ): Promise<unknown[]> {
-  if (DataFilesList.length < 100) {
+  if (DataFilesList.length < 150) {
     const fileManager = new FileManager();
     const converter = new Converter();
 

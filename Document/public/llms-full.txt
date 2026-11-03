@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 23.29.4 | License: MIT | Node.js >= 20.0.0
+Version: 23.29.6 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -652,7 +652,7 @@ docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
 
 ---
 
-## Performance (100,000-document benchmark — full npm test, 14/14 suites)
+## Performance (100,000-document benchmark — full npm run node-test, 14/14 suites)
 
 Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js v26.8.1. Full details: https://axiodb.in/performance
 
@@ -965,7 +965,7 @@ Docker/                             NOT published to npm (.npmignore)
 ├── mcpServer.js                    MCP server, Streamable HTTP on port 27020 at /mcp
 └── mcp/tools/                      The 43 MCP tools, one file per feature area
 
-Test/modules/                       crud, transaction, read, auth, tcp-auth, tcp-noauth,
+Test/node/modules/                  crud, transaction, read, auth, tcp-auth, tcp-noauth,
                                     tcp-transaction, tcp-tls, crash-recovery, mcp-confirm
 Document/                           This documentation site (React + Vite, deployed to axiodb.in)
 ```

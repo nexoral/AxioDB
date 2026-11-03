@@ -7,7 +7,7 @@ const fixtures = require('../helpers/fixtures');
 const fs = require('fs');
 const path = require('path');
 
-const { AxioDB } = require('../../lib/config/DB.js');
+const { AxioDB } = require('../../../lib/config/DB.js');
 
 class CRUDTests extends TestRunner {
   constructor() {
@@ -707,7 +707,7 @@ class CRUDTests extends TestRunner {
         // Same helper the GUI's /api/collection/all endpoint uses - it used to
         // count every file recursively and reported 9 for these 3 documents.
         const countDocumentsInFolder =
-          require('../../lib/server/helper/documentCounterInFolder.helper.js').default;
+          require('../../../lib/server/helper/documentCounterInFolder.helper.js').default;
 
         assert.ok(
           fs.existsSync(path.join(collectionPath, 'indexes')),

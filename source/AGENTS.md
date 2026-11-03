@@ -25,7 +25,7 @@ utility/    BufferLoaderWithWorker, Searcher, SortData, StaticFile, ZipUnzip, Co
 ```bash
 npm run build   # tsc → lib/ — MANDATORY after every change
 npm run lint    # eslint source/
-npm test crud   # one suite; `npm test` = all 14 (ask first, slow)
+npm run node-test crud # one suite; `npm run node-test` = all 14 (ask first, slow)
 ```
 
 ## Hard rules
@@ -50,7 +50,7 @@ npm test crud   # one suite; `npm test` = all 14 (ask first, slow)
 2. HTTP: `server/router` + `server/controller`.
 3. TCP: `tcp/handler/{cmd}.ts` → register in `CommandHandler` command map → `client/{Feature}Proxy.ts`.
 4. Ask the user before fanning out to `cli/`, `Docker/mcp`, `GUI/`, `Document/` — expose consistently, same RBAC.
-5. Update `Test/modules/`, docs, AI artifacts; `npm run build` then the scoped suite.
+5. Update `Test/node/modules/`, docs, AI artifacts; `npm run build` then the scoped suite.
 
 ## Anti-patterns
 
@@ -64,6 +64,6 @@ items.find(i => i.id === id);                 // ❌ Array.find in hot path — 
 ## Done for this folder
 
 - [ ] `npm run build` clean, `npm run lint` clean
-- [ ] `Test/modules/` covers the change; scoped suite green
+- [ ] `Test/node/modules/` covers the change; scoped suite green
 - [ ] No `any`; SOLID + DRY; singleton / dual-write / TTL patterns intact
 - [ ] HTTP + TCP (+ client proxy) updated if the surface changed; docs + JSDoc same commit

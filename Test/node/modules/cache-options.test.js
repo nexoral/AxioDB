@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const { AxioDB, InstanceTypes } = require('../../lib/config/DB.js');
+const { AxioDB, InstanceTypes } = require('../../../lib/config/DB.js');
 
 const InMemoryCache = InstanceTypes.InMemoryCache;
 
@@ -187,8 +187,9 @@ class CacheOptionsTests extends TestRunner {
             await db.deleteDatabase('DB');
           })();
         `;
-        const stdout = execFileSync(process.execPath, ['-e', script], {
-          cwd: path.resolve(__dirname, '../..'),
+        const runtime = process.versions?.bun ? 'bun' : (process.execPath || 'node');
+        const stdout = execFileSync(runtime, ['-e', script], {
+          cwd: path.resolve(__dirname, '../../..'),
           encoding: 'utf8',
         });
         const line = stdout.split('\n').find((l) => l.startsWith('CHILD_RESULT='));
