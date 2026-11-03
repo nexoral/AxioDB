@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "23.29.6",
+    version: "23.30.1",
     date: "2026-11-03",
     title: "Native Bun test suite and multi-runtime matrix testing",
     changes: [

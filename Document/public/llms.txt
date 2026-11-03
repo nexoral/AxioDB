@@ -1,6 +1,6 @@
 # AxioDB
 
-> Embedded NoSQL Database for TypeScript & AI Agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno. No node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on (also verified on Bun v1.4.0 and Deno v2.9.6). MIT licensed, actively maintained for AI agents, Electron, CLI, local-first and prototyping. Current version: 23.29.6.
+> Embedded NoSQL Database for TypeScript & AI Agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno. No node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on (also verified on Bun v1.4.0 and Deno v2.9.6). MIT licensed, actively maintained for AI agents, Electron, CLI, local-first and prototyping. Current version: 23.30.1.
 
 ## What it is
 
