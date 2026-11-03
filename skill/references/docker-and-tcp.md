@@ -34,7 +34,7 @@ docker run -d \
   -p 27019:27019 \
   -e AXIODB_GUI=false \
   -e AXIODB_TCP_AUTH_ENABLED=true \
-  -e AXIODB_ADMIN_PASSWORD=SuperSecretPass123! \
+  -e AXIODB_ADMIN_PASSWORD="<ADMIN_PASSWORD>" \
   -v axiodb-data:/app \
   theankansaha/axiodb
 ```
@@ -88,7 +88,7 @@ docker run -d \
 import { AxioDBCloud } from "axiodb";
 
 // Connection String Syntax: axiodb://[username:password@]host:port
-const client = new AxioDBCloud("axiodb://admin:SuperSecretPass123!@localhost:27019", {
+const client = new AxioDBCloud("axiodb://admin:<ADMIN_PASSWORD>@localhost:27019", {
   timeout: 10000,           // 10s command timeout
   maxPoolSize: 10,          // Connection pool size
   reconnectAttempts: 10,    // Max reconnect retries
