@@ -12,6 +12,17 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "22.28.3",
+    date: "2026-11-03",
+    title: "Zero-dependency archive engine with native USTAR TAR helper",
+    changes: [
+      "Engine: replaced external `tar` package with native, zero-dependency `TarHelper` implementing standard POSIX USTAR archive packing and streaming extraction",
+      "Security: preserved multi-layer safety limits including decompression bomb ratio guards, inode exhaustion caps, and Zip Slip path traversal containment",
+      "Dependencies: removed `tar` and `@types/tar` from package dependencies, advancing AxioDB closer to a pure zero-dependency runtime",
+      "Tests: updated auth and archive unit tests to exercise native USTAR streaming and verified 100% test pass rate",
+    ],
+  },
+  {
     version: "22.28.2",
     date: "2026-11-03",
     title: "Brand repositioning for TypeScript & AI Agents and documentation architecture refinements",

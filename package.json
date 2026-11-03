@@ -1,6 +1,6 @@
 {
   "name": "axiodb",
-  "version": "22.28.2",
+  "version": "22.28.3",
   "description": "Embedded NoSQL Database for TypeScript & AI Agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno.",
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
