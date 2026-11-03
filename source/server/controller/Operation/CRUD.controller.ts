@@ -124,6 +124,9 @@ export default class CRUDController {
     if (!collectionName || typeof collectionName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
     }
+    if (!documentId || typeof documentId !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid document ID");
+    }
     if (isReservedDatabaseName(dbName)) {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }

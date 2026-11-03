@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "23.31.0",
+    version: "23.31.1",
     date: "2026-11-04",
     title: "Range index query planning, limit pushdown, and query engine optimizations",
     changes: [
