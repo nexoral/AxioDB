@@ -61,7 +61,7 @@ export default async function ReaderWithWorker(
     });
   }
 
-  const numWorkers = Math.min(os.cpus().length, 4);
+  const numWorkers = Math.max(1, os.cpus().length - 1);
   const chunkSize = Math.ceil(DataFilesList.length / numWorkers);
   const tasks: Promise<unknown[]>[] = [];
 

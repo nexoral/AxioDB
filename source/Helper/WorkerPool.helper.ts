@@ -24,7 +24,7 @@ export default class WorkerPool {
 
   constructor(scriptPath: string, maxWorkers?: number) {
     this.scriptPath = scriptPath;
-    this.maxWorkers = maxWorkers ?? Math.min(4, Math.max(1, os.cpus().length));
+    this.maxWorkers = maxWorkers ?? Math.max(1, os.cpus().length - 1);
   }
 
   public static getPool(scriptPath: string, maxWorkers?: number): WorkerPool {
