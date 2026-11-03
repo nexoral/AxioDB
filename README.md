@@ -100,31 +100,21 @@ npx skills add nexoral/AxioDB --skill skill
 * **CLI** — Go binary for 12 platforms: interactive REPL, TLS, export/import
 * **Desktop app** — Electron GUI for Linux, macOS, and Windows
 
-## Testing & Performance
+## Performance & Testing
 
-The full test suite is **329 tests across 14 suites**, all passing with a 100% pass rate in isolated child processes. Benchmarked at 100,000 documents on an AMD Ryzen 5 5500U / Node v26:
+AxioDB is verified across **14 isolated test suites (329+ tests)** with a 100% pass rate, benchmarked at 100,000 documents on an AMD Ryzen 5 5500U / Node v26:
 
-| Operation | Time |
+| Operation | Latency |
 |---|---|
 | Indexed query | 1–2 ms |
-| `documentId` lookup | <1 ms |
+| `documentId` point lookup | <1 ms |
 | In-memory cache hit | <1 ms |
 | Range query ($gt/$gte/$lt/$lte) | 2–5 ms |
 | Sorted pagination (`.Sort().Limit()`) | 1–2 ms |
 | Insert single | ~31 ms |
 | Rollback | ~8 ms |
 
-Run the test suite:
-```bash
-npm run node-test
-```
-
-Run the built-in benchmark suite to verify throughput and ACID guarantees on your hardware:
-```bash
-npm run benchmark
-```
-
-For custom benchmark flags (`--docs`, `--batch`, `--queries`, `--keep`), percentile distributions, and methodology, see the [Performance Guide — axiodb.in/performance](https://axiodb.in/performance).
+Full performance charts, test suites, and methodology: [axiodb.in/performance](https://axiodb.in/performance).
 
 ## Tooling & Deployment
 
