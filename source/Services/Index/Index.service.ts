@@ -35,43 +35,81 @@ export class IndexManager {
 
   /**
    * Serialize IndexData shape for JSONL file storage.
-   * Line 1 = header (fieldName + sortedValues), remaining lines = one per indexEntries key.
-   *
-   * Example output:
-   *   {"h":1,"f":"email","s":[]}
-   *   {"k":"alice@x.com","v":["abc123.axiodb"]}
+   * Line 1 = header (fieldName + sortedValues), remaining lines = [key, [docIds or integer pointers]].
    */
-  public static serializeIndexData(indexData: { fieldName: string; indexEntries: Record<string, string[]>; sortedValues?: number[] }): string {
+  public static serializeIndexData(
+    indexData: { fieldName: string; indexEntries: Record<string, string[]>; sortedValues?: number[] },
+    docMapLookup?: Map<string, number>
+  ): string {
     const lines: string[] = [];
-    const header: { h: number; f: string; s: number[] } = { h: 1, f: indexData.fieldName, s: indexData.sortedValues ?? [] };
+    const header = { h: 2, f: indexData.fieldName, s: indexData.sortedValues ?? [] };
     lines.push(JSON.stringify(header));
+    const ext = General.DBMS_File_EXT;
+    const extLen = ext.length;
+    const usePointers = Boolean(docMapLookup && indexData.fieldName !== "documentId");
+
     for (const [key, files] of Object.entries(indexData.indexEntries)) {
-      lines.push(JSON.stringify({ k: key, v: files }));
+      const formatted = files.map(file => {
+        const stripped = file.endsWith(ext) ? file.slice(0, -extLen) : file;
+        if (usePointers) {
+          const pointer = docMapLookup?.get(stripped);
+          if (pointer !== undefined) return pointer;
+        }
+        return stripped;
+      });
+      lines.push(JSON.stringify([key, formatted]));
     }
     return lines.join("\n") + "\n";
   }
 
   /**
    * Deserialize JSONL lines back into an IndexData object.
-   * Expects first line to be the header: { h:1, f, s }.
+   * Supports format v2 ([key, docIds/pointers]) and backward-compatible v1 ({k, v}).
    */
-  public static deserializeIndexData(lines: string[]): { fieldName: string; indexEntries: Record<string, string[]>; sortedValues: number[] } | null {
+  public static deserializeIndexData(
+    lines: string[],
+    docMap?: string[]
+  ): { fieldName: string; indexEntries: Record<string, string[]>; sortedValues: number[] } | null {
     if (lines.length === 0) return null;
     const decoder = new TextDecoder();
     try {
       const headerStr = typeof lines[0] === 'string' ? lines[0] : decoder.decode(lines[0] as unknown as Uint8Array);
       const header = JSON.parse(headerStr);
-      if (!header || header.h !== 1) return null;
+      if (!header || (header.h !== 1 && header.h !== 2)) return null;
+
+      const ext = General.DBMS_File_EXT;
       const indexEntries: Record<string, string[]> = {};
-      for (let i = 1; i < lines.length; i++) {
-        const lineStr = typeof lines[i] === 'string' ? lines[i] : decoder.decode(lines[i] as unknown as Uint8Array);
-        try {
-          const entry = JSON.parse(lineStr);
-          if (entry && entry.k !== undefined && entry.v !== undefined) {
-            indexEntries[String(entry.k)] = entry.v;
-          }
-        } catch { /* skip corrupt lines */ }
+
+      if (header.h === 2) {
+        for (let i = 1; i < lines.length; i++) {
+          const lineStr = typeof lines[i] === 'string' ? lines[i] : decoder.decode(lines[i] as unknown as Uint8Array);
+          try {
+            const entry = JSON.parse(lineStr);
+            if (Array.isArray(entry) && entry.length >= 2) {
+              const key = String(entry[0]);
+              const rawFiles = Array.isArray(entry[1]) ? entry[1] : [entry[1]];
+              indexEntries[key] = rawFiles.map((f: unknown) => {
+                if (typeof f === 'number' && docMap && docMap[f] !== undefined) {
+                  return `${docMap[f]}${ext}`;
+                }
+                const s = String(f);
+                return s.endsWith(ext) ? s : `${s}${ext}`;
+              });
+            }
+          } catch { /* skip corrupt lines */ }
+        }
+      } else {
+        for (let i = 1; i < lines.length; i++) {
+          const lineStr = typeof lines[i] === 'string' ? lines[i] : decoder.decode(lines[i] as unknown as Uint8Array);
+          try {
+            const entry = JSON.parse(lineStr);
+            if (entry && entry.k !== undefined && entry.v !== undefined) {
+              indexEntries[String(entry.k)] = entry.v;
+            }
+          } catch { /* skip corrupt lines */ }
+        }
       }
+
       return {
         fieldName: header.f,
         indexEntries,

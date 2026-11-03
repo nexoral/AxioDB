@@ -58,7 +58,8 @@ export class ReadIndex extends IndexManager {
       const indexPath = `${this.indexFolderPath}/${matchedIndexFile.indexFieldName}${General.Index_File_EXT}`;
       try {
         const lines = await this.fileManager.ReadLines(indexPath);
-        const indexData = IndexManager.deserializeIndexData(lines);
+        await this.indexCache.ensureDocMapLoaded();
+        const indexData = IndexManager.deserializeIndexData(lines, this.indexCache.getDocMap());
         if (indexData) {
           const queryValue = query[indexData.fieldName];
           if (typeof queryValue === 'object' && queryValue !== null) {

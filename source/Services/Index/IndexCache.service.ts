@@ -57,6 +57,9 @@ export class IndexCache {
   private readonly converter: Converter;
   private lockChains: Map<string, Promise<void>>;  // Per-field mutex queue
   private cleanupInterval: ReturnType<typeof setInterval> | null = null;
+  private docMap: string[] = [];
+  private docMapLookup: Map<string, number> = new Map();
+  private docMapLoaded = false;
 
   // TTL constants (5-15 minutes in milliseconds)
   private static readonly MIN_TTL_MS = 5 * 60 * 1000;   // 5 minutes
@@ -71,6 +74,44 @@ export class IndexCache {
     this.converter = new Converter();
     this.lockChains = new Map();
     this.startCleanupInterval();
+  }
+
+  public getDocMap(): string[] {
+    return this.docMap;
+  }
+
+  public async ensureDocMapLoaded(): Promise<void> {
+    if (this.docMapLoaded) return;
+    this.docMapLoaded = true;
+    try {
+      const docIdPath = `${this.indexFolderPath}/documentId${General.Index_File_EXT}`;
+      const exists = await this.fileManager.FileExists(docIdPath);
+      if (!exists.status) return;
+      const lines = await this.fileManager.ReadLines(docIdPath);
+      if (lines.length <= 1) return;
+      const ext = General.DBMS_File_EXT;
+      const extLen = ext.length;
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        try {
+          const entry = JSON.parse(line);
+          let key: string | undefined;
+          if (Array.isArray(entry) && entry.length >= 1) {
+            key = String(entry[0]);
+          } else if (entry && entry.k !== undefined) {
+            key = String(entry.k);
+          }
+          if (key) {
+            if (key.endsWith(ext)) key = key.slice(0, -extLen);
+            if (!this.docMapLookup.has(key)) {
+              this.docMap.push(key);
+              this.docMapLookup.set(key, this.docMap.length - 1);
+            }
+          }
+        } catch { /* skip corrupted lines */ }
+      }
+    } catch { /* documentId.jsonl may not exist yet */ }
   }
 
   /**
@@ -159,31 +200,21 @@ export class IndexCache {
    */
   public async loadAllIndexes(): Promise<void> {
     try {
+      await this.ensureDocMapLoaded();
       const metaLines = await this.fileManager.ReadLines(this.indexMetaPath);
-      if (metaLines.length === 0) return;
+      if (metaLines.length === 0) {
+        await this.getIndex("documentId");
+        return;
+      }
 
-      // Load each index file in parallel
       const loadPromises = metaLines.map(async (line) => {
         try {
-          const meta = this.converter.ToObject(line) as { path: string; indexFieldName: string };
-          const indexPath = meta.path;
-          const fieldName = meta.indexFieldName;
-
-          // Stream the JSONL index file line-by-line
-          const indexLines = await this.fileManager.ReadLines(indexPath);
-          if (indexLines.length === 0) return;
-
-          const indexData = IndexManager.deserializeIndexData(indexLines);
-          if (indexData) {
-            this.cache.set(fieldName, {
-              data: indexData,
-              loadedAt: new Date(),
-              expiresAt: Date.now() + this.generateRandomTTL(),
-              path: indexPath,
-            });
+          const meta = this.converter.ToObject(line) as { indexFieldName?: string };
+          const fieldName = meta?.indexFieldName;
+          if (fieldName) {
+            await this.getIndex(fieldName);
           }
         } catch (error) {
-          // Silent per-index failure - continue loading other indexes
           Logger.error(`Failed to load index ${line}:`, error);
         }
       });
@@ -196,10 +227,11 @@ export class IndexCache {
 
   /**
    * Gets index data for a specific field.
-   * Returns from memory if available, loads from disk via streaming if not (cold start recovery).
+   * Returns from memory cache if valid; streams from disk on cache miss.
    */
   public async getIndex(fieldName: string): Promise<IndexData | null> {
-    // Try memory cache first (O(1) fast path)
+    await this.ensureDocMapLoaded();
+
     const cached = this.cache.get(fieldName);
     if (cached) {
       if (this.isExpired(cached)) {
@@ -209,14 +241,11 @@ export class IndexCache {
       }
     }
 
-    // Cache miss or expired - stream from disk (cold start recovery)
     try {
       const indexPath = `${this.indexFolderPath}/${fieldName}${General.Index_File_EXT}`;
-
-      // Attempt streaming read first (JSONL)
       const lines = await this.fileManager.ReadLines(indexPath);
       if (lines.length > 0) {
-        const indexData = IndexManager.deserializeIndexData(lines);
+        const indexData = IndexManager.deserializeIndexData(lines, this.docMap);
         if (indexData) {
           this.cache.set(fieldName, {
             data: indexData,
@@ -227,8 +256,6 @@ export class IndexCache {
           return indexData;
         }
       }
-
-      // Streaming read failed — index file may not exist (normal for unindexed fields)
     } catch { /* index doesn't exist */ }
 
     return null;
@@ -236,23 +263,38 @@ export class IndexCache {
 
   /**
    * Updates an index in both memory and disk atomically.
-   * Writes in JSONL format.
+   * Writes in JSONL format with integer pointers for secondary indexes.
    */
   public async updateIndex(fieldName: string, indexData: IndexData): Promise<boolean> {
     const release = await this.acquireLock(fieldName);
 
     try {
-      const indexPath = `${this.indexFolderPath}/${fieldName}${General.Index_File_EXT}`;
+      await this.ensureDocMapLoaded();
 
-      // Write to disk first for durability (JSONL format)
-      const jsonlContent = IndexManager.serializeIndexData(indexData);
+      const ext = General.DBMS_File_EXT;
+      const extLen = ext.length;
+
+      // Register any new docIds in docMap memory lookup
+      for (const files of Object.values(indexData.indexEntries)) {
+        for (const f of files) {
+          const clean = f.endsWith(ext) ? f.slice(0, -extLen) : f;
+          if (!this.docMapLookup.has(clean)) {
+            const intId = this.docMap.length;
+            this.docMap.push(clean);
+            this.docMapLookup.set(clean, intId);
+          }
+        }
+      }
+
+      const indexPath = `${this.indexFolderPath}/${fieldName}${General.Index_File_EXT}`;
+      const jsonlContent = IndexManager.serializeIndexData(indexData, this.docMapLookup);
       const writeResult = await this.fileManager.WriteFile(indexPath, jsonlContent);
 
       if (!writeResult.status) {
+        this.cache.delete(fieldName);
         return false;
       }
 
-      // Update memory cache after successful disk write with fresh TTL
       this.cache.set(fieldName, {
         data: indexData,
         loadedAt: new Date(),
@@ -261,6 +303,9 @@ export class IndexCache {
       });
 
       return true;
+    } catch {
+      this.cache.delete(fieldName);
+      return false;
     } finally {
       release();
     }

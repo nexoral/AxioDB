@@ -153,10 +153,16 @@ export default class TransactionIndexManager {
                   (f: string) => f !== fileName
                 );
                 if (indexEntries[fieldValue].length === 0) {
-                  delete indexEntries[fieldValue];
-                  const numericValue = Number(fieldValue);
-                  if (!Number.isNaN(numericValue)) {
-                    SortedIndexValues.removeSorted(sortedValues, numericValue);
+                  if (fieldName === "documentId") {
+                    // Retain slot in documentId index so integer pointers in secondary
+                    // indexes never shift or misalign on cold start/recovery
+                    indexEntries[fieldValue] = [];
+                  } else {
+                    delete indexEntries[fieldValue];
+                    const numericValue = Number(fieldValue);
+                    if (!Number.isNaN(numericValue)) {
+                      SortedIndexValues.removeSorted(sortedValues, numericValue);
+                    }
                   }
                 }
               }
@@ -179,11 +185,20 @@ export default class TransactionIndexManager {
 
   public async commitIndexUpdates(): Promise<SuccessInterface | ErrorInterface> {
     try {
+      const docIdData = this.stagedIndexUpdates.get("documentId");
+      if (docIdData) {
+        const updated = await this.indexCache.updateIndex("documentId", docIdData);
+        if (!updated) {
+          await this.rollbackIndexUpdates();
+          return this.ResponseHelper.Error(`Failed to commit index update for field: documentId`);
+        }
+      }
+
       for (const [fieldName, indexData] of this.stagedIndexUpdates) {
-        // updateIndex() writes disk + refreshes the shared in-memory cache under
-        // its per-field lock, so every other index consumer sees this immediately.
+        if (fieldName === "documentId") continue;
         const updated = await this.indexCache.updateIndex(fieldName, indexData);
         if (!updated) {
+          await this.rollbackIndexUpdates();
           return this.ResponseHelper.Error(`Failed to commit index update for field: ${fieldName}`);
         }
       }
@@ -191,6 +206,7 @@ export default class TransactionIndexManager {
       this.stagedIndexUpdates.clear();
       return this.ResponseHelper.Success({ message: "Index updates committed" });
     } catch (error) {
+      await this.rollbackIndexUpdates();
       return this.ResponseHelper.Error(error);
     }
   }

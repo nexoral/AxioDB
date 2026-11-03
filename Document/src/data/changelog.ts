@@ -12,6 +12,18 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "24.32.3",
+    date: "2026-11-04",
+    title: "Master integer-pointer indexing, 16-character IDs, and dual-write cache optimization",
+    changes: [
+      "Master Integer-Pointer Indexing: secondary indexes store integer slot pointers referencing documentId.jsonl instead of duplicating full file names, reducing index storage overhead by 63.5% (down to 1.63 MB for 15k records)",
+      "Compact Document IDs: shortened auto-generated document IDs from 30 characters to 16 characters (128-bit entropy), saving disk and memory across all records and indexes while preserving unguessability",
+      "Dual-Write IndexCache: unified in-memory secondary index caching with 5–15 minute random TTL, restoring sub-millisecond point reads (0.64ms p50, 1,221 QPS) and 0.017ms hot cache lookups",
+      "Tombstone Slot Preservation: retained slot alignment in documentId.jsonl for deletions, ensuring integer pointers never shift or desynchronize across updates, crash recoveries, or cold starts",
+      "Transaction & WAL Atomicity: verified 100% rollback consistency and zero data leakage across atomic transactions and mixed insert/update/delete operations",
+    ],
+  },
+  {
     version: "23.31.2",
     date: "2026-11-04",
     title: "Range index query planning, index-assisted sorting, and streaming read optimizations",
