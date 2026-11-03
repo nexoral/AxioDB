@@ -435,7 +435,7 @@ export default class Searcher {
             }
             if (ninSet.has(itemValue)) return false;
           } else {
-            if (!ninArray.includes(itemValue)) return false;
+            if (ninArray.includes(itemValue)) return false;
           }
           continue;
         }

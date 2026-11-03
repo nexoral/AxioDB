@@ -184,6 +184,8 @@ export class ReadIndex extends IndexManager {
   public async getFilesForRangeOperator(
     fieldName: string,
     range: { $gt?: number; $gte?: number; $lt?: number; $lte?: number },
+    order: 1 | -1 = 1,
+    maxFiles?: number,
   ): Promise<string[]> {
     const indexData = await this.indexCache.getIndex(fieldName);
     if (!indexData || !indexData.sortedValues || indexData.sortedValues.length === 0) {
@@ -196,12 +198,73 @@ export class ReadIndex extends IndexManager {
     }
 
     const fileSet = new Set<string>();
-    for (let i = bounds.startIndex; i <= bounds.endIndex; i++) {
-      const files = indexData.indexEntries[indexData.sortedValues[i]];
-      if (files) {
-        files.forEach(f => fileSet.add(f));
+    if (order === 1) {
+      for (let i = bounds.startIndex; i <= bounds.endIndex; i++) {
+        const files = indexData.indexEntries[indexData.sortedValues[i]];
+        if (files) {
+          for (let j = 0; j < files.length; j++) {
+            fileSet.add(files[j]);
+            if (maxFiles !== undefined && fileSet.size >= maxFiles) {
+              return Array.from(fileSet);
+            }
+          }
+        }
+      }
+    } else {
+      for (let i = bounds.endIndex; i >= bounds.startIndex; i--) {
+        const files = indexData.indexEntries[indexData.sortedValues[i]];
+        if (files) {
+          for (let j = 0; j < files.length; j++) {
+            fileSet.add(files[j]);
+            if (maxFiles !== undefined && fileSet.size >= maxFiles) {
+              return Array.from(fileSet);
+            }
+          }
+        }
       }
     }
+    return Array.from(fileSet);
+  }
+
+  public async getSortedFiles(
+    fieldName: string,
+    order: 1 | -1 = 1,
+    maxFiles?: number,
+  ): Promise<string[]> {
+    const indexData = await this.indexCache.getIndex(fieldName);
+    if (!indexData || !indexData.sortedValues || indexData.sortedValues.length === 0) {
+      return [];
+    }
+
+    const fileSet = new Set<string>();
+    const len = indexData.sortedValues.length;
+
+    if (order === 1) {
+      for (let i = 0; i < len; i++) {
+        const files = indexData.indexEntries[indexData.sortedValues[i]];
+        if (files) {
+          for (let j = 0; j < files.length; j++) {
+            fileSet.add(files[j]);
+            if (maxFiles !== undefined && fileSet.size >= maxFiles) {
+              return Array.from(fileSet);
+            }
+          }
+        }
+      }
+    } else {
+      for (let i = len - 1; i >= 0; i--) {
+        const files = indexData.indexEntries[indexData.sortedValues[i]];
+        if (files) {
+          for (let j = 0; j < files.length; j++) {
+            fileSet.add(files[j]);
+            if (maxFiles !== undefined && fileSet.size >= maxFiles) {
+              return Array.from(fileSet);
+            }
+          }
+        }
+      }
+    }
+
     return Array.from(fileSet);
   }
 

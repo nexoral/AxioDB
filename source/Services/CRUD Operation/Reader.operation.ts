@@ -148,7 +148,51 @@ export default class Reader {
       } else {
         // Auto-detect best index
         const queryKeys = Object.keys(this.baseQuery);
-        if (queryKeys.length === 1) {
+        if (queryKeys.length === 1 && queryKeys[0] === '$or' && Array.isArray(this.baseQuery.$or)) {
+          const orBranches = this.baseQuery.$or as Record<string, unknown>[];
+          const unionFiles = new Set<string>();
+          let allBranchesIndexed = orBranches.length > 0;
+
+          for (const branch of orBranches) {
+            if (typeof branch === 'object' && branch !== null && Object.keys(branch).length === 1) {
+              const bKey = Object.keys(branch)[0];
+              const bVal = branch[bKey];
+              const matched = await indexReader.findMatchingIndexMeta(branch);
+              if (matched && matched.length > 0) {
+                let branchFiles: string[] = [];
+                if (typeof bVal === 'object' && bVal !== null) {
+                  const bObj = bVal as Record<string, unknown>;
+                  if ('$eq' in bObj) {
+                    branchFiles = await indexReader.getFileFromIndex({ [bKey]: bObj.$eq });
+                  } else if ('$in' in bObj && Array.isArray(bObj.$in)) {
+                    branchFiles = await indexReader.getFilesForInOperator(bKey, bObj.$in);
+                  } else if ('$gt' in bObj || '$gte' in bObj || '$lt' in bObj || '$lte' in bObj) {
+                    branchFiles = await indexReader.getFilesForRangeOperator(bKey, bObj as { $gt?: number; $gte?: number; $lt?: number; $lte?: number });
+                  } else {
+                    allBranchesIndexed = false;
+                    break;
+                  }
+                } else {
+                  branchFiles = await indexReader.getFileFromIndex(branch);
+                }
+                branchFiles.forEach(f => unionFiles.add(f));
+              } else {
+                allBranchesIndexed = false;
+                break;
+              }
+            } else {
+              allBranchesIndexed = false;
+              break;
+            }
+          }
+
+          if (allBranchesIndexed) {
+            if (unionFiles.size === 0) {
+              return this.ResponseHelper.Success({ documents: [] });
+            }
+            indexedFileNames = Array.from(unionFiles);
+          }
+        } else if (queryKeys.length === 1) {
           const fieldName = queryKeys[0];
           const fieldValue = this.baseQuery[fieldName];
 
@@ -173,7 +217,21 @@ export default class Reader {
                 );
               }
             } else if ('$gt' in fieldObj || '$gte' in fieldObj || '$lt' in fieldObj || '$lte' in fieldObj) {
-              indexedFileNames = await indexReader.getFilesForRangeOperator(fieldName, fieldObj as { $gt?: number; $gte?: number; $lt?: number; $lte?: number });
+              const sortEntries = Object.entries(this.sort);
+              let rangeOrder: 1 | -1 = 1;
+              let rangeLimit: number | undefined;
+              if (!this.totalCount && sortEntries.length === 1 && sortEntries[0][0] === fieldName) {
+                rangeOrder = sortEntries[0][1] === -1 ? -1 : 1;
+                if (this.limit !== undefined && this.limit > 0) {
+                  rangeLimit = (this.skip || 0) + this.limit;
+                }
+              }
+              indexedFileNames = await indexReader.getFilesForRangeOperator(
+                fieldName,
+                fieldObj as { $gt?: number; $gte?: number; $lt?: number; $lte?: number },
+                rangeOrder,
+                rangeLimit,
+              );
             }
           } else {
             const matchedIndexes = await indexReader.findMatchingIndexMeta(this.baseQuery);
@@ -182,6 +240,18 @@ export default class Reader {
             if (isFieldIndexed && indexedFileNames.length === 0) {
               return this.ResponseHelper.Success({ documents: [] });
             }
+          }
+        } else if (queryKeys.length === 0) {
+          const sortEntries = Object.entries(this.sort);
+          if (!this.totalCount && sortEntries.length === 1) {
+            const [sortField, sortOrder] = sortEntries[0];
+            const order: 1 | -1 = sortOrder === -1 ? -1 : 1;
+            const needed = (this.limit !== undefined && this.limit > 0)
+              ? (this.skip || 0) + this.limit
+              : undefined;
+            indexedFileNames = await indexReader.getSortedFiles(sortField, order, needed);
+          } else {
+            indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
           }
         } else {
           indexedFileNames = await indexReader.getFileFromIndex(this.baseQuery);
@@ -193,9 +263,16 @@ export default class Reader {
 
       if (indexedFileNames && indexedFileNames.length > 0) {
         let filesToLoad = indexedFileNames;
+        const sortEntries = Object.entries(this.sort);
+        const isSortCompatible =
+          sortEntries.length === 0 ||
+          (sortEntries.length === 1 &&
+            (Object.keys(this.baseQuery).length === 0 ||
+              (Object.keys(this.baseQuery).length === 1 && sortEntries[0][0] === Object.keys(this.baseQuery)[0])));
+
         if (
-          Object.keys(this.baseQuery).length === 1 &&
-          Object.keys(this.sort).length === 0 &&
+          !this.totalCount &&
+          isSortCompatible &&
           this.limit !== undefined &&
           this.limit > 0
         ) {
@@ -209,13 +286,21 @@ export default class Reader {
         usedIndex = true;
       } else {
         const maxFiles =
+          !this.totalCount &&
           Object.keys(this.baseQuery).length === 0 &&
           Object.keys(this.sort).length === 0 &&
           this.limit !== undefined &&
           this.limit > 0
             ? (this.skip || 0) + this.limit
             : undefined;
-        ReadResponse = await this.LoadAllBufferRawData(undefined, maxFiles);
+        const earlyLimit =
+          !this.totalCount &&
+          Object.keys(this.sort).length === 0 &&
+          this.limit !== undefined &&
+          this.limit > 0
+            ? (this.skip || 0) + this.limit
+            : undefined;
+        ReadResponse = await this.LoadAllBufferRawData(undefined, maxFiles, earlyLimit);
       }
 
       if (!("data" in ReadResponse)) {
@@ -414,6 +499,7 @@ export default class Reader {
   private async LoadAllBufferRawData(
     documentIdDirectFile?: string[] | undefined,
     maxFiles?: number,
+    limit?: number,
   ): Promise<SuccessInterface | ErrorInterface> {
     // Use shared DocumentLoader helper (DRY - consolidates duplicated code)
     const result = await DocumentLoader.loadDocuments(
@@ -422,6 +508,7 @@ export default class Reader {
       false, // Don't include fileName for Reader
       this.baseQuery,
       maxFiles,
+      limit,
     );
 
     // Store result in AllData if successful

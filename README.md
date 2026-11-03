@@ -2,7 +2,7 @@
   <img src="https://axiodb.in/AXioDB.png" alt="AxioDB Logo" width="120" height="120" />
 </p>
 
-<h1 align="center">Embedded NoSQL Database for TypeScript & AI Agents</h1>
+<h1 align="center">Embedded NoSQL Database for TypeScript & Agents</h1>
 <p align="center"><b>Zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno.</b></p>
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
@@ -54,25 +54,26 @@ Building with Claude Code, Cursor, Copilot, Antigravity, or Windsurf? Install th
 npx skills add nexoral/AxioDB --skill skill
 ```
 
-## Why AxioDB
+## Why AxioDB?
 
-* 🧠 **Native JSON for AI Agents & Modern Apps:** AI agents (Claude Code, Cursor, LangChain, custom autonomous loops) generate dynamic, unstructured JSON — chat history, tool execution results, scratchpads, and structured session state. SQLite forces rigid tables and migrations onto dynamic agent data, while raw JSON files risk corruption on concurrent writes. AxioDB provides native document storage, indexing, and MongoDB-style querying without schema friction.
-* ⚡ **Zero Native Dependencies:** Pure JavaScript/TypeScript. No `node-gyp`, no C++ build toolchains, and no ABI version mismatch crashes across Node.js, Bun, Deno, or Electron. It installs in seconds on any environment, container, or edge runner.
-* 🛡️ **ACID Transactions & Crash Resilience:** Write-Ahead Logging (WAL), savepoints, atomic temp-file renames, and automatic crash recovery (`Transaction.recoverTransactions()`) protect against data corruption even during unexpected crashes.
-* 🚀 **In-Memory Cache & Dual-Write Indexes:** Instant sub-millisecond point lookups via an in-memory cache with randomized TTL jitter to prevent cache stampedes, backed by durable disk-based secondary indexes.
-* 🤖 **Built for Autonomous AI Workflows:** Ships with an official AI Agent Skill (`npx skills add nexoral/AxioDB --skill skill`) and includes an optional Docker-hosted Model Context Protocol (MCP) server with 43 tools for seamless agent integration.
+* 📦 **Zero Setup & Zero C++:** Pure JavaScript and TypeScript. No `node-gyp` errors, no build tools, and no native compilation issues on Node.js, Bun, Deno, or Electron.
+* 📄 **Native JSON (No SQL Migrations):** Store raw objects directly. Perfect for AI agents, chats, and apps where data structures change often and SQL schemas are painful.
+* 🛡️ **Safe from Crashes & Corruption:** Uses real ACID transactions and Write-Ahead Logging (WAL). Even if your app or server crashes mid-write, your data stays intact.
+* ⚡ **Fast In-Memory Caching:** Delivers sub-millisecond (<1ms) reads with a built-in memory cache and fast disk indexes.
+* 🤖 **AI-Ready:** Works out-of-the-box with AI coding assistants (Cursor, Claude Code, Copilot) via our official agent skill.
 
-## When to use it
+## When to Use It
 
 **Great for:**
-* **AI Agent Memory & State Stores** — Persist conversation logs, tool execution traces, in-flight agent state, and structured task queues locally without spinning up a cloud database or wrestling with SQL migrations.
-* **Local-First & Desktop Applications** — Electron apps, desktop software, and local-first tools that need reliable embedded persistence without `node-gyp` or native rebuild failures.
-* **CLI Tools & Developer Utilities** — Standalone command-line tools that need structured, indexed queryable storage in pure JS.
-* **Edge & Microservices Prototyping** — Run seamlessly on Node.js, Bun, and Deno with identical behavior and zero environment lock-in.
+* **AI Agent Memory** — Save conversation history, tool calls, and agent state locally.
+* **Desktop & Electron Apps** — An embedded database that never breaks on user machines during updates.
+* **CLI Tools & Local Apps** — Save and query data easily without running a database server.
+* **Fast Prototyping** — Build full features with MongoDB-like queries without setting up Docker or cloud DBs.
 
-**Sweet spot:** 10K–500K documents in an embedded, local, or agentic workflow that wants a real database without a database server.
+**Best fit:** 1,000 to 500,000 documents.
 
-**Not for:** Datasets beyond ~500K documents, hundreds of concurrent users, JOINs, or replication/sharding — use PostgreSQL or MongoDB there. Measured limits, including per-document disk overhead and scan costs: [axiodb.in/limitations](https://axiodb.in/limitations).
+**When NOT to use it:**
+* Millions of records, hundreds of concurrent web connections, or distributed clusters — use PostgreSQL or MongoDB instead. See [measured limits](https://axiodb.in/limitations).
 
 ## Features
 
@@ -99,122 +100,27 @@ npx skills add nexoral/AxioDB --skill skill
 * **CLI** — Go binary for 12 platforms: interactive REPL, TLS, export/import
 * **Desktop app** — Electron GUI for Linux, macOS, and Windows
 
-## Testing
+## Performance & Testing
 
-The full suite is **329 tests across 14 suites**, all passing, each in an isolated child process. Benchmarked at 100,000 documents on an AMD Ryzen 5 5500U / Node v26.8.1:
+AxioDB is verified across **14 isolated test suites (329+ tests)** with a 100% pass rate, benchmarked at 100,000 documents on an AMD Ryzen 5 5500U / Node v26:
 
-| Operation | Time |
+| Operation | Latency |
 |---|---|
 | Indexed query | 1–2 ms |
-| `documentId` lookup | <1 ms |
-| Cache hit | <1 ms |
+| `documentId` point lookup | <1 ms |
+| In-memory cache hit | <1 ms |
+| Range query ($gt/$gte/$lt/$lte) | 2–5 ms |
+| Sorted pagination (`.Sort().Limit()`) | 1–2 ms |
 | Insert single | ~31 ms |
 | Rollback | ~8 ms |
 
-Full per-suite breakdown: [axiodb.in/performance](https://axiodb.in/performance).
+Full performance charts, test suites, and methodology: [axiodb.in/performance](https://axiodb.in/performance).
 
-Run it yourself with `npm run node-test`.
+## Tooling & Deployment
 
-## ⚡ Benchmarking & Performance Verification
+### Desktop GUI & CLI
 
-If you are evaluating AxioDB, testing performance for your application, or verifying throughput and ACID rollback guarantees, you can run the built-in benchmark suite on your own machine. 
-
-No configuration or database setup is needed: simply clone the repository, install dependencies, and run:
-
-```bash
-git clone https://github.com/nexoral/AxioDB.git
-cd AxioDB
-npm install
-npm run benchmark
-```
-
-> **Automated Pre-Check:** The benchmark script checks if compiled files exist in `lib/`. If not, it automatically runs `npm run build` before starting. It also handles cleanup automatically, deleting the temporary benchmark directory upon completion or on `Ctrl+C`.
-
----
-
-### Default Benchmark Configuration
-
-Running `npm run benchmark` without arguments executes the default verification profile:
-* **Scale:** **`15,000` documents** inserted via WAL-backed `insertMany`.
-* **Batch Size:** Chunked into **`3,000` documents** per batch to ensure optimal V8 heap utilization.
-* **Indexed Point Reads:** 500 random lookups on the indexed `email` field (reporting **Min, p25, p50, p75, p90, p95, p99, Max, and Avg** latencies).
-* **Unindexed Scans:** 25 random lookups requiring a full collection scan (calculating the exact **Index Advantage multiplier**).
-* **Updates & Deletions:** Compares indexed vs unindexed `UpdateOne` and `deleteOne` latency.
-* **Cache Acceleration:** Measures cold lookups against warm `InMemoryCache` speedup (typically **~50x+ faster**).
-* **ACID Transactions:** Verifies an atomic batch commit (1,000 documents) and an atomic batch rollback (1,000 documents) confirming **zero data leakage**.
-* **Storage Footprint:** Measures physical directory size on disk (**With Indexes** vs. **Data Only**) and compares against estimated storage for SQLite, LowDB, and raw JSON files.
-
----
-
-### Command-Line Arguments & Flags
-
-You can customize the benchmark scale, batch chunking, query samples, and cleanup behavior:
-
-| Flag | Type | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `--docs=N` | `number` | `15000` | Total number of documents to insert and index (e.g. `5000`, `50000`, `100000`, `500000`). |
-| `--batch=N` | `number` | `3000` | Chunk size per `insertMany` batch to keep memory lean. |
-| `--queries=N` | `number` | `500` | Number of random indexed point queries to measure for latency percentiles. |
-| `--unindexed=N` | `number` | `25` | Number of unindexed full-scan lookups, updates, and deletes to sample. |
-| `--keep` | `boolean` | `false` | Preserves the temporary benchmark database on disk for inspection instead of auto-deleting. |
-| `--help`, `-h` | `boolean` | — | Displays the help menu with all options and usage examples. |
-
----
-
-### Ready-to-Copy Benchmark Commands
-
-#### 1. Default Benchmark (15k docs)
-```bash
-npm run benchmark
-```
-
-#### 2. Quick Smoke Test (5,000 docs — fast ~2s run)
-```bash
-npm run benchmark -- --docs=5000 --batch=1000 --queries=100 --unindexed=10
-```
-
-#### 3. Mid-Scale Test (50,000 docs, 5k batches)
-```bash
-npm run benchmark -- --docs=50000 --batch=5000 --queries=500
-```
-
-#### 4. High-Volume Stress Test (100,000 docs, 10k batches)
-```bash
-npm run benchmark -- --docs=100000 --batch=10000 --queries=1000
-```
-
-#### 5. Maximum Capacity Stress Test (500,000 docs)
-```bash
-npm run benchmark -- --docs=500000 --batch=10000 --queries=1000 --unindexed=15
-```
-
-#### 6. Inspect Physical Storage & Indexes on Disk (`--keep`)
-```bash
-# Run benchmark and prevent automatic cleanup of the data directory
-npm run benchmark -- --docs=15000 --keep
-
-# Inspect the created .axiodb document files and indexes/*.jsonl files:
-ls -lh benchmark/Benchmark_TempData/BenchmarkDB/BenchDB/Users
-ls -lh benchmark/Benchmark_TempData/BenchmarkDB/BenchDB/Users/indexes
-```
-
-## Installation
-
-### npm — the library
-
-```bash
-npm install axiodb
-```
-
-### AI Agent Skill — for AI coding assistants
-
-```bash
-npx skills add nexoral/AxioDB --skill skill
-```
-
-### CLI and Desktop GUI — system-wide
-
-AxioDB ships a Go CLI and an Electron desktop app for Linux, macOS, and Windows. The installer shows a menu when run interactively — **1)** CLI, **2)** GUI, **3)** both — and defaults to CLI when piped.
+AxioDB ships an interactive Go CLI and an Electron desktop app for Linux, macOS, and Windows:
 
 ```bash
 # Linux / macOS
@@ -224,29 +130,7 @@ curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/ins
 irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
 ```
 
-In scripts and CI, set `CHOICE` before piping to skip the menu:
-
-| `CHOICE` | Installs |
-|----------|----------|
-| `1` | CLI only (also the default when piped) |
-| `2` | Desktop GUI only |
-| `3` | CLI + GUI |
-
-```bash
-# Desktop GUI — Linux
-curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash
-
-# Desktop GUI — Windows
-$env:CHOICE=2; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
-
-# CLI + GUI — Linux
-curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=3 bash
-
-# CLI + GUI — Windows
-$env:CHOICE=3; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
-```
-
-Prebuilt binaries are also on [GitHub Releases](https://github.com/nexoral/AxioDB/releases).
+Prebuilt binaries are also available on [GitHub Releases](https://github.com/nexoral/AxioDB/releases).
 
 ### Docker
 
@@ -257,45 +141,7 @@ docker run -d --name axiodb-server \
   theankansaha/axiodb
 ```
 
-All surfaces default to on, with a seeded `admin` account. See [Docker/README.md](Docker/README.md) for every environment variable.
-
-## Basic CRUD
-
-```javascript
-const { AxioDB } = require('axiodb');
-
-const db = new AxioDB();
-const database = await db.createDB('AppDB');
-const users = await database.createCollection('users');
-
-// Create — documentId and updatedAt are added automatically.
-const created = await users.insert({ name: 'Alice', email: 'alice@example.com', age: 30 });
-const userId = created.data.documentId;
-
-// Read — the reader is chainable and lazy until .exec().
-const result = await users.query({ age: { $gte: 18 } }).exec();
-
-// Update — the first document matching the query.
-await users.update({ documentId: userId }).UpdateOne({ age: 31 });
-
-// Delete — the first document matching the query.
-await users.delete({ documentId: userId }).deleteOne();
-```
-
-Use `UpdateMany()` and `deleteMany()` to affect every match. Updates are flat merges — MongoDB update operators like `$inc`, `$set`, and `$push` are not supported.
-
-## Running a local server
-
-`axiodb serve` starts a disposable AxioDB for development: it installs the published npm package into a temporary directory, keeps the server attached to your terminal, and deletes the data on `Ctrl+C`. Requires Node.js ≥20 and npm.
-
-```bash
-axiodb serve http                 # HTTP API only
-axiodb serve tcp                  # TCP, no authentication
-axiodb serve tcp-auth mypassword  # authenticated TCP
-axiodb serve full                 # HTTP + authenticated TCP
-```
-
-Ports are fixed at `27018` (HTTP) and `27019` (TCP). The optional password seeds the shared `admin` account; `tcp-auth` requires one, since it has no HTTP surface to rotate the password through. Embedding uses the `AdminPassword` constructor option, and Docker uses `AXIODB_ADMIN_PASSWORD`.
+All surfaces default to on, seeded with an `admin` account. See [Docker/README.md](Docker/README.md) for environment variables and configuration.
 
 ## Documentation
 

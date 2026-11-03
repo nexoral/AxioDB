@@ -17,6 +17,7 @@ export default class DocumentLoader {
     includeFileName: boolean = false,
     query?: Record<string, unknown>,
     maxFiles?: number,
+    limit?: number,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const dataFilesList: string[] = [];
@@ -39,6 +40,31 @@ export default class DocumentLoader {
         } else {
           return this.ResponseHelper.Error("Failed to read directory");
         }
+      }
+
+      if (
+        limit !== undefined &&
+        limit > 0 &&
+        query &&
+        Object.keys(query).length > 0 &&
+        dataFilesList.length > 500
+      ) {
+        const CHUNK_SIZE = 500;
+        const matchedResults: unknown[] = [];
+        for (let i = 0; i < dataFilesList.length; i += CHUNK_SIZE) {
+          const chunk = dataFilesList.slice(i, i + CHUNK_SIZE);
+          const chunkResult = await ReaderWithWorker(
+            chunk,
+            collectionPath,
+            includeFileName,
+            query,
+          );
+          matchedResults.push(...chunkResult);
+          if (matchedResults.length >= limit) {
+            break;
+          }
+        }
+        return this.ResponseHelper.Success(matchedResults);
       }
 
       // Loaded via worker threads for parallelism
