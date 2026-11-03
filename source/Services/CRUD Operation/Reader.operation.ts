@@ -148,7 +148,51 @@ export default class Reader {
       } else {
         // Auto-detect best index
         const queryKeys = Object.keys(this.baseQuery);
-        if (queryKeys.length === 1) {
+        if (queryKeys.length === 1 && queryKeys[0] === '$or' && Array.isArray(this.baseQuery.$or)) {
+          const orBranches = this.baseQuery.$or as Record<string, unknown>[];
+          const unionFiles = new Set<string>();
+          let allBranchesIndexed = orBranches.length > 0;
+
+          for (const branch of orBranches) {
+            if (typeof branch === 'object' && branch !== null && Object.keys(branch).length === 1) {
+              const bKey = Object.keys(branch)[0];
+              const bVal = branch[bKey];
+              const matched = await indexReader.findMatchingIndexMeta(branch);
+              if (matched && matched.length > 0) {
+                let branchFiles: string[] = [];
+                if (typeof bVal === 'object' && bVal !== null) {
+                  const bObj = bVal as Record<string, unknown>;
+                  if ('$eq' in bObj) {
+                    branchFiles = await indexReader.getFileFromIndex({ [bKey]: bObj.$eq });
+                  } else if ('$in' in bObj && Array.isArray(bObj.$in)) {
+                    branchFiles = await indexReader.getFilesForInOperator(bKey, bObj.$in);
+                  } else if ('$gt' in bObj || '$gte' in bObj || '$lt' in bObj || '$lte' in bObj) {
+                    branchFiles = await indexReader.getFilesForRangeOperator(bKey, bObj as { $gt?: number; $gte?: number; $lt?: number; $lte?: number });
+                  } else {
+                    allBranchesIndexed = false;
+                    break;
+                  }
+                } else {
+                  branchFiles = await indexReader.getFileFromIndex(branch);
+                }
+                branchFiles.forEach(f => unionFiles.add(f));
+              } else {
+                allBranchesIndexed = false;
+                break;
+              }
+            } else {
+              allBranchesIndexed = false;
+              break;
+            }
+          }
+
+          if (allBranchesIndexed) {
+            if (unionFiles.size === 0) {
+              return this.ResponseHelper.Success({ documents: [] });
+            }
+            indexedFileNames = Array.from(unionFiles);
+          }
+        } else if (queryKeys.length === 1) {
           const fieldName = queryKeys[0];
           const fieldValue = this.baseQuery[fieldName];
 
