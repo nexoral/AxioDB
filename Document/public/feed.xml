@@ -5,8 +5,15 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Tue, 03 Nov 2026 19:47:25 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 03 Nov 2026 20:05:44 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AxioDB v23.31.0 — Range index query planning, limit pushdown, and query engine optimizations</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-23.31.0</guid>
+      <pubDate>Wed, 04 Nov 2026 00:00:00 GMT</pubDate>
+      <description>Range Index Planning: added multi-document range index support for $gt, $gte, $lt, and $lte operators to bypass disk scans on indexed numeric queries | Limit Pushdown: implemented pushdown optimization in Reader operation and DocumentLoader for indexed queries and early file reading termination | Query Matcher: optimized Set compilation using WeakMap caching for $in and $nin operators, dramatically accelerating array membership checks</description>
+    </item>
     <item>
       <title>AxioDB v23.30.1 — Native Bun test suite and multi-runtime matrix testing</title>
       <link>https://axiodb.in/changelog</link>

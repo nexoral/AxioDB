@@ -133,19 +133,17 @@ class ReadOptimizationTests extends TestRunner {
         const bAfterDuration = Date.now() - bAfterStart;
 
         // queryA did contain the updated document - its cache entry should have been evicted,
-        // forcing a full recompute (noticeably slower than a cache hit)
+        // forcing a full recompute returning fresh data
         const aAfterStart = Date.now();
-        await this.collection.query(queryA).exec();
+        const aAfterResult = await this.collection.query(queryA).exec();
         const aAfterDuration = Date.now() - aAfterStart;
 
         this.log(`     queryB cache hit before: ${bBeforeDuration}ms, after unrelated update: ${bAfterDuration}ms`, 'gray');
         this.log(`     queryA recomputed after its own document was updated: ${aAfterDuration}ms`, 'gray');
 
         assert.ok(bAfterDuration < 100, 'Unrelated cached query (queryB) should remain a fast cache hit after queryA document update');
-        assert.ok(
-          aAfterDuration > bAfterDuration,
-          'queryA should have been evicted and recomputed (slower than the untouched cache hit), proving invalidation was targeted to the affected entry'
-        );
+        const updatedDoc = aAfterResult.data.documents.find(d => d.documentId === targetId);
+        assert.equal(updatedDoc?.marked, true, 'queryA should have been evicted and recomputed with fresh data');
       });
 
       await this.test('Deleting one document evicts only its own cached queries', async () => {
