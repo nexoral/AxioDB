@@ -14,8 +14,25 @@ function allottedCPUs() {
   return os.cpus().length;
 }
 
+function allottedMemoryMB() {
+  try {
+    const quota = fs.readFileSync('/sys/fs/cgroup/memory.max', 'utf8').trim();
+    if (quota !== 'max') return Math.floor(Number(quota) / (1024 * 1024));
+  } catch {}
+  try {
+    const quota = Number(fs.readFileSync('/sys/fs/cgroup/memory/memory.limit_in_bytes', 'utf8').trim());
+    if (quota > 0 && quota < 9e18) return Math.floor(quota / (1024 * 1024));
+  } catch {}
+  return Math.floor(os.totalmem() / (1024 * 1024));
+}
+
 if (!process.env.UV_THREADPOOL_SIZE) {
   process.env.UV_THREADPOOL_SIZE = String(Math.min(64, Math.max(4, allottedCPUs() * 4)));
+}
+
+if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes('--max-old-space-size')) {
+  const targetHeapMB = Math.max(512, Math.floor(allottedMemoryMB() * 0.75));
+  process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ? process.env.NODE_OPTIONS + ' ' : ''}--max-old-space-size=${targetHeapMB}`;
 }
 
 const { AxioDB } = require('./lib/config/DB.js')
