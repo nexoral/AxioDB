@@ -126,7 +126,7 @@ const ScaleBar: React.FC<{
 };
 
 const Performance: React.FC = () => {
-  const totalTests = 329;
+  const totalTests = 330;
 
   return (
     <>
