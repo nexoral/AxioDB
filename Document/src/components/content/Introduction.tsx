@@ -166,7 +166,7 @@ await tx.commit();`,
         "File corruption on concurrent agent or process access",
         "No TypeScript types or modern ESM/CJS exports",
         "No ACID guarantees, savepoints, or crash recovery",
-        "Fails on modern Node.js, Bun, and Deno runtimes"
+        "Fails on modern Node.js and Bun runtimes"
       ],
       icon: "💀"
     },
@@ -326,9 +326,12 @@ const Introduction: React.FC = () => {
       width: 296,
     },
     { src: "https://img.shields.io/badge/Bun%20tested-v1.4.0-black?logo=bun", alt: "Bun tested v1.4.0", width: 158 },
-    { src: "https://img.shields.io/badge/Deno%20tested-v2.9.6-black?logo=deno", alt: "Deno tested v2.9.6", width: 167 },
+    { src: "https://img.shields.io/badge/ACID-WAL%20Durability-blueviolet", alt: "ACID Durability", width: 154 },
+    { src: "https://img.shields.io/badge/p50%20read-0.6ms%20(1300%2B%20QPS)-8A2BE2", alt: "Sub-millisecond Read", width: 196 },
+    { src: "https://img.shields.io/badge/AI%20Agent-State%20%26%20Memory-4B0082", alt: "AI Agent State & Memory", width: 174 },
     { src: "https://img.shields.io/badge/TypeScript-6.0-blue", alt: "TypeScript", width: 116 },
     { src: "https://img.shields.io/badge/dependencies-0%20native-success", alt: "Zero native dependencies", width: 168 },
+    { src: "https://img.shields.io/badge/PRs-welcome-brightgreen.svg", alt: "PRs Welcome", width: 104 },
   ];
 
   return (
@@ -336,7 +339,7 @@ const Introduction: React.FC = () => {
     <section id="introduction" className="scroll-mt-20">
       <Seo
         title="AxioDB - Embedded NoSQL Database for TypeScript & AI Agents"
-        description="Zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno. MongoDB-style queries with pure JavaScript objects."
+        description="Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun. MongoDB-style queries with pure JavaScript objects."
         path="/"
       />
       {/* Hero Section - two-column layout mirroring nodejs.org: headline,
@@ -483,8 +486,7 @@ const Introduction: React.FC = () => {
               (v26.8.1) and Bun (v1.4.0), including the worker-thread data
               paths (reads of ≥100-file collections, searches over ≥10,000
               documents). Node 20+ is the supported baseline; Bun is verified on
-              the installed v1.4.0 only. Deno (v2.9.6) passes all 100 runtime
-              tests including Bun compiled binaries.
+              the installed v1.4.0 with native test runner support.
             </p>
           </div>
 
@@ -1005,7 +1007,7 @@ const Introduction: React.FC = () => {
                   <span className="text-green-500 text-lg mt-0.5">✓</span>
                   <div>
                     <span className="font-semibold text-gray-700">Zero native dependencies</span>
-                    <p className="text-sm text-gray-500">Pure JS/TS. No node-gyp, no Python/C++ build tools, verified on Node, Bun &amp; Deno</p>
+                    <p className="text-sm text-gray-500">Pure JS/TS. No node-gyp, no Python/C++ build tools, verified on Node.js &amp; Bun</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
@@ -1124,7 +1126,7 @@ const Introduction: React.FC = () => {
                   <code className="bg-accent-50 px-2 py-1 rounded-md text-accent-600 font-semibold border border-accent-200">
                     node-gyp
                   </code>{" "}
-                  headaches. Verified across Node.js, Bun, and Deno with zero external binaries.
+                  headaches. Verified across Node.js and Bun with zero external binaries.
                 </p>
               </div>
               <div className={`space-y-2 reveal-on-scroll ${whyAxioDBReveal.isVisible ? "is-visible" : ""}`}>
@@ -1202,7 +1204,7 @@ const Introduction: React.FC = () => {
               </h3>
             </div>
             <p className="text-gray-600 leading-relaxed text-lg">
-              Zero native dependencies, no server setup, no compilation. Verified across Node.js, Bun, and Deno without native bindings or node-gyp headaches.
+              Zero native dependencies, no server setup, no compilation. Verified across Node.js and Bun without native bindings or node-gyp headaches.
             </p>
           </div>
         </div>
