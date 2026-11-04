@@ -26,5 +26,11 @@ REPLY_TO_EMAIL = "connect@ankan.in"
 # ...
 [observability]
 enabled = true
-# ...
+
+[placement]
+mode = "smart"
+
+[cache]
+enabled = true
+
 

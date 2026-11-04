@@ -5,12 +5,12 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Wed, 04 Nov 2026 21:01:34 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 04 Nov 2026 21:33:00 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v24.35.1 — Vector-Less RAG master knowledge base, GitHub metadata enhancement, and documentation clarification</title>
+      <title>AxioDB v24.35.2 — Vector-Less RAG master knowledge base, GitHub metadata enhancement, and documentation clarification</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-24.35.1</guid>
+      <guid isPermaLink="false">axiodb-24.35.2</guid>
       <pubDate>Wed, 04 Nov 2026 00:00:00 GMT</pubDate>
       <description>Vector-Less RAG Master Knowledge Base: created comprehensive single-source-of-truth knowledge base in assets/axiodb-knowledge-base.md and axiodb.txt for autonomous AI agents, RAG pipelines, and developer teams | Repository Metadata Expansion: configured all 20 allowed GitHub repository topics with high-intent discovery tags including ai-agents, mcp-server, local-first, bun, electron, and sqlite-alternative | Documentation Clarification: renamed MongoDB-style query references to advanced queries across core types, UI components, REST API descriptions, and AI documents for clearer developer positioning</description>
     </item>
