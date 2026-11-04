@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "24.32.4",
+    version: "24.33.5",
     date: "2026-11-04",
     title: "Master integer-pointer indexing, 16-character IDs, and dual-write cache optimization",
     changes: [

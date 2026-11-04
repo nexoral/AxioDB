@@ -1,15 +1,15 @@
 ---
 name: skill
 description: >-
-  Expert operational guide, runbook, and architectural reference for AxioDB (version 24.32.4).
+  Expert operational guide, runbook, and architectural reference for AxioDB (version 24.33.5).
   Use this skill when developing, querying, installing, configuring, troubleshooting,
   or automating AxioDB embedded NoSQL, TCP remote access (AxioDBCloud), Docker containers,
   MCP server integration, Web/Desktop GUI, or CLI operations.
 ---
 
-# AxioDB Operational Skill (v24.32.4)
+# AxioDB Operational Skill (v24.33.5)
 
-AxioDB is an embedded NoSQL database for TypeScript & AI agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js (>=20), Bun, and Deno.
+AxioDB is an embedded NoSQL database for TypeScript & AI agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js (>=20) and Bun.
 
 This skill provides step-by-step instructions and references for AI agents to operate AxioDB across all supported environments.
 

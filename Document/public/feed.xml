@@ -5,12 +5,12 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Wed, 04 Nov 2026 00:07:18 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 04 Nov 2026 03:26:08 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v24.32.4 — Master integer-pointer indexing, 16-character IDs, and dual-write cache optimization</title>
+      <title>AxioDB v24.33.5 — Master integer-pointer indexing, 16-character IDs, and dual-write cache optimization</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-24.32.4</guid>
+      <guid isPermaLink="false">axiodb-24.33.5</guid>
       <pubDate>Wed, 04 Nov 2026 00:00:00 GMT</pubDate>
       <description>Master Integer-Pointer Indexing: secondary indexes store integer slot pointers referencing documentId.jsonl instead of duplicating full file names, reducing index storage overhead by 63.5% (down to 1.63 MB for 15k records) | Compact Document IDs: shortened auto-generated document IDs from 30 characters to 16 characters (128-bit entropy), saving disk and memory across all records and indexes while preserving unguessability | Dual-Write IndexCache: unified in-memory secondary index caching with 5–15 minute random TTL, restoring sub-millisecond point reads (0.64ms p50, 1,221 QPS) and 0.017ms hot cache lookups</description>
     </item>

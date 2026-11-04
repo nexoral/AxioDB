@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">Embedded NoSQL Database for TypeScript & Agents</h1>
-<p align="center"><b>Zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno.</b></p>
+<p align="center"><b>Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun.</b></p>
 
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
 [![npm downloads total](https://img.shields.io/npm/dt/axiodb.svg)](https://www.npmjs.com/package/axiodb)
@@ -15,11 +15,14 @@
 [![npm types](https://img.shields.io/npm/types/axiodb?label=types)](https://www.npmjs.com/package/axiodb)
 [![Zero native deps](https://img.shields.io/badge/dependencies-0%20native-success)](https://www.npmjs.com/package/axiodb)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org)
-[![Tested on Node.js](https://img.shields.io/badge/tested%20on-20%20%7C%2021%20%7C%2022%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-blue)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
-[![Bun tested](https://img.shields.io/badge/Bun%20tested-v1.4.0-black?logo=bun)](https://bun.sh)
-[![Deno tested](https://img.shields.io/badge/Deno%20tested-v2.9.6-black?logo=deno)](https://deno.com)
+[![Tested on Node.js](https://img.shields.io/badge/Node.js%20tested-20%20%7C%2021%20%7C%2022%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-339933?logo=node.js)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
+[![Bun tested](https://img.shields.io/badge/Bun%20tested-1.4.0%20%7C%201.4.1%20%7C%201.4.2%20%7C%201.4.3%20%7C%201.4.4%20%7C%20latest-black?logo=bun)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
+[![ACID Durability](https://img.shields.io/badge/ACID-WAL%20Durability-blueviolet)](https://axiodb.in)
+[![Sub-millisecond Read](https://img.shields.io/badge/p50%20read-0.6ms%20(1300%2B%20QPS)-8A2BE2)](https://axiodb.in/performance)
+[![AI Agent State](https://img.shields.io/badge/AI%20Agent-State%20%26%20Memory-4B0082)](https://axiodb.in)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/nexoral/AxioDB/pulls)
 [![GitHub Stars](https://img.shields.io/github/stars/nexoral/AxioDB?style=social)](https://github.com/nexoral/AxioDB)
 [![GitHub Forks](https://img.shields.io/github/forks/nexoral/AxioDB?style=social)](https://github.com/nexoral/AxioDB/forks)
 [![Contributors](https://img.shields.io/github/contributors/nexoral/AxioDB)](https://github.com/nexoral/AxioDB/graphs/contributors)
@@ -44,7 +47,7 @@ const { data } = await users.query({ age: { $gt: 25 } }).Sort({ age: -1 }).Limit
 console.log(data.documents);
 ```
 
-No server to run, no `node-gyp`, no `electron-rebuild`. Requires Node.js ≥20 (also verified on Bun v1.4.0 and Deno v2.9.6).
+No server to run, no `node-gyp`, no `electron-rebuild`. Requires Node.js ≥20 (also verified on Bun v1.4.0).
 
 ### 🤖 AI Agent Skill
 
@@ -56,7 +59,7 @@ npx skills add nexoral/AxioDB --skill skill
 
 ## Why AxioDB?
 
-* 📦 **Zero Setup & Zero C++:** Pure JavaScript and TypeScript. No `node-gyp` errors, no build tools, and no native compilation issues on Node.js, Bun, Deno, or Electron.
+* 📦 **Zero Setup & Zero C++:** Pure JavaScript and TypeScript. No `node-gyp` errors, no build tools, and no native compilation issues on Node.js, Bun, or Electron.
 * 📄 **Native JSON (No SQL Migrations):** Store raw objects directly. Perfect for AI agents, chats, and apps where data structures change often and SQL schemas are painful.
 * 🛡️ **Safe from Crashes & Corruption:** Uses real ACID transactions and Write-Ahead Logging (WAL). Even if your app or server crashes mid-write, your data stays intact.
 * ⚡ **Fast In-Memory Caching:** Delivers sub-millisecond (<1ms) reads with a built-in memory cache and fast disk indexes.
