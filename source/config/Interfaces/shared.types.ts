@@ -6,7 +6,7 @@
 /** A generic document object. All document storage, queries, and results use this shape. */
 export type Document = Record<string, unknown>;
 
-/** A MongoDB-style query filter value. */
+/** An advanced query filter value. */
 export type QueryValue = string | number | boolean | RegExp | QueryOperator | QueryValue[];
 
 /** Operator expressions inside a query filter (e.g. { $gt: 5 }). */

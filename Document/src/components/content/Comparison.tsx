@@ -358,7 +358,7 @@ const Comparison: React.FC = () => {
                 <td className="px-4 py-3 text-center"><X className="h-5 w-5 text-red-500 mx-auto" /></td>
               </tr>
               <tr className="border-b border-gray-200">
-                <td className="px-6 py-3 font-semibold text-gray-700">MongoDB-Style Queries</td>
+                <td className="px-6 py-3 font-semibold text-gray-700">Advanced Queries</td>
                 <td className="px-4 py-3 text-center bg-accent-50"><Check className="h-5 w-5 text-green-500 mx-auto" /></td>
                 <td className="px-4 py-3 text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></td>
                 <td className="px-4 py-3 text-center"><Check className="h-5 w-5 text-green-500 mx-auto" /></td>

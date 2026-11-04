@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">Embedded NoSQL Database for TypeScript & Agents</h1>
-<p align="center"><b>Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun.</b></p>
+<p align="center"><b>Zero-native embedded database with ACID transactions & in-memory cache — verified on Node.js & Bun.</b></p>
 
 <p align="center">
   <a href="#quick-start"><img src="https://img.shields.io/badge/Install-npm%20i%20axiodb-cb3837?style=for-the-badge&logo=npm" alt="npm install axiodb" /></a>
@@ -81,7 +81,7 @@ npx skills add nexoral/AxioDB --skill skill
 * **AI Agent Memory** — Save conversation history, tool calls, and agent state locally.
 * **Desktop & Electron Apps** — An embedded database that never breaks on user machines during updates.
 * **CLI Tools & Local Apps** — Save and query data easily without running a database server.
-* **Fast Prototyping** — Build full features with MongoDB-like queries without setting up Docker or cloud DBs.
+* **Fast Prototyping** — Build full features with advanced queries without setting up Docker or cloud DBs.
 
 **Best fit:** 1,000 to 500,000 documents.
 
@@ -90,28 +90,27 @@ npx skills add nexoral/AxioDB --skill skill
 
 ## Features
 
-**Core** — the embedded engine
+**Embedded Core (In-Process, Zero Server)**
 
-* **MongoDB-style queries** — `{ age: { $gt: 25 } }`, 19 operators, plus `.hint()` and `.findByIds()`
-* **ACID transactions** — commit/rollback, savepoints, write-ahead log, crash recovery via `Transaction.recoverTransactions()`
-* **Aggregation** — 19 stages including `$lookup` joins, extensible through `OperatorRegistry`
-* **Indexes** — dual-write memory + disk index, served by a TTL-backed `IndexCache`
-* **InMemoryCache** — per-instance, invalidated on write, tunable via `{ Cache, minTTL, maxTTL, cacheClearUp }`
+* **Advanced queries** — Filter and find data using familiar operators like `{ age: { $gt: 25 } }`, `.Sort()`, `.Limit()`, and projections.
+* **ACID transactions & WAL** — Safe writes with commit, rollback, savepoints, and automatic crash recovery so your data never corrupts.
+* **Fast in-memory cache** — Delivers sub-millisecond (<1ms) reads with automatic cache invalidation on writes.
+* **Smart dual-write indexes** — Memory and disk-backed indexes for instant point lookups and range queries.
+* **Data aggregation** — Transform and group documents with 19 pipeline stages including `$lookup` joins.
+* **Native AI Agent MCP Server** — Turn on 45 built-in tools for AI agents directly in code with `{ MCP: true }` (port 27020).
 
-**Self-hostable server** — the same engine, reachable remotely
+**Remote Server & Docker**
 
-* **Embedded** — `new AxioDB({...})` in-process, no server, the default
-* **HTTP API** — port 27018, 41 documented endpoints, REST and OpenAPI
-* **AxioDBCloud (TCP)** — port 27019, 32 commands, optional `TCPAuth` and TLS
-* **MCP server** — port 27020, 45 tools for AI agents, native in core (`{ MCP: true }`) and Docker
-* **Docker** — `theankansaha/axiodb`, every surface configurable by environment variable
+* **HTTP REST API** — Access your database remotely over port 27018 with 41 endpoints, token auth, and OpenAPI docs.
+* **TCP Cloud Server** — High-throughput TCP server on port 27019 with TLS encryption and connection pooling.
+* **Ready-to-run Docker** — Preconfigured image (`theankansaha/axiodb`) running HTTP, TCP, MCP, and GUI out of the box.
 
-**Clients and apps**
+**Clients & Management Tools**
 
-* **Dashboard** — browser UI served by the HTTP surface, for browsing collections and running queries
-* **AxioDBCloud client** — the TypeScript client for the TCP surface, with connection pooling and auto-reconnect
-* **CLI** — Go binary for 12 platforms: interactive REPL, TLS, export/import
-* **Desktop app** — Electron GUI for Linux, macOS, and Windows
+* **Web Dashboard** — Built-in browser UI served on port 27018 to inspect collections, view metrics, and run queries.
+* **Desktop App** — Standalone Electron GUI for Linux, macOS, and Windows.
+* **Interactive CLI** — Lightweight Go binary with an interactive shell (REPL), TLS support, and export/import tools.
+* **TypeScript TCP Client** — Typed remote client with connection pooling and automatic reconnect.
 
 ## Performance & Testing
 
@@ -135,11 +134,13 @@ Full performance charts, test suites, and methodology: [axiodb.in/performance](h
 
 AxioDB ships an interactive Go CLI and an Electron desktop app for Linux, macOS, and Windows:
 
+**Linux / macOS:**
 ```bash
-# Linux / macOS
 curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | bash
+```
 
-# Windows (PowerShell)
+**Windows (PowerShell):**
+```powershell
 irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
 ```
 

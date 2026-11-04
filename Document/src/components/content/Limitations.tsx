@@ -136,7 +136,7 @@ const Limitations: React.FC = () => {
               When to Use AxioDB:
             </strong>{" "}
             Desktop apps, CLI tools, embedded systems, prototyping, and local-first
-            applications with moderate data needs. Think SQLite-scale with MongoDB-style
+            applications with moderate data needs. Think SQLite-scale with advanced
             queries and built-in caching.
           </p>
         </div>

@@ -258,7 +258,7 @@ console.log(result.data);
         {
           name: "query",
           signature: "query(query: object): Reader",
-          description: "Initiates a query operation on the collection. Supports MongoDB-style query operators like $gt, $lt, $gte, $lte, $ne, $in, $regex, and more. Returns a Reader instance for chaining operations like sort, limit, skip, and projection.",
+          description: "Initiates a query operation on the collection. Supports advanced query operators like $gt, $lt, $gte, $lte, $ne, $in, $regex, and more. Returns a Reader instance for chaining operations like sort, limit, skip, and projection.",
           example: `// Simple query
 const results = await collection
   .query({ age: 30 })

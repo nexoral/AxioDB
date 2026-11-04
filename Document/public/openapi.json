@@ -1809,8 +1809,8 @@
         "tags": [
           "Document Operations (CRUD)"
         ],
-        "summary": "Retrieves documents matching a MongoDB-style query with pagination",
-        "description": "Retrieves documents matching a MongoDB-style query with pagination. Supports operators like $gt, $gte, $lt, $lte, $ne, $in, $regex. Optionally pass a hint to force a specific index.",
+        "summary": "Retrieves documents matching an advanced query with pagination",
+        "description": "Retrieves documents matching an advanced query with pagination. Supports operators like $gt, $gte, $lt, $lte, $ne, $in, $regex. Optionally pass a hint to force a specific index.",
         "operationId": "postApiOperationAllByQuery",
         "parameters": [
           {
@@ -1859,7 +1859,7 @@
                 "properties": {
                   "query": {
                     "type": "object",
-                    "description": "MongoDB-style query object"
+                    "description": "Advanced query object"
                   }
                 },
                 "required": [

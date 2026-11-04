@@ -343,7 +343,7 @@ const Introduction: React.FC = () => {
     <section id="introduction" className="scroll-mt-20">
       <Seo
         title="AxioDB - Embedded NoSQL Database for TypeScript & AI Agents"
-        description="Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun. MongoDB-style queries with pure JavaScript objects."
+        description="Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun. Advanced queries with pure JavaScript objects."
         path="/"
       />
       {/* Hero Section - two-column layout mirroring nodejs.org: headline,

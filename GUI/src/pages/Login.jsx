@@ -66,7 +66,7 @@ const Login = () => {
             The pure-JavaScript alternative to SQLite.
           </h2>
           <p className='mt-4 text-sm leading-relaxed text-ink-300'>
-            Embedded NoSQL for Node.js with MongoDB-style queries. No node-gyp, no
+            Embedded NoSQL for Node.js with advanced queries. No node-gyp, no
             electron-rebuild, no native binaries to match.
           </p>
 
