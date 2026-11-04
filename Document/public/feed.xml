@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Wed, 04 Nov 2026 03:19:20 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 04 Nov 2026 03:26:08 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v24.33.5 — Master integer-pointer indexing, 16-character IDs, and dual-write cache optimization</title>
