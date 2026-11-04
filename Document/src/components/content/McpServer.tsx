@@ -3,18 +3,17 @@ import Seo from "../ui/Seo";
 import CodeBlock from "../ui/CodeBlock";
 import {
   Bot,
-  KeyRound,
   ShieldCheck,
   Terminal,
-  Database,
   Layers,
   Users,
-  CheckCircle2,
   ArrowRight,
   ExternalLink,
   Code2,
   Container,
   Cpu,
+  Globe,
+  Radio,
 } from "lucide-react";
 
 interface ToolGroup {
@@ -142,41 +141,94 @@ const McpServer: React.FC = () => {
         />
 
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gray-50 rounded-lg p-6 sm:p-8 lg:p-10 border border-fuchsia-200 shadow-sm">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-accent-100/30 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-fuchsia-100/70 text-fuchsia-700 text-sm font-semibold rounded-full border border-fuchsia-200 mb-4">
-              <Bot className="h-4 w-4" />
-              <span>Native AI Agent Integration</span>
+        <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-fuchsia-50/40 rounded-xl p-6 sm:p-8 lg:p-10 border border-fuchsia-200/80 shadow-sm">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-fuchsia-100/40 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left Column: Heading, Description & Stats */}
+            <div className="lg:col-span-7 space-y-5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-fuchsia-100/80 text-fuchsia-700 text-xs font-bold rounded-full border border-fuchsia-200 uppercase tracking-wide">
+                <Bot className="h-3.5 w-3.5" />
+                <span>Native AI Agent Integration</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 tracking-tight">
+                AxioDB MCP Server Guide
+              </h1>
+
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
+                Connect AI coding assistants and autonomous agents directly to AxioDB via the{" "}
+                <strong>Model Context Protocol (MCP)</strong>. AxioDB includes a built-in MCP server
+                providing <strong>45 tools</strong> on port <strong>27020</strong> with full RBAC authentication,
+                JSON-RPC 2.0 / SSE support, and zero external dependencies.
+              </p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+                <div className="bg-white p-3.5 rounded-lg border border-gray-200/90 shadow-2xs">
+                  <div className="text-2xl font-black text-fuchsia-600">45</div>
+                  <div className="text-xs text-gray-500 font-medium mt-0.5">Built-in Tools</div>
+                </div>
+                <div className="bg-white p-3.5 rounded-lg border border-gray-200/90 shadow-2xs">
+                  <div className="text-2xl font-black text-purple-600">27020</div>
+                  <div className="text-xs text-gray-500 font-medium mt-0.5">Standard Port</div>
+                </div>
+                <div className="bg-white p-3.5 rounded-lg border border-gray-200/90 shadow-2xs">
+                  <div className="text-xl font-black text-emerald-600">Core + Docker</div>
+                  <div className="text-xs text-gray-500 font-medium mt-0.5">Deployment</div>
+                </div>
+                <div className="bg-white p-3.5 rounded-lg border border-gray-200/90 shadow-2xs">
+                  <div className="text-2xl font-black text-blue-600">RBAC</div>
+                  <div className="text-xs text-gray-500 font-medium mt-0.5">Role Security</div>
+                </div>
+              </div>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 mb-4">
-              AxioDB MCP Server Guide
-            </h1>
+            {/* Right Column: Interactive Quick Reference Box */}
+            <div className="lg:col-span-5">
+              <div className="bg-white rounded-xl border border-fuchsia-200 p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-xs font-bold text-gray-900 tracking-wide uppercase">
+                      Streamable HTTP Endpoint
+                    </span>
+                  </div>
+                  <span className="text-xs font-mono font-bold bg-fuchsia-50 text-fuchsia-700 px-2 py-0.5 rounded border border-fuchsia-200">
+                    Port 27020
+                  </span>
+                </div>
 
-            <p className="text-base sm:text-lg text-gray-600 leading-relaxed max-w-3xl mb-6">
-              Connect AI coding assistants and autonomous agents directly to AxioDB via the{" "}
-              <strong>Model Context Protocol (MCP)</strong>. AxioDB includes a built-in MCP server
-              providing <strong>45 tools</strong> on port <strong>27020</strong> with full RBAC authentication,
-              JSON-RPC 2.0 / SSE support, and zero external dependencies.
-            </p>
+                <div>
+                  <div className="text-xs font-semibold text-gray-500 mb-1 flex items-center justify-between">
+                    <span>Endpoint URL</span>
+                    <span className="text-[11px] text-gray-400">Path: /mcp</span>
+                  </div>
+                  <div className="bg-gray-50 border border-gray-200 text-fuchsia-700 font-mono text-xs p-2.5 rounded-md break-all select-all font-semibold">
+                    http://localhost:27020/mcp
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl">
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <div className="text-2xl font-black text-fuchsia-600">45</div>
-                <div className="text-xs text-gray-500 font-medium">Built-in Tools</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <div className="text-2xl font-black text-purple-600">27020</div>
-                <div className="text-xs text-gray-500 font-medium">Standard Port</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <div className="text-2xl font-black text-emerald-600">Core + Docker</div>
-                <div className="text-xs text-gray-500 font-medium">Deployment Options</div>
-              </div>
-              <div className="bg-white p-3 rounded border border-gray-200">
-                <div className="text-2xl font-black text-blue-600">RBAC</div>
-                <div className="text-xs text-gray-500 font-medium">Role-Based Security</div>
+                <div>
+                  <div className="text-xs font-semibold text-gray-500 mb-1">Quick Start in TypeScript</div>
+                  <div className="bg-gray-900 text-gray-100 font-mono text-xs p-2.5 rounded-md">
+                    <span className="text-purple-400">new</span> <span className="text-amber-300">AxioDB</span>&#40;&#123; <span className="text-emerald-400">MCP</span>: <span className="text-blue-400">true</span> &#125;&#41;;
+                  </div>
+                </div>
+
+                <div className="pt-1 border-t border-gray-100">
+                  <div className="text-xs font-semibold text-gray-500 mb-2">Supported Clients & Protocols</div>
+                  <div className="flex flex-wrap gap-1.5 text-[11px]">
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded font-medium">JSON-RPC 2.0</span>
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded font-medium">SSE Stream</span>
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded font-medium">Claude Code</span>
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded font-medium">Cursor</span>
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded font-medium">Windsurf</span>
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded font-medium">Antigravity</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -394,91 +446,7 @@ const db = new AxioDB({
           </div>
         </section>
 
-        {/* Step 3: Agent Workflow & Authentication */}
-        <section>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-fuchsia-600 text-white font-bold text-sm">
-              3
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              How Agents Interact with AxioDB
-            </h2>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-6 shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-2 font-bold text-gray-900 mb-2">
-                  <KeyRound className="h-4 w-4 text-purple-600" />
-                  1. Login
-                </div>
-                <p className="text-xs text-gray-600">
-                  Agent calls <code className="font-mono text-fuchsia-600">axiodb_login</code> with username & password to receive an active <code className="font-mono text-xs">sessionId</code>.
-                </p>
-              </div>
-
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-2 font-bold text-gray-900 mb-2">
-                  <Database className="h-4 w-4 text-blue-600" />
-                  2. Execute Operations
-                </div>
-                <p className="text-xs text-gray-600">
-                  Agent performs CRUD, aggregations, queries, or transactions passing the <code className="font-mono text-xs">sessionId</code>. All calls enforce strict RBAC.
-                </p>
-              </div>
-
-              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-2 font-bold text-gray-900 mb-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                  3. Logout
-                </div>
-                <p className="text-xs text-gray-600">
-                  When work is finished, the agent calls <code className="font-mono text-fuchsia-600">axiodb_logout</code> to invalidate the session immediately.
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-base font-bold text-gray-900 mb-2">
-                Example Agent Execution Flow
-              </h3>
-              <CodeBlock
-                language="javascript"
-                code={`// 1. Authenticate to obtain session
-const auth = await callTool("axiodb_login", {
-  username: "admin",
-  password: "admin"
-});
-const sessionId = auth.data.sessionId;
-
-// 2. Create database and collection
-await callTool("axiodb_create_database", { sessionId, name: "agent_db" });
-await callTool("axiodb_create_collection", { sessionId, dbName: "agent_db", collectionName: "tasks" });
-
-// 3. Store structured memory
-await callTool("axiodb_insert_document", {
-  sessionId,
-  dbName: "agent_db",
-  collectionName: "tasks",
-  document: { task: "Analyze metrics", status: "completed", timestamp: Date.now() }
-});
-
-// 4. Query state
-const tasks = await callTool("axiodb_query_documents", {
-  sessionId,
-  dbName: "agent_db",
-  collectionName: "tasks",
-  query: { status: "completed" }
-});
-
-// 5. Clean logout
-await callTool("axiodb_logout", { sessionId });`}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* 45 Available Tools Summary */}
+        {/* Available Tools Summary */}
         <section>
           <div className="flex items-center justify-between mb-6">
             <div>

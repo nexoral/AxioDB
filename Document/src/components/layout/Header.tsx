@@ -46,7 +46,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
     { title: "Community & Contributing", path: "/community", description: "Join the community and contribute to AxioDB" },
     { title: "CLI (Command Line)", path: "/cli", description: "TCP data operations, interactive REPL, and HTTP export/import from the command line" },
     { title: "AxioDB Control (Desktop GUI)", path: "/gui", description: "Electron desktop app for browsing, querying, and managing AxioDB databases" },
-    { title: "MCP Server (AI Agent Integration)", path: "/mcp-server", description: "43 MCP tools for AI agents to operate AxioDB — Docker image only" },
+    { title: "MCP Server (AI Agent Integration)", path: "/mcp-server", description: "45 MCP tools for AI agents to operate AxioDB — native in core & Docker" },
     { title: "Changelog", path: "/changelog", description: "Version history, release notes, and breaking changes" },
     { title: "Performance Benchmarks", path: "/performance", description: "Query scaling, operation breakdown, and benchmark results" },
     { title: "Maintainer's Zone", path: "/maintainers-zone", description: "Resources and guides for maintainers" },

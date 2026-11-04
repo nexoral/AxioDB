@@ -626,7 +626,14 @@ Ports (27018/27019) aren't env-configurable — remap at the Docker layer (`-p h
 
 ## MCP Server — AI Agent Integration
 
-**Availability: Docker image only.** The MCP server lives in the repository's `Docker/` directory, which is listed in `.npmignore`, so it is not published to npm. `npm install axiodb` gives you the database, not the MCP server. The only supported way to run it is the `theankansaha/axiodb` image with `AXIODB_MCP=true`.
+**Availability: Core library and Docker.** The MCP server is built directly into AxioDB core (`new AxioDB({ MCP: true })`) and can also be run inside the official Docker image `theankansaha/axiodb` (`AXIODB_MCP=true`).
+
+```typescript
+import { AxioDB } from "axiodb";
+const db = new AxioDB({ MCP: true }); // Starts MCP server on http://localhost:27020/mcp
+```
+
+Or via Docker:
 
 ```bash
 docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
@@ -634,7 +641,7 @@ docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
   -v axiodb-data:/app theankansaha/axiodb
 ```
 
-43 tools at `http://localhost:27020/mcp` covering databases, collections, documents, aggregation, indexes, dashboard stats, health, transactions, and user/role management — gated by the same RBAC as the GUI (a View-role session gets a real `403` on write tools). Every tool except `axiodb_login` requires a `sessionId` from logging in first. Compatible with Claude Code, Codex CLI, opencode, GitHub Copilot CLI, Cursor, Windsurf, and Google Antigravity — see https://axiodb.in/mcp-server for exact registration commands per tool.
+45 tools at `http://localhost:27020/mcp` covering databases, collections, documents, aggregation, indexes, dashboard stats, health, transactions, and user/role management — gated by the same RBAC as the GUI (a View-role session gets a real `403` on write tools). Every tool except `axiodb_login` requires a `sessionId` from logging in first. Compatible with Claude Code, Codex CLI, opencode, GitHub Copilot CLI, Cursor, Windsurf, and Google Antigravity — see https://axiodb.in/mcp-server for exact registration commands per tool.
 
 ---
 
@@ -713,7 +720,7 @@ Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js 
 | Built-in caching | No | Yes |
 | GUI | No | Yes (web dashboard) |
 | TCP remote access | No | Yes (AxioDBCloud) |
-| MCP server (AI) | No | Yes (43 tools) |
+| MCP server (AI) | No | Yes (45 tools) |
 
 ### vs LokiJS
 

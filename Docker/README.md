@@ -339,7 +339,7 @@ Register the endpoint (`http://localhost:27020/mcp`) with whichever AI tool you 
 | **Windsurf** | Add to `~/.codeium/windsurf/mcp_config.json`: `{ "mcpServers": { "axiodb": { "serverUrl": "..." } } }` |
 | **Google Antigravity** (IDE & CLI) | Add to `~/.gemini/config/mcp_config.json`: `{ "mcpServers": { "axiodb": { "serverUrl": "..." } } }` — note `serverUrl`, not `url` |
 
-**43 tools**, covering:
+**45 tools**, covering:
 
 - **Session**: `axiodb_login`, `axiodb_logout`, `axiodb_whoami`, `axiodb_change_own_password`
 - **Database**: create/delete/exists/instance-info
