@@ -17,7 +17,7 @@
 7. [Aggregation Pipeline (19 Stages & OperatorRegistry)](#7-aggregation-pipeline-19-stages--operatorregistry)
 8. [The 45 Model Context Protocol (MCP) AI Tools Reference](#8-the-45-model-context-protocol-mcp-ai-tools-reference)
 9. [The 41 HTTP REST API Endpoints Specification](#9-the-41-http-rest-api-endpoints-specification)
-10. [The 32 AxioDBCloud TCP Wire Protocol Commands](#10-the-32-axiodbcloud-tcp-wire-protocol-commands)
+10. [The 32 AxioDBCloud TCP Wire Protocol Commands & AxioDBCloud Client SDK](#10-the-32-axiodbcloud-tcp-wire-protocol-commands)
 11. [RBAC Security, Permissions Matrix & Rate Limiting](#11-rbac-security-permissions-matrix--rate-limiting)
 12. [Internal Constants, File Keys & System Identifiers](#12-internal-constants-file-keys--system-identifiers)
 13. [Go CLI Reference & Interactive REPL Commands](#13-go-cli-reference--interactive-repl-commands)
@@ -30,11 +30,17 @@
 
 ## 1. Executive Summary & The Vector-Less Database Paradigm
 
-### 1.1 Zero-Native Philosophy
+### 1.1 Zero-Native Philosophy & Installation
 AxioDB is an embedded NoSQL document database written entirely in strict TypeScript (compiling to CommonJS) with **zero native C/C++ dependencies**:
 - **No `node-gyp` or C toolchains:** Never requires `make`, `gcc`, `python`, or `build-essential`. Installs cleanly on minimal Linux containers, Alpine musl environments, and locked-down CI/CD runners.
 - **No `electron-rebuild`:** Never compiles `.node` shared libraries. Updating Electron versions or shipping across Windows/macOS/Linux never breaks binary ABIs.
 - **In-process embedded execution:** Runs directly inside the host process memory space. No separate database server daemon (`mongod`, `postgres`, `mysqld`) to install or configure.
+
+**Installation Across Runtimes:**
+- **Node.js (>= 20.0.0):** `npm install axiodb`
+- **Bun (>= 1.4.0):** `bun add axiodb`
+- **Deno (>= 2.9.6):** `deno add npm:axiodb`
+- **Official Docker Container:** `docker run -d -p 27018:27018 -p 27019:27019 -p 27020:27020 theankansaha/axiodb`
 
 ### 1.2 The Vector-Less Database Architecture
 In AI agent and RAG systems, traditional vector databases rely on high-dimensional floating-point embeddings (cosine/dot-product similarity). While useful for fuzzy semantic matching, vector systems introduce:
@@ -48,6 +54,81 @@ AxioDB provides the foundational storage for **Vector-Less RAG & Agent State**:
 - **Graph Traversal via `$lookup`:** Single-collection and cross-collection relational joins without an external graph database.
 - **ACID Transaction Checkpoints:** Savepoints and rollbacks for speculative agent reasoning trees.
 - **Native MCP Server (Port 27020):** 45 built-in tools allowing LLMs to directly inspect, query, and mutate structured state.
+
+### 1.3 Official Docker Container & Container Orchestration
+
+The official Docker image (`theankansaha/axiodb`) packages the entire AxioDB stack:
+- **HTTP REST API & Web GUI Dashboard:** Port `27018`
+- **AxioDBCloud TCP Remote Server:** Port `27019`
+- **MCP Server (Streamable HTTP for AI Agents):** Port `27020` (Opt-in via `AXIODB_MCP=true`)
+
+#### Complete Environment Variables Reference
+
+| Variable | Default | Allowed Values | Description |
+| :--- | :--- | :--- | :--- |
+| `AXIODB_GUI` | `true` | `true`, `false`, `1`, `0` | Enables the Web GUI dashboard and HTTP control server on port 27018. |
+| `AXIODB_HTTP` | Mirrors `AXIODB_GUI` | `true`, `false` | Controls the Fastify HTTP REST API server on port 27018. Setting `AXIODB_GUI=true` with `AXIODB_HTTP=false` is an invalid configuration. |
+| `AXIODB_TCP` | `true` | `true`, `false` | Enables the AxioDBCloud TCP remote server on port 27019. |
+| `AXIODB_TCP_AUTH_ENABLED` | `true` | `true`, `false` | Requires username/password authentication for TCP clients. Uses the same RBAC system as HTTP. |
+| `AXIODB_ADMIN_PASSWORD` | *(none)* | string | Seeds the initial password for `admin` on first startup, bypassing the mandatory GUI rotation. **Required** when `AXIODB_TCP_AUTH_ENABLED=true` and `AXIODB_HTTP=false` (headless mode). |
+| `AXIODB_TLS` | `false` | `true`, `false` | Enables TLS encryption for incoming TCP connections on port 27019. |
+| `AXIODB_TLS_CERT_PATH` | *(none)* | file path | Path inside container to the PEM certificate file (required when `AXIODB_TLS=true`). |
+| `AXIODB_TLS_KEY_PATH` | *(none)* | file path | Path inside container to the PEM private key file (required when `AXIODB_TLS=true`). |
+| `AXIODB_ROOT_NAME` | `AxioDB` | string | Name of the root database folder created under the data volume. |
+| `AXIODB_CUSTOM_PATH` | `/app` | directory path | Physical storage path for database files inside the container. |
+| `AXIODB_MCP` | `false` | `true`, `false` | Enables the Streamable HTTP Model Context Protocol (MCP) server for AI agents on port 27020. |
+| `AXIODB_MCP_PORT` | `27020` | integer port | Port for the MCP service inside the container. |
+| `AXIODB_CACHE` | `true` | `true`, `false` | Enables the in-memory cache inside the container. |
+| `AXIODB_CACHE_MIN_TTL` | `5` | positive integer | Minimum cache entry TTL in minutes. |
+| `AXIODB_CACHE_MAX_TTL` | `15` | positive integer | Maximum cache entry TTL in minutes. |
+| `AXIODB_CACHE_CLEARUP` | `86400` | positive integer | Background cache sweep interval in seconds (default: 24h). |
+
+#### Automatic Container cgroup Detection & Tuning
+AxioDB's container runner (`Docker/runner.js`) inspects cgroup limits on startup to tune the runtime automatically:
+- **CPU Quota Detection (`cgroup cpu.max` / `cpu.cfs_quota_us`):** Calculates allotted container CPUs and automatically tunes libuv thread pool:
+  `UV_THREADPOOL_SIZE = Math.min(64, Math.max(4, allottedCPUs * 4))`
+- **Memory Limit Detection (`cgroup memory.max` / `memory.limit_in_bytes`):** Tunes V8 heap size to prevent OOM kills:
+  `--max-old-space-size = Math.max(512, Math.floor(allottedMemoryMB * 0.75))` (75% of container memory).
+
+#### Container Healthcheck
+The Docker image includes `healthcheck.js` which verifies all enabled subsystems concurrently with a 4000ms timeout:
+1. **HTTP GUI:** `GET http://localhost:27018/api/health` returns status `200 OK`.
+2. **TCP Server:** Connects via `AxioDBCloud` and issues a round-trip `PING` command on port 27019.
+3. **MCP Server:** Sends a probe to `GET http://localhost:27020/mcp`.
+
+#### Production Docker Compose (`docker-compose.yml`)
+```yaml
+version: "3.8"
+
+services:
+  axiodb:
+    image: theankansaha/axiodb:latest
+    container_name: axiodb-server
+    ports:
+      - "27018:27018"   # HTTP REST API & Web GUI Dashboard
+      - "27019:27019"   # AxioDBCloud TCP Remote Server
+      - "27020:27020"   # MCP Streamable HTTP AI Server
+    environment:
+      - AXIODB_GUI=true
+      - AXIODB_TCP=true
+      - AXIODB_TCP_AUTH_ENABLED=true
+      - AXIODB_ADMIN_PASSWORD=my_strong_production_password
+      - AXIODB_MCP=true
+      - AXIODB_ROOT_NAME=AxioDB
+      - AXIODB_CUSTOM_PATH=/app
+    volumes:
+      - axiodb_data:/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "healthcheck.js"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  axiodb_data:
+```
 
 ---
 
@@ -258,20 +339,34 @@ AxioDB supports 19 powerful filtering operators passed into `.query(filter)`:
 | `$and` | Logical | Logical AND of multiple criteria | `{ $and: [{ active: true }, { age: { $gte: 18 } }] }` |
 | `$nor` | Logical | Fails if any criteria match | `{ $nor: [{ locked: true }, { banned: true }] }` |
 
-### 6.3 Reader Chaining API
+### 6.3 Reader Chaining API & Query Pagination
+AxioDB provides a chainable query builder for filtering, sorting, projection, and pagination:
+
 ```javascript
+// Pagination implementation (Offset-based):
+const page = 2;
+const limit = 10;
+const skip = (page - 1) * limit; // Offset: Skip 10 records for Page 2
+
 const results = await users.query({ status: 'active' })
-  .hint('status')                     // Force use of index
+  .hint('status')                     // Force use of index for speed
   .Sort({ createdAt: -1 })            // 1 = ascending, -1 = descending
-  .Skip(20)                           // Offset pagination
-  .Limit(10)                          // Limit count
-  .setProject({ name: 1, email: 1 })  // 1 = include, 0 = exclude
-  .setCount(true)                     // Include total matching count
+  .Skip(skip)                         // Offset pagination
+  .Limit(limit)                       // Number of documents per page
+  .setProject({ name: 1, email: 1 })  // 1 = include, 0 = exclude fields
+  .setCount(true)                     // Include total matching count in result payload
   .exec();
+
+console.log(results.data.documents);  // Array of documents for the current page
+console.log(results.data.totalCount); // Total matching documents across all pages
 
 // findOne chaining:
 const singleDoc = await users.query({ email: 'alice@example.com' }).findOne(true).exec();
 ```
+
+**Pros & Cons of Pagination in AxioDB:**
+- **Pros:** Zero-cost offset scanning when querying indexed fields; instant $O(1)$ direct document extraction; memory footprint stays strictly capped to `Limit`.
+- **Cons:** Extremely deep pagination (`Skip(100000)`) on unindexed fields performs a disk file scan; always index sorted or filtered fields (`collection.newIndex('createdAt')`).
 
 ### 6.4 Batch Point Retrieval (`findByIds`)
 ```javascript
@@ -375,7 +470,52 @@ OperatorRegistry.registerAccumulator('$customJaccard', (collection, expr) => {
 
 ## 8. The 45 Model Context Protocol (MCP) AI Tools Reference
 
-The native MCP server runs on **port 27020** at `/mcp` (Streamable HTTP). All tools except `axiodb_login` require an active `sessionId`.
+The native MCP server runs on **port 27020** at `/mcp` (Streamable HTTP / SSE transport), allowing AI coding assistants and autonomous agents (Cursor, Claude Code, Windsurf) to directly query, insert, and manage AxioDB databases.
+
+### 8.1 How to Start & Deploy the MCP Server (Code vs Docker)
+You can start the MCP server in two ways:
+
+1. **Inside Node.js / TypeScript code:** Pass `MCP: true` when instantiating AxioDB:
+   ```typescript
+   import { AxioDB } from 'axiodb';
+   
+   const db = new AxioDB({
+     MCP: true,     // Starts native MCP HTTP server at http://localhost:27020/mcp
+     GUI: true,     // Optional: also launch Web Dashboard on port 27018
+   });
+   ```
+2. **Via Official Docker Container:** Run with `AXIODB_MCP=true`:
+   ```bash
+   docker run -d -p 27020:27020 -e AXIODB_MCP=true theankansaha/axiodb
+   ```
+   *(Or run full stack with Web GUI on 27018, TCP on 27019, and MCP on 27020):*
+   ```bash
+   docker run -d -p 27018:27018 -p 27019:27019 -p 27020:27020 -e AXIODB_GUI=true -e AXIODB_TCP=true -e AXIODB_MCP=true theankansaha/axiodb
+   ```
+
+### 8.2 Connecting AI Clients
+- **Cursor (`.cursor/mcp.json`):**
+  ```json
+  {
+    "mcpServers": {
+      "axiodb": {
+        "url": "http://localhost:27020/mcp"
+      }
+    }
+  }
+  ```
+- **Claude Code CLI:**
+  ```bash
+  claude mcp add --transport http axiodb http://localhost:27020/mcp
+  ```
+
+### 8.3 Authentication & Session Flow
+- **Authentication Step:** All data operations require an active `sessionId`.
+- Call tool `axiodb_login` with `{ username: "admin", password: "your_password" }`.
+- It returns `{ sessionId: "..." }`. Pass this `sessionId` into subsequent tools (`axiodb_query_documents`, `axiodb_list_databases`, etc.).
+
+### 8.4 Full 45 MCP Tools Catalog
+All tools except `axiodb_login` require an active `sessionId`:
 
 | # | Tool Name | Scope | Description |
 |---|---|---|---|
@@ -523,6 +663,88 @@ TCP binary-framed server running on **port 27019**:
 31. `ROLLBACK_TO_SAVEPOINT`: Rollback transaction to savepoint.
 32. `RELEASE_SAVEPOINT`: Release savepoint marker.
 
+### 10.2 Remote TCP Client SDK (`AxioDBCloud`)
+
+`AxioDBCloud` is the official high-performance TCP client for Node.js, Bun, and backend services connecting remotely to an AxioDB server or Docker container.
+
+#### Connection Architecture & Connection Pooling
+- **Connection String Syntax:** `axiodb://<host>:<port>` (e.g., `axiodb://localhost:27019` or `axiodb://127.0.0.1:27019`).
+- **Connection Pooling (`maxPoolSize: 10`):** Maintains a pool of concurrent TCP sockets to the server. Commands are dispatched to whichever connected member has the lowest in-flight request queue, ensuring high throughput under concurrent load.
+- **Fail-Fast Auth Handshake:** Authenticates the first connection before opening the rest of the pool, preventing 10x repeated bad-credential attempts against the server's rate limiter.
+- **Independent Self-Healing:** Each connection member detects dropped sockets and reconnects independently using exponential backoff with automatic session re-authentication.
+- **Heartbeat Monitoring (`heartbeatInterval: 30000ms`):** Periodic `PING`/`PONG` frames detect dead sockets before application queries stall.
+
+#### Client Options Specification
+```typescript
+interface AxioDBCloudOptions {
+  username?: string;               // Username for TCP authentication
+  password?: string;               // Password for TCP authentication
+  timeout?: number;                // Command timeout in ms (default: 30000)
+  maxPoolSize?: number;            // Concurrent connection pool size (default: 10)
+  reconnectAttempts?: number;      // Maximum reconnect retries (default: 10)
+  reconnectDelay?: number;         // Initial reconnect delay in ms (default: 1000)
+  heartbeatInterval?: number;      // Heartbeat ping interval in ms (default: 30000)
+  tls?: boolean;                   // Enable TLS socket encryption (default: false)
+  tlsRejectUnauthorized?: boolean; // Reject invalid certificates (default: true)
+  tlsCAPath?: string;              // Path to custom CA certificate PEM file
+}
+```
+
+#### TypeScript / Node.js Usage Example
+```typescript
+import { AxioDBCloud } from "axiodb";
+
+// 1. Initialize client with connection pooling and credentials
+const client = new AxioDBCloud("axiodb://localhost:27019", {
+  username: "admin",
+  password: "my_strong_production_password",
+  maxPoolSize: 10,
+  timeout: 10000,
+});
+
+// 2. Lifecycle Events
+client.on("error", (err) => console.error("[AxioDBCloud] Socket error:", err));
+client.on("connect", () => console.log("[AxioDBCloud] Pool member connected"));
+client.on("reconnecting", (attempt) => console.log(`[AxioDBCloud] Reconnecting attempt ${attempt}...`));
+client.on("poolDegraded", (info) => console.warn("[AxioDBCloud] Pool degraded:", info));
+client.on("poolRestored", () => console.log("[AxioDBCloud] Pool fully restored"));
+
+async function main() {
+  // Open connection pool
+  await client.connect();
+
+  // Switch to or create database
+  const db = await client.createDB("ecommerce");
+
+  // Switch to or create collection
+  const orders = await db.createCollection("orders");
+
+  // Insert document over TCP
+  const order = await orders.insert({
+    orderId: "ORD-9821",
+    customer: "Alice",
+    total: 249.99,
+    status: "processing",
+    createdAt: Date.now(),
+  });
+  console.log("Inserted:", order);
+
+  // Query documents over TCP with Sort, Skip, Limit
+  const results = await orders
+    .query({ status: "processing" })
+    .Sort({ createdAt: -1 })
+    .Skip(0)
+    .Limit(10)
+    .exec();
+  console.log("Orders:", results);
+
+  // Gracefully close client pool on shutdown
+  await client.close();
+}
+
+main().catch(console.error);
+```
+
 ---
 
 ## 11. RBAC Security, Permissions Matrix & Rate Limiting
@@ -573,24 +795,111 @@ Defined in `source/config/Keys/`:
 
 ## 13. Go CLI Reference & Interactive REPL Commands
 
-AxioDB provides a standalone Go CLI binary for Linux, macOS, and Windows.
+AxioDB provides a compiled standalone Go CLI binary (`axiodb`) available for Linux (x64/arm64), macOS (Intel/Apple Silicon), and Windows (x64/arm64). Pre-built standalone binaries with SHA-256 checksums are published on [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest).
 
-### 13.1 CLI Commands
-- `axiodb connect <host:port>`: Connect to an AxioDBCloud TCP server.
-- `axiodb serve`: Boot an isolated temporary local instance for testing.
-- `axiodb export <dbname>`: Export database via HTTP API to local tarball.
-- `axiodb import <tarball>`: Import database archive into remote instance.
+### 13.1 Global Flags (Supported on All Commands)
+- `-c, --connection-string string`: Full TCP URL (`axiodb://host:port`).
+- `--host string`: TCP server host (default: `localhost`).
+- `--port int`: TCP server port (default: `27019`).
+- `-u, --username string`: Username for authentication.
+- `-p, --password string`: Password for authentication.
+- `--tls`: Enable TLS connection.
+- `--tls-cert string`: Path to CA certificate file.
+- `--tls-skip-verify`: Skip TLS certificate verification (development only).
+- `-o, --output string`: Output format: `table` or `json` (default: `table`).
+- `--timeout int`: Request timeout in seconds (default: `30`).
+- `--db string`: Target database name.
+- `--collection string`: Target collection name.
+- `--http-host string`: HTTP Control Server host for import/export and user management (default: `localhost`).
+- `--http-port int`: HTTP Control Server port for import/export (default: `27018`).
 
-### 13.2 Interactive REPL Shell Commands
-When connected via `axiodb connect`:
+### 13.2 Temporary Local Server (`axiodb serve`)
+Spins up an isolated, ephemeral instance in a temporary directory for local dev, scripts, or CI/CD:
+- `axiodb serve http`: Boots HTTP REST API & Web GUI only (Port 27018).
+- `axiodb serve tcp`: Boots TCP server only without authentication (Port 27019).
+- `axiodb serve tcp-auth <password>`: Boots TCP server with authentication enabled and seeds the initial admin password.
+- `axiodb serve full [password]`: Boots full stack (HTTP on 27018 + TCP on 27019 with authentication).
+
+### 13.3 Interactive REPL Shell (`axiodb connect`)
+Connects to an AxioDB TCP server and launches an interactive MongoDB-style shell:
 ```bash
-> show dbs
-> use ProductionDB
-> show collections
-> db.users.find({ role: "admin" })
-> db.users.insert({ name: "Charlie", age: 28 })
-> db.users.count()
+axiodb connect localhost:27019 -u admin -p my_strong_password
 ```
+Supported Shell Commands:
+- `show dbs`: List all available databases.
+- `use <dbname>`: Switch the active database context.
+- `show collections`: List all collections in current database.
+- `db.<coll>.find([query])`: Query documents matching JSON filter.
+- `db.<coll>.findOne([query])`: Return first matching document.
+- `db.<coll>.insert(<json>)`: Insert a document.
+- `db.<coll>.update(<query>, <update>)`: Flat-merge update documents.
+- `db.<coll>.delete(<query>)`: Delete documents matching query.
+- `db.<coll>.count()`: Return total document count in collection.
+- `db.<coll>.newIndex(<field>)`: Create an in-memory & disk index on field.
+- `db.<coll>.listIndexes()`: View active indexes on collection.
+- `db.<coll>.dropIndex(<field>)`: Delete index from collection.
+- `exit` or `quit`: Disconnect from session.
+
+### 13.4 Database Management (`axiodb db`)
+- `axiodb db create <name>`: Create a new database.
+- `axiodb db delete <name>`: Delete an existing database.
+- `axiodb db exists <name>`: Check if a database exists (returns boolean).
+- `axiodb db info`: Display runtime instance metadata and server health.
+- `axiodb db list`: List all databases.
+
+### 13.5 Collection Management (`axiodb collection`)
+- `axiodb collection create <name> --db <dbname>`: Create collection in target database.
+- `axiodb collection delete <name> --db <dbname>`: Delete collection.
+- `axiodb collection exists <name> --db <dbname>`: Check if collection exists.
+- `axiodb collection info <name> --db <dbname>`: Inspect collection metrics and document count.
+- `axiodb collection list --db <dbname>`: List all collections in database.
+
+### 13.6 Document CRUD & Queries (`axiodb document`)
+- `axiodb document insert '<json>' --db <db> --collection <coll>`: Insert single document.
+- `axiodb document insert-many '<jsonArray>' --db <db> --collection <coll>`: Insert batch of documents.
+- `axiodb document query --filter '<json>' --sort '<json>' --limit 10 --skip 0 --db <db> --collection <coll>`: Filter documents.
+- `axiodb document get <id> --db <db> --collection <coll>`: Point lookup by documentId.
+- `axiodb document find-by-ids <id1> <id2> --db <db> --collection <coll>`: Batch point lookup.
+- `axiodb document update <id> '<json>' --db <db> --collection <coll>`: Update document by ID using flat merge.
+- `axiodb document update-by-query --filter '<json>' --update '<json>' --db <db> --collection <coll>`: Batch update matching documents.
+- `axiodb document delete <id> --db <db> --collection <coll>`: Delete document by ID.
+- `axiodb document delete-by-query --filter '<json>' --db <db> --collection <coll>`: Batch delete matching documents.
+- `axiodb document aggregate '<pipelineJsonArray>' --db <db> --collection <coll>`: Run aggregation pipeline.
+- `axiodb document count --filter '<json>' --db <db> --collection <coll>`: Count matching documents.
+
+### 13.7 Index Management (`axiodb index`)
+- `axiodb index create <field...> --db <db> --collection <coll>`: Create index on field(s).
+- `axiodb index drop <field> --db <db> --collection <coll>`: Drop index.
+- `axiodb index list --db <db> --collection <coll>`: List all active indexes.
+
+### 13.8 ACID Transactions (`axiodb transaction`)
+- `axiodb transaction begin --db <db> --collection <coll>`: Open a transaction session (returns `txnId`).
+- `axiodb transaction commit <txnId>`: Commit all staged writes.
+- `axiodb transaction rollback <txnId>`: Discard all staged writes.
+- `axiodb transaction savepoint <txnId> <savepointName>`: Set a rollback checkpoint.
+- `axiodb transaction rollback-to <txnId> <savepointName>`: Revert transaction state to checkpoint.
+- `axiodb transaction release <txnId> <savepointName>`: Discard savepoint marker.
+- `axiodb transaction run '<jsonOperations>'`: Execute atomic multi-operation transaction.
+
+### 13.9 RBAC User & Role Administration (`axiodb user`, `axiodb role`)
+Administrative commands operate against the HTTP Control Server on port 27018:
+- `axiodb user list`: List all registered users.
+- `axiodb user create <username> <password> <role>`: Create a user with specified role.
+- `axiodb user set-role <username> <role>`: Change user's role.
+- `axiodb user reset-password <username> <newPassword>`: Administrative password reset.
+- `axiodb user delete <username>`: Delete a user.
+- `axiodb user change-password <currentPassword> <newPassword>`: Self-service password change.
+- `axiodb role list`: List custom and system roles.
+- `axiodb role create <name> <permission1,permission2>`: Create custom role with permissions.
+- `axiodb role delete <name>`: Delete custom role.
+- `axiodb role permissions`: List all 23 available system permissions.
+
+### 13.10 Diagnostic & Utility Commands
+- `axiodb export <dbname> [outputTarball]`: Export database to tarball archive.
+- `axiodb import <tarball>`: Restore database from tarball archive.
+- `axiodb ping`: Send heartbeat ping to TCP server and measure round-trip latency.
+- `axiodb health`: Retrieve server health status.
+- `axiodb version`: Show CLI build and version details.
 
 ---
 
@@ -717,5 +1026,54 @@ A: Yes. All transactional writes are logged to a `.wal.jsonl` file before disk c
 **Q: Does AxioDB support TypeScript?**  
 A: Yes. AxioDB is written in 100% strict TypeScript and ships built-in `.d.ts` definitions.
 
-**Q: How does AxioDB achieve sub-millisecond read latency?**  
+**Q: How do I use the MCP feature? Is it in Docker or in code?**  
+A: You can use it in both! Pass `MCP: true` in your code constructor (`new AxioDB({ MCP: true })`) to run the MCP HTTP server on `http://localhost:27020/mcp`, or run the official Docker container with `-e AXIODB_MCP=true` (`docker run -d -p 27020:27020 -e AXIODB_MCP=true theankansaha/axiodb`). Authenticate first by calling `axiodb_login` to obtain a `sessionId`.
+
+**Q: How do I implement pagination with skip and limit?**  
+A: Use `.query(filter).Sort({ createdAt: -1 }).Skip(offset).Limit(count).setCount(true).exec()`. Always index the sort/filter field for fast $O(1)$ disk reads.
+
+**Q: Why didn't my MongoDB update operators like `$inc`, `$set`, or `$push` work?**  
+A: AxioDB does not support MongoDB update operators. All updates are flat shallow merges (`{ ...oldDoc, ...updateData }`). To increment a number or push to an array, use the Read-Modify-Write pattern: read the document with `.findOne(true).exec()`, update the value in JavaScript, and save with `.update({ id }).UpdateOne({ field: newValue })`.
+
+**Q: What ports does AxioDB use?**  
+A: AxioDB uses three distinct ports:
+- **Port 27018:** Web Dashboard GUI & Fastify REST API (`GUI: true` or `HTTP: true`).
+- **Port 27019:** AxioDBCloud TCP Wire Protocol Server (`TCP: true`).
+- **Port 27020:** Native Model Context Protocol (MCP) Streamable HTTP Server (`MCP: true`).
+
+**Q: How do I run AxioDB in Electron without errors?**  
+A: Run AxioDB exclusively in Electron's main process (never in the renderer process). Set `CustomPath: app.getPath('userData')` because `app.asar` is a read-only archive on packaged builds. Expose database operations to the frontend via `ipcMain.handle` and `contextBridge`.
+
+**Q: Can I create multiple instances of AxioDB in the same app?**  
+A: No. AxioDB enforces a strict singleton pattern per process. Calling `new AxioDB()` twice throws `"Only one instance of AxioDB is allowed"`. Instantiate it once in a central file and export it across your project.
+
+**Q: Does AxioDB achieve sub-millisecond read latency?**  
 A: Through direct $O(1)$ filepath computation on `documentId` and in-memory dual-write indexing with `InMemoryCache`.
+
+**Q: How do I connect to AxioDB running in Docker from my Node.js application?**  
+A: Use the `AxioDBCloud` TCP client pointing to `axiodb://localhost:27019` (or the container host/IP). Supply credentials in client options:
+```typescript
+import { AxioDBCloud } from "axiodb";
+
+const client = new AxioDBCloud("axiodb://127.0.0.1:27019", {
+  username: "admin",
+  password: "my_strong_production_password",
+  maxPoolSize: 10,
+});
+await client.connect();
+const db = await client.createDB("my_app");
+const users = await db.createCollection("users");
+```
+
+**Q: Why does my headless Docker container fail on startup with "TCP authentication without AXIODB_HTTP requires AXIODB_ADMIN_PASSWORD"?**  
+A: When running headless (`AXIODB_GUI=false` or `AXIODB_HTTP=false`), the Web GUI and HTTP server on port 27018 are disabled. Because AxioDB security prohibits unrotated default `admin/admin` credentials from logging in over TCP, there would be no way to change the password. To bypass this, pass `-e AXIODB_ADMIN_PASSWORD="<password>"` when running the container. AxioDB seeds the account directly with that password, allowing immediate TCP connections.
+
+**Q: How does connection pooling work in `AxioDBCloud`?**  
+A: `AxioDBCloud` maintains an internal pool of concurrent TCP connections (`maxPoolSize: 10` by default). Outgoing commands are routed dynamically to whichever connected socket currently has the lowest in-flight request queue. Each connection member reconnects independently with exponential backoff and transparent session re-authentication upon network disruption.
+
+**Q: When should I use Embedded NPM package vs Docker vs CLI vs Electron?**  
+A:
+- **Embedded NPM (`new AxioDB()`):** For single-process Node.js backends and Electron apps needing maximum performance (<1ms latency) with zero network overhead.
+- **Docker Container (`theankansaha/axiodb`):** For remote microservices, non-Node.js runtimes using HTTP REST (Port 27018), or shared multi-service databases.
+- **AxioDBCloud (`new AxioDBCloud()`):** For Node.js/Bun microservices connecting remotely to an AxioDB Docker or TCP instance (Port 27019).
+- **Go CLI (`axiodb`):** For interactive terminal shell (`axiodb connect`), DB admin scripts, automated backup/restore (`export`/`import`), and quick ephemeral testing (`serve`).
