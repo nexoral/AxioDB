@@ -14,7 +14,7 @@ export async function forwardToDestination(message, destination, { reason } = {}
   } catch (error) {
     console.error(`Forward to ${destination} failed (${reason || 'unknown'})`, error);
   }
-}
+};
 
 export async function sendReplyEmail(env, { sender, recipient, subject, replyBody, resendSends, resendLimit }) {
   await bumpCount(env, RESEND_KEY, resendSends);
@@ -29,4 +29,4 @@ export async function sendReplyEmail(env, { sender, recipient, subject, replyBod
     replyTo: env.REPLY_TO_EMAIL || 'connect@ankan.in',
   });
   console.log(`[Step 4: Complete] Plain text reply successfully sent to ${sender}`);
-}
+};
