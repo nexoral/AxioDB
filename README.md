@@ -4,7 +4,7 @@
 
 <h1 align="center">AxioDB</h1>
 <p align="center">
-  <b>An embedded JSON database for TypeScript and Node.js that provides MongoDB-style queries and ACID safety without running a server.</b>
+  <b>An embedded database for TypeScript and Node.js that provides rich queries and ACID safety without running a server.</b>
 </p>
 
 <p align="center">
