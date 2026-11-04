@@ -50,6 +50,8 @@ const Import = () => {
           setUploadStatus(null);
           setErrorMessage("");
         }
+      } else {
+        document.getElementById("archive-input")?.click();
       }
     } catch (err) {
       setErrorMessage(err.message || "Failed to open file picker");
@@ -260,7 +262,7 @@ const Import = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-center gap-3 pt-2">
+                <div className="flex items-center justify-center pt-2">
                   <button
                     type="button"
                     onClick={handleNativeSelect}
@@ -271,12 +273,6 @@ const Import = () => {
                     </svg>
                     Browse Local File
                   </button>
-                  <label
-                    htmlFor="archive-input"
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-all cursor-pointer"
-                  >
-                    Standard Picker
-                  </label>
                 </div>
               </motion.div>
             ) : (
