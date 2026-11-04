@@ -1,0 +1,30 @@
+name = "axiodb-email-agent"
+main = "index.js"
+compatibility_date = "2024-02-28"
+
+# Keep vars and secrets that already exist on the deployed Worker and are not
+# listed below. Without this, every deploy deletes them and replaces the
+# environment with exactly the [vars] defined in this file.
+keep_vars = true
+
+# Enable Cloudflare Workers AI
+[ai]
+binding = "AI"
+
+# KV namespace that stores the daily AI-run and Resend-send counters
+[[kv_namespaces]]
+binding = "EMAIL_KV"
+id = "62ec82d867bb4a8c980f4f55af2d9463"
+
+[vars]
+# Daily AI run limit and Resend send limit
+AI_DAILY_LIMIT = "100"
+RESEND_DAILY_LIMIT = "100"
+# Resend API key (plaintext here is visible in the repo; use
+REPLY_TO_EMAIL = "connect@ankan.in"
+
+# ...
+[observability]
+enabled = true
+# ...
+
