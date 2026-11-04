@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "24.32.3",
+    version: "24.32.4",
     date: "2026-11-04",
     title: "Master integer-pointer indexing, 16-character IDs, and dual-write cache optimization",
     changes: [
@@ -20,6 +20,7 @@ export const changelog: ChangelogEntry[] = [
       "Compact Document IDs: shortened auto-generated document IDs from 30 characters to 16 characters (128-bit entropy), saving disk and memory across all records and indexes while preserving unguessability",
       "Dual-Write IndexCache: unified in-memory secondary index caching with 5–15 minute random TTL, restoring sub-millisecond point reads (0.64ms p50, 1,221 QPS) and 0.017ms hot cache lookups",
       "Tombstone Slot Preservation: retained slot alignment in documentId.jsonl for deletions, ensuring integer pointers never shift or desynchronize across updates, crash recoveries, or cold starts",
+      "Crash Recovery WAL Index Replay: replayed staged index updates during transaction redo and reversed uncommitted index mutations on undo, ensuring indexes and document storage remain 100% consistent across hard SIGKILL process terminations",
       "Transaction & WAL Atomicity: verified 100% rollback consistency and zero data leakage across atomic transactions and mixed insert/update/delete operations",
     ],
   },
