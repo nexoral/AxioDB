@@ -10,6 +10,7 @@ import FolderManager from "../../engine/Filesystem/FolderManager";
 import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
 import type { InMemoryCache } from "../../Memory/memory.operation";
+import { IndexCache } from "../Index/IndexCache.service";
 import LockManager from "./LockManager.service";
 import TransactionIndexManager from "./TransactionIndexManager.service";
 import TransactionRegistry from "./TransactionRegistry.service";
@@ -506,11 +507,45 @@ export default class Transaction {
       for (const txnMeta of activeTransactions) {
         const wal = new WriteAheadLog(collectionPath, txnMeta.transactionId);
         const lockManager = LockManager.getInstance(collectionPath);
+        const logEntries = await wal.getLogEntries();
 
         if (txnMeta.status === 'COMMITTED' || txnMeta.status === 'PREPARING') {
           await wal.redo();
+          if (logEntries.length > 0) {
+            try {
+              const operations: TransactionOperation[] = logEntries.map((e) => ({
+                type: e.operationType,
+                documentId: e.documentId,
+                fileName: e.fileName,
+                data: e.afterData ? (JSON.parse(e.afterData) as Record<string, unknown>) : undefined,
+                oldData: e.beforeData ? (JSON.parse(e.beforeData) as Record<string, unknown>) : undefined,
+              }));
+              const indexMgr = new TransactionIndexManager(collectionPath);
+              await indexMgr.stageIndexUpdates(operations);
+              await indexMgr.commitIndexUpdates();
+            } catch {
+              // Ignore partial index replay errors during recovery
+            }
+          }
         } else {
           await wal.undo();
+          if (logEntries.length > 0) {
+            try {
+              // Roll back any uncommitted index mutations if partially committed before crash
+              const operations: TransactionOperation[] = logEntries.map((e) => ({
+                type: e.operationType === 'INSERT' ? 'DELETE' : (e.operationType === 'DELETE' ? 'INSERT' : 'UPDATE'),
+                documentId: e.documentId,
+                fileName: e.fileName,
+                data: e.beforeData ? (JSON.parse(e.beforeData) as Record<string, unknown>) : undefined,
+                oldData: e.afterData ? (JSON.parse(e.afterData) as Record<string, unknown>) : undefined,
+              }));
+              const indexMgr = new TransactionIndexManager(collectionPath);
+              await indexMgr.stageIndexUpdates(operations);
+              await indexMgr.commitIndexUpdates();
+            } catch {
+              // Ignore partial index rollback errors during recovery
+            }
+          }
         }
 
         await lockManager.releaseAllLocks(txnMeta.lockedDocuments);
@@ -518,6 +553,9 @@ export default class Transaction {
         await registry.removeTransaction(txnMeta.transactionId);
         handled.add(`${txnMeta.transactionId}${WAL_FILE_EXT}`);
       }
+
+      // Purge any stale cached index entries from memory so recovered disk state is loaded fresh
+      IndexCache.getInstance(collectionPath).invalidateAll();
 
       // Sweep orphaned WALs: a crash between createWAL() and registerTransaction()
       // leaves a .wal with no registry entry, which the registry-driven loop above

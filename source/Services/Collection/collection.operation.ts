@@ -49,16 +49,15 @@ export default class Collection {
     this.collectionResolver = collectionResolver;
     this.cache = cache;
 
-    // Initialize and eagerly load index cache for maximum query performance
+    // Initialize index cache
     this.indexCache = IndexCache.getInstance(this.path);
-    this.indexCache.loadAllIndexes().catch(() => {
-      // Silent failure - indexes will load on demand from disk (cold start recovery)
-    });
 
-    // Recover any pending transactions on initialization
-    Transaction.recoverTransactions(this.path).catch(() => {
-      // Silent recovery - log errors but don't fail collection initialization
-    });
+    // Recover any pending transactions on initialization first, then eagerly load index cache
+    Transaction.recoverTransactions(this.path)
+      .then(() => this.indexCache.loadAllIndexes())
+      .catch(() => {
+        // Silent recovery - indexes will load on demand from disk (cold start recovery)
+      });
   }
 
   public getCollectionPath(): string {
