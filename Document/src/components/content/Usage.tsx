@@ -146,7 +146,7 @@ console.log(paginatedDocuments);`,
     <section id="usage" className="pt-12 scroll-mt-20">
       <Seo
         title="AxioDB Usage - Embedded NoSQL CRUD & Query Guide"
-        description="Learn AxioDB's CRUD operations, MongoDB-style query filters, and state persistence patterns for TypeScript and AI agent workflows."
+        description="Learn AxioDB's CRUD operations, advanced query filters, and state persistence patterns for TypeScript and AI agent workflows."
         path="/usage"
         ogType="article"
       />

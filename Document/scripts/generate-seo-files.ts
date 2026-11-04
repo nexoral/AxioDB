@@ -280,7 +280,7 @@ function buildAgentSkillsIndex(skillMd: string): string {
           name: "axiodb",
           type: "skill-md",
           description:
-            "Use AxioDB, an embedded NoSQL database for Node.js with MongoDB-style queries and zero native dependencies.",
+            "Use AxioDB, an embedded NoSQL database for Node.js with advanced queries and zero native dependencies.",
           url: `${SITE_URL}/.well-known/agent-skills/axiodb/SKILL.md`,
           digest: `sha256:${createHash("sha256").update(skillMd).digest("hex")}`,
           license: "MIT",

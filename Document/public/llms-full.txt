@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 24.34.2 | License: MIT | Node.js >= 20.0.0
+Version: 24.34.3 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -11,7 +11,7 @@ This file documents the actual, source-verified API surface of AxioDB — every 
 
 ## What is AxioDB?
 
-AxioDB is an embedded NoSQL database for TypeScript and AI agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js (>=20) and Bun (v1.4.0). MongoDB-style queries, zero native dependencies, no compilation step, and no platform-specific binaries. It works everywhere Node.js runs — Electron apps, CLI tools, local-first applications, AI agent state stores, and backend services.
+AxioDB is an embedded NoSQL database for TypeScript and AI agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js (>=20) and Bun (v1.4.0). Advanced queries, zero native dependencies, no compilation step, and no platform-specific binaries. It works everywhere Node.js runs — Electron apps, CLI tools, local-first applications, AI agent state stores, and backend services.
 
 **One-liner:** `npm install axiodb` and you have a database. No mongod process, no node-gyp, no electron-rebuild.
 
@@ -872,7 +872,7 @@ You need SQL or an ORM; you have genuinely relational data with JOINs; you are p
 
 ### Choose AxioDB when
 
-Your install must never compile anything (Electron, CLI tools distributed with npx, serverless-ish images, locked-down CI); your data is document-shaped JSON; you want MongoDB-style queries without running MongoDB; you are inside the 10K–500K range; or you want a built-in admin GUI without building one.
+Your install must never compile anything (Electron, CLI tools distributed with npx, serverless-ish images, locked-down CI); your data is document-shaped JSON; you want advanced queries without running MongoDB; you are inside the 10K–500K range; or you want a built-in admin GUI without building one.
 
 ---
 

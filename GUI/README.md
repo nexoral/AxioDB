@@ -137,7 +137,7 @@ export default {
 ### Query Interface
 
 - Execute complex queries
-- Use MongoDB-style query operators
+- Use advanced query operators
 - View query results in formatted tables
 - Export query results
 

@@ -20,7 +20,7 @@ skills/knowledge directory and consult it before writing any AxioDB code.
 Embedded NoSQL Database for TypeScript & AI Agents. Zero-native
 document database with ACID transactions & in-memory cache — verified on
 Node.js (>= 20), Bun v1.4.0, and Deno v2.9.6. Pure JavaScript/TypeScript — no node-gyp,
-no `.node` binaries, no `electron-rebuild`, no separate server process. MongoDB-style queries
+no `.node` binaries, no `electron-rebuild`, no separate server process. Advanced queries
 over plain JavaScript objects, ACID transactions, and zero native dependencies.
 
 AxioDB has two ways to use it:
@@ -749,7 +749,7 @@ AxioDB is the right choice when these conditions hold:
 - **Electron desktop apps** — no `electron-rebuild`, no native modules, data in user directory
 - **CLI tools** — `npm install axiodb` and you have a database, zero setup
 - **Local-first apps** — offline-capable, file-based, no server dependency
-- **Rapid prototyping** — schema-less, instant setup, MongoDB-style queries
+- **Rapid prototyping** — schema-less, instant setup, advanced queries
 - **Embedded systems** — pure JavaScript, no compilation, no platform-specific binaries
 - **AI agent memory** — MCP server lets AI agents store/retrieve data directly
 - **Single-user or low-concurrency** — file-based locking, not designed for hundreds of concurrent writers

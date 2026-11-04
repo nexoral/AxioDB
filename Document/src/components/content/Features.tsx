@@ -364,7 +364,7 @@ const Features: React.FC = () => {
               </h3>
             </div>
             <p className="text-gray-600 leading-relaxed text-lg mb-4">
-              Comprehensive MongoDB-compatible query operators for sophisticated
+              Comprehensive advanced query operators for sophisticated
               data filtering, matching, and retrieval operations with familiar
               syntax and powerful capabilities.
             </p>

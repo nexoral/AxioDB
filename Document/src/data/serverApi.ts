@@ -878,7 +878,7 @@ file: [database.tar.gz file]`,
         {
           method: "POST",
           path: "/api/operation/all/by-query/",
-          description: "Retrieves documents matching a MongoDB-style query with pagination. Supports operators like $gt, $gte, $lt, $lte, $ne, $in, $regex. Optionally pass a hint to force a specific index.",
+          description: "Retrieves documents matching an advanced query with pagination. Supports operators like $gt, $gte, $lt, $lte, $ne, $in, $regex. Optionally pass a hint to force a specific index.",
           parameters: [
             {
               name: "dbName",
@@ -906,7 +906,7 @@ file: [database.tar.gz file]`,
               type: "body",
               dataType: "object",
               required: true,
-              description: "MongoDB-style query object",
+              description: "Advanced query object",
             },
             {
               name: "hint",
