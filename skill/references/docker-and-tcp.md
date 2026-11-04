@@ -68,7 +68,7 @@ docker run -d \
 | `AXIODB_TLS_KEY_PATH` | *(none)* | Path inside container to the matching private key file. |
 | `AXIODB_ROOT_NAME` | `AxioDB` | Name of the root database folder inside `/app`. |
 | `AXIODB_CUSTOM_PATH` | `/app` | Storage path inside the container. |
-| `AXIODB_MCP` | `false` | Enables the MCP server for AI agent integration on port 27020 (**Docker-only**). |
+| `AXIODB_MCP` | `false` | Enables the MCP server for AI agent integration on port 27020. |
 | `AXIODB_MCP_PORT` | `27020` | Port for the MCP Streamable HTTP service. |
 
 ---

@@ -28,6 +28,7 @@ import { RESERVED_DB_NAME } from "../config/Keys/Permissions";
 import LoginRateLimiter from "./Auth/LoginRateLimiter.service";
 import Logger from "../Helper/Logger.helper";
 import { InMemoryCache } from "../Memory/memory.operation";
+import { startMcpServer, stopMcpServer } from "../Helper/mcp/McpServer.helper";
 
 /**
  * Class representing the AxioDB database.
@@ -62,6 +63,7 @@ export class AxioDB {
   private HTTP: boolean = false;
   private TCP: boolean = false;
   private TCPAuth: boolean = false;
+  private MCP: boolean = false;
   private readonly AdminPassword?: string;
   private TLS: boolean = false;
   private ready: Promise<void>;
@@ -94,6 +96,7 @@ export class AxioDB {
     this.HTTP = options.HTTP !== undefined ? options.HTTP : (this.GUI ? true : false);
     this.TCP = TCP !== undefined ? TCP : false;
     this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false;
+    this.MCP = options.MCP !== undefined ? options.MCP : false;
     this.AdminPassword = AdminPassword;
     this.TLS = TLS !== undefined ? TLS : false;
     this.TLSCertPath = TLSCertPath;
@@ -151,7 +154,7 @@ export class AxioDB {
         Logger.info(`AxioDB folder created at: ${this.currentPATH}`);
       }
     }
-    if (this.GUI || this.HTTP || (this.TCP && this.TCPAuth)) {
+    if (this.GUI || this.HTTP || this.MCP || (this.TCP && this.TCPAuth)) {
       await new AuthSeeder(this, this.AdminPassword).seedIfNeeded();
       LoginRateLimiter.startCleanupSweep();
     }
@@ -170,6 +173,12 @@ export class AxioDB {
         Logger.error("[AxioDB TCP Server] Failed to start:", error);
       });
     }
+    if (this.MCP) {
+      Console.green("Starting AxioDB Native MCP Server (Port 27020)...");
+      startMcpServer(this).catch((error) => {
+        Logger.error("[AxioDB MCP Server] Failed to start:", error);
+      });
+    }
   }
 
   /**
@@ -183,6 +192,16 @@ export class AxioDB {
   /** The shared InMemoryCache owned by this AxioDB instance, passed down to databases, collections, operations, transactions and the HTTP/TCP/MCP surfaces. */
   public get Cache(): InMemoryCache {
     return this.cache;
+  }
+
+  /** Whether the native MCP server is enabled on this AxioDB instance. */
+  public get isMCP(): boolean {
+    return this.MCP;
+  }
+
+  /** Stops the native MCP HTTP server if active. */
+  public async stopMCPServer(): Promise<void> {
+    await stopMcpServer();
   }
 
   /**

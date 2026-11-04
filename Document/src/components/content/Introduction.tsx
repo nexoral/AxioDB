@@ -698,9 +698,9 @@ const Introduction: React.FC = () => {
                 </span>
               </div>
               <p className="text-sm text-gray-600">
-                Spin up AxioDB on a cloud container and let your AI agent (Claude, or any
-                MCP-compatible client) talk to that database directly — 43 tools, real login,
-                the exact same RBAC as the web GUI.
+                Native Model Context Protocol (MCP) server built directly into AxioDB core —
+                45 tools on port 27020 for AI agents (Claude Code, Cursor, Windsurf, Codex, Antigravity).
+                Start directly in TypeScript with <code className="font-mono text-purple-700 bg-purple-50 px-1 py-0.5 rounded">new AxioDB(&#123; MCP: true &#125;)</code> or run in Docker.
               </p>
             </div>
             <ArrowRight className="h-6 w-6 text-fuchsia-600 flex-shrink-0 group-hover:translate-x-1 transition-transform duration-300" />
@@ -813,26 +813,6 @@ const Introduction: React.FC = () => {
             </div>
           </div>
           <div className="mb-8">
-            {/* ACID Compliance Banner */}
-            <div className="flex items-center justify-center gap-3 bg-orange-50 px-6 py-4 rounded-[3px] border-2 border-amber-200 shadow-md mb-6">
-              <div className="flex items-center justify-center w-12 h-12 bg-amber-500 rounded-[3px] shadow-sm">
-                <GitBranch className="h-6 w-6 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl font-black text-orange-600">
-                    ACID Compliant
-                  </span>
-                  <span className="text-sm bg-amber-500 text-gray-900 px-3 py-1 rounded-full font-bold shadow-md">
-                    ✓ Transactions
-                  </span>
-                </div>
-                <span className="text-sm text-amber-700 font-medium">
-                  Full Transaction Support with Commit, Rollback & Write-Ahead Logging Recovery
-                </span>
-              </div>
-            </div>
-
             {/* Performance Benchmark Callout */}
             <div className="bg-gray-50 rounded-[3px] p-5 border border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="space-y-1 text-center sm:text-left">

@@ -108,7 +108,7 @@ export const apiCategories: ApiCategory[] = [
     "services": [
       { "name": "Dashboard + HTTP API", "port": 27018, "running": true },
       { "name": "AxioDBCloud TCP", "port": 27019, "running": false },
-      { "name": "MCP server", "port": 27020, "running": false, "note": "Docker image only" }
+      { "name": "MCP server", "port": 27020, "running": false, "note": "Native in core & Docker" }
     ]
   }
 }`,

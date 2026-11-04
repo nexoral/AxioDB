@@ -93,7 +93,7 @@ npx skills add nexoral/AxioDB --skill skill
 * **Embedded** — `new AxioDB({...})` in-process, no server, the default
 * **HTTP API** — port 27018, 41 documented endpoints, REST and OpenAPI
 * **AxioDBCloud (TCP)** — port 27019, 32 commands, optional `TCPAuth` and TLS
-* **MCP server** — port 27020, 43 tools for AI agents, bundled in the Docker image only
+* **MCP server** — port 27020, 45 tools for AI agents, native in core (`{ MCP: true }`) and Docker
 * **Docker** — `theankansaha/axiodb`, every surface configurable by environment variable
 
 **Clients and apps**

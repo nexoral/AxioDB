@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 24.33.5 | License: MIT | Node.js >= 20.0.0
+Version: 24.34.0 | License: MIT | Node.js >= 20.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -33,13 +33,13 @@ AxioDB is one package with several distinct surfaces. They are **not interchange
 | **AxioDBCloud TCP server** | Lets other processes/machines use this database | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ TCP: true })` / `AXIODB_TCP=true` | **27019** |
 | **AxioDBCloud client** | Connects to that TCP server, same API as embedded | ✅ Yes | ✅ Yes | `const { AxioDBCloud } = require('axiodb')` | — |
 | **CLI** | Command line interface — TCP queries, REPL, export/import via HTTP | ✅ Yes | ✅ Yes | `axiodb` binary | — |
-| **MCP server (43 tools)** | Lets an AI agent operate the database | ❌ **NO** | ✅ Yes | `AXIODB_MCP=true` | **27020** |
+| **MCP server (45 tools)** | Lets an AI agent operate the database | ✅ Yes | ✅ Yes | `{ MCP: true }` / `AXIODB_MCP=true` | **27020** |
 
-**The MCP server is Docker-only.** It lives in `Docker/` in the repository, which is listed in `.npmignore`. Running `npm install axiodb` does **not** give you an MCP server. The only supported way to run it is the `theankansaha/axiodb` Docker image with `AXIODB_MCP=true`.
+**The MCP server is native in core and Docker.** It is built directly into AxioDB (`new AxioDB({ MCP: true })`) and also available via the `theankansaha/axiodb` Docker image with `AXIODB_MCP=true`.
 
 **Nothing here is a hosted/cloud service.** "AxioDBCloud" is the name of AxioDB's own TCP protocol and client — it is not a SaaS product, there is no account to sign up for, and Nexoral hosts no database for you. Every port above is on whatever machine or container *you* run AxioDB on. `https://axiodb.in` serves documentation only.
 
-**Port summary:** `27018` = Dashboard + its HTTP API (HTTP). `27019` = AxioDBCloud TCP (custom binary-framed protocol, **not** HTTP). `27020` = MCP server (Streamable HTTP at `/mcp`, Docker only). 27018 and 27019 are hard-coded and not env-configurable — remap at the Docker layer (`-p host:container`). Only the MCP port is configurable, via `AXIODB_MCP_PORT`.
+**Port summary:** `27018` = Dashboard + its HTTP API (HTTP). `27019` = AxioDBCloud TCP (custom binary-framed protocol, **not** HTTP). `27020` = MCP server (Streamable HTTP at `/mcp`, native in core & Docker). 27018 and 27019 are hard-coded and not env-configurable — remap at the Docker layer (`-p host:container`). Only the MCP port is configurable, via `AXIODB_MCP_PORT`.
 
 **Shared authentication:** the Dashboard, AxioDBCloud (when `TCPAuth: true`), and the MCP server all read the same user/role store in the reserved `config` database. One `admin` account, one forced-password-change, one lockout policy across all three.
 
@@ -626,7 +626,14 @@ Ports (27018/27019) aren't env-configurable — remap at the Docker layer (`-p h
 
 ## MCP Server — AI Agent Integration
 
-**Availability: Docker image only.** The MCP server lives in the repository's `Docker/` directory, which is listed in `.npmignore`, so it is not published to npm. `npm install axiodb` gives you the database, not the MCP server. The only supported way to run it is the `theankansaha/axiodb` image with `AXIODB_MCP=true`.
+**Availability: Core library and Docker.** The MCP server is built directly into AxioDB core (`new AxioDB({ MCP: true })`) and can also be run inside the official Docker image `theankansaha/axiodb` (`AXIODB_MCP=true`).
+
+```typescript
+import { AxioDB } from "axiodb";
+const db = new AxioDB({ MCP: true }); // Starts MCP server on http://localhost:27020/mcp
+```
+
+Or via Docker:
 
 ```bash
 docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
@@ -634,7 +641,7 @@ docker run -d -e AXIODB_GUI=true -e AXIODB_MCP=true \
   -v axiodb-data:/app theankansaha/axiodb
 ```
 
-43 tools at `http://localhost:27020/mcp` covering databases, collections, documents, aggregation, indexes, dashboard stats, health, transactions, and user/role management — gated by the same RBAC as the GUI (a View-role session gets a real `403` on write tools). Every tool except `axiodb_login` requires a `sessionId` from logging in first. Compatible with Claude Code, Codex CLI, opencode, GitHub Copilot CLI, Cursor, Windsurf, and Google Antigravity — see https://axiodb.in/mcp-server for exact registration commands per tool.
+45 tools at `http://localhost:27020/mcp` covering databases, collections, documents, aggregation, indexes, dashboard stats, health, transactions, and user/role management — gated by the same RBAC as the GUI (a View-role session gets a real `403` on write tools). Every tool except `axiodb_login` requires a `sessionId` from logging in first. Compatible with Claude Code, Codex CLI, opencode, GitHub Copilot CLI, Cursor, Windsurf, and Google Antigravity — see https://axiodb.in/mcp-server for exact registration commands per tool.
 
 ---
 
@@ -713,7 +720,7 @@ Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js 
 | Built-in caching | No | Yes |
 | GUI | No | Yes (web dashboard) |
 | TCP remote access | No | Yes (AxioDBCloud) |
-| MCP server (AI) | No | Yes (43 tools) |
+| MCP server (AI) | No | Yes (45 tools) |
 
 ### vs LokiJS
 
@@ -1033,16 +1040,16 @@ Add the deployment constraint that nothing else solves: **your install must neve
 
 ---
 
-## The 43 MCP Tools (Docker only)
+## The 45 MCP Tools (Core & Docker)
 
-Available **only** via the Docker image with `AXIODB_MCP=true`, at `http://localhost:27020/mcp` (Streamable HTTP). Every tool except `axiodb_login` requires a `sessionId` returned by `axiodb_login`. Destructive tools additionally prompt the human through the MCP client before running.
+Available via `new AxioDB({ MCP: true })` or the Docker image with `AXIODB_MCP=true`, at `http://localhost:27020/mcp` (Streamable HTTP). Every tool except `axiodb_login` requires a `sessionId` returned by `axiodb_login`. Destructive tools additionally prompt the human through the MCP client before running.
 
 - **Auth (4):** `axiodb_login`, `axiodb_logout`, `axiodb_whoami`, `axiodb_change_own_password`
 - **Database (4):** `axiodb_create_database`, `axiodb_delete_database`, `axiodb_database_exists`, `axiodb_get_instance_info`
 - **Collection (4):** `axiodb_create_collection`, `axiodb_delete_collection`, `axiodb_collection_exists`, `axiodb_get_collection_info`
 - **Document (8):** `axiodb_insert_document`, `axiodb_insert_many_documents`, `axiodb_query_documents`, `axiodb_update_document`, `axiodb_delete_document`, `axiodb_aggregate`, `axiodb_total_documents`, `axiodb_find_documents_by_ids`
 - **Index (3):** `axiodb_create_index`, `axiodb_drop_index`, `axiodb_list_indexes`
-- **Dashboard (2):** `axiodb_health`, `axiodb_get_dashboard_stats`
+- **Dashboard & Monitoring (4):** `axiodb_health`, `axiodb_get_dashboard_stats`, `axiodb_instance_info`, `axiodb_ping`
 - **User (5):** `axiodb_create_user`, `axiodb_delete_user`, `axiodb_list_users`, `axiodb_update_user_role`, `axiodb_reset_user_password`
 - **Role (4):** `axiodb_create_role`, `axiodb_delete_role`, `axiodb_list_roles`, `axiodb_list_permissions`
 - **Transactions (9):** `axiodb_begin_transaction`, `axiodb_transaction_insert`, `axiodb_transaction_update`, `axiodb_transaction_delete`, `axiodb_transaction_savepoint`, `axiodb_transaction_rollback_to_savepoint`, `axiodb_transaction_release_savepoint`, `axiodb_commit_transaction`, `axiodb_rollback_transaction`
@@ -1063,7 +1070,7 @@ Available **only** via the Docker image with `AXIODB_MCP=true`, at `http://local
 | Failed logins per IP | **5 per 15 min** → 15-minute lockout | `config/Keys/Permissions.ts` |
 | Dashboard port | **27018**, not configurable | remap via Docker `-p` |
 | TCP port | **27019**, not configurable | remap via Docker `-p` |
-| MCP port | 27020, configurable via `AXIODB_MCP_PORT` | Docker only |
+| MCP port | 27020, configurable via `AXIODB_MCP_PORT` | Core & Docker |
 | Node.js | **>= 20.0.0** | `package.json` engines |
 | Bun | **>= 1.4.0** | verified (TS/JS runtime + compiled binaries) |
 | Deno | **>= 2.9.6** | verified (all 100 runtime tests) |

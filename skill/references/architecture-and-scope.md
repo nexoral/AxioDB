@@ -24,7 +24,7 @@ AxioDB components are strictly partitioned across 5 distinct execution environme
 | **Core Embedded** | In-process | Node.js | Direct in-memory/disk access (`new AxioDB(options)`). Single-process singleton. Highest performance, zero network overhead. |
 | **HTTP Control Server** | `27018` | Fastify | REST API (`/api/*`) and serves the browser-based Web GUI Dashboard at `http://localhost:27018`. Enabled via `GUI: true` or `AXIODB_GUI=true`. |
 | **TCP Remote Server** | `27019` | Node `net` | Binary length-prefixed TCP protocol. Used by `AxioDBCloud` client for remote Node.js applications and CLI. Supports connection pooling (`maxPoolSize: 10`) and RBAC authentication. |
-| **MCP Server** | `27020` | Streamable HTTP | **Docker-only**. Enabled via `AXIODB_MCP=true`. Exposes 43 database management tools to AI agents. **Never exists in standalone npm package or desktop GUI**. |
+| **MCP Server** | `27020` | Streamable HTTP | Native in core (`new AxioDB({ MCP: true })`) and Docker (`AXIODB_MCP=true`). Exposes 45 database management tools to AI agents. |
 | **Desktop GUI** | Local OS Window | Electron + React | Native desktop viewer for Linux, macOS, and Windows. Connects to local or remote AxioDB instances over TCP. |
 | **CLI Tool** | Terminal | Go Binary | Standalone compiled CLI for 12 platforms. Supports interactive REPL, admin commands, and temporary server spinning (`axiodb serve`). |
 

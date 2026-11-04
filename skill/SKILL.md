@@ -1,13 +1,13 @@
 ---
 name: skill
 description: >-
-  Expert operational guide, runbook, and architectural reference for AxioDB (version 24.33.5).
+  Expert operational guide, runbook, and architectural reference for AxioDB (version 24.34.0).
   Use this skill when developing, querying, installing, configuring, troubleshooting,
   or automating AxioDB embedded NoSQL, TCP remote access (AxioDBCloud), Docker containers,
   MCP server integration, Web/Desktop GUI, or CLI operations.
 ---
 
-# AxioDB Operational Skill (v24.33.5)
+# AxioDB Operational Skill (v24.34.0)
 
 AxioDB is an embedded NoSQL database for TypeScript & AI agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js (>=20) and Bun.
 
@@ -24,7 +24,7 @@ Choose the appropriate mode based on the user's requirement:
 | **Local Node.js Service** | Embedded Core | In-process | Read [core-api-and-syntax.md](references/core-api-and-syntax.md) |
 | **Remote Node.js / Microservice** | `AxioDBCloud` TCP | Port `27019` | Read [docker-and-tcp.md](references/docker-and-tcp.md) |
 | **Containerized Deployment** | Docker Image | `27018` & `27019` | Run [run_docker.sh](scripts/run_docker.sh) |
-| **AI Agent Tool Calling** | MCP Server | Port `27020` | **Docker-only** (`AXIODB_MCP=true`) |
+| **AI Agent Tool Calling** | MCP Server | Port `27020` | Core (`{ MCP: true }`) / Docker (`AXIODB_MCP=true`) |
 | **Browser Database Management** | Web GUI | Port `27018` | Start with `GUI: true` or `AXIODB_GUI=true` |
 | **Desktop App (No Browser)** | Electron GUI | Desktop OS | Download from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest) |
 | **Terminal / Scripts / REPL** | CLI Tool | Terminal | Download from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest) |
@@ -44,7 +44,7 @@ AxioDB features are strictly partitioned across specific surfaces:
 3. **TCP Remote Access (Port 27019)**:
    - High-throughput binary protocol used by `AxioDBCloud` client with connection pooling (`maxPoolSize: 10`) and RBAC authentication.
 4. **MCP Server (Port 27020)**:
-   - **Docker-only**. Enabled via `AXIODB_MCP=true`. Exposes 43 database management tools over Streamable HTTP for AI agents. Never exists in the standalone npm package or desktop app.
+   - Native in core (`new AxioDB({ MCP: true })`) and Docker (`AXIODB_MCP=true`). Exposes 45 database management tools over Streamable HTTP for AI agents.
 5. **Desktop GUI (Electron)**:
    - Standalone native desktop viewer connecting over TCP.
 

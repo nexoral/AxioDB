@@ -12,7 +12,18 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "24.33.5",
+    version: "24.34.0",
+    date: "2026-11-04",
+    title: "Native in-core MCP server integration, 45 tools, and documentation redesign",
+    changes: [
+      "Native In-Core MCP Server: integrated Model Context Protocol (MCP) server directly into AxioDB core via new AxioDB({ MCP: true }), removing Docker-only requirement",
+      "45 Native MCP Tools: added instance info, collection management, and transaction operations on port 27020",
+      "Documentation Overhaul: redesigned MCP Server documentation into a streamlined, step-by-step practical guide with AI client connection guides (Claude Code, Cursor, Windsurf, Antigravity, Copilot, Codex)",
+      "Homepage Refinement: updated feature showcase and removed legacy compliance banner for clearer positioning",
+    ],
+  },
+  {
+    version: "24.33.4",
     date: "2026-11-04",
     title: "Master integer-pointer indexing, 16-character IDs, and dual-write cache optimization",
     changes: [

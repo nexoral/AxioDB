@@ -83,7 +83,7 @@ source/
      → `cd Document && npx tsx scripts/generate-seo-files.ts`
    - Version identical in package.json, changelog, llms.txt, llms-full.txt, index.html
    - Keep the surfaces distinct: core library · Dashboard · Dashboard HTTP API (27018) ·
-     AxioDBCloud TCP (27019) · MCP server (27020, Docker only)
+     AxioDBCloud TCP (27019) · MCP server (27020, core & Docker)
 
 ## Commands
 

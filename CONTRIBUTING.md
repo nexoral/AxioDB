@@ -157,10 +157,10 @@ AxioDB/
 ├── lib/                       # Compiled JS (tsc, gitignored)
 ├── Test/node/modules/         # 14 suites (isolated child processes, singleton)
 ├── Document/                  # React docs site 5173 (single source serverApi.ts → openapi.json)
-├── Docker/                    # Dockerfile 27018/27019/27020 + mcpServer.js 43 tools
+├── Docker/                    # Dockerfile 27018/27019/27020 + runner.js
 ├── GUI/                       # Vite React GUI
 ├── cli/                       # Go CLI 12 platforms
-└── package.json               # 24.33.5
+└── package.json               # 24.34.0
 ```
 
 ## Coding Standards

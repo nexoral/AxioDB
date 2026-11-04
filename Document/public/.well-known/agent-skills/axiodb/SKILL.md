@@ -604,7 +604,7 @@ docker run -d \
   theankansaha/axiodb
 ```
 
-MCP endpoint: `http://localhost:27020/mcp` — 43 tools for AI agents.
+MCP endpoint: `http://localhost:27020/mcp` — 45 tools for AI agents.
 
 ### With TLS
 
@@ -676,10 +676,17 @@ docker run -e UV_THREADPOOL_SIZE=16 ...
 
 ## Part 5: MCP Server (AI Agent Integration)
 
-**Available in: Docker image only.** Not in the npm package. The MCP server
-code lives in `Docker/` in the repository and is npm-ignored.
+**Available in: Core library and Docker.** Initiate in TypeScript/JavaScript via `new AxioDB({ MCP: true })` or run in Docker with `AXIODB_MCP=true`.
 
-### Enable it
+### Enable in Core (TypeScript / Node.js)
+
+```typescript
+import { AxioDB } from "axiodb";
+
+const db = new AxioDB({ MCP: true }); // Port 27020
+```
+
+### Enable in Docker
 
 ```bash
 docker run -d -e AXIODB_MCP=true \
@@ -695,7 +702,7 @@ http://localhost:27020/mcp
 
 ### What it provides
 
-43 tools covering: database CRUD, collection CRUD, document CRUD, aggregation,
+45 tools covering: database CRUD, collection CRUD, document CRUD, aggregation,
 index management, dashboard stats, health checks, transaction operations
 (BEGIN/COMMIT/ROLLBACK/SAVEPOINT), and user/role management.
 
@@ -716,7 +723,7 @@ commands per tool.
 |---|---|---|---|---|
 | **27018** | HTTP | Dashboard + REST API | No (remap with Docker `-p`) | `GUI: true` / `AXIODB_GUI=true` |
 | **27019** | TCP (custom binary protocol) | AxioDBCloud server | No (remap with Docker `-p`) | `TCP: true` / `AXIODB_TCP=true` |
-| **27020** | HTTP (Streamable) | MCP server | Yes (`AXIODB_MCP_PORT`) | `AXIODB_MCP=true` (Docker only) |
+| **27020** | HTTP (Streamable) | MCP server | Yes (`AXIODB_MCP_PORT`) | `{ MCP: true }` / `AXIODB_MCP=true` |
 
 **Port 27018** is HTTP — serves the web GUI and the REST API (41 endpoints).
 Session cookie auth. This is NOT the TCP server.
@@ -726,7 +733,7 @@ an HTTP client at 27019. The `AxioDBCloud` client handles the protocol. This
 is the most common setup error.
 
 **Port 27020** is Streamable HTTP at `/mcp` — the MCP server for AI agents.
-Docker image only.
+Available natively in core and Docker image.
 
 All three ports share **one** user/role store (the `config` database). A
 password change or lockout applies everywhere. Ports 27018 and 27019 are

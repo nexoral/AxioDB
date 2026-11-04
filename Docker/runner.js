@@ -59,6 +59,7 @@ const options = {
   maxTTL: parseNumber(process.env.AXIODB_CACHE_MAX_TTL, undefined),
   cacheClearUp: parseNumber(process.env.AXIODB_CACHE_CLEARUP, undefined),
   RootName: process.env.AXIODB_ROOT_NAME || "AxioDB",
+  MCP: parseBoolean(process.env.AXIODB_MCP, false),
 };
 
 if (options.GUI && process.env.AXIODB_HTTP !== undefined && !options.HTTP) {
@@ -95,9 +96,5 @@ if (process.env.AXIODB_TLS_KEY_PATH) {
 }
 
 const axioDBInstance = new AxioDB(options);
-
-if (parseBoolean(process.env.AXIODB_MCP, false)) {
-  require('./mcpServer.js')(axioDBInstance);
-}
 
 module.exports = axioDBInstance;

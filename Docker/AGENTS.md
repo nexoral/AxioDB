@@ -8,11 +8,8 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Docker/`
 
 ```
 Dockerfile        node:23-alpine (Node 23 container runtime); drops to non-root `axiodb`; HEALTHCHECK → healthcheck.js
-runner.js         entrypoint: maps env → AxioDB options, validates combos, UV_THREADPOOL_SIZE
+runner.js         entrypoint: maps env → AxioDB options (including MCP), validates combos, UV_THREADPOOL_SIZE
 healthcheck.js    probes GUI /health + a real TCP PING/PONG round-trip
-mcpServer.js      boots the MCP server when AXIODB_MCP=true
-mcp/              MCP impl — tools/ (auth, collection, dashboard, database, document, index,
-                  role, transaction, user), confirmation.helper.js, shared.helpers.js
 README.md         user-facing docs + version badge
 ```
 
@@ -47,7 +44,7 @@ So a local `docker build Docker/` only works after those `mv`/`cp` steps. Don't 
 ## Hard rules
 
 * Any new core option surfaced as an env var must be added to `runner.js` **and** the README table in the same change.
-* `AXIODB_MCP` is image-only: the MCP SDK (`@modelcontextprotocol/sdk`, `zod`) is installed in the image but must **never** enter the published npm package.
+* `AXIODB_MCP` in Docker delegates to the native MCP server in AxioDB core (`options.MCP: true`). Zero native dependencies.
 * Keep `USER axiodb` (post-install) and the `exec node runner.js` CMD so SIGTERM reaches PID 1 for graceful shutdown.
 * Destructive MCP tools (delete/update/drop/reset) must keep their elicitation confirmation and `destructiveHint` annotations.
 * Ports are not env-configurable — remap with `-p host:27018` / `-p host:27019`.
