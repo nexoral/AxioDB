@@ -12,6 +12,17 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "24.34.4",
+    date: "2026-11-04",
+    title: "Vector-Less RAG master knowledge base, GitHub metadata enhancement, and documentation clarification",
+    changes: [
+      "Vector-Less RAG Master Knowledge Base: created comprehensive single-source-of-truth knowledge base in assets/axiodb-knowledge-base.md and axiodb.txt for autonomous AI agents, RAG pipelines, and developer teams",
+      "Repository Metadata Expansion: configured all 20 allowed GitHub repository topics with high-intent discovery tags including ai-agents, mcp-server, local-first, bun, electron, and sqlite-alternative",
+      "Documentation Clarification: renamed MongoDB-style query references to advanced queries across core types, UI components, REST API descriptions, and AI documents for clearer developer positioning",
+      "README Experience: added animated terminal execution demo, streamlined one-command installation, and organized feature breakdown distinguishing core package capabilities from companion tools",
+    ],
+  },
+  {
     version: "24.34.3",
     date: "2026-11-04",
     title: "Native in-core MCP server integration, 45 tools, and documentation redesign",
