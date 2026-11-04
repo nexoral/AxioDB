@@ -2,10 +2,8 @@
   <img src="https://axiodb.in/AXioDB.png" alt="AxioDB Logo" width="120" height="120" />
 </p>
 
-<h1 align="center">AxioDB</h1>
-<p align="center">
-  <b>An embedded database for TypeScript and Node.js that provides advanced queries and ACID safety without running a server.</b>
-</p>
+<h1 align="center">Embedded NoSQL Database for TypeScript & Agents</h1>
+<p align="center"><b>Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun.</b></p>
 
 <p align="center">
   <a href="#quick-start"><img src="https://img.shields.io/badge/Install-npm%20i%20axiodb-cb3837?style=for-the-badge&logo=npm" alt="npm install axiodb" /></a>
@@ -13,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/demo.gif" alt="AxioDB Quick Demo" width="800" />
+  <img src="https://raw.githubusercontent.com/nexoral/AxioDB/main/assets/demo.gif" alt="AxioDB Quick Demo" width="800" />
 </p>
 
 [![CI](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml/badge.svg)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
