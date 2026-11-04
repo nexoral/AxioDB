@@ -49,7 +49,27 @@ const Dashboard = () => {
       .catch((err) => {
         if (cancelled) return
         console.error('Error fetching dashboard stats:', err)
-        setError(err.response?.data?.message || 'Could not load dashboard statistics.')
+        const isNetworkErr =
+          !err.response ||
+          err.code === 'ECONNREFUSED' ||
+          err.code === 'ERR_NETWORK' ||
+          /ECONNREFUSED|network|offline|socket/i.test(err.message || '')
+
+        const fallback = isNetworkErr
+          ? 'Unable to connect to AxioDB server. Please ensure the server is running.'
+          : 'Could not load dashboard statistics.'
+
+        const rawMsg = err.response?.data?.message || err.message || fallback
+        const clean = typeof rawMsg === 'string'
+          ? rawMsg
+              .replace(/https?:\/\/[^\s),]+/gi, '')
+              .replace(/Route\s+[A-Z]+:\s*\/[^\s]+(\s+not found)?/gi, 'Requested endpoint not found')
+              .replace(/\(\s*\)/g, '')
+              .replace(/\s{2,}/g, ' ')
+              .trim()
+          : fallback
+
+        setError(clean || fallback)
         setLoading(false)
       })
 

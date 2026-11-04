@@ -16,6 +16,21 @@ const sanitizeHeaders = (rawHeaders) => {
   return result;
 };
 
+/**
+ * Strips raw URLs (e.g. http://127.0.0.1:27018/api/...) and internal route paths
+ * from user-facing error messages to avoid leaking implementation details.
+ */
+const sanitizeErrorMessage = (msg) => {
+  if (typeof msg !== "string") return "An unexpected error occurred.";
+  let sanitized = msg
+    .replace(/https?:\/\/[^\s),]+/gi, "")
+    .replace(/Route\s+[A-Z]+:\s*\/[^\s]+(\s+not found)?/gi, "Requested endpoint not found")
+    .replace(/\(\s*\)/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return sanitized || "An unexpected error occurred.";
+};
+
 const customIpcAdapter = async (config) => {
   if (typeof window !== "undefined" && window.electronAPI?.request) {
     let fullUrl = config.url;
@@ -48,10 +63,11 @@ const customIpcAdapter = async (config) => {
         return response;
       }
 
-      const message =
+      const rawMessage =
         res.data && typeof res.data === "object" && res.data.message
           ? String(res.data.message)
           : `Request failed with status code ${res.status}`;
+      const message = sanitizeErrorMessage(rawMessage);
 
       const error = new axios.AxiosError(
         message,
@@ -67,16 +83,16 @@ const customIpcAdapter = async (config) => {
       let code = "ERR_NETWORK";
 
       if (/ECONNREFUSED/i.test(rawMsg)) {
-        cleanMsg = `Connection refused (${fullUrl}). Please ensure the AxioDB server is running and the port is accessible.`;
+        cleanMsg = "Connection refused. Please ensure the AxioDB server is running and accessible.";
         code = "ECONNREFUSED";
       } else if (/ETIMEDOUT|timed out/i.test(rawMsg)) {
-        cleanMsg = `Connection timed out (${fullUrl}). The server took too long to respond.`;
+        cleanMsg = "Connection timed out. The server took too long to respond.";
         code = "ETIMEDOUT";
       } else if (/ENOTFOUND/i.test(rawMsg)) {
-        cleanMsg = `Host not found (${fullUrl}). Please check the hostname or IP address.`;
+        cleanMsg = "Host not found. Please verify the hostname or IP address.";
         code = "ENOTFOUND";
       } else if (/ECONNRESET|socket hang up/i.test(rawMsg)) {
-        cleanMsg = `Connection was reset by the server (${fullUrl}).`;
+        cleanMsg = "Connection was reset by the server.";
         code = "ECONNRESET";
       } else {
         // Strip Electron IPC wrapper if present
@@ -84,6 +100,7 @@ const customIpcAdapter = async (config) => {
         if (match) {
           cleanMsg = match[1];
         }
+        cleanMsg = sanitizeErrorMessage(cleanMsg);
       }
 
       const axiosErr = new axios.AxiosError(
@@ -133,4 +150,4 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-export { customIpcAdapter, sanitizeHeaders };
+export { customIpcAdapter, sanitizeHeaders, sanitizeErrorMessage };
