@@ -3,9 +3,8 @@ FROM node:23-alpine
 
 WORKDIR /app
 
-# App entrypoints + MCP tool modules
-COPY runner.js healthcheck.js mcpServer.js ./
-COPY mcp/ ./mcp/
+# App entrypoints
+COPY runner.js healthcheck.js ./
 
 # Compiled lib output
 COPY lib/ ./lib/
@@ -19,9 +18,6 @@ COPY Scripts/ ./Scripts/
 RUN apk add --no-cache bash
 
 RUN npm install --force
-
-# MCP SDK - image-only dep, opt-in via AXIODB_MCP=true, never in the published npm package
-RUN npm install --force @modelcontextprotocol/sdk@^1.29.0 zod@^4.0.0
 
 # Drop root after install (postinstall may need root-owned paths)
 RUN addgroup -S axiodb && adduser -S axiodb -G axiodb && chown -R axiodb:axiodb /app

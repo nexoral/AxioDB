@@ -8,10 +8,7 @@ const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 const { AxioDB } = require('../../../lib/config/DB.js');
 
-// The MCP SDK is intentionally Docker-only. Tool modules only need these schema builders at
-// registration time, so a tiny schema stub lets this suite exercise real handlers locally.
-const schema = new Proxy({}, { get: (_, property) => property === 'optional' ? () => schema : () => schema });
-const zodStub = { z: { string: () => schema, record: () => schema, array: () => schema, number: () => schema, boolean: () => schema, any: () => schema } };
+const { buildMcpTools } = require('../../../lib/Helper/mcp/McpTools.helper.js');
 
 class McpFunctionalTests extends TestRunner {
   constructor() {
@@ -19,65 +16,24 @@ class McpFunctionalTests extends TestRunner {
     this.testDir = './Test/TestMcpFunctional';
     this.db = null;
     this.handlers = new Map();
-    this.dockerLibCreated = false;
   }
 
   async setUp() {
     if (fs.existsSync(this.testDir)) fs.rmSync(this.testDir, { recursive: true, force: true });
-    this.db = new AxioDB({ GUI: false, RootName: 'McpFunctionalTestDB', CustomPath: this.testDir });
+    this.db = new AxioDB({ GUI: false, MCP: true, RootName: 'McpFunctionalTestDB', CustomPath: this.testDir, AdminPassword: 'admin' });
+    await this.db.createDB('InitDB');
     const AuthSeeder = require('../../../lib/Services/Auth/AuthSeeder.service').default;
-    await new AuthSeeder(this.db).seedIfNeeded();
+    await new AuthSeeder(this.db, 'admin').seedIfNeeded();
 
-    const dockerLibPath = path.resolve(__dirname, '../../../Docker/lib');
-    const actualLibPath = path.resolve(__dirname, '../../../lib');
-    if (!fs.existsSync(dockerLibPath)) {
-      try {
-        fs.symlinkSync(actualLibPath, dockerLibPath, 'junction');
-        this.dockerLibCreated = true;
-      } catch {
-        // Ignored if permissions or filesystem disallow symlink
-      }
-    }
-
-    const fakeServer = {
-      server: { getClientCapabilities: () => ({}) },
-      registerTool: (name, _definition, handler) => this.handlers.set(name, handler),
-    };
-    const originalLoad = Module._load;
-    Module._load = function load(request, parent, isMain) {
-      if (request === 'zod') return zodStub;
-      const libMarker = request.indexOf('lib/');
-      if (libMarker >= 0) {
-        return originalLoad.call(this, path.join(__dirname, '..', '..', '..', request.slice(libMarker)), parent, isMain);
-      }
-      return originalLoad.call(this, request, parent, isMain);
-    };
-    try {
-      const tools = [
-        ['auth', require('../../../Docker/mcp/tools/auth.tools')],
-        ['database', require('../../../Docker/mcp/tools/database.tools')],
-        ['collection', require('../../../Docker/mcp/tools/collection.tools')],
-        ['document', require('../../../Docker/mcp/tools/document.tools')],
-        ['index', require('../../../Docker/mcp/tools/index.tools')],
-        ['dashboard', require('../../../Docker/mcp/tools/dashboard.tools')],
-        ['user', require('../../../Docker/mcp/tools/user.tools')],
-        ['role', require('../../../Docker/mcp/tools/role.tools')],
-        ['transaction', require('../../../Docker/mcp/tools/transaction.tools')],
-      ];
-      for (const [, register] of tools) register(fakeServer, this.db);
-    } finally {
-      Module._load = originalLoad;
+    const nativeTools = buildMcpTools(this.db);
+    for (const [name, tool] of nativeTools) {
+      this.handlers.set(name, tool.handler);
     }
   }
 
   async tearDown() {
-    if (this.dockerLibCreated) {
-      const dockerLibPath = path.resolve(__dirname, '../../../Docker/lib');
-      try {
-        fs.unlinkSync(dockerLibPath);
-      } catch {
-        // Ignored
-      }
+    if (this.db) {
+      await this.db.stopMCPServer();
     }
     if (fs.existsSync(this.testDir)) fs.rmSync(this.testDir, { recursive: true, force: true });
   }
@@ -91,7 +47,7 @@ class McpFunctionalTests extends TestRunner {
 
   async runTests() {
     await this.test('Registers all MCP tool families, including transactions', async () => {
-      assert.equal(this.handlers.size, 43);
+      assert.equal(this.handlers.size, 45);
       assert.ok(this.handlers.has('axiodb_login'));
       assert.ok(this.handlers.has('axiodb_begin_transaction'));
       assert.ok(this.handlers.has('axiodb_create_user'));
@@ -155,6 +111,511 @@ class McpFunctionalTests extends TestRunner {
       assert.equal((await this.call('axiodb_delete_user', { sessionId, username: 'mcp-temp-user' })).statusCode, 200);
       assert.equal((await this.call('axiodb_delete_role', { sessionId, roleName: 'McpTempRole' })).statusCode, 200);
       assert.equal((await this.call('axiodb_logout', { sessionId })).statusCode, 200);
+    });
+
+    await this.test('Native HTTP MCP Server on port 27020 handles JSON-RPC 2.0 and tells unauthenticated agents to log in', async () => {
+      // 1. GET /mcp health/discovery
+      const healthRes = await fetch('http://localhost:27020/mcp');
+      assert.equal(healthRes.status, 200);
+      const healthJson = await healthRes.json();
+      assert.equal(healthJson.service, 'axiodb-mcp-server');
+      assert.equal(healthJson.port, 27020);
+
+      // 2. POST /mcp initialize
+      const initRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'initialize' }),
+      });
+      const initJson = await initRes.json();
+      assert.equal(initJson.result.serverInfo.name, 'axiodb-mcp-server');
+      assert.equal(initJson.result.protocolVersion, '2024-11-05');
+      const mcpSessionId = initRes.headers.get('mcp-session-id');
+      assert.ok(mcpSessionId);
+
+      // 2b. POST /mcp notifications/initialized (Codex / RMCP handshake) returns 202 Accepted
+      const initNotifRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'mcp-session-id': mcpSessionId },
+        body: JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }),
+      });
+      assert.equal(initNotifRes.status, 202);
+      const notifBody = await initNotifRes.text();
+      assert.equal(notifBody, '');
+
+      // 3. POST /mcp tools/list
+      const listRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list' }),
+      });
+      const listJson = await listRes.json();
+      assert.ok(Array.isArray(listJson.result.tools));
+      assert.equal(listJson.result.tools.length, 45);
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_login'));
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_query_documents'));
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_get_instance_info'));
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_collection_exists'));
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_get_collection_info'));
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_find_documents_by_ids'));
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_aggregate'));
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_transaction_insert'));
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_transaction_savepoint'));
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_update_user_role'));
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_list_permissions'));
+
+      // 4. Call without sessionId tells AI agent to login first
+      const noAuthRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 3,
+          method: 'tools/call',
+          params: { name: 'axiodb_list_databases', arguments: {} },
+        }),
+      });
+      const noAuthJson = await noAuthRes.json();
+      assert.equal(noAuthJson.result.isError, true);
+      const errPayload = JSON.parse(noAuthJson.result.content[0].text);
+      assert.equal(errPayload.statusCode, 401);
+      assert.ok(errPayload.message.includes('axiodb_login'));
+
+      // 5. Call axiodb_login over native HTTP MCP
+      const loginRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 4,
+          method: 'tools/call',
+          params: { name: 'axiodb_login', arguments: { username: 'admin', password: 'admin' } },
+        }),
+      });
+      const loginJson = await loginRes.json();
+      const loginPayload = JSON.parse(loginJson.result.content[0].text);
+      assert.equal(loginPayload.statusCode, 200);
+      assert.ok(loginPayload.data.sessionId);
+
+      // 6. If mustChangePassword is true, password change is enforced first
+      if (loginPayload.data.mustChangePassword) {
+        const blockedRes = await fetch('http://localhost:27020/mcp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 5,
+            method: 'tools/call',
+            params: { name: 'axiodb_list_databases', arguments: { sessionId: loginPayload.data.sessionId } },
+          }),
+        });
+        const blockedJson = await blockedRes.json();
+        const blockedPayload = JSON.parse(blockedJson.result.content[0].text);
+        assert.equal(blockedPayload.statusCode, 403);
+
+        const changeRes = await fetch('http://localhost:27020/mcp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 6,
+            method: 'tools/call',
+            params: {
+              name: 'axiodb_change_own_password',
+              arguments: {
+                sessionId: loginPayload.data.sessionId,
+                oldPassword: 'admin',
+                newPassword: 'newAdminPassword123!',
+              },
+            },
+          }),
+        });
+        const changeJson = await changeRes.json();
+        const changePayload = JSON.parse(changeJson.result.content[0].text);
+        assert.equal(changePayload.statusCode, 200);
+      }
+
+      // 7. Call with active authenticated session succeeds
+      const dbListRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 7,
+          method: 'tools/call',
+          params: { name: 'axiodb_list_databases', arguments: { sessionId: loginPayload.data.sessionId } },
+        }),
+      });
+      const dbListJson = await dbListRes.json();
+      const dbListPayload = JSON.parse(dbListJson.result.content[0].text);
+      assert.equal(dbListPayload.statusCode, 200);
+      assert.ok(dbListPayload.executionTime);
+      assert.ok(typeof dbListPayload.executionTimeMs === 'number');
+
+      // 8. Call axiodb_list_collections with { name: 'InitDB' } or { dbName: 'InitDB' } succeeds
+      const colListRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 8,
+          method: 'tools/call',
+          params: { name: 'axiodb_list_collections', arguments: { sessionId: loginPayload.data.sessionId, name: 'InitDB' } },
+        }),
+      });
+      const colListJson = await colListRes.json();
+      const colListPayload = JSON.parse(colListJson.result.content[0].text);
+      assert.equal(colListPayload.statusCode, 200);
+      assert.ok(colListPayload.executionTime);
+
+      // 9. axiodb_create_index works with fieldName or fieldNames
+      const createIdxRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 9,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_create_index',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              dbName: 'McpDB',
+              collectionName: 'items',
+              fieldName: 'value',
+            },
+          },
+        }),
+      });
+      const createIdxJson = await createIdxRes.json();
+      const createIdxPayload = JSON.parse(createIdxJson.result.content[0].text);
+      assert.equal(createIdxPayload.statusCode, 201);
+
+      // 10. axiodb_drop_index works
+      const dropIdxRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 10,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_drop_index',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              dbName: 'McpDB',
+              collectionName: 'items',
+              indexName: 'value',
+            },
+          },
+        }),
+      });
+      const dropIdxJson = await dropIdxRes.json();
+      const dropIdxPayload = JSON.parse(dropIdxJson.result.content[0].text);
+      assert.equal(dropIdxPayload.statusCode, 200);
+
+      // 11. Empty transaction commit returns 200 instead of 500
+      const beginRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 11,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_begin_transaction',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              dbName: 'McpDB',
+              collectionName: 'items',
+            },
+          },
+        }),
+      });
+      const beginJson = await beginRes.json();
+      const beginPayload = JSON.parse(beginJson.result.content[0].text);
+      assert.equal(beginPayload.statusCode, 200);
+      const emptyTxnId = beginPayload.data.transactionId;
+
+      // Test transaction insert, savepoint, rollbackTo, and commit
+      const txInsertRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 12,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_transaction_insert',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              transactionId: emptyTxnId,
+              document: { title: 'tx doc 1' },
+            },
+          },
+        }),
+      });
+      const txInsertJson = await txInsertRes.json();
+      assert.equal(JSON.parse(txInsertJson.result.content[0].text).statusCode, 200);
+
+      const spRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 121,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_transaction_savepoint',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              transactionId: emptyTxnId,
+              savepointName: 'sp1',
+            },
+          },
+        }),
+      });
+      const spJson = await spRes.json();
+      assert.equal(JSON.parse(spJson.result.content[0].text).statusCode, 200);
+
+      const rbSpRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 122,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_transaction_rollback_to_savepoint',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              transactionId: emptyTxnId,
+              savepointName: 'sp1',
+            },
+          },
+        }),
+      });
+      const rbSpJson = await rbSpRes.json();
+      assert.equal(JSON.parse(rbSpJson.result.content[0].text).statusCode, 200);
+
+      const commitRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 123,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_commit_transaction',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              transactionId: emptyTxnId,
+            },
+          },
+        }),
+      });
+      const commitJson = await commitRes.json();
+      const commitPayload = JSON.parse(commitJson.result.content[0].text);
+      assert.equal(commitPayload.statusCode, 200);
+
+      // 12. Create user, update user role, reset password, then delete user
+      const createUserRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 13,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_create_user',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              username: 'mcp-live-test-user',
+              password: 'testPassword123!',
+              role: 'View',
+            },
+          },
+        }),
+      });
+      const createUserJson = await createUserRes.json();
+      const createUserPayload = JSON.parse(createUserJson.result.content[0].text);
+      assert.equal(createUserPayload.statusCode, 201);
+
+      const updateRoleRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 14,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_update_user_role',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              username: 'mcp-live-test-user',
+              role: 'Admin',
+            },
+          },
+        }),
+      });
+      const updateRoleJson = await updateRoleRes.json();
+      const updateRolePayload = JSON.parse(updateRoleJson.result.content[0].text);
+      assert.equal(updateRolePayload.statusCode, 200);
+
+      const resetPwRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 15,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_reset_user_password',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              username: 'mcp-live-test-user',
+              newPassword: 'newTemporaryPassword456!',
+            },
+          },
+        }),
+      });
+      const resetPwJson = await resetPwRes.json();
+      const resetPwPayload = JSON.parse(resetPwJson.result.content[0].text);
+      assert.equal(resetPwPayload.statusCode, 200);
+
+      const deleteUserRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 16,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_delete_user',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              username: 'mcp-live-test-user',
+            },
+          },
+        }),
+      });
+      const deleteUserJson = await deleteUserRes.json();
+      const deleteUserPayload = JSON.parse(deleteUserJson.result.content[0].text);
+      assert.equal(deleteUserPayload.statusCode, 200);
+
+      // 13. Test instance info, collection info, collection exists
+      const instRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 17,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_get_instance_info',
+            arguments: { sessionId: loginPayload.data.sessionId },
+          },
+        }),
+      });
+      const instJson = await instRes.json();
+      assert.equal(JSON.parse(instJson.result.content[0].text).statusCode, 200);
+
+      const colExistsRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 18,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_collection_exists',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              dbName: 'InitDB',
+              collectionName: 'non_existent_col',
+            },
+          },
+        }),
+      });
+      const colExistsJson = await colExistsRes.json();
+      const colExistsPayload = JSON.parse(colExistsJson.result.content[0].text);
+      assert.equal(colExistsPayload.statusCode, 200);
+      assert.equal(colExistsPayload.data.exists, false);
+
+      const colInfoRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 19,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_get_collection_info',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              databaseName: 'InitDB',
+            },
+          },
+        }),
+      });
+      const colInfoJson = await colInfoRes.json();
+      assert.equal(JSON.parse(colInfoJson.result.content[0].text).statusCode, 200);
+
+      // 14. Test permissions catalogue, custom role creation and deletion
+      const permsRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 20,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_list_permissions',
+            arguments: { sessionId: loginPayload.data.sessionId },
+          },
+        }),
+      });
+      const permsJson = await permsRes.json();
+      assert.equal(JSON.parse(permsJson.result.content[0].text).statusCode, 200);
+
+      const createRoleRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 21,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_create_role',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              roleName: 'LiveTestRole',
+              permissions: ['db:view', 'collection:view'],
+            },
+          },
+        }),
+      });
+      const createRoleJson = await createRoleRes.json();
+      assert.equal(JSON.parse(createRoleJson.result.content[0].text).statusCode, 201);
+
+      const deleteRoleRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 22,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_delete_role',
+            arguments: {
+              sessionId: loginPayload.data.sessionId,
+              roleName: 'LiveTestRole',
+            },
+          },
+        }),
+      });
+      const deleteRoleJson = await deleteRoleRes.json();
+      assert.equal(JSON.parse(deleteRoleJson.result.content[0].text).statusCode, 200);
     });
   }
 }

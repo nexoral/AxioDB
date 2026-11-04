@@ -8,10 +8,7 @@ const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 const { AxioDB } = require('../../../lib/config/DB.js');
 
-// The MCP SDK is intentionally Docker-only. Tool modules only need these schema builders at
-// registration time, so a tiny schema stub lets this suite exercise real handlers locally.
-const schema = new Proxy({}, { get: (_, property) => property === 'optional' ? () => schema : () => schema });
-const zodStub = { z: { string: () => schema, record: () => schema, array: () => schema, number: () => schema, boolean: () => schema, any: () => schema } };
+const { buildMcpTools } = require('../../../lib/Helper/mcp/McpTools.helper.js');
 
 class McpFunctionalTests extends TestRunner {
   constructor() {
@@ -19,69 +16,24 @@ class McpFunctionalTests extends TestRunner {
     this.testDir = './Test/TestMcpFunctional';
     this.db = null;
     this.handlers = new Map();
-    this.dockerLibCreated = false;
   }
 
   async setUp() {
     if (fs.existsSync(this.testDir)) fs.rmSync(this.testDir, { recursive: true, force: true });
-    this.db = new AxioDB({ GUI: false, MCP: true, RootName: 'McpFunctionalTestDB', CustomPath: this.testDir });
+    this.db = new AxioDB({ GUI: false, MCP: true, RootName: 'McpFunctionalTestDB', CustomPath: this.testDir, AdminPassword: 'admin' });
     await this.db.createDB('InitDB');
     const AuthSeeder = require('../../../lib/Services/Auth/AuthSeeder.service').default;
-    await new AuthSeeder(this.db).seedIfNeeded();
+    await new AuthSeeder(this.db, 'admin').seedIfNeeded();
 
-    const dockerLibPath = path.resolve(__dirname, '../../../Docker/lib');
-    const actualLibPath = path.resolve(__dirname, '../../../lib');
-    if (!fs.existsSync(dockerLibPath)) {
-      try {
-        fs.symlinkSync(actualLibPath, dockerLibPath, 'junction');
-        this.dockerLibCreated = true;
-      } catch {
-        // Ignored
-      }
-    }
-
-    const fakeServer = {
-      server: { getClientCapabilities: () => ({}) },
-      registerTool: (name, _definition, handler) => this.handlers.set(name, handler),
-    };
-    const originalLoad = Module._load;
-    Module._load = function load(request, parent, isMain) {
-      if (request === 'zod') return zodStub;
-      const libMarker = request.indexOf('lib/');
-      if (libMarker >= 0) {
-        return originalLoad.call(this, path.join(__dirname, '..', '..', '..', request.slice(libMarker)), parent, isMain);
-      }
-      return originalLoad.call(this, request, parent, isMain);
-    };
-    try {
-      const tools = [
-        ['auth', require('../../../Docker/mcp/tools/auth.tools')],
-        ['database', require('../../../Docker/mcp/tools/database.tools')],
-        ['collection', require('../../../Docker/mcp/tools/collection.tools')],
-        ['document', require('../../../Docker/mcp/tools/document.tools')],
-        ['index', require('../../../Docker/mcp/tools/index.tools')],
-        ['dashboard', require('../../../Docker/mcp/tools/dashboard.tools')],
-        ['user', require('../../../Docker/mcp/tools/user.tools')],
-        ['role', require('../../../Docker/mcp/tools/role.tools')],
-        ['transaction', require('../../../Docker/mcp/tools/transaction.tools')],
-      ];
-      for (const [, register] of tools) register(fakeServer, this.db);
-    } finally {
-      Module._load = originalLoad;
+    const nativeTools = buildMcpTools(this.db);
+    for (const [name, tool] of nativeTools) {
+      this.handlers.set(name, tool.handler);
     }
   }
 
   async tearDown() {
     if (this.db) {
       await this.db.stopMCPServer();
-    }
-    if (this.dockerLibCreated) {
-      const dockerLibPath = path.resolve(__dirname, '../../../Docker/lib');
-      try {
-        fs.unlinkSync(dockerLibPath);
-      } catch {
-        // Ignored
-      }
     }
     if (fs.existsSync(this.testDir)) fs.rmSync(this.testDir, { recursive: true, force: true });
   }
@@ -95,7 +47,7 @@ class McpFunctionalTests extends TestRunner {
 
   async runTests() {
     await this.test('Registers all MCP tool families, including transactions', async () => {
-      assert.equal(this.handlers.size, 43);
+      assert.equal(this.handlers.size, 45);
       assert.ok(this.handlers.has('axiodb_login'));
       assert.ok(this.handlers.has('axiodb_begin_transaction'));
       assert.ok(this.handlers.has('axiodb_create_user'));

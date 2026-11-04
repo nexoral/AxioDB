@@ -1362,6 +1362,7 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
       statusCode: 200,
       message: "AxioDB is healthy",
       data: {
+        status: "ok",
         uptime: process.uptime(),
         timestamp: Date.now(),
       },
