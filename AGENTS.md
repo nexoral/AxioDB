@@ -21,6 +21,7 @@ Test/
 Docker/          # Dockerfile, MCP config
 Document/        # Vite docs site (port 5173), SEO scripts, AI artifacts
 cli/             # CLI commands
+Email/           # Cloudflare Email Worker Agent (triage, vectorless RAG, auto-responder)
 skill/           # Agent skill, runbooks, references, scripts
 ```
 
@@ -76,13 +77,14 @@ class MyTests extends TestRunner {
 }
 ```
 
-## Version sync (15 places — all must match)
+## Version sync (16 places — all must match)
 
 * `package.json` → `"version"`
 * `package-lock.json` → auto via `npm install`
 * `GUI/package.json` → `"version"`
 * `electron/package.json` → `"version"`
 * `Document/package.json` → `"version"`
+* `Email/package.json` → `"version"`
 * `cli/VERSION` → plain text version
 * `cli/cmd/version.go` → `var cliVersion`
 * `Document/src/data/changelog.ts` → latest entry
@@ -145,7 +147,7 @@ Do NOT ask for:
 - [ ] `npm run lint` passes
 - [ ] Docs updated (README, Document, Dockerfile, JSDoc)
 - [ ] Changelog if major/breaking
-- [ ] AI artifacts updated + regenerated, version synced (15 places)
+- [ ] AI artifacts updated + regenerated, version synced (16 places)
 - [ ] No `any`, SOLID+DRY, patterns (singleton/dual-write/TTL) followed
 - [ ] Security validated
 - [ ] No perf regressions

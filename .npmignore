@@ -70,6 +70,9 @@ AxioDB/
 # Electron desktop app (standalone application, not shipped in npm package)
 /electron/
 
+# Email service (standalone service, not shipped in npm package)
+Email/
+
 # Tooling configs (not shipped in npm package)
 opencode.json
 .graphifyignore

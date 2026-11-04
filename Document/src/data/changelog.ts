@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "24.35.1",
+    version: "24.35.2",
     date: "2026-11-04",
     title: "Vector-Less RAG master knowledge base, GitHub metadata enhancement, and documentation clarification",
     changes: [

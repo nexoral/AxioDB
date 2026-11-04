@@ -65,6 +65,14 @@ sync_gui() {
   echo -e "  ${GREEN}Updated${NC} GUI/package.json"
 }
 
+sync_email() {
+  local NEW_VERSION="$1"
+  if [ -f "Email/package.json" ]; then
+    sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" Email/package.json
+    echo -e "  ${GREEN}Updated${NC} Email/package.json"
+  fi
+}
+
 sync_document() {
   local NEW_VERSION="$1"
   if [ -f "Document/package.json" ]; then
@@ -156,7 +164,7 @@ sync_version() {
   # Build the final list of targets to sync
   local targets=()
   if [ ${#SELECTED_TARGETS[@]} -eq 0 ]; then
-    targets=(root cli electron gui document docker skill)
+    targets=(root cli electron gui email document docker skill)
   else
     targets=("${SELECTED_TARGETS[@]}")
   fi
@@ -170,6 +178,7 @@ sync_version() {
       cli)     sync_cli "${NEW_VERSION}";      ran_any=true ;;
       electron) sync_electron "${NEW_VERSION}"; sync_electron_version_label "${NEW_VERSION}"; ran_any=true ;;
       gui)     sync_gui "${NEW_VERSION}";      ran_any=true ;;
+      email)   sync_email "${NEW_VERSION}";    ran_any=true ;;
       document) sync_document "${NEW_VERSION}"; ran_any=true ;;
       docker)  sync_docker "${NEW_VERSION}";   ran_any=true ;;
       skill)   sync_skill "${NEW_VERSION}";    ran_any=true ;;
@@ -190,6 +199,7 @@ sync_version() {
     sync_electron "${NEW_VERSION}"
     sync_electron_version_label "${NEW_VERSION}"
     sync_gui "${NEW_VERSION}"
+    sync_email "${NEW_VERSION}"
     sync_document "${NEW_VERSION}"
     sync_docker "${NEW_VERSION}"
     sync_skill "${NEW_VERSION}"
@@ -241,6 +251,7 @@ select_targets() {
     "5) Document site (package.json + llms.txt + llms-full.txt + index.html + changelog.ts + Footer.tsx)"
     "6) Docker (Docker/README.md version badge)"
     "7) Skill (skill/SKILL.md)"
+    "8) Email Worker (Email/package.json)"
   )
 
   printf '  %s\n' "${labels[@]}"
@@ -278,6 +289,7 @@ select_targets() {
       5) SELECTED_TARGETS+=("document") ;;
       6) SELECTED_TARGETS+=("docker") ;;
       7) SELECTED_TARGETS+=("skill") ;;
+      8) SELECTED_TARGETS+=("email") ;;
       *) echo -e "  ${YELLOW}Unknown option: $part (ignored)${NC}" ;;
     esac
   done
