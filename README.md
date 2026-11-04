@@ -2,9 +2,21 @@
   <img src="https://axiodb.in/AXioDB.png" alt="AxioDB Logo" width="120" height="120" />
 </p>
 
-<h1 align="center">Embedded NoSQL Database for TypeScript & Agents</h1>
-<p align="center"><b>Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun.</b></p>
+<h1 align="center">AxioDB</h1>
+<p align="center">
+  <b>An embedded database for TypeScript and Node.js that provides advanced queries and ACID safety without running a server.</b>
+</p>
 
+<p align="center">
+  <a href="#quick-start"><img src="https://img.shields.io/badge/Install-npm%20i%20axiodb-cb3837?style=for-the-badge&logo=npm" alt="npm install axiodb" /></a>
+  <a href="https://axiodb.in"><img src="https://img.shields.io/badge/Docs-axiodb.in-4B0082?style=for-the-badge" alt="Official Docs" /></a>
+</p>
+
+<p align="center">
+  <img src="assets/demo.gif" alt="AxioDB Quick Demo" width="800" />
+</p>
+
+[![CI](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml/badge.svg)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
 [![npm downloads total](https://img.shields.io/npm/dt/axiodb.svg)](https://www.npmjs.com/package/axiodb)
 [![npm downloads yearly](https://img.shields.io/npm/dy/axiodb.svg)](https://www.npmjs.com/package/axiodb)
