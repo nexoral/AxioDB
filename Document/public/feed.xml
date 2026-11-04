@@ -5,12 +5,12 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Wed, 04 Nov 2026 07:13:02 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 04 Nov 2026 13:57:20 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v24.34.0 — Native in-core MCP server integration, 45 tools, and documentation redesign</title>
+      <title>AxioDB v24.34.1 — Native in-core MCP server integration, 45 tools, and documentation redesign</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-24.34.0</guid>
+      <guid isPermaLink="false">axiodb-24.34.1</guid>
       <pubDate>Wed, 04 Nov 2026 00:00:00 GMT</pubDate>
       <description>Native In-Core MCP Server: integrated Model Context Protocol (MCP) server directly into AxioDB core via new AxioDB({ MCP: true }), removing Docker-only requirement | 45 Native MCP Tools: added instance info, collection management, and transaction operations on port 27020 | Documentation Overhaul: redesigned MCP Server documentation into a streamlined, step-by-step practical guide with AI client connection guides (Claude Code, Cursor, Windsurf, Antigravity, Copilot, Codex)</description>
     </item>

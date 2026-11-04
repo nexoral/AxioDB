@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "24.34.0",
+    version: "24.34.1",
     date: "2026-11-04",
     title: "Native in-core MCP server integration, 45 tools, and documentation redesign",
     changes: [
