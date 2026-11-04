@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/demo.gif" alt="AxioDB Quick Demo" width="800" />
+  <img src="https://raw.githubusercontent.com/nexoral/AxioDB/main/assets/demo.gif" alt="AxioDB Quick Demo" width="800" />
 </p>
 
 [![CI](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml/badge.svg)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
