@@ -1,5 +1,6 @@
 import { ChipIcon } from '@heroicons/react/outline'
 import { useEffect, useState } from 'react'
+import { formatStorage } from '../../utils/format'
 
 /**
  * Component to display the total in-memory cache size in the AxioDB system
@@ -33,12 +34,11 @@ const InMemoryCacheCard = ({ CacheStorageInfo }) => {
               )
             : (
               <p className='text-3xl font-bold text-orange-600 mt-2'>
-                {CacheStorageInfo.Storage}{' '}
-                <span className='text-lg'>{CacheStorageInfo.Unit}</span>
+                {formatStorage(CacheStorageInfo.Storage, CacheStorageInfo.Unit)}
               </p>
               )}
           <p className='text-sm text-ink-500 mt-1'>
-            of {CacheStorageInfo.Max} {CacheStorageInfo.Unit} allocated
+            of {formatStorage(CacheStorageInfo.Max, CacheStorageInfo.Unit)} allocated
           </p>
         </div>
         <div className='p-3 bg-orange-100 rounded-full'>

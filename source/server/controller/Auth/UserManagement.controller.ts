@@ -87,7 +87,15 @@ export default class UserManagementController {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Role is required"));
     }
 
-    const result = await this.authService.updateUserRole(username, role);
+    const actorUsername = request.authUser?.username;
+    if (!actorUsername) {
+      return sendResponse(
+        reply,
+        buildResponse(StatusCodes.UNAUTHORIZED, "Session invalid or expired"),
+      );
+    }
+
+    const result = await this.authService.updateUserRole(username, role, actorUsername);
     if (!result.success) {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, result.message));
     }

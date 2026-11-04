@@ -151,6 +151,7 @@ export default class AuthService {
   public async updateUserRole(
     username: string,
     newRole: string,
+    actorUsername?: string,
   ): Promise<{ success: boolean; message: string }> {
     if (!PermissionChecker.roleExists(newRole)) {
       return { success: false, message: `Role "${newRole}" does not exist` };
@@ -159,6 +160,16 @@ export default class AuthService {
     const user = await this.findUserByUsername(username);
     if (!user) {
       return { success: false, message: "User not found" };
+    }
+
+    if (actorUsername && username === actorUsername) {
+      return {
+        success: false,
+        message:
+          user.role === SUPER_ADMIN_ROLE
+            ? `You cannot change your own assigned role. Ask another ${SUPER_ADMIN_ROLE} to change it for you.`
+            : `You cannot change your own assigned role. Ask a ${SUPER_ADMIN_ROLE} to change it for you.`,
+      };
     }
 
     if (user.role === SUPER_ADMIN_ROLE && newRole !== SUPER_ADMIN_ROLE) {

@@ -693,6 +693,40 @@ class AuthTests extends TestRunner {
       });
     });
 
+    await this.describe('Self-role-change guard', async () => {
+      await this.test('A user cannot change their own assigned role', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/admin/role`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ role: 'View' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.includes(body.message, 'cannot change your own assigned role');
+      });
+
+      await this.test("Updating somebody else's role is still allowed", async () => {
+        await fetch(`${BASE_URL}/auth/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ username: 'role_target', password: 'Target1Password', role: 'View' }),
+        });
+
+        const res = await fetch(`${BASE_URL}/auth/users/role_target/role`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ role: 'Super Admin' }),
+        });
+        assert.equal(res.status, 200);
+
+        // Clean up
+        await fetch(`${BASE_URL}/auth/users/role_target`, {
+          method: 'DELETE',
+          headers: { Cookie: this.adminCookie },
+        });
+      });
+    });
+
     await this.describe('Last remaining Super Admin guard', async () => {
       await this.test('A delegated role cannot delete the only Super Admin', async () => {
         // Reachable only from a non-Super-Admin holder of user:delete - a Super Admin

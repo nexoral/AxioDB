@@ -350,10 +350,6 @@ const Sidebar = () => {
                               </div>
 
                               <div className="flex items-center gap-1">
-                                <span className={`text-[10px] font-mono px-1 rounded ${isCollSelected ? "bg-emerald-700 text-emerald-100" : "text-slate-400 bg-slate-200/60"}`}>
-                                  {coll.count ?? 0}
-                                </span>
-
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();

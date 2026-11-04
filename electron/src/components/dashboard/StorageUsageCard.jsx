@@ -1,5 +1,6 @@
 import { ServerIcon } from '@heroicons/react/outline'
 import { useEffect, useState } from 'react'
+import { formatStorage } from '../../utils/format'
 
 /**
  * Component to display the total storage used in the AxioDB system
@@ -32,12 +33,11 @@ const StorageUsageCard = ({ storageInfo }) => {
               )
             : (
               <p className='text-3xl font-bold text-brand-600 mt-2'>
-                {storageInfo?.total}{' '}
-                <span className='text-lg'>{storageInfo?.matrixUnit}</span>
+                {formatStorage(storageInfo?.total, storageInfo?.matrixUnit)}
               </p>
               )}
           <p className='text-sm text-ink-500 mt-1'>
-            of {storageInfo?.machine} {storageInfo?.matrixUnit} available
+            of {formatStorage(storageInfo?.machine, storageInfo?.matrixUnit)} available
           </p>
         </div>
         <div className='p-3 bg-brand-100 rounded-full'>
