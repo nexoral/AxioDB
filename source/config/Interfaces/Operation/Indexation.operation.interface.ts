@@ -9,6 +9,8 @@ export interface AxioDBOptions {
   TCP?: boolean;
   /** Require username/password authentication (same RBAC users as the GUI) for TCP connections. Defaults to false. */
   TCPAuth?: boolean;
+  /** Enable native Model Context Protocol (MCP) HTTP server on fixed port 27020. Defaults to false. */
+  MCP?: boolean;
   /**
    * Initial password for the seeded `admin` account, applied only when the `config` database
    * is first created. Sets `mustChangePassword: false` so the account is immediately usable
