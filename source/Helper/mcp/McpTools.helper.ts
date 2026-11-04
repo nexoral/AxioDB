@@ -304,6 +304,23 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
     },
   );
 
+  register(
+    {
+      name: "axiodb_get_instance_info",
+      description:
+        "Get instance-level storage information and list all databases in the AxioDB instance.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+        },
+        required: ["sessionId"],
+      },
+    },
+    PERMISSIONS.DB_VIEW,
+    () => dbController.getDatabases(),
+  );
+
   // --- Collection Tools ---
   register(
     {
@@ -330,6 +347,83 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
       return collectionController.getCollections(
         mockRequest({ query: { databaseName: dbName, dbName } }),
       );
+    },
+  );
+
+  register(
+    {
+      name: "axiodb_get_collection_info",
+      description:
+        "Get the list of collections in a database, with per-collection file counts and storage metadata.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          databaseName: {
+            type: "string",
+            description: "Name of the database to inspect (e.g. 'MyDB'). You can also use 'dbName' or 'name'.",
+          },
+          dbName: { type: "string", description: "Alias for databaseName" },
+          name: { type: "string", description: "Alias for databaseName" },
+        },
+        required: ["sessionId"],
+      },
+    },
+    PERMISSIONS.COLLECTION_VIEW,
+    (args) => {
+      const dbName = extractDbName(args);
+      if (!dbName) {
+        return { statusCode: 400, message: "Database name is required (pass 'databaseName' or 'dbName')" };
+      }
+      return collectionController.getCollections(
+        mockRequest({ query: { databaseName: dbName, dbName } }),
+      );
+    },
+  );
+
+  register(
+    {
+      name: "axiodb_collection_exists",
+      description:
+        "Check whether a collection exists inside an AxioDB database without altering storage.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          dbName: {
+            type: "string",
+            description: "Target database name (e.g. 'MyDB'). You can also use 'databaseName' or 'name'.",
+          },
+          name: { type: "string", description: "Alias for dbName" },
+          collectionName: {
+            type: "string",
+            description: "Collection name to check (e.g. 'users'). You can also use 'collection'.",
+          },
+          collection: { type: "string", description: "Alias for collectionName" },
+        },
+        required: ["sessionId"],
+      },
+    },
+    PERMISSIONS.COLLECTION_VIEW,
+    async (args) => {
+      const dbName = extractDbName(args);
+      const collectionName = extractCollectionName(args);
+      if (!dbName) {
+        return { statusCode: 400, message: "Database name is required (pass 'dbName' or 'name')" };
+      }
+      if (!collectionName) {
+        return {
+          statusCode: 400,
+          message: "Collection name is required (pass 'collectionName' or 'collection')",
+        };
+      }
+      const dbExists = await axioDBInstance.isDatabaseExists(dbName);
+      if (!dbExists) {
+        return { statusCode: 200, message: "OK", data: { dbName, collectionName, exists: false } };
+      }
+      const databaseInstance = await axioDBInstance.createDB(dbName);
+      const exists = await databaseInstance.isCollectionExists(collectionName);
+      return { statusCode: 200, message: "OK", data: { dbName, collectionName, exists } };
     },
   );
 
@@ -664,6 +758,117 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
     },
   );
 
+  register(
+    {
+      name: "axiodb_find_documents_by_ids",
+      description:
+        "Retrieve multiple documents from a collection by their unique document IDs (_id) in a single batch operation.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          dbName: {
+            type: "string",
+            description: "Database name containing the collection (e.g. 'MyDB'). You can also use 'databaseName' or 'name'.",
+          },
+          name: { type: "string", description: "Alias for dbName" },
+          collectionName: {
+            type: "string",
+            description: "Collection name (e.g. 'users'). You can also use 'collection'.",
+          },
+          collection: { type: "string", description: "Alias for collectionName" },
+          ids: {
+            type: "array",
+            items: { type: "string" },
+            description: "Array of document IDs to fetch, e.g. ['doc_1', 'doc_2']",
+          },
+        },
+        required: ["sessionId", "ids"],
+      },
+    },
+    PERMISSIONS.DOCUMENT_VIEW,
+    (args) => {
+      const dbName = extractDbName(args);
+      const collectionName = extractCollectionName(args);
+      if (!dbName) {
+        return { statusCode: 400, message: "Database name is required (pass 'dbName' or 'name')" };
+      }
+      if (!collectionName) {
+        return {
+          statusCode: 400,
+          message: "Collection name is required (pass 'collectionName' or 'collection')",
+        };
+      }
+      const ids = Array.isArray(args.ids) ? args.ids : [];
+      if (ids.length === 0) {
+        return { statusCode: 400, message: "ids must be a non-empty array of strings" };
+      }
+      return crudController.getDocumentsByIds(
+        mockRequest({ query: { dbName, collectionName }, body: { ids } }),
+      );
+    },
+  );
+
+  register(
+    {
+      name: "axiodb_aggregate",
+      description:
+        "Run a aggregation pipeline with 60+ stages ($match, $group, $sort, $project, $lookup, $unwind, $limit, $skip, $count, $facet, etc.) on documents in a collection.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          dbName: {
+            type: "string",
+            description: "Database name (e.g. 'MyDB'). You can also use 'databaseName' or 'name'.",
+          },
+          name: { type: "string", description: "Alias for dbName" },
+          collectionName: {
+            type: "string",
+            description: "Collection name (e.g. 'users'). You can also use 'collection'.",
+          },
+          collection: { type: "string", description: "Alias for collectionName" },
+          aggregation: {
+            type: "array",
+            items: { type: "object" },
+            description:
+              "Array of pipeline stages, e.g. [{ \"$match\": { \"status\": \"active\" } }, { \"$group\": { \"_id\": \"$role\", \"total\": { \"$sum\": 1 } } }]",
+          },
+          pipeline: {
+            type: "array",
+            items: { type: "object" },
+            description: "Alias for aggregation pipeline array",
+          },
+        },
+        required: ["sessionId"],
+      },
+    },
+    PERMISSIONS.DOCUMENT_AGGREGATE,
+    (args) => {
+      const dbName = extractDbName(args);
+      const collectionName = extractCollectionName(args);
+      if (!dbName) {
+        return { statusCode: 400, message: "Database name is required (pass 'dbName' or 'name')" };
+      }
+      if (!collectionName) {
+        return {
+          statusCode: 400,
+          message: "Collection name is required (pass 'collectionName' or 'collection')",
+        };
+      }
+      const rawAggregation = args.aggregation || args.pipeline;
+      if (!Array.isArray(rawAggregation) || rawAggregation.length === 0) {
+        return {
+          statusCode: 400,
+          message: "Invalid aggregation pipeline: must be a non-empty array of stage objects",
+        };
+      }
+      return crudController.runAggregation(
+        mockRequest({ query: { dbName, collectionName }, body: { aggregation: rawAggregation } }),
+      );
+    },
+  );
+
   // --- Secondary Index Tools ---
   register(
     {
@@ -787,6 +992,23 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
   );
 
   // --- ACID Transactions ---
+  function getActiveTransaction(
+    transactionId: unknown,
+    sessionId: string,
+  ): { transaction: Transaction } | { error: { statusCode: number; message: string } } {
+    if (!transactionId || typeof transactionId !== "string") {
+      return { error: { statusCode: 400, message: "transactionId is required" } };
+    }
+    const entry = activeTransactions.get(transactionId);
+    if (!entry) {
+      return { error: { statusCode: 404, message: "Transaction not found or already completed" } };
+    }
+    if (entry.sessionId !== sessionId) {
+      return { error: { statusCode: 403, message: "Transaction belongs to another MCP session" } };
+    }
+    return { transaction: entry.transaction };
+  }
+
   register(
     {
       name: "axiodb_begin_transaction",
@@ -814,6 +1036,248 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
         message: "Transaction begun",
         data: { transactionId: txn.getId() },
       };
+    },
+  );
+
+  register(
+    {
+      name: "axiodb_transaction_insert",
+      description:
+        "Buffer a document insert operation inside an active ACID transaction. The document will be committed when axiodb_commit_transaction is called.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          transactionId: {
+            type: "string",
+            description: "Active transaction ID from axiodb_begin_transaction",
+          },
+          document: {
+            type: "object",
+            description: "JSON document object to insert into the transaction collection",
+          },
+        },
+        required: ["sessionId", "transactionId", "document"],
+      },
+    },
+    PERMISSIONS.DOCUMENT_CREATE,
+    (args, session) => {
+      const txLookup = getActiveTransaction(args.transactionId, session!.sid);
+      if ("error" in txLookup) return txLookup.error;
+      const doc = args.document;
+      if (!doc || typeof doc !== "object" || Array.isArray(doc)) {
+        return { statusCode: 400, message: "document must be a valid JSON object" };
+      }
+      txLookup.transaction.insert(doc as object);
+      return {
+        statusCode: 200,
+        message: "Document buffered in transaction",
+        data: { transactionId: args.transactionId },
+      };
+    },
+  );
+
+  register(
+    {
+      name: "axiodb_transaction_update",
+      description:
+        "Buffer a flat-merge update operation inside an active ACID transaction for documents matching the query filter.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          transactionId: {
+            type: "string",
+            description: "Active transaction ID from axiodb_begin_transaction",
+          },
+          query: {
+            type: "object",
+            description: "Filter query to match document(s) to update, e.g. { \"id\": \"doc_1\" }",
+          },
+          update: {
+            type: "object",
+            description: "Object containing fields and values to update/merge into matching documents",
+          },
+        },
+        required: ["sessionId", "transactionId", "query", "update"],
+      },
+    },
+    PERMISSIONS.DOCUMENT_UPDATE,
+    (args, session) => {
+      const txLookup = getActiveTransaction(args.transactionId, session!.sid);
+      if ("error" in txLookup) return txLookup.error;
+      const query = args.query;
+      const update = args.update;
+      if (!query || typeof query !== "object" || Array.isArray(query)) {
+        return { statusCode: 400, message: "query must be a valid JSON object" };
+      }
+      if (!update || typeof update !== "object" || Array.isArray(update)) {
+        return { statusCode: 400, message: "update must be a valid JSON object" };
+      }
+      txLookup.transaction.update(
+        query as Record<string, unknown>,
+        update as Record<string, unknown>,
+      );
+      return {
+        statusCode: 200,
+        message: "Update buffered in transaction",
+        data: { transactionId: args.transactionId },
+      };
+    },
+  );
+
+  register(
+    {
+      name: "axiodb_transaction_delete",
+      description:
+        "Buffer a delete operation inside an active ACID transaction for documents matching the query filter.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          transactionId: {
+            type: "string",
+            description: "Active transaction ID from axiodb_begin_transaction",
+          },
+          query: {
+            type: "object",
+            description: "Filter query to match document(s) to delete, e.g. { \"id\": \"doc_1\" }",
+          },
+        },
+        required: ["sessionId", "transactionId", "query"],
+      },
+    },
+    PERMISSIONS.DOCUMENT_DELETE,
+    (args, session) => {
+      const txLookup = getActiveTransaction(args.transactionId, session!.sid);
+      if ("error" in txLookup) return txLookup.error;
+      const query = args.query;
+      if (!query || typeof query !== "object" || Array.isArray(query)) {
+        return { statusCode: 400, message: "query must be a valid JSON object" };
+      }
+      txLookup.transaction.delete(query as Record<string, unknown>);
+      return {
+        statusCode: 200,
+        message: "Delete buffered in transaction",
+        data: { transactionId: args.transactionId },
+      };
+    },
+  );
+
+  register(
+    {
+      name: "axiodb_transaction_savepoint",
+      description:
+        "Create a named savepoint inside an active ACID transaction. You can later roll back to this savepoint using axiodb_transaction_rollback_to_savepoint.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          transactionId: { type: "string", description: "Active transaction ID" },
+          savepointName: { type: "string", description: "Unique name for the savepoint, e.g. 'sp_1'" },
+        },
+        required: ["sessionId", "transactionId", "savepointName"],
+      },
+    },
+    PERMISSIONS.DOCUMENT_CREATE,
+    (args, session) => {
+      const txLookup = getActiveTransaction(args.transactionId, session!.sid);
+      if ("error" in txLookup) return txLookup.error;
+      const savepointName = String(args.savepointName || "").trim();
+      if (!savepointName) {
+        return { statusCode: 400, message: "savepointName is required" };
+      }
+      try {
+        txLookup.transaction.savepoint(savepointName);
+        return {
+          statusCode: 200,
+          message: "Savepoint created",
+          data: { transactionId: args.transactionId, savepointName },
+        };
+      } catch (err: unknown) {
+        return {
+          statusCode: 400,
+          message: err instanceof Error ? err.message : "Failed to create savepoint",
+        };
+      }
+    },
+  );
+
+  register(
+    {
+      name: "axiodb_transaction_rollback_to_savepoint",
+      description:
+        "Discard all buffered transaction operations after a named savepoint, reverting the transaction to that checkpoint.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          transactionId: { type: "string", description: "Active transaction ID" },
+          savepointName: { type: "string", description: "Name of the savepoint to roll back to" },
+        },
+        required: ["sessionId", "transactionId", "savepointName"],
+      },
+    },
+    PERMISSIONS.DOCUMENT_DELETE,
+    (args, session) => {
+      const txLookup = getActiveTransaction(args.transactionId, session!.sid);
+      if ("error" in txLookup) return txLookup.error;
+      const savepointName = String(args.savepointName || "").trim();
+      if (!savepointName) {
+        return { statusCode: 400, message: "savepointName is required" };
+      }
+      try {
+        txLookup.transaction.rollbackTo(savepointName);
+        return {
+          statusCode: 200,
+          message: "Rolled back to savepoint",
+          data: { transactionId: args.transactionId, savepointName },
+        };
+      } catch (err: unknown) {
+        return {
+          statusCode: 400,
+          message: err instanceof Error ? err.message : "Failed to rollback to savepoint",
+        };
+      }
+    },
+  );
+
+  register(
+    {
+      name: "axiodb_transaction_release_savepoint",
+      description:
+        "Release a named savepoint without discarding buffered operations. Cleans up savepoint metadata.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          transactionId: { type: "string", description: "Active transaction ID" },
+          savepointName: { type: "string", description: "Name of the savepoint to release" },
+        },
+        required: ["sessionId", "transactionId", "savepointName"],
+      },
+    },
+    PERMISSIONS.DOCUMENT_CREATE,
+    (args, session) => {
+      const txLookup = getActiveTransaction(args.transactionId, session!.sid);
+      if ("error" in txLookup) return txLookup.error;
+      const savepointName = String(args.savepointName || "").trim();
+      if (!savepointName) {
+        return { statusCode: 400, message: "savepointName is required" };
+      }
+      try {
+        txLookup.transaction.releaseSavepoint(savepointName);
+        return {
+          statusCode: 200,
+          message: "Savepoint released",
+          data: { transactionId: args.transactionId, savepointName },
+        };
+      } catch (err: unknown) {
+        return {
+          statusCode: 400,
+          message: err instanceof Error ? err.message : "Failed to release savepoint",
+        };
+      }
     },
   );
 
@@ -993,6 +1457,63 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
 
   register(
     {
+      name: "axiodb_update_user_role",
+      description:
+        "[Super Admin] Change the assigned RBAC role of an existing user (e.g. 'Super Admin', 'Admin', 'View', or any custom role).",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          username: { type: "string", description: "Username of the target user" },
+          role: { type: "string", description: "New role to assign to the user" },
+        },
+        required: ["sessionId", "username", "role"],
+      },
+    },
+    PERMISSIONS.USER_UPDATE_ROLE,
+    (args, session) =>
+      userController.updateUserRole(
+        mockRequest({
+          params: { username: String(args.username) },
+          body: { role: String(args.role) },
+          authUser: session ? { username: session.username, role: session.role } : undefined,
+        }),
+        NOOP_REPLY,
+      ),
+  );
+
+  register(
+    {
+      name: "axiodb_reset_user_password",
+      description:
+        "[Super Admin] Reset an existing user's password and force them to change it upon next login. Revokes all active sessions for that user.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          username: { type: "string", description: "Username of the user whose password to reset" },
+          newPassword: {
+            type: "string",
+            description: "New temporary password (minimum 4 characters)",
+          },
+        },
+        required: ["sessionId", "username", "newPassword"],
+      },
+    },
+    PERMISSIONS.USER_RESET_PASSWORD,
+    (args, session) =>
+      userController.resetUserPassword(
+        mockRequest({
+          params: { username: String(args.username) },
+          body: { newPassword: String(args.newPassword) },
+          authUser: session ? { username: session.username, role: session.role } : undefined,
+        }),
+        NOOP_REPLY,
+      ),
+  );
+
+  register(
+    {
       name: "axiodb_list_roles",
       description: "List all RBAC roles in the database.",
       inputSchema: {
@@ -1005,6 +1526,88 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
     },
     PERMISSIONS.ROLE_VIEW,
     () => roleController.listRoles(mockRequest({}), NOOP_REPLY),
+  );
+
+  register(
+    {
+      name: "axiodb_create_role",
+      description:
+        "[Super Admin] Create a new custom RBAC role with a specified array of permissions from the permission catalogue (see axiodb_list_permissions).",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          roleName: { type: "string", description: "Name of the new role to create" },
+          permissions: {
+            type: "array",
+            items: { type: "string" },
+            description:
+              "Array of permission keys to grant to this role (e.g. ['db:view', 'collection:view'])",
+          },
+        },
+        required: ["sessionId", "roleName", "permissions"],
+      },
+    },
+    PERMISSIONS.ROLE_CREATE,
+    (args, session) =>
+      roleController.createRole(
+        mockRequest({
+          body: {
+            roleName: String(args.roleName),
+            permissions: Array.isArray(args.permissions) ? args.permissions : [],
+          },
+          authUser: session ? { username: session.username, role: session.role } : undefined,
+        }),
+        NOOP_REPLY,
+      ),
+  );
+
+  register(
+    {
+      name: "axiodb_delete_role",
+      description:
+        "[Super Admin] Delete a custom RBAC role. System built-in roles ('Super Admin', 'Admin', 'View') and roles currently assigned to users cannot be deleted.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+          roleName: { type: "string", description: "Name of the custom role to delete" },
+        },
+        required: ["sessionId", "roleName"],
+      },
+    },
+    PERMISSIONS.ROLE_DELETE,
+    (args, session) =>
+      roleController.deleteRole(
+        mockRequest({
+          params: { roleName: String(args.roleName) },
+          authUser: session ? { username: session.username, role: session.role } : undefined,
+        }),
+        NOOP_REPLY,
+      ),
+  );
+
+  register(
+    {
+      name: "axiodb_list_permissions",
+      description:
+        "[Super Admin] List the complete catalogue of all available permissions in AxioDB for role creation and RBAC management.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID" },
+        },
+        required: ["sessionId"],
+      },
+    },
+    PERMISSIONS.ROLE_VIEW,
+    (args, session) =>
+      roleController.listPermissions(
+        mockRequest({
+          authUser: session ? { username: session.username, role: session.role } : undefined,
+        }),
+        NOOP_REPLY,
+      ),
   );
 
   return tools;
