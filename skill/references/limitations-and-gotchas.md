@@ -15,10 +15,11 @@ AxioDB enforces a strict singleton pattern per Node.js process:
 
 ---
 
-## 3. MCP Server is Docker-Only
+## 3. MCP Server Initiation
 
-- The Model Context Protocol (MCP) server runs exclusively inside the official Docker image (`theankansaha/axiodb`) via `AXIODB_MCP=true` on port `27020`.
-- The MCP server does **not** ship as an independent NPM binary or standalone CLI command. AI agents (Antigravity, Claude Code, Cursor, Windsurf) connecting over Streamable HTTP must target the running Docker container or a containerized deployment.
+- The Model Context Protocol (MCP) server can be initiated directly in TypeScript/JavaScript core via `new AxioDB({ MCP: true })` or run inside the official Docker image (`theankansaha/axiodb`) via `AXIODB_MCP=true` on port `27020`.
+- AI agents (Antigravity, Claude Code, Cursor, Windsurf, Copilot) connecting over Streamable HTTP target `http://localhost:27020/mcp`.
+- Every tool except `axiodb_login` requires an active `sessionId` with appropriate RBAC permissions.
 
 ---
 

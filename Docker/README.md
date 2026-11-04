@@ -1,7 +1,7 @@
 # AxioDB Docker Image
 
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
-[![AxioDB](https://img.shields.io/badge/AxioDB-24.33.5-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
+[![AxioDB](https://img.shields.io/badge/AxioDB-24.34.0-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
 
 This Docker image provides AxioDB: Embedded NoSQL Database for TypeScript & AI Agents — zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno. It includes a REST API server, TCP remote access (AxioDBCloud), web GUI dashboard, and an optional MCP server for AI agent integration.
 
@@ -383,7 +383,7 @@ support elicitation, the confirmation prompt cannot be shown and the call procee
 annotations alone - **give an agent you don't want writing a `View`-role login**, which is
 read-only at the RBAC layer and needs no client cooperation at all.
 
-Transactions and database export/import are intentionally not exposed as MCP tools.
+Transactions are fully supported via 9 dedicated MCP tools. Database export/import remain HTTP-only operations.
 
 Full tool catalogue, request/response examples, and security notes:
 **[https://axiodb.in/mcp-server](https://axiodb.in/mcp-server)**.

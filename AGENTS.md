@@ -39,7 +39,7 @@ skill/           # Agent skill, runbooks, references, scripts
 3. Never leave incomplete work — Done checklist must pass.
 4. Read before edit; follow existing patterns.
 5. Production-grade only.
-6. **Core → surfaces sync**: new core feature (`Services/Collection`, `Index`, `Transaction`, etc.) → ask user: expose via HTTP 27018 / CLI / MCP 27020 / Docker / GUI? If yes, implement consistently (HTTP `server/router+controller`, TCP `tcp/handler` + `client/*Proxy`, CLI `cli/cmd`, MCP `Docker/mcp/tools`, `Document/` docs + AI) with same RBAC/tests.
+6. **Core → surfaces sync**: new core feature (`Services/Collection`, `Index`, `Transaction`, etc.) → ask user: expose via HTTP 27018 / CLI / MCP 27020 / Docker / GUI? If yes, implement consistently (HTTP `server/router+controller`, TCP `tcp/handler` + `client/*Proxy`, CLI `cli/cmd`, MCP `Helper/mcp/McpTools`, `Document/` docs + AI) with same RBAC/tests.
 
 ## Code standards
 
@@ -97,7 +97,7 @@ Regen AI artifacts: `cd Document && npx tsx scripts/generate-seo-files.ts`
 
 ## Documentation — same commit as code
 
-README, `Document/` (`npm run dev` 5173), `Dockerfile` ports/env, JSDoc with `@param/@returns/@throws/@example`. Single source: `Document/src/data/serverApi.ts` → docs + `openapi.json`. Never blur: core · Dashboard · HTTP API 27018 · TCP 27019 · MCP 27020 Docker-only.
+README, `Document/` (`npm run dev` 5173), `Dockerfile` ports/env, JSDoc with `@param/@returns/@throws/@example`. Single source: `Document/src/data/serverApi.ts` → docs + `openapi.json`. Never blur: core · Dashboard · HTTP API 27018 · TCP 27019 · MCP 27020 (core & Docker).
 
 ## Commands
 
