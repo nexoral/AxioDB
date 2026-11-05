@@ -6,7 +6,7 @@ import axioLogo from "../assets/AXioDB.png";
 
 const Titlebar = () => {
   const [isMaximized, setIsMaximized] = useState(false);
-  const { isConnected, host, port, pingLatency, disconnect } = useConnectionStore();
+  const { isConnected, protocol, host, port, tls, noAuth, pingLatency, disconnect } = useConnectionStore();
   const isPingAlive = pingLatency !== null;
   const { clearSession } = useAuthStore();
 
@@ -59,6 +59,18 @@ const Titlebar = () => {
             <span className="text-[11px] font-mono font-medium text-slate-700">
               {host}:{port}
             </span>
+            <span className={`text-[9px] font-mono font-bold px-1 py-0.2 rounded ${
+              protocol === "tcp"
+                ? (tls ? "text-emerald-700 bg-emerald-100/90" : "text-cyan-700 bg-cyan-100/90")
+                : "text-blue-700 bg-blue-100/90"
+            }`}>
+              {protocol === "tcp" ? (tls ? "TLS" : "TCP") : "HTTP"}
+            </span>
+            {noAuth && (
+              <span className="text-[9px] font-mono font-bold text-amber-800 bg-amber-100/90 px-1 py-0.2 rounded">
+                No Auth
+              </span>
+            )}
             {isPingAlive && pingLatency !== null ? (
               <motion.span
                 key={pingLatency}

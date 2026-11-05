@@ -32,9 +32,10 @@ const MainLayout = ({ children }) => {
 };
 
 const AppContent = () => {
-  const { hasSeenWelcome, setHasSeenWelcome, isConnected, setPingLatency, getBaseUrl, hydrate, _loaded } = useConnectionStore();
+  const { hasSeenWelcome, setHasSeenWelcome, isConnected, protocol, setPingLatency, getBaseUrl, hydrate, _loaded } = useConnectionStore();
   const { mustChangePassword } = useAuthStore();
   const [showForcePassword, setShowForcePassword] = useState(false);
+  const isTcp = protocol === "tcp";
 
   // Hydrate store from AxioDB on first render
   useEffect(() => {
@@ -111,9 +112,9 @@ const AppContent = () => {
         <MainLayout>
           <Routes>
             <Route path="/" element={<Documents />} />
-            <Route path="/metrics" element={<Dashboard />} />
-            <Route path="/import" element={<Import />} />
-            <Route path="/users" element={<UserManagement />} />
+            <Route path="/metrics" element={isTcp ? <Navigate to="/" replace /> : <Dashboard />} />
+            <Route path="/import" element={isTcp ? <Navigate to="/" replace /> : <Import />} />
+            <Route path="/users" element={isTcp ? <Navigate to="/" replace /> : <UserManagement />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </MainLayout>

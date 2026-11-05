@@ -17,13 +17,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const npmInstallTimeout = 10 * time.Minute
+const bunInstallTimeout = 10 * time.Minute
 
 // adminPasswordEnv is read by the generated server.js to seed the admin account.
 const adminPasswordEnv = "AXIODB_ADMIN_PASSWORD"
 
 var serveCmd = &cobra.Command{
-	Use:   "serve <http|tcp|tcp-auth|full> [password]",
+	Use:   "serve <http|tcp|tcp-auth|mcp|full> [password]",
 	Short: "Start a temporary local AxioDB server",
 	Long: `Start a temporary local AxioDB server.
 
@@ -33,9 +33,9 @@ through the HTTP API or GUI.
 
 tcp-auth requires it - it has no HTTP surface, so the seeded password could never be
 rotated and every TCP login would be rejected. http and full make it optional, since
-the control server can rotate it. tcp creates no admin account and rejects it.`,
+the control server can rotate it. tcp and mcp create no admin account and reject it.`,
 	Args:      cobra.RangeArgs(1, 2),
-	ValidArgs: []string{"http", "tcp", "tcp-auth", "full"},
+	ValidArgs: []string{"http", "tcp", "tcp-auth", "mcp", "full"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var password string
 		if len(args) == 2 {
@@ -63,7 +63,7 @@ func runServe(cmd *cobra.Command, modeName, password string) (runErr error) {
 	ctx := cmd.Context()
 
 	fmt.Fprintf(output, "Preparing AxioDB %s server...\n", config.Mode)
-	nodePath, npmPath, err := serve.EnsureNode(ctx, output)
+	bunPath, err := serve.EnsureBun(ctx, output)
 	if err != nil {
 		return err
 	}
@@ -88,12 +88,12 @@ func runServe(cmd *cobra.Command, modeName, password string) (runErr error) {
 	}
 
 	fmt.Fprintf(output, "Temporary data directory: %s\n", filepath.Join(tempDir, "AxioDB"))
-	fmt.Fprintln(output, "Installing the AxioDB npm package...")
-	if err := installAxioDB(ctx, npmPath, tempDir, output, errorOutput); err != nil {
+	fmt.Fprintln(output, "Installing the AxioDB package with Bun...")
+	if err := installAxioDB(ctx, bunPath, tempDir, output, errorOutput); err != nil {
 		return err
 	}
 
-	child := exec.Command(nodePath, scriptPath)
+	child := exec.Command(bunPath, scriptPath)
 	child.Dir = tempDir
 	child.Stdout = output
 	child.Stderr = errorOutput
@@ -108,7 +108,7 @@ func runServe(cmd *cobra.Command, modeName, password string) (runErr error) {
 
 	fmt.Fprintln(output, "Starting server...")
 	if err := child.Start(); err != nil {
-		return fmt.Errorf("start Node.js server: %w", err)
+		return fmt.Errorf("start Bun server: %w", err)
 	}
 
 	childDone := make(chan error, 1)
@@ -151,25 +151,21 @@ func runServe(cmd *cobra.Command, modeName, password string) (runErr error) {
 	}
 }
 
-func installAxioDB(ctx context.Context, npmPath, tempDir string, output, errorOutput io.Writer) error {
-	installContext, cancel := context.WithTimeout(ctx, npmInstallTimeout)
+func installAxioDB(ctx context.Context, bunPath, tempDir string, output, errorOutput io.Writer) error {
+	installContext, cancel := context.WithTimeout(ctx, bunInstallTimeout)
 	defer cancel()
 
 	command := exec.CommandContext(
 		installContext,
-		npmPath,
-		"install",
-		"--prefix",
-		tempDir,
-		"--no-save",
-		"--no-audit",
-		"--no-fund",
+		bunPath,
+		"add",
 		"axiodb",
 	)
+	command.Dir = tempDir
 	command.Stdout = output
 	command.Stderr = errorOutput
 	if err := command.Run(); err != nil {
-		return fmt.Errorf("install axiodb in temporary server directory: %w", err)
+		return fmt.Errorf("install axiodb with bun in temporary server directory: %w", err)
 	}
 	return nil
 }
@@ -208,6 +204,9 @@ func printReady(output io.Writer, config serve.ModeConfig, password string) {
 			fmt.Fprintln(output, "  TCP auth: enabled")
 		}
 	}
+	if config.HasMCP() {
+		fmt.Fprintf(output, "  MCP:       http://localhost:%d\n", serve.MCPPort)
+	}
 	if password == "" && config.UsesTCPAuth() {
 		// http/full have a control server to rotate through; tcp-auth now requires a
 		// password, so it can never reach this branch.
@@ -235,7 +234,7 @@ func stopChild(child *exec.Cmd, childDone <-chan error) error {
 		return err
 	case <-time.After(5 * time.Second):
 		if err := child.Process.Kill(); err != nil {
-			return fmt.Errorf("force-stop Node.js server: %w", err)
+			return fmt.Errorf("force-stop Bun server: %w", err)
 		}
 		return <-childDone
 	}

@@ -5,12 +5,19 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Wed, 04 Nov 2026 21:33:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 05 Nov 2026 01:24:48 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v24.35.2 — Vector-Less RAG master knowledge base, GitHub metadata enhancement, and documentation clarification</title>
+      <title>AxioDB v25.36.3 — Electron TCP client bridge, No Auth support, Bun serve engine, and MCP CLI launcher integration</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-24.35.2</guid>
+      <guid isPermaLink="false">axiodb-25.36.3</guid>
+      <pubDate>Thu, 05 Nov 2026 00:00:00 GMT</pubDate>
+      <description>Electron TCP Client Bridge: implemented direct TCP socket bridge with TLS encryption and automatic payload framing in AxioDB Control, enabling native desktop database and collection management over TCP | No Authentication TCP Mode: added seamless 'No Auth' toggle in Connection Hub, hiding credential inputs and securely managing TCP connections when AxioDB is configured without TCPAuth | Electron Protocol Badges &amp; Utility Routing: updated connection list, titlebar, and workspace switcher with HTTP/TCP/TLS/No Auth badges, disabling HTTP-exclusive panels gracefully with informative guidance</description>
+    </item>
+    <item>
+      <title>AxioDB v25.36.3 — Vector-Less RAG master knowledge base, GitHub metadata enhancement, and documentation clarification</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-25.36.3</guid>
       <pubDate>Wed, 04 Nov 2026 00:00:00 GMT</pubDate>
       <description>Vector-Less RAG Master Knowledge Base: created comprehensive single-source-of-truth knowledge base in assets/axiodb-knowledge-base.md and axiodb.txt for autonomous AI agents, RAG pipelines, and developer teams | Repository Metadata Expansion: configured all 20 allowed GitHub repository topics with high-intent discovery tags including ai-agents, mcp-server, local-first, bun, electron, and sqlite-alternative | Documentation Clarification: renamed MongoDB-style query references to advanced queries across core types, UI components, REST API descriptions, and AI documents for clearer developer positioning</description>
     </item>

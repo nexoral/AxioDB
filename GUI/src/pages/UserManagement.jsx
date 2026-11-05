@@ -41,6 +41,7 @@ const UserManagement = () => {
   }, [])
 
   const handleRoleChange = async (username, newRole) => {
+    if (username === currentUsername) return
     try {
       await authApi.updateUserRole(username, newRole)
       loadData()
@@ -109,7 +110,7 @@ const UserManagement = () => {
                     <tr key={u.username}>
                       <td className='px-4 py-3 text-sm text-ink-900'>{u.username}</td>
                       <td className='px-4 py-3 text-sm'>
-                        {canUpdateUserRole
+                        {canUpdateUserRole && u.username !== currentUsername
                           ? (
                             <select
                               value={u.role}

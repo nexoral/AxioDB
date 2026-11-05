@@ -1,4 +1,5 @@
 import os from "os";
+import v8 from "v8";
 import Logger from "../Helper/Logger.helper";
 
 
@@ -22,6 +23,7 @@ interface CacheEntry {
   ttl: number;        // Random TTL in milliseconds (minTTL-maxTTL)
   expiresAt: Date;    // Pre-computed expiration timestamp
   documentKeys?: string[]; // "{collectionPath}::{documentId}" entries this result contains, for reverse invalidation
+  sizeInBytes: number;
 }
 
 /**
@@ -36,6 +38,7 @@ export class InMemoryCache {
   private readonly maxTTL: number;
   private readonly cacheClearUp: number;
   private cacheObject: Map<string, CacheEntry>;
+  private totalCacheSizeBytes: number = 0;
   private tempSearchQuery: Array<{ queryString: Record<string, unknown>; registeredAt: Date }> = [];
   // Reverse index: "{collectionPath}::{documentId}" -> cache keys whose cached result contains that document.
   // Lets invalidateByDocument(s) evict only the affected entries instead of the whole collection's cache.
@@ -78,6 +81,31 @@ export class InMemoryCache {
   }
 
   /**
+   * Calculates the memory footprint in bytes for a cache entry.
+   * Uses V8 native binary serialization when available for accurate byte sizing,
+   * with a UTF-8 Buffer fallback for non-V8 runtimes.
+   */
+  private calculateEntrySizeBytes(key: string, value: unknown): number {
+    let payloadBytes = 0;
+    try {
+      if (v8 && typeof v8.serialize === "function") {
+        payloadBytes = v8.serialize(value).byteLength;
+      } else {
+        payloadBytes = Buffer.byteLength(JSON.stringify(value), "utf-8");
+      }
+    } catch {
+      try {
+        payloadBytes = Buffer.byteLength(JSON.stringify(value), "utf-8");
+      } catch {
+        payloadBytes = 64;
+      }
+    }
+
+    const keyBytes = Buffer.byteLength(key, "utf-8");
+    return keyBytes + payloadBytes + 40;
+  }
+
+  /**
    * Each cache entry gets its own random TTL (5-15 minutes) to prevent cache stampede
    * (synchronized mass-expiration), with expiresAt pre-computed for O(1) validation later.
    *
@@ -113,12 +141,21 @@ export class InMemoryCache {
       }
     }
 
+    const existingEntry = this.cacheObject.get(key);
+    if (existingEntry) {
+      this.totalCacheSizeBytes = Math.max(0, this.totalCacheSizeBytes - existingEntry.sizeInBytes);
+    }
+
+    const sizeInBytes = this.calculateEntrySizeBytes(key, value);
+    this.totalCacheSizeBytes += sizeInBytes;
+
     this.cacheObject.set(key, {
       value: value,
       registeredAt: now,
       ttl: ttl,
       expiresAt: expiresAt,
       documentKeys: documentKeys,
+      sizeInBytes: sizeInBytes,
     });
 
     return true;
@@ -134,6 +171,7 @@ export class InMemoryCache {
       return;
     }
     this.cacheObject.delete(key);
+    this.totalCacheSizeBytes = Math.max(0, this.totalCacheSizeBytes - (entry.sizeInBytes || 0));
 
     if (entry.documentKeys) {
       for (const docKey of entry.documentKeys) {
@@ -190,6 +228,7 @@ export class InMemoryCache {
     this.cacheObject.clear();
     this.documentIndex.clear();
     this.tempSearchQuery = [];
+    this.totalCacheSizeBytes = 0;
     return true;
   }
 
@@ -258,31 +297,35 @@ export class InMemoryCache {
     return true;
   }
 
-  /** Returns estimated cache size/memory stats, or false if calculation fails (logged, not thrown). */
+  /** Returns accurate cache size/memory stats, or false if calculation fails (logged, not thrown). */
   public async getCacheDetails(): Promise<{ cacheSizeInBytes: number; availableMemoryInBytes: number; cacheItemCount: number; tempQueryCount: number } | false> {
     try {
-      let totalCacheSize = 0;
-
-      for (const [key, value] of this.cacheObject.entries()) {
-        totalCacheSize += key.length * 2; // JS string chars are ~2 bytes each
-        const valueSize = JSON.stringify(value.value).length * 2;
-        totalCacheSize += valueSize;
-
-        totalCacheSize += 8; // Date object, ~8 bytes
+      let tempQuerySize = 0;
+      if (this.tempSearchQuery.length > 0) {
+        try {
+          tempQuerySize = Buffer.byteLength(JSON.stringify(this.tempSearchQuery), "utf-8");
+        } catch {
+          tempQuerySize = this.tempSearchQuery.length * 32;
+        }
       }
 
-      totalCacheSize += JSON.stringify(this.tempSearchQuery).length * 2;
-
       let availableMemory = 0;
-
       try {
-        availableMemory = os.freemem(); // only available in Node.js
+        if (v8 && typeof v8.getHeapStatistics === "function") {
+          availableMemory = v8.getHeapStatistics().heap_size_limit;
+        } else {
+          availableMemory = os.freemem();
+        }
       } catch {
-        availableMemory = -1; // e.g. running in a browser environment
+        try {
+          availableMemory = os.freemem();
+        } catch {
+          availableMemory = -1;
+        }
       }
 
       return {
-        cacheSizeInBytes: totalCacheSize,
+        cacheSizeInBytes: this.totalCacheSizeBytes + tempQuerySize,
         availableMemoryInBytes: availableMemory,
         cacheItemCount: this.cacheObject.size,
         tempQueryCount: this.tempSearchQuery.length,

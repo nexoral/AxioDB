@@ -160,7 +160,7 @@ AxioDB/
 ├── Docker/                    # Dockerfile 27018/27019/27020 + runner.js
 ├── GUI/                       # Vite React GUI
 ├── cli/                       # Go CLI 12 platforms
-└── package.json               # 24.35.2
+└── package.json               # 25.36.3
 ```
 
 ## Coding Standards

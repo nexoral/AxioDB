@@ -5,6 +5,7 @@ import "fmt"
 const (
 	HTTPPort = 27018
 	TCPPort  = 27019
+	MCPPort  = 27020
 )
 
 // Seeded admin credentials, mirroring source/config/Keys/Permissions.ts.
@@ -19,6 +20,7 @@ const (
 	ModeHTTP    Mode = "http"
 	ModeTCP     Mode = "tcp"
 	ModeTCPAuth Mode = "tcp-auth"
+	ModeMCP     Mode = "mcp"
 	ModeFull    Mode = "full"
 )
 
@@ -28,6 +30,7 @@ type ModeConfig struct {
 	HTTP    bool
 	TCP     bool
 	TCPAuth bool
+	MCP     bool
 }
 
 func ParseMode(value string) (ModeConfig, error) {
@@ -38,10 +41,12 @@ func ParseMode(value string) (ModeConfig, error) {
 		return ModeConfig{Mode: ModeTCP, TCP: true}, nil
 	case ModeTCPAuth:
 		return ModeConfig{Mode: ModeTCPAuth, TCP: true, TCPAuth: true}, nil
+	case ModeMCP:
+		return ModeConfig{Mode: ModeMCP, MCP: true}, nil
 	case ModeFull:
-		return ModeConfig{Mode: ModeFull, GUI: true, HTTP: true, TCP: true, TCPAuth: true}, nil
+		return ModeConfig{Mode: ModeFull, GUI: true, HTTP: true, TCP: true, TCPAuth: true, MCP: true}, nil
 	default:
-		return ModeConfig{}, fmt.Errorf("unknown serve mode %q (expected http, tcp, tcp-auth, or full)", value)
+		return ModeConfig{}, fmt.Errorf("unknown serve mode %q (expected http, tcp, tcp-auth, mcp, or full)", value)
 	}
 }
 
@@ -51,6 +56,10 @@ func (c ModeConfig) HasHTTP() bool {
 
 func (c ModeConfig) HasTCP() bool {
 	return c.TCP
+}
+
+func (c ModeConfig) HasMCP() bool {
+	return c.MCP
 }
 
 // UsesTCPAuth reports whether the mode requires TCP authentication.

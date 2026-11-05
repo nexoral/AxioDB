@@ -1,18 +1,42 @@
 export function formatBytes(bytes, decimals = 2) {
-  if (bytes === 0 || !bytes) return "0 Bytes";
+  if (!Number.isFinite(bytes) || bytes === 0) return "0 B";
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const sizes = ["B", "KB", "MB", "GB", "TB", "PB"];
+  const i = Math.min(
+    Math.floor(Math.log(Math.abs(bytes)) / Math.log(k)),
+    sizes.length - 1
+  );
+  if (i < 0) return "0 B";
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
-export function formatStorage(val, unit = "MB") {
-  if (val === undefined || val === null) return "0 MB";
-  if (typeof val === "number") {
-    return `${val.toLocaleString()} ${unit}`;
-  }
-  return `${val} ${unit}`;
+const UNIT_MULTIPLIERS = {
+  B: 1,
+  BYTES: 1,
+  BYTE: 1,
+  KB: 1024,
+  KIB: 1024,
+  MB: 1024 * 1024,
+  MIB: 1024 * 1024,
+  GB: 1024 * 1024 * 1024,
+  GIB: 1024 * 1024 * 1024,
+  TB: 1024 * 1024 * 1024 * 1024,
+  TIB: 1024 * 1024 * 1024 * 1024,
+  PB: 1024 * 1024 * 1024 * 1024 * 1024,
+  PIB: 1024 * 1024 * 1024 * 1024 * 1024,
+};
+
+export function formatStorage(val, unit = "MB", decimals = 2) {
+  if (val === undefined || val === null) return "0 B";
+  const num = typeof val === "number" ? val : parseFloat(String(val).replace(/,/g, ""));
+  if (!Number.isFinite(num) || num === 0) return "0 B";
+
+  const cleanUnit = typeof unit === "string" ? unit.trim().toUpperCase() : "MB";
+  const multiplier = UNIT_MULTIPLIERS[cleanUnit] ?? (1024 * 1024);
+  const bytes = num * multiplier;
+
+  return formatBytes(bytes, decimals);
 }
 
 export function formatUptime(seconds) {
