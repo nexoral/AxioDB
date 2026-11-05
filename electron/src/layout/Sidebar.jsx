@@ -248,8 +248,7 @@ const Sidebar = () => {
             </div>
           ) : (
             filteredDatabases.map((dbName) => {
-              const isExpanded = !!expandedDbs[dbName];
-              const isDbSelected = selectedDatabase === dbName && !selectedCollection;
+              const isDbSelected = selectedDatabase === dbName;
               const colls = collectionsMap[dbName] || [];
 
               return (
@@ -257,30 +256,13 @@ const Sidebar = () => {
                   {/* Database Node */}
                   <div
                     onClick={() => handleSelectDb(dbName)}
-                    className={`flex items-center justify-between px-2 py-1.5 rounded-lg text-xs cursor-pointer transition-all ${
+                    className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-all ${
                       isDbSelected
                         ? "bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200/80 shadow-2xs"
                         : "text-slate-700 hover:bg-slate-200/60"
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleDbExpanded(dbName);
-                        }}
-                        className="p-0.5 text-slate-400 hover:text-slate-700 rounded transition-transform"
-                      >
-                        <svg
-                          className={`w-3.5 h-3.5 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
                       <svg className={`w-3.5 h-3.5 shrink-0 ${isDbSelected ? "text-emerald-600" : "text-slate-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <ellipse cx="12" cy="6" rx="8" ry="3" strokeWidth={1.8} />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 6v6c0 1.66 3.58 3 8 3s8-1.34 8-3V6" />
@@ -288,6 +270,18 @@ const Sidebar = () => {
                       </svg>
 
                       <span className="truncate font-medium">{dbName}</span>
+
+                      {/* Collection count tag */}
+                      <span
+                        className={`px-1.5 py-0.5 text-[10px] font-mono rounded-full font-medium shrink-0 ${
+                          isDbSelected
+                            ? "bg-emerald-200/70 text-emerald-900"
+                            : "bg-slate-200/70 text-slate-600 group-hover/db:bg-slate-300/80"
+                        }`}
+                        title={`${colls.length} ${colls.length === 1 ? 'collection' : 'collections'}`}
+                      >
+                        {colls.length} {colls.length === 1 ? 'col' : 'cols'}
+                      </span>
                     </div>
 
                     <div className="flex items-center gap-1">
@@ -345,57 +339,6 @@ const Sidebar = () => {
                       </button>
                     </div>
                   </div>
-
-                  {/* Collections List under Database */}
-                  {isExpanded && (
-                    <div className="ml-5 pl-2 border-l border-slate-200/70 space-y-0.5 my-0.5">
-                      {colls.length === 0 ? (
-                        <div className="py-1 px-2 text-[11px] text-slate-400 italic">
-                          No collections
-                        </div>
-                      ) : (
-                        colls.map((coll) => {
-                          const isCollSelected = selectedDatabase === dbName && selectedCollection === coll.name;
-
-                          return (
-                            <div
-                              key={coll.name}
-                              onClick={() => handleSelectColl(dbName, coll.name)}
-                              className={`group/coll flex items-center justify-between px-2 py-1 rounded-md text-xs cursor-pointer transition-all ${
-                                isCollSelected
-                                  ? "bg-emerald-600 text-white font-medium shadow-xs"
-                                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
-                              }`}
-                            >
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <svg className={`w-3.5 h-3.5 shrink-0 ${isCollSelected ? "text-white" : "text-slate-400"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                </svg>
-                                <span className="truncate">{coll.name}</span>
-                              </div>
-
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCollToDelete({ dbName, collName: coll.name });
-                                  }}
-                                  className={`opacity-0 group-hover/coll:opacity-100 p-0.5 rounded ${
-                                    isCollSelected ? "text-emerald-200 hover:text-white" : "text-slate-400 hover:text-red-600"
-                                  }`}
-                                  title="Drop Collection"
-                                >
-                                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
                 </div>
               );
             })

@@ -465,6 +465,7 @@ const Documents = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {colls.map((c) => {
                   const name = c.name || c;
+                  const docCount = typeof c === "object" && typeof c.count === "number" ? c.count : 0;
 
                   return (
                     <div
@@ -478,12 +479,15 @@ const Documents = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                           </svg>
                         </div>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-mono font-medium bg-slate-100 text-slate-600 group-hover:bg-emerald-50 group-hover:text-emerald-700 transition-colors">
+                          {docCount.toLocaleString()} {docCount === 1 ? "doc" : "docs"}
+                        </span>
                       </div>
                       <h3 className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
                         {name}
                       </h3>
                       <p className="text-[11px] text-slate-400 mt-1 font-mono">
-                        Click to open documents and query console
+                        {docCount.toLocaleString()} {docCount === 1 ? "document" : "documents"} · Click to open
                       </p>
                     </div>
                   );

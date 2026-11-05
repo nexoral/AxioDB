@@ -13,7 +13,7 @@ export const useDbStore = create((set, get) => ({
 
   setSelectedDatabase: (dbName) => {
     set({ selectedDatabase: dbName, selectedCollection: "" });
-    if (dbName && !get().collectionsMap[dbName]) {
+    if (dbName) {
       get().fetchCollections(dbName);
     }
   },
@@ -22,7 +22,6 @@ export const useDbStore = create((set, get) => ({
     set({
       selectedDatabase: dbName,
       selectedCollection: collName,
-      expandedDbs: { ...get().expandedDbs, [dbName]: true },
     });
   },
 
@@ -50,14 +49,18 @@ export const useDbStore = create((set, get) => ({
       const list = Array.isArray(data.ListOfDatabases) ? data.ListOfDatabases : [];
       set({ databases: list, loadingTree: false });
 
-      // Automatically select and expand first database if none selected
+      // Fetch collections for all databases in parallel so tags show collection counts
+      if (list.length > 0) {
+        Promise.all(list.map((db) => get().fetchCollections(db)));
+      }
+
+      // Automatically select first database if none selected (with empty collection so cards open)
       if (list.length > 0 && !get().selectedDatabase) {
         const firstDb = list[0];
         set({
           selectedDatabase: firstDb,
-          expandedDbs: { [firstDb]: true },
+          selectedCollection: "",
         });
-        get().fetchCollections(firstDb);
       }
       return list;
     } catch (err) {
@@ -80,11 +83,11 @@ export const useDbStore = create((set, get) => ({
       const sizeMap = Array.isArray(data.CollectionSizeMap) ? data.CollectionSizeMap : [];
 
       const formatted = list.map((collName) => {
-        const meta = metaStatus.find((m) => m.name === collName) || {};
+        const meta = metaStatus.find((m) => m.name === collName || m.collectionName === collName) || {};
         const sizeEntry = sizeMap.find((s) => s.folderPath?.endsWith(`/${collName}`)) || {};
         return {
           name: collName,
-          count: meta.totalDocuments ?? meta.count ?? 0,
+          count: sizeEntry.fileCount ?? meta.totalDocuments ?? meta.count ?? 0,
           size: sizeEntry.size ?? meta.size ?? 0,
         };
       });
@@ -95,11 +98,6 @@ export const useDbStore = create((set, get) => ({
           [dbName]: formatted,
         },
       });
-
-      // If this is the active database and no collection is selected yet, select first collection
-      if (get().selectedDatabase === dbName && !get().selectedCollection && formatted.length > 0) {
-        set({ selectedCollection: formatted[0].name });
-      }
 
       return formatted;
     } catch (err) {
