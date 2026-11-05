@@ -1,4 +1,6 @@
 import http, { IncomingMessage, ServerResponse } from "http";
+import fs from "fs";
+import nodePath from "path";
 import { Readable } from "stream";
 import { SECURITY_HEADERS } from "../../server/config/keys";
 import CookieHelper from "./Cookie.helper";
@@ -208,6 +210,20 @@ export default class HttpServerHelper {
 
       const handled = await this.router.handle(request, reply);
       if (!handled && !reply.sent && !res.writableEnded) {
+        if (
+          this.guiEnabled &&
+          this.staticPath &&
+          (request.method === "GET" || request.method === "HEAD") &&
+          !request.path.startsWith("/api")
+        ) {
+          const indexPath = nodePath.join(this.staticPath, "index.html");
+          if (fs.existsSync(indexPath)) {
+            const stream = fs.createReadStream(indexPath);
+            reply.type("text/html").send(stream);
+            return;
+          }
+        }
+
         reply.status(404).send({
           statusCode: 404,
           status: false,

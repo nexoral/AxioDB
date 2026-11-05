@@ -525,9 +525,6 @@ const Documents = () => {
           <span className="font-bold text-slate-900 bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded">
             {selectedCollection}
           </span>
-          <span className="text-slate-400 text-[11px] ml-1">
-            ({totalDocs} {totalDocs === 1 ? "document" : "documents"})
-          </span>
         </div>
 
         {/* Tab Switcher & Action Buttons (Documents & Query Console only) */}
@@ -634,22 +631,13 @@ const Documents = () => {
               {/* Cards Indicator */}
               <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
                 <span className="text-emerald-700 font-semibold">
-                  {documents.length}{totalDocs > 0 ? ` / ${totalDocs}` : ""} document{documents.length !== 1 ? "s" : ""}
+                  {documents.length} loaded
                 </span>
                 {queryLatency !== null && (
                   <span>⚡ {queryLatency}ms</span>
                 )}
               </div>
             </div>
-
-            {/* Sub-bar: Query Timing & Active Filter */}
-            {queryLatency !== null && (
-              <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500 font-mono">
-                <span className="text-emerald-700 font-semibold">⚡ {queryLatency}ms</span>
-                <span>•</span>
-                <span>{documents.length} document{documents.length !== 1 ? "s" : ""} loaded{totalDocs > 0 ? ` of ${totalDocs} total` : ""}</span>
-              </div>
-            )}
           </div>
 
           {/* Error Banner */}
