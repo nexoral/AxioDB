@@ -12,7 +12,21 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "25.36.3",
+    version: "25.37.4",
+    date: "2026-11-05",
+    title: "Interactive Query Console chaining, dynamic query limit on HTTP & TCP, and parallel dashboard stats",
+    changes: [
+      "Interactive Query Console Chaining: enabled arbitrary JavaScript method chaining (.Limit(), .Skip(), .Sort(), .project(), .exec()) in any order in the Query Console across Electron and Web GUI without rigid syntax restrictions",
+      "Dynamic Query Limit & Paging: updated CRUD HTTP controller and Electron TCP bridge to respect custom limit, skip, and sort parameters instead of hardcoding default limits",
+      "Update & Delete Console Execution: added direct execution support for update (.UpdateOne, .UpdateMany) and delete (.deleteOne, .deleteMany) operations with latency and matched count metrics in both Electron and Web GUI",
+      "Query Autocomplete & Field Suggestions: added context-aware autocomplete for chaining methods, query operators ($gt, $in, $regex, etc.), aggregation stages, and collection fields",
+      "Parallel Dashboard Stats Calculation: optimized /api/dashboard-stats using concurrent Promise.all directory scanning and reused database instances, eliminating blocking sequential disk scans",
+      "Static File MIME & SPA Navigation: fixed StaticFileHelper to properly set Content-Type headers for ES modules and styles, and added SPA client-side route fallback in the HTTP server",
+      "Electron Document List Polish: streamlined document list pagination indicators to show clean loaded counts without dual counters",
+    ],
+  },
+  {
+    version: "25.37.4",
     date: "2026-11-05",
     title: "Electron TCP client bridge, No Auth support, Bun serve engine, and MCP CLI launcher integration",
     changes: [

@@ -5,12 +5,19 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Thu, 05 Nov 2026 01:24:48 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 05 Nov 2026 05:02:20 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v25.36.3 — Electron TCP client bridge, No Auth support, Bun serve engine, and MCP CLI launcher integration</title>
+      <title>AxioDB v25.37.4 — Interactive Query Console chaining, dynamic query limit on HTTP &amp; TCP, and parallel dashboard stats</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-25.36.3</guid>
+      <guid isPermaLink="false">axiodb-25.37.4</guid>
+      <pubDate>Thu, 05 Nov 2026 00:00:00 GMT</pubDate>
+      <description>Interactive Query Console Chaining: enabled arbitrary JavaScript method chaining (.Limit(), .Skip(), .Sort(), .project(), .exec()) in any order in the Query Console across Electron and Web GUI without rigid syntax restrictions | Dynamic Query Limit &amp; Paging: updated CRUD HTTP controller and Electron TCP bridge to respect custom limit, skip, and sort parameters instead of hardcoding default limits | Update &amp; Delete Console Execution: added direct execution support for update (.UpdateOne, .UpdateMany) and delete (.deleteOne, .deleteMany) operations with latency and matched count metrics in both Electron and Web GUI</description>
+    </item>
+    <item>
+      <title>AxioDB v25.37.4 — Electron TCP client bridge, No Auth support, Bun serve engine, and MCP CLI launcher integration</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-25.37.4</guid>
       <pubDate>Thu, 05 Nov 2026 00:00:00 GMT</pubDate>
       <description>Electron TCP Client Bridge: implemented direct TCP socket bridge with TLS encryption and automatic payload framing in AxioDB Control, enabling native desktop database and collection management over TCP | No Authentication TCP Mode: added seamless 'No Auth' toggle in Connection Hub, hiding credential inputs and securely managing TCP connections when AxioDB is configured without TCPAuth | Electron Protocol Badges &amp; Utility Routing: updated connection list, titlebar, and workspace switcher with HTTP/TCP/TLS/No Auth badges, disabling HTTP-exclusive panels gracefully with informative guidance</description>
     </item>
