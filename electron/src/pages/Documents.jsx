@@ -11,11 +11,13 @@ import DeleteDocumentModal from "../components/document/DeleteDocumentModal";
 import CreateCollectionModal from "../components/collection/CreateCollectionModal";
 import DeleteCollectionModal from "../components/collection/DeleteCollectionModal";
 import DocumentCard from "../components/document/DocumentCard";
+import { Skeleton } from "../components/ui/Feedback";
 
 const Documents = () => {
   const {
     databases,
     collectionsMap,
+    loadingCollections,
     selectedDatabase,
     selectedCollection,
     activeTab,
@@ -400,6 +402,7 @@ const Documents = () => {
   // ==========================================
   if (!selectedCollection) {
     const colls = collectionsMap[selectedDatabase] || [];
+    const isCollLoading = !collectionsMap[selectedDatabase] && !!loadingCollections?.[selectedDatabase];
 
     return (
       <div className="flex-1 flex flex-col overflow-hidden bg-slate-50">
@@ -415,9 +418,13 @@ const Documents = () => {
             </div>
             <div>
               <h1 className="text-base font-bold text-slate-900">{selectedDatabase}</h1>
-              <p className="text-xs text-slate-500 font-mono">
-                {colls.length} {colls.length === 1 ? "Collection" : "Collections"}
-              </p>
+              {isCollLoading ? (
+                <Skeleton className="h-3 w-20 mt-1" />
+              ) : (
+                <p className="text-xs text-slate-500 font-mono">
+                  {colls.length} {colls.length === 1 ? "Collection" : "Collections"}
+                </p>
+              )}
             </div>
           </div>
 
@@ -443,7 +450,20 @@ const Documents = () => {
               </h2>
             </div>
 
-            {colls.length === 0 ? (
+            {isCollLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-8 w-8 rounded-lg" />
+                      <Skeleton className="h-4 w-12 rounded-full" />
+                    </div>
+                    <Skeleton className="h-5 w-3/4 rounded" />
+                    <Skeleton className="h-3 w-1/2 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : colls.length === 0 ? (
               <div className="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-xs">
                 <div className="h-12 w-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

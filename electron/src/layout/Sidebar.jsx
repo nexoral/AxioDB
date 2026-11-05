@@ -73,6 +73,7 @@ const Sidebar = () => {
   const activePath = location.pathname;
 
   const handleSelectDb = (dbName) => {
+    if (selectedDatabase === dbName && !selectedCollection && activePath === "/") return;
     setSelectedDatabase(dbName);
     if (activePath !== "/") {
       navigate("/");
@@ -256,10 +257,10 @@ const Sidebar = () => {
                   {/* Database Node */}
                   <div
                     onClick={() => handleSelectDb(dbName)}
-                    className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs cursor-pointer transition-all ${
+                    className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-xs cursor-pointer select-none outline-none border transition-colors ${
                       isDbSelected
-                        ? "bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200/80 shadow-2xs"
-                        : "text-slate-700 hover:bg-slate-200/60"
+                        ? "bg-emerald-50 text-emerald-800 font-semibold border-emerald-200/80"
+                        : "border-transparent text-slate-700 hover:bg-slate-200/60"
                     }`}
                   >
                     <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -273,7 +274,7 @@ const Sidebar = () => {
 
                       {/* Collection count tag */}
                       <span
-                        className={`px-1.5 py-0.5 text-[10px] font-mono rounded-full font-medium shrink-0 ${
+                        className={`px-1.5 py-0.5 text-[10px] font-mono rounded-full font-medium shrink-0 transition-colors ${
                           isDbSelected
                             ? "bg-emerald-200/70 text-emerald-900"
                             : "bg-slate-200/70 text-slate-600 group-hover/db:bg-slate-300/80"
@@ -292,7 +293,7 @@ const Sidebar = () => {
                           setCreateCollDb(dbName);
                           setShowCreateColl(true);
                         }}
-                        className="opacity-0 group-hover/db:opacity-100 p-0.5 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded transition-opacity"
+                        className="opacity-0 group-hover/db:opacity-100 p-0.5 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded transition-opacity outline-none focus:outline-none"
                         title="Add Collection"
                       >
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -306,7 +307,7 @@ const Sidebar = () => {
                           if (!isTcp) handleExportDatabase(dbName);
                         }}
                         disabled={isTcp || exportingDb === dbName}
-                        className={`p-0.5 rounded transition-all ${
+                        className={`p-0.5 rounded transition-opacity outline-none focus:outline-none ${
                           isTcp
                             ? "opacity-35 cursor-not-allowed text-slate-300"
                             : "opacity-0 group-hover/db:opacity-100 text-slate-400 hover:text-amber-600 hover:bg-amber-50 disabled:opacity-50"
@@ -330,7 +331,7 @@ const Sidebar = () => {
                           e.stopPropagation();
                           setDbToDelete(dbName);
                         }}
-                        className="opacity-0 group-hover/db:opacity-100 p-0.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-opacity"
+                        className="opacity-0 group-hover/db:opacity-100 p-0.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-opacity outline-none focus:outline-none"
                         title="Delete Database"
                       >
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
