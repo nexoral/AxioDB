@@ -110,9 +110,6 @@ const DatabaseTreeView = ({ treeDB = [], loading = false }) => {
                                 <span className='min-w-0 flex-1 truncate text-sm text-ink-700'>
                                   {collection.name}
                                 </span>
-                                <span className='shrink-0 text-xs tabular-nums text-ink-500'>
-                                  {collection.documentCount.toLocaleString()} docs
-                                </span>
                               </li>
                             ))}
                         </ul>

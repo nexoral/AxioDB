@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDbStore } from "../store/dbStore";
 import apiClient from "../api/client";
@@ -31,11 +31,15 @@ const Documents = () => {
   // Documents & Query state
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
   const [totalDocs, setTotalDocs] = useState(0);
   const [queryLatency, setQueryLatency] = useState(null);
+  const [activeFilterQuery, setActiveFilterQuery] = useState(null);
+
+  const observer = useRef();
 
   // Compass-style Filter Bar inputs (accepts relaxed JS object literals)
   const [filterStr, setFilterStr] = useState("");
@@ -106,82 +110,119 @@ const Documents = () => {
     ];
   }, [selectedCollection]);
 
-  // Load documents when collection or page changes
-  const loadDocuments = useCallback(async () => {
+  // Load documents with infinite scroll support
+  const fetchDocuments = useCallback(async (pageNum = 1, append = false, queryFilter = activeFilterQuery) => {
     if (!selectedDatabase || !selectedCollection) return;
-    setLoading(true);
-    setError(null);
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setError(null);
+    }
     const start = performance.now();
 
     try {
-      let url = `/api/operation/all/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${page}&limit=${limit}`;
-      const res = await apiClient.get(url);
+      let res;
+      if (queryFilter && Object.keys(queryFilter).length > 0) {
+        res = await apiClient.post(
+          `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${pageNum}&limit=10`,
+          { query: queryFilter }
+        );
+      } else {
+        res = await apiClient.get(
+          `/api/operation/all/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${pageNum}&limit=10`
+        );
+      }
+
       const latency = Math.round(performance.now() - start);
       setQueryLatency(latency);
 
       const payload = res.data?.data?.data || res.data?.data || {};
-      const docs = Array.isArray(payload.documents) ? payload.documents : (Array.isArray(payload) ? payload : []);
-      setDocuments(docs);
-      setTotalDocs(payload.totalDocuments ?? docs.length);
+      const fetchedDocs = Array.isArray(payload.documents)
+        ? payload.documents
+        : (Array.isArray(payload) ? payload : []);
+
+      if (append) {
+        setDocuments((prev) => [...prev, ...fetchedDocs]);
+      } else {
+        setDocuments(fetchedDocs);
+      }
+
+      const totalCount = payload.totalDocuments ?? (append ? documents.length + fetchedDocs.length : fetchedDocs.length);
+      setTotalDocs(totalCount);
+
+      // If we received fewer than 10 documents, we have reached the end
+      setHasMore(fetchedDocs.length === 10);
     } catch (err) {
       console.error("Failed to load documents:", err);
       setError(err.response?.data?.message || err.message || "Failed to load documents");
-      setDocuments([]);
+      if (!append) {
+        setDocuments([]);
+      }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [selectedDatabase, selectedCollection, page, limit]);
+  }, [selectedDatabase, selectedCollection, activeFilterQuery, documents.length]);
 
+  // Reset and fetch initial batch whenever selected collection or database changes
   useEffect(() => {
     if (selectedDatabase && selectedCollection) {
-      loadDocuments();
+      setPage(1);
+      setHasMore(true);
+      setActiveFilterQuery(null);
+      setFilterStr("");
+      setSortStr("");
+      setProjectStr("");
+      setSkipStr("0");
+      fetchDocuments(1, false, null);
     }
-  }, [selectedDatabase, selectedCollection, page, limit, loadDocuments]);
+  }, [selectedDatabase, selectedCollection]);
+
+  // Infinite scroll intersection observer attached to the last document element
+  const lastDocumentElementRef = useCallback((node) => {
+    if (loading || loadingMore) return;
+    if (observer.current) observer.current.disconnect();
+
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage((prevPage) => {
+          const nextPage = prevPage + 1;
+          fetchDocuments(nextPage, true, activeFilterQuery);
+          return nextPage;
+        });
+      }
+    });
+
+    if (node) observer.current.observe(node);
+  }, [loading, loadingMore, hasMore, fetchDocuments, activeFilterQuery]);
 
   // Apply Compass-style filter: parses relaxed JavaScript object syntax (no JSON required)
   const handleApplyFilter = async () => {
     if (!selectedDatabase || !selectedCollection) return;
-    setLoading(true);
     setError(null);
-    const start = performance.now();
 
-    try {
-      let parsedFilter = {};
-      if (filterStr.trim()) {
-        let clean = filterStr.trim();
-        if (!clean.startsWith("{") && !clean.startsWith("[")) {
-          clean = `{ ${clean} }`;
-        }
+    let parsedFilter = {};
+    if (filterStr.trim()) {
+      let clean = filterStr.trim();
+      if (!clean.startsWith("{") && !clean.startsWith("[")) {
+        clean = `{ ${clean} }`;
+      }
+      try {
+        parsedFilter = parseLiteral(clean);
+      } catch {
         try {
-          parsedFilter = parseLiteral(clean);
+          parsedFilter = JSON.parse(clean);
         } catch {
-          try {
-            parsedFilter = JSON.parse(clean);
-          } catch {
-            // eslint-disable-next-line no-new-func
-            parsedFilter = new Function(`return (${clean})`)();
-          }
+          // eslint-disable-next-line no-new-func
+          parsedFilter = new Function(`return (${clean})`)();
         }
       }
-
-      const res = await apiClient.post(
-        `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${page}&limit=${limit}`,
-        { query: parsedFilter }
-      );
-
-      const latency = Math.round(performance.now() - start);
-      setQueryLatency(latency);
-
-      const payload = res.data?.data?.data || res.data?.data || {};
-      const docs = Array.isArray(payload.documents) ? payload.documents : (Array.isArray(payload) ? payload : []);
-      setDocuments(docs);
-      setTotalDocs(payload.totalDocuments ?? docs.length);
-    } catch (err) {
-      console.error("Filter error:", err);
-      setError(err.response?.data?.message || "Invalid query filter syntax. You can use JavaScript object syntax.");
-    } finally {
-      setLoading(false);
     }
+
+    setPage(1);
+    setActiveFilterQuery(parsedFilter);
+    fetchDocuments(1, false, parsedFilter);
   };
 
   const handleResetFilter = () => {
@@ -190,7 +231,8 @@ const Documents = () => {
     setProjectStr("");
     setSkipStr("0");
     setPage(1);
-    loadDocuments();
+    setActiveFilterQuery(null);
+    fetchDocuments(1, false, null);
   };
 
   // Run Query in Console tab (supports expressions like <col>.query({...}).exec() AND raw objects)
@@ -360,7 +402,6 @@ const Documents = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {colls.map((c) => {
                   const name = c.name || c;
-                  const count = c.count !== undefined ? c.count : (c.documentCount || 0);
 
                   return (
                     <div
@@ -374,9 +415,6 @@ const Documents = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                           </svg>
                         </div>
-                        <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                          {count} docs
-                        </span>
                       </div>
                       <h3 className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
                         {name}
@@ -533,7 +571,7 @@ const Documents = () => {
               {/* Cards Indicator */}
               <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
                 <span className="text-emerald-700 font-semibold">
-                  {documents.length} document{documents.length !== 1 ? "s" : ""}
+                  {documents.length}{totalDocs > 0 ? ` / ${totalDocs}` : ""} document{documents.length !== 1 ? "s" : ""}
                 </span>
                 {queryLatency !== null && (
                   <span>⚡ {queryLatency}ms</span>
@@ -546,7 +584,7 @@ const Documents = () => {
               <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500 font-mono">
                 <span className="text-emerald-700 font-semibold">⚡ {queryLatency}ms</span>
                 <span>•</span>
-                <span>{documents.length} documents retrieved</span>
+                <span>{documents.length} document{documents.length !== 1 ? "s" : ""} loaded{totalDocs > 0 ? ` of ${totalDocs} total` : ""}</span>
               </div>
             )}
           </div>
@@ -562,7 +600,7 @@ const Documents = () => {
           {/* Content Area: Table / JSON List with Drawer */}
           <div className="flex-1 flex overflow-hidden">
             <div className="flex-1 overflow-auto bg-white">
-              {loading ? (
+              {loading && documents.length === 0 ? (
                 <div className="p-8 text-center text-slate-400 text-xs font-mono">Loading documents...</div>
               ) : documents.length === 0 ? (
                 <div className="p-12 text-center text-slate-400 text-xs">
@@ -570,14 +608,15 @@ const Documents = () => {
                   <p>Try clearing your filter or inserting a new document.</p>
                 </div>
               ) : (
-                /* Card-based Document View */
+                /* Card-based Document View with Infinite Scroll */
                 <div className="p-4">
                   <AnimatePresence>
                     {documents.map((doc, idx) => (
                       <DocumentCard
-                        key={doc._id || idx}
+                        key={doc._id || doc.documentId || idx}
                         doc={doc}
                         idx={idx}
+                        lastDocRef={idx === documents.length - 1 ? lastDocumentElementRef : null}
                         isSelected={inspectorDoc?._id === doc._id}
                         onInspect={(d) => setInspectorDoc(d)}
                         onEdit={(d) => {
@@ -592,6 +631,39 @@ const Documents = () => {
                       />
                     ))}
                   </AnimatePresence>
+
+                  {/* Loading indicator for infinite scroll */}
+                  {loadingMore && (
+                    <div className="flex justify-center items-center py-4">
+                      <svg
+                        className="animate-spin h-5 w-5 text-emerald-600"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* End of results message */}
+                  {!loading && !loadingMore && !hasMore && documents.length > 0 && (
+                    <div className="text-center py-4 text-slate-400 text-xs font-mono border-t border-slate-100 mt-4">
+                      You&apos;ve reached the end of the results. ({documents.length} document{documents.length !== 1 ? "s" : ""})
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -639,31 +711,6 @@ const Documents = () => {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Desktop Pagination Bar */}
-          <div className="h-9 border-t border-slate-200 bg-white px-4 flex items-center justify-between shrink-0 text-xs text-slate-600 font-mono">
-            <div>
-              Showing {documents.length > 0 ? (page - 1) * limit + 1 : 0} - {Math.min(page * limit, totalDocs)} of {totalDocs}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="px-2 py-0.5 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100 font-sans cursor-pointer"
-              >
-                Previous
-              </button>
-              <span>Page {page}</span>
-              <button
-                disabled={page * limit >= totalDocs}
-                onClick={() => setPage((p) => p + 1)}
-                className="px-2 py-0.5 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100 font-sans cursor-pointer"
-              >
-                Next
-              </button>
-            </div>
           </div>
         </div>
       )}

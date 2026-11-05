@@ -291,10 +291,6 @@ const Sidebar = () => {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <span className="text-[10px] text-slate-400 bg-slate-200/60 px-1 rounded font-mono">
-                        {colls.length}
-                      </span>
-
                       {/* Quick Actions Hover */}
                       <button
                         onClick={(e) => {

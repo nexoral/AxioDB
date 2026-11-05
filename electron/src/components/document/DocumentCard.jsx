@@ -18,7 +18,7 @@ const getDisplayFields = (doc) => {
   );
 };
 
-const DocumentCard = ({ doc, idx, isSelected, onInspect, onEdit, onDelete, copyToClipboard }) => {
+const DocumentCard = ({ doc, idx, isSelected, onInspect, onEdit, onDelete, copyToClipboard, lastDocRef }) => {
   const [expanded, setExpanded] = useState(false);
   const displayFields = getDisplayFields(doc);
   const shownFields = expanded ? displayFields : displayFields.slice(0, FIELD_LIMIT);
@@ -34,6 +34,7 @@ const DocumentCard = ({ doc, idx, isSelected, onInspect, onEdit, onDelete, copyT
 
   return (
     <motion.div
+      ref={lastDocRef}
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
