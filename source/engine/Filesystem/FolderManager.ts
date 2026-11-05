@@ -92,8 +92,6 @@ export default class FolderManager {
   public async GetDirectorySize(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
-    const permissionsMap = new Map<string, number>();
-
     try {
       try {
         await this.fileSystem.access(path);
@@ -102,9 +100,6 @@ export default class FolderManager {
           `Directory does not exist or is inaccessible: ${error}`,
         );
       }
-
-      // Collect and store original permissions, unlock files/folders as needed
-      await this.prepareDirectoryForSizeCalculation(path, permissionsMap);
 
       const osType = WorkerProcess.getOS();
       let size: number;
@@ -146,87 +141,6 @@ export default class FolderManager {
     } catch (err) {
       Logger.error(`Error getting directory size: ${err}`);
       return this.responseHelper.Error(`Failed to get directory size: ${err}`);
-    } finally {
-      await this.restoreDirectoryPermissions(permissionsMap);
-    }
-  }
-
-  /**
-   * Recursively prepares a directory and its contents for size calculation
-   * by temporarily modifying permissions if needed.
-   */
-  private async prepareDirectoryForSizeCalculation(
-    dirPath: string,
-    permissionsMap: Map<string, number>,
-  ): Promise<void> {
-    try {
-      try {
-        const stats = await this.fileSystem.stat(dirPath);
-        permissionsMap.set(dirPath, stats.mode);
-
-        if ((stats.mode & 0o444) !== 0o444) {
-          await this.fileSystem.chmod(dirPath, 0o755);
-        }
-      } catch (error) {
-        Logger.warn(
-          `Could not check/modify permissions for ${dirPath}: ${error}`,
-        );
-        return;
-      }
-
-      let items: string[];
-      try {
-        items = await this.fileSystem.readdir(dirPath);
-      } catch (error) {
-        Logger.warn(`Could not read directory ${dirPath}: ${error}`);
-        return;
-      }
-
-      for (const item of items) {
-        const itemPath = `${dirPath}/${item}`;
-
-        try {
-          const stats = await this.fileSystem.stat(itemPath);
-          permissionsMap.set(itemPath, stats.mode);
-
-          if (stats.isDirectory()) {
-            if ((stats.mode & 0o444) !== 0o444) {
-              await this.fileSystem.chmod(itemPath, 0o755);
-            }
-
-            await this.prepareDirectoryForSizeCalculation(
-              itemPath,
-              permissionsMap,
-            );
-          } else if (stats.isFile()) {
-            if ((stats.mode & 0o444) !== 0o444) {
-              await this.fileSystem.chmod(itemPath, 0o644);
-            }
-          }
-        } catch {
-          // Continue with other items
-        }
-      }
-    } catch (error) {
-      Logger.warn(`Error preparing directory ${dirPath}: ${error}`);
-    }
-  }
-
-  private async restoreDirectoryPermissions(
-    permissionsMap: Map<string, number>,
-  ): Promise<void> {
-    // Convert to array and reverse to handle deepest paths first
-    const paths = Array.from(permissionsMap.keys()).reverse();
-
-    for (const path of paths) {
-      const originalMode = permissionsMap.get(path);
-      if (originalMode !== undefined) {
-        try {
-          await this.fileSystem.chmod(path, originalMode);
-        } catch (error) {
-          Logger.warn(`Failed to restore permissions for ${path}: ${error}`);
-        }
-      }
     }
   }
 

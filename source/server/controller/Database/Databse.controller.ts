@@ -32,7 +32,7 @@ export default class DatabaseController {
   }
 
   public async getDatabases(): Promise<ResponseBuilder> {
-    const databases = await this.AxioDBInstance.getInstanceInfo();
+    const databases = await this.AxioDBInstance.getDatabaseList();
     return buildResponse(StatusCodes.OK, "List of Databases", databases?.data);
   }
 

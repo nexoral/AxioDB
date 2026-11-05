@@ -276,6 +276,37 @@ export class AxioDB {
   }
 
   /**
+   * Fast database listing without recursive storage size calculations.
+   */
+  public async getDatabaseList(): Promise<SuccessInterface | undefined> {
+    if (!this._initializing) await this.ready;
+    const totalDatabases = await this.folderManager.ListDirectory(
+      path.resolve(this.currentPATH),
+    );
+
+    if ("data" in totalDatabases) {
+      const databasesList = totalDatabases.data as string[];
+      const visibleDatabases: string[] = databasesList.filter(
+        (db: string) => db.toLowerCase() !== RESERVED_DB_NAME,
+      );
+      const FinalDatabaseInfo: FinalDatabaseInfo = {
+        CurrentPath: this.currentPATH,
+        RootName: this.RootName,
+        TotalSize: 0,
+        TotalDatabases: `${visibleDatabases.length} Databases`,
+        ListOfDatabases: visibleDatabases,
+        DatabaseMap: this.DatabaseMap,
+        AllDatabasesPaths: visibleDatabases.map((db: string) =>
+          path.join(this.currentPATH, db),
+        ),
+      };
+      return this.ResponseHelper.Success(FinalDatabaseInfo);
+    } else {
+      return this.ResponseHelper.Error("Failed to get database list");
+    }
+  }
+
+  /**
    * Checks if a database with the given name exists
    *
    * @param DBName - The name of the database to check for existence
