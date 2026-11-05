@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "25.37.4",
+    version: "25.38.0",
     date: "2026-11-05",
     title: "Embedded AxioDB desktop features in Electron, unified 25-document default limit, and interactive query enhancements",
     changes: [
