@@ -54,10 +54,10 @@ const QueryModal = ({
     try {
       setLoading(true)
       setError(null)
-      // The editor speaks JS object literals; the wire speaks JSON. axios serialises for us.
-      const payload = parseLiteral(parsed.args)
+      const rootMethod = parsed.rootMethod || parsed.method
 
-      if (parsed.method === 'aggregate') {
+      if (rootMethod === 'aggregate') {
+        const payload = parseLiteral(parsed.args || '[]')
         const response = await axios.post(
           `${BASE_API_URL}/api/operation/aggregate/?dbName=${databaseName}&collectionName=${collectionName}`,
           { aggregation: payload },
@@ -70,7 +70,47 @@ const QueryModal = ({
         return
       }
 
-      onQueryResults(payload)
+      if (rootMethod === 'update') {
+        const filter = parseLiteral(parsed.args || '{}')
+        const updateCall = parsed.chain.find((c) => c.name === 'UpdateOne' || c.name === 'UpdateMany')
+        const updateData = updateCall ? parseLiteral(updateCall.args || '{}') : {}
+        const isMany = updateCall?.name === 'UpdateMany'
+
+        await axios.put(
+          `${BASE_API_URL}/api/operation/update/by-query/?dbName=${databaseName}&collectionName=${collectionName}&isMany=${isMany}`,
+          { query: filter, update: updateData },
+          { headers: { 'Content-Type': 'application/json' } }
+        )
+        onQueryResults(filter)
+        onClose()
+        return
+      }
+
+      if (rootMethod === 'delete') {
+        const filter = parseLiteral(parsed.args || '{}')
+        const deleteCall = parsed.chain.find((c) => c.name === 'deleteOne' || c.name === 'deleteMany')
+        const isMany = deleteCall?.name === 'deleteMany'
+
+        await axios.delete(
+          `${BASE_API_URL}/api/operation/delete/by-query/?dbName=${databaseName}&collectionName=${collectionName}&isMany=${isMany}`,
+          { data: { query: filter }, headers: { 'Content-Type': 'application/json' } }
+        )
+        onQueryResults(filter)
+        onClose()
+        return
+      }
+
+      // query() method - extract options
+      const payload = parseLiteral(parsed.args || '{}')
+      let limitVal = 10
+      for (const call of parsed.chain) {
+        if (call.name === 'Limit') {
+          const num = Number(call.args.trim())
+          if (!isNaN(num) && num > 0) limitVal = num
+        }
+      }
+
+      onQueryResults(payload, limitVal)
       onClose()
     } catch (err) {
       console.error('Query error:', err)

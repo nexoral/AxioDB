@@ -744,8 +744,12 @@ async function executeTcpRequest(fullUrl: URL, config: {
     const dbName = String(query.dbName || query.databaseName || body.dbName || body.databaseName || "");
     const collectionName = String(query.collectionName || body.collectionName || "");
     const page = Math.max(1, parseInt(query.page || "1", 10));
-    const limit = Math.max(1, parseInt(query.limit || "50", 10));
-    const skip = (page - 1) * limit;
+    const limit = body.limit !== undefined
+      ? parseInt(String(body.limit), 10)
+      : (query.limit !== undefined ? parseInt(String(query.limit), 10) : 50);
+    const skip = body.skip !== undefined
+      ? parseInt(String(body.skip), 10)
+      : (query.skip !== undefined ? parseInt(String(query.skip), 10) : (page - 1) * limit);
 
     let q: Record<string, unknown> = {};
     if (body.query && typeof body.query === "object" && !Array.isArray(body.query)) {
@@ -903,6 +907,46 @@ async function executeTcpRequest(fullUrl: URL, config: {
     const dbName = String(query.dbName || query.databaseName || body.dbName || "");
     const collectionName = String(query.collectionName || body.collectionName || "");
     const documentId = String(query.documentId || query.id || body.documentId || body.id || "");
+    const isByQuery = pathname.includes("/by-query") || (!documentId && body.query !== undefined);
+
+    if (isByQuery) {
+      const q = (body.query && typeof body.query === "object") ? (body.query as Record<string, unknown>) : {};
+      const updateData = (body.update || body.data || body) as Record<string, unknown>;
+      const updateOne = String(query.isMany) !== "true" && body.isMany !== true;
+
+      const res = await tcpBridge.sendCommand(host, port, "UPDATE_DOCUMENTS_BY_QUERY", {
+        dbName,
+        collectionName,
+        query: q,
+        updateData,
+        updateOne,
+      }, timeout, isTls);
+
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: {
+            statusCode: res.statusCode,
+            message: res.message || res.error || "Failed to update documents",
+            error: res.error,
+          },
+        };
+      }
+
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: {
+          statusCode: res.statusCode || 200,
+          message: res.message || "Documents updated successfully",
+          data: res.data,
+        },
+      };
+    }
+
     let updateData: unknown = (body.data || body) as Record<string, unknown>;
     if (typeof config.data === "string") {
       try {
@@ -953,6 +997,36 @@ async function executeTcpRequest(fullUrl: URL, config: {
     const dbName = String(query.dbName || query.databaseName || body.dbName || "");
     const collectionName = String(query.collectionName || body.collectionName || "");
     const documentId = String(query.documentId || query.id || body.documentId || body.id || "");
+    const isByQuery = pathname.includes("/by-query") || (!documentId && body.query !== undefined);
+
+    if (isByQuery) {
+      const q = (body.query && typeof body.query === "object") ? (body.query as Record<string, unknown>) : {};
+      const res = await tcpBridge.sendCommand(host, port, "DELETE_DOCUMENTS_BY_QUERY", {
+        dbName,
+        collectionName,
+        query: q,
+      }, timeout, isTls);
+
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: {
+            statusCode: res.statusCode,
+            message: res.message || res.error || "Failed to delete documents",
+            error: res.error,
+          },
+        };
+      }
+
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message || "Documents deleted successfully", data: res.data },
+      };
+    }
 
     const res = await tcpBridge.sendCommand(host, port, "DELETE_DOCUMENT_BY_ID", {
       dbName,

@@ -59,16 +59,26 @@ export default class CRUDController {
   }
 
   public async getDocumentsByQuery(request: AxioHttpRequest) {
-    const { dbName, collectionName, page } = request.query as unknown as {
+    const { dbName, collectionName, page, limit, skip: explicitSkip } = request.query as unknown as {
       dbName: string;
       collectionName: string;
-      page: number;
+      page?: number;
+      limit?: number;
+      skip?: number;
     };
+    const bodyLimit = (request.body as Record<string, unknown>)?.limit as number | undefined;
+    const bodySkip = (request.body as Record<string, unknown>)?.skip as number | undefined;
+    const bodySort = (request.body as Record<string, unknown>)?.sort as Record<string, 1 | -1> | undefined;
+
     const { query } = request.body as {
       query: object;
     };
 
-    const PageNumber = parseInt(String(page));
+    const PageNumber = page ? parseInt(String(page)) : 1;
+    const effectiveLimit = limit !== undefined ? parseInt(String(limit)) : (bodyLimit !== undefined ? parseInt(String(bodyLimit)) : 10);
+    const effectiveSkip = explicitSkip !== undefined
+      ? parseInt(String(explicitSkip))
+      : (bodySkip !== undefined ? parseInt(String(bodySkip)) : (PageNumber - 1) * effectiveLimit);
 
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
@@ -77,7 +87,7 @@ export default class CRUDController {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
     }
 
-    if (typeof PageNumber !== "number" || PageNumber < 1) {
+    if (isNaN(PageNumber) || PageNumber < 1) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid page number");
     }
 
@@ -88,18 +98,26 @@ export default class CRUDController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const skip: number = (PageNumber - 1) * 10;
     const databaseInstance: Database =
       await this.AxioDBInstance.createDB(dbName);
 
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
-    const allDocuments = await DB_Collection.query({ ...query })
-      .Limit(10)
-      .Sort({ updatedAt: -1 })
-      .Skip(skip)
-      .exec();
+    let queryBuilder = DB_Collection.query({ ...query });
+    if (!isNaN(effectiveLimit) && effectiveLimit > 0) {
+      queryBuilder = queryBuilder.Limit(effectiveLimit);
+    }
+    if (bodySort && typeof bodySort === "object") {
+      queryBuilder = queryBuilder.Sort(bodySort);
+    } else {
+      queryBuilder = queryBuilder.Sort({ updatedAt: -1 });
+    }
+    if (!isNaN(effectiveSkip) && effectiveSkip >= 0) {
+      queryBuilder = queryBuilder.Skip(effectiveSkip);
+    }
+
+    const allDocuments = await queryBuilder.exec();
     if (!allDocuments.data) {
       return buildResponse(StatusCodes.NOT_FOUND, "No documents found");
     }

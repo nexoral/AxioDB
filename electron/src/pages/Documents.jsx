@@ -235,7 +235,7 @@ const Documents = () => {
     fetchDocuments(1, false, null);
   };
 
-  // Run Query in Console tab (supports expressions like <col>.query({...}).exec() AND raw objects)
+  // Run Query in Console tab (supports query, aggregate, update, delete with full chaining)
   const handleRunConsoleQuery = async () => {
     if (!consoleQuery.trim() || !selectedDatabase || !selectedCollection) return;
     setConsoleRunning(true);
@@ -247,8 +247,10 @@ const Documents = () => {
       const parsed = parseExpression(trimmed);
 
       if (parsed) {
-        const payload = parseLiteral(parsed.args || "{}");
-        if (parsed.method === "aggregate") {
+        const rootMethod = parsed.rootMethod || parsed.method;
+
+        if (rootMethod === "aggregate") {
+          const payload = parseLiteral(parsed.args || "[]");
           const res = await apiClient.post(
             `/api/operation/aggregate/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}`,
             { aggregation: payload }
@@ -261,22 +263,83 @@ const Documents = () => {
             data: docs,
           });
           return;
-        } else {
-          // Method is query
-          const res = await apiClient.post(
-            `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=1&limit=50`,
-            { query: payload }
+        }
+
+        if (rootMethod === "update") {
+          const filter = parseLiteral(parsed.args || "{}");
+          const updateCall = parsed.chain.find((c) => c.name === "UpdateOne" || c.name === "UpdateMany");
+          const updateData = updateCall ? parseLiteral(updateCall.args || "{}") : {};
+          const isMany = updateCall?.name === "UpdateMany";
+
+          const res = await apiClient.put(
+            `/api/operation/update/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&isMany=${isMany}`,
+            { query: filter, update: updateData }
           );
-          const payloadData = res.data?.data?.data || res.data?.data || {};
-          const docs = Array.isArray(payloadData.documents) ? payloadData.documents : (Array.isArray(payloadData) ? payloadData : []);
+
           const latency = Math.round(performance.now() - start);
           setConsoleResults({
             executionTime: `${latency}ms`,
-            count: docs.length,
-            data: docs,
+            count: res.data?.data?.count ?? (res.data?.data?.matchedCount || 1),
+            data: res.data?.data || res.data,
           });
           return;
         }
+
+        if (rootMethod === "delete") {
+          const filter = parseLiteral(parsed.args || "{}");
+          const deleteCall = parsed.chain.find((c) => c.name === "deleteOne" || c.name === "deleteMany");
+          const isMany = deleteCall?.name === "deleteMany";
+
+          const res = await apiClient.delete(
+            `/api/operation/delete/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&isMany=${isMany}`,
+            { data: { query: filter } }
+          );
+
+          const latency = Math.round(performance.now() - start);
+          setConsoleResults({
+            executionTime: `${latency}ms`,
+            count: res.data?.data?.count ?? (isMany ? "all matching" : 1),
+            data: res.data?.data || res.data,
+          });
+          return;
+        }
+
+        // Method is query - extract any chained .Limit(), .Skip(), .Sort(), .project()
+        const filter = parseLiteral(parsed.args || "{}");
+        let limitVal = 50;
+        let skipVal = 0;
+        let sortVal = undefined;
+
+        for (const call of parsed.chain) {
+          if (call.name === "Limit") {
+            const num = Number(call.args.trim());
+            if (!isNaN(num) && num > 0) limitVal = num;
+          } else if (call.name === "Skip") {
+            const num = Number(call.args.trim());
+            if (!isNaN(num) && num >= 0) skipVal = num;
+          } else if (call.name === "Sort") {
+            try {
+              sortVal = parseLiteral(call.args);
+            } catch {
+              // ignore
+            }
+          }
+        }
+
+        const res = await apiClient.post(
+          `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=1&limit=${limitVal}&skip=${skipVal}`,
+          { query: filter, limit: limitVal, skip: skipVal, sort: sortVal }
+        );
+
+        const payloadData = res.data?.data?.data || res.data?.data || {};
+        const docs = Array.isArray(payloadData.documents) ? payloadData.documents : (Array.isArray(payloadData) ? payloadData : []);
+        const latency = Math.round(performance.now() - start);
+        setConsoleResults({
+          executionTime: `${latency}ms`,
+          count: docs.length,
+          data: docs,
+        });
+        return;
       }
 
       // If not a method expression, treat as direct object literal: { status: 'active' }
