@@ -12,9 +12,10 @@ new AxioDB({
   HTTP: %t,
   TCP: %t,
   TCPAuth: %t,
+  MCP: %t,
   AdminPassword: process.env.AXIODB_ADMIN_PASSWORD || undefined,
   RootName: "AxioDB",
   CustomPath: __dirname,
 });
-`, config.GUI, config.HTTP, config.TCP, config.TCPAuth)
+`, config.GUI, config.HTTP, config.TCP, config.TCPAuth, config.MCP)
 }

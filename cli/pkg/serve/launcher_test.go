@@ -17,6 +17,7 @@ func TestServerScriptUsesSupportedAxioDBOptions(t *testing.T) {
 		`HTTP: true`,
 		`TCP: true`,
 		`TCPAuth: true`,
+		`MCP: true`,
 		`AdminPassword: process.env.AXIODB_ADMIN_PASSWORD || undefined`,
 		`RootName: "AxioDB"`,
 		`CustomPath: __dirname`,

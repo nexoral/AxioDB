@@ -23,7 +23,7 @@ const npmInstallTimeout = 10 * time.Minute
 const adminPasswordEnv = "AXIODB_ADMIN_PASSWORD"
 
 var serveCmd = &cobra.Command{
-	Use:   "serve <http|tcp|tcp-auth|full> [password]",
+	Use:   "serve <http|tcp|tcp-auth|mcp|full> [password]",
 	Short: "Start a temporary local AxioDB server",
 	Long: `Start a temporary local AxioDB server.
 
@@ -33,9 +33,9 @@ through the HTTP API or GUI.
 
 tcp-auth requires it - it has no HTTP surface, so the seeded password could never be
 rotated and every TCP login would be rejected. http and full make it optional, since
-the control server can rotate it. tcp creates no admin account and rejects it.`,
+the control server can rotate it. tcp and mcp create no admin account and reject it.`,
 	Args:      cobra.RangeArgs(1, 2),
-	ValidArgs: []string{"http", "tcp", "tcp-auth", "full"},
+	ValidArgs: []string{"http", "tcp", "tcp-auth", "mcp", "full"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var password string
 		if len(args) == 2 {
@@ -207,6 +207,9 @@ func printReady(output io.Writer, config serve.ModeConfig, password string) {
 		if config.TCPAuth {
 			fmt.Fprintln(output, "  TCP auth: enabled")
 		}
+	}
+	if config.HasMCP() {
+		fmt.Fprintf(output, "  MCP:       http://localhost:%d\n", serve.MCPPort)
 	}
 	if password == "" && config.UsesTCPAuth() {
 		// http/full have a control server to rotate through; tcp-auth now requires a

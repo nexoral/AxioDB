@@ -146,7 +146,8 @@ func WaitForReady(ctx context.Context, config ModeConfig, childDone <-chan error
 	for {
 		httpReady := !config.HasHTTP() || checkHTTP()
 		tcpReady := !config.HasTCP() || checkTCP()
-		if httpReady && tcpReady {
+		mcpReady := !config.HasMCP() || checkMCP()
+		if httpReady && tcpReady && mcpReady {
 			return nil
 		}
 
@@ -182,4 +183,14 @@ func checkTCP() bool {
 	}
 	_ = connection.Close()
 	return true
+}
+
+func checkMCP() bool {
+	client := http.Client{Timeout: 500 * time.Millisecond}
+	response, err := client.Get(fmt.Sprintf("http://127.0.0.1:%d/", MCPPort))
+	if err != nil {
+		return false
+	}
+	defer response.Body.Close()
+	return response.StatusCode < http.StatusInternalServerError
 }

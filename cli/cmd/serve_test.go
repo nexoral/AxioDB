@@ -15,10 +15,12 @@ func TestValidatePassword(t *testing.T) {
 		{mode: "full"},
 		{mode: "http"},
 		{mode: "tcp"},
+		{mode: "mcp"},
 		{mode: "full", password: "s3cret"},
 		{mode: "http", password: "s3cret"},
 		{mode: "tcp-auth", wantErr: "requires a password"},
 		{mode: "tcp", password: "s3cret", wantErr: "never creates"},
+		{mode: "mcp", password: "s3cret", wantErr: "never creates"},
 		{mode: "tcp-auth", password: serve.DefaultAdminPassword, wantErr: "must differ from the default"},
 		{mode: "http", password: serve.DefaultAdminPassword, wantErr: "must differ from the default"},
 	}

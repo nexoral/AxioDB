@@ -12,7 +12,8 @@ func TestParseMode(t *testing.T) {
 		{name: "http", want: ModeConfig{Mode: ModeHTTP, HTTP: true}},
 		{name: "tcp", want: ModeConfig{Mode: ModeTCP, TCP: true}},
 		{name: "tcp-auth", want: ModeConfig{Mode: ModeTCPAuth, TCP: true, TCPAuth: true}, usesTCPAuth: true, needsPassword: true},
-		{name: "full", want: ModeConfig{Mode: ModeFull, GUI: true, HTTP: true, TCP: true, TCPAuth: true}, usesTCPAuth: true},
+		{name: "mcp", want: ModeConfig{Mode: ModeMCP, MCP: true}},
+		{name: "full", want: ModeConfig{Mode: ModeFull, GUI: true, HTTP: true, TCP: true, TCPAuth: true, MCP: true}, usesTCPAuth: true},
 	}
 
 	for _, test := range tests {
