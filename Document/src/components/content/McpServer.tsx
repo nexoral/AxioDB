@@ -128,7 +128,7 @@ const toolGroups: ToolGroup[] = [
 ];
 
 const McpServer: React.FC = () => {
-  const [initMode, setInitMode] = useState<"core" | "docker">("core");
+  const [initMode, setInitMode] = useState<"cli" | "core" | "docker">("cli");
 
   return (
     <>
@@ -246,15 +246,26 @@ const McpServer: React.FC = () => {
           </div>
 
           <p className="text-gray-600 mb-6">
-            You can start the MCP server directly in your <strong>Node.js / TypeScript code</strong> or run it via <strong>Docker</strong>.
+            You can start the MCP server directly using the <strong>AxioDB CLI</strong>, in your <strong>Node.js / TypeScript code</strong>, or via <strong>Docker</strong>.
           </p>
 
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
             {/* Tabs */}
-            <div className="flex border-b border-gray-200 bg-gray-50">
+            <div className="flex border-b border-gray-200 bg-gray-50 overflow-x-auto">
+              <button
+                onClick={() => setInitMode("cli")}
+                className={`flex items-center gap-2 px-6 py-3 font-semibold text-sm transition-colors border-b-2 whitespace-nowrap ${
+                  initMode === "cli"
+                    ? "border-fuchsia-600 text-fuchsia-700 bg-white"
+                    : "border-transparent text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                <Terminal className="h-4 w-4" />
+                Via CLI (Bun / Instant)
+              </button>
               <button
                 onClick={() => setInitMode("core")}
-                className={`flex items-center gap-2 px-6 py-3 font-semibold text-sm transition-colors border-b-2 ${
+                className={`flex items-center gap-2 px-6 py-3 font-semibold text-sm transition-colors border-b-2 whitespace-nowrap ${
                   initMode === "core"
                     ? "border-fuchsia-600 text-fuchsia-700 bg-white"
                     : "border-transparent text-gray-600 hover:text-gray-900"
@@ -265,7 +276,7 @@ const McpServer: React.FC = () => {
               </button>
               <button
                 onClick={() => setInitMode("docker")}
-                className={`flex items-center gap-2 px-6 py-3 font-semibold text-sm transition-colors border-b-2 ${
+                className={`flex items-center gap-2 px-6 py-3 font-semibold text-sm transition-colors border-b-2 whitespace-nowrap ${
                   initMode === "docker"
                     ? "border-fuchsia-600 text-fuchsia-700 bg-white"
                     : "border-transparent text-gray-600 hover:text-gray-900"
@@ -277,7 +288,24 @@ const McpServer: React.FC = () => {
             </div>
 
             <div className="p-6">
-              {initMode === "core" ? (
+              {initMode === "cli" ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-600">
+                    Use <code className="px-1.5 py-0.5 bg-gray-100 rounded text-fuchsia-700 font-mono">axiodb serve mcp</code> or <code className="px-1.5 py-0.5 bg-gray-100 rounded text-fuchsia-700 font-mono">axiodb serve full</code> to launch the MCP server instantly with Bun.
+                  </p>
+                  <CodeBlock
+                    language="bash"
+                    code={`# Launch MCP server only on port 27020
+axiodb serve mcp
+
+# Or start full stack: HTTP (27018) + TCP (27019) + GUI Dashboard + MCP (27020)
+axiodb serve full`}
+                  />
+                  <div className="p-3 bg-purple-50 border border-purple-200 rounded text-xs text-purple-900">
+                    <strong>Endpoint:</strong> <code className="font-mono text-fuchsia-700">http://localhost:27020/mcp</code> — automatically bootstrapped in a temporary sandbox.
+                  </div>
+                </div>
+              ) : initMode === "core" ? (
                 <div className="space-y-4">
                   <p className="text-sm text-gray-600">
                     Pass <code className="px-1.5 py-0.5 bg-gray-100 rounded text-fuchsia-700 font-mono">MCP: true</code> when creating an <code className="font-mono">AxioDB</code> instance. It immediately launches the native MCP HTTP/SSE server on port <strong>27020</strong>.

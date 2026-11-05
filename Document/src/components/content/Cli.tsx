@@ -138,7 +138,10 @@ axiodb serve tcp
 # Start TCP authentication only (password required)
 axiodb serve tcp-auth
 
-# Start HTTP + authenticated TCP + Dashboard (GUI enabled)
+# Start a temporary native MCP server (port 27020)
+axiodb serve mcp
+
+# Start full stack: HTTP + authenticated TCP + Dashboard GUI + MCP server
 axiodb serve full
 
 # Choose the admin password instead of admin/admin
@@ -302,7 +305,8 @@ const CliPage: React.FC = () => {
               <li><code>http</code> — HTTP API only on port 27018</li>
               <li><code>tcp</code> — unauthenticated TCP on port 27019</li>
               <li><code>tcp-auth</code> — authenticated TCP only</li>
-              <li><code>full</code> — HTTP + authenticated TCP, GUI disabled</li>
+              <li><code>mcp</code> — native Model Context Protocol server on port 27020</li>
+              <li><code>full</code> — HTTP + authenticated TCP + Dashboard GUI + MCP server</li>
             </ul>
           </div>
           <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
@@ -312,13 +316,13 @@ const CliPage: React.FC = () => {
               surface, so the seeded <code>admin/admin</code> could never be rotated
               and every TCP login would be rejected. <code>http</code> and{" "}
               <code>full</code> take it optionally, since the control server can
-              rotate the password. <code>tcp</code> rejects it (no admin account).
+              rotate the password. <code>tcp</code> and <code>mcp</code> reject it (no admin account).
             </p>
           </div>
         </div>
         <p className="text-xs text-gray-500 mt-4">
-          Node.js 20+ and npm are required. The command uses fixed ports 27018
-          (HTTP) and 27019 (TCP), and reports the temporary data path and
+          Powered by Bun (or auto-installed if missing). The command uses fixed ports 27018
+          (HTTP), 27019 (TCP), and 27020 (MCP), and reports the temporary data path and
           enabled endpoints when startup succeeds.
         </p>
       </div>
