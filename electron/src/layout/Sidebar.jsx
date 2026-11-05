@@ -14,7 +14,7 @@ const Sidebar = () => {
   const location = useLocation();
 
   const { username, role, permissions } = useAuthStore();
-  const { protocol, disconnect } = useConnectionStore();
+  const { protocol, tls, noAuth, disconnect } = useConnectionStore();
   const isTcp = protocol === "tcp";
   const {
     databases,
@@ -162,7 +162,7 @@ const Sidebar = () => {
               )}
             </button>
 
-            {(!permissions || permissions.includes("user:view")) && (
+            {(isTcp || !permissions || permissions.includes("user:view") || permissions.includes("*") || role === "super_admin") && (
               <button
                 onClick={() => !isTcp && navigate("/users")}
                 disabled={isTcp}
@@ -440,7 +440,21 @@ const Sidebar = () => {
               {username ? username.charAt(0) : "A"}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-slate-800 truncate">{username || "admin"}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-slate-800 truncate">{username || "admin"}</p>
+                <span className={`text-[9px] font-mono px-1 rounded font-semibold ${
+                  isTcp
+                    ? (tls ? "bg-emerald-100 text-emerald-800" : "bg-cyan-100 text-cyan-800")
+                    : "bg-blue-100 text-blue-800"
+                }`}>
+                  {isTcp ? (tls ? "TLS" : "TCP") : "HTTP"}
+                </span>
+                {noAuth && (
+                  <span className="text-[9px] font-mono px-1 rounded font-semibold bg-amber-100 text-amber-800">
+                    No Auth
+                  </span>
+                )}
+              </div>
               <p className="text-[10px] text-slate-500 font-mono capitalize">{role || "Super Admin"}</p>
             </div>
           </div>

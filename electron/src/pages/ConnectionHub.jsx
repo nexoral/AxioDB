@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useConnectionStore } from "../store/connectionStore";
 import { useAuthStore } from "../store/authStore";
 import authApi from "../api/authApi";
+import apiClient from "../api/client";
 import axioLogo from "../assets/AXioDB.png";
 
 const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
@@ -14,6 +15,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
     password,
     name,
     tls,
+    noAuth,
     savedConnections,
     setConnectionParams,
     saveConnection,
@@ -32,6 +34,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
     password: password || "",
     name: name || "Local Instance",
     tls: tls || false,
+    noAuth: noAuth || false,
     saveToFavorites: true,
   });
 
@@ -52,8 +55,9 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
       if (name === "protocol") {
         if (value === "tcp" && Number(prev.port) === 27018) {
           updated.port = 27019;
-        } else if (value === "http" && Number(prev.port) === 27019) {
-          updated.port = 27018;
+        } else if (value === "http") {
+          if (Number(prev.port) === 27019) updated.port = 27018;
+          updated.noAuth = false;
         }
       }
       return updated;
@@ -67,10 +71,11 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
       protocol: conn.protocol || "http",
       host: conn.host || "localhost",
       port: conn.port || 27018,
-      username: conn.username || "admin",
-      password: conn.password || "",
+      username: conn.noAuth ? "" : (conn.username || "admin"),
+      password: conn.noAuth ? "" : (conn.password || ""),
       name: conn.name || "Saved Connection",
       tls: conn.tls || false,
+      noAuth: Boolean(conn.noAuth),
       saveToFavorites: true,
     });
     setConnectionError("");
@@ -82,17 +87,43 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
     setTestResult(null);
     setConnectionError("");
 
+    // Terminate any previous socket connection so we test cleanly
+    if (window.electronAPI?.clearCookies) {
+      window.electronAPI.clearCookies();
+    }
+
+    const isNoAuth = formData.protocol === "tcp" && Boolean(formData.noAuth);
+
     setConnectionParams({
       protocol: formData.protocol,
       host: formData.host,
       port: Number(formData.port),
-      username: formData.username,
+      username: isNoAuth ? "" : formData.username,
       name: formData.name,
       tls: formData.protocol === "tcp" ? Boolean(formData.tls) : false,
+      noAuth: isNoAuth,
     });
 
     try {
       const res = await authApi.ping();
+
+      // If testing No Auth over TCP, probe an actual command to verify server does not have TCPAuth enabled
+      if (isNoAuth) {
+        try {
+          await apiClient.get("/api/db/databases");
+        } catch (probeErr) {
+          const status = probeErr.response?.status;
+          const msg = probeErr.response?.data?.message || probeErr.message || "";
+          if (status === 401 || /auth/i.test(msg)) {
+            setTestResult({
+              success: false,
+              message: "Authentication required: This AxioDB TCP server has TCPAuth enabled. Please turn off 'No Authentication' and enter your credentials.",
+            });
+            return;
+          }
+        }
+      }
+
       setTestResult({
         success: true,
         message: `Connected successfully (${res.latency}ms)`,
@@ -123,14 +154,22 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
     setConnectionError("");
     setIsConnecting(true);
 
+    // Terminate any previous socket connection so we connect cleanly
+    if (window.electronAPI?.clearCookies) {
+      window.electronAPI.clearCookies();
+    }
+
+    const isNoAuth = formData.protocol === "tcp" && Boolean(formData.noAuth);
+
     setConnectionParams({
       protocol: formData.protocol,
       host: formData.host,
       port: Number(formData.port),
-      username: formData.username,
-      password: formData.password,
+      username: isNoAuth ? "" : formData.username,
+      password: isNoAuth ? "" : formData.password,
       name: formData.name,
       tls: formData.protocol === "tcp" ? Boolean(formData.tls) : false,
+      noAuth: isNoAuth,
     });
 
     try {
@@ -138,14 +177,37 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
       const pingRes = await authApi.ping();
       setPingLatency(pingRes.latency);
 
-      setConnectingStep("Authenticating credentials...");
-      const loginRes = await authApi.login({
-        username: formData.username,
-        password: formData.password,
-      });
+      let role = "super_admin";
+      let permissions = ["*"];
+      let mustChangePassword = false;
+
+      if (!isNoAuth) {
+        setConnectingStep("Authenticating credentials...");
+        const loginRes = await authApi.login({
+          username: formData.username,
+          password: formData.password,
+        });
+        role = loginRes.role || "super_admin";
+        permissions = loginRes.permissions || [];
+        mustChangePassword = loginRes.mustChangePassword || false;
+      } else {
+        setConnectingStep("Verifying unauthenticated access...");
+        try {
+          await apiClient.get("/api/db/databases");
+        } catch (probeErr) {
+          const status = probeErr.response?.status;
+          const msg = probeErr.response?.data?.message || probeErr.message || "";
+          if (status === 401 || /auth/i.test(msg)) {
+            throw new Error(
+              "Authentication required: This AxioDB TCP server has TCPAuth enabled. Please turn off 'No Authentication' and provide your username and password."
+            );
+          }
+          throw probeErr;
+        }
+      }
 
       if (formData.saveToFavorites) {
-        // Find if this instance already exists by (name + host) or (host + port + username) to prevent duplicates
+        // Find if this instance already exists by (name + host) or (host + port + username/noAuth) to prevent duplicates
         const existing = savedConnections.find(
           (c) =>
             (c.name?.trim().toLowerCase() === formData.name?.trim().toLowerCase() &&
@@ -153,7 +215,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
               Number(c.port) === Number(formData.port)) ||
             (c.host === formData.host &&
               Number(c.port) === Number(formData.port) &&
-              c.username === formData.username)
+              (isNoAuth ? c.noAuth : c.username === formData.username))
         );
 
         saveConnection({
@@ -162,22 +224,23 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
           protocol: formData.protocol,
           host: formData.host,
           port: Number(formData.port),
-          username: formData.username,
-          password: formData.password,
+          username: isNoAuth ? "" : formData.username,
+          password: isNoAuth ? "" : formData.password,
           tls: formData.protocol === "tcp" ? Boolean(formData.tls) : false,
+          noAuth: isNoAuth,
           updatedAt: new Date().toISOString(),
         });
       }
 
       setConnectingStep("Syncing session...");
       setSession({
-        username: formData.username,
-        role: loginRes.role || "super_admin",
-        permissions: loginRes.permissions || [],
-        mustChangePassword: loginRes.mustChangePassword || false,
+        username: isNoAuth ? "No Auth" : formData.username,
+        role,
+        permissions,
+        mustChangePassword,
       });
 
-      if (loginRes.mustChangePassword) {
+      if (mustChangePassword) {
         setIsConnecting(false);
         setIsConnected(true);
         if (onForcePasswordChange) onForcePasswordChange();
@@ -263,21 +326,36 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
                       <p className="text-[11px] font-mono text-slate-500 truncate">
                         {conn.protocol === "tcp" && conn.tls ? "tcp+tls" : conn.protocol}://{conn.host}:{conn.port}
                       </p>
-                      {conn.protocol === "tcp" && (
+                      {conn.protocol === "tcp" ? (
                         <span className={`text-[9px] font-mono px-1 rounded font-semibold ${conn.tls ? "bg-emerald-100 text-emerald-800" : "bg-cyan-100 text-cyan-800"}`}>
                           {conn.tls ? "TLS" : "TCP"}
                         </span>
+                      ) : (
+                        <span className="text-[9px] font-mono px-1 rounded font-semibold bg-blue-100 text-blue-800">
+                          HTTP
+                        </span>
+                      )}
+                      {conn.noAuth && (
+                        <span className="text-[9px] font-mono px-1 rounded font-semibold bg-amber-100 text-amber-800">
+                          NO AUTH
+                        </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1">User: {conn.username}</p>
-                    {conn.password ? (
-                      <div className="flex items-center gap-1 mt-1">
-                        <svg className="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-7H2v7a2 2 0 002 2zM10 11V7a2 2 0 012-2h2a2 2 0 012 2v4m-6 0h6m-6 0l1.5-1.5" />
-                        </svg>
-                        <span className="text-[10px] text-emerald-600 font-medium">Password saved</span>
-                      </div>
-                    ) : null}
+                    {conn.noAuth ? (
+                      <p className="text-[10px] text-slate-400 mt-1 italic font-mono">No authentication</p>
+                    ) : (
+                      <>
+                        <p className="text-[10px] text-slate-400 mt-1">User: {conn.username || "admin"}</p>
+                        {conn.password ? (
+                          <div className="flex items-center gap-1 mt-1">
+                            <svg className="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-7H2v7a2 2 0 002 2zM10 11V7a2 2 0 012-2h2a2 2 0 012 2v4m-6 0h6m-6 0l1.5-1.5" />
+                            </svg>
+                            <span className="text-[10px] text-emerald-600 font-medium">Password saved</span>
+                          </div>
+                        ) : null}
+                      </>
+                    )}
                   </div>
                   <button
                     onClick={(e) => {
@@ -433,51 +511,87 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
                 </div>
               )}
 
-              {/* Username & Password */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Username</label>
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    placeholder="admin"
-                    required
-                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
-                  <div className="relative">
+              {/* TCP No Authentication Toggle */}
+              {formData.protocol === "tcp" && (
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-all">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-7 w-7 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-semibold text-slate-800">No Authentication</p>
+                        <span className="text-[10px] font-mono text-amber-800 bg-amber-100 px-1 py-0.2 rounded font-medium">
+                          No Auth
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        Connect without credentials when AxioDB TCP server has no-auth mode enabled
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
                     <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      value={formData.password}
+                      type="checkbox"
+                      name="noAuth"
+                      checked={formData.noAuth}
                       onChange={handleChange}
-                      placeholder="••••••••"
-                      required
-                      className="w-full px-3 py-2 pr-8 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
+                      className="sr-only peer"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2 top-2 text-slate-400 hover:text-slate-600"
-                    >
-                      {showPassword ? (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                        </svg>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                    </button>
+                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-600"></div>
+                  </label>
+                </div>
+              )}
+
+              {/* Username & Password — hidden if TCP No Auth is enabled */}
+              {!(formData.protocol === "tcp" && formData.noAuth) && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Username</label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      placeholder="admin"
+                      required
+                      className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="••••••••"
+                        required
+                        className="w-full px-3 py-2 pr-8 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2 top-2 text-slate-400 hover:text-slate-600"
+                      >
+                        {showPassword ? (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Save to Favorites checkbox */}
               <div className="pt-1">

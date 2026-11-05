@@ -275,6 +275,7 @@ ipcMain.handle("file:readBuffer", async (_event, filePath: string) => {
 // Clear session cookies and active TCP connections (e.g. on disconnect or logout)
 ipcMain.handle("network:clearCookies", () => {
   cookieStore.clear();
+  tcpBridge.clearCredentials();
   tcpBridge.disconnect();
   return true;
 });
@@ -497,6 +498,7 @@ class TcpClientBridge {
   }
 
   public disconnect() {
+    this.clearCredentials();
     if (this.socket) {
       try {
         this.socket.destroy();
@@ -655,6 +657,18 @@ async function executeTcpRequest(fullUrl: URL, config: {
   // 4. List Databases
   if (pathname.includes("/api/db/databases")) {
     const res = await tcpBridge.sendCommand(host, port, "GET_INSTANCE_INFO", {}, timeout, isTls);
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: {
+          statusCode: res.statusCode,
+          message: res.message || res.error || "Authentication required",
+          error: res.error,
+        },
+      };
+    }
     return {
       status: res.statusCode || 200,
       statusText: "OK",

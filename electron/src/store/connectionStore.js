@@ -89,6 +89,7 @@ export const useConnectionStore = create((set, get) => ({
   password: "",
   name: "Local Instance",
   tls: false,
+  noAuth: false,
 
   isConnected: false,
   isConnecting: false,
