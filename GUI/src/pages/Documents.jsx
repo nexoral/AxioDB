@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import axios from 'axios'
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { BASE_API_URL } from '../config/key'
 import { DBInfoStore } from '../store/store'
@@ -9,6 +9,8 @@ import UpdateDocumentModal from '../components/document/UpdateDocumentModal'
 import DeleteDocumentModal from '../components/document/DeleteDocumentModal'
 import QueryModal from '../components/document/QueryModal'
 import ObjectView from '../components/query/ObjectView'
+import QueryEditor from '../components/query/QueryEditor'
+import { parseExpression, parseLiteral, validate } from '../components/query/queryLanguage'
 
 const Documents = () => {
   const [searchParams] = useSearchParams()
@@ -17,9 +19,21 @@ const Documents = () => {
   const [documents, setDocuments] = useState([])
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
+  const [activeTab, setActiveTab] = useState('documents')
   const observer = useRef()
   const databaseName = searchParams.get('database')
   const collectionName = searchParams.get('collection')
+
+  // Query Console state
+  const [consoleQuery, setConsoleQuery] = useState('')
+  const [consoleResults, setConsoleResults] = useState(null)
+  const [consoleRunning, setConsoleRunning] = useState(false)
+  const [consoleError, setConsoleError] = useState(null)
+
+  // Query limits and sorting for Documents tab
+  const [queryLimit, setQueryLimit] = useState(10)
+  const [querySkip, setQuerySkip] = useState(0)
+  const [querySort, setQuerySort] = useState(undefined)
 
   // Modal states
   const [showInsertModal, setShowInsertModal] = useState(false)
@@ -27,6 +41,54 @@ const Documents = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showQueryModal, setShowQueryModal] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState(null)
+
+  // Sync console query when selected collection changes
+  useEffect(() => {
+    if (collectionName) {
+      setConsoleQuery(`${collectionName}.query({}).exec()`)
+      setConsoleResults(null)
+      setConsoleError(null)
+    }
+  }, [collectionName])
+
+  // Extract known field keys from loaded documents to power autocomplete suggestions
+  const collectionFields = useMemo(() => {
+    const keySet = new Set([
+      'name', 'title', 'email', 'phone', 'city', 'state', 'country', 'address',
+      'status', 'role', 'type', 'description', 'age', 'price'
+    ])
+    if (documents && documents.length > 0) {
+      for (const doc of documents) {
+        if (doc && typeof doc === 'object') {
+          Object.keys(doc).forEach((k) => {
+            if (k !== '_id' && k !== 'documentId' && k !== 'updatedAt') {
+              keySet.add(k)
+            }
+          })
+        }
+      }
+    }
+    return Array.from(keySet)
+  }, [documents])
+
+  // Query Console diagnostics
+  const consoleDiagnostics = useMemo(() => {
+    if (!consoleQuery.trim() || !collectionName) return []
+    return validate(consoleQuery, collectionName)
+  }, [consoleQuery, collectionName])
+
+  // Quick query examples for the Query Console
+  const queryExamples = useMemo(() => {
+    const col = collectionName || 'collection'
+    return [
+      { label: 'All documents', code: `${col}.query({}).exec()` },
+      { label: 'Exact match', code: `${col}.query({ status: 'active' }).exec()` },
+      { label: 'Comparison', code: `${col}.query({ age: { $gte: 18 } }).exec()` },
+      { label: 'Any of', code: `${col}.query({ status: { $in: ['active', 'pending'] } }).exec()` },
+      { label: 'Pattern', code: `${col}.query({ name: { $regex: '^a', $options: 'i' } }).exec()` },
+      { label: 'Aggregate', code: `${col}.aggregate([{ $match: {} }, { $group: { _id: '$status', total: { $sum: 1 } } }]).exec()` }
+    ]
+  }, [collectionName])
 
   // Add new state for aggregation
   const [isAggregationView, setIsAggregationView] = useState(false)
@@ -76,14 +138,20 @@ const Documents = () => {
 
   // Fetch documents with query - query-based API
   const fetchDocumentsByQuery = useCallback(
-    async (query, pageNum = 1, reset = false) => {
+    async (query, pageNum = 1, reset = false, limit = queryLimit, skip = querySkip, sort = querySort) => {
       try {
         setLoading(true)
 
+        const effectiveLimit = limit || 10
+        const effectiveSkip = (skip !== undefined && skip !== 0) ? (skip + (pageNum - 1) * effectiveLimit) : ((pageNum - 1) * effectiveLimit)
+
         const response = await axios.post(
-          `${BASE_API_URL}/api/operation/all/by-query/?dbName=${databaseName}&collectionName=${collectionName}&page=${pageNum}`,
+          `${BASE_API_URL}/api/operation/all/by-query/?dbName=${databaseName}&collectionName=${collectionName}&page=${pageNum}&limit=${effectiveLimit}&skip=${effectiveSkip}`,
           {
-            query
+            query,
+            limit: effectiveLimit,
+            skip: effectiveSkip,
+            sort
           },
           {
             headers: {
@@ -93,8 +161,10 @@ const Documents = () => {
         )
 
         if (response.status === 200) {
-          // Extract the documents from the nested response structure
-          const fetchedDocuments = response.data.data.data.documents || []
+          const payloadData = response.data?.data?.data || response.data?.data || {}
+          const fetchedDocuments = Array.isArray(payloadData.documents)
+            ? payloadData.documents
+            : (Array.isArray(payloadData) ? payloadData : [])
 
           // Update documents state
           if (reset) {
@@ -103,8 +173,8 @@ const Documents = () => {
             setDocuments((prev) => [...prev, ...fetchedDocuments])
           }
 
-          // If we received fewer than 10 documents, we've reached the end
-          setHasMore(fetchedDocuments.length === 10)
+          // If we received fewer than effectiveLimit documents, we've reached the end
+          setHasMore(fetchedDocuments.length === effectiveLimit)
         }
 
         setLoading(false)
@@ -113,7 +183,7 @@ const Documents = () => {
         setLoading(false)
       }
     },
-    [databaseName, collectionName]
+    [databaseName, collectionName, queryLimit, querySkip, querySort]
   )
 
   // Initialize document list
@@ -277,14 +347,150 @@ const Documents = () => {
 
   // Run a filter chosen in the Query Console. The console has already validated and parsed
   // it, so this only has to switch the view over.
-  const handleQueryResults = (parsedQuery) => {
+  const handleQueryResults = (parsedQuery, limitVal = 10, skipVal = 0, sortVal = undefined) => {
     setSearchInput(JSON.stringify(parsedQuery))
     setSearchQuery(parsedQuery)
+    setQueryLimit(limitVal)
+    setQuerySkip(skipVal)
+    setQuerySort(sortVal)
     setIsSearchMode(true)
     setIsAggregationView(false)
     setPage(1)
     setDocuments([])
-    fetchDocumentsByQuery(parsedQuery, 1, true)
+    fetchDocumentsByQuery(parsedQuery, 1, true, limitVal, skipVal, sortVal)
+  }
+
+  // Interactive Query Console runner (in-tab)
+  const handleRunConsoleQuery = async () => {
+    if (!consoleQuery.trim() || !databaseName || !collectionName) return
+    setConsoleRunning(true)
+    setConsoleError(null)
+    const start = performance.now()
+
+    try {
+      const trimmed = consoleQuery.trim()
+      const parsed = parseExpression(trimmed)
+
+      if (parsed) {
+        const rootMethod = parsed.rootMethod || parsed.method
+
+        if (rootMethod === 'aggregate') {
+          const payload = parseLiteral(parsed.args || '[]')
+          const res = await axios.post(
+            `${BASE_API_URL}/api/operation/aggregate/?dbName=${databaseName}&collectionName=${collectionName}`,
+            { aggregation: payload },
+            { headers: { 'Content-Type': 'application/json' } }
+          )
+          const latency = Math.round(performance.now() - start)
+          const docs = res.data?.data?.documents || res.data?.data || []
+          setConsoleResults({
+            executionTime: `${latency}ms`,
+            count: Array.isArray(docs) ? docs.length : 1,
+            data: docs
+          })
+          return
+        }
+
+        if (rootMethod === 'update') {
+          const filter = parseLiteral(parsed.args || '{}')
+          const updateCall = parsed.chain.find((c) => c.name === 'UpdateOne' || c.name === 'UpdateMany')
+          const updateData = updateCall ? parseLiteral(updateCall.args || '{}') : {}
+          const isMany = updateCall?.name === 'UpdateMany'
+
+          const res = await axios.put(
+            `${BASE_API_URL}/api/operation/update/by-query/?dbName=${databaseName}&collectionName=${collectionName}&isMany=${isMany}`,
+            { query: filter, update: updateData },
+            { headers: { 'Content-Type': 'application/json' } }
+          )
+
+          const latency = Math.round(performance.now() - start)
+          setConsoleResults({
+            executionTime: `${latency}ms`,
+            count: res.data?.data?.count ?? (res.data?.data?.matchedCount || 1),
+            data: res.data?.data || res.data
+          })
+          return
+        }
+
+        if (rootMethod === 'delete') {
+          const filter = parseLiteral(parsed.args || '{}')
+          const deleteCall = parsed.chain.find((c) => c.name === 'deleteOne' || c.name === 'deleteMany')
+          const isMany = deleteCall?.name === 'deleteMany'
+
+          const res = await axios.delete(
+            `${BASE_API_URL}/api/operation/delete/by-query/?dbName=${databaseName}&collectionName=${collectionName}&isMany=${isMany}`,
+            { data: { query: filter }, headers: { 'Content-Type': 'application/json' } }
+          )
+
+          const latency = Math.round(performance.now() - start)
+          setConsoleResults({
+            executionTime: `${latency}ms`,
+            count: res.data?.data?.count ?? (isMany ? 'all matching' : 1),
+            data: res.data?.data || res.data
+          })
+          return
+        }
+
+        // Method is query - extract any chained .Limit(), .Skip(), .Sort(), .project()
+        const filter = parseLiteral(parsed.args || '{}')
+        let limitVal = 50
+        let skipVal = 0
+        let sortVal = undefined
+
+        for (const call of parsed.chain) {
+          if (call.name === 'Limit') {
+            const num = Number(call.args.trim())
+            if (!isNaN(num) && num > 0) limitVal = num
+          } else if (call.name === 'Skip') {
+            const num = Number(call.args.trim())
+            if (!isNaN(num) && num >= 0) skipVal = num
+          } else if (call.name === 'Sort') {
+            try {
+              sortVal = parseLiteral(call.args)
+            } catch {
+              // ignore
+            }
+          }
+        }
+
+        const res = await axios.post(
+          `${BASE_API_URL}/api/operation/all/by-query/?dbName=${databaseName}&collectionName=${collectionName}&page=1&limit=${limitVal}&skip=${skipVal}`,
+          { query: filter, limit: limitVal, skip: skipVal, sort: sortVal },
+          { headers: { 'Content-Type': 'application/json' } }
+        )
+
+        const payloadData = res.data?.data?.data || res.data?.data || {}
+        const docs = Array.isArray(payloadData.documents) ? payloadData.documents : (Array.isArray(payloadData) ? payloadData : [])
+        const latency = Math.round(performance.now() - start)
+        setConsoleResults({
+          executionTime: `${latency}ms`,
+          count: docs.length,
+          data: docs
+        })
+        return
+      }
+
+      // If not a method expression, treat as direct object literal
+      const filter = parseLiteral(trimmed)
+      const res = await axios.post(
+        `${BASE_API_URL}/api/operation/all/by-query/?dbName=${databaseName}&collectionName=${collectionName}&page=1&limit=50&skip=0`,
+        { query: filter, limit: 50, skip: 0 },
+        { headers: { 'Content-Type': 'application/json' } }
+      )
+      const payloadData = res.data?.data?.data || res.data?.data || {}
+      const docs = Array.isArray(payloadData.documents) ? payloadData.documents : (Array.isArray(payloadData) ? payloadData : [])
+      const latency = Math.round(performance.now() - start)
+      setConsoleResults({
+        executionTime: `${latency}ms`,
+        count: docs.length,
+        data: docs
+      })
+    } catch (err) {
+      console.error('Console query error:', err)
+      setConsoleError(err.response?.data?.message || err.message || 'Query execution failed')
+    } finally {
+      setConsoleRunning(false)
+    }
   }
 
   // Debounced document ID search
@@ -415,48 +621,78 @@ const Documents = () => {
               <span className='font-medium'>{databaseName}</span>
             </div>
           </div>
-          <div className='flex space-x-3'>
-            <button
-              onClick={() => setShowQueryModal(true)}
-              className='inline-flex h-11 items-center gap-2 rounded-xl bg-ink-800 px-5 text-sm font-medium text-white shadow-sm transition-all hover:bg-ink-900 active:scale-[0.98]'
-            >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                className='h-5 w-5 mr-2'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
+          <div className='flex items-center space-x-3'>
+            <div className='flex p-1 bg-ink-200/60 rounded-xl border border-ink-300 text-xs font-medium text-ink-600'>
+              <button
+                onClick={() => setActiveTab('documents')}
+                className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                  activeTab === 'documents'
+                    ? 'bg-white text-brand-700 shadow-sm font-semibold'
+                    : 'hover:text-ink-900'
+                }`}
               >
-                <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth={2}
-                  d='M8 9l3 3-3 3m5 0h3'
-                />
-                <rect x='3' y='4' width='18' height='16' rx='2' strokeWidth={2} />
-              </svg>
-              Query
-            </button>
-            <button
-              onClick={() => setShowInsertModal(true)}
-              className='inline-flex h-11 items-center gap-2 rounded-xl bg-brand-600 px-5 text-sm font-medium text-white shadow-sm transition-all hover:bg-brand-700 active:scale-[0.98]'
-            >
-              <svg
-                xmlns='http://www.w3.org/2000/svg'
-                className='h-5 w-5 mr-2'
-                viewBox='0 0 20 20'
-                fill='currentColor'
+                Documents
+              </button>
+              <button
+                onClick={() => setActiveTab('query')}
+                className={`px-3.5 py-1.5 rounded-lg transition-all ${
+                  activeTab === 'query'
+                    ? 'bg-white text-brand-700 shadow-sm font-semibold'
+                    : 'hover:text-ink-900'
+                }`}
               >
-                <path
-                  fillRule='evenodd'
-                  d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z'
-                  clipRule='evenodd'
-                />
-              </svg>
-              Insert Document
-            </button>
+                Query Console
+              </button>
+            </div>
+
+            {activeTab === 'documents' && (
+              <>
+                <button
+                  onClick={() => setShowQueryModal(true)}
+                  className='inline-flex h-10 items-center gap-2 rounded-xl bg-ink-800 px-4 text-xs font-semibold text-white shadow-sm transition-all hover:bg-ink-900 active:scale-[0.98]'
+                >
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='h-4 w-4 mr-1'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    stroke='currentColor'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M8 9l3 3-3 3m5 0h3'
+                    />
+                    <rect x='3' y='4' width='18' height='16' rx='2' strokeWidth={2} />
+                  </svg>
+                  Query Modal
+                </button>
+                <button
+                  onClick={() => setShowInsertModal(true)}
+                  className='inline-flex h-10 items-center gap-2 rounded-xl bg-brand-600 px-4 text-xs font-semibold text-white shadow-sm transition-all hover:bg-brand-700 active:scale-[0.98]'
+                >
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    className='h-4 w-4 mr-1'
+                    viewBox='0 0 20 20'
+                    fill='currentColor'
+                  >
+                    <path
+                      fillRule='evenodd'
+                      d='M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z'
+                      clipRule='evenodd'
+                    />
+                  </svg>
+                  Insert Document
+                </button>
+              </>
+            )}
           </div>
         </div>
+
+        {activeTab === 'documents' && (
+          <>
 
         {/* Advanced Search Bar */}
         <div className='border-b border-ink-200 bg-ink-50 px-6 py-4'>
@@ -887,6 +1123,100 @@ const Documents = () => {
             </div>
           )}
         </div>
+        </>
+      )}
+
+      {/* Interactive Query Console Tab */}
+      {activeTab === 'query' && (
+        <div className='flex-1 flex flex-col overflow-hidden p-6 bg-ink-50'>
+          <div className='mb-4 flex items-center justify-between'>
+            <div>
+              <h2 className='text-base font-bold text-ink-800'>Interactive Query Console</h2>
+              <p className='text-xs text-ink-500'>
+                Run JavaScript queries or aggregations against{' '}
+                <span className='font-mono font-semibold text-brand-700'>{collectionName}</span>.
+              </p>
+            </div>
+            <button
+              onClick={handleRunConsoleQuery}
+              disabled={consoleRunning}
+              className='px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:bg-ink-300 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer'
+            >
+              <svg className='w-4 h-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z' />
+              </svg>
+              {consoleRunning ? 'Running...' : 'Run Query (Ctrl+Enter)'}
+            </button>
+          </div>
+
+          {/* Quick Example Query Pills */}
+          <div className='flex items-center gap-2 flex-wrap mb-4'>
+            <span className='text-xs font-bold text-ink-400 uppercase tracking-wider mr-1'>Examples:</span>
+            {queryExamples.map((ex) => (
+              <button
+                key={ex.label}
+                type='button'
+                onClick={() => setConsoleQuery(ex.code)}
+                title={ex.code}
+                className='px-3 py-1 rounded-full border border-ink-200 bg-white hover:border-brand-300 hover:bg-brand-50 hover:text-brand-700 text-ink-600 text-xs font-medium transition-colors cursor-pointer'
+              >
+                {ex.label}
+              </button>
+            ))}
+          </div>
+
+          {/* QueryEditor with full autocomplete & diagnostics */}
+          <div className='mb-3'>
+            <QueryEditor
+              value={consoleQuery}
+              onChange={setConsoleQuery}
+              collectionName={collectionName}
+              fields={collectionFields}
+              diagnostics={consoleDiagnostics}
+              onSubmit={handleRunConsoleQuery}
+              minHeight={150}
+              maxHeight={220}
+            />
+          </div>
+
+          {/* Keyboard hints */}
+          <div className='flex items-center gap-2 text-xs text-ink-500 mb-4 font-sans'>
+            <kbd className='px-1.5 py-0.5 rounded border border-ink-200 bg-white font-mono text-[11px]'>Ctrl</kbd>
+            <span>+</span>
+            <kbd className='px-1.5 py-0.5 rounded border border-ink-200 bg-white font-mono text-[11px]'>Space</kbd>
+            <span>suggestions</span>
+            <span className='mx-1'>•</span>
+            <kbd className='px-1.5 py-0.5 rounded border border-ink-200 bg-white font-mono text-[11px]'>Ctrl</kbd>
+            <span>+</span>
+            <kbd className='px-1.5 py-0.5 rounded border border-ink-200 bg-white font-mono text-[11px]'>Enter</kbd>
+            <span>run query</span>
+          </div>
+
+          {/* Query Results */}
+          <div className='flex-1 flex flex-col min-h-0 bg-white rounded-xl border border-ink-200 shadow-sm overflow-hidden'>
+            <div className='px-4 py-3 bg-ink-100 border-b border-ink-200 flex items-center justify-between text-xs text-ink-700 font-medium'>
+              <span>Query Results</span>
+              {consoleResults && (
+                <span className='font-mono text-brand-700 font-semibold'>
+                  ⚡ {consoleResults.executionTime} • {consoleResults.count} matches
+                </span>
+              )}
+            </div>
+
+            <div className='flex-1 overflow-auto p-4 bg-ink-50 min-h-[300px]'>
+              {consoleError ? (
+                <div className='p-3 bg-red-50 text-red-700 rounded-lg text-xs font-mono'>{consoleError}</div>
+              ) : consoleResults ? (
+                <ObjectView value={consoleResults.data} maxHeight={500} />
+              ) : (
+                <div className='text-center py-12 text-ink-400 text-xs font-mono'>
+                  Write a query above and press "Run Query" (Ctrl+Enter)
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       </div>
 
       {/* Insert Document Modal */}
@@ -932,6 +1262,7 @@ const Documents = () => {
           onClose={() => setShowQueryModal(false)}
           databaseName={databaseName}
           collectionName={collectionName}
+          fields={collectionFields}
           onQueryResults={handleQueryResults}
           onAggregationResults={handleAggregationResults}
         />

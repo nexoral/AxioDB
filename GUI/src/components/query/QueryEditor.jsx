@@ -3,17 +3,28 @@ import { getAllSuggestions, getSuggestions, validate } from './queryLanguage'
 
 /**
  * The Query Console's editor: the shared {@link CodeEditor} shell bound to the query
- * language's completion and validation.
+ * language's completion, fields auto-completion, and validation.
  */
-const QueryEditor = ({ value, onChange, collectionName, onSubmit, diagnostics }) => (
+const QueryEditor = ({
+  value,
+  onChange,
+  collectionName,
+  fields = [],
+  onSubmit,
+  diagnostics,
+  minHeight = 140,
+  maxHeight = 220
+}) => (
   <CodeEditor
     value={value}
     onChange={onChange}
     diagnostics={diagnostics}
     onSubmit={onSubmit}
+    minHeight={minHeight}
+    maxHeight={maxHeight}
     ariaLabel='Query editor'
-    suggest={(text, caret) => getSuggestions(text, caret, collectionName)}
-    suggestAll={(text, caret) => getAllSuggestions(text, caret, collectionName)}
+    suggest={(text, caret) => getSuggestions(text, caret, collectionName, fields)}
+    suggestAll={(text, caret) => getAllSuggestions(text, caret, collectionName, fields)}
   />
 )
 

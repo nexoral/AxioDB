@@ -14,6 +14,7 @@ const QueryModal = ({
   onClose,
   databaseName,
   collectionName,
+  fields = [],
   onQueryResults,
   onAggregationResults
 }) => {
@@ -103,14 +104,25 @@ const QueryModal = ({
       // query() method - extract options
       const payload = parseLiteral(parsed.args || '{}')
       let limitVal = 10
+      let skipVal = 0
+      let sortVal = undefined
       for (const call of parsed.chain) {
         if (call.name === 'Limit') {
           const num = Number(call.args.trim())
           if (!isNaN(num) && num > 0) limitVal = num
+        } else if (call.name === 'Skip') {
+          const num = Number(call.args.trim())
+          if (!isNaN(num) && num >= 0) skipVal = num
+        } else if (call.name === 'Sort') {
+          try {
+            sortVal = parseLiteral(call.args)
+          } catch {
+            // ignore
+          }
         }
       }
 
-      onQueryResults(payload, limitVal)
+      onQueryResults(payload, limitVal, skipVal, sortVal)
       onClose()
     } catch (err) {
       console.error('Query error:', err)
@@ -158,6 +170,7 @@ const QueryModal = ({
             value={source}
             onChange={setSource}
             collectionName={collectionName}
+            fields={fields}
             diagnostics={diagnostics}
             onSubmit={hasErrors ? undefined : handleRun}
           />
