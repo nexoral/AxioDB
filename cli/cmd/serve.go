@@ -17,7 +17,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const npmInstallTimeout = 10 * time.Minute
+const bunInstallTimeout = 10 * time.Minute
 
 // adminPasswordEnv is read by the generated server.js to seed the admin account.
 const adminPasswordEnv = "AXIODB_ADMIN_PASSWORD"
@@ -63,7 +63,7 @@ func runServe(cmd *cobra.Command, modeName, password string) (runErr error) {
 	ctx := cmd.Context()
 
 	fmt.Fprintf(output, "Preparing AxioDB %s server...\n", config.Mode)
-	nodePath, npmPath, err := serve.EnsureNode(ctx, output)
+	bunPath, err := serve.EnsureBun(ctx, output)
 	if err != nil {
 		return err
 	}
@@ -88,12 +88,12 @@ func runServe(cmd *cobra.Command, modeName, password string) (runErr error) {
 	}
 
 	fmt.Fprintf(output, "Temporary data directory: %s\n", filepath.Join(tempDir, "AxioDB"))
-	fmt.Fprintln(output, "Installing the AxioDB npm package...")
-	if err := installAxioDB(ctx, npmPath, tempDir, output, errorOutput); err != nil {
+	fmt.Fprintln(output, "Installing the AxioDB package with Bun...")
+	if err := installAxioDB(ctx, bunPath, tempDir, output, errorOutput); err != nil {
 		return err
 	}
 
-	child := exec.Command(nodePath, scriptPath)
+	child := exec.Command(bunPath, scriptPath)
 	child.Dir = tempDir
 	child.Stdout = output
 	child.Stderr = errorOutput
@@ -108,7 +108,7 @@ func runServe(cmd *cobra.Command, modeName, password string) (runErr error) {
 
 	fmt.Fprintln(output, "Starting server...")
 	if err := child.Start(); err != nil {
-		return fmt.Errorf("start Node.js server: %w", err)
+		return fmt.Errorf("start Bun server: %w", err)
 	}
 
 	childDone := make(chan error, 1)
@@ -151,25 +151,21 @@ func runServe(cmd *cobra.Command, modeName, password string) (runErr error) {
 	}
 }
 
-func installAxioDB(ctx context.Context, npmPath, tempDir string, output, errorOutput io.Writer) error {
-	installContext, cancel := context.WithTimeout(ctx, npmInstallTimeout)
+func installAxioDB(ctx context.Context, bunPath, tempDir string, output, errorOutput io.Writer) error {
+	installContext, cancel := context.WithTimeout(ctx, bunInstallTimeout)
 	defer cancel()
 
 	command := exec.CommandContext(
 		installContext,
-		npmPath,
-		"install",
-		"--prefix",
-		tempDir,
-		"--no-save",
-		"--no-audit",
-		"--no-fund",
+		bunPath,
+		"add",
 		"axiodb",
 	)
+	command.Dir = tempDir
 	command.Stdout = output
 	command.Stderr = errorOutput
 	if err := command.Run(); err != nil {
-		return fmt.Errorf("install axiodb in temporary server directory: %w", err)
+		return fmt.Errorf("install axiodb with bun in temporary server directory: %w", err)
 	}
 	return nil
 }
@@ -238,7 +234,7 @@ func stopChild(child *exec.Cmd, childDone <-chan error) error {
 		return err
 	case <-time.After(5 * time.Second):
 		if err := child.Process.Kill(); err != nil {
-			return fmt.Errorf("force-stop Node.js server: %w", err)
+			return fmt.Errorf("force-stop Bun server: %w", err)
 		}
 		return <-childDone
 	}

@@ -9,108 +9,82 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 )
 
 const (
-	MinimumNodeMajor = 20
 	ReadinessTimeout = 30 * time.Second
 )
 
 var ErrInterrupted = errors.New("server startup interrupted")
 
-func EnsureNode(ctx context.Context, out io.Writer) (string, string, error) {
-	nodePath, nodeErr := exec.LookPath("node")
-	npmPath, npmErr := exec.LookPath("npm")
-	if nodeErr == nil && npmErr == nil {
-		if err := verifyNodeVersion(ctx, nodePath); err == nil {
-			return nodePath, npmPath, nil
+// EnsureBun looks for bun in PATH or the standard user installation location (~/.bun/bin/bun).
+// If bun is not found, it attempts to install bun.
+func EnsureBun(ctx context.Context, out io.Writer) (string, error) {
+	if bunPath, err := findBun(); err == nil {
+		return bunPath, nil
+	}
+
+	fmt.Fprintf(out, "Bun runtime is required; attempting installation for %s/%s...\n", runtime.GOOS, runtime.GOARCH)
+	if err := installBun(ctx, out); err != nil {
+		return "", err
+	}
+
+	bunPath, err := findBun()
+	if err != nil {
+		return "", fmt.Errorf("Bun installation completed but bun executable was not found: %w", err)
+	}
+	return bunPath, nil
+}
+
+func findBun() (string, error) {
+	if bunPath, err := exec.LookPath("bun"); err == nil {
+		return bunPath, nil
+	}
+
+	// Check standard user directory ~/.bun/bin/bun or %USERPROFILE%\.bun\bin\bun.exe
+	homeDir, err := os.UserHomeDir()
+	if err == nil && homeDir != "" {
+		binaryName := "bun"
+		if runtime.GOOS == "windows" {
+			binaryName = "bun.exe"
+		}
+		userBun := filepath.Join(homeDir, ".bun", "bin", binaryName)
+		if fileInfo, statErr := os.Stat(userBun); statErr == nil && !fileInfo.IsDir() {
+			return userBun, nil
 		}
 	}
 
-	fmt.Fprintf(out, "Node.js >= %d and npm are required; attempting installation for %s/%s...\n", MinimumNodeMajor, runtime.GOOS, runtime.GOARCH)
-	if err := installNode(ctx, out); err != nil {
-		return "", "", err
-	}
-
-	nodePath, nodeErr = exec.LookPath("node")
-	if nodeErr != nil {
-		return "", "", fmt.Errorf("Node.js installation completed but node is still unavailable: %w", nodeErr)
-	}
-	npmPath, npmErr = exec.LookPath("npm")
-	if npmErr != nil {
-		return "", "", fmt.Errorf("Node.js installation completed but npm is still unavailable: %w", npmErr)
-	}
-	if err := verifyNodeVersion(ctx, nodePath); err != nil {
-		return "", "", err
-	}
-	return nodePath, npmPath, nil
+	return "", errors.New("bun not found in PATH or standard install directory")
 }
 
-func verifyNodeVersion(ctx context.Context, nodePath string) error {
-	output, err := exec.CommandContext(ctx, nodePath, "--version").Output()
-	if err != nil {
-		return fmt.Errorf("check Node.js version: %w", err)
-	}
-	version := strings.TrimSpace(string(output))
-	version = strings.TrimPrefix(version, "v")
-	parts := strings.SplitN(version, ".", 2)
-	if len(parts) == 0 {
-		return fmt.Errorf("unable to parse Node.js version %q", version)
-	}
-	major, err := strconv.Atoi(parts[0])
-	if err != nil || major < MinimumNodeMajor {
-		return fmt.Errorf("Node.js >= %d is required, found %q", MinimumNodeMajor, version)
-	}
-	return nil
-}
-
-func installNode(ctx context.Context, out io.Writer) error {
+func installBun(ctx context.Context, out io.Writer) error {
 	switch runtime.GOOS {
-	case "linux":
-		return installNodeLinux(ctx, out)
-	case "darwin":
-		if _, err := exec.LookPath("brew"); err != nil {
-			return fmt.Errorf("Homebrew is required to install Node.js automatically on macOS (%s); install Node.js %d LTS from https://nodejs.org/download/ or install Homebrew first", runtime.GOARCH, MinimumNodeMajor)
-		}
-		if err := runCommand(ctx, out, "brew", "install", "node@20"); err != nil {
-			return err
-		}
-		return runCommand(ctx, out, "brew", "link", "--force", "--overwrite", "node@20")
 	case "windows":
-		if _, err := exec.LookPath("winget"); err != nil {
-			return fmt.Errorf("winget is required to install Node.js automatically on Windows (%s); install Node.js %d LTS from https://nodejs.org/download/", runtime.GOARCH, MinimumNodeMajor)
+		if _, err := exec.LookPath("powershell"); err != nil {
+			return fmt.Errorf("powershell is required to install Bun on Windows; install Bun manually from https://bun.sh")
 		}
-		return runCommand(ctx, out, "winget", "install", "OpenJS.NodeJS.LTS", "--accept-source-agreements", "--accept-package-agreements")
+		return runCommand(ctx, out, "powershell", "-c", "irm bun.sh/install.ps1 | iex")
+	case "linux", "darwin":
+		if _, err := exec.LookPath("curl"); err != nil {
+			return fmt.Errorf("curl is required to install Bun on %s; install curl or install Bun from https://bun.sh", runtime.GOOS)
+		}
+		script, err := createTemporaryFile("axiodb-bun-*.sh")
+		if err != nil {
+			return fmt.Errorf("create Bun installation script: %w", err)
+		}
+		defer removeTemporaryFile(script)
+
+		if err := runCommand(ctx, out, "curl", "-fsSL", "-o", script, "https://bun.sh/install"); err != nil {
+			return fmt.Errorf("download Bun installer: %w", err)
+		}
+		return runCommand(ctx, out, "bash", script)
 	default:
-		return fmt.Errorf("automatic Node.js installation is unsupported on %s/%s; install Node.js %d LTS from https://nodejs.org/download/", runtime.GOOS, runtime.GOARCH, MinimumNodeMajor)
+		return fmt.Errorf("automatic Bun installation is unsupported on %s/%s; install Bun from https://bun.sh", runtime.GOOS, runtime.GOARCH)
 	}
-}
-
-func installNodeLinux(ctx context.Context, out io.Writer) error {
-	if _, err := exec.LookPath("apt-get"); err != nil {
-		return fmt.Errorf("automatic Node.js installation currently supports Debian/Ubuntu apt only on Linux (%s); install Node.js %d LTS from https://nodejs.org/download/", runtime.GOARCH, MinimumNodeMajor)
-	}
-	if _, err := exec.LookPath("curl"); err != nil {
-		return errors.New("curl is required to install Node.js on Debian/Ubuntu")
-	}
-
-	script, err := createTemporaryFile("axiodb-node-*.sh")
-	if err != nil {
-		return fmt.Errorf("create Node.js installation script: %w", err)
-	}
-	defer removeTemporaryFile(script)
-
-	if err := runCommand(ctx, out, "curl", "-fsSL", "-o", script, "https://deb.nodesource.com/setup_20.x"); err != nil {
-		return fmt.Errorf("download Node.js installation setup: %w", err)
-	}
-	if err := runCommand(ctx, out, "sudo", "-E", "bash", script); err != nil {
-		return fmt.Errorf("configure Node.js repository: %w", err)
-	}
-	return runCommand(ctx, out, "sudo", "apt-get", "install", "-y", "nodejs")
 }
 
 func runCommand(ctx context.Context, out io.Writer, name string, args ...string) error {
