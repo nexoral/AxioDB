@@ -1,9 +1,14 @@
 import { create } from "zustand";
 import apiClient from "../api/client";
 
+// Module-level cache to deduplicate in-flight requests and prevent race conditions
+const inflightFetches = new Map();
+
 export const useDbStore = create((set, get) => ({
   databases: [],
   collectionsMap: {}, // { [dbName]: [ { name, count, size } ] }
+  loadingCollections: {}, // { [dbName]: boolean }
+  pinnedCollections: [], // [ { dbName, collName } ]
   expandedDbs: {}, // { [dbName]: boolean }
   selectedDatabase: "",
   selectedCollection: "",
@@ -11,18 +16,43 @@ export const useDbStore = create((set, get) => ({
   loadingTree: false,
   treeError: null,
 
-  setSelectedDatabase: (dbName) => {
-    set({ selectedDatabase: dbName, selectedCollection: "" });
-    if (dbName && !get().collectionsMap[dbName]) {
-      get().fetchCollections(dbName);
+  loadPinnedCollections: async () => {
+    if (window.electronAPI?.store?.getPinnedCollections) {
+      try {
+        const list = await window.electronAPI.store.getPinnedCollections();
+        set({ pinnedCollections: list || [] });
+      } catch (err) {
+        console.error("Failed to load pinned collections:", err);
+      }
     }
+  },
+
+  togglePinCollection: async (dbName, collName) => {
+    if (!dbName || !collName) return;
+    if (window.electronAPI?.store?.togglePinCollection) {
+      try {
+        const res = await window.electronAPI.store.togglePinCollection({ dbName, collName });
+        if (res?.list) {
+          set({ pinnedCollections: res.list });
+        }
+      } catch (err) {
+        console.error("Failed to toggle pin collection:", err);
+      }
+    }
+  },
+
+  setSelectedDatabase: (dbName) => {
+    if (!dbName) return;
+    if (get().selectedDatabase === dbName && !get().selectedCollection) return;
+
+    set({ selectedDatabase: dbName, selectedCollection: "" });
+    get().fetchCollections(dbName);
   },
 
   setSelectedCollection: (dbName, collName) => {
     set({
       selectedDatabase: dbName,
       selectedCollection: collName,
-      expandedDbs: { ...get().expandedDbs, [dbName]: true },
     });
   },
 
@@ -49,16 +79,51 @@ export const useDbStore = create((set, get) => ({
       const data = res.data?.data || {};
       const list = Array.isArray(data.ListOfDatabases) ? data.ListOfDatabases : [];
       set({ databases: list, loadingTree: false });
+      get().loadPinnedCollections();
 
-      // Automatically select and expand first database if none selected
+      // Automatically select first database if none selected (with empty collection so cards open)
       if (list.length > 0 && !get().selectedDatabase) {
         const firstDb = list[0];
         set({
           selectedDatabase: firstDb,
-          expandedDbs: { [firstDb]: true },
+          selectedCollection: "",
         });
-        get().fetchCollections(firstDb);
       }
+
+      // Fetch collections for all databases in parallel and batch update once to avoid rapid re-renders
+      if (list.length > 0) {
+        Promise.all(
+          list.map(async (db) => {
+            try {
+              const collRes = await apiClient.get(`/api/collection/all/?databaseName=${encodeURIComponent(db)}`);
+              const collData = collRes.data?.data || {};
+              const collList = Array.isArray(collData.ListOfCollections) ? collData.ListOfCollections : [];
+              const metaStatus = Array.isArray(collData.collectionMetaStatus) ? collData.collectionMetaStatus : [];
+              const sizeMap = Array.isArray(collData.CollectionSizeMap) ? collData.CollectionSizeMap : [];
+
+              const formatted = collList.map((collName) => {
+                const meta = metaStatus.find((m) => m.name === collName || m.collectionName === collName) || {};
+                const sizeEntry = sizeMap.find((s) => s.folderPath?.endsWith(`/${collName}`)) || {};
+                return {
+                  name: collName,
+                  count: sizeEntry.fileCount ?? meta.totalDocuments ?? meta.count ?? 0,
+                  size: sizeEntry.size ?? meta.size ?? 0,
+                };
+              });
+              return { db, formatted };
+            } catch {
+              return { db, formatted: [] };
+            }
+          })
+        ).then((results) => {
+          const newMap = { ...get().collectionsMap };
+          for (const { db, formatted } of results) {
+            newMap[db] = formatted;
+          }
+          set({ collectionsMap: newMap });
+        });
+      }
+
       return list;
     } catch (err) {
       console.error("Failed to load databases:", err);
@@ -70,48 +135,71 @@ export const useDbStore = create((set, get) => ({
     }
   },
 
-  fetchCollections: async (dbName) => {
+  fetchCollections: async (dbName, force = false) => {
     if (!dbName) return [];
-    try {
-      const res = await apiClient.get(`/api/collection/all/?databaseName=${encodeURIComponent(dbName)}`);
-      const data = res.data?.data || {};
-      const list = Array.isArray(data.ListOfCollections) ? data.ListOfCollections : [];
-      const metaStatus = Array.isArray(data.collectionMetaStatus) ? data.collectionMetaStatus : [];
-      const sizeMap = Array.isArray(data.CollectionSizeMap) ? data.CollectionSizeMap : [];
 
-      const formatted = list.map((collName) => {
-        const meta = metaStatus.find((m) => m.name === collName) || {};
-        const sizeEntry = sizeMap.find((s) => s.folderPath?.endsWith(`/${collName}`)) || {};
-        return {
-          name: collName,
-          count: meta.totalDocuments ?? meta.count ?? 0,
-          size: sizeEntry.size ?? meta.size ?? 0,
-        };
-      });
-
-      set({
-        collectionsMap: {
-          ...get().collectionsMap,
-          [dbName]: formatted,
-        },
-      });
-
-      // If this is the active database and no collection is selected yet, select first collection
-      if (get().selectedDatabase === dbName && !get().selectedCollection && formatted.length > 0) {
-        set({ selectedCollection: formatted[0].name });
-      }
-
-      return formatted;
-    } catch (err) {
-      console.error(`Failed to fetch collections for ${dbName}:`, err);
-      set({
-        collectionsMap: {
-          ...get().collectionsMap,
-          [dbName]: [],
-        },
-      });
-      return [];
+    // Deduplicate in-flight fetches for the same database
+    if (!force && inflightFetches.has(dbName)) {
+      return inflightFetches.get(dbName);
     }
+
+    // Set loading flag only if not already loaded in memory to prevent screen flash
+    if (!get().collectionsMap[dbName]) {
+      set((state) => ({
+        loadingCollections: { ...state.loadingCollections, [dbName]: true },
+      }));
+    }
+
+    const fetchPromise = (async () => {
+      try {
+        const res = await apiClient.get(`/api/collection/all/?databaseName=${encodeURIComponent(dbName)}`);
+        const data = res.data?.data || {};
+        const list = Array.isArray(data.ListOfCollections) ? data.ListOfCollections : [];
+        const metaStatus = Array.isArray(data.collectionMetaStatus) ? data.collectionMetaStatus : [];
+        const sizeMap = Array.isArray(data.CollectionSizeMap) ? data.CollectionSizeMap : [];
+
+        const formatted = list.map((collName) => {
+          const meta = metaStatus.find((m) => m.name === collName || m.collectionName === collName) || {};
+          const sizeEntry = sizeMap.find((s) => s.folderPath?.endsWith(`/${collName}`)) || {};
+          return {
+            name: collName,
+            count: sizeEntry.fileCount ?? meta.totalDocuments ?? meta.count ?? 0,
+            size: sizeEntry.size ?? meta.size ?? 0,
+          };
+        });
+
+        set((state) => ({
+          collectionsMap: {
+            ...state.collectionsMap,
+            [dbName]: formatted,
+          },
+          loadingCollections: {
+            ...state.loadingCollections,
+            [dbName]: false,
+          },
+        }));
+
+        return formatted;
+      } catch (err) {
+        console.error(`Failed to fetch collections for ${dbName}:`, err);
+        set((state) => ({
+          collectionsMap: {
+            ...state.collectionsMap,
+            [dbName]: state.collectionsMap[dbName] || [],
+          },
+          loadingCollections: {
+            ...state.loadingCollections,
+            [dbName]: false,
+          },
+        }));
+        return [];
+      } finally {
+        inflightFetches.delete(dbName);
+      }
+    })();
+
+    inflightFetches.set(dbName, fetchPromise);
+    return fetchPromise;
   },
 
   addDatabaseLocally: (dbName) => {

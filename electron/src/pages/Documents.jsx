@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDbStore } from "../store/dbStore";
 import apiClient from "../api/client";
@@ -11,11 +11,17 @@ import DeleteDocumentModal from "../components/document/DeleteDocumentModal";
 import CreateCollectionModal from "../components/collection/CreateCollectionModal";
 import DeleteCollectionModal from "../components/collection/DeleteCollectionModal";
 import DocumentCard from "../components/document/DocumentCard";
+import { Skeleton } from "../components/ui/Feedback";
+import QueryHistoryModal from "../components/query/QueryHistoryModal";
+import SavedQueriesModal from "../components/query/SavedQueriesModal";
 
 const Documents = () => {
   const {
     databases,
     collectionsMap,
+    loadingCollections,
+    pinnedCollections,
+    togglePinCollection,
     selectedDatabase,
     selectedCollection,
     activeTab,
@@ -28,14 +34,21 @@ const Documents = () => {
     removeCollectionLocally,
   } = useDbStore();
 
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showSavedModal, setShowSavedModal] = useState(false);
+
   // Documents & Query state
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
   const [totalDocs, setTotalDocs] = useState(0);
   const [queryLatency, setQueryLatency] = useState(null);
+  const [activeFilterQuery, setActiveFilterQuery] = useState(null);
+
+  const observer = useRef();
 
   // Compass-style Filter Bar inputs (accepts relaxed JS object literals)
   const [filterStr, setFilterStr] = useState("");
@@ -106,82 +119,121 @@ const Documents = () => {
     ];
   }, [selectedCollection]);
 
-  // Load documents when collection or page changes
-  const loadDocuments = useCallback(async () => {
+  // Load documents with infinite scroll support
+  const fetchDocuments = useCallback(async (pageNum = 1, append = false, queryFilter = activeFilterQuery) => {
     if (!selectedDatabase || !selectedCollection) return;
-    setLoading(true);
-    setError(null);
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+      setError(null);
+    }
     const start = performance.now();
 
     try {
-      let url = `/api/operation/all/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${page}&limit=${limit}`;
-      const res = await apiClient.get(url);
+      let res;
+      if (queryFilter && Object.keys(queryFilter).length > 0) {
+        res = await apiClient.post(
+          `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${pageNum}&limit=25`,
+          { query: queryFilter }
+        );
+      } else {
+        res = await apiClient.get(
+          `/api/operation/all/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${pageNum}&limit=25`
+        );
+      }
+
       const latency = Math.round(performance.now() - start);
       setQueryLatency(latency);
 
       const payload = res.data?.data?.data || res.data?.data || {};
-      const docs = Array.isArray(payload.documents) ? payload.documents : (Array.isArray(payload) ? payload : []);
-      setDocuments(docs);
-      setTotalDocs(payload.totalDocuments ?? docs.length);
+      const fetchedDocs = Array.isArray(payload.documents)
+        ? payload.documents
+        : (Array.isArray(payload) ? payload : []);
+
+      if (append) {
+        setDocuments((prev) => [...prev, ...fetchedDocs]);
+      } else {
+        setDocuments(fetchedDocs);
+      }
+
+      const totalCount = payload.totalDocuments ?? (append ? documents.length + fetchedDocs.length : fetchedDocs.length);
+      setTotalDocs(totalCount);
+
+      // If we received fewer than 25 documents, we have reached the end
+      setHasMore(fetchedDocs.length === 25);
     } catch (err) {
       console.error("Failed to load documents:", err);
       setError(err.response?.data?.message || err.message || "Failed to load documents");
-      setDocuments([]);
+      if (!append) {
+        setDocuments([]);
+      }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [selectedDatabase, selectedCollection, page, limit]);
+  }, [selectedDatabase, selectedCollection, activeFilterQuery, documents.length]);
 
+  // Reset and fetch initial batch whenever selected collection or database changes
   useEffect(() => {
     if (selectedDatabase && selectedCollection) {
-      loadDocuments();
+      setPage(1);
+      setHasMore(true);
+      setActiveFilterQuery(null);
+      setFilterStr("");
+      setSortStr("");
+      setProjectStr("");
+      setSkipStr("0");
+      fetchDocuments(1, false, null);
     }
-  }, [selectedDatabase, selectedCollection, page, limit, loadDocuments]);
+  }, [selectedDatabase, selectedCollection]);
+
+  // Infinite scroll intersection observer attached to the last document element
+  const loadDocuments = () => fetchDocuments(1, false);
+
+  const lastDocumentElementRef = useCallback((node) => {
+    if (loading || loadingMore) return;
+    if (observer.current) observer.current.disconnect();
+
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage((prevPage) => {
+          const nextPage = prevPage + 1;
+          fetchDocuments(nextPage, true, activeFilterQuery);
+          return nextPage;
+        });
+      }
+    });
+
+    if (node) observer.current.observe(node);
+  }, [loading, loadingMore, hasMore, fetchDocuments, activeFilterQuery]);
 
   // Apply Compass-style filter: parses relaxed JavaScript object syntax (no JSON required)
   const handleApplyFilter = async () => {
     if (!selectedDatabase || !selectedCollection) return;
-    setLoading(true);
     setError(null);
-    const start = performance.now();
 
-    try {
-      let parsedFilter = {};
-      if (filterStr.trim()) {
-        let clean = filterStr.trim();
-        if (!clean.startsWith("{") && !clean.startsWith("[")) {
-          clean = `{ ${clean} }`;
-        }
+    let parsedFilter = {};
+    if (filterStr.trim()) {
+      let clean = filterStr.trim();
+      if (!clean.startsWith("{") && !clean.startsWith("[")) {
+        clean = `{ ${clean} }`;
+      }
+      try {
+        parsedFilter = parseLiteral(clean);
+      } catch {
         try {
-          parsedFilter = parseLiteral(clean);
+          parsedFilter = JSON.parse(clean);
         } catch {
-          try {
-            parsedFilter = JSON.parse(clean);
-          } catch {
-            // eslint-disable-next-line no-new-func
-            parsedFilter = new Function(`return (${clean})`)();
-          }
+          // eslint-disable-next-line no-new-func
+          parsedFilter = new Function(`return (${clean})`)();
         }
       }
-
-      const res = await apiClient.post(
-        `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${page}&limit=${limit}`,
-        { query: parsedFilter }
-      );
-
-      const latency = Math.round(performance.now() - start);
-      setQueryLatency(latency);
-
-      const payload = res.data?.data?.data || res.data?.data || {};
-      const docs = Array.isArray(payload.documents) ? payload.documents : (Array.isArray(payload) ? payload : []);
-      setDocuments(docs);
-      setTotalDocs(payload.totalDocuments ?? docs.length);
-    } catch (err) {
-      console.error("Filter error:", err);
-      setError(err.response?.data?.message || "Invalid query filter syntax. You can use JavaScript object syntax.");
-    } finally {
-      setLoading(false);
     }
+
+    setPage(1);
+    setActiveFilterQuery(parsedFilter);
+    fetchDocuments(1, false, parsedFilter);
   };
 
   const handleResetFilter = () => {
@@ -190,51 +242,124 @@ const Documents = () => {
     setProjectStr("");
     setSkipStr("0");
     setPage(1);
-    loadDocuments();
+    setActiveFilterQuery(null);
+    fetchDocuments(1, false, null);
   };
 
-  // Run Query in Console tab (supports expressions like <col>.query({...}).exec() AND raw objects)
+  // Run Query in Console tab (supports query, aggregate, update, delete with full chaining)
   const handleRunConsoleQuery = async () => {
     if (!consoleQuery.trim() || !selectedDatabase || !selectedCollection) return;
     setConsoleRunning(true);
     setConsoleError(null);
     const start = performance.now();
+    const trimmed = consoleQuery.trim();
+
+    const recordSuccess = (latency, count, data, customAction = null) => {
+      setConsoleResults({
+        executionTime: `${latency}ms`,
+        count,
+        data,
+      });
+      window.electronAPI?.store?.saveQueryHistory?.({
+        query: trimmed,
+        collection: selectedCollection,
+        database: selectedDatabase,
+        durationMs: latency,
+        status: "success",
+      });
+      if (customAction) {
+        window.electronAPI?.store?.logActivity?.({
+          action: customAction,
+          database: selectedDatabase,
+          collection: selectedCollection,
+          details: trimmed,
+        });
+      }
+    };
 
     try {
-      const trimmed = consoleQuery.trim();
       const parsed = parseExpression(trimmed);
 
       if (parsed) {
-        const payload = parseLiteral(parsed.args || "{}");
-        if (parsed.method === "aggregate") {
+        const rootMethod = parsed.rootMethod || parsed.method;
+
+        if (rootMethod === "aggregate") {
+          const payload = parseLiteral(parsed.args || "[]");
           const res = await apiClient.post(
             `/api/operation/aggregate/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}`,
             { aggregation: payload }
           );
           const docs = res.data?.data?.documents || res.data?.data || [];
           const latency = Math.round(performance.now() - start);
-          setConsoleResults({
-            executionTime: `${latency}ms`,
-            count: docs.length,
-            data: docs,
-          });
-          return;
-        } else {
-          // Method is query
-          const res = await apiClient.post(
-            `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=1&limit=50`,
-            { query: payload }
-          );
-          const payloadData = res.data?.data?.data || res.data?.data || {};
-          const docs = Array.isArray(payloadData.documents) ? payloadData.documents : (Array.isArray(payloadData) ? payloadData : []);
-          const latency = Math.round(performance.now() - start);
-          setConsoleResults({
-            executionTime: `${latency}ms`,
-            count: docs.length,
-            data: docs,
-          });
+          recordSuccess(latency, docs.length, docs);
           return;
         }
+
+        if (rootMethod === "update") {
+          const filter = parseLiteral(parsed.args || "{}");
+          const updateCall = parsed.chain.find((c) => c.name === "UpdateOne" || c.name === "UpdateMany");
+          const updateData = updateCall ? parseLiteral(updateCall.args || "{}") : {};
+          const isMany = updateCall?.name === "UpdateMany";
+
+          const res = await apiClient.put(
+            `/api/operation/update/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&isMany=${isMany}`,
+            { query: filter, update: updateData }
+          );
+
+          const latency = Math.round(performance.now() - start);
+          const count = res.data?.data?.count ?? (res.data?.data?.matchedCount || 1);
+          recordSuccess(latency, count, res.data?.data || res.data, "query_update");
+          return;
+        }
+
+        if (rootMethod === "delete") {
+          const filter = parseLiteral(parsed.args || "{}");
+          const deleteCall = parsed.chain.find((c) => c.name === "deleteOne" || c.name === "deleteMany");
+          const isMany = deleteCall?.name === "deleteMany";
+
+          const res = await apiClient.delete(
+            `/api/operation/delete/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&isMany=${isMany}`,
+            { data: { query: filter } }
+          );
+
+          const latency = Math.round(performance.now() - start);
+          const count = res.data?.data?.count ?? (isMany ? "all matching" : 1);
+          recordSuccess(latency, count, res.data?.data || res.data, "query_delete");
+          return;
+        }
+
+        // Method is query - extract any chained .Limit(), .Skip(), .Sort(), .project()
+        const filter = parseLiteral(parsed.args || "{}");
+        let limitVal = 25;
+        let skipVal = 0;
+        let sortVal = undefined;
+
+        for (const call of parsed.chain) {
+          if (call.name === "Limit") {
+            const num = Number(call.args.trim());
+            if (!isNaN(num) && num > 0) limitVal = num;
+          } else if (call.name === "Skip") {
+            const num = Number(call.args.trim());
+            if (!isNaN(num) && num >= 0) skipVal = num;
+          } else if (call.name === "Sort") {
+            try {
+              sortVal = parseLiteral(call.args);
+            } catch {
+              // ignore
+            }
+          }
+        }
+
+        const res = await apiClient.post(
+          `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=1&limit=${limitVal}&skip=${skipVal}`,
+          { query: filter, limit: limitVal, skip: skipVal, sort: sortVal }
+        );
+
+        const payloadData = res.data?.data?.data || res.data?.data || {};
+        const docs = Array.isArray(payloadData.documents) ? payloadData.documents : (Array.isArray(payloadData) ? payloadData : []);
+        const latency = Math.round(performance.now() - start);
+        recordSuccess(latency, docs.length, docs);
+        return;
       }
 
       // If not a method expression, treat as direct object literal: { status: 'active' }
@@ -244,21 +369,27 @@ const Documents = () => {
       }
       const rawFilter = parseLiteral(cleanObj);
       const res = await apiClient.post(
-        `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=1&limit=50`,
+        `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=1&limit=25`,
         { query: rawFilter }
       );
       const payloadData = res.data?.data?.data || res.data?.data || {};
       const docs = Array.isArray(payloadData.documents) ? payloadData.documents : (Array.isArray(payloadData) ? payloadData : []);
       const latency = Math.round(performance.now() - start);
-      setConsoleResults({
-        executionTime: `${latency}ms`,
-        count: docs.length,
-        data: docs,
-      });
+      recordSuccess(latency, docs.length, docs);
     } catch (err) {
       console.error("Query console error:", err);
-      setConsoleError(err.response?.data?.message || err.message || "Failed to execute query");
+      const latency = Math.round(performance.now() - start);
+      const errorMsg = err.response?.data?.message || err.message || "Failed to execute query";
+      setConsoleError(errorMsg);
       setConsoleResults(null);
+      window.electronAPI?.store?.saveQueryHistory?.({
+        query: trimmed,
+        collection: selectedCollection,
+        database: selectedDatabase,
+        durationMs: latency,
+        status: "error",
+        error: errorMsg,
+      });
     } finally {
       setConsoleRunning(false);
     }
@@ -295,6 +426,7 @@ const Documents = () => {
   // ==========================================
   if (!selectedCollection) {
     const colls = collectionsMap[selectedDatabase] || [];
+    const isCollLoading = !collectionsMap[selectedDatabase] && !!loadingCollections?.[selectedDatabase];
 
     return (
       <div className="flex-1 flex flex-col overflow-hidden bg-slate-50">
@@ -310,9 +442,13 @@ const Documents = () => {
             </div>
             <div>
               <h1 className="text-base font-bold text-slate-900">{selectedDatabase}</h1>
-              <p className="text-xs text-slate-500 font-mono">
-                {colls.length} {colls.length === 1 ? "Collection" : "Collections"}
-              </p>
+              {isCollLoading ? (
+                <Skeleton className="h-3 w-20 mt-1" />
+              ) : (
+                <p className="text-xs text-slate-500 font-mono">
+                  {colls.length} {colls.length === 1 ? "Collection" : "Collections"}
+                </p>
+              )}
             </div>
           </div>
 
@@ -338,7 +474,20 @@ const Documents = () => {
               </h2>
             </div>
 
-            {colls.length === 0 ? (
+            {isCollLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Skeleton className="h-8 w-8 rounded-lg" />
+                      <Skeleton className="h-4 w-12 rounded-full" />
+                    </div>
+                    <Skeleton className="h-5 w-3/4 rounded" />
+                    <Skeleton className="h-3 w-1/2 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : colls.length === 0 ? (
               <div className="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-xs">
                 <div className="h-12 w-12 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -360,7 +509,8 @@ const Documents = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {colls.map((c) => {
                   const name = c.name || c;
-                  const count = c.count !== undefined ? c.count : (c.documentCount || 0);
+                  const docCount = typeof c === "object" && typeof c.count === "number" ? c.count : 0;
+                  const isPinned = pinnedCollections?.some((p) => p.dbName === selectedDatabase && p.collName === name);
 
                   return (
                     <div
@@ -374,15 +524,34 @@ const Documents = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                           </svg>
                         </div>
-                        <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
-                          {count} docs
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              togglePinCollection(selectedDatabase, name);
+                            }}
+                            title={isPinned ? "Unpin collection" : "Pin collection"}
+                            className={`p-1 rounded-md transition-colors ${
+                              isPinned
+                                ? "text-amber-500 hover:text-amber-600 bg-amber-50"
+                                : "text-slate-300 hover:text-amber-500 hover:bg-slate-100"
+                            }`}
+                          >
+                            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                          </button>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-mono font-medium bg-slate-100 text-slate-600 group-hover:bg-emerald-50 group-hover:text-emerald-700 transition-colors">
+                            {docCount.toLocaleString()} {docCount === 1 ? "doc" : "docs"}
+                          </span>
+                        </div>
                       </div>
                       <h3 className="text-sm font-bold text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
                         {name}
                       </h3>
                       <p className="text-[11px] text-slate-400 mt-1 font-mono">
-                        Click to open documents and query console
+                        {docCount.toLocaleString()} {docCount === 1 ? "document" : "documents"} · Click to open
                       </p>
                     </div>
                   );
@@ -400,6 +569,12 @@ const Documents = () => {
             setShowCreateColl(false);
             addCollectionLocally(selectedDatabase, newCollName);
             setSelectedCollection(selectedDatabase, newCollName);
+            window.electronAPI?.store?.logActivity?.({
+              action: "create_collection",
+              database: selectedDatabase,
+              collection: newCollName,
+              details: `Created collection ${newCollName}`,
+            });
           }}
         />
       </div>
@@ -424,9 +599,25 @@ const Documents = () => {
           <span className="font-bold text-slate-900 bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded">
             {selectedCollection}
           </span>
-          <span className="text-slate-400 text-[11px] ml-1">
-            ({totalDocs} {totalDocs === 1 ? "document" : "documents"})
-          </span>
+          {(() => {
+            const isPinned = pinnedCollections?.some((p) => p.dbName === selectedDatabase && p.collName === selectedCollection);
+            return (
+              <button
+                type="button"
+                onClick={() => togglePinCollection(selectedDatabase, selectedCollection)}
+                title={isPinned ? "Unpin collection" : "Pin collection"}
+                className={`p-1 rounded-md transition-colors ${
+                  isPinned
+                    ? "text-amber-500 hover:text-amber-600 bg-amber-50"
+                    : "text-slate-400 hover:text-amber-500 hover:bg-slate-100"
+                }`}
+              >
+                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </button>
+            );
+          })()}
         </div>
 
         {/* Tab Switcher & Action Buttons (Documents & Query Console only) */}
@@ -533,22 +724,13 @@ const Documents = () => {
               {/* Cards Indicator */}
               <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
                 <span className="text-emerald-700 font-semibold">
-                  {documents.length} document{documents.length !== 1 ? "s" : ""}
+                  {documents.length} loaded
                 </span>
                 {queryLatency !== null && (
                   <span>⚡ {queryLatency}ms</span>
                 )}
               </div>
             </div>
-
-            {/* Sub-bar: Query Timing & Active Filter */}
-            {queryLatency !== null && (
-              <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500 font-mono">
-                <span className="text-emerald-700 font-semibold">⚡ {queryLatency}ms</span>
-                <span>•</span>
-                <span>{documents.length} documents retrieved</span>
-              </div>
-            )}
           </div>
 
           {/* Error Banner */}
@@ -562,7 +744,7 @@ const Documents = () => {
           {/* Content Area: Table / JSON List with Drawer */}
           <div className="flex-1 flex overflow-hidden">
             <div className="flex-1 overflow-auto bg-white">
-              {loading ? (
+              {loading && documents.length === 0 ? (
                 <div className="p-8 text-center text-slate-400 text-xs font-mono">Loading documents...</div>
               ) : documents.length === 0 ? (
                 <div className="p-12 text-center text-slate-400 text-xs">
@@ -570,14 +752,15 @@ const Documents = () => {
                   <p>Try clearing your filter or inserting a new document.</p>
                 </div>
               ) : (
-                /* Card-based Document View */
+                /* Card-based Document View with Infinite Scroll */
                 <div className="p-4">
                   <AnimatePresence>
                     {documents.map((doc, idx) => (
                       <DocumentCard
-                        key={doc._id || idx}
+                        key={doc._id || doc.documentId || idx}
                         doc={doc}
                         idx={idx}
+                        lastDocRef={idx === documents.length - 1 ? lastDocumentElementRef : null}
                         isSelected={inspectorDoc?._id === doc._id}
                         onInspect={(d) => setInspectorDoc(d)}
                         onEdit={(d) => {
@@ -592,6 +775,39 @@ const Documents = () => {
                       />
                     ))}
                   </AnimatePresence>
+
+                  {/* Loading indicator for infinite scroll */}
+                  {loadingMore && (
+                    <div className="flex justify-center items-center py-4">
+                      <svg
+                        className="animate-spin h-5 w-5 text-emerald-600"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* End of results message */}
+                  {!loading && !loadingMore && !hasMore && documents.length > 0 && (
+                    <div className="text-center py-4 text-slate-400 text-xs font-mono border-t border-slate-100 mt-4">
+                      You&apos;ve reached the end of the results. ({documents.length} document{documents.length !== 1 ? "s" : ""})
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -640,31 +856,6 @@ const Documents = () => {
               </div>
             )}
           </div>
-
-          {/* Desktop Pagination Bar */}
-          <div className="h-9 border-t border-slate-200 bg-white px-4 flex items-center justify-between shrink-0 text-xs text-slate-600 font-mono">
-            <div>
-              Showing {documents.length > 0 ? (page - 1) * limit + 1 : 0} - {Math.min(page * limit, totalDocs)} of {totalDocs}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="px-2 py-0.5 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100 font-sans cursor-pointer"
-              >
-                Previous
-              </button>
-              <span>Page {page}</span>
-              <button
-                disabled={page * limit >= totalDocs}
-                onClick={() => setPage((p) => p + 1)}
-                className="px-2 py-0.5 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100 font-sans cursor-pointer"
-              >
-                Next
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
@@ -680,16 +871,38 @@ const Documents = () => {
                 Run JavaScript queries or aggregations against <span className="font-mono font-semibold text-emerald-700">{selectedCollection}</span>.
               </p>
             </div>
-            <button
-              onClick={handleRunConsoleQuery}
-              disabled={consoleRunning}
-              className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              </svg>
-              {consoleRunning ? "Running..." : "Run Query (Ctrl+Enter)"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSavedModal(true)}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:border-emerald-500 hover:text-emerald-700 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                Saved
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowHistoryModal(true)}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:border-emerald-500 hover:text-emerald-700 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                History
+              </button>
+              <button
+                onClick={handleRunConsoleQuery}
+                disabled={consoleRunning}
+                className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                </svg>
+                {consoleRunning ? "Running..." : "Run Query (Ctrl+Enter)"}
+              </button>
+            </div>
           </div>
 
           {/* Quick Example Query Pills */}
@@ -771,6 +984,12 @@ const Documents = () => {
         onDocumentInserted={() => {
           setShowInsertModal(false);
           loadDocuments();
+          window.electronAPI?.store?.logActivity?.({
+            action: "document_insert",
+            database: selectedDatabase,
+            collection: selectedCollection,
+            details: "Inserted new document",
+          });
         }}
       />
 
@@ -785,9 +1004,16 @@ const Documents = () => {
           setSelectedDoc(null);
         }}
         onDocumentUpdated={() => {
+          const docId = selectedDoc?._id || selectedDoc?.documentId || "";
           setShowUpdateModal(false);
           setSelectedDoc(null);
           loadDocuments();
+          window.electronAPI?.store?.logActivity?.({
+            action: "document_update",
+            database: selectedDatabase,
+            collection: selectedCollection,
+            details: `Updated document ${docId}`,
+          });
         }}
       />
 
@@ -801,9 +1027,16 @@ const Documents = () => {
           setSelectedDoc(null);
         }}
         onDocumentDeleted={() => {
+          const docId = selectedDoc?._id || selectedDoc?.documentId || "";
           setShowDeleteModal(false);
           setSelectedDoc(null);
           loadDocuments();
+          window.electronAPI?.store?.logActivity?.({
+            action: "document_delete",
+            database: selectedDatabase,
+            collection: selectedCollection,
+            details: `Deleted document ${docId}`,
+          });
         }}
       />
 
@@ -816,7 +1049,30 @@ const Documents = () => {
           setCollToDelete(null);
           removeCollectionLocally(selectedDatabase, deletedName);
           setSelectedCollection(selectedDatabase, "");
+          window.electronAPI?.store?.logActivity?.({
+            action: "drop_collection",
+            database: selectedDatabase,
+            collection: deletedName,
+            details: `Dropped collection ${deletedName}`,
+          });
         }}
+      />
+
+      <QueryHistoryModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        onSelectQuery={(q) => setConsoleQuery(q)}
+        currentCollection={selectedCollection}
+        currentDatabase={selectedDatabase}
+      />
+
+      <SavedQueriesModal
+        isOpen={showSavedModal}
+        onClose={() => setShowSavedModal(false)}
+        currentQuery={consoleQuery}
+        onSelectQuery={(q) => setConsoleQuery(q)}
+        currentCollection={selectedCollection}
+        currentDatabase={selectedDatabase}
       />
     </div>
   );

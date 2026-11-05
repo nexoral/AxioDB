@@ -72,15 +72,8 @@ export default class StaticFileHelper {
       return true;
     }
 
-    reply.raw.writeHead(200);
-    reply.sent = true;
-    await new Promise<void>((resolve, reject) => {
-      const stream = fs.createReadStream(target);
-      stream.pipe(reply.raw);
-      stream.on("end", resolve);
-      stream.on("error", reject);
-    });
-
+    const stream = fs.createReadStream(target);
+    reply.status(200).send(stream);
     return true;
   }
 }

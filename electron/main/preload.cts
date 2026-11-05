@@ -59,5 +59,33 @@ contextBridge.exposeInMainWorld("electronAPI", {
     setSetting: (key: string, value: unknown) =>
       ipcRenderer.invoke("store:setSetting", key, value),
     deleteSetting: (key: string) => ipcRenderer.invoke("store:deleteSetting", key),
+
+    // Feature 1: Saved Queries
+    saveQuerySnippet: (snippet: { id?: string; name: string; query: string; collection?: string; database?: string }) =>
+      ipcRenderer.invoke("store:saveQuerySnippet", snippet),
+    getSavedQueries: () => ipcRenderer.invoke("store:getSavedQueries"),
+    deleteSavedQuery: (id: string) => ipcRenderer.invoke("store:deleteSavedQuery", id),
+
+    // Feature 2: Query Execution History
+    saveQueryHistory: (entry: { query: string; collection?: string; database?: string; durationMs?: number; status: string; error?: string }) =>
+      ipcRenderer.invoke("store:saveQueryHistory", entry),
+    getQueryHistory: (limit?: number) => ipcRenderer.invoke("store:getQueryHistory", limit),
+    clearQueryHistory: () => ipcRenderer.invoke("store:clearQueryHistory"),
+
+    // Feature 3: Audit Log & Activity Trail
+    logActivity: (entry: { action: string; database?: string; collection?: string; details?: string; status?: string }) =>
+      ipcRenderer.invoke("store:logActivity", entry),
+    getAuditLogs: (limit?: number) => ipcRenderer.invoke("store:getAuditLogs", limit),
+    clearAuditLogs: () => ipcRenderer.invoke("store:clearAuditLogs"),
+
+    // Feature 5: Latency & Health Trend History
+    recordPerformanceSample: (sample: { latency: number; storageMB?: number; cacheMB?: number }) =>
+      ipcRenderer.invoke("store:recordPerformanceSample", sample),
+    getPerformanceHistory: () => ipcRenderer.invoke("store:getPerformanceHistory"),
+
+    // Feature 6: Pinned Collections
+    getPinnedCollections: () => ipcRenderer.invoke("store:getPinnedCollections"),
+    togglePinCollection: (item: { dbName: string; collName: string }) =>
+      ipcRenderer.invoke("store:togglePinCollection", item),
   },
 });

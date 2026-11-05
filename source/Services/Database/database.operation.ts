@@ -141,16 +141,14 @@ export default class Database {
     const filteredCollections = collectionsList.filter(
       (collection: string) => collection !== General.Collection_Meta_File,
     );
-    const totalSize = await this.folderManager.GetDirectorySize(
-      path.resolve(this.path),
-    );
-
-    // Get collection Status
-    const CollectionStatus = await Promise.all(
-      filteredCollections.map((collection: string) =>
-        this.getCollectionMetaDetails(collection),
+    const [totalSize, CollectionStatus] = await Promise.all([
+      this.folderManager.GetDirectorySize(path.resolve(this.path)),
+      Promise.all(
+        filteredCollections.map((collection: string) =>
+          this.getCollectionMetaDetails(collection),
+        ),
       ),
-    );
+    ]);
 
     if ("data" in totalSize) {
       const FinalCollections: FinalCollectionsInfo = {

@@ -1,65 +1,67 @@
 /**
  * Display helpers shared across the dashboard.
- *
- * The API reports storage in megabytes, which stops being readable somewhere around a
- * five-digit figure - "479,118.92 MB" is a number you have to do arithmetic on before it
- * means anything. Every storage figure therefore shows both units.
  */
 
-/** 1024, not 1000: these figures come from `statfs` block counts, which are binary. */
-const MB_PER_GB = 1024
-const MB_PER_TB = 1024 * 1024
-
-/**
- * Formats a megabyte figure as `"<MB> MB / <GB> GB"`, stepping up to TB once the value
- * passes a terabyte.
- *
- * Precision scales with magnitude - two decimals below 10 so small readings don't collapse
- * to "0", and none above 100 where they would be noise.
- *
- * @param {number} megabytes
- * @param {string} [unit] - the unit the caller's figure is already in; anything other than
- *   MB is passed through untouched rather than silently mis-converted.
- * @returns {string}
- */
-export function formatStorage (megabytes, unit = 'MB') {
-  const value = Number(megabytes)
-  if (!Number.isFinite(value)) return `0 ${unit}`
-  if (unit !== 'MB') return `${value.toLocaleString()} ${unit}`
-
-  const decimals = (n) => (n === 0 ? 0 : n < 10 ? 2 : n < 100 ? 1 : 0)
-  const show = (n) =>
-    n.toLocaleString(undefined, {
-      minimumFractionDigits: decimals(n),
-      maximumFractionDigits: decimals(n)
-    })
-
-  const large =
-    value >= MB_PER_TB
-      ? `${show(value / MB_PER_TB)} TB`
-      : `${show(value / MB_PER_GB)} GB`
-
-  return `${show(value)} MB / ${large}`
+const UNIT_MULTIPLIERS = {
+  B: 1,
+  BYTES: 1,
+  BYTE: 1,
+  KB: 1024,
+  KIB: 1024,
+  MB: 1024 * 1024,
+  MIB: 1024 * 1024,
+  GB: 1024 * 1024 * 1024,
+  GIB: 1024 * 1024 * 1024,
+  TB: 1024 * 1024 * 1024 * 1024,
+  TIB: 1024 * 1024 * 1024 * 1024,
+  PB: 1024 * 1024 * 1024 * 1024 * 1024,
+  PIB: 1024 * 1024 * 1024 * 1024 * 1024
 }
 
 /**
- * Formats a raw byte count with a unit that suits its magnitude.
- *
- * The upload picker previously divided by 1024 twice and appended "MB" unconditionally, so
- * a 1 KB archive displayed as "0.00 MB" - which reads as an empty or broken file.
+ * Formats a raw byte count with a unit that suits its magnitude (B, KB, MB, GB, TB, PB).
  *
  * @param {number} bytes
- * @returns {string} e.g. "0 B", "1.2 KB", "48.6 MB", "2.10 GB"
+ * @param {number} [decimals=2]
+ * @returns {string} e.g. "0 B", "1.2 KB", "48.6 MB", "2.1 GB"
  */
-export function formatBytes (bytes) {
+export function formatBytes (bytes, decimals = 2) {
   const value = Number(bytes)
   if (!Number.isFinite(value) || value <= 0) return '0 B'
 
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  const exponent = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1)
-  const scaled = value / 1024 ** exponent
+  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+  const k = 1024
+  const exponent = Math.min(
+    Math.floor(Math.log(Math.abs(value)) / Math.log(k)),
+    units.length - 1
+  )
+  if (exponent < 0) return '0 B'
 
-  // Bytes are whole; larger units get one or two decimals so small files stay legible.
-  const decimals = exponent === 0 ? 0 : scaled < 10 ? 2 : 1
-  return `${scaled.toFixed(decimals)} ${units[exponent]}`
+  const scaled = value / Math.pow(k, exponent)
+  const dm = decimals < 0 ? 0 : decimals
+  const formatted = parseFloat(scaled.toFixed(dm))
+  return `${formatted.toLocaleString(undefined, { maximumFractionDigits: dm })} ${units[exponent]}`
+}
+
+/**
+ * Formats a storage figure by dynamically scaling to the appropriate unit (B, KB, MB, GB, TB, PB).
+ * Never outputs dual units with slashes.
+ *
+ * @param {number} val
+ * @param {string} [unit='MB'] - the input unit; defaults to 'MB'
+ * @param {number} [decimals=2]
+ * @returns {string}
+ */
+export function formatStorage (val, unit = 'MB', decimals = 2) {
+  if (val === undefined || val === null) return '0 MB'
+  const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/,/g, ''))
+  const cleanUnit = typeof unit === 'string' ? unit.trim().toUpperCase() : 'MB'
+  if (!Number.isFinite(num) || num === 0) {
+    return cleanUnit === 'B' || cleanUnit === 'BYTES' ? '0 B' : `0 ${cleanUnit || 'MB'}`
+  }
+
+  const multiplier = UNIT_MULTIPLIERS[cleanUnit] ?? (1024 * 1024)
+  const bytes = num * multiplier
+
+  return formatBytes(bytes, decimals)
 }
