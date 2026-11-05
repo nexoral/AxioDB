@@ -14,8 +14,16 @@ export const changelog: ChangelogEntry[] = [
   {
     version: "25.37.4",
     date: "2026-11-05",
-    title: "Interactive Query Console chaining, dynamic query limit on HTTP & TCP, and parallel dashboard stats",
+    title: "Embedded AxioDB desktop features in Electron, unified 25-document default limit, and interactive query enhancements",
     changes: [
+      "Embedded Local AxioDB Storage in Electron: integrated local AxioDB instance inside Electron main process (.axiodb-control) with secure IPC bridge to store desktop workspace data natively with zero external dependencies",
+      "Saved Queries & Snippet Library: added local storage and modal UI in Electron Query Console to save, name, manage, and load reusable query and aggregation snippets directly into the editor",
+      "Query Execution History: implemented automatic execution tracking in embedded AxioDB (query_history), recording duration, timestamps, target collection/database, and query status with interactive inspection and re-run capabilities",
+      "Audit Trail & Activity Log: added real-time tracking of collection lifecycle, document mutations, and query-based bulk updates in embedded AxioDB (audit_logs) with an Activity Log viewer in the desktop sidebar",
+      "Latency & Performance Trend History: introduced time-series performance sampling in embedded AxioDB (performance_history) and embedded interactive Recharts line charts in the desktop Dashboard displaying real-time API latency and storage metrics",
+      "Pinned Collections & Workspace Preferences: enabled pinning collections from overview cards and headers, persisting preferences in local AxioDB (workspace_prefs), with dedicated 1-click access in the sidebar explorer",
+      "Unified 25-Document Default Limit: updated default query limits across Core Engine (Reader.operation), HTTP REST controllers (getAllDocuments, getDocumentsByQuery), AxioDB Cloud, MCP tool schemas, and Electron/Web GUI Query Console to consistently return 25 documents when queries are executed without .Limit()",
+      "Electron Database Switcher Stability: resolved rapid database selection flickering and unwanted focus outline rings in the Explorer tree navigation",
       "Interactive Query Console Chaining: enabled arbitrary JavaScript method chaining (.Limit(), .Skip(), .Sort(), .project(), .exec()) in any order in the Query Console across Electron and Web GUI without rigid syntax restrictions",
       "Dynamic Query Limit & Paging: updated CRUD HTTP controller and Electron TCP bridge to respect custom limit, skip, and sort parameters instead of hardcoding default limits",
       "Update & Delete Console Execution: added direct execution support for update (.UpdateOne, .UpdateMany) and delete (.deleteOne, .deleteMany) operations with latency and matched count metrics in both Electron and Web GUI",

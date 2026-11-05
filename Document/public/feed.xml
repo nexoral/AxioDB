@@ -5,14 +5,14 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Thu, 05 Nov 2026 05:02:20 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 05 Nov 2026 06:43:36 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v25.37.4 — Interactive Query Console chaining, dynamic query limit on HTTP &amp; TCP, and parallel dashboard stats</title>
+      <title>AxioDB v25.37.4 — Embedded AxioDB desktop features in Electron, unified 25-document default limit, and interactive query enhancements</title>
       <link>https://axiodb.in/changelog</link>
       <guid isPermaLink="false">axiodb-25.37.4</guid>
       <pubDate>Thu, 05 Nov 2026 00:00:00 GMT</pubDate>
-      <description>Interactive Query Console Chaining: enabled arbitrary JavaScript method chaining (.Limit(), .Skip(), .Sort(), .project(), .exec()) in any order in the Query Console across Electron and Web GUI without rigid syntax restrictions | Dynamic Query Limit &amp; Paging: updated CRUD HTTP controller and Electron TCP bridge to respect custom limit, skip, and sort parameters instead of hardcoding default limits | Update &amp; Delete Console Execution: added direct execution support for update (.UpdateOne, .UpdateMany) and delete (.deleteOne, .deleteMany) operations with latency and matched count metrics in both Electron and Web GUI</description>
+      <description>Embedded Local AxioDB Storage in Electron: integrated local AxioDB instance inside Electron main process (.axiodb-control) with secure IPC bridge to store desktop workspace data natively with zero external dependencies | Saved Queries &amp; Snippet Library: added local storage and modal UI in Electron Query Console to save, name, manage, and load reusable query and aggregation snippets directly into the editor | Query Execution History: implemented automatic execution tracking in embedded AxioDB (query_history), recording duration, timestamps, target collection/database, and query status with interactive inspection and re-run capabilities</description>
     </item>
     <item>
       <title>AxioDB v25.37.4 — Electron TCP client bridge, No Auth support, Bun serve engine, and MCP CLI launcher integration</title>
