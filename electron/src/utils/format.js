@@ -28,11 +28,13 @@ const UNIT_MULTIPLIERS = {
 };
 
 export function formatStorage(val, unit = "MB", decimals = 2) {
-  if (val === undefined || val === null) return "0 B";
+  if (val === undefined || val === null) return "0 MB";
   const num = typeof val === "number" ? val : parseFloat(String(val).replace(/,/g, ""));
-  if (!Number.isFinite(num) || num === 0) return "0 B";
-
   const cleanUnit = typeof unit === "string" ? unit.trim().toUpperCase() : "MB";
+  if (!Number.isFinite(num) || num === 0) {
+    return cleanUnit === "B" || cleanUnit === "BYTES" ? "0 B" : `0 ${cleanUnit || "MB"}`;
+  }
+
   const multiplier = UNIT_MULTIPLIERS[cleanUnit] ?? (1024 * 1024);
   const bytes = num * multiplier;
 
