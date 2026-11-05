@@ -5,10 +5,11 @@ import { useAuthStore } from "../store/authStore";
 import { useDbStore } from "../store/dbStore";
 
 const StatusBar = () => {
-  const { protocol, host, port, pingLatency, isConnected } = useConnectionStore();
+  const { protocol, host, port, tls, pingLatency, isConnected } = useConnectionStore();
   const { role } = useAuthStore();
   const { selectedDatabase, selectedCollection } = useDbStore();
   const isPingAlive = pingLatency !== null;
+  const displayProtocol = protocol === "tcp" && tls ? "tcp+tls" : protocol;
 
   return (
     <footer className="h-6 w-full bg-slate-100 border-t border-slate-200 flex items-center justify-between px-3 text-[11px] text-slate-600 select-none shrink-0 font-mono">
@@ -26,8 +27,8 @@ const StatusBar = () => {
           <span className="font-medium text-slate-700">
             {isConnected
               ? isPingAlive
-                ? `${protocol}://${host}:${port}`
-                : `${protocol}://${host}:${port} (Unreachable)`
+                ? `${displayProtocol}://${host}:${port}`
+                : `${displayProtocol}://${host}:${port} (Unreachable)`
               : "Offline"}
           </span>
         </div>

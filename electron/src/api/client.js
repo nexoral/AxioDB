@@ -34,16 +34,21 @@ const sanitizeErrorMessage = (msg) => {
 const customIpcAdapter = async (config) => {
   if (typeof window !== "undefined" && window.electronAPI?.request) {
     let fullUrl = config.url;
-    if (!fullUrl.startsWith("http://") && !fullUrl.startsWith("https://")) {
+    if (!fullUrl.startsWith("http://") && !fullUrl.startsWith("https://") && !fullUrl.startsWith("tcp://")) {
       const baseUrl = config.baseURL || useConnectionStore.getState().getBaseUrl();
       fullUrl = `${baseUrl.replace(/\/+$/, "")}/${fullUrl.replace(/^\/+/, "")}`;
     }
 
     try {
+      const headers = sanitizeHeaders(config.headers);
+      if (useConnectionStore.getState().protocol === "tcp" && useConnectionStore.getState().tls) {
+        headers["x-axiodb-tls"] = "true";
+      }
+
       const res = await window.electronAPI.request({
         url: fullUrl,
         method: config.method || "GET",
-        headers: sanitizeHeaders(config.headers),
+        headers,
         data: config.data,
         params: config.params,
         timeout: config.timeout,
@@ -125,8 +130,13 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const baseUrl = useConnectionStore.getState().getBaseUrl();
+  const connState = useConnectionStore.getState();
+  const baseUrl = connState.getBaseUrl();
   config.baseURL = baseUrl;
+  if (connState.protocol === "tcp" && connState.tls) {
+    config.headers = config.headers || {};
+    config.headers["x-axiodb-tls"] = "true";
+  }
   return config;
 });
 

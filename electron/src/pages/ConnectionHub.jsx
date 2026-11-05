@@ -13,6 +13,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
     username,
     password,
     name,
+    tls,
     savedConnections,
     setConnectionParams,
     saveConnection,
@@ -30,6 +31,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
     username: username || "admin",
     password: password || "",
     name: name || "Local Instance",
+    tls: tls || false,
     saveToFavorites: true,
   });
 
@@ -42,10 +44,20 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+      if (name === "protocol") {
+        if (value === "tcp" && Number(prev.port) === 27018) {
+          updated.port = 27019;
+        } else if (value === "http" && Number(prev.port) === 27019) {
+          updated.port = 27018;
+        }
+      }
+      return updated;
+    });
     setConnectionError("");
     setTestResult(null);
   };
@@ -58,6 +70,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
       username: conn.username || "admin",
       password: conn.password || "",
       name: conn.name || "Saved Connection",
+      tls: conn.tls || false,
       saveToFavorites: true,
     });
     setConnectionError("");
@@ -75,6 +88,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
       port: Number(formData.port),
       username: formData.username,
       name: formData.name,
+      tls: formData.protocol === "tcp" ? Boolean(formData.tls) : false,
     });
 
     try {
@@ -87,7 +101,9 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
     } catch (err) {
       let msg = err.response?.data?.message || err.message;
       if (err.code === "ECONNREFUSED" || /ECONNREFUSED/i.test(msg)) {
-        msg = `Connection refused at ${formData.host}:${formData.port}. Make sure AxioDB is running with HTTP enabled (GUI: true or AXIODB_GUI=true).`;
+        msg = formData.protocol === "tcp"
+          ? `Connection refused at ${formData.host}:${formData.port}. Make sure AxioDB is running with TCP enabled.`
+          : `Connection refused at ${formData.host}:${formData.port}. Make sure AxioDB is running with HTTP enabled (GUI: true or AXIODB_GUI=true).`;
       } else if (err.code === "ENOTFOUND" || /ENOTFOUND/i.test(msg)) {
         msg = `Host "${formData.host}" not found. Please verify the hostname or IP address.`;
       } else if (err.code === "ETIMEDOUT" || /timed out/i.test(msg)) {
@@ -114,6 +130,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
       username: formData.username,
       password: formData.password,
       name: formData.name,
+      tls: formData.protocol === "tcp" ? Boolean(formData.tls) : false,
     });
 
     try {
@@ -147,6 +164,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
           port: Number(formData.port),
           username: formData.username,
           password: formData.password,
+          tls: formData.protocol === "tcp" ? Boolean(formData.tls) : false,
           updatedAt: new Date().toISOString(),
         });
       }
@@ -179,7 +197,9 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
         setConnectionError(serverMsg || "Access denied (403). Account lacks connection permissions.");
       } else if (err.code === "ECONNREFUSED" || /ECONNREFUSED/i.test(err.message)) {
         setConnectionError(
-          `Connection refused to AxioDB at ${formData.protocol}://${formData.host}:${formData.port}. Please ensure the AxioDB server is running and port ${formData.port} is accessible (GUI: true or AXIODB_GUI=true).`
+          formData.protocol === "tcp"
+            ? `Connection refused to AxioDB at tcp://${formData.host}:${formData.port}. Please ensure the AxioDB TCP server is running and port ${formData.port} is accessible.`
+            : `Connection refused to AxioDB at ${formData.protocol}://${formData.host}:${formData.port}. Please ensure the AxioDB server is running and port ${formData.port} is accessible (GUI: true or AXIODB_GUI=true).`
         );
       } else if (err.code === "ENOTFOUND" || /ENOTFOUND/i.test(err.message)) {
         setConnectionError(
@@ -239,9 +259,16 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
                     <p className="text-xs font-bold text-slate-800 truncate group-hover:text-emerald-700 transition-colors">
                       {conn.name}
                     </p>
-                    <p className="text-[11px] font-mono text-slate-500 truncate mt-0.5">
-                      {conn.protocol}://{conn.host}:{conn.port}
-                    </p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <p className="text-[11px] font-mono text-slate-500 truncate">
+                        {conn.protocol === "tcp" && conn.tls ? "tcp+tls" : conn.protocol}://{conn.host}:{conn.port}
+                      </p>
+                      {conn.protocol === "tcp" && (
+                        <span className={`text-[9px] font-mono px-1 rounded font-semibold ${conn.tls ? "bg-emerald-100 text-emerald-800" : "bg-cyan-100 text-cyan-800"}`}>
+                          {conn.tls ? "TLS" : "TCP"}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[10px] text-slate-400 mt-1">User: {conn.username}</p>
                     {conn.password ? (
                       <div className="flex items-center gap-1 mt-1">
@@ -339,7 +366,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
                     className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25 cursor-pointer"
                   >
                     <option value="http">HTTP</option>
-                    <option value="https">HTTPS</option>
+                    <option value="tcp">TCP</option>
                   </select>
                 </div>
               </div>
@@ -371,6 +398,40 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
                   />
                 </div>
               </div>
+
+              {/* TCP TLS Toggle */}
+              {formData.protocol === "tcp" && (
+                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-all">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-7 w-7 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-7H2v7a2 2 0 002 2zM10 11V7a2 2 0 012-2h2a2 2 0 012 2v4m-6 0h6m-6 0l1.5-1.5" />
+                      </svg>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-semibold text-slate-800">Enable TLS / SSL</p>
+                        <span className="text-[10px] font-mono text-emerald-700 bg-emerald-100/80 px-1 py-0.2 rounded font-medium">
+                          Encrypted
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-0.5">
+                        Connect to AxioDB TCP TLS server (no client certificate required)
+                      </p>
+                    </div>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="tls"
+                      checked={formData.tls}
+                      onChange={handleChange}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                  </label>
+                </div>
+              )}
 
               {/* Username & Password */}
               <div className="grid grid-cols-2 gap-3">

@@ -3,6 +3,9 @@ import path from "path";
 import http from "http";
 import https from "https";
 import fs from "fs";
+import net from "net";
+import tls from "tls";
+import crypto from "crypto";
 
 // AxioDB embedded — local app storage (no GUI, no HTTP, no TCP)
 import { AxioDB } from "axiodb";
@@ -269,9 +272,10 @@ ipcMain.handle("file:readBuffer", async (_event, filePath: string) => {
   return fs.readFileSync(filePath);
 });
 
-// Clear session cookies (e.g. on disconnect or logout)
+// Clear session cookies and active TCP connections (e.g. on disconnect or logout)
 ipcMain.handle("network:clearCookies", () => {
   cookieStore.clear();
+  tcpBridge.disconnect();
   return true;
 });
 
@@ -357,6 +361,678 @@ ipcMain.handle("network:uploadDatabase", async (_event, { filePath, url }: { fil
   });
 });
 
+/**
+ * TCP Client Bridge for AxioDB Binary Length-Prefixed Protocol (Port 27019)
+ * Protocol: [4-byte UInt32BE length][JSON payload]
+ */
+interface TcpPendingRequest {
+  resolve: (res: { id: string; statusCode: number; message: string; data?: unknown; error?: string }) => void;
+  reject: (err: Error) => void;
+  timer: NodeJS.Timeout;
+}
+
+class TcpClientBridge {
+  private socket: net.Socket | tls.TLSSocket | null = null;
+  private buffer: Buffer = Buffer.alloc(0);
+  private pendingRequests = new Map<string, TcpPendingRequest>();
+  private currentHost: string | null = null;
+  private currentPort: number | null = null;
+  private currentTls: boolean = false;
+  private isConnecting = false;
+  private connectWaiters: Array<{ resolve: () => void; reject: (err: Error) => void }> = [];
+  private savedUsername: string | null = null;
+  private savedPassword: string | null = null;
+
+  public setCredentials(username: string, password: string) {
+    this.savedUsername = username;
+    this.savedPassword = password;
+  }
+
+  public clearCredentials() {
+    this.savedUsername = null;
+    this.savedPassword = null;
+  }
+
+  private ensureConnected(host: string, port: number, useTls = false): Promise<void> {
+    if (
+      this.socket &&
+      !this.socket.destroyed &&
+      this.currentHost === host &&
+      this.currentPort === port &&
+      this.currentTls === useTls
+    ) {
+      return Promise.resolve();
+    }
+
+    if (this.isConnecting) {
+      return new Promise((resolve, reject) => {
+        this.connectWaiters.push({ resolve, reject });
+      });
+    }
+
+    this.disconnect();
+    this.isConnecting = true;
+    this.currentHost = host;
+    this.currentPort = port;
+    this.currentTls = useTls;
+
+    return new Promise((resolve, reject) => {
+      const onConnect = () => {
+        this.isConnecting = false;
+        resolve();
+        for (const waiter of this.connectWaiters) waiter.resolve();
+        this.connectWaiters = [];
+      };
+
+      const socket: net.Socket = useTls
+        ? tls.connect(
+            {
+              host,
+              port,
+              rejectUnauthorized: false,
+            },
+            onConnect
+          )
+        : net.createConnection({ host, port }, onConnect);
+
+      this.socket = socket;
+      socket.setKeepAlive(true, 10000);
+      socket.setNoDelay(true);
+
+      socket.on("data", (chunk: Buffer) => {
+        this.buffer = Buffer.concat([this.buffer, chunk]);
+        while (this.buffer.length >= 4) {
+          const msgLen = this.buffer.readUInt32BE(0);
+          if (this.buffer.length < 4 + msgLen) {
+            break;
+          }
+          const jsonBuf = this.buffer.subarray(4, 4 + msgLen);
+          this.buffer = this.buffer.subarray(4 + msgLen);
+          try {
+            const parsed = JSON.parse(jsonBuf.toString("utf8")) as {
+              id: string;
+              statusCode: number;
+              message: string;
+              data?: unknown;
+              error?: string;
+            };
+            if (parsed && typeof parsed === "object" && parsed.id) {
+              const pending = this.pendingRequests.get(parsed.id);
+              if (pending) {
+                clearTimeout(pending.timer);
+                this.pendingRequests.delete(parsed.id);
+                pending.resolve(parsed);
+              }
+            }
+          } catch (err) {
+            console.error("[TCP Bridge] Parse error:", err);
+          }
+        }
+      });
+
+      socket.on("error", (err: Error) => {
+        if (this.isConnecting) {
+          this.isConnecting = false;
+          reject(err);
+          for (const waiter of this.connectWaiters) waiter.reject(err);
+          this.connectWaiters = [];
+        }
+        this.cleanupPending(err);
+      });
+
+      socket.on("close", () => {
+        this.cleanupPending(new Error("TCP connection closed"));
+      });
+    });
+  }
+
+  private cleanupPending(err: Error) {
+    for (const [, pending] of this.pendingRequests.entries()) {
+      clearTimeout(pending.timer);
+      pending.reject(err);
+    }
+    this.pendingRequests.clear();
+    this.socket = null;
+    this.buffer = Buffer.alloc(0);
+  }
+
+  public disconnect() {
+    if (this.socket) {
+      try {
+        this.socket.destroy();
+      } catch {
+        // ignore
+      }
+      this.socket = null;
+    }
+    this.cleanupPending(new Error("TCP connection terminated"));
+    this.currentHost = null;
+    this.currentPort = null;
+    this.currentTls = false;
+    this.isConnecting = false;
+  }
+
+  public async sendCommand(
+    host: string,
+    port: number,
+    command: string,
+    params: Record<string, unknown> = {},
+    timeoutMs = 30000,
+    useTls = false
+  ): Promise<{ id: string; statusCode: number; message: string; data?: unknown; error?: string }> {
+    await this.ensureConnected(host, port, useTls);
+    if (!this.socket || this.socket.destroyed) {
+      throw new Error("TCP socket not connected");
+    }
+
+    const id = crypto.randomUUID();
+    const payload = JSON.stringify({ id, command, params });
+    const payloadBuf = Buffer.from(payload, "utf8");
+    const lenBuf = Buffer.allocUnsafe(4);
+    lenBuf.writeUInt32BE(payloadBuf.length, 0);
+    const framed = Buffer.concat([lenBuf, payloadBuf]);
+
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingRequests.delete(id);
+        reject(new Error(`TCP command ${command} timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
+
+      this.pendingRequests.set(id, { resolve, reject, timer });
+      this.socket?.write(framed, (err) => {
+        if (err) {
+          clearTimeout(timer);
+          this.pendingRequests.delete(id);
+          reject(err);
+        }
+      });
+    });
+  }
+}
+
+const tcpBridge = new TcpClientBridge();
+
+async function executeTcpRequest(fullUrl: URL, config: {
+  url?: string;
+  method?: string;
+  headers?: Record<string, string>;
+  data?: unknown;
+  params?: Record<string, string | number | boolean>;
+  timeout?: number;
+}) {
+  const host = fullUrl.hostname;
+  const port = parseInt(fullUrl.port, 10) || 27019;
+  let pathname = fullUrl.pathname;
+  if (!pathname || pathname === "/") {
+    const rawUrl = config.url || fullUrl.href || "";
+    const match = rawUrl.match(/\/api\/[a-zA-Z0-9_\-\/]+/);
+    if (match) {
+      pathname = match[0];
+    }
+  }
+
+  const query: Record<string, string> = {};
+  fullUrl.searchParams.forEach((v, k) => { query[k] = v; });
+  if (config.params) {
+    for (const [k, v] of Object.entries(config.params)) {
+      if (v !== undefined && v !== null) query[k] = String(v);
+    }
+  }
+
+  let body: Record<string, unknown> = {};
+  if (config.data && typeof config.data === "object" && !Array.isArray(config.data)) {
+    body = config.data as Record<string, unknown>;
+  } else if (typeof config.data === "string") {
+    try {
+      const parsed = JSON.parse(config.data);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        body = parsed as Record<string, unknown>;
+      }
+    } catch {
+      body = {};
+    }
+  }
+
+  const timeout = config.timeout || 30000;
+  const isTls =
+    config.headers?.["x-axiodb-tls"] === "true" ||
+    fullUrl.searchParams.get("tls") === "true";
+
+  // 1. Liveness & Ping Heartbeat
+  if (pathname.includes("/api/health") || pathname.includes("/ping")) {
+    const res = await tcpBridge.sendCommand(host, port, "PING", {}, timeout, isTls);
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { success: true, message: res.message || "PONG" },
+    };
+  }
+
+  // 2. Authentication Login
+  if (pathname.includes("/api/auth/login")) {
+    const username = String(body.username || query.username || "");
+    const password = String(body.password || query.password || "");
+    const res = await tcpBridge.sendCommand(host, port, "AUTHENTICATE", { username, password }, timeout, isTls);
+    if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+      tcpBridge.setCredentials(username, password);
+      return {
+        status: res.statusCode,
+        statusText: "OK",
+        headers: {},
+        data: {
+          success: true,
+          message: res.message || "Authenticated successfully",
+          user: res.data,
+          data: res.data,
+        },
+      };
+    } else {
+      return {
+        status: res.statusCode || 401,
+        statusText: "Unauthorized",
+        headers: {},
+        data: {
+          success: false,
+          message: res.message || res.error || "Invalid username or password",
+        },
+      };
+    }
+  }
+
+  // 3. Authentication Logout
+  if (pathname.includes("/api/auth/logout")) {
+    tcpBridge.clearCredentials();
+    tcpBridge.disconnect();
+    return {
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      data: { success: true, message: "Logged out" },
+    };
+  }
+
+  // 4. List Databases
+  if (pathname.includes("/api/db/databases")) {
+    const res = await tcpBridge.sendCommand(host, port, "GET_INSTANCE_INFO", {}, timeout, isTls);
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { data: res.data || { ListOfDatabases: [] } },
+    };
+  }
+
+  // 5. Create Database
+  if (pathname.includes("/api/db/create-database") || pathname.includes("/api/db/create")) {
+    const dbName = String(body.name || body.dbName || query.name || query.dbName || query.databaseName || "");
+    const res = await tcpBridge.sendCommand(host, port, "CREATE_DB", { dbName }, timeout, isTls);
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+    };
+  }
+
+  // 6. Delete Database
+  if (pathname.includes("/api/db/delete-database") || pathname.includes("/api/db/delete")) {
+    const dbName = String(query.dbName || query.databaseName || body.dbName || "");
+    const res = await tcpBridge.sendCommand(host, port, "DELETE_DB", { dbName }, timeout, isTls);
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+    };
+  }
+
+  // 7. List Collections in Database
+  if (pathname.includes("/api/collection/all")) {
+    const dbName = String(query.databaseName || query.dbName || "");
+    const res = await tcpBridge.sendCommand(host, port, "GET_COLLECTION_INFO", { dbName }, timeout, isTls);
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { data: res.data || { ListOfCollections: [] } },
+    };
+  }
+
+  // 8. Create Collection
+  if (pathname.includes("/api/collection/create-collection") || pathname.includes("/api/collection/create")) {
+    const dbName = String(body.dbName || query.dbName || query.databaseName || "");
+    const collectionName = String(body.collectionName || query.collectionName || "");
+    const res = await tcpBridge.sendCommand(host, port, "CREATE_COLLECTION", { dbName, collectionName }, timeout, isTls);
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+    };
+  }
+
+  // 9. Delete Collection
+  if (pathname.includes("/api/collection/delete-collection") || pathname.includes("/api/collection/delete")) {
+    const dbName = String(query.dbName || query.databaseName || body.dbName || "");
+    const collectionName = String(query.collectionName || body.collectionName || "");
+    const res = await tcpBridge.sendCommand(host, port, "DELETE_COLLECTION", { dbName, collectionName }, timeout, isTls);
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+    };
+  }
+
+  // 10. Query Documents
+  if (pathname.includes("/api/operation/all")) {
+    const dbName = String(query.dbName || query.databaseName || body.dbName || body.databaseName || "");
+    const collectionName = String(query.collectionName || body.collectionName || "");
+    const page = Math.max(1, parseInt(query.page || "1", 10));
+    const limit = Math.max(1, parseInt(query.limit || "50", 10));
+    const skip = (page - 1) * limit;
+
+    let q: Record<string, unknown> = {};
+    if (body.query && typeof body.query === "object" && !Array.isArray(body.query)) {
+      q = body.query as Record<string, unknown>;
+    } else if (body && typeof body === "object" && !Array.isArray(body)) {
+      const cleanBody = { ...body };
+      delete cleanBody.dbName;
+      delete cleanBody.collectionName;
+      delete cleanBody.databaseName;
+      delete cleanBody.page;
+      delete cleanBody.limit;
+      if (Object.keys(cleanBody).length > 0) {
+        q = cleanBody;
+      }
+    }
+
+    const sort = (body.sort && typeof body.sort === "object") ? (body.sort as Record<string, 1 | -1>) : undefined;
+
+    const res = await tcpBridge.sendCommand(host, port, "QUERY_DOCUMENTS", {
+      dbName,
+      collectionName,
+      query: q,
+      limit,
+      skip,
+      sort,
+    }, timeout, isTls);
+
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: {
+          statusCode: res.statusCode,
+          message: res.message || res.error || "Failed to query documents",
+          error: res.error,
+        },
+      };
+    }
+
+    // Extract documents array from TCP query response
+    // TCP returns: { statusCode: 200, status: true, data: { documents: [...] } }
+    let docs: unknown[] = [];
+    let totalDocs = 0;
+
+    if (Array.isArray(res.data)) {
+      docs = res.data;
+      totalDocs = docs.length;
+    } else if (res.data && typeof res.data === "object") {
+      const rawData = res.data as Record<string, unknown>;
+      if (Array.isArray(rawData.documents)) {
+        docs = rawData.documents;
+        totalDocs = typeof rawData.totalDocuments === "number" ? rawData.totalDocuments : docs.length;
+      } else if (rawData.data && typeof rawData.data === "object") {
+        const nestedData = rawData.data as Record<string, unknown>;
+        if (Array.isArray(nestedData.documents)) {
+          docs = nestedData.documents;
+          totalDocs = typeof nestedData.totalDocuments === "number" ? nestedData.totalDocuments : docs.length;
+        } else if (Array.isArray(nestedData)) {
+          docs = nestedData;
+          totalDocs = docs.length;
+        }
+      }
+    }
+
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: {
+        statusCode: res.statusCode || 200,
+        message: res.message || "Documents retrieved successfully",
+        data: {
+          data: {
+            documents: docs,
+            totalDocuments: totalDocs,
+          },
+          documents: docs,
+          totalDocuments: totalDocs,
+        },
+      },
+    };
+  }
+
+  // 11. Create Document
+  if (pathname.includes("/api/operation/create")) {
+    const dbName = String(query.dbName || query.databaseName || body.dbName || body.databaseName || "");
+    const collectionName = String(query.collectionName || body.collectionName || "");
+    let docData: unknown = config.data;
+    if (typeof docData === "string") {
+      try {
+        docData = JSON.parse(docData);
+      } catch {
+        docData = body;
+      }
+    }
+    if (!docData || (typeof docData === "object" && Object.keys(docData as object).length === 0)) {
+      docData = body;
+    }
+    if (docData && typeof docData === "object" && !Array.isArray(docData)) {
+      const rec = docData as Record<string, unknown>;
+      if (rec.data && typeof rec.data === "object" && !Array.isArray(rec.data) && Object.keys(rec.data).length > 0) {
+        docData = rec.data;
+      }
+    }
+
+    let res;
+    if (Array.isArray(docData)) {
+      res = await tcpBridge.sendCommand(host, port, "INSERT_MANY_DOCUMENTS", {
+        dbName,
+        collectionName,
+        documents: docData as Record<string, unknown>[],
+      }, timeout, isTls);
+    } else {
+      res = await tcpBridge.sendCommand(host, port, "INSERT_DOCUMENT", {
+        dbName,
+        collectionName,
+        data: (docData || {}) as Record<string, unknown>,
+      }, timeout, isTls);
+    }
+
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: {
+          statusCode: res.statusCode,
+          message: res.message || res.error || "Failed to create document",
+          error: res.error,
+        },
+      };
+    }
+
+    const rawData = (res.data && typeof res.data === "object") ? (res.data as Record<string, unknown>) : {};
+    const documentId = rawData.documentId || rawData.id;
+
+    return {
+      status: res.statusCode || 201,
+      statusText: "Created",
+      headers: {},
+      data: {
+        statusCode: res.statusCode || 201,
+        message: res.message || "Document created successfully",
+        data: {
+          ...rawData,
+          documentId,
+        },
+      },
+    };
+  }
+
+  // 12. Update Document
+  if (pathname.includes("/api/operation/update")) {
+    const dbName = String(query.dbName || query.databaseName || body.dbName || "");
+    const collectionName = String(query.collectionName || body.collectionName || "");
+    const documentId = String(query.documentId || query.id || body.documentId || body.id || "");
+    let updateData: unknown = (body.data || body) as Record<string, unknown>;
+    if (typeof config.data === "string") {
+      try {
+        const parsed = JSON.parse(config.data);
+        if (parsed && typeof parsed === "object") updateData = parsed;
+      } catch {
+        // ignore
+      }
+    }
+
+    const res = await tcpBridge.sendCommand(host, port, "UPDATE_DOCUMENT_BY_ID", {
+      dbName,
+      collectionName,
+      id: documentId,
+      updateData: updateData as Record<string, unknown>,
+    }, timeout, isTls);
+
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: {
+          statusCode: res.statusCode,
+          message: res.message || res.error || "Failed to update document",
+          error: res.error,
+        },
+      };
+    }
+
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: {
+        statusCode: res.statusCode || 200,
+        message: res.message || "Document updated successfully",
+        data: {
+          document: updateData,
+          data: res.data,
+        },
+      },
+    };
+  }
+
+  // 13. Delete Document
+  if (pathname.includes("/api/operation/delete")) {
+    const dbName = String(query.dbName || query.databaseName || body.dbName || "");
+    const collectionName = String(query.collectionName || body.collectionName || "");
+    const documentId = String(query.documentId || query.id || body.documentId || body.id || "");
+
+    const res = await tcpBridge.sendCommand(host, port, "DELETE_DOCUMENT_BY_ID", {
+      dbName,
+      collectionName,
+      id: documentId,
+    }, timeout, isTls);
+
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: {
+          statusCode: res.statusCode,
+          message: res.message || res.error || "Failed to delete document",
+          error: res.error,
+        },
+      };
+    }
+
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+    };
+  }
+
+  // 14. Aggregation
+  if (pathname.includes("/api/operation/aggregate")) {
+    const dbName = String(query.dbName || query.databaseName || body.dbName || "");
+    const collectionName = String(query.collectionName || body.collectionName || "");
+    const pipeline = Array.isArray(body.aggregation)
+      ? body.aggregation
+      : (Array.isArray(body.pipeline) ? body.pipeline : []);
+
+    const res = await tcpBridge.sendCommand(host, port, "AGGREGATE", {
+      dbName,
+      collectionName,
+      pipeline: pipeline as object[],
+    }, timeout, isTls);
+
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: {
+          statusCode: res.statusCode,
+          message: res.message || res.error || "Aggregation failed",
+          error: res.error,
+        },
+      };
+    }
+
+    let aggDocs: unknown[] = [];
+    if (Array.isArray(res.data)) {
+      aggDocs = res.data;
+    } else if (res.data && typeof res.data === "object") {
+      const d = res.data as Record<string, unknown>;
+      if (Array.isArray(d.documents)) aggDocs = d.documents;
+      else if (d.data && typeof d.data === "object") {
+        const inner = d.data as Record<string, unknown>;
+        if (Array.isArray(inner.documents)) aggDocs = inner.documents;
+        else if (Array.isArray(inner)) aggDocs = inner;
+      }
+    }
+
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: {
+        statusCode: res.statusCode || 200,
+        message: res.message || "Aggregation completed",
+        data: {
+          documents: aggDocs,
+          data: aggDocs,
+        },
+      },
+    };
+  }
+
+  // Fallback for unsupported features over TCP (Metrics, User Management, Import/Export)
+  return {
+    status: 400,
+    statusText: "Bad Request",
+    headers: {},
+    data: {
+      message: "This feature is not supported over TCP protocol. Please connect via HTTP or HTTPS.",
+    },
+  };
+}
+
 // Network Request IPC Handler
 // Executes requests natively in Node.js to bypass browser CORS and handle session cookies seamlessly
 ipcMain.handle("network:request", async (_event, config: {
@@ -370,6 +1046,10 @@ ipcMain.handle("network:request", async (_event, config: {
   return new Promise((resolve, reject) => {
     try {
       const fullUrl = new URL(config.url);
+      if (fullUrl.protocol === "tcp:") {
+        executeTcpRequest(fullUrl, config).then(resolve).catch(reject);
+        return;
+      }
       if (config.params) {
         for (const [key, value] of Object.entries(config.params)) {
           if (value !== undefined && value !== null) {
