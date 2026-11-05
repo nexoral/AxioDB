@@ -12,7 +12,20 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "24.35.2",
+    version: "25.36.3",
+    date: "2026-11-05",
+    title: "Electron TCP client bridge, No Auth support, Bun serve engine, and MCP CLI launcher integration",
+    changes: [
+      "Electron TCP Client Bridge: implemented direct TCP socket bridge with TLS encryption and automatic payload framing in AxioDB Control, enabling native desktop database and collection management over TCP",
+      "No Authentication TCP Mode: added seamless 'No Auth' toggle in Connection Hub, hiding credential inputs and securely managing TCP connections when AxioDB is configured without TCPAuth",
+      "Electron Protocol Badges & Utility Routing: updated connection list, titlebar, and workspace switcher with HTTP/TCP/TLS/No Auth badges, disabling HTTP-exclusive panels gracefully with informative guidance",
+      "Bun CLI Launcher Engine: transitioned 'axiodb serve' runtime execution and dependency installation from Node.js/npm to Bun, with automatic cross-platform Bun detection and installer bootstrapping",
+      "Native MCP CLI Serve Mode: introduced 'axiodb serve mcp' (port 27020) and included MCP server startup in 'axiodb serve full', streamlining AI agent context server launching from the CLI",
+      "Documentation & MCP Server Guide: expanded CLI and MCP Server documentation pages with instant Bun-powered CLI serve options, endpoints, and architectural notes",
+    ],
+  },
+  {
+    version: "25.36.3",
     date: "2026-11-04",
     title: "Vector-Less RAG master knowledge base, GitHub metadata enhancement, and documentation clarification",
     changes: [
