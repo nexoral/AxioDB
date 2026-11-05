@@ -36,14 +36,14 @@ export default class CRUDController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const skip = (page - 1) * 10;
+    const skip = (page - 1) * 25;
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
 
     const DB_Collection =
       await databaseInstance.createCollection(collectionName);
 
     const allDocuments = await DB_Collection.query({})
-      .Limit(10)
+      .Limit(25)
       .Sort({ updatedAt: -1 })
       .Skip(skip)
       .exec();
@@ -75,7 +75,7 @@ export default class CRUDController {
     };
 
     const PageNumber = page ? parseInt(String(page)) : 1;
-    const effectiveLimit = limit !== undefined ? parseInt(String(limit)) : (bodyLimit !== undefined ? parseInt(String(bodyLimit)) : 10);
+    const effectiveLimit = limit !== undefined ? parseInt(String(limit)) : (bodyLimit !== undefined ? parseInt(String(bodyLimit)) : 25);
     const effectiveSkip = explicitSkip !== undefined
       ? parseInt(String(explicitSkip))
       : (bodySkip !== undefined ? parseInt(String(bodySkip)) : (PageNumber - 1) * effectiveLimit);

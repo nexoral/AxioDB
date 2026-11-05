@@ -142,7 +142,7 @@ const Documents = () => {
       try {
         setLoading(true)
 
-        const effectiveLimit = limit || 10
+        const effectiveLimit = limit || 25
         const effectiveSkip = (skip !== undefined && skip !== 0) ? (skip + (pageNum - 1) * effectiveLimit) : ((pageNum - 1) * effectiveLimit)
 
         const response = await axios.post(
@@ -347,7 +347,7 @@ const Documents = () => {
 
   // Run a filter chosen in the Query Console. The console has already validated and parsed
   // it, so this only has to switch the view over.
-  const handleQueryResults = (parsedQuery, limitVal = 10, skipVal = 0, sortVal = undefined) => {
+  const handleQueryResults = (parsedQuery, limitVal = 25, skipVal = 0, sortVal = undefined) => {
     setSearchInput(JSON.stringify(parsedQuery))
     setSearchQuery(parsedQuery)
     setQueryLimit(limitVal)
@@ -433,7 +433,7 @@ const Documents = () => {
 
         // Method is query - extract any chained .Limit(), .Skip(), .Sort(), .project()
         const filter = parseLiteral(parsed.args || '{}')
-        let limitVal = 50
+        let limitVal = 25
         let skipVal = 0
         let sortVal = undefined
 
@@ -473,8 +473,8 @@ const Documents = () => {
       // If not a method expression, treat as direct object literal
       const filter = parseLiteral(trimmed)
       const res = await axios.post(
-        `${BASE_API_URL}/api/operation/all/by-query/?dbName=${databaseName}&collectionName=${collectionName}&page=1&limit=50&skip=0`,
-        { query: filter, limit: 50, skip: 0 },
+        `${BASE_API_URL}/api/operation/all/by-query/?dbName=${databaseName}&collectionName=${collectionName}&page=1&limit=25&skip=0`,
+        { query: filter, limit: 25, skip: 0 },
         { headers: { 'Content-Type': 'application/json' } }
       )
       const payloadData = res.data?.data?.data || res.data?.data || {}

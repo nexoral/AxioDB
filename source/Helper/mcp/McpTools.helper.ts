@@ -548,7 +548,7 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
     {
       name: "axiodb_query_documents",
       description:
-        "Read documents from a collection. Supports filter queries with MongoDB-style operators ($gt, $gte, $lt, $lte, $in, $nin, $ne, $regex, etc.), direct documentId lookup, index hint optimization, and pagination (page defaults to 1, 10 documents per page). Example query: {\"name\": \"Ankan Saha\"} or {\"age\": {\"$gt\": 21}}.",
+        "Read documents from a collection. Supports filter queries with MongoDB-style operators ($gt, $gte, $lt, $lte, $in, $nin, $ne, $regex, etc.), direct documentId lookup, index hint optimization, and pagination (page defaults to 1, 25 documents per page). Example query: {\"name\": \"Ankan Saha\"} or {\"age\": {\"$gt\": 21}}.",
       inputSchema: {
         type: "object",
         properties: {
@@ -563,7 +563,7 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
               "Filter query object (e.g. {\"name\": \"Ankan Saha\"} or {\"age\": {\"$gte\": 18}}). Leave empty or omit if retrieving all documents.",
           },
           documentId: { type: "string", description: "Direct lookup by unique document ID" },
-          page: { type: "number", description: "Page number for pagination (defaults to 1, 10 items per page)" },
+          page: { type: "number", description: "Page number for pagination (defaults to 1, 25 items per page)" },
           hint: { type: "string", description: "Optional indexed field name to force index-accelerated query execution" },
         },
         required: ["sessionId"],

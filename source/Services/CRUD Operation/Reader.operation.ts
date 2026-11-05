@@ -50,7 +50,7 @@ export default class Reader {
   ) {
     this.collectionName = collectionName;
     this.path = path;
-    this.limit = 10;
+    this.limit = 25;
     this.skip = 0;
     this.FindOneStatus = false; // Default value for FindOneStatus
     this.sort = {};

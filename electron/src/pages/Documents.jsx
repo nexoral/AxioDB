@@ -134,12 +134,12 @@ const Documents = () => {
       let res;
       if (queryFilter && Object.keys(queryFilter).length > 0) {
         res = await apiClient.post(
-          `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${pageNum}&limit=10`,
+          `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${pageNum}&limit=25`,
           { query: queryFilter }
         );
       } else {
         res = await apiClient.get(
-          `/api/operation/all/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${pageNum}&limit=10`
+          `/api/operation/all/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=${pageNum}&limit=25`
         );
       }
 
@@ -160,8 +160,8 @@ const Documents = () => {
       const totalCount = payload.totalDocuments ?? (append ? documents.length + fetchedDocs.length : fetchedDocs.length);
       setTotalDocs(totalCount);
 
-      // If we received fewer than 10 documents, we have reached the end
-      setHasMore(fetchedDocs.length === 10);
+      // If we received fewer than 25 documents, we have reached the end
+      setHasMore(fetchedDocs.length === 25);
     } catch (err) {
       console.error("Failed to load documents:", err);
       setError(err.response?.data?.message || err.message || "Failed to load documents");
@@ -330,7 +330,7 @@ const Documents = () => {
 
         // Method is query - extract any chained .Limit(), .Skip(), .Sort(), .project()
         const filter = parseLiteral(parsed.args || "{}");
-        let limitVal = 50;
+        let limitVal = 25;
         let skipVal = 0;
         let sortVal = undefined;
 
@@ -369,7 +369,7 @@ const Documents = () => {
       }
       const rawFilter = parseLiteral(cleanObj);
       const res = await apiClient.post(
-        `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=1&limit=50`,
+        `/api/operation/all/by-query/?dbName=${encodeURIComponent(selectedDatabase)}&collectionName=${encodeURIComponent(selectedCollection)}&page=1&limit=25`,
         { query: rawFilter }
       );
       const payloadData = res.data?.data?.data || res.data?.data || {};

@@ -103,7 +103,7 @@ const QueryModal = ({
 
       // query() method - extract options
       const payload = parseLiteral(parsed.args || '{}')
-      let limitVal = 10
+      let limitVal = 25
       let skipVal = 0
       let sortVal = undefined
       for (const call of parsed.chain) {
