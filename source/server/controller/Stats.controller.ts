@@ -21,34 +21,52 @@ export default class StatsController {
 
       if (InstanceInfo && InstanceInfo.data) {
         const instanceData = InstanceInfo.data as Record<string, unknown>;
-        const listOfDatabases = instanceData.ListOfDatabases as string[] || [];
-        for (const db of listOfDatabases) {
-          const dbTree = {
-            name: db,
-            collections: [] as object[],
-          };
-          const DB_instance = this.AxioDBInstance.createDB(db);
-          const Collection_stats = await (
-            await DB_instance
-          ).getCollectionInfo();
-          if (Collection_stats && "data" in Collection_stats) {
-            const collData = Collection_stats.data as Record<string, unknown>;
-            const listOfCollections = (collData.ListOfCollections as string[]) || [];
-            totalCollections += listOfCollections.length || 0;
-            for (const collection of listOfCollections) {
-              const Collection_Instance = await (
-                await this.AxioDBInstance.createDB(db)
-              ).createCollection(collection);
-              const Document_stats = await Collection_Instance.totalDocuments();
-              const docTotal = ("data" in Document_stats && Document_stats.data && typeof Document_stats.data === 'object' && 'total' in Document_stats.data) ? (Document_stats.data as { total: number }).total || 0 : 0;
-              totalDocuments += docTotal;
-              dbTree.collections.push({
+        const listOfDatabases = (instanceData.ListOfDatabases as string[]) || [];
+
+        const dbTreePromises = listOfDatabases.map(async (db) => {
+          const dbInstance = await this.AxioDBInstance.createDB(db);
+          const collectionStats = await dbInstance.getCollectionInfo();
+
+          if (!collectionStats || !("data" in collectionStats)) {
+            return { name: db, collections: [] as { name: string; documentCount: number }[] };
+          }
+
+          const collData = collectionStats.data as Record<string, unknown>;
+          const listOfCollections = (collData.ListOfCollections as string[]) || [];
+
+          const collectionResults = await Promise.all(
+            listOfCollections.map(async (collection) => {
+              const collectionInstance = await dbInstance.createCollection(collection);
+              const documentStats = await collectionInstance.totalDocuments();
+              const docTotal =
+                "data" in documentStats &&
+                documentStats.data &&
+                typeof documentStats.data === "object" &&
+                "total" in documentStats.data
+                  ? (documentStats.data as { total: number }).total || 0
+                  : 0;
+
+              return {
                 name: collection,
                 documentCount: docTotal,
-              });
-            }
+              };
+            }),
+          );
+
+          return {
+            name: db,
+            collections: collectionResults,
+          };
+        });
+
+        const treeMapResults = await Promise.all(dbTreePromises);
+        treeMap.push(...treeMapResults);
+
+        for (const dbNode of treeMapResults) {
+          totalCollections += dbNode.collections.length;
+          for (const collNode of dbNode.collections) {
+            totalDocuments += collNode.documentCount;
           }
-          treeMap.push(dbTree);
         }
       }
 
