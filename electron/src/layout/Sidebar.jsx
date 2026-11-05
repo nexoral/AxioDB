@@ -8,6 +8,7 @@ import CreateDatabaseModal from "../components/database/CreateDatabaseModal";
 import DeleteDatabaseModal from "../components/database/DeleteDatabaseModal";
 import CreateCollectionModal from "../components/collection/CreateCollectionModal";
 import DeleteCollectionModal from "../components/collection/DeleteCollectionModal";
+import AuditLogModal from "../components/audit/AuditLogModal";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ const Sidebar = () => {
   const {
     databases,
     collectionsMap,
+    pinnedCollections,
+    togglePinCollection,
     expandedDbs,
     selectedDatabase,
     selectedCollection,
@@ -46,6 +49,7 @@ const Sidebar = () => {
   // Export notification
   const [exportMsg, setExportMsg] = useState(null); // { type: 'success'|'error', text: string }
   const [exportingDb, setExportingDb] = useState(null);
+  const [showAuditModal, setShowAuditModal] = useState(false);
 
   const clearExportMsg = () => {
     setTimeout(() => setExportMsg(null), 4000);
@@ -198,6 +202,15 @@ const Sidebar = () => {
             </span>
             <div className="flex items-center gap-1">
               <button
+                onClick={() => setShowAuditModal(true)}
+                className="p-1 rounded-md text-slate-500 hover:text-indigo-700 hover:bg-indigo-50 transition-colors"
+                title="Audit & Activity Log"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              </button>
+              <button
                 onClick={() => setShowCreateDb(true)}
                 className="p-1 rounded-md text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
                 title="Create Database"
@@ -243,6 +256,56 @@ const Sidebar = () => {
 
         {/* Database & Collection Tree List */}
         <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+          {/* Feature 6: Pinned Collections Section */}
+          {pinnedCollections && pinnedCollections.length > 0 && (
+            <div className="mb-2 pb-2 border-b border-slate-200/80">
+              <div className="flex items-center justify-between px-2 py-1 text-[10px] font-bold text-amber-600 uppercase tracking-wider">
+                <span className="flex items-center gap-1">
+                  <svg className="w-3 h-3 text-amber-500 fill-amber-400" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  Pinned ({pinnedCollections.length})
+                </span>
+              </div>
+              <div className="space-y-0.5">
+                {pinnedCollections.map((p) => {
+                  const isPinnedSelected = selectedDatabase === p.dbName && selectedCollection === p.collName;
+                  return (
+                    <div
+                      key={`pinned-${p.dbName}-${p.collName}`}
+                      onClick={() => handleSelectColl(p.dbName, p.collName)}
+                      className={`group/pin flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs cursor-pointer select-none transition-colors ${
+                        isPinnedSelected
+                          ? "bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200/80"
+                          : "border border-transparent text-slate-700 hover:bg-slate-200/60"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                        <svg className="w-3 h-3 text-amber-500 fill-amber-400 shrink-0" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <span className="truncate font-medium">{p.collName}</span>
+                        <span className="text-[10px] font-mono text-slate-400 truncate">({p.dbName})</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePinCollection(p.dbName, p.collName);
+                        }}
+                        className="opacity-0 group-hover/pin:opacity-100 p-0.5 text-slate-400 hover:text-red-500 rounded transition-opacity"
+                        title="Unpin"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {filteredDatabases.length === 0 ? (
             <div className="text-center py-8 text-xs text-slate-400">
               {loadingTree ? "Loading databases..." : "No databases found"}
@@ -449,6 +512,10 @@ const Sidebar = () => {
           if (collToDelete) removeCollectionLocally(collToDelete.dbName, collToDelete.collName);
           setCollToDelete(null);
         }}
+      />
+      <AuditLogModal
+        isOpen={showAuditModal}
+        onClose={() => setShowAuditModal(false)}
       />
     </aside>
   );

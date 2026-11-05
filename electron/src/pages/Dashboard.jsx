@@ -3,6 +3,7 @@ import apiClient from '../api/client'
 import DatabaseTreeView from '../components/dashboard/DatabaseTreeView'
 import CollectionsChart from '../components/dashboard/CollectionsChart'
 import StorageDonut from '../components/dashboard/StorageDonut'
+import PerformanceTrendsChart from '../components/dashboard/PerformanceTrendsChart'
 import MetricCard from '../components/ui/MetricCard'
 import { Alert } from '../components/ui/Feedback'
 
@@ -35,14 +36,17 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState(null)
   const [error, setError] = useState(null)
+  const [latency, setLatency] = useState(0)
 
   useEffect(() => {
     let cancelled = false
+    const start = performance.now()
 
     apiClient
       .get('/api/dashboard-stats')
       .then((response) => {
         if (cancelled) return
+        setLatency(Math.max(1, Math.round(performance.now() - start)))
         setStats(response.data?.data)
         setLoading(false)
       })
@@ -136,8 +140,16 @@ const Dashboard = () => {
           />
         </div>
 
-        <div className='stagger grid grid-cols-1 gap-4 xl:grid-cols-2'>
+        <div className='stagger mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2'>
           <CollectionsChart nodeTree={stats?.nodeTree ?? []} loading={loading} />
+          <PerformanceTrendsChart
+            currentLatency={latency}
+            storageUsed={storage.total ?? 0}
+            cacheUsed={cache.Storage ?? 0}
+          />
+        </div>
+
+        <div className='stagger grid grid-cols-1 gap-4'>
           <DatabaseTreeView treeDB={stats?.nodeTree ?? []} loading={loading} />
         </div>
       </div>

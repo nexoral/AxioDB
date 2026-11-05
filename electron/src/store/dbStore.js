@@ -8,12 +8,38 @@ export const useDbStore = create((set, get) => ({
   databases: [],
   collectionsMap: {}, // { [dbName]: [ { name, count, size } ] }
   loadingCollections: {}, // { [dbName]: boolean }
+  pinnedCollections: [], // [ { dbName, collName } ]
   expandedDbs: {}, // { [dbName]: boolean }
   selectedDatabase: "",
   selectedCollection: "",
   activeTab: "documents", // 'documents' | 'query'
   loadingTree: false,
   treeError: null,
+
+  loadPinnedCollections: async () => {
+    if (window.electronAPI?.store?.getPinnedCollections) {
+      try {
+        const list = await window.electronAPI.store.getPinnedCollections();
+        set({ pinnedCollections: list || [] });
+      } catch (err) {
+        console.error("Failed to load pinned collections:", err);
+      }
+    }
+  },
+
+  togglePinCollection: async (dbName, collName) => {
+    if (!dbName || !collName) return;
+    if (window.electronAPI?.store?.togglePinCollection) {
+      try {
+        const res = await window.electronAPI.store.togglePinCollection({ dbName, collName });
+        if (res?.list) {
+          set({ pinnedCollections: res.list });
+        }
+      } catch (err) {
+        console.error("Failed to toggle pin collection:", err);
+      }
+    }
+  },
 
   setSelectedDatabase: (dbName) => {
     if (!dbName) return;
@@ -53,6 +79,7 @@ export const useDbStore = create((set, get) => ({
       const data = res.data?.data || {};
       const list = Array.isArray(data.ListOfDatabases) ? data.ListOfDatabases : [];
       set({ databases: list, loadingTree: false });
+      get().loadPinnedCollections();
 
       // Automatically select first database if none selected (with empty collection so cards open)
       if (list.length > 0 && !get().selectedDatabase) {

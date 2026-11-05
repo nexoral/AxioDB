@@ -1390,6 +1390,241 @@ ipcMain.handle("store:deleteSetting", async (_event, key: string) => {
   }
 });
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Feature 1: Saved Queries & Snippet Library (AppData / saved_queries)
+// ──────────────────────────────────────────────────────────────────────────────
+ipcMain.handle("store:saveQuerySnippet", async (_event, snippet: { id?: string; name: string; query: string; collection?: string; database?: string }) => {
+  try {
+    const coll = await getLocalCollection("AppData", "saved_queries");
+    const id = snippet.id || crypto.randomUUID();
+    const doc = { ...snippet, id, updatedAt: Date.now() };
+    if (snippet.id) {
+      await coll.update({ id }).UpdateOne(doc);
+    } else {
+      await coll.insert(doc);
+    }
+    return { success: true, id };
+  } catch (err) {
+    console.error("[Store] Failed to save query snippet:", err);
+    return { success: false, error: String(err) };
+  }
+});
+
+ipcMain.handle("store:getSavedQueries", async () => {
+  try {
+    const coll = await getLocalCollection("AppData", "saved_queries");
+    const res = await coll.query({}).exec();
+    const docs = (res?.data as { documents: Record<string, unknown>[] } | undefined)?.documents || [];
+    return docs.sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0));
+  } catch (err) {
+    console.error("[Store] Failed to get saved queries:", err);
+    return [];
+  }
+});
+
+ipcMain.handle("store:deleteSavedQuery", async (_event, id: string) => {
+  try {
+    const coll = await getLocalCollection("AppData", "saved_queries");
+    await coll.delete({ id }).deleteOne();
+    return { success: true };
+  } catch (err) {
+    console.error("[Store] Failed to delete saved query:", err);
+    return { success: false, error: String(err) };
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Feature 2: Query Execution History (AppData / query_history)
+// ──────────────────────────────────────────────────────────────────────────────
+ipcMain.handle("store:saveQueryHistory", async (_event, entry: { query: string; collection?: string; database?: string; durationMs?: number; status: string; error?: string }) => {
+  try {
+    const coll = await getLocalCollection("AppData", "query_history");
+    const doc = {
+      id: crypto.randomUUID(),
+      ...entry,
+      timestamp: Date.now(),
+    };
+    await coll.insert(doc);
+
+    // Keep last 50 queries
+    const res = await coll.query({}).exec();
+    const docs = (res?.data as { documents: { id: string; timestamp?: number }[] } | undefined)?.documents || [];
+    if (docs.length > 50) {
+      docs.sort((a, b) => Number(a.timestamp || 0) - Number(b.timestamp || 0));
+      const toRemove = docs.slice(0, docs.length - 50);
+      for (const oldDoc of toRemove) {
+        await coll.delete({ id: oldDoc.id }).deleteOne().catch(() => {});
+      }
+    }
+    return { success: true };
+  } catch (err) {
+    console.error("[Store] Failed to save query history:", err);
+    return { success: false, error: String(err) };
+  }
+});
+
+ipcMain.handle("store:getQueryHistory", async (_event, limit = 25) => {
+  try {
+    const coll = await getLocalCollection("AppData", "query_history");
+    const res = await coll.query({}).exec();
+    const docs = (res?.data as { documents: Record<string, unknown>[] } | undefined)?.documents || [];
+    docs.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
+    return docs.slice(0, limit);
+  } catch (err) {
+    console.error("[Store] Failed to get query history:", err);
+    return [];
+  }
+});
+
+ipcMain.handle("store:clearQueryHistory", async () => {
+  try {
+    const coll = await getLocalCollection("AppData", "query_history");
+    await coll.delete({}).deleteMany().catch(() => {});
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: String(err) };
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Feature 3: Audit Log & Activity Trail (AppData / audit_logs)
+// ──────────────────────────────────────────────────────────────────────────────
+ipcMain.handle("store:logActivity", async (_event, entry: { action: string; database?: string; collection?: string; details?: string; status?: string }) => {
+  try {
+    const coll = await getLocalCollection("AppData", "audit_logs");
+    const doc = {
+      id: crypto.randomUUID(),
+      ...entry,
+      status: entry.status || "success",
+      timestamp: Date.now(),
+    };
+    await coll.insert(doc);
+
+    // Cap to 100 entries
+    const res = await coll.query({}).exec();
+    const docs = (res?.data as { documents: { id: string; timestamp?: number }[] } | undefined)?.documents || [];
+    if (docs.length > 100) {
+      docs.sort((a, b) => Number(a.timestamp || 0) - Number(b.timestamp || 0));
+      const toRemove = docs.slice(0, docs.length - 100);
+      for (const oldDoc of toRemove) {
+        await coll.delete({ id: oldDoc.id }).deleteOne().catch(() => {});
+      }
+    }
+    return { success: true };
+  } catch (err) {
+    console.error("[Store] Failed to log activity:", err);
+    return { success: false, error: String(err) };
+  }
+});
+
+ipcMain.handle("store:getAuditLogs", async (_event, limit = 50) => {
+  try {
+    const coll = await getLocalCollection("AppData", "audit_logs");
+    const res = await coll.query({}).exec();
+    const docs = (res?.data as { documents: Record<string, unknown>[] } | undefined)?.documents || [];
+    docs.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));
+    return docs.slice(0, limit);
+  } catch (err) {
+    console.error("[Store] Failed to get audit logs:", err);
+    return [];
+  }
+});
+
+ipcMain.handle("store:clearAuditLogs", async () => {
+  try {
+    const coll = await getLocalCollection("AppData", "audit_logs");
+    await coll.delete({}).deleteMany().catch(() => {});
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: String(err) };
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Feature 5: Latency & Health Trend History (AppData / performance_history)
+// ──────────────────────────────────────────────────────────────────────────────
+ipcMain.handle("store:recordPerformanceSample", async (_event, sample: { latency: number; storageMB?: number; cacheMB?: number }) => {
+  try {
+    const coll = await getLocalCollection("AppData", "performance_history");
+    const doc = {
+      id: crypto.randomUUID(),
+      timestamp: Date.now(),
+      latency: sample.latency,
+      storageMB: sample.storageMB ?? 0,
+      cacheMB: sample.cacheMB ?? 0,
+    };
+    await coll.insert(doc);
+
+    // Cap to last 60 samples
+    const res = await coll.query({}).exec();
+    const docs = (res?.data as { documents: { id: string; timestamp?: number }[] } | undefined)?.documents || [];
+    if (docs.length > 60) {
+      docs.sort((a, b) => Number(a.timestamp || 0) - Number(b.timestamp || 0));
+      const toRemove = docs.slice(0, docs.length - 60);
+      for (const oldDoc of toRemove) {
+        await coll.delete({ id: oldDoc.id }).deleteOne().catch(() => {});
+      }
+    }
+    return { success: true };
+  } catch (err) {
+    console.error("[Store] Failed to record performance sample:", err);
+    return { success: false, error: String(err) };
+  }
+});
+
+ipcMain.handle("store:getPerformanceHistory", async () => {
+  try {
+    const coll = await getLocalCollection("AppData", "performance_history");
+    const res = await coll.query({}).exec();
+    const docs = (res?.data as { documents: Record<string, unknown>[] } | undefined)?.documents || [];
+    return docs.sort((a, b) => Number(a.timestamp || 0) - Number(b.timestamp || 0));
+  } catch (err) {
+    console.error("[Store] Failed to get performance history:", err);
+    return [];
+  }
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Feature 6: Workspace Layout & Pinned Collections (AppData / workspace_prefs)
+// ──────────────────────────────────────────────────────────────────────────────
+ipcMain.handle("store:getPinnedCollections", async () => {
+  try {
+    const coll = await getLocalCollection("AppData", "workspace_prefs");
+    const res = await coll.query({ key: "pinned_collections" }).exec();
+    const data = (res?.data as { documents: { value?: { dbName: string; collName: string }[] }[] } | undefined)?.documents;
+    return data?.[0]?.value || [];
+  } catch (err) {
+    console.error("[Store] Failed to get pinned collections:", err);
+    return [];
+  }
+});
+
+ipcMain.handle("store:togglePinCollection", async (_event, item: { dbName: string; collName: string }) => {
+  try {
+    const coll = await getLocalCollection("AppData", "workspace_prefs");
+    const res = await coll.query({ key: "pinned_collections" }).exec();
+    const docs = (res?.data as { documents: { id?: string; key: string; value?: { dbName: string; collName: string }[] }[] } | undefined)?.documents || [];
+    let currentList = docs[0]?.value || [];
+
+    const exists = currentList.some((p) => p.dbName === item.dbName && p.collName === item.collName);
+    if (exists) {
+      currentList = currentList.filter((p) => !(p.dbName === item.dbName && p.collName === item.collName));
+    } else {
+      currentList = [...currentList, item];
+    }
+
+    if (docs.length > 0) {
+      await coll.update({ key: "pinned_collections" }).UpdateOne({ key: "pinned_collections", value: currentList });
+    } else {
+      await coll.insert({ key: "pinned_collections", value: currentList });
+    }
+    return { success: true, pinned: !exists, list: currentList };
+  } catch (err) {
+    console.error("[Store] Failed to toggle pin collection:", err);
+    return { success: false, error: String(err) };
+  }
+});
+
 // Binary file download — streams a binary HTTP response straight to disk via a save dialog.
 // The export endpoint returns a tar.gz archive that cannot survive the JSON round-trip of
 // `network:request`, so this handler pipes the raw Buffer stream into a WriteStream.
