@@ -900,6 +900,7 @@ Administrative commands operate against the HTTP Control Server on port 27018:
 - `axiodb ping`: Send heartbeat ping to TCP server and measure round-trip latency.
 - `axiodb health`: Retrieve server health status.
 - `axiodb version`: Show CLI build and version details.
+- `axiodb destroy [-y]`: Self-remove and uninstall the AxioDB CLI binary (aliases: `distory`, `uninstall`).
 
 ---
 
