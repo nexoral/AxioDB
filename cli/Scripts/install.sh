@@ -40,22 +40,67 @@ if [ -z "$VERSION" ]; then
     exit 1
 fi
 
+TERM_WIDTH=$(tput cols 2>/dev/null || echo 100)
+if [ -z "$TERM_WIDTH" ] || [ "$TERM_WIDTH" -lt 80 ]; then
+    TERM_WIDTH=80
+elif [ "$TERM_WIDTH" -gt 130 ]; then
+    TERM_WIDTH=130
+fi
+
+W_LEFT=$(( (TERM_WIDTH - 7) / 2 ))
+W_RIGHT=$(( TERM_WIDTH - 7 - W_LEFT ))
+
+make_bar() {
+    local len=$1
+    if [ "$len" -le 0 ]; then len=1; fi
+    printf "─%.0s" $(seq 1 "$len")
+}
+
+pad_cell() {
+    local text="$1"
+    local target_width="$2"
+    local char_len=${#text}
+    local pad_len=$(( target_width - char_len ))
+    if [ "$pad_len" -lt 0 ]; then pad_len=0; fi
+    printf "%s%*s" "$text" "$pad_len" ""
+}
+
+panel_top() {
+    local tl="$1"
+    local tr="$2"
+    local rem_l=$(( W_LEFT - ${#tl} - 1 ))
+    local rem_r=$(( W_RIGHT - ${#tr} - 1 ))
+    echo -e "  ${CYAN}╭─${NC} ${BOLD}${tl}${NC} ${CYAN}$(make_bar $rem_l)┬─${NC} ${BOLD}${tr}${NC} ${CYAN}$(make_bar $rem_r)╮${NC}"
+}
+
+panel_row() {
+    local l="$1"
+    local r="$2"
+    local pl=$(pad_cell "$l" "$W_LEFT")
+    local pr=$(pad_cell "$r" "$W_RIGHT")
+    echo -e "  ${CYAN}│${NC} ${pl} ${CYAN}│${NC} ${DIM}${pr}${NC} ${CYAN}│${NC}"
+}
+
+panel_bottom() {
+    echo -e "  ${CYAN}╰$(make_bar $(( W_LEFT + 2 )))┴$(make_bar $(( W_RIGHT + 2 )))╯${NC}"
+}
+
 echo ""
-echo -e "  ${CYAN}${BOLD}✦ AxioDB${NC} ${DIM}— Next-Gen Embedded NoSQL Database${NC}"
-echo -e "  ${DIM}─────────────────────────────────────────────${NC}"
-echo -e "  ${DIM}●${NC} System:  ${BOLD}${OS}-${ARCH}${NC}"
-echo -e "  ${DIM}●${NC} Release: ${CYAN}v${VERSION}${NC}"
+echo -e "  ${CYAN}${BOLD}✦ AxioDB${NC} ${DIM}— Next-Gen Embedded NoSQL Database for TypeScript & AI Agents${NC}"
+echo -e "  ${CYAN}$(make_bar $(( TERM_WIDTH - 2 )))${NC}"
+echo -e "  ${DIM}●${NC} System: ${BOLD}${OS}-${ARCH}${NC}   ${DIM}●${NC} Release: ${CYAN}v${VERSION}${NC}   ${DIM}●${NC} Engine: ${BOLD}Zero Native Deps${NC}"
 echo ""
 
 # Detect interactive mode — when piped (curl ... | bash), stdin is not a TTY
 if [ -n "$CHOICE" ]; then
     echo -e "  ${DIM}Using choice from environment:${NC} ${BOLD}$CHOICE${NC}"
 elif [ -t 0 ]; then
-    echo -e "  ${BOLD}Select installation target:${NC}"
-    echo ""
-    echo -e "  ${CYAN}[1]${NC} ${BOLD}CLI only${NC}      ${DIM}Command-line engine & tools (~5MB)${NC}"
-    echo -e "  ${CYAN}[2]${NC} ${BOLD}GUI only${NC}      ${DIM}Desktop management control app (~80MB)${NC}"
-    echo -e "  ${CYAN}[3]${NC} ${BOLD}Full Suite${NC}    ${DIM}CLI + GUI complete installation${NC}"
+    panel_top "Target Selection" "Suggestions & AI Highlights"
+    panel_row "[1] CLI only   - Command-line tool (~5MB)" "> Interactive REPL: axiodb connect"
+    panel_row "[2] GUI only   - Desktop control app (~80MB)" "> AI Context Server: axiodb serve mcp"
+    panel_row "[3] Full Suite - CLI + GUI complete suite" "> Dual-Write Cache & Zero Native Deps"
+    panel_row "" "> Ports: GUI 27018 | TCP 27019 | MCP 27020"
+    panel_bottom
     echo ""
     read -p "  Enter selection [1-3] (default: 1): " USER_INPUT
     CHOICE="${USER_INPUT:-1}"
@@ -69,9 +114,6 @@ fi
 
 install_cli() {
     echo ""
-    echo -e "  ${BOLD}┌  Installing AxioDB CLI (v${VERSION})${NC}"
-    echo -e "  ${BOLD}│${NC}"
-
     # Check if CLI is already installed and up to date
     if command -v "$BINARY_NAME" &>/dev/null; then
         CURRENT_CLI_VER=$("$BINARY_NAME" version --short 2>/dev/null | tr -d 'v[:space:]')
@@ -79,30 +121,33 @@ install_cli() {
             CURRENT_CLI_VER=$("$BINARY_NAME" version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
         fi
         if [ "$CURRENT_CLI_VER" = "$VERSION" ]; then
-            echo -e "  ${BOLD}│${NC}  ${GREEN}✔${NC} Already installed and up to date ${DIM}(v${VERSION})${NC}"
-            echo -e "  ${BOLD}└${NC}"
+            panel_top "AxioDB CLI (v${VERSION})" "Status & Suggestions"
+            panel_row "✔ Already installed and up to date!" "> Quick check:  axiodb version"
+            panel_row "" "> REPL shell:   axiodb connect"
+            panel_bottom
             return 0
         fi
     fi
+
+    panel_top "Installing AxioDB CLI (v${VERSION})" "Suggestions for CLI"
+    panel_row "◇ Fetching binary (${BINARY_NAME}_${OS}_${ARCH})..." "> Instant server:  axiodb serve full"
 
     DOWNLOAD_FILE="${BINARY_NAME}_${OS}_${ARCH}"
     DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${DOWNLOAD_FILE}"
     CHECKSUM_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/checksums.txt"
 
-    echo -e "  ${BOLD}│${NC}  ${CYAN}◇${NC} Fetching binary ${DIM}(${DOWNLOAD_FILE})${NC}..."
-
     TMP_DIR=$(mktemp -d)
     cd "$TMP_DIR"
 
     if ! curl -fsSL -o "$DOWNLOAD_FILE" "$DOWNLOAD_URL"; then
-        echo -e "  ${BOLD}│${NC}  ${RED}✖ Download failed${NC}"
-        echo -e "  ${BOLD}└${NC}"
+        panel_row "✖ Download failed" ""
+        panel_bottom
         rm -rf "$TMP_DIR"
         exit 1
     fi
-    echo -e "  ${BOLD}│${NC}  ${GREEN}✔${NC} Download complete"
+    panel_row "✔ Download complete" "> AI context:      axiodb serve mcp"
 
-    echo -e "  ${BOLD}│${NC}  ${CYAN}◇${NC} Verifying SHA-256 cryptographic checksum..."
+    panel_row "◇ Verifying SHA-256 checksum..." "> Direct TCP:      port 27019"
     if curl -fsSL -o "checksums.txt" "$CHECKSUM_URL" 2>/dev/null; then
         EXPECTED_CHECKSUM=$(grep "$DOWNLOAD_FILE" checksums.txt | awk '{print $1}')
         if [ -n "$EXPECTED_CHECKSUM" ]; then
@@ -112,16 +157,15 @@ install_cli() {
                 ACTUAL_CHECKSUM=$(shasum -a 256 "$DOWNLOAD_FILE" | awk '{print $1}')
             fi
             if [ -n "$ACTUAL_CHECKSUM" ] && [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
-                echo -e "  ${BOLD}│${NC}  ${RED}✖ Checksum verification failed!${NC}"
-                echo -e "  ${BOLD}└${NC}"
+                panel_row "✖ Checksum verification failed!" ""
+                panel_bottom
                 rm -rf "$TMP_DIR"
                 exit 1
             fi
-            echo -e "  ${BOLD}│${NC}  ${GREEN}✔${NC} Checksum verified ${DIM}(SHA-256)${NC}"
+            panel_row "✔ Checksum verified (SHA-256)" "> Self-uninstaller: axiodb destroy"
         fi
     fi
 
-    echo -e "  ${BOLD}│${NC}  ${CYAN}◇${NC} Installing binary to ${DIM}${CLI_INSTALL_DIR}/${BINARY_NAME}${NC}..."
     sudo mv "$DOWNLOAD_FILE" "$CLI_INSTALL_DIR/$BINARY_NAME"
     sudo chmod +x "$CLI_INSTALL_DIR/$BINARY_NAME"
 
@@ -129,20 +173,17 @@ install_cli() {
     rm -rf "$TMP_DIR"
 
     if command -v $BINARY_NAME &> /dev/null; then
-        echo -e "  ${BOLD}│${NC}  ${GREEN}✔${NC} AxioDB CLI deployed successfully"
-        echo -e "  ${BOLD}└${NC}"
+        panel_row "✔ Deployed to ${CLI_INSTALL_DIR}/${BINARY_NAME}" "> Ready to use:    axiodb --help"
+        panel_bottom
     else
-        echo -e "  ${BOLD}│${NC}  ${RED}✖ CLI verification failed${NC}"
-        echo -e "  ${BOLD}└${NC}"
+        panel_row "✖ CLI verification failed" ""
+        panel_bottom
         exit 1
     fi
 }
 
 install_gui() {
     echo ""
-    echo -e "  ${BOLD}┌  Installing AxioDB GUI (v${VERSION})${NC}"
-    echo -e "  ${BOLD}│${NC}"
-
     # Check if GUI is already installed and up to date
     CURRENT_GUI_VER=""
     if [ "$OS" = "linux" ]; then
@@ -169,16 +210,19 @@ install_gui() {
     fi
 
     if [ -n "$CURRENT_GUI_VER" ] && [ "$CURRENT_GUI_VER" = "$VERSION" ]; then
-        echo -e "  ${BOLD}│${NC}  ${GREEN}✔${NC} Already installed and up to date ${DIM}(v${VERSION})${NC}"
-        echo -e "  ${BOLD}└${NC}"
+        panel_top "AxioDB GUI (v${VERSION})" "Status & Suggestions"
+        panel_row "✔ Already installed and up to date!" "> Launch desktop: axiodb-control"
+        panel_row "" "> Web Dashboard:  http://localhost:27018"
+        panel_bottom
         return 0
     fi
 
     TMP_DIR=$(mktemp -d)
     cd "$TMP_DIR"
 
-    # Fetch release info from GitHub API
-    echo -e "  ${BOLD}│${NC}  ${CYAN}◇${NC} Resolving release package..."
+    panel_top "Installing AxioDB GUI (v${VERSION})" "Suggestions for Desktop GUI"
+    panel_row "◇ Resolving release package..." "> Desktop control: axiodb-control"
+
     RELEASE_JSON=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")
     
     GUI_FILE=""
@@ -195,8 +239,8 @@ install_gui() {
             GUI_FILE="$APPIMAGE_FILE"
             GUI_TYPE="appimage"
         else
-            echo -e "  ${BOLD}│${NC}  ${RED}✖ No Linux GUI installer found in release${NC}"
-            echo -e "  ${BOLD}└${NC}"
+            panel_row "✖ No Linux GUI installer found" ""
+            panel_bottom
             rm -rf "$TMP_DIR"
             exit 1
         fi
@@ -207,30 +251,30 @@ install_gui() {
             GUI_FILE="$ZIP_FILE"
             GUI_TYPE="zip"
         else
-            echo -e "  ${BOLD}│${NC}  ${RED}✖ No macOS GUI installer found in release${NC}"
-            echo -e "  ${BOLD}└${NC}"
+            panel_row "✖ No macOS GUI installer found" ""
+            panel_bottom
             rm -rf "$TMP_DIR"
             exit 1
         fi
     else
-        echo -e "  ${BOLD}│${NC}  ${RED}✖ GUI installation not supported for ${OS}${NC}"
-        echo -e "  ${BOLD}└${NC}"
+        panel_row "✖ GUI installation not supported for ${OS}" ""
+        panel_bottom
         rm -rf "$TMP_DIR"
         exit 1
     fi
 
     DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${GUI_FILE}"
-    echo -e "  ${BOLD}│${NC}  ${CYAN}◇${NC} Fetching package ${DIM}(${GUI_FILE})${NC}..."
+    panel_row "◇ Fetching package (${GUI_FILE})..." "> Visualizer:     Documents & indexes"
 
     if ! curl -fsSL -o "$GUI_FILE" "$DOWNLOAD_URL"; then
-        echo -e "  ${BOLD}│${NC}  ${RED}✖ Failed to download GUI package${NC}"
-        echo -e "  ${BOLD}└${NC}"
+        panel_row "✖ Failed to download GUI package" ""
+        panel_bottom
         rm -rf "$TMP_DIR"
         exit 1
     fi
-    echo -e "  ${BOLD}│${NC}  ${GREEN}✔${NC} Download complete"
+    panel_row "✔ Download complete" "> Real-time:      Database metrics"
 
-    echo -e "  ${BOLD}│${NC}  ${CYAN}◇${NC} Verifying SHA-256 cryptographic checksum..."
+    panel_row "◇ Verifying SHA-256 checksum..." "> Dual-write:     Fast index cache"
     GUI_CHECKSUM_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/gui_checksums.txt"
     if curl -fsSL -o "gui_checksums.txt" "$GUI_CHECKSUM_URL" 2>/dev/null; then
         EXPECTED_CHECKSUM=$(tr ' ' '.' < gui_checksums.txt | grep "$GUI_FILE" | cut -c1-64)
@@ -241,37 +285,34 @@ install_gui() {
                 ACTUAL_CHECKSUM=$(shasum -a 256 "$GUI_FILE" | awk '{print $1}')
             fi
             if [ -n "$ACTUAL_CHECKSUM" ] && [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
-                echo -e "  ${BOLD}│${NC}  ${RED}✖ Checksum verification failed!${NC}"
-                echo -e "  ${BOLD}└${NC}"
+                panel_row "✖ Checksum verification failed!" ""
+                panel_bottom
                 rm -rf "$TMP_DIR"
                 exit 1
             fi
-            echo -e "  ${BOLD}│${NC}  ${GREEN}✔${NC} Checksum verified ${DIM}(SHA-256)${NC}"
+            panel_row "✔ Checksum verified (SHA-256)" "> Security:       Audit logs & RBAC"
         fi
     fi
 
     case "$GUI_TYPE" in
         deb)
-            echo -e "  ${BOLD}│${NC}  ${CYAN}◇${NC} Configuring system package (.deb)..."
             sudo dpkg -i "$GUI_FILE" 2>/dev/null || sudo apt-get install -f -y
-            echo -e "  ${BOLD}│${NC}  ${GREEN}✔${NC} Installed (axiodb-control)"
+            panel_row "✔ System package configured (axiodb-control)" "> Menu shortcut:  AxioDB Control"
             ;;
         appimage)
-            echo -e "  ${BOLD}│${NC}  ${CYAN}◇${NC} Installing AppImage to /usr/local/bin/axiodb-control..."
             chmod +x "$GUI_FILE"
             sudo mv "$GUI_FILE" /usr/local/bin/axiodb-control
             echo "$VERSION" | sudo tee /usr/local/bin/.axiodb-control-version >/dev/null 2>&1 || true
-            echo -e "  ${BOLD}│${NC}  ${GREEN}✔${NC} Installed (axiodb-control)"
+            panel_row "✔ Installed to /usr/local/bin/axiodb-control" "> Command:        axiodb-control"
             ;;
         zip)
-            echo -e "  ${BOLD}│${NC}  ${CYAN}◇${NC} Deploying to /Applications..."
             unzip -q "$GUI_FILE"
             sudo cp -r "AxioDB Control.app" /Applications/
-            echo -e "  ${BOLD}│${NC}  ${GREEN}✔${NC} Installed (AxioDB Control.app)"
+            panel_row "✔ Deployed to /Applications/AxioDB Control.app" "> Finder:         Applications folder"
             ;;
     esac
 
-    echo -e "  ${BOLD}└${NC}"
+    panel_bottom
     cd /
     rm -rf "$TMP_DIR"
 }
@@ -294,12 +335,9 @@ case "$CHOICE" in
 esac
 
 echo ""
-echo -e "  ${CYAN}╭──────────────────────────────────────────────────────────╮${NC}"
-echo -e "  ${CYAN}│${NC}  ${GREEN}${BOLD}✦ AxioDB is ready!${NC}                                    ${CYAN}│${NC}"
-echo -e "  ${CYAN}│${NC}                                                          ${CYAN}│${NC}"
-echo -e "  ${CYAN}│${NC}  ${BOLD}Quick Start:${NC}                                           ${CYAN}│${NC}"
-echo -e "  ${CYAN}│${NC}    ${CYAN}\$${NC} axiodb --help       ${DIM}Explore CLI commands${NC}             ${CYAN}│${NC}"
-echo -e "  ${CYAN}│${NC}    ${CYAN}\$${NC} axiodb connect      ${DIM}Open interactive database shell${NC}  ${CYAN}│${NC}"
-echo -e "  ${CYAN}│${NC}    ${CYAN}\$${NC} axiodb-control      ${DIM}Launch desktop control app${NC}       ${CYAN}│${NC}"
-echo -e "  ${CYAN}╰──────────────────────────────────────────────────────────╯${NC}"
+panel_top "✦ AxioDB is Ready!" "Quick Start & AI Shortcuts"
+panel_row "$ axiodb --help      Explore CLI commands" "> TCP Server:    axiodb://127.0.0.1:27019"
+panel_row "$ axiodb connect     Interactive REPL"     "> Desktop GUI:   Run 'axiodb-control'"
+panel_row "$ axiodb serve mcp   AI Agent context"     "> Documentation: https://axiodb.in"
+panel_bottom
 echo ""

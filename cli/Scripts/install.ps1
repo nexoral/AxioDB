@@ -18,21 +18,55 @@ $ErrorActionPreference = "Stop"
 # Ensure UTF-8 output encoding for modern box-drawing characters
 try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
 
-function Write-Step {
-    param([string]$Message, [string]$Glyph = "◇", [string]$GlyphColor = "Cyan", [string]$Color = "White")
-    Write-Host "  │  " -NoNewline -ForegroundColor DarkGray
-    Write-Host "$Glyph " -NoNewline -ForegroundColor $GlyphColor
-    Write-Host $Message -ForegroundColor $Color
+$termWidth = 100
+try {
+    $termWidth = $Host.UI.RawUI.WindowSize.Width
+} catch {}
+if (-not $termWidth -or $termWidth -lt 80) { $termWidth = 80 }
+if ($termWidth -gt 130) { $termWidth = 130 }
+
+$wLeft = [math]::Floor(($termWidth - 7) / 2)
+$wRight = $termWidth - 7 - $wLeft
+
+function Make-Bar([int]$len) {
+    if ($len -le 0) { $len = 1 }
+    return [string]::new([char]0x2500, $len)
 }
 
-function Write-StepSuccess {
-    param([string]$Message)
-    Write-Step $Message -Glyph "✔" -GlyphColor "Green" -Color "White"
+function Pad-Cell([string]$text, [int]$targetWidth) {
+    $len = $text.Length
+    $pad = $targetWidth - $len
+    if ($pad -lt 0) { $pad = 0 }
+    return $text + (" " * $pad)
 }
 
-function Write-StepError {
-    param([string]$Message)
-    Write-Step $Message -Glyph "✖" -GlyphColor "Red" -Color "Red"
+function Print-PanelTop([string]$tl, [string]$tr) {
+    $remL = $wLeft - $tl.Length - 1
+    $remR = $wRight - $tr.Length - 1
+    Write-Host "  " -NoNewline
+    Write-Host "╭─ " -NoNewline -ForegroundColor Cyan
+    Write-Host "$tl " -NoNewline -ForegroundColor White
+    Write-Host (Make-Bar $remL) -NoNewline -ForegroundColor Cyan
+    Write-Host "┬─ " -NoNewline -ForegroundColor Cyan
+    Write-Host "$tr " -NoNewline -ForegroundColor White
+    Write-Host (Make-Bar $remR) -NoNewline -ForegroundColor Cyan
+    Write-Host "╮" -ForegroundColor Cyan
+}
+
+function Print-PanelRow([string]$l, [string]$r) {
+    $pl = Pad-Cell $l $wLeft
+    $pr = Pad-Cell $r $wRight
+    Write-Host "  " -NoNewline
+    Write-Host "│ " -NoNewline -ForegroundColor Cyan
+    Write-Host "$pl " -NoNewline -ForegroundColor White
+    Write-Host "│ " -NoNewline -ForegroundColor Cyan
+    Write-Host "$pr " -NoNewline -ForegroundColor DarkGray
+    Write-Host "│" -ForegroundColor Cyan
+}
+
+function Print-PanelBottom {
+    Write-Host "  " -NoNewline
+    Write-Host ("╰" + (Make-Bar ($wLeft + 2)) + "┴" + (Make-Bar ($wRight + 2)) + "╯") -ForegroundColor Cyan
 }
 
 function Get-SystemArchitecture {
@@ -53,14 +87,17 @@ try {
 
 Write-Host ""
 Write-Host "  ✦ AxioDB " -NoNewline -ForegroundColor Cyan
-Write-Host "— Next-Gen Embedded NoSQL Database" -ForegroundColor DarkGray
-Write-Host "  ─────────────────────────────────────────────" -ForegroundColor DarkGray
+Write-Host "— Next-Gen Embedded NoSQL Database for TypeScript & AI Agents" -ForegroundColor DarkGray
+Write-Host ("  " + (Make-Bar ($termWidth - 2))) -ForegroundColor Cyan
 Write-Host "  ● " -NoNewline -ForegroundColor DarkGray
 Write-Host "System:  " -NoNewline -ForegroundColor Gray
-Write-Host "windows-$ARCH" -ForegroundColor White
-Write-Host "  ● " -NoNewline -ForegroundColor DarkGray
+Write-Host "windows-$ARCH   " -NoNewline -ForegroundColor White
+Write-Host "● " -NoNewline -ForegroundColor DarkGray
 Write-Host "Release: " -NoNewline -ForegroundColor Gray
-Write-Host "v$VERSION" -ForegroundColor Cyan
+Write-Host "v$VERSION   " -NoNewline -ForegroundColor Cyan
+Write-Host "● " -NoNewline -ForegroundColor DarkGray
+Write-Host "Engine:  " -NoNewline -ForegroundColor Gray
+Write-Host "Zero Native Deps" -ForegroundColor White
 Write-Host ""
 
 if ($env:CHOICE) {
@@ -68,19 +105,12 @@ if ($env:CHOICE) {
     Write-Host $env:CHOICE -ForegroundColor White
     $CHOICE = $env:CHOICE
 } else {
-    Write-Host "  Select installation target:" -ForegroundColor White
-    Write-Host ""
-    Write-Host "  [1] " -NoNewline -ForegroundColor Cyan
-    Write-Host "CLI only      " -NoNewline -ForegroundColor White
-    Write-Host "Command-line engine & tools (~5MB)" -ForegroundColor DarkGray
-
-    Write-Host "  [2] " -NoNewline -ForegroundColor Cyan
-    Write-Host "GUI only      " -NoNewline -ForegroundColor White
-    Write-Host "Desktop management control app (~80MB)" -ForegroundColor DarkGray
-
-    Write-Host "  [3] " -NoNewline -ForegroundColor Cyan
-    Write-Host "Full Suite    " -NoNewline -ForegroundColor White
-    Write-Host "CLI + GUI complete installation" -ForegroundColor DarkGray
+    Print-PanelTop "Target Selection" "Suggestions & AI Highlights"
+    Print-PanelRow "[1] CLI only   - Command-line tool (~5MB)" "> Interactive REPL: axiodb connect"
+    Print-PanelRow "[2] GUI only   - Desktop control app (~80MB)" "> AI Context Server: axiodb serve mcp"
+    Print-PanelRow "[3] Full Suite - CLI + GUI complete suite" "> Dual-Write Cache & Zero Native Deps"
+    Print-PanelRow "" "> Ports: GUI 27018 | TCP 27019 | MCP 27020"
+    Print-PanelBottom
     Write-Host ""
 
     $userInput = Read-Host "  Enter selection [1-3] (default: 1)"
@@ -89,9 +119,6 @@ if ($env:CHOICE) {
 
 function Install-CLI {
     Write-Host ""
-    Write-Host "  ┌  Installing AxioDB CLI (v$VERSION)" -ForegroundColor White
-    Write-Host "  │" -ForegroundColor DarkGray
-
     # Check if CLI is already installed and up to date
     if (Get-Command "axiodb" -ErrorAction SilentlyContinue) {
         try {
@@ -103,26 +130,29 @@ function Install-CLI {
                 }
             }
             if ($installedVer -eq $VERSION) {
-                Write-StepSuccess "Already installed and up to date (v$VERSION)"
-                Write-Host "  └" -ForegroundColor DarkGray
+                Print-PanelTop "AxioDB CLI (v$VERSION)" "Status & Suggestions"
+                Print-PanelRow "✔ Already installed and up to date!" "> Quick check:  axiodb version"
+                Print-PanelRow "" "> REPL shell:   axiodb connect"
+                Print-PanelBottom
                 return
             }
         } catch {}
     }
 
+    Print-PanelTop "Installing AxioDB CLI (v$VERSION)" "Suggestions for CLI"
+    Print-PanelRow "◇ Fetching binary (axiodb_windows_${ARCH}.exe)..." "> Instant server:  axiodb serve full"
+
     $DOWNLOAD_FILE = "axiodb_windows_${ARCH}.exe"
     $DOWNLOAD_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/${DOWNLOAD_FILE}"
     $CHECKSUM_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/checksums.txt"
-
-    Write-Step "Fetching binary ($DOWNLOAD_FILE)..."
 
     try {
         if (-not (Test-Path $CLI_INSTALL_DIR)) {
             New-Item -ItemType Directory -Force -Path $CLI_INSTALL_DIR | Out-Null
         }
     } catch {
-        Write-StepError "Failed to create install directory: $CLI_INSTALL_DIR"
-        Write-Host "  └" -ForegroundColor DarkGray
+        Print-PanelRow "✖ Failed to create install directory" ""
+        Print-PanelBottom
         exit 1
     }
 
@@ -131,14 +161,14 @@ function Install-CLI {
     try {
         Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $TMP_FILE -UseBasicParsing
     } catch {
-        Write-StepError "Download failed: $_"
-        Write-Host "  └" -ForegroundColor DarkGray
+        Print-PanelRow "✖ Download failed" ""
+        Print-PanelBottom
         exit 1
     }
 
-    Write-StepSuccess "Download complete"
+    Print-PanelRow "✔ Download complete" "> AI context:      axiodb serve mcp"
+    Print-PanelRow "◇ Verifying SHA-256 checksum..." "> Direct TCP:      port 27019"
 
-    Write-Step "Verifying SHA-256 cryptographic checksum..."
     try {
         $CHECKSUM_FILE = Join-Path $env:TEMP "checksums.txt"
         Invoke-WebRequest -Uri $CHECKSUM_URL -OutFile $CHECKSUM_FILE -UseBasicParsing
@@ -147,19 +177,18 @@ function Install-CLI {
         if ($expectedChecksum) {
             $actualChecksum = (Get-FileHash -Path $TMP_FILE -Algorithm SHA256).Hash.ToLower()
             if ($actualChecksum -ne $expectedChecksum.ToLower()) {
-                Write-StepError "Checksum verification failed!"
-                Write-Host "  └" -ForegroundColor DarkGray
+                Print-PanelRow "✖ Checksum verification failed!" ""
+                Print-PanelBottom
                 Remove-Item $TMP_FILE, $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
                 exit 1
             }
-            Write-StepSuccess "Checksum verified (SHA-256)"
+            Print-PanelRow "✔ Checksum verified (SHA-256)" "> Self-uninstaller: axiodb destroy"
         }
         Remove-Item $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
     } catch {
-        Write-Step "Checksum verification skipped" -Glyph "!" -GlyphColor "Yellow" -Color "DarkGray"
+        Print-PanelRow "! Checksum verification skipped" ""
     }
 
-    Write-Step "Installing binary to $CLI_INSTALL_DIR..."
     $destPath = Join-Path $CLI_INSTALL_DIR $CLI_BINARY_NAME
     Move-Item -Path $TMP_FILE -Destination $destPath -Force
 
@@ -169,15 +198,12 @@ function Install-CLI {
         $env:Path = "$env:Path;$CLI_INSTALL_DIR"
     }
 
-    Write-StepSuccess "AxioDB CLI deployed successfully"
-    Write-Host "  └" -ForegroundColor DarkGray
+    Print-PanelRow "✔ Deployed to $CLI_INSTALL_DIR" "> Ready to use:    axiodb --help"
+    Print-PanelBottom
 }
 
 function Install-GUI {
     Write-Host ""
-    Write-Host "  ┌  Installing AxioDB GUI (v$VERSION)" -ForegroundColor White
-    Write-Host "  │" -ForegroundColor DarkGray
-
     # Check if GUI is already installed and up to date
     try {
         $installedGuiVer = $null
@@ -199,13 +225,17 @@ function Install-GUI {
             $installedGuiVer = $null
         }
         if ($installedGuiVer -eq $VERSION) {
-            Write-StepSuccess "Already installed and up to date (v$VERSION)"
-            Write-Host "  └" -ForegroundColor DarkGray
+            Print-PanelTop "AxioDB GUI (v$VERSION)" "Status & Suggestions"
+            Print-PanelRow "✔ Already installed and up to date!" "> Launch desktop: AxioDB Control"
+            Print-PanelRow "" "> Web Dashboard:  http://localhost:27018"
+            Print-PanelBottom
             return
         }
     } catch {}
 
-    Write-Step "Resolving release package..."
+    Print-PanelTop "Installing AxioDB GUI (v$VERSION)" "Suggestions for Desktop GUI"
+    Print-PanelRow "◇ Resolving release package..." "> Desktop control: AxioDB Control"
+
     try {
         $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$REPO/releases/latest" -UseBasicParsing
         $assets = $release.assets
@@ -217,31 +247,31 @@ function Install-GUI {
             $GUI_INSTALLER = $guiAsset.name
             $GUI_URL = $guiAsset.browser_download_url
         } else {
-            Write-StepError "No Windows GUI installer found in release"
-            Write-Host "  └" -ForegroundColor DarkGray
+            Print-PanelRow "✖ No Windows GUI installer found" ""
+            Print-PanelBottom
             exit 1
         }
     } catch {
-        Write-StepError "Failed to fetch release info: $_"
-        Write-Host "  └" -ForegroundColor DarkGray
+        Print-PanelRow "✖ Failed to fetch release info" ""
+        Print-PanelBottom
         exit 1
     }
 
-    Write-Step "Fetching package ($GUI_INSTALLER)..."
+    Print-PanelRow "◇ Fetching package ($GUI_INSTALLER)..." "> Visualizer:     Documents & indexes"
 
     $TMP_FILE = Join-Path $env:TEMP $GUI_INSTALLER
 
     try {
         Invoke-WebRequest -Uri $GUI_URL -OutFile $TMP_FILE -UseBasicParsing
     } catch {
-        Write-StepError "Failed to download GUI installer: $_"
-        Write-Host "  └" -ForegroundColor DarkGray
+        Print-PanelRow "✖ Failed to download GUI installer" ""
+        Print-PanelBottom
         exit 1
     }
 
-    Write-StepSuccess "Download complete"
+    Print-PanelRow "✔ Download complete" "> Real-time:      Database metrics"
+    Print-PanelRow "◇ Verifying SHA-256 checksum..." "> Dual-write:     Fast index cache"
 
-    Write-Step "Verifying SHA-256 cryptographic checksum..."
     try {
         $GUI_CHECKSUM_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/gui_checksums.txt"
         $CHECKSUM_FILE = Join-Path $env:TEMP "gui_checksums.txt"
@@ -253,31 +283,31 @@ function Install-GUI {
             if ($expectedChecksum) {
                 $actualChecksum = (Get-FileHash -Path $TMP_FILE -Algorithm SHA256).Hash.ToLower()
                 if ($actualChecksum -ne $expectedChecksum.ToLower()) {
-                    Write-StepError "Checksum verification failed!"
-                    Write-Host "  └" -ForegroundColor DarkGray
+                    Print-PanelRow "✖ Checksum verification failed!" ""
+                    Print-PanelBottom
                     Remove-Item $TMP_FILE, $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
                     exit 1
                 }
-                Write-StepSuccess "Checksum verified (SHA-256)"
+                Print-PanelRow "✔ Checksum verified (SHA-256)" "> Security:       Audit logs & RBAC"
             }
         }
         Remove-Item $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
     } catch {
-        Write-Step "Checksum verification skipped" -Glyph "!" -GlyphColor "Yellow" -Color "DarkGray"
+        Print-PanelRow "! Checksum verification skipped" ""
     }
 
-    Write-Step "Launching installer wizard..."
-    Write-Host "  │  " -NoNewline -ForegroundColor DarkGray
-    Write-Host "Please follow the on-screen installer prompts." -ForegroundColor Yellow
+    Print-PanelRow "◇ Launching installer wizard..." "> Complete setup: In wizard window"
+    Print-PanelBottom
+
+    Write-Host ""
+    Write-Host "  Please follow the on-screen installer prompts." -ForegroundColor Yellow
+    Write-Host ""
 
     # Launch the NSIS installer
     Start-Process -FilePath $TMP_FILE -Wait
 
     # Clean up temp installer file
     Remove-Item $TMP_FILE -Force -ErrorAction SilentlyContinue
-
-    Write-StepSuccess "Installed (AxioDB Control)"
-    Write-Host "  └" -ForegroundColor DarkGray
 }
 
 switch ($CHOICE) {
@@ -298,27 +328,9 @@ switch ($CHOICE) {
 }
 
 Write-Host ""
-Write-Host "  ╭──────────────────────────────────────────────────────────╮" -ForegroundColor Cyan
-Write-Host "  │  " -NoNewline -ForegroundColor Cyan
-Write-Host "✦ AxioDB is ready!                                    " -NoNewline -ForegroundColor Green
-Write-Host "│" -ForegroundColor Cyan
-Write-Host "  │                                                          │" -ForegroundColor Cyan
-Write-Host "  │  " -NoNewline -ForegroundColor Cyan
-Write-Host "Quick Start:                                           " -NoNewline -ForegroundColor White
-Write-Host "│" -ForegroundColor Cyan
-Write-Host "  │    " -NoNewline -ForegroundColor Cyan
-Write-Host "$ " -NoNewline -ForegroundColor Cyan
-Write-Host "axiodb --help       " -NoNewline -ForegroundColor White
-Write-Host "Explore CLI commands             " -NoNewline -ForegroundColor DarkGray
-Write-Host "│" -ForegroundColor Cyan
-Write-Host "  │    " -NoNewline -ForegroundColor Cyan
-Write-Host "$ " -NoNewline -ForegroundColor Cyan
-Write-Host "axiodb connect      " -NoNewline -ForegroundColor White
-Write-Host "Open interactive database shell  " -NoNewline -ForegroundColor DarkGray
-Write-Host "│" -ForegroundColor Cyan
-Write-Host "  │    " -NoNewline -ForegroundColor Cyan
-Write-Host "AxioDB Control      " -NoNewline -ForegroundColor White
-Write-Host "Launch desktop control app       " -NoNewline -ForegroundColor DarkGray
-Write-Host "│" -ForegroundColor Cyan
-Write-Host "  ╰──────────────────────────────────────────────────────────╯" -ForegroundColor Cyan
+Print-PanelTop "✦ AxioDB is Ready!" "Quick Start & AI Shortcuts"
+Print-PanelRow "$ axiodb --help      Explore CLI commands" "> TCP Server:    axiodb://127.0.0.1:27019"
+Print-PanelRow "$ axiodb connect     Interactive REPL"     "> Desktop GUI:   AxioDB Control"
+Print-PanelRow "$ axiodb serve mcp   AI Agent context"     "> Documentation: https://axiodb.in"
+Print-PanelBottom
 Write-Host ""
