@@ -54,7 +54,7 @@ elif [ -t 0 ]; then
     echo -e "${CYAN}What would you like to install?${NC}"
     echo ""
     echo -e "  ${YELLOW}1)${NC} CLI only      — command-line tool (~5MB)"
-    echo -e "  ${YELLOW}2)${NC} GUI only      — desktop Electron app (~80MB)"
+    echo -e "  ${YELLOW}2)${NC} GUI only      — desktop app (~80MB)"
     echo -e "  ${YELLOW}3)${NC} Both          — CLI + GUI"
     echo ""
     read -p "Enter choice [1-3]: " CHOICE
@@ -91,8 +91,12 @@ install_cli() {
     if curl -fsSL -o "checksums.txt" "$CHECKSUM_URL" 2>/dev/null; then
         EXPECTED_CHECKSUM=$(grep "$DOWNLOAD_FILE" checksums.txt | awk '{print $1}')
         if [ -n "$EXPECTED_CHECKSUM" ]; then
-            ACTUAL_CHECKSUM=$(sha256sum "$DOWNLOAD_FILE" | awk '{print $1}')
-            if [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
+            if command -v sha256sum &>/dev/null; then
+                ACTUAL_CHECKSUM=$(sha256sum "$DOWNLOAD_FILE" | awk '{print $1}')
+            elif command -v shasum &>/dev/null; then
+                ACTUAL_CHECKSUM=$(shasum -a 256 "$DOWNLOAD_FILE" | awk '{print $1}')
+            fi
+            if [ -n "$ACTUAL_CHECKSUM" ] && [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
                 echo -e "${RED}Checksum verification failed!${NC}"
                 rm -rf "$TMP_DIR"
                 exit 1
@@ -123,7 +127,7 @@ install_cli() {
 
 install_gui() {
     echo ""
-    echo -e "${BLUE}Installing GUI (Electron)...${NC}"
+    echo -e "${BLUE}Installing GUI...${NC}"
     echo "========================"
 
     TMP_DIR=$(mktemp -d)
@@ -133,62 +137,30 @@ install_gui() {
     echo -e "${YELLOW}Fetching release info...${NC}"
     RELEASE_JSON=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")
     
+    GUI_FILE=""
+    GUI_TYPE=""
+
     if [ "$OS" = "linux" ]; then
-        # Find .deb or .AppImage from release assets
         DEB_FILE=$(echo "$RELEASE_JSON" | grep -o '"name": *"[^"]*\.deb"' | head -1 | sed 's/.*"\([^"]*\.deb\)".*/\1/')
         APPIMAGE_FILE=$(echo "$RELEASE_JSON" | grep -o '"name": *"[^"]*\.AppImage"' | head -1 | sed 's/.*"\([^"]*\.AppImage\)".*/\1/')
-        
+
         if [ -n "$DEB_FILE" ]; then
-            DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${DEB_FILE}"
-            echo -e "${YELLOW}Downloading ${DEB_FILE}...${NC}"
-            
-            if curl -fsSL -o "$DEB_FILE" "$DOWNLOAD_URL"; then
-                echo -e "${YELLOW}Installing .deb package...${NC}"
-                sudo dpkg -i "$DEB_FILE" 2>/dev/null || sudo apt-get install -f -y
-                echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
-                echo "Run 'axiodb-control' or find it in your application menu"
-            else
-                echo -e "${RED}Failed to download GUI installer${NC}"
-                rm -rf "$TMP_DIR"
-                exit 1
-            fi
+            GUI_FILE="$DEB_FILE"
+            GUI_TYPE="deb"
         elif [ -n "$APPIMAGE_FILE" ]; then
-            DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${APPIMAGE_FILE}"
-            echo -e "${YELLOW}Downloading ${APPIMAGE_FILE}...${NC}"
-            
-            if curl -fsSL -o "$APPIMAGE_FILE" "$DOWNLOAD_URL"; then
-                chmod +x "$APPIMAGE_FILE"
-                sudo mv "$APPIMAGE_FILE" /usr/local/bin/axiodb-control
-                echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
-                echo "Run 'axiodb-control' to start"
-            else
-                echo -e "${RED}Failed to download GUI installer${NC}"
-                rm -rf "$TMP_DIR"
-                exit 1
-            fi
+            GUI_FILE="$APPIMAGE_FILE"
+            GUI_TYPE="appimage"
         else
             echo -e "${RED}No Linux GUI installer found in release${NC}"
             rm -rf "$TMP_DIR"
             exit 1
         fi
     elif [ "$OS" = "darwin" ]; then
-        # Find .zip from release assets
         ZIP_FILE=$(echo "$RELEASE_JSON" | grep -o '"name": *"[^"]*\.zip"' | head -1 | sed 's/.*"\([^"]*\.zip\)".*/\1/')
-        
+
         if [ -n "$ZIP_FILE" ]; then
-            DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${ZIP_FILE}"
-            echo -e "${YELLOW}Downloading ${ZIP_FILE}...${NC}"
-            
-            if curl -fsSL -o "$ZIP_FILE" "$DOWNLOAD_URL"; then
-                unzip -q "$ZIP_FILE"
-                sudo cp -r "AxioDB Control.app" /Applications/
-                echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
-                echo "Find 'AxioDB Control' in your Applications folder"
-            else
-                echo -e "${RED}Failed to download GUI installer${NC}"
-                rm -rf "$TMP_DIR"
-                exit 1
-            fi
+            GUI_FILE="$ZIP_FILE"
+            GUI_TYPE="zip"
         else
             echo -e "${RED}No macOS GUI installer found in release${NC}"
             rm -rf "$TMP_DIR"
@@ -199,6 +171,55 @@ install_gui() {
         rm -rf "$TMP_DIR"
         exit 1
     fi
+
+    DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${GUI_FILE}"
+    echo -e "${YELLOW}Downloading ${GUI_FILE}...${NC}"
+
+    if ! curl -fsSL -o "$GUI_FILE" "$DOWNLOAD_URL"; then
+        echo -e "${RED}Failed to download GUI installer${NC}"
+        rm -rf "$TMP_DIR"
+        exit 1
+    fi
+
+    echo -e "${YELLOW}Verifying checksum...${NC}"
+    GUI_CHECKSUM_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/gui_checksums.txt"
+    if curl -fsSL -o "gui_checksums.txt" "$GUI_CHECKSUM_URL" 2>/dev/null; then
+        EXPECTED_CHECKSUM=$(tr ' ' '.' < gui_checksums.txt | grep "$GUI_FILE" | cut -c1-64)
+        if [ -n "$EXPECTED_CHECKSUM" ]; then
+            if command -v sha256sum &>/dev/null; then
+                ACTUAL_CHECKSUM=$(sha256sum "$GUI_FILE" | awk '{print $1}')
+            elif command -v shasum &>/dev/null; then
+                ACTUAL_CHECKSUM=$(shasum -a 256 "$GUI_FILE" | awk '{print $1}')
+            fi
+            if [ -n "$ACTUAL_CHECKSUM" ] && [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
+                echo -e "${RED}Checksum verification failed!${NC}"
+                rm -rf "$TMP_DIR"
+                exit 1
+            fi
+            echo -e "${GREEN}Checksum verified${NC}"
+        fi
+    fi
+
+    case "$GUI_TYPE" in
+        deb)
+            echo -e "${YELLOW}Installing .deb package...${NC}"
+            sudo dpkg -i "$GUI_FILE" 2>/dev/null || sudo apt-get install -f -y
+            echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
+            echo "Run 'axiodb-control' or find it in your application menu"
+            ;;
+        appimage)
+            chmod +x "$GUI_FILE"
+            sudo mv "$GUI_FILE" /usr/local/bin/axiodb-control
+            echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
+            echo "Run 'axiodb-control' to start"
+            ;;
+        zip)
+            unzip -q "$GUI_FILE"
+            sudo cp -r "AxioDB Control.app" /Applications/
+            echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
+            echo "Find 'AxioDB Control' in your Applications folder"
+            ;;
+    esac
 
     cd /
     rm -rf "$TMP_DIR"

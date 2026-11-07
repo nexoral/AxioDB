@@ -1,9 +1,9 @@
-#Requires -Version 3.0
+﻿#Requires -Version 3.0
 <#
 .SYNOPSIS
     AxioDB Installer for Windows
 .DESCRIPTION
-    Installs AxioDB CLI and/or GUI (Electron) on Windows.
+    Installs AxioDB CLI and/or GUI on Windows.
 .EXAMPLE
     irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
 #>
@@ -51,7 +51,7 @@ if ($env:CHOICE) {
     Write-ColorOutput "What would you like to install?" "Cyan"
     Write-Host ""
     Write-ColorOutput "  1) CLI only      — command-line tool (~5MB)" "Yellow"
-    Write-ColorOutput "  2) GUI only      — desktop Electron app (~80MB)" "Yellow"
+    Write-ColorOutput "  2) GUI only      — desktop app (~80MB)" "Yellow"
     Write-ColorOutput "  3) Both          — CLI + GUI" "Yellow"
     Write-Host ""
     $CHOICE = Read-Host "Enter choice [1-3]"
@@ -131,7 +131,7 @@ function Install-CLI {
 
 function Install-GUI {
     Write-Host ""
-    Write-ColorOutput "Installing GUI (Electron)..." "Blue"
+    Write-ColorOutput "Installing GUI..." "Blue"
     Write-ColorOutput "========================" "DarkGray"
 
     # Find GUI installer from GitHub API
@@ -169,6 +169,30 @@ function Install-GUI {
     }
 
     Write-ColorOutput "[+] Download complete" "Green"
+
+    Write-ColorOutput "[*] Verifying checksum..." "White"
+    try {
+        $GUI_CHECKSUM_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/gui_checksums.txt"
+        $CHECKSUM_FILE = Join-Path $env:TEMP "gui_checksums.txt"
+        Invoke-WebRequest -Uri $GUI_CHECKSUM_URL -OutFile $CHECKSUM_FILE -UseBasicParsing
+        $checksumContent = Get-Content $CHECKSUM_FILE
+        $matchedLine = $checksumContent | Where-Object { $_.Replace(' ', '.') -like "*$GUI_INSTALLER*" } | Select-Object -First 1
+        if ($matchedLine) {
+            $expectedChecksum = ($matchedLine.Trim() -split '\s+')[0]
+            if ($expectedChecksum) {
+                $actualChecksum = (Get-FileHash -Path $TMP_FILE -Algorithm SHA256).Hash.ToLower()
+                if ($actualChecksum -ne $expectedChecksum.ToLower()) {
+                    Write-ColorOutput "[X] Checksum verification failed!" "Red"
+                    Remove-Item $TMP_FILE, $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
+                    exit 1
+                }
+                Write-ColorOutput "[+] Checksum verified" "Green"
+            }
+        }
+        Remove-Item $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
+    } catch {
+        Write-ColorOutput "[!] Checksum verification skipped" "Yellow"
+    }
     Write-ColorOutput "[*] Launching installer..." "White"
     Write-Host ""
     Write-ColorOutput "Please follow the installation wizard." "Yellow"
