@@ -72,6 +72,18 @@ install_cli() {
     echo -e "${BLUE}Installing CLI...${NC}"
     echo "========================"
 
+    # Check if CLI is already installed and up to date
+    if command -v "$BINARY_NAME" &>/dev/null; then
+        CURRENT_CLI_VER=$("$BINARY_NAME" version --short 2>/dev/null | tr -d 'v[:space:]')
+        if [ -z "$CURRENT_CLI_VER" ]; then
+            CURRENT_CLI_VER=$("$BINARY_NAME" version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+        fi
+        if [ "$CURRENT_CLI_VER" = "$VERSION" ]; then
+            echo -e "${GREEN}AxioDB CLI is already installed and up to date (v${VERSION})!${NC}"
+            return 0
+        fi
+    fi
+
     DOWNLOAD_FILE="${BINARY_NAME}_${OS}_${ARCH}"
     DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${DOWNLOAD_FILE}"
     CHECKSUM_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/checksums.txt"
@@ -129,6 +141,29 @@ install_gui() {
     echo ""
     echo -e "${BLUE}Installing GUI...${NC}"
     echo "========================"
+
+    # Check if GUI is already installed and up to date
+    CURRENT_GUI_VER=""
+    if [ "$OS" = "linux" ]; then
+        if command -v dpkg-query &>/dev/null; then
+            CURRENT_GUI_VER=$(dpkg-query -W -f='${Version}' axiodb-control 2>/dev/null | tr -d 'v[:space:]')
+        fi
+        if [ -z "$CURRENT_GUI_VER" ] && [ -f "/usr/local/bin/.axiodb-control-version" ]; then
+            CURRENT_GUI_VER=$(cat "/usr/local/bin/.axiodb-control-version" 2>/dev/null | tr -d 'v[:space:]')
+        fi
+    elif [ "$OS" = "darwin" ]; then
+        if [ -d "/Applications/AxioDB Control.app" ]; then
+            CURRENT_GUI_VER=$(defaults read "/Applications/AxioDB Control.app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null | tr -d 'v[:space:]')
+            if [ -z "$CURRENT_GUI_VER" ] && [ -f "/Applications/AxioDB Control.app/Contents/Info.plist" ]; then
+                CURRENT_GUI_VER=$(grep -A1 'CFBundleShortVersionString' "/Applications/AxioDB Control.app/Contents/Info.plist" 2>/dev/null | tail -1 | sed -E 's/.*<string>([^<]+)<\/string>.*/\1/' | tr -d 'v[:space:]')
+            fi
+        fi
+    fi
+
+    if [ -n "$CURRENT_GUI_VER" ] && [ "$CURRENT_GUI_VER" = "$VERSION" ]; then
+        echo -e "${GREEN}AxioDB GUI is already installed and up to date (v${VERSION})!${NC}"
+        return 0
+    fi
 
     TMP_DIR=$(mktemp -d)
     cd "$TMP_DIR"
@@ -210,6 +245,7 @@ install_gui() {
         appimage)
             chmod +x "$GUI_FILE"
             sudo mv "$GUI_FILE" /usr/local/bin/axiodb-control
+            echo "$VERSION" | sudo tee /usr/local/bin/.axiodb-control-version >/dev/null 2>&1 || true
             echo -e "${GREEN}AxioDB GUI installed successfully!${NC}"
             echo "Run 'axiodb-control' to start"
             ;;

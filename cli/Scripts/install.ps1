@@ -62,6 +62,23 @@ function Install-CLI {
     Write-ColorOutput "Installing CLI..." "Blue"
     Write-ColorOutput "========================" "DarkGray"
 
+    # Check if CLI is already installed and up to date
+    if (Get-Command "axiodb" -ErrorAction SilentlyContinue) {
+        try {
+            $installedVer = (& axiodb version --short 2>$null).Trim().TrimStart('v')
+            if (-not $installedVer) {
+                $raw = (& axiodb version 2>$null)
+                if ($raw -match '([0-9]+\.[0-9]+\.[0-9]+)') {
+                    $installedVer = $matches[1]
+                }
+            }
+            if ($installedVer -eq $VERSION) {
+                Write-ColorOutput "[+] AxioDB CLI is already installed and up to date (v$VERSION)!" "Green"
+                return
+            }
+        } catch {}
+    }
+
     $DOWNLOAD_FILE = "axiodb_windows_${ARCH}.exe"
     $DOWNLOAD_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/${DOWNLOAD_FILE}"
     $CHECKSUM_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/checksums.txt"
@@ -133,6 +150,29 @@ function Install-GUI {
     Write-Host ""
     Write-ColorOutput "Installing GUI..." "Blue"
     Write-ColorOutput "========================" "DarkGray"
+
+    # Check if GUI is already installed and up to date
+    try {
+        $installedGuiVer = $null
+        $uninstallKeys = @(
+            "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+            "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        )
+        $app = Get-ItemProperty -Path $uninstallKeys -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -eq "AxioDB Control" } | Select-Object -First 1
+        if ($app -and $app.DisplayVersion) {
+            $installedGuiVer = $app.DisplayVersion.Trim().TrimStart('v')
+        }
+        if (-not $installedGuiVer) {
+            $defaultExe = "$env:LOCALAPPDATA\Programs\axiodb-control\AxioDB Control.exe"
+            if (Test-Path $defaultExe) {
+                $installedGuiVer = (Get-Item $defaultExe).VersionInfo.ProductVersion.Trim().TrimStart('v')
+            }
+        }
+        if ($installedGuiVer -eq $VERSION) {
+            Write-ColorOutput "[+] AxioDB GUI is already installed and up to date (v$VERSION)!" "Green"
+            return
+        }
+    } catch {}
 
     # Find GUI installer from GitHub API
     Write-ColorOutput "[*] Fetching release info..." "White"
