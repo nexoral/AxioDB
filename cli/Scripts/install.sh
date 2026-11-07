@@ -147,10 +147,17 @@ install_gui() {
     CURRENT_GUI_VER=""
     if [ "$OS" = "linux" ]; then
         if command -v dpkg-query &>/dev/null; then
-            CURRENT_GUI_VER=$(dpkg-query -W -f='${Version}' axiodb-control 2>/dev/null | tr -d 'v[:space:]')
+            PKG_STATUS=$(dpkg-query -W -f='${db:Status-Status}' axiodb-control 2>/dev/null || true)
+            if [ "$PKG_STATUS" = "installed" ]; then
+                CURRENT_GUI_VER=$(dpkg-query -W -f='${Version}' axiodb-control 2>/dev/null | tr -d 'v[:space:]')
+            fi
         fi
-        if [ -z "$CURRENT_GUI_VER" ] && [ -f "/usr/local/bin/.axiodb-control-version" ]; then
+        if [ -z "$CURRENT_GUI_VER" ] && [ -x "/usr/local/bin/axiodb-control" ] && [ -f "/usr/local/bin/.axiodb-control-version" ]; then
             CURRENT_GUI_VER=$(cat "/usr/local/bin/.axiodb-control-version" 2>/dev/null | tr -d 'v[:space:]')
+        fi
+        # Ensure the executable actually exists on disk
+        if ! command -v axiodb-control &>/dev/null && [ ! -x "/opt/AxioDB Control/axiodb-control" ] && [ ! -x "/usr/local/bin/axiodb-control" ]; then
+            CURRENT_GUI_VER=""
         fi
     elif [ "$OS" = "darwin" ]; then
         if [ -d "/Applications/AxioDB Control.app" ]; then

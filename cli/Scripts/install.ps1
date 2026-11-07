@@ -189,11 +189,14 @@ function Install-GUI {
         if ($app -and $app.DisplayVersion) {
             $installedGuiVer = $app.DisplayVersion.Trim().TrimStart('v')
         }
-        if (-not $installedGuiVer) {
-            $defaultExe = "$env:LOCALAPPDATA\Programs\axiodb-control\AxioDB Control.exe"
-            if (Test-Path $defaultExe) {
-                $installedGuiVer = (Get-Item $defaultExe).VersionInfo.ProductVersion.Trim().TrimStart('v')
-            }
+        $defaultExe = "$env:LOCALAPPDATA\Programs\axiodb-control\AxioDB Control.exe"
+        if (-not $installedGuiVer -and (Test-Path $defaultExe)) {
+            $installedGuiVer = (Get-Item $defaultExe).VersionInfo.ProductVersion.Trim().TrimStart('v')
+        }
+        # Ensure executable actually exists on disk
+        $exeExists = (Test-Path $defaultExe) -or (Test-Path "$env:ProgramFiles\AxioDB Control\AxioDB Control.exe")
+        if (-not $exeExists) {
+            $installedGuiVer = $null
         }
         if ($installedGuiVer -eq $VERSION) {
             Write-StepSuccess "Already installed and up to date (v$VERSION)"
