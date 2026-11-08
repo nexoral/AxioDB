@@ -18,7 +18,7 @@ const path = require('path');
 const { spawn } = require('child_process');
 const { General } = require('../../../lib/config/Keys/Keys.js');
 
-const LIB_DB_PATH = path.resolve(__dirname, '../../../lib/config/DB.js');
+const LIB_DB_PATH = path.resolve(__dirname, '../../../axiodb.js');
 
 /**
  * Spawns child process and resolves with its stdout once it exits on its own

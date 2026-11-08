@@ -6,7 +6,7 @@ const { assert } = require('../helpers/assertions');
 const fixtures = require('../helpers/fixtures');
 const fs = require('fs');
 
-const { AxioDB } = require('../../../lib/config/DB.js');
+const { AxioDB } = require('../../../axiodb.js');
 
 class ReadOptimizationTests extends TestRunner {
   constructor() {

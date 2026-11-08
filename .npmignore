@@ -1,86 +1,10 @@
-# Source files (only compiled lib/ is needed)
-source/
-tsconfig.json
-tslint.json
-eslint.config.mjs
-.eslintrc.yml
+# Ignore all files and directories by default
+*
+.*
 
-# Development and CI/CD
-.github/
-.gitignore
-.gitpod.yml
-.deepsource.toml
-.circleci/
-docker-compose.yml
-
-# IDE configurations
-.vscode/
-.idea/
-.devcontainer/
-
-# AI Assistant configurations (non-essential for npm users)
-.claude/
-.codex/
-.cursor/
-.devin/
-.gemini/
-AGENTS.md
-CLAUDE.md
-GEMINI.md
-skill/
-
-# Documentation (covered by README.md and official docs site)
-axiodb.txt
-assets/
-Document/
-LEARN.md
-CODE_OF_CONDUCT.md
-CONTRIBUTING.md
-SECURITY.md
-
-# Testing
-Test/
-test/
-test.js
-bun-test.mjs
-*.test.js
-*.spec.js
-benchmark/
-
-# Source maps (dev-only, not needed at runtime)
-*.js.map
-lib/**/*.js.map
-
-# Build artifacts and dev directories (not needed in npm package)
-Docker/
-Scripts/
-dist/
-library/
-Cache/
-AxioDB/
-.dockerignore
-
-# Go CLI (separate binary, not shipped in npm package)
-/cli/
-
-# Electron desktop app (standalone application, not shipped in npm package)
-/electron/
-
-# Email service (standalone service, not shipped in npm package)
-Email/
-
-# Tooling configs (not shipped in npm package)
-opencode.json
-.graphifyignore
-graphify-out/
-funding.json
-
-# Dependencies
-node_modules/
-
-# Keep these files (explicitly not ignored):
-# - lib/ (compiled TypeScript output)
-# - package.json
-# - package-lock.json
-# - README.md
-# - LICENSE
+# Explicitly whitelist only the root bundle and core package files
+!axiodb.js
+!axiodb.d.ts
+!package.json
+!README.md
+!LICENSE

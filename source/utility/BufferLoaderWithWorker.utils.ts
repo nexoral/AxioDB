@@ -1,9 +1,9 @@
-import paths from "path";
 import FileManager from "../engine/Filesystem/FileManager";
 import Converter from "../Helper/Converter.helper";
 import Logger from "../Helper/Logger.helper";
 import WorkerPool, { calculateOptimalWorkers } from "../Helper/WorkerPool.helper";
 import Searcher from "./Searcher.utils";
+import { workerDataLoadScript } from "../engine/node/workerScript.engine";
 
 export default async function ReaderWithWorker(
   DataFilesList: string[],
@@ -51,13 +51,7 @@ export default async function ReaderWithWorker(
     return fileResults.filter((r) => r !== null);
   }
 
-  const workerPath = paths.resolve(
-    __dirname,
-    "../engine/node",
-    "WorkerForDataLoad.engine.js",
-  );
-
-  const pool = WorkerPool.getPool(workerPath);
+  const pool = WorkerPool.getPool(workerDataLoadScript, undefined, true);
 
   if (DataFilesList.length < 5000) {
     return await pool.execute<

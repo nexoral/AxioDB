@@ -12,6 +12,19 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "25.39.3",
+    date: "2026-11-09",
+    title: "Single-file bundle distribution (axiodb.js), inlined memory worker threads, and 71% package size reduction",
+    changes: [
+      "Single-File Root Bundle: introduced axiodb.js and axiodb.d.ts directly in the project root powered by tsup, reducing published package files from 261 files to strictly 5 files",
+      "71% Package Footprint Reduction: shrank unpacked install size from 1.18 MB down to 344 kB, and npm tarball download from 309 kB down to 86 kB",
+      "Inlined Worker Thread Scripts: migrated parallel multi-core buffer loading and query chunk search to self-contained inlined scripts using new Worker(script, { eval: true }), eliminating relative disk file paths and companion file loading issues",
+      "Strict Packaging & Publishing Security: configured .npmignore and package.json to strictly whitelist only root bundle artifacts (axiodb.js, axiodb.d.ts), preventing internal build directories and test suites from being published",
+      "Test Suite Alignment: updated all Node.js and Bun test suites to execute directly against the bundled axiodb.js distribution with 100% test pass rate",
+      "Docker & CI/CD Synchronization: updated Docker/runner.js, Docker/healthcheck.js, Docker/Dockerfile, and .github/workflows/Push.yml to bundle and verify axiodb.js before registry publishing",
+    ],
+  },
+  {
     version: "25.39.2",
     date: "2026-11-09",
     title: "Complete web GUI removal, dedicated HTTP REST API transition, and standalone Desktop GUI focus",

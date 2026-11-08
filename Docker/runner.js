@@ -35,7 +35,7 @@ if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes('--max-old-s
   process.env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ? process.env.NODE_OPTIONS + ' ' : ''}--max-old-space-size=${targetHeapMB}`;
 }
 
-const { AxioDB } = require('./lib/config/DB.js')
+const { AxioDB } = require('./axiodb.js');
 
 function parseBoolean(value, fallback) {
   if (value === undefined || value === '') return fallback;

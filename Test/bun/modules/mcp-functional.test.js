@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
-const { AxioDB } = require('../../../lib/config/DB.js');
+const { AxioDB } = require('../../../axiodb.js');
 
 const { buildMcpTools } = require('../../../lib/Helper/mcp/McpTools.helper.js');
 

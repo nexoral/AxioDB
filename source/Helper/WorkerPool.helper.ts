@@ -30,16 +30,18 @@ export default class WorkerPool {
   private nextJobId = 1;
   private readonly maxWorkers: number;
   private readonly scriptPath: string;
+  private readonly isEval: boolean;
 
-  constructor(scriptPath: string, maxWorkers?: number) {
+  constructor(scriptPath: string, maxWorkers?: number, isEval?: boolean) {
     this.scriptPath = scriptPath;
     this.maxWorkers = maxWorkers ?? calculateOptimalWorkers();
+    this.isEval = isEval ?? (scriptPath.includes("\n") || scriptPath.includes("parentPort"));
   }
 
-  public static getPool(scriptPath: string, maxWorkers?: number): WorkerPool {
+  public static getPool(scriptPath: string, maxWorkers?: number, isEval?: boolean): WorkerPool {
     let pool = WorkerPool.pools.get(scriptPath);
     if (!pool) {
-      pool = new WorkerPool(scriptPath, maxWorkers);
+      pool = new WorkerPool(scriptPath, maxWorkers, isEval);
       WorkerPool.pools.set(scriptPath, pool);
     }
     return pool;
@@ -67,7 +69,7 @@ export default class WorkerPool {
   }
 
   private createWorker(): WorkerEntry {
-    const worker = new Worker(this.scriptPath);
+    const worker = new Worker(this.scriptPath, { eval: this.isEval });
     worker.unref();
 
     const entry: WorkerEntry = {

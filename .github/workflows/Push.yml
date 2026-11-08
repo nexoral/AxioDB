@@ -415,6 +415,11 @@ jobs:
       - name: Build package
         run: npm run build
 
+      - name: Verify bundle artifacts
+        run: |
+          test -f axiodb.js || { echo "axiodb.js missing"; exit 1; }
+          test -f axiodb.d.ts || { echo "axiodb.d.ts missing"; exit 1; }
+
       - name: Publish to NPM Registry
         run: npm publish --access public
 
@@ -432,6 +437,10 @@ jobs:
         run: npm install
       - name: Build package
         run: npm run build
+      - name: Verify bundle artifacts
+        run: |
+          test -f axiodb.js || { echo "Error: axiodb.js missing"; exit 1; }
+          test -f axiodb.d.ts || { echo "Error: axiodb.d.ts missing"; exit 1; }
       - name: Set GitHub Auth Token
         run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GIT_AUTH_TOKEN }}" >> ~/.npmrc
       - name: Change package name in package.json
@@ -458,8 +467,8 @@ jobs:
       - name: Build package
         run: npm run build
 
-      - name: Move the lib folder to Docker context
-        run: mv lib/ Docker/
+      - name: Copy bundle to Docker context
+        run: cp axiodb.js Docker/
 
       - name: Copy package.json files
         run: cp package*.json Docker/

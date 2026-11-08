@@ -1,13 +1,7 @@
 import { Worker } from "worker_threads";
-import path from "path";
 import os from "os";
 import RegexGuard from "../Helper/RegexGuard.helper";
-
-const workerPath: string = path.resolve(
-  __dirname,
-  "../engine/node",
-  "WorkerForSearch.engine.js",
-);
+import { workerSearchScript } from "../engine/node/workerScript.engine";
 
 // Compiled query cache for reusable regex and Set objects
 interface CompiledQuery {
@@ -228,7 +222,8 @@ export default class Searcher {
 
       tasks.push(
         new Promise((resolve, reject) => {
-          const worker = new Worker(workerPath, {
+          const worker = new Worker(workerSearchScript, {
+            eval: true,
             workerData: {
               chunk: dataChunk,
               query,

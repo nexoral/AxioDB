@@ -4,10 +4,7 @@ FROM node:23-alpine
 WORKDIR /app
 
 # App entrypoints
-COPY runner.js healthcheck.js ./
-
-# Compiled lib output
-COPY lib/ ./lib/
+COPY runner.js healthcheck.js axiodb.js ./
 
 COPY package*.json ./
 

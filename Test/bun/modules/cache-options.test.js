@@ -7,7 +7,7 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const { AxioDB, InstanceTypes } = require('../../../lib/config/DB.js');
+const { AxioDB, InstanceTypes } = require('../../../axiodb.js');
 
 const InMemoryCache = InstanceTypes.InMemoryCache;
 
@@ -171,7 +171,7 @@ class CacheOptionsTests extends TestRunner {
 
       await this.test('Cache:false instance still serves correct reads (child process)', async () => {
         const script = `
-          const { AxioDB } = require('./lib/config/DB.js');
+          const { AxioDB } = require('./axiodb.js');
           (async () => {
             const db = new AxioDB({ Cache: false, RootName: 'CacheDisabledDB', CustomPath: './Test/TestCacheOptionsChild' });
             const d = await db.createDB('DB');
