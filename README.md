@@ -42,6 +42,8 @@
 
 ## Quick start
 
+### Node.js & Bun
+
 ```bash
 npm install axiodb
 ```
@@ -50,6 +52,21 @@ npm install axiodb
 const { AxioDB } = require('axiodb');
 
 const db = new AxioDB({ HTTP: true });         // REST API at http://localhost:27018
+const users = await (await db.createDB('AppDB')).createCollection('users');
+
+await users.insert({ name: 'Alice', age: 30 });
+const { data } = await users.query({ age: { $gt: 25 } }).Sort({ age: -1 }).Limit(10).exec();
+console.log(data.documents);
+```
+
+### Deno (zero install via URL)
+
+No installation required in Deno — import directly via `esm.sh`:
+
+```typescript
+import { AxioDB } from 'https://esm.sh/axiodb';
+
+const db = new AxioDB({ HTTP: true });
 const users = await (await db.createDB('AppDB')).createCollection('users');
 
 await users.insert({ name: 'Alice', age: 30 });
