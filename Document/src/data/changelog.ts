@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "25.39.0",
+    version: "25.39.1",
     date: "2026-11-08",
     title: "AI-era terminal installer UI, desktop GUI checksum verification, smart up-to-date detection, and 'axiodb destroy' command",
     changes: [

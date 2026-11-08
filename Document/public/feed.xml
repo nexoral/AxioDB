@@ -5,12 +5,12 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Sun, 08 Nov 2026 00:04:52 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 08 Nov 2026 04:29:32 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v25.39.0 — AI-era terminal installer UI, desktop GUI checksum verification, smart up-to-date detection, and 'axiodb destroy' command</title>
+      <title>AxioDB v25.39.1 — AI-era terminal installer UI, desktop GUI checksum verification, smart up-to-date detection, and 'axiodb destroy' command</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-25.39.0</guid>
+      <guid isPermaLink="false">axiodb-25.39.1</guid>
       <pubDate>Sun, 08 Nov 2026 00:00:00 GMT</pubDate>
       <description>New 'axiodb destroy' CLI Command: introduced self-uninstallation command with aliases ('distory', 'uninstall'), confirmation prompt, and -y/--yes/-f/--force flags to cleanly remove the binary across Unix and Windows | GUI Checksum Verification: added SHA-256 cryptographic verification for desktop GUI installer downloads (.deb, .AppImage, .zip, .exe) matching release gui_checksums.txt with space-to-dot name normalization | Smart Up-To-Date Detection: integrated early version and state checks in install.sh and install.ps1 for CLI and GUI, verifying active dpkg status (installed vs config-files) and physical binary presence to prevent redundant re-downloads</description>
     </item>
