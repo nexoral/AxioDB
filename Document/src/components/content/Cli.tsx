@@ -148,6 +148,14 @@ axiodb serve full
 axiodb serve tcp-auth my-secret-password  # required for tcp-auth
 axiodb serve full my-secret-password     # optional for http/full`;
 
+const USAGE_DESTROY = `# Self-remove the AxioDB CLI executable from the system
+axiodb destroy
+
+# Skip interactive confirmation prompt
+axiodb destroy -y
+# or
+axiodb destroy --force`;
+
 const CliPage: React.FC = () => {
   const heroReveal = useScrollReveal<HTMLDivElement>();
   const installReveal = useScrollReveal<HTMLDivElement>();
@@ -463,6 +471,14 @@ const CliPage: React.FC = () => {
           <p className="text-sm text-gray-600 mb-3">Transaction steps run in order on one TCP connection and commit together. Updates are flat merges; operators such as <code>$inc</code> are not supported.</p>
           <CodeBlock code={USAGE_TRANSACTION} language="bash" />
         </div>
+
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">Self-Removal (Destroy)</h3>
+          <p className="text-sm text-gray-600 mb-3">
+            Safely removes the AxioDB CLI executable from the system. Aliases: <code className="px-1 py-0.5 bg-gray-100 rounded">distory</code>, <code className="px-1 py-0.5 bg-gray-100 rounded">uninstall</code>.
+          </p>
+          <CodeBlock code={USAGE_DESTROY} language="bash" />
+        </div>
       </div>
 
       {/* Features */}
@@ -480,6 +496,7 @@ const CliPage: React.FC = () => {
             { title: "Export & Import", desc: "Backup/restore databases via HTTP API, tab-completes file paths" },
             { title: "TLS Encryption", desc: "--tls, --tls-cert, --tls-skip-verify flags" },
             { title: "TCP Authentication", desc: "-u / -p flags, shared RBAC with GUI" },
+            { title: "Self-Removal (Destroy)", desc: "One-line clean uninstallation with 'axiodb destroy' (-y / --force)" },
             { title: "JSON & Table Output", desc: "--output json for scripting, --output table for reading" },
           ].map((f, i) => (
             <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
