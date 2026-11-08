@@ -5,7 +5,7 @@ import {
   LOGIN_RATE_LIMIT_WINDOW_MS,
 } from "../../config/Keys/Permissions";
 
-interface AttemptRecord {
+export interface AttemptRecord {
   /** Timestamps of failures within the current sliding window, oldest first. */
   failureTimestamps: number[];
   lockedUntil?: number;
@@ -28,7 +28,7 @@ interface AttemptRecord {
  * clients behind a shared/NAT IP being able to lock each other out. Acceptable for the
  * trusted-network deployment model this whole RBAC system targets.
  */
-class LoginRateLimiter {
+export class LoginRateLimiter {
   private static instance: LoginRateLimiter;
   private readonly attempts: Map<string, AttemptRecord> = new Map();
   private sweepIntervalHandle: NodeJS.Timeout | undefined;

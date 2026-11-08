@@ -5,7 +5,7 @@ const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 const fs = require('fs');
 
-const { AxioDB } = require('../../../axiodb.js');
+const { AxioDB, CoreDBMS } = require('../../../axiodb.js');
 
 const BASE_URL = 'http://localhost:27018/api';
 
@@ -153,7 +153,7 @@ class AuthTests extends TestRunner {
 
     // Reset the shared rate limiter directly so the lockout above doesn't block the
     // legitimate logins the rest of this suite depends on.
-    require('../../../lib/Services/Auth/LoginRateLimiter.service').default.clearAll();
+    CoreDBMS.LoginRateLimiter.clearAll();
 
     await this.describe('Unauthenticated access', async () => {
       await this.test('Protected route without a cookie returns 401', async () => {
