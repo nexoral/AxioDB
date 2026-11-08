@@ -8,7 +8,7 @@ const fs = require('fs');
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 
-const { AxioDB } = require('../../../axiodb.js');
+const { AxioDB, CoreDBMS } = require('../../../axiodb.js');
 const { MessageFramer, MessageBuffer } = require('../../../lib/tcp/config/protocol');
 const { CommandType } = require('../../../lib/tcp/types/command.types');
 
@@ -201,12 +201,11 @@ class TcpAuthTests extends TestRunner {
 
     // Reset the shared rate limiter directly so the lockout triggered above doesn't
     // block the legitimate logins that follow (all these tests share one loopback IP).
-    require('../../../lib/Services/Auth/LoginRateLimiter.service').default.clearAll();
+    CoreDBMS.LoginRateLimiter.clearAll();
 
     let adminClient;
     let viewClient;
-    const AuthService = require('../../../lib/Services/Auth/AuthService.service').default;
-    const authService = new AuthService();
+    const authService = new CoreDBMS.AuthService();
 
     await this.describe('User bootstrap (stand-in for GUI user management + forced password change)', async () => {
       await this.test('Super Admin can create Admin-role and View-role TCP users via the shared config DB', async () => {

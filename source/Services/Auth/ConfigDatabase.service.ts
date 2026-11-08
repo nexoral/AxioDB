@@ -7,7 +7,7 @@ import Collection from "../Collection/collection.operation";
  * construction - recreating it per request would repeatedly reload indexes for
  * no benefit.
  */
-class ConfigDatabase {
+export class ConfigDatabase {
   private static instance: ConfigDatabase;
   private usersCollection: Collection | undefined;
   private rolesCollection: Collection | undefined;

@@ -9,6 +9,10 @@ import { AxioDB } from "../Services/Indexation.operation";
 import { AxioDBCloud } from "../client/AxioDBCloud.client";
 import FileManager from "../engine/Filesystem/FileManager";
 import FolderManager from "../engine/Filesystem/FolderManager";
+import AuthService from "../Services/Auth/AuthService.service";
+import LoginRateLimiter from "../Services/Auth/LoginRateLimiter.service";
+import ConfigDatabase from "../Services/Auth/ConfigDatabase.service";
+import AuthSeeder from "../Services/Auth/AuthSeeder.service";
 
 const InstanceTypes = {
   Collection,
@@ -22,11 +26,25 @@ const InstanceTypes = {
   InMemoryCache,
 };
 
-export { AxioDB, AxioDBCloud, InstanceTypes, OperatorRegistry };
+const CoreDBMS = {
+  AuthService,
+  LoginRateLimiter,
+  ConfigDatabase,
+  AuthSeeder,
+};
+
+export {
+  AxioDB,
+  AxioDBCloud,
+  InstanceTypes,
+  OperatorRegistry,
+  CoreDBMS,
+};
 
 export default {
   AxioDB,
   AxioDBCloud,
   InstanceTypes,
   OperatorRegistry,
+  CoreDBMS,
 };
