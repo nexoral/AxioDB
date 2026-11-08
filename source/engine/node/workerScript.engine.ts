@@ -1,0 +1,233 @@
+/**
+ * Inlined Worker Scripts for AxioDB multi-core parallel processing.
+ *
+ * Using inlined scripts executed via `new Worker(script, { eval: true })` ensures:
+ * 1. Self-contained execution with zero disk-path lookups.
+ * 2. Bundler compatibility (single-file distribution without missing companion files).
+ * 3. Zero file I/O latency on worker initialization.
+ */
+
+const MATCHES_QUERY_FN = `
+function matchesQuery(item, query, isUpdated) {
+  if (!query || typeof query !== 'object') return true;
+  var keys = Object.keys(query);
+  if (keys.length === 0) return true;
+
+  if (Array.isArray(query.$or)) {
+    var orMatch = query.$or.some(function(sub) { return matchesQuery(item, sub, isUpdated); });
+    if (!orMatch) return false;
+  }
+
+  if (Array.isArray(query.$and)) {
+    var andMatch = query.$and.every(function(sub) { return matchesQuery(item, sub, isUpdated); });
+    if (!andMatch) return false;
+  }
+
+  if (Array.isArray(query.$nor)) {
+    var norMatch = !query.$nor.some(function(sub) { return matchesQuery(item, sub, isUpdated); });
+    if (!norMatch) return false;
+  }
+
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (key === '$or' || key === '$and' || key === '$nor') continue;
+
+    var qv = query[key];
+    var itemValue = isUpdated === true && item && item.data ? item.data[key] : (item ? item[key] : undefined);
+
+    if (typeof qv === 'object' && qv !== null) {
+      if ('$regex' in qv) {
+        var regex = qv.$regex instanceof RegExp ? qv.$regex : new RegExp(qv.$regex, qv.$options || 'i');
+        if (!regex.test(String(itemValue))) return false;
+        continue;
+      }
+
+      var hasRange = '$gt' in qv || '$lt' in qv || '$gte' in qv || '$lte' in qv;
+      if (hasRange) {
+        if (typeof itemValue !== 'number') return false;
+        if ('$gt' in qv && !(itemValue > qv.$gt)) return false;
+        if ('$lt' in qv && !(itemValue < qv.$lt)) return false;
+        if ('$gte' in qv && !(itemValue >= qv.$gte)) return false;
+        if ('$lte' in qv && !(itemValue <= qv.$lte)) return false;
+        continue;
+      }
+
+      if (Array.isArray(qv.$in)) {
+        if (qv.$in.indexOf(itemValue) === -1) return false;
+        continue;
+      }
+
+      if (Array.isArray(qv.$nin)) {
+        if (qv.$nin.indexOf(itemValue) !== -1) return false;
+        continue;
+      }
+
+      if ('$exists' in qv) {
+        var exists = itemValue !== undefined && itemValue !== null;
+        if (Boolean(qv.$exists) !== exists) return false;
+        continue;
+      }
+
+      if ('$eq' in qv) {
+        if (itemValue !== qv.$eq) return false;
+        continue;
+      }
+
+      if ('$ne' in qv) {
+        if (itemValue === qv.$ne) return false;
+        continue;
+      }
+
+      if ('$size' in qv) {
+        if (!Array.isArray(itemValue) || itemValue.length !== qv.$size) return false;
+        continue;
+      }
+
+      if (Array.isArray(qv.$all)) {
+        if (!Array.isArray(itemValue)) return false;
+        var hasAll = qv.$all.every(function(val) { return itemValue.indexOf(val) !== -1; });
+        if (!hasAll) return false;
+        continue;
+      }
+
+      if ('$elemMatch' in qv) {
+        if (!Array.isArray(itemValue)) return false;
+        var elemMatch = itemValue.some(function(elem) { return matchesQuery(elem, qv.$elemMatch, false); });
+        if (!elemMatch) return false;
+        continue;
+      }
+
+      if ('$not' in qv) {
+        var tempDoc = {};
+        tempDoc[key] = itemValue;
+        var tempQuery = {};
+        tempQuery[key] = qv.$not;
+        if (matchesQuery(tempDoc, tempQuery, false)) return false;
+        continue;
+      }
+
+      if ('$type' in qv) {
+        var actualType = itemValue === null ? 'null' : (Array.isArray(itemValue) ? 'array' : typeof itemValue);
+        if (actualType !== qv.$type) return false;
+        continue;
+      }
+    }
+
+    if (itemValue !== qv) return false;
+  }
+
+  return true;
+}
+`;
+
+/**
+ * Worker script for parallel disk-file reading, JSON parsing, and optional query filtering.
+ */
+export const workerDataLoadScript = `
+const { parentPort, workerData } = require('worker_threads');
+const fs = require('fs').promises;
+
+${MATCHES_QUERY_FN}
+
+const BATCH_SIZE = 128;
+
+async function processFiles(chunk, basePath, storeFileName, query) {
+  const result = [];
+  const hasQuery = Boolean(query && Object.keys(query).length > 0);
+
+  for (let i = 0; i < chunk.length; i += BATCH_SIZE) {
+    const batch = chunk.slice(i, i + BATCH_SIZE);
+    const filePromises = batch.map(async (fileName) => {
+      try {
+        const fileContent = await fs.readFile(basePath + '/' + fileName, 'utf-8');
+        const parsedData = JSON.parse(fileContent);
+
+        if (hasQuery && !matchesQuery(parsedData, query)) {
+          return null;
+        }
+
+        return storeFileName ? { fileName, data: parsedData } : parsedData;
+      } catch (err) {
+        return null;
+      }
+    });
+
+    const batchResults = await Promise.all(filePromises);
+    for (let j = 0; j < batchResults.length; j++) {
+      const item = batchResults[j];
+      if (item !== null) {
+        result.push(item);
+      }
+    }
+  }
+
+  return result;
+}
+
+if (parentPort) {
+  parentPort.on('message', async (msg) => {
+    try {
+      const items = await processFiles(
+        msg.chunk,
+        msg.path,
+        Boolean(msg.storeFileName),
+        msg.query
+      );
+      parentPort.postMessage({ jobId: msg.jobId, result: items });
+    } catch (error) {
+      parentPort.postMessage({ jobId: msg.jobId, error: String(error) });
+    }
+  });
+}
+
+if (workerData && workerData.chunk) {
+  processFiles(
+    workerData.chunk,
+    workerData.path,
+    Boolean(workerData.storeFileName),
+    workerData.query
+  )
+    .then((results) => {
+      if (parentPort) parentPort.postMessage(results);
+    })
+    .catch((error) => {
+      if (parentPort) parentPort.postMessage({ error: String(error) });
+    });
+}
+`;
+
+/**
+ * Worker script for parallel in-memory query filtering across chunked arrays.
+ */
+export const workerSearchScript = `
+const { parentPort, workerData } = require('worker_threads');
+
+${MATCHES_QUERY_FN}
+
+if (workerData && Array.isArray(workerData.chunk)) {
+  const chunk = workerData.chunk;
+  const query = workerData.query;
+  const isUpdated = Boolean(workerData.isUpdated);
+  const additionalField = workerData.aditionalFiled || workerData.additionalFiled;
+  const result = [];
+  const len = chunk.length;
+
+  for (let i = 0; i < len; i++) {
+    const rawItem = chunk[i];
+    const item = additionalField ? rawItem[additionalField] : rawItem;
+    if (item !== undefined && item !== null) {
+      if (matchesQuery(item, query, isUpdated)) {
+        result.push(rawItem);
+      }
+    }
+  }
+
+  if (parentPort) {
+    parentPort.postMessage(result);
+  }
+}
+`;
+
+// Standard alias export for direct single import
+export const workerScript = workerDataLoadScript;
+export default workerDataLoadScript;
