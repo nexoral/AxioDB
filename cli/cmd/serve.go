@@ -29,7 +29,7 @@ var serveCmd = &cobra.Command{
 
 The optional password seeds the shared admin account so logins work immediately,
 instead of the default admin/admin, which TCP refuses until the password is changed
-through the HTTP API or GUI.
+through the HTTP API or Desktop GUI.
 
 tcp-auth requires it - it has no HTTP surface, so the seeded password could never be
 rotated and every TCP login would be rejected. http and full make it optional, since
@@ -192,9 +192,6 @@ func validatePassword(config serve.ModeConfig, password string) error {
 
 func printReady(output io.Writer, config serve.ModeConfig, password string) {
 	fmt.Fprintln(output, "Server started.")
-	if config.GUI {
-		fmt.Fprintf(output, "  Dashboard: http://localhost:%d\n", serve.HTTPPort)
-	}
 	if config.HasHTTP() {
 		fmt.Fprintf(output, "  HTTP API:  http://localhost:%d/api\n", serve.HTTPPort)
 	}
@@ -210,7 +207,7 @@ func printReady(output io.Writer, config serve.ModeConfig, password string) {
 	if password == "" && config.UsesTCPAuth() {
 		// http/full have a control server to rotate through; tcp-auth now requires a
 		// password, so it can never reach this branch.
-		fmt.Fprintf(output, "  Admin:    %s / %s - change it in the HTTP API or GUI before using TCP\n",
+		fmt.Fprintf(output, "  Admin:    %s / %s - change it in the HTTP API or Desktop GUI before using TCP\n",
 			serve.DefaultAdminUsername, serve.DefaultAdminPassword)
 	}
 }

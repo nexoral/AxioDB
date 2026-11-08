@@ -3,15 +3,14 @@
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
 [![AxioDB](https://img.shields.io/badge/AxioDB-25.39.1-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
 
-This Docker image provides AxioDB: Embedded NoSQL Database for TypeScript & AI Agents — zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno. It includes a REST API server, TCP remote access (AxioDBCloud), web GUI dashboard, and an optional MCP server for AI agent integration.
+This Docker image provides AxioDB: Embedded NoSQL Database for TypeScript & AI Agents — zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno. It includes a REST API server, TCP remote access (AxioDBCloud), and an optional MCP server for AI agent integration.
 
 ## =� What's Included
 
 - **REST API Server**: Full HTTP API for database operations (Port 27018)
 - **TCP Remote Access**: AxioDBCloud connector for remote client connections (Port 27019)
 - **MCP Server**: Opt-in AI agent integration (Claude, or any MCP-compatible client) over Streamable HTTP (Port 27020)
-- **Web GUI Dashboard**: Browser-based interface at `http://localhost:27018`
-- **API Documentation**: Interactive API reference at `http://localhost:27018/api`
+- **Official Desktop GUI**: Manage via the cross-platform desktop application (`AxioDB Control`)
 - **AxioDB Core**: Complete database management system
 - **Auto-start Configuration**: Ready-to-use setup with minimal configuration
 
@@ -29,7 +28,7 @@ docker run -d \
   theankansaha/axiodb
 ```
 
-> **Authentication is on by default** (`AXIODB_TCP_AUTH_ENABLED=true`) - both the GUI (`http://localhost:27018`) and TCP (`axiodb://localhost:27019`) share the same seeded `admin` / `admin` account, which must have its password changed on first login via the GUI before it (or any account) can be used over TCP. To skip that step, set `AXIODB_ADMIN_PASSWORD` on first start. See [Environment Variables](#environment-variables) to turn this off or change the root database name.
+> **Authentication is on by default** (`AXIODB_TCP_AUTH_ENABLED=true`) - both the HTTP API (`http://localhost:27018`) and TCP (`axiodb://localhost:27019`) share the same seeded `admin` / `admin` account, which must have its password changed on first login via the HTTP API / Desktop GUI before it (or any account) can be used over TCP. To skip that step, set `AXIODB_ADMIN_PASSWORD` on first start. See [Environment Variables](#environment-variables) to turn this off or change the root database name.
 
 ### Custom Port Mapping
 
@@ -42,7 +41,7 @@ docker run -d \
   -v axiodb-data:/app \
   theankansaha/axiodb
 
-# Access HTTP GUI via http://localhost:8080
+# Access HTTP API via http://localhost:8080
 # Connect AxioDBCloud via axiodb://localhost:8081
 ```
 
@@ -73,9 +72,9 @@ docker run -d \
   theankansaha/axiodb
 ```
 
-### Headless (no GUI/HTTP) with TCP Authentication
+### Headless (no HTTP) with TCP Authentication
 
-`AXIODB_HTTP` mirrors `AXIODB_GUI`, so `AXIODB_GUI=false` takes the control server with it. That
+When `AXIODB_HTTP=false`, the HTTP server is disabled. That
 leaves the seeded `admin/admin` with no way to be rotated, and TCP rejects it until it is - so the
 container refuses to start unless you set a password up front:
 
@@ -83,7 +82,7 @@ container refuses to start unless you set a password up front:
 docker run -d \
   --name axiodb-server \
   -p 27019:27019 \
-  -e AXIODB_GUI=false \
+  -e AXIODB_HTTP=false \
   -e AXIODB_TCP_AUTH_ENABLED=true \
   -e AXIODB_ADMIN_PASSWORD=my-secret-password \
   -v axiodb-data:/app \
@@ -116,15 +115,11 @@ const collection = await database.createCollection('users');
 const result = await collection.insert({ name: 'John', age: 30 });
 ```
 
-### Web GUI Dashboard
+### HTTP REST API Server
 
 - **URL**: `http://localhost:27018`
-- **Description**: Interactive web interface for managing databases, collections, and documents
-- **Features**:
-  - Database creation and management
-  - Collection operations (create, delete)
-  - Document CRUD operations
-  - Real-time statistics and monitoring
+- **Description**: Fastify-powered REST API for database operations, authentication, and system metrics.
+- **Desktop GUI**: Manage AxioDB via the official native desktop application (`AxioDB Control`).
 
 ### API Documentation
 
@@ -243,10 +238,9 @@ for full details.
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `AXIODB_GUI` | `true` | Enable the HTTP Control Server / web GUI on port 27018 |
-| `AXIODB_HTTP` | mirrors `AXIODB_GUI` | Enable the HTTP API server on port 27018 — auto-enables when GUI is on; `AXIODB_GUI=true` + `AXIODB_HTTP=false` is an error |
+| `AXIODB_HTTP` | `true` | Enable the HTTP REST API server on port 27018 |
 | `AXIODB_TCP` | `true` | Enable the AxioDBCloud TCP server on port 27019 |
-| `AXIODB_TCP_AUTH_ENABLED` | `true` | Require username/password authentication on TCP connections (same RBAC accounts as the GUI) |
+| `AXIODB_TCP_AUTH_ENABLED` | `true` | Require username/password authentication on TCP connections (same RBAC accounts as the HTTP server) |
 | `AXIODB_ADMIN_PASSWORD` | *(none)* | Password the `admin` account is seeded with on first start, skipping the forced first-login change. **Required** when TCP auth is on and `AXIODB_HTTP` is off, or the container refuses to start. Ignored when the data volume already has a `config` database |
 | `AXIODB_TLS` | `false` | Encrypt TCP connections with TLS instead of plaintext |
 | `AXIODB_TLS_CERT_PATH` | *(none)* | Path inside the container to a PEM cert file — required when `AXIODB_TLS=true` |
@@ -272,7 +266,7 @@ docker run -d \
 ### Docker Compose
 
 Save the block below as `docker-compose.yml`. It includes a `healthcheck` wired to the same
-script the image's own `HEALTHCHECK` instruction uses (probes `/health` for the GUI and a real
+script the image's own `HEALTHCHECK` instruction uses (probes `/health` for the HTTP API and a real
 `PING`/`PONG` round-trip for TCP):
 
 ```yaml
@@ -283,10 +277,10 @@ services:
     image: theankansaha/axiodb
     container_name: axiodb-server
     ports:
-      - "27018:27018"  # HTTP API & GUI
+      - "27018:27018"  # HTTP REST API
       - "27019:27019"  # TCP Remote Access
     environment:
-      - AXIODB_GUI=true
+      - AXIODB_HTTP=true
       - AXIODB_TCP=true
       - AXIODB_TCP_AUTH_ENABLED=true
       - AXIODB_ROOT_NAME=AxioDB
@@ -312,13 +306,13 @@ docker compose up -d
 
 Set `AXIODB_MCP=true` on this same container to let Claude (or any MCP-compatible AI agent)
 talk to your AxioDB instance directly, over Streamable HTTP on port 27020. It runs in the same
-process as the GUI/TCP server already in this image - no separate install, no second database
+process as the HTTP/TCP server already in this image - no separate install, no second database
 instance.
 
 ```bash
 docker run -d \
   --name axiodb-server \
-  -e AXIODB_GUI=true \
+  -e AXIODB_HTTP=true \
   -e AXIODB_MCP=true \
   -p 27018:27018 \
   -p 27019:27019 \
@@ -354,7 +348,7 @@ Register the endpoint (`http://localhost:27020/mcp`) with whichever AI tool you 
 Every tool except `axiodb_login` requires a `sessionId` from a successful login - every
 subsequent call is checked against that logged-in user's actual RBAC role, exactly like the
 HTTP API. Nothing is gated by a static container environment variable. `AXIODB_MCP=true` only
-has RBAC to serve once it's actually seeded, i.e. `AXIODB_GUI=true` (default) or
+has RBAC to serve once it's actually seeded, i.e. `AXIODB_HTTP=true` (default) or
 `AXIODB_TCP=true` + `AXIODB_TCP_AUTH_ENABLED=true`.
 
 ### Human-in-the-loop on destructive tools
@@ -372,7 +366,7 @@ leaving the box unchecked aborts with `409` and the operation never reaches the 
 | `axiodb_update_document` | overwrites unrecoverable field values; `many: true` hits every match |
 | `axiodb_drop_index` | queries fall back to full scans |
 | `axiodb_delete_user` / `axiodb_delete_role` | removes the account / permission set |
-| `axiodb_update_user_role` | changes what an account may do across GUI, TCP and MCP |
+| `axiodb_update_user_role` | changes what an account may do across HTTP, TCP and MCP |
 | `axiodb_reset_user_password` | invalidates the current password and all their sessions |
 
 Inserts, creates and index builds are not prompted - they only ever add.

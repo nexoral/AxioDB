@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "AxioDB Dashboard HTTP API (Control Server)",
-    "description": "REST API behind the AxioDB Dashboard - the web GUI AxioDB starts on port 27018 - for managing databases, collections, indexes, documents, users, and roles.\n\nThis is not a hosted service. It runs inside your own AxioDB process: enable it with `new AxioDB({ GUI: true })`, or with `AXIODB_GUI=true` on the `theankansaha/axiodb` Docker image. https://axiodb.in serves documentation only.\n\nThis API is one of several AxioDB surfaces and is not interchangeable with the others:\n- Embedded library (`npm install axiodb`) - in-process, no HTTP at all. https://axiodb.in/api-reference\n- AxioDBCloud TCP server/client on port 27019 - its own wire protocol, not HTTP. https://axiodb.in/cloud\n- MCP server on port 27020 (core & Docker) - Streamable HTTP at /mcp, 45 tools. https://axiodb.in/mcp-server\n\nThe Dashboard, AxioDBCloud authentication, and the MCP server share one user and role store.\n\nHuman-readable reference: https://axiodb.in/server-api",
+    "title": "AxioDB HTTP API (Control Server)",
+    "description": "Fastify REST API server running on port 27018 for managing databases, collections, indexes, documents, users, and roles.\n\nThis is not a hosted service. It runs inside your own AxioDB process: enable it with `new AxioDB({ HTTP: true })`, or with `AXIODB_HTTP=true` on the `theankansaha/axiodb` Docker image. https://axiodb.in serves documentation only.\n\nThis API is one of several AxioDB surfaces and is not interchangeable with the others:\n- Embedded library (`npm install axiodb`) - in-process, no HTTP at all. https://axiodb.in/api-reference\n- AxioDBCloud TCP server/client on port 27019 - its own wire protocol, not HTTP. https://axiodb.in/cloud\n- MCP server on port 27020 (core & Docker) - Streamable HTTP at /mcp, 45 tools. https://axiodb.in/mcp-server\n\nThe HTTP API, AxioDBCloud authentication, and the MCP server share one user and role store.\n\nHuman-readable reference: https://axiodb.in/server-api",
     "version": "1.0.0",
     "license": {
       "name": "MIT",
@@ -147,17 +147,17 @@
                     },
                     "services": [
                       {
-                        "name": "Dashboard + HTTP API",
+                        "name": "HTTP Server",
                         "port": 27018,
                         "running": true
                       },
                       {
-                        "name": "AxioDBCloud TCP",
+                        "name": "TCP Server",
                         "port": 27019,
                         "running": false
                       },
                       {
-                        "name": "MCP server",
+                        "name": "MCP Server",
                         "port": 27020,
                         "running": false,
                         "note": "Native in core & Docker"
@@ -357,7 +357,7 @@
           "Authentication & Access Control"
         ],
         "summary": "Returns the currently authenticated user's username, role, resolved permissions, and whether a password change is still required",
-        "description": "Returns the currently authenticated user's username, role, resolved permissions, and whether a password change is still required. This is the endpoint the GUI calls on load to restore session state.",
+        "description": "Returns the currently authenticated user's username, role, resolved permissions, and whether a password change is still required. This is the endpoint the Desktop GUI calls on load to restore session state.",
         "operationId": "getApiAuthMe",
         "parameters": [],
         "responses": {

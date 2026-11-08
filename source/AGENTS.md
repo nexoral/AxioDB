@@ -2,7 +2,7 @@
 
 Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `source/` specifics — read the root first.
 
-**Role** — the embedded engine. Compiled by `tsc` to `lib/`, published as the `axiodb` npm package (`main: ./lib/config/DB.js`). Every other folder (`GUI/`, `cli/`, `Docker/`, `electron/`, `Document/`) is a surface on top of this. Source of truth for HTTP 27018, TCP 27019.
+**Role** — the embedded engine. Compiled by `tsc` to `lib/`, published as the `axiodb` npm package (`main: ./lib/config/DB.js`). Every other folder (`cli/`, `Docker/`, `electron/`, `Document/`) is a surface on top of this. Source of truth for HTTP 27018, TCP 27019.
 
 ## Layout
 
@@ -49,7 +49,7 @@ npm run node-test crud # one suite; `npm run node-test` = all 14 (ask first, slo
 1. Implement in `Services/{Feature}/` with typed try-catch; shared logic → `Helper/{Feature}.helper.ts` (2+ callers only).
 2. HTTP: `server/router` + `server/controller`.
 3. TCP: `tcp/handler/{cmd}.ts` → register in `CommandHandler` command map → `client/{Feature}Proxy.ts`.
-4. Ask the user before fanning out to `cli/`, `Docker/mcp`, `GUI/`, `Document/` — expose consistently, same RBAC.
+4. Ask the user before fanning out to `cli/`, `Docker/mcp`, `electron/`, `Document/` — expose consistently, same RBAC.
 5. Update `Test/node/modules/`, docs, AI artifacts; `npm run build` then the scoped suite.
 
 ## Anti-patterns

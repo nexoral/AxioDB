@@ -12,7 +12,7 @@ interface AttemptRecord {
 }
 
 /**
- * In-memory, per-IP login rate limiter shared by the GUI's /auth/login route and the
+ * In-memory, per-IP login rate limiter shared by the HTTP API's /auth/login route and the
  * TCP AUTHENTICATE command - one failure counter per client IP regardless of which
  * transport the attempt came in on. Never persisted to disk, reset on process restart,
  * same lifecycle as SessionStore.

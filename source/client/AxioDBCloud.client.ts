@@ -166,7 +166,7 @@ export class AxioDBCloud extends EventEmitter {
   }
 
   /**
-   * Authenticate with username/password (same RBAC users as the GUI Control Server).
+   * Authenticate with username/password (same RBAC users as the HTTP API).
    * Only required when the server was started with `TCPAuth: true`.
    *
    * Authenticates every currently-connected pool member and stashes the credentials so a

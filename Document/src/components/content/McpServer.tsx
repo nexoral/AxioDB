@@ -317,7 +317,7 @@ axiodb serve full`}
 // Initiate AxioDB with native MCP server enabled
 const db = new AxioDB({
   MCP: true,     // Starts MCP server at http://localhost:27020/mcp
-  GUI: true,     // Optional: also launch Web Dashboard on port 27018
+  HTTP: true,    // Optional: also launch HTTP API on port 27018
 });
 
 // To gracefully stop the MCP server when shutting down:
@@ -336,7 +336,7 @@ const db = new AxioDB({
                     language="bash"
                     code={`docker run -d \\
   --name axiodb \\
-  -e AXIODB_GUI=true \\
+  -e AXIODB_HTTP=true \\
   -e AXIODB_MCP=true \\
   -p 27018:27018 \\
   -p 27019:27019 \\

@@ -7,23 +7,23 @@ const CreateDatabase: React.FC = () => {
     defaultInstance: `
 const { AxioDB } = require("axiodb");
 
-// Create AxioDB instance with GUI enabled (most common)
-const db = new AxioDB({ GUI: true });
-console.log("AxioDB instance created with GUI at localhost:27018");
+// Create AxioDB instance with HTTP REST API enabled
+const db = new AxioDB({ HTTP: true });
+console.log("AxioDB instance created with HTTP REST API at localhost:27018");
 `,
     noGUI: `
-// Create AxioDB instance without GUI
-const db = new AxioDB({ GUI: false });
-console.log("AxioDB instance created without GUI");
+// Create AxioDB instance in headless embedded mode (HTTP and TCP off)
+const db = new AxioDB();
+console.log("AxioDB instance created in embedded mode");
 `,
     customName: `
-// Create AxioDB instance with GUI and custom root folder name
-const db = new AxioDB({ GUI: true, RootName: "MyCustomDB" });
-console.log("Custom AxioDB instance created with GUI");
+// Create AxioDB instance with HTTP API and custom root folder name
+const db = new AxioDB({ HTTP: true, RootName: "MyCustomDB" });
+console.log("Custom AxioDB instance created with HTTP API");
 `,
     customRootPath: `
-// Create AxioDB instance with GUI, custom name, and custom path
-const db = new AxioDB({ GUI: true, RootName: "MyCustomDB", CustomPath: "./data" });
+// Create AxioDB instance with HTTP API, custom name, and custom path
+const db = new AxioDB({ HTTP: true, RootName: "MyCustomDB", CustomPath: "./data" });
 console.log("AxioDB instance with custom path created");
 `,
     tcpAuth: `
@@ -53,13 +53,13 @@ console.log("Database 'ProductsDB' created");
     <section className="pt-12 scroll-mt-20">
       <Seo
         title="Create Database in AxioDB - Quick Start Guide"
-        description="How to create and configure an AxioDB database instance, with GUI, custom root name, and custom path options."
+        description="How to create and configure an AxioDB database instance, with HTTP REST API, custom root name, and custom path options."
         path="/create-database"
         ogType="article"
       />
       <h1 className="text-3xl font-bold mb-6">Create Database</h1>
       <p className="text-gray-600 mb-8">
-        AxioDB constructor follows the pattern: <code className="bg-gray-100 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-100 px-2 py-1 rounded">&#123;GUI?, HTTP?, RootName?, CustomPath?, TCP?, TCPAuth?, AdminPassword?, TLS?, TLSCertPath?, TLSKeyPath?, Cache?, minTTL?, maxTTL?, cacheClearUp?&#125;</code>.
+        AxioDB constructor follows the pattern: <code className="bg-gray-100 px-2 py-1 rounded">new AxioDB(options)</code> where options is an object with <code className="bg-gray-100 px-2 py-1 rounded">&#123;HTTP?, RootName?, CustomPath?, TCP?, TCPAuth?, AdminPassword?, TLS?, TLSCertPath?, TLSKeyPath?, Cache?, minTTL?, maxTTL?, cacheClearUp?&#125;</code>.
         This pattern provides better readability and flexibility.
       </p>
 
@@ -68,12 +68,11 @@ console.log("Database 'ProductsDB' created");
           💡 Constructor Parameters
         </h3>
         <ul className="space-y-2 text-gray-600">
-          <li><strong>GUI</strong> (boolean, optional): Enable web GUI on localhost:27018 - defaults to false</li>
-          <li><strong>HTTP</strong> (boolean, optional): Enable HTTP API server on port 27018 - auto-enables when GUI is on; GUI: true + HTTP: false throws error</li>
+          <li><strong>HTTP</strong> (boolean, optional): Enable HTTP REST API server on port 27018 - defaults to false (legacy <code>GUI</code> option is automatically mapped to <code>HTTP</code>)</li>
           <li><strong>RootName</strong> (string, optional): Custom root folder name - defaults to "AxioDB"</li>
           <li><strong>CustomPath</strong> (string, optional): Custom storage path - defaults to current directory</li>
           <li><strong>TCP</strong> (boolean, optional): Enable the AxioDBCloud TCP server on port 27019 - defaults to false</li>
-          <li><strong>TCPAuth</strong> (boolean, optional): Require username/password authentication (same RBAC users as the GUI) on TCP connections - defaults to false</li>
+          <li><strong>TCPAuth</strong> (boolean, optional): Require username/password authentication (same RBAC users as HTTP API) on TCP connections - defaults to false</li>
           <li><strong>AdminPassword</strong> (string, optional): Password the admin account is seeded with on first start, skipping the forced first-login change - defaults to the built-in admin/admin</li>
           <li><strong>TLS</strong> (boolean, optional): Encrypt the TCP server with TLS - requires TLSCertPath + TLSKeyPath PEM files - defaults to false</li>
           <li><strong>Cache</strong> (boolean, optional): Enable the per-instance InMemoryCache - defaults to true (set false to disable caching entirely)</li>

@@ -49,7 +49,7 @@ npm install axiodb
 ```javascript
 const { AxioDB } = require('axiodb');
 
-const db = new AxioDB({ GUI: true });          // Dashboard at http://localhost:27018
+const db = new AxioDB({ HTTP: true });         // REST API at http://localhost:27018
 const users = await (await db.createDB('AppDB')).createCollection('users');
 
 await users.insert({ name: 'Alice', age: 30 });
@@ -101,7 +101,6 @@ Everything below is included in the main zero-dependency package — no extra se
 * ⚡ **Sub-Millisecond Reads (<1ms)** — Delivers blazing-fast queries with automatic in-memory caching and disk indexing, without needing to configure a separate Redis layer.
 * 🔍 **Rich Querying & Data Joins** — Filter documents with intuitive operators (`$gt`, `$in`, `$regex`), paginate, sort, and join multiple collections with aggregation pipelines (`$lookup`).
 * 🤖 **Built-in AI Agent MCP Server** — Pass `{ MCP: true }` to instantly boot an official Model Context Protocol server on port 27020, giving Claude, Cursor, and autonomous AI agents 45 tools to manage database state.
-* 🖥️ **Built-in Web Dashboard** — Pass `{ GUI: true }` to launch a full visual dashboard at `http://localhost:27018` to inspect collections, view metrics, and run live queries.
 * 🌐 **Built-in HTTP REST & TCP Servers** — Turn on `{ HTTP: true }` (port 27018) or `{ TCP: true }` (port 27019) whenever you need remote microservices, worker processes, or client apps to talk to the same database.
 
 ### 🛠️ Optional Companion Tools
@@ -111,7 +110,7 @@ Install these only when you need dedicated standalone apps or command-line scrip
 * 🖥️ **Desktop App (Electron GUI)** — A standalone desktop management application for Linux, macOS, and Windows to manage local and remote AxioDB instances without opening a web browser.
 * ⚡ **Terminal CLI (Go Binary)** — A lightweight, standalone CLI binary with an interactive REPL shell, TLS remote connections, and database backup/export/import tools.
 * 🤖 **AI Agent Skill** — Run `npx skills add nexoral/AxioDB --skill skill` to equip your AI coding assistant (Cursor, Claude Code, Windsurf, Copilot) with verified query syntax and schemas.
-* 🐳 **Official Docker Container** — Deploy `theankansaha/axiodb` in Kubernetes, cloud servers, or Docker Compose with all surfaces (HTTP, TCP, MCP, Dashboard) ready to run.
+* 🐳 **Official Docker Container** — Deploy `theankansaha/axiodb` in Kubernetes, cloud servers, or Docker Compose with all surfaces (HTTP, TCP, MCP) ready to run.
 
 ## Performance & Testing
 

@@ -20,7 +20,7 @@ echo -e "${CYAN}1. Checking Port Availability:${NC}"
 for PORT in 27018 27019 27020; do
   SERVICE=""
   case "$PORT" in
-    27018) SERVICE="HTTP REST API & Web GUI" ;;
+    27018) SERVICE="HTTP REST API" ;;
     27019) SERVICE="TCP Remote Server (AxioDBCloud)" ;;
     27020) SERVICE="MCP Server (AI Agent HTTP)" ;;
   esac

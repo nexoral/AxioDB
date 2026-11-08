@@ -23,11 +23,10 @@ RUN npm install --force
 RUN addgroup -S axiodb && adduser -S axiodb -G axiodb && chown -R axiodb:axiodb /app
 USER axiodb
 
-# HTTP GUI (27018), AxioDBCloud TCP (27019), MCP server (27020)
+# HTTP API (27018), AxioDBCloud TCP (27019), MCP server (27020)
 EXPOSE 27018 27019 27020
 
 # Defaults - override with `-e VAR=value` at `docker run` time, no rebuild required
-ENV AXIODB_GUI=true
 ENV AXIODB_HTTP=true
 ENV AXIODB_TCP=true
 ENV AXIODB_TCP_AUTH_ENABLED=true
@@ -38,7 +37,7 @@ ENV AXIODB_ROOT_NAME=AxioDB
 ENV AXIODB_MCP=false
 ENV AXIODB_MCP_PORT=27020
 
-# Probes GUI/TCP/MCP surfaces per healthcheck.js - surfaced via `docker ps` / `docker inspect`
+# Probes HTTP/TCP/MCP surfaces per healthcheck.js - surfaced via `docker ps` / `docker inspect`
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD ["node", "healthcheck.js"]
 

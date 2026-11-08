@@ -8,7 +8,6 @@ func ServerScript(config ModeConfig) string {
 	return fmt.Sprintf(`const { AxioDB } = require("axiodb");
 
 new AxioDB({
-  GUI: %t,
   HTTP: %t,
   TCP: %t,
   TCPAuth: %t,
@@ -17,5 +16,5 @@ new AxioDB({
   RootName: "AxioDB",
   CustomPath: __dirname,
 });
-`, config.GUI, config.HTTP, config.TCP, config.TCPAuth, config.MCP)
+`, config.HTTP, config.TCP, config.TCPAuth, config.MCP)
 }

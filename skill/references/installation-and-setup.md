@@ -63,26 +63,26 @@ Download the installer or portable package for your platform from [GitHub Releas
 
 ---
 
-## 4. Web-Based GUI Dashboard
+## 4. HTTP Control Server & REST API
 
-If you prefer browser access without installing the Electron desktop application, AxioDB includes a built-in Web GUI served by the HTTP Control Server on port `27018`.
+AxioDB includes an HTTP Control Server serving Fastify REST API endpoints on port `27018`.
 
-### Starting the Web GUI in Node.js Code
+### Starting the HTTP Control Server in Node.js Code
 
 ```typescript
 import { AxioDB } from "axiodb";
 
-// Enable the HTTP Control Server + Web GUI
+// Enable the HTTP Control Server
 const db = new AxioDB({
-  GUI: true,                     // Launches HTTP Control Server on port 27018
+  HTTP: true,                    // Launches HTTP Control Server on port 27018
   RootName: "MyProductionDB",    // Root database directory name
   CustomPath: "./data",          // Directory where databases persist
 });
 
-// Navigate to http://localhost:27018 in any browser
+// Access http://localhost:27018/api/* for REST endpoints
 ```
 
-### Starting the Web GUI via Docker
+### Starting via Docker
 
 ```bash
 docker run -d \
@@ -92,7 +92,7 @@ docker run -d \
   -v axiodb-data:/app \
   theankansaha/axiodb
 ```
-Open `http://localhost:27018` in your browser.
+Visiting `http://localhost:27018` displays welcome and desktop GUI installation commands. All REST endpoints are under `/api/*`.
 
 ---
 
@@ -105,7 +105,7 @@ When writing tests or CI/CD pipelines, you frequently need an isolated AxioDB se
 The CLI includes a built-in command to spin up temporary local servers:
 
 ```bash
-# 1. Start HTTP API & Web GUI only (Port 27018)
+# 1. Start HTTP REST API only (Port 27018)
 axiodb serve http
 
 # 2. Start TCP server without auth (Port 27019)

@@ -10,8 +10,8 @@ const AdvancedFeatures: React.FC = () => {
   const featuresCode = {
     "multi-db": `const { AxioDB } = require("axiodb");
 
-const Instance = new AxioDB({ GUI: true }); // Enable GUI
-const CustomPathInstance = new AxioDB({ GUI: true, RootName: "NewDB", CustomPath: "./DB" });
+const Instance = new AxioDB({ HTTP: true }); // Enable HTTP REST API
+const CustomPathInstance = new AxioDB({ HTTP: true, RootName: "NewDB", CustomPath: "./DB" });
 
 const setup = async () => {
   // Create database
@@ -106,7 +106,7 @@ console.log("Updated documents:", updateResult);`,
     indexing: `// Create indexes to dramatically improve query performance
 const { AxioDB } = require("axiodb");
 
-const Instance = new AxioDB({ GUI: true });
+const Instance = new AxioDB();
 const UserDB = await Instance.createDB("MyDB");
 const UserCollection = await UserDB.createCollection("Users");
 
@@ -163,7 +163,7 @@ console.log("All indexed queries executed efficiently!");`,
     transactions: `// ACID-compliant transactions with savepoints and rollback
 const { AxioDB } = require("axiodb");
 
-const Instance = new AxioDB({ GUI: true });
+const Instance = new AxioDB();
 const UserDB = await Instance.createDB("MyDB");
 const UserCollection = await UserDB.createCollection("Users");
 

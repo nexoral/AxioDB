@@ -41,7 +41,7 @@ var userDeleteCmd = &cobra.Command{Use: "delete <username>", Short: "Delete a us
 	cfg, client, err := httpClientFor(cmd); if err != nil { return err }; result, err := client.DeleteUser(args[0]); if err != nil { return err }; return printOutput(cfg.Output, result)
 }}
 
-var userChangePasswordCmd = &cobra.Command{Use: "change-password <currentPassword> <newPassword>", Short: "Change own password (self-service)", Long: "Change your own password. Requires HTTP API (port 27018) to be enabled on the server (GUI/HTTP). Uses PATCH /api/auth/change-password.", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
+var userChangePasswordCmd = &cobra.Command{Use: "change-password <currentPassword> <newPassword>", Short: "Change own password (self-service)", Long: "Change your own password. Requires HTTP API (port 27018) to be enabled on the server. Uses PATCH /api/auth/change-password.", Args: cobra.ExactArgs(2), RunE: func(cmd *cobra.Command, args []string) error {
 	cfg, client, err := httpClientFor(cmd); if err != nil { return err }; result, err := client.ChangeOwnPassword(args[0], args[1]); if err != nil { return err }; return printOutput(cfg.Output, result)
 }}
 

@@ -49,7 +49,6 @@ function parseNumber(value, fallback) {
 }
 
 const options = {
-  GUI: parseBoolean(process.env.AXIODB_GUI, true),
   HTTP: parseBoolean(process.env.AXIODB_HTTP, parseBoolean(process.env.AXIODB_GUI, true)),
   TCP: parseBoolean(process.env.AXIODB_TCP, true),
   TCPAuth: parseBoolean(process.env.AXIODB_TCP_AUTH_ENABLED, true),
@@ -62,21 +61,14 @@ const options = {
   MCP: parseBoolean(process.env.AXIODB_MCP, false),
 };
 
-if (options.GUI && process.env.AXIODB_HTTP !== undefined && !options.HTTP) {
-  console.error('Error: AXIODB_GUI=true requires AXIODB_HTTP to be enabled.');
-  console.error('Set AXIODB_HTTP=true or remove the explicit AXIODB_HTTP=false.');
-  process.exit(1);
-}
-
 if (options.TCP && options.TCPAuth && !options.HTTP && !process.env.AXIODB_ADMIN_PASSWORD) {
   // Without the HTTP control server there is no way to change the seeded
   // admin/admin, and TCP rejects that account until it is changed - so the port
-  // would come up with no account able to log in. AXIODB_HTTP defaults to
-  // AXIODB_GUI, so AXIODB_GUI=false alone lands here.
+  // would come up with no account able to log in.
   console.error('Error: TCP authentication without AXIODB_HTTP requires AXIODB_ADMIN_PASSWORD.');
   console.error('The seeded admin/admin is rejected over TCP until its password is changed,');
-  console.error('and that change is only possible through the HTTP API/GUI on port 27018.');
-  console.error('Set -e AXIODB_ADMIN_PASSWORD=<password>, or enable AXIODB_HTTP/GUI to rotate it there.');
+  console.error('and that change is only possible through the HTTP API on port 27018.');
+  console.error('Set -e AXIODB_ADMIN_PASSWORD=<password>, or enable AXIODB_HTTP to rotate it there.');
   process.exit(1);
 }
 

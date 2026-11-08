@@ -27,7 +27,6 @@ jobs:
           filters: |
             relevant:
               - 'source/**'
-              - 'GUI/**'
               - 'Docker/**'
               - 'Test/**'
               - 'package.json'

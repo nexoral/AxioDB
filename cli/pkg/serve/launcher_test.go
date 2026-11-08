@@ -13,7 +13,6 @@ func TestServerScriptUsesSupportedAxioDBOptions(t *testing.T) {
 	script := ServerScript(config)
 
 	for _, expected := range []string{
-		`GUI: true`,
 		`HTTP: true`,
 		`TCP: true`,
 		`TCPAuth: true`,
@@ -27,7 +26,7 @@ func TestServerScriptUsesSupportedAxioDBOptions(t *testing.T) {
 		}
 	}
 
-	for _, unsupported := range []string{"Port:", "AdminUser:", ".init("} {
+	for _, unsupported := range []string{"Port:", "AdminUser:", ".init(", "GUI:"} {
 		if strings.Contains(script, unsupported) {
 			t.Errorf("generated server.js contains unsupported option or method %q:\n%s", unsupported, script)
 		}

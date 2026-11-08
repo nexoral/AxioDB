@@ -9,7 +9,7 @@ import { AxioDB } from "axiodb";
 const db = new AxioDB({
   RootName: "ProductionDB",    // Root directory name (default: "AxioDB")
   CustomPath: "./data",         // Custom storage path (default: current dir)
-  GUI: false,                   // Start HTTP Control Server (default: false)
+  HTTP: false,                  // Start HTTP REST API Server (default: false)
   TCP: false,                   // Start TCP Server (default: false)
   Cache: true,                  // Enable shared InMemoryCache (default: true)
   minTTL: 5,                    // Min cache entry TTL in minutes (default: 5)
