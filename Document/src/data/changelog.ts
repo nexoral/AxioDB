@@ -12,6 +12,19 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "25.39.0",
+    date: "2026-11-08",
+    title: "AI-era terminal installer UI, desktop GUI checksum verification, smart up-to-date detection, and 'axiodb destroy' command",
+    changes: [
+      "New 'axiodb destroy' CLI Command: introduced self-uninstallation command with aliases ('distory', 'uninstall'), confirmation prompt, and -y/--yes/-f/--force flags to cleanly remove the binary across Unix and Windows",
+      "GUI Checksum Verification: added SHA-256 cryptographic verification for desktop GUI installer downloads (.deb, .AppImage, .zip, .exe) matching release gui_checksums.txt with space-to-dot name normalization",
+      "Smart Up-To-Date Detection: integrated early version and state checks in install.sh and install.ps1 for CLI and GUI, verifying active dpkg status (installed vs config-files) and physical binary presence to prevent redundant re-downloads",
+      "2026 AI Developer Tool Terminal UI: redesigned install.sh and install.ps1 with full-width responsive split panels, dynamic column scaling, and curated suggestions/AI shortcuts",
+      "Terminal Animations & Progress Tracking: implemented Braille spinners, live byte/MB download progress tracking, and cursor show/hide safety traps across Linux, macOS, and Windows",
+      "CLI Documentation & Knowledge Base: added 'axiodb destroy' reference to Document CLI page and updated AI agent knowledge base with self-destruction instructions",
+    ],
+  },
+  {
     version: "25.38.0",
     date: "2026-11-05",
     title: "Embedded AxioDB desktop features in Electron, unified 25-document default limit, and interactive query enhancements",
