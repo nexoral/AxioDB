@@ -4,6 +4,7 @@ import buildResponse, {
   ResponseBuilder,
 } from "../helper/responseBuilder.helper";
 import { StatusCodes } from "../../config/Keys/StatusCode";
+import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { cpus } from "node:os";
 import { AxioDB } from "../../Services/Indexation.operation";
@@ -31,6 +32,27 @@ interface RouterOptions {
   AxioDBInstance: AxioDB;
 }
 
+async function getPackageInfo(): Promise<PackageInterface> {
+  const packagePaths = [
+    path.resolve(__dirname, "../../../package.json"),
+    path.resolve(process.cwd(), "package.json"),
+  ];
+  for (const pkgPath of packagePaths) {
+    try {
+      const content = await readFile(pkgPath, "utf-8");
+      return JSON.parse(content) as PackageInterface;
+    } catch {
+      continue;
+    }
+  }
+  return {
+    name: "axiodb",
+    version: 0,
+    author: "Ankan Saha",
+    license: "MIT",
+  };
+}
+
 export default async function mainRouter(
   router: HttpRouter,
   options: RouterOptions,
@@ -38,9 +60,7 @@ export default async function mainRouter(
   const { AxioDBInstance } = options;
 
   router.get("/info", async () => {
-    const PackageFile: PackageInterface = JSON.parse(
-      await readFile("./package.json", "utf-8"),
-    );
+    const PackageFile = await getPackageInfo();
     const Reply: ResponseBuilder = buildResponse(
       StatusCodes.OK,
       "AxioDB Information",
@@ -72,9 +92,7 @@ export default async function mainRouter(
     "/system",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DASHBOARD_VIEW)] },
     async () => {
-      const PackageFile: PackageInterface = JSON.parse(
-        await readFile("./package.json", "utf-8"),
-      );
+      const PackageFile = await getPackageInfo();
       const memory = process.memoryUsage();
       const toMB = (bytes: number) => parseFloat((bytes / 1024 / 1024).toFixed(2));
       const cache = await AxioDBInstance.Cache.getCacheDetails();

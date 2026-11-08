@@ -13,6 +13,7 @@ import {
 } from "./HttpTypes";
 import MultipartHelper from "./Multipart.helper";
 import StaticFileHelper from "./StaticFile.helper";
+import SafeErrorMessage from "../SafeErrorMessage.helper";
 
 export interface HttpServerOptions {
   guiEnabled?: boolean;
@@ -63,10 +64,10 @@ export default class HttpServerHelper {
       url: rawUrl,
       path,
       ip:
+        req.socket.remoteAddress ||
         (typeof req.headers["x-forwarded-for"] === "string"
           ? req.headers["x-forwarded-for"].split(",")[0].trim()
           : undefined) ||
-        req.socket.remoteAddress ||
         "127.0.0.1",
       query: Object.fromEntries(parsedUrl.searchParams),
       params: {},
@@ -235,7 +236,7 @@ export default class HttpServerHelper {
         reply.status(500).send({
           statusCode: 500,
           status: false,
-          message: error instanceof Error ? error.message : "Internal Server Error",
+          message: SafeErrorMessage.sanitize(error),
         });
       }
     }

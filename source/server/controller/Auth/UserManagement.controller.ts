@@ -8,7 +8,7 @@ import {
   UpdateUserRoleRequestBody,
 } from "../../../config/Interfaces/Auth/auth.interface";
 
-const MIN_PASSWORD_LENGTH = 4;
+const MIN_PASSWORD_LENGTH = 8;
 
 export default class UserManagementController {
   private readonly authService: AuthService;

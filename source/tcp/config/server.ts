@@ -99,7 +99,8 @@ export default async function createAxioDBTCPServer(
   });
 
   // Start listening
-  server.listen(port, () => {
+  const host = process.env.AXIODB_HOST || "127.0.0.1";
+  server.listen(port, host, () => {
     Logger.info(
       `[AxioDB TCP Server] Started successfully on port ${port}${tlsOptions ? ' (TLS)' : ''}`,
     );

@@ -44,7 +44,8 @@ export default async function createAxioDBControlServer(
   });
 
   try {
-    await server.listen(Number(ServerKeys.PORT), "0.0.0.0");
+    const host = process.env.AXIODB_HOST || "127.0.0.1";
+    await server.listen(Number(ServerKeys.PORT), host);
     SessionStore.startCleanupSweep();
     Logger.info(
       `AxioDB Control Server is running on http://localhost:${ServerKeys.PORT}`,

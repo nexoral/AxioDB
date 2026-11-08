@@ -242,6 +242,9 @@ ipcMain.handle("shell:openExternal", async (_event, url: string) => {
   }
 });
 
+// Allowed file paths selected explicitly via native file dialog
+const allowedImportFiles = new Set<string>();
+
 // Native File Picker for Backup Archive Import
 ipcMain.handle("dialog:selectImportFile", async () => {
   if (!mainWindow) return null;
@@ -259,6 +262,7 @@ ipcMain.handle("dialog:selectImportFile", async () => {
   }
 
   const filePath = result.filePaths[0];
+  allowedImportFiles.add(filePath);
   const stats = fs.statSync(filePath);
   return {
     filePath,
@@ -269,6 +273,9 @@ ipcMain.handle("dialog:selectImportFile", async () => {
 
 // Read file buffer for import
 ipcMain.handle("file:readBuffer", async (_event, filePath: string) => {
+  if (!allowedImportFiles.has(filePath)) {
+    throw new Error("Access denied: File was not selected via file dialog");
+  }
   return fs.readFileSync(filePath);
 });
 
@@ -282,9 +289,15 @@ ipcMain.handle("network:clearCookies", () => {
 
 // Streaming database archive import via HTTP multipart
 ipcMain.handle("network:uploadDatabase", async (_event, { filePath, url }: { filePath: string; url: string }) => {
+  if (!allowedImportFiles.has(filePath)) {
+    throw new Error("Access denied: File was not selected via file dialog");
+  }
   return new Promise((resolve, reject) => {
     try {
       const fullUrl = new URL(url);
+      if (fullUrl.protocol !== "http:" && fullUrl.protocol !== "https:") {
+        throw new Error("Invalid URL protocol: Must be http or https");
+      }
       const isHttps = fullUrl.protocol === "https:";
       const client = isHttps ? https : http;
       const hostKey = `${fullUrl.protocol}//${fullUrl.host}`;

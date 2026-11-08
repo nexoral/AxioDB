@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import authApi from '../api/authApi'
 import { useAuthStore } from '../store/authStore'
 
-const MIN_PASSWORD_LENGTH = 4
+const MIN_PASSWORD_LENGTH = 8
 
 const ForcePasswordChange = () => {
   const [currentPassword, setCurrentPassword] = useState('')

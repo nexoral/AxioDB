@@ -231,7 +231,14 @@ export async function startMcpServer(
               return;
             }
 
-            const toolResult = await tool.handler(toolArgs);
+            const clientIp =
+              req.socket.remoteAddress ||
+              (typeof req.headers["x-forwarded-for"] === "string"
+                ? req.headers["x-forwarded-for"].split(",")[0].trim()
+                : undefined) ||
+              "127.0.0.1";
+
+            const toolResult = await tool.handler({ ...toolArgs, _clientIp: clientIp });
             sendJsonRpcResponse(res, id, toolResult, undefined, activeSessionId);
             break;
           }
@@ -277,7 +284,8 @@ export async function startMcpServer(
       }
     });
 
-    server.listen(port, "0.0.0.0", () => {
+    const host = process.env.AXIODB_HOST || "127.0.0.1";
+    server.listen(port, host, () => {
       activeServer = server;
       Logger.info(`AxioDB MCP Server is running on http://localhost:${port}/mcp`);
       resolve(server);
