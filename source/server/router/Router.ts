@@ -129,7 +129,7 @@ export default async function mainRouter(
           totalDatabases: ((instanceData?.ListOfDatabases as unknown[])?.length) ?? 0,
         },
         services: [
-          { name: "Dashboard + HTTP API", port: 27018, running: true },
+          { name: "API", port: 27018, running: true },
           { name: "AxioDBCloud TCP", port: 27019, running: Boolean(process.env.AXIODB_TCP === "true") },
           { name: "MCP server", port: 27020, running: Boolean(AxioDBInstance.isMCP || process.env.AXIODB_MCP === "true"), note: "Native in core & Docker" },
         ],

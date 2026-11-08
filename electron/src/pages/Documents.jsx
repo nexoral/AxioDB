@@ -52,6 +52,7 @@ const Documents = () => {
 
   // Compass-style Filter Bar inputs (accepts relaxed JS object literals)
   const [filterStr, setFilterStr] = useState("");
+  const [docIdInput, setDocIdInput] = useState("");
   const [sortStr, setSortStr] = useState("");
   const [projectStr, setProjectStr] = useState("");
   const [skipStr, setSkipStr] = useState("0");
@@ -231,6 +232,10 @@ const Documents = () => {
       }
     }
 
+    if (docIdInput.trim()) {
+      parsedFilter.documentId = docIdInput.trim();
+    }
+
     setPage(1);
     setActiveFilterQuery(parsedFilter);
     fetchDocuments(1, false, parsedFilter);
@@ -238,6 +243,7 @@ const Documents = () => {
 
   const handleResetFilter = () => {
     setFilterStr("");
+    setDocIdInput("");
     setSortStr("");
     setProjectStr("");
     setSkipStr("0");
@@ -690,6 +696,31 @@ const Documents = () => {
                   placeholder="{ status: 'active' }"
                   className="w-full bg-transparent text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none"
                 />
+              </div>
+
+              {/* Document ID */}
+              <div className="w-56 flex items-center bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 focus-within:border-emerald-500 focus-within:bg-white focus-within:ring-1 focus-within:ring-emerald-500/20 transition-all">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-2 font-mono">
+                  ID
+                </span>
+                <input
+                  type="text"
+                  value={docIdInput}
+                  onChange={(e) => setDocIdInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleApplyFilter()}
+                  placeholder="search by documentId..."
+                  className="w-full bg-transparent text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none"
+                />
+                {docIdInput && (
+                  <button
+                    type="button"
+                    onClick={() => setDocIdInput("")}
+                    className="text-slate-400 hover:text-slate-600 text-xs ml-1"
+                    title="Clear ID"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
 
               {/* Sort */}

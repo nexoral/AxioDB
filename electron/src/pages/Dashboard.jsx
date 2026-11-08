@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import apiClient from '../api/client'
 import DatabaseTreeView from '../components/dashboard/DatabaseTreeView'
 import CollectionsChart from '../components/dashboard/CollectionsChart'
 import StorageDonut from '../components/dashboard/StorageDonut'
 import PerformanceTrendsChart from '../components/dashboard/PerformanceTrendsChart'
 import MetricCard from '../components/ui/MetricCard'
-import { Alert } from '../components/ui/Feedback'
+import Card, { CardHeader } from '../components/ui/Card'
+import { Alert, Badge, Skeleton } from '../components/ui/Feedback'
+import { formatUptime } from '../utils/format'
+import { useConnectionStore } from '../store/connectionStore'
 
 const iconClass = 'h-5 w-5'
 
@@ -32,69 +35,110 @@ const ICONS = {
   )
 }
 
+const DetailRow = ({ label, value, mono = false, loading = false }) => (
+  <div className='flex items-center justify-between gap-4 px-4 py-2.5'>
+    <dt className='shrink-0 text-xs text-slate-500 font-sans'>{label}</dt>
+    <dd className={`min-w-0 truncate text-xs font-medium text-slate-800 ${mono ? 'font-mono' : ''}`}>
+      {loading ? <Skeleton className='h-3.5 w-16' /> : (value ?? '—')}
+    </dd>
+  </div>
+)
+
 const Dashboard = () => {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState(null)
+  const [systemInfo, setSystemInfo] = useState(null)
+  const [healthInfo, setHealthInfo] = useState(null)
   const [error, setError] = useState(null)
   const [latency, setLatency] = useState(0)
+  const [lastRefreshed, setLastRefreshed] = useState(null)
 
-  useEffect(() => {
-    let cancelled = false
+  const { isConnected, protocol } = useConnectionStore()
+  const isHttp = protocol !== 'tcp'
+
+  const fetchMetricsAndStatus = useCallback(async () => {
+    if (!isConnected || !isHttp) return
+
     const start = performance.now()
+    try {
+      const [statsResult, sysResult, healthResult] = await Promise.allSettled([
+        apiClient.get('/api/dashboard-stats'),
+        apiClient.get('/api/system'),
+        apiClient.get('/api/health')
+      ])
 
-    apiClient
-      .get('/api/dashboard-stats')
-      .then((response) => {
-        if (cancelled) return
-        setLatency(Math.max(1, Math.round(performance.now() - start)))
-        setStats(response.data?.data)
-        setLoading(false)
-      })
-      .catch((err) => {
-        if (cancelled) return
-        console.error('Error fetching dashboard stats:', err)
+      setLatency(Math.max(1, Math.round(performance.now() - start)))
+
+      if (statsResult.status === 'fulfilled') {
+        setStats(statsResult.value.data?.data ?? null)
+        setError(null)
+      } else {
+        const err = statsResult.reason
         const isNetworkErr =
-          !err.response ||
-          err.code === 'ECONNREFUSED' ||
-          err.code === 'ERR_NETWORK' ||
-          /ECONNREFUSED|network|offline|socket/i.test(err.message || '')
+          !err?.response ||
+          err?.code === 'ECONNREFUSED' ||
+          err?.code === 'ERR_NETWORK' ||
+          /ECONNREFUSED|network|offline|socket/i.test(err?.message || '')
 
         const fallback = isNetworkErr
           ? 'Unable to connect to AxioDB server. Please ensure the server is running.'
           : 'Could not load dashboard statistics.'
 
-        const rawMsg = err.response?.data?.message || err.message || fallback
-        const clean = typeof rawMsg === 'string'
-          ? rawMsg
-              .replace(/https?:\/\/[^\s),]+/gi, '')
-              .replace(/Route\s+[A-Z]+:\s*\/[^\s]+(\s+not found)?/gi, 'Requested endpoint not found')
-              .replace(/\(\s*\)/g, '')
-              .replace(/\s{2,}/g, ' ')
-              .trim()
-          : fallback
+        const rawMsg = err?.response?.data?.message || err?.message || fallback
+        setError(typeof rawMsg === 'string' ? rawMsg : fallback)
+      }
 
-        setError(clean || fallback)
-        setLoading(false)
-      })
+      if (sysResult.status === 'fulfilled') {
+        setSystemInfo(sysResult.value.data?.data ?? null)
+      }
 
-    return () => { cancelled = true }
-  }, [])
+      if (healthResult.status === 'fulfilled') {
+        setHealthInfo(healthResult.value.data?.data ?? healthResult.value.data ?? null)
+      }
+
+      setLastRefreshed(new Date())
+    } catch (err) {
+      setError(err?.message || 'Failed to refresh telemetry')
+    } finally {
+      setLoading(false)
+    }
+  }, [isConnected, isHttp])
+
+  useEffect(() => {
+    fetchMetricsAndStatus()
+    const timer = setInterval(fetchMetricsAndStatus, 30000)
+    return () => clearInterval(timer)
+  }, [fetchMetricsAndStatus])
 
   const storage = stats?.storageInfo ?? {}
   const cache = stats?.cacheStorage ?? {}
+  const proc = systemInfo?.process ?? {}
+  const memory = systemInfo?.memory ?? {}
+  const instance = systemInfo?.instance ?? {}
+  const services = systemInfo?.services ?? []
+  const isHealthy = healthInfo?.status === 'ok'
 
   return (
-    <div className='flex-1 overflow-y-auto bg-slate-50 p-6 font-sans'>
+    <div className='flex-1 overflow-y-auto bg-slate-50 p-6 font-sans select-none'>
       <div className='mx-auto max-w-7xl'>
-        <header className='mb-6'>
-          <h1 className='text-2xl font-bold tracking-tight text-slate-900'>Server Performance & Metrics</h1>
-          <p className='mt-1 text-xs text-slate-500'>
-            Real-time telemetry for this AxioDB instance: in-memory cache ceiling, disk utilization, and collection tree.
-          </p>
+        <header className='mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+          <div>
+            <h1 className='text-2xl font-bold tracking-tight text-slate-900'>Server Performance & Metrics</h1>
+            <p className='mt-0.5 text-xs text-slate-500'>
+              Real-time telemetry, runtime diagnostics, and memory ceiling for this AxioDB HTTP instance.
+            </p>
+          </div>
+          {lastRefreshed && (
+            <div className='flex items-center gap-2 text-xs text-slate-400 font-mono'>
+              <span className='h-2 w-2 rounded-full bg-emerald-500 animate-pulse' />
+              <span>Live · Updated {lastRefreshed.toLocaleTimeString()}</span>
+            </div>
+          )}
         </header>
 
         {error && <Alert tone='danger' title='Metrics unavailable' className='mb-6'>{error}</Alert>}
 
+        {/* Headline metric cards */}
         <div className='stagger mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
           <MetricCard
             label='Total Databases'
@@ -119,6 +163,7 @@ const Dashboard = () => {
           />
         </div>
 
+        {/* Disk & Cache Donuts */}
         <div className='stagger mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2'>
           <StorageDonut
             title='Disk Storage'
@@ -140,6 +185,7 @@ const Dashboard = () => {
           />
         </div>
 
+        {/* Charts */}
         <div className='stagger mb-6 grid grid-cols-1 gap-4 xl:grid-cols-2'>
           <CollectionsChart nodeTree={stats?.nodeTree ?? []} loading={loading} />
           <PerformanceTrendsChart
@@ -149,6 +195,92 @@ const Dashboard = () => {
           />
         </div>
 
+        {/* Runtime & System Diagnostics Section */}
+        <div className='stagger mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3'>
+          {/* Running Services */}
+          <Card className='lg:col-span-2'>
+            <CardHeader
+              title='Active Network Services'
+              subtitle='Fixed network ports and daemons running on this instance'
+              action={
+                <Badge tone={isHealthy ? 'brand' : 'danger'} dot>
+                  {isHealthy ? 'Operational' : 'Checking'}
+                </Badge>
+              }
+            />
+            <div className='divide-y divide-slate-100 p-2'>
+              {services.length === 0 ? (
+                <div className='p-4 text-xs text-slate-400 font-mono'>Loading service telemetry...</div>
+              ) : (
+                services.map((service) => (
+                  <div key={service.name} className='flex items-center justify-between px-3 py-2.5'>
+                    <div className='flex items-center gap-2.5'>
+                      <span
+                        className={`h-2 w-2 rounded-full ${service.running ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                      />
+                      <div>
+                        <p className='text-xs font-semibold text-slate-800'>
+                          {service.name === 'Dashboard + HTTP API' ? 'API' : service.name}
+                        </p>
+                        {service.note && <p className='text-[10px] text-slate-400'>{service.note}</p>}
+                      </div>
+                    </div>
+                    <div className='flex items-center gap-2'>
+                      <span className='font-mono text-[11px] text-slate-400'>:{service.port}</span>
+                      <Badge tone={service.running ? 'brand' : 'neutral'}>
+                        {service.running ? 'Running' : 'Not enabled'}
+                      </Badge>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </Card>
+
+          {/* Host & Runtime Detail */}
+          <Card>
+            <CardHeader title='Runtime Diagnostics' subtitle='Process & host environment' />
+            <dl className='divide-y divide-slate-100'>
+              <DetailRow
+                label='Uptime'
+                value={formatUptime(proc.uptimeSeconds ?? healthInfo?.uptimeSeconds)}
+                mono
+                loading={loading}
+              />
+              <DetailRow
+                label='Heap Memory'
+                value={memory.heapUsed !== undefined ? `${memory.heapUsed} MB` : undefined}
+                mono
+                loading={loading}
+              />
+              <DetailRow
+                label='RSS Memory'
+                value={memory.rss !== undefined ? `${memory.rss} MB` : undefined}
+                mono
+                loading={loading}
+              />
+              <DetailRow label='Node.js' value={proc.nodeVersion} mono loading={loading} />
+              <DetailRow
+                label='Platform'
+                value={proc.platform && `${proc.platform} (${proc.arch})`}
+                mono
+                loading={loading}
+              />
+              <DetailRow label='CPU Cores' value={proc.cpuCount} loading={loading} />
+              <DetailRow label='Process ID' value={proc.pid} mono loading={loading} />
+            </dl>
+            {instance.path && (
+              <div className='border-t border-slate-100 px-4 py-2.5 bg-slate-50/50 rounded-b-xl'>
+                <p className='text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-mono'>Data Directory</p>
+                <p className='mt-0.5 truncate font-mono text-[11px] text-slate-600' title={instance.path}>
+                  {instance.path}
+                </p>
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* Database Tree */}
         <div className='stagger grid grid-cols-1 gap-4'>
           <DatabaseTreeView treeDB={stats?.nodeTree ?? []} loading={loading} />
         </div>
