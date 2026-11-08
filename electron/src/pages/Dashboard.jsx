@@ -35,6 +35,13 @@ const ICONS = {
   )
 }
 
+const formatServiceName = (name) => {
+  if (name === 'Dashboard + HTTP API' || name === 'API' || name === 'HTTP API') return 'HTTP Server'
+  if (name === 'AxioDBCloud TCP' || name === 'TCP') return 'TCP Server'
+  if (name?.toLowerCase() === 'mcp server' || name?.toLowerCase() === 'mcp') return 'MCP Server'
+  return name
+}
+
 const DetailRow = ({ label, value, mono = false, loading = false }) => (
   <div className='flex items-center justify-between gap-4 px-4 py-2.5'>
     <dt className='shrink-0 text-xs text-slate-500 font-sans'>{label}</dt>
@@ -220,7 +227,7 @@ const Dashboard = () => {
                       />
                       <div>
                         <p className='text-xs font-semibold text-slate-800'>
-                          {service.name === 'Dashboard + HTTP API' ? 'API' : service.name}
+                          {formatServiceName(service.name)}
                         </p>
                         {service.note && <p className='text-[10px] text-slate-400'>{service.note}</p>}
                       </div>
