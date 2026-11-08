@@ -68,7 +68,7 @@ const StatusBar = () => {
             <span className="text-slate-300">|</span>
           </>
         )}
-        <span className="text-slate-400 font-sans">AxioDB Control v26.40.5</span>
+        <span className="text-slate-400 font-sans">AxioDB Control v26.40.6</span>
       </div>
     </footer>
   );
