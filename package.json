@@ -4,6 +4,11 @@
   "description": "Embedded NoSQL Database for TypeScript & AI Agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun.",
   "main": "./lib/config/DB.js",
   "types": "./lib/config/DB.d.ts",
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "node-test": "node ./Test/node/run.js",
     "bun-test": "bun ./Test/bun/run.js",
