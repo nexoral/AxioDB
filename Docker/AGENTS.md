@@ -2,7 +2,7 @@
 
 Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Docker/` specifics — read the root first.
 
-**Role** — ships the compiled core (`lib/`) plus three surfaces in one container: HTTP REST API **27018**, TCP AxioDBCloud **27019**, opt-in MCP server **27020**. Image `theankansaha/axiodb`. Container runtime runs on Node 23 (`node:23-alpine`), while base engine maintains Node ≥20 compatibility.
+**Role** — ships the compiled core (`lib/`) plus three surfaces in one container: HTTP REST API **27018**, TCP AxioDBCloud **27019**, opt-in MCP server **27020**. Image `theankansaha/axiodb`. Container runtime runs on Node 23 (`node:23-alpine`), while base engine maintains Node ≥22 compatibility.
 
 ## Layout
 

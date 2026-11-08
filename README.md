@@ -24,8 +24,8 @@
 [![install size](https://img.shields.io/npm/unpacked-size/axiodb?label=install%20size)](https://www.npmjs.com/package/axiodb)
 [![npm types](https://img.shields.io/npm/types/axiodb?label=types)](https://www.npmjs.com/package/axiodb)
 [![Zero native deps](https://img.shields.io/badge/dependencies-0%20native-success)](https://www.npmjs.com/package/axiodb)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org)
-[![Tested on Node.js](https://img.shields.io/badge/Node.js%20tested-20%20%7C%2021%20%7C%2022%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-339933?logo=node.js)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen)](https://nodejs.org)
+[![Tested on Node.js](https://img.shields.io/badge/Node.js%20tested-22%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-339933?logo=node.js)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
 [![Bun tested](https://img.shields.io/badge/Bun%20tested-1.4.0%20%7C%201.4.1%20%7C%201.4.2%20%7C%201.4.3%20%7C%201.4.4%20%7C%20latest-black?logo=bun)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
 [![ACID Durability](https://img.shields.io/badge/ACID-WAL%20Durability-blueviolet)](https://axiodb.in)
 [![Sub-millisecond Read](https://img.shields.io/badge/p50%20read-0.6ms%20(1300%2B%20QPS)-8A2BE2)](https://axiodb.in/performance)
@@ -57,7 +57,7 @@ const { data } = await users.query({ age: { $gt: 25 } }).Sort({ age: -1 }).Limit
 console.log(data.documents);
 ```
 
-No server to run, no `node-gyp`, no `electron-rebuild`. Requires Node.js ≥20 (also verified on Bun v1.4.0).
+No server to run, no `node-gyp`, no `electron-rebuild`. Requires Node.js ≥22 (also verified on Bun v1.4.0).
 
 ### 🤖 AI Agent Skill
 

@@ -319,10 +319,10 @@ const Introduction: React.FC = () => {
     { src: "https://img.shields.io/badge/License-MIT-yellow.svg", alt: "License MIT", width: 99 },
     { src: badgeUrls.codeql, alt: "CodeQL", width: 156 },
     { src: badgeUrls.stars, alt: "GitHub Stars", width: 99 },
-    { src: "https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen", alt: "Node.js Version", width: 120 },
+    { src: "https://img.shields.io/badge/node-%3E%3D22.0.0-brightgreen", alt: "Node.js Version", width: 120 },
     {
-      src: "https://img.shields.io/badge/Node.js%20tested-20%20%7C%2021%20%7C%2022%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-339933?logo=node.js",
-      alt: "Node.js tested 20 | 21 | 22 | 23 | 24 | 25 | 26",
+      src: "https://img.shields.io/badge/Node.js%20tested-22%20%7C%2023%20%7C%2024%20%7C%2025%20%7C%2026-339933?logo=node.js",
+      alt: "Node.js tested 22 | 23 | 24 | 25 | 26",
       width: 345,
     },
     {
@@ -489,7 +489,7 @@ const Introduction: React.FC = () => {
               recovery, MCP, and cache options — pass on the machine's Node
               (v26.8.1) and Bun (v1.4.0), including the worker-thread data
               paths (reads of ≥100-file collections, searches over ≥10,000
-              documents). Node 20+ is the supported baseline; Bun is verified on
+              documents). Node 22+ is the supported baseline; Bun is verified on
               the installed v1.4.0 with native test runner support.
             </p>
           </div>

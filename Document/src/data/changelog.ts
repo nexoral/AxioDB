@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "26.40.4",
+    version: "26.40.5",
     date: "2026-11-09",
     title: "Single-file bundle distribution (axiodb.js), inlined memory worker threads, and 71% package size reduction",
     changes: [

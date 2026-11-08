@@ -1,6 +1,6 @@
 {
   "name": "axiodb",
-  "version": "26.40.4",
+  "version": "26.40.5",
   "description": "Embedded NoSQL Database for TypeScript & AI Agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun.",
   "main": "./axiodb.js",
   "types": "./axiodb.d.ts",
@@ -23,7 +23,7 @@
     "test": "npm run node-test --",
     "benchmark": "node -e \"if (!require('fs').existsSync('./lib/config/DB.js')) require('child_process').execSync('npm run build', { stdio: 'inherit' });\" && node ./benchmark/run.js",
     "bun-benchmark": "bun ./benchmark/run.js",
-    "build": "tsc && tsup source/config/DB.ts --format cjs --dts --minify --target node20 --out-dir . --entry.axiodb source/config/DB.ts",
+    "build": "tsc && tsup source/config/DB.ts --format cjs --dts --minify --target node22 --out-dir . --entry.axiodb source/config/DB.ts",
     "lint": "eslint source/",
     "lint:fix": "eslint source/ --fix"
   },
@@ -116,7 +116,7 @@
     "typescript": "^6.0.3"
   },
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=22.0.0",
     "npm": ">=6.0.0",
     "yarn": ">=1.0.0"
   }

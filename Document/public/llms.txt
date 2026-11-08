@@ -1,6 +1,6 @@
 # AxioDB
 
-> Embedded NoSQL Database for TypeScript & AI Agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun. No node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 20 runs on (also verified on Bun v1.4.0). MIT licensed, actively maintained for AI agents, Electron, CLI, local-first and prototyping. Current version: 26.40.4.
+> Embedded NoSQL Database for TypeScript & AI Agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun. No node-gyp, no electron-rebuild, no `.node` binaries, no build step. Works on every platform Node.js ≥ 22 runs on (also verified on Bun v1.4.0). MIT licensed, actively maintained for AI agents, Electron, CLI, local-first and prototyping. Current version: 26.40.5.
 
 ## What it is
 
@@ -67,7 +67,7 @@ Port 27018 speaks HTTP. Port 27019 does **not** — it is a custom TCP protocol.
 npm install axiodb
 ```
 
-Requires Node.js >= 20.0.0. Also verified on Bun v1.4.0. Server-side and desktop only — AxioDB needs a filesystem and does not run in a browser.
+Requires Node.js >= 22.0.0. Also verified on Bun v1.4.0. Server-side and desktop only — AxioDB needs a filesystem and does not run in a browser.
 
 ### CLI & Desktop GUI (system-wide)
 
