@@ -16,16 +16,51 @@ NC='\033[0m'
 
 SPINNER_FRAMES=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
 spin_pid=""
+SUDO_KEEP_ALIVE_PID=""
 
-# Cleanup handler to ensure cursor is always restored
+SUDO=""
+if [ "$(id -u)" -ne 0 ]; then
+    if command -v sudo >/dev/null 2>&1; then
+        SUDO="sudo"
+    fi
+fi
+
+# Cleanup handler to ensure cursor is always restored and background jobs terminated
 cleanup() {
     if [ -n "$spin_pid" ]; then
         kill "$spin_pid" >/dev/null 2>&1 || true
         wait "$spin_pid" 2>/dev/null || true
     fi
+    if [ -n "$SUDO_KEEP_ALIVE_PID" ]; then
+        kill "$SUDO_KEEP_ALIVE_PID" >/dev/null 2>&1 || true
+        wait "$SUDO_KEEP_ALIVE_PID" 2>/dev/null || true
+    fi
     tput cnorm 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
+
+ensure_sudo() {
+    if [ "$(id -u)" -eq 0 ] || [ -z "$SUDO" ]; then
+        return 0
+    fi
+
+    if ! sudo -n true 2>/dev/null; then
+        if ! sudo -v; then
+            echo -e "  ${RED}✖ Sudo authentication failed${NC}"
+            exit 1
+        fi
+        if [ -t 1 ]; then
+            printf "\033[1A\033[2K\r"
+        elif [ -c /dev/tty ]; then
+            printf "\033[1A\033[2K\r" > /dev/tty 2>/dev/null || true
+        fi
+    fi
+
+    if [ -z "$SUDO_KEEP_ALIVE_PID" ]; then
+        ( while true; do sudo -n true; sleep 50; kill -0 "$$" || exit; done 2>/dev/null ) &
+        SUDO_KEEP_ALIVE_PID=$!
+    fi
+}
 
 start_spinner() {
     local msg="$1"
@@ -166,7 +201,6 @@ else
 fi
 
 install_cli() {
-    echo ""
     # Check if CLI is already installed and up to date
     if command -v "$BINARY_NAME" &>/dev/null; then
         CURRENT_CLI_VER=$("$BINARY_NAME" version --short 2>/dev/null | tr -d 'v[:space:]')
@@ -174,6 +208,7 @@ install_cli() {
             CURRENT_CLI_VER=$("$BINARY_NAME" version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
         fi
         if [ "$CURRENT_CLI_VER" = "$VERSION" ]; then
+            echo ""
             panel_top "AxioDB CLI (v${VERSION})" "Status & Suggestions"
             panel_row "✔ Already installed and up to date!" "> Quick check:  axiodb version"
             panel_row "" "> REPL shell:   axiodb connect"
@@ -182,6 +217,9 @@ install_cli() {
         fi
     fi
 
+    ensure_sudo
+
+    echo ""
     panel_top "Installing AxioDB CLI (v${VERSION})" "Suggestions for CLI"
 
     DOWNLOAD_FILE="${BINARY_NAME}_${OS}_${ARCH}"
@@ -227,8 +265,10 @@ install_cli() {
         stop_spinner
     fi
 
-    sudo mv "$DOWNLOAD_FILE" "$CLI_INSTALL_DIR/$BINARY_NAME"
-    sudo chmod +x "$CLI_INSTALL_DIR/$BINARY_NAME"
+    start_spinner "Deploying ${BINARY_NAME} to ${CLI_INSTALL_DIR}..."
+    $SUDO mv "$DOWNLOAD_FILE" "$CLI_INSTALL_DIR/$BINARY_NAME"
+    $SUDO chmod +x "$CLI_INSTALL_DIR/$BINARY_NAME"
+    stop_spinner
 
     cd /
     rm -rf "$TMP_DIR"
@@ -244,7 +284,6 @@ install_cli() {
 }
 
 install_gui() {
-    echo ""
     # Check if GUI is already installed and up to date
     CURRENT_GUI_VER=""
     if [ "$OS" = "linux" ]; then
@@ -271,6 +310,7 @@ install_gui() {
     fi
 
     if [ -n "$CURRENT_GUI_VER" ] && [ "$CURRENT_GUI_VER" = "$VERSION" ]; then
+        echo ""
         panel_top "AxioDB GUI (v${VERSION})" "Status & Suggestions"
         panel_row "✔ Already installed and up to date!" "> Launch desktop: axiodb-control"
         panel_row "" "> Web Dashboard:  http://localhost:27018"
@@ -278,9 +318,12 @@ install_gui() {
         return 0
     fi
 
+    ensure_sudo
+
     TMP_DIR=$(mktemp -d)
     cd "$TMP_DIR"
 
+    echo ""
     panel_top "Installing AxioDB GUI (v${VERSION})" "Suggestions for Desktop GUI"
 
     start_spinner "Resolving release package..."
@@ -366,18 +409,34 @@ install_gui() {
 
     case "$GUI_TYPE" in
         deb)
-            sudo dpkg -i "$GUI_FILE" 2>/dev/null || sudo apt-get install -f -y
-            panel_row "✔ System package configured (axiodb-control)" "> Menu shortcut:  AxioDB Control"
+            start_spinner "Configuring system package (axiodb-control)..."
+            if ! $SUDO dpkg -i "$GUI_FILE" >/dev/null 2>&1; then
+                DEBIAN_FRONTEND=noninteractive $SUDO apt-get install -f -y -qq >/dev/null 2>&1 || true
+            fi
+            stop_spinner
+            if command -v axiodb-control &>/dev/null || [ -x "/opt/AxioDB Control/axiodb-control" ] || [ -x "/usr/local/bin/axiodb-control" ]; then
+                panel_row "✔ System package configured (axiodb-control)" "> Menu shortcut:  AxioDB Control"
+            else
+                panel_row "✖ Package installation failed" ""
+                panel_bottom
+                rm -rf "$TMP_DIR"
+                exit 1
+            fi
             ;;
         appimage)
+            start_spinner "Configuring AppImage..."
             chmod +x "$GUI_FILE"
-            sudo mv "$GUI_FILE" /usr/local/bin/axiodb-control
-            echo "$VERSION" | sudo tee /usr/local/bin/.axiodb-control-version >/dev/null 2>&1 || true
+            $SUDO mv "$GUI_FILE" /usr/local/bin/axiodb-control
+            echo "$VERSION" | $SUDO tee /usr/local/bin/.axiodb-control-version >/dev/null 2>&1 || true
+            stop_spinner
             panel_row "✔ Installed to /usr/local/bin/axiodb-control" "> Command:        axiodb-control"
             ;;
         zip)
-            unzip -q "$GUI_FILE"
-            sudo cp -r "AxioDB Control.app" /Applications/
+            start_spinner "Deploying AxioDB Control.app..."
+            unzip -q "$GUI_FILE" >/dev/null 2>&1
+            $SUDO cp -r "AxioDB Control.app" /Applications/
+            rm -rf "AxioDB Control.app"
+            stop_spinner
             panel_row "✔ Deployed to /Applications/AxioDB Control.app" "> Finder:         Applications folder"
             ;;
     esac

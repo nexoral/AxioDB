@@ -12,6 +12,7 @@ $REPO = "nexoral/AxioDB"
 $CLI_INSTALL_DIR = "$env:LOCALAPPDATA\AxioDB"
 $CLI_BINARY_NAME = "axiodb.exe"
 $ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
@@ -86,7 +87,8 @@ function Invoke-SpinnerAnimation([string]$msg, [scriptblock]$action) {
         $i++
     }
     $action.EndInvoke($asyncResult) | Out-Null
-    Write-Host "`r  │                                                                `r" -NoNewline
+    $clearLen = [math]::Max(64, $termWidth - 6)
+    Write-Host ("`r  │ " + (" " * $clearLen) + "`r") -NoNewline
     try { [Console]::CursorVisible = $true } catch {}
 }
 
@@ -302,15 +304,21 @@ function Install-GUI {
         }
     }
 
-    Print-PanelRow "◇ Launching installer wizard..." "> Complete setup: In wizard window"
-    Print-PanelBottom
+    Invoke-SpinnerAnimation "Configuring system package (AxioDB Control)..." {
+        Start-Process -FilePath $TMP_FILE -ArgumentList "/S" -Wait
+    }
 
-    Write-Host ""
-    Write-Host "  Please follow the on-screen installer prompts." -ForegroundColor Yellow
-    Write-Host ""
-
-    # Launch the NSIS installer
-    Start-Process -FilePath $TMP_FILE -Wait
+    $defaultExe = "$env:LOCALAPPDATA\Programs\axiodb-control\AxioDB Control.exe"
+    $progFilesExe = "$env:ProgramFiles\AxioDB Control\AxioDB Control.exe"
+    if ((Test-Path $defaultExe) -or (Test-Path $progFilesExe)) {
+        Print-PanelRow "✔ System package configured (AxioDB Control)" "> Menu shortcut:  AxioDB Control"
+        Print-PanelBottom
+    } else {
+        Print-PanelRow "✖ Package installation failed" ""
+        Print-PanelBottom
+        Remove-Item $TMP_FILE -Force -ErrorAction SilentlyContinue
+        exit 1
+    }
 
     # Clean up temp installer file
     Remove-Item $TMP_FILE -Force -ErrorAction SilentlyContinue
