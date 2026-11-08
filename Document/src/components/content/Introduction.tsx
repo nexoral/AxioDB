@@ -1010,8 +1010,8 @@ const Introduction: React.FC = () => {
                 <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
                   <span className="text-green-500 text-lg mt-0.5">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-700">Dual-Write In-Memory Cache &amp; GUI</span>
-                    <p className="text-sm text-gray-500">InMemoryCache with TTL jitter, Worker Threads, and built-in web dashboard</p>
+                    <span className="font-semibold text-gray-700">Dual-Write In-Memory Cache &amp; Desktop GUI</span>
+                    <p className="text-sm text-gray-500">InMemoryCache with TTL jitter, Worker Threads, and official Desktop GUI</p>
                   </div>
                 </div>
               </div>
@@ -1280,7 +1280,6 @@ const Introduction: React.FC = () => {
               code={`const db = new AxioDB({
   TCP: true,
   TCPAuth: true,
-  GUI: false,
   AdminPassword: 'my-secret-password',
 });`}
             />

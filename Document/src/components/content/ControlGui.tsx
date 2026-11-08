@@ -193,7 +193,7 @@ const ControlGui: React.FC = () => {
               <div className="mt-4 rounded-lg bg-gray-50 border border-gray-200 p-4 text-sm text-gray-600 space-y-2">
                 <p>
                   <strong className="text-gray-900">HTTP: true</strong> enables
-                  the HTTP REST API on port 27018 (legacy <code className="font-mono">GUI: true</code> option automatically maps to <code className="font-mono">HTTP: true</code>).
+                  the HTTP REST API on port 27018.
                 </p>
                 <p>
                   The server listens on{" "}

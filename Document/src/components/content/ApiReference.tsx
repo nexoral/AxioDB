@@ -54,7 +54,7 @@ const db = new AxioDB({ HTTP: true, RootName: 'MyCustomDB', CustomPath: './data'
 const db = new AxioDB();
 
 // GUI disabled, no HTTP server
-const db = new AxioDB({ GUI: false });
+const db = new AxioDB({ HTTP: false });
 
 // TCP server with authentication required
 const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'MyDB', CustomPath: './data' });

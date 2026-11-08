@@ -29,7 +29,7 @@ class CacheOptionsTests extends TestRunner {
     }
 
     // Default instance (cache enabled by default)
-    this.dbInstance = new AxioDB({ GUI: false, RootName: 'CacheOptionsDB', CustomPath: this.testDir });
+    this.dbInstance = new AxioDB({ RootName: 'CacheOptionsDB', CustomPath: this.testDir });
     this.testDB = await this.dbInstance.createDB('TestDatabase');
     this.collection = await this.testDB.createCollection('Users');
 
@@ -173,7 +173,7 @@ class CacheOptionsTests extends TestRunner {
         const script = `
           const { AxioDB } = require('./lib/config/DB.js');
           (async () => {
-            const db = new AxioDB({ GUI: false, Cache: false, RootName: 'CacheDisabledDB', CustomPath: './Test/TestCacheOptionsChild' });
+            const db = new AxioDB({ Cache: false, RootName: 'CacheDisabledDB', CustomPath: './Test/TestCacheOptionsChild' });
             const d = await db.createDB('DB');
             const c = await d.createCollection('Users');
             await c.insert({ v: 1 });

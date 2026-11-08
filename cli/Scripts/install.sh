@@ -187,7 +187,7 @@ elif [ -t 0 ]; then
     panel_row "[1] CLI only   - Command-line tool (~5MB)" "> Interactive REPL: axiodb connect"
     panel_row "[2] GUI only   - Desktop control app (~80MB)" "> AI Context Server: axiodb serve mcp"
     panel_row "[3] Full Suite - CLI + GUI complete suite" "> Dual-Write Cache & Zero Native Deps"
-    panel_row "" "> Ports: GUI 27018 | TCP 27019 | MCP 27020"
+    panel_row "" "> Ports: HTTP 27018 | TCP 27019 | MCP 27020"
     panel_bottom
     echo ""
     read -p "  Enter selection [1-3] (default: 1): " USER_INPUT
@@ -313,7 +313,7 @@ install_gui() {
         echo ""
         panel_top "AxioDB GUI (v${VERSION})" "Status & Suggestions"
         panel_row "✔ Already installed and up to date!" "> Launch desktop: axiodb-control"
-        panel_row "" "> Web Dashboard:  http://localhost:27018"
+        panel_row "" "> HTTP REST API:   http://localhost:27018"
         panel_bottom
         return 0
     fi

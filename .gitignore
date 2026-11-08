@@ -1,7 +1,5 @@
 node_modules
 lib
-./source/Web.Client/node_modules
-./GUI/node_modules
 AxioDB
 test.js
 a.js
@@ -14,17 +12,12 @@ Docker/build
 Docker/types
 Docker/AxioDB_Central_Information
 
-# Ignore the following directories and files for the GUI
+# Ignore the following directories and files for the Document site
 Document/node_modules
 Document/AxioDB_Docs
 Document/.vite
 Document/.wrangler
 
-# Ignore the following directories and files for the Web Client
-GUI/node_modules
-GUI/AxioControl
-GUI/.vite
-GUI/dist
 AllFeature.js
 # Test and benchmark runtime directories
 Test/Test*

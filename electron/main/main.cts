@@ -7,7 +7,7 @@ import net from "net";
 import tls from "tls";
 import crypto from "crypto";
 
-// AxioDB embedded — local app storage (no GUI, no HTTP, no TCP)
+// AxioDB embedded — local app storage (no HTTP, no TCP)
 import { AxioDB } from "axiodb";
 
 // Set application identity for Linux desktop and Windows taskbar
@@ -21,7 +21,6 @@ const cookieStore = new Map<string, string>();
 
 // Local AxioDB instance for app data persistence (connections, settings, etc.)
 const localDB = new AxioDB({
-  GUI: false,
   HTTP: false,
   TCP: false,
   Cache: false,

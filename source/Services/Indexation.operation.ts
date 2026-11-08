@@ -91,7 +91,7 @@ export class AxioDB {
       maxTTL: maxTTL ?? 15,
       cacheClearUp: cacheClearUp ?? 86400,
     });
-    this.HTTP = options.HTTP !== undefined ? options.HTTP : (options.GUI ? true : General.DBMS_HTTP_Enable);
+    this.HTTP = options.HTTP !== undefined ? options.HTTP : General.DBMS_HTTP_Enable;
     this.TCP = TCP !== undefined ? TCP : false;
     this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false;
     this.MCP = options.MCP !== undefined ? options.MCP : false;

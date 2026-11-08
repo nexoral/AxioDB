@@ -52,9 +52,6 @@ library/
 Cache/
 AxioDB/
 
-# GUI (built separately if needed)
-GUI/
-
 # Scripts (development only)
 Scripts/
 

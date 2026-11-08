@@ -126,7 +126,7 @@ Machine-readable limits and the full boundary table: https://axiodb.in/llms-full
 
 - Every documentation page also returns Markdown when fetched with `Accept: text/markdown` (e.g. `curl -H "Accept: text/markdown" https://axiodb.in/usage`)
 - [Agent Skill](https://axiodb.in/.well-known/agent-skills/index.json) — installable SKILL.md for working with AxioDB
-- [OpenAPI 3.1](https://axiodb.in/openapi.json) — the AxioDB Dashboard HTTP API only (port 27018, runs wherever you run AxioDB — not hosted on axiodb.in, and not the TCP protocol on 27019 or the MCP server on 27020)
+- [OpenAPI 3.1](https://axiodb.in/openapi.json) — the AxioDB HTTP REST API only (port 27018, runs wherever you run AxioDB — not hosted on axiodb.in, and not the TCP protocol on 27019 or the MCP server on 27020)
 - [API catalog](https://axiodb.in/.well-known/api-catalog) — RFC 9727 linkset
 - Content usage preferences are declared via `Content-Signal` in [robots.txt](https://axiodb.in/robots.txt): training, search, and AI input are all permitted
 - In a WebMCP-capable browser this site registers three tools: `axiodb_list_docs`, `axiodb_read_doc`, `axiodb_search_docs`

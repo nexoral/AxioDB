@@ -117,7 +117,7 @@ new AxioDB(options?: {
 })
 ```
 
-The legacy `GUI: true` option automatically maps to `HTTP: true`. When port 27018 is accessed directly via a browser, it serves desktop GUI installation commands. All REST endpoints are under `/api/*`.
+When port 27018 is accessed directly via a browser, it serves desktop GUI installation commands. All REST endpoints are under `/api/*`.
 
 If `TLS: true` but either path is missing/unreadable, the constructor throws immediately — it never silently falls back to plaintext.
 
@@ -685,7 +685,7 @@ Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js 
 | Schema migrations | Required (ALTER TABLE) | Schema-less |
 | Built-in caching | No | Yes (InMemoryCache with TTL) |
 | Multi-core | No (single-threaded) | Yes (Worker Threads) |
-| Built-in GUI | No | Yes (web dashboard) |
+| Built-in GUI | No | Yes (Desktop GUI - AxioDB Control) |
 | TypeScript | Partial (types only) | Full (6.0 strict mode) |
 | Best for | 10M+ records, relational data | 10K–500K docs, embedded apps |
 
@@ -716,7 +716,7 @@ Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js 
 | TypeScript | No | Full (6.0 strict) |
 | Storage | Single file/in-memory | File-per-document |
 | Built-in caching | No | Yes |
-| GUI | No | Yes (web dashboard) |
+| GUI | No | Yes (Desktop GUI - AxioDB Control) |
 | TCP remote access | No | Yes (AxioDBCloud) |
 | MCP server (AI) | No | Yes (45 tools) |
 
@@ -893,7 +893,6 @@ const { AxioDB } = require('axiodb');
 const db = new AxioDB({
   RootName: 'AppData',
   CustomPath: app.getPath('userData'),
-  GUI: false,           // keep the dashboard off in a shipped desktop app
 });
 
 let users;
@@ -923,7 +922,7 @@ contextBridge.exposeInMainWorld('db', {
 - **Main process only.** Do not enable `nodeIntegration` to use AxioDB from a renderer. Use `ipcMain.handle` + `contextBridge`, as above.
 - **`CustomPath: app.getPath('userData')`.** Never write inside the app directory or `app.asar` — asar is read-only and app contents are replaced on update, which would delete user data.
 - **One instance.** `new AxioDB()` twice throws. Create it once in `main.js` and export/reuse it.
-- **`GUI: false` in production.** The dashboard opens port 27018; a shipped desktop app should not listen on a port unless you intend it to.
+- **No ports opened by default.** Embedded mode opens no ports; a shipped desktop app does not listen on a port unless `HTTP: true` or `TCP: true` is explicitly passed.
 - **Validate IPC input.** A renderer is untrusted input. Do not pass a raw renderer-supplied object straight into `.query()` if the renderer can be compromised.
 - **No rebuild in packaging.** `electron-builder` / `electron-forge` need no special configuration for AxioDB — no `buildDependenciesFromSource`, no `npmRebuild`, no native-module unpacking rules.
 
@@ -954,7 +953,7 @@ source/
 ├── Memory/memory.operation.ts      InMemoryCache, randomized 5–15 minute TTL per entry
 ├── utility/Searcher.utils.ts       Query operator evaluation ($gt, $in, $regex, $elemMatch, ...)
 ├── Helper/                         Converter, Response builders
-├── server/                         Dashboard + HTTP API (Fastify, port 27018)
+├── server/                         HTTP REST API (Fastify, port 27018)
 │   ├── router/                     Route definitions
 │   ├── controller/                 Auth, Database, Collection, Index, Operation controllers
 │   └── middleware/auth.middleware.ts   Session cookie + permission enforcement
@@ -1066,7 +1065,7 @@ Available via `new AxioDB({ MCP: true })` or the Docker image with `AXIODB_MCP=t
 | Concurrent TCP connections per IP | **100** → `429` | `tcp/config/keys.ts` |
 | TCP connection attempts per IP | **300 per 10s** → 30s cooldown | `tcp/config/keys.ts` |
 | Failed logins per IP | **5 per 15 min** → 15-minute lockout | `config/Keys/Permissions.ts` |
-| Dashboard port | **27018**, not configurable | remap via Docker `-p` |
+| HTTP API port | **27018**, not configurable | remap via Docker `-p` |
 | TCP port | **27019**, not configurable | remap via Docker `-p` |
 | MCP port | 27020, configurable via `AXIODB_MCP_PORT` | Core & Docker |
 | Node.js | **>= 20.0.0** | `package.json` engines |
@@ -1084,7 +1083,7 @@ Available via `new AxioDB({ MCP: true })` or the Docker image with `AXIODB_MCP=t
 - **`$lookup` loads the entire foreign collection into memory.** No streaming join — large foreign collections can cause memory pressure.
 - **Unindexed queries are full scans.** Only `documentId` and single-field exact matches on an indexed field are O(1).
 - **No browser support.** Node.js and a real filesystem are required.
-- **Sessions are memory-only.** Restarting the server logs every Dashboard/TCP user out.
+- **Sessions are memory-only.** Restarting the server logs every HTTP API/TCP user out.
 - **Sorting/filtering happens in memory** after the candidate set is read — memory use scales with result size, not with the collection.
 - **The `config` database name is reserved** for AxioDB's own RBAC storage (`403` if you try to use it).
 
@@ -1114,7 +1113,7 @@ None of this is a shortcoming to apologize for — it's a deliberately scoped em
 
 **Is the MCP server included in `npm install axiodb`?** No. It is Docker-image-only (`theankansaha/axiodb` with `AXIODB_MCP=true`, port 27020). This is the single most commonly mis-stated fact about AxioDB.
 
-**Which ports does AxioDB open?** None by default. 27018 with `GUI: true` (Dashboard + HTTP API). 27019 with `TCP: true` (AxioDBCloud). 27020 in Docker with `AXIODB_MCP=true` (MCP). 27018/27019 are fixed in code — remap with Docker `-p`.
+**Which ports does AxioDB open?** None by default. 27018 with `HTTP: true` (HTTP REST API). 27019 with `TCP: true` (AxioDBCloud). 27020 in Docker with `AXIODB_MCP=true` (MCP). 27018/27019 are fixed in code — remap with Docker `-p`.
 
 **Can two parts of my app each create an AxioDB instance?** No — `new AxioDB()` twice in one process throws. Create it once and export it.
 

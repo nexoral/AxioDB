@@ -20,7 +20,7 @@ class McpFunctionalTests extends TestRunner {
 
   async setUp() {
     if (fs.existsSync(this.testDir)) fs.rmSync(this.testDir, { recursive: true, force: true });
-    this.db = new AxioDB({ GUI: false, MCP: true, RootName: 'McpFunctionalTestDB', CustomPath: this.testDir, AdminPassword: 'admin' });
+    this.db = new AxioDB({ MCP: true, RootName: 'McpFunctionalTestDB', CustomPath: this.testDir, AdminPassword: 'admin' });
     await this.db.createDB('InitDB');
     const AuthSeeder = require('../../../lib/Services/Auth/AuthSeeder.service').default;
     await new AuthSeeder(this.db, 'admin').seedIfNeeded();

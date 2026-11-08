@@ -176,7 +176,7 @@ const AxioDBCloud: React.FC = () => {
 
 // Service A: the process that owns the data, exposed for other services to reach
 const db = new AxioDB({
-  GUI: false,              // GUI (optional)
+  HTTP: false,             // HTTP REST API (optional)
   RootName: 'MyDatabase',  // Root database name
   CustomPath: './data',    // Data directory
   TCP: true                // Enable TCP server
@@ -188,7 +188,7 @@ console.log('AxioDB TCP Server running on port 27019');`}
 
             <div className="mt-4 p-4 bg-green-100/20 rounded-lg border border-green-200">
               <p className="text-sm text-green-700">
-                <strong>Default Port:</strong> TCP server listens on port <code className="px-1 py-0.5 bg-gray-100 rounded">27019</code> (HTTP GUI uses 27018).
+                <strong>Default Port:</strong> TCP server listens on port <code className="px-1 py-0.5 bg-gray-100 rounded">27019</code> (HTTP API uses 27018).
                 Service B then connects with <code className="px-1 py-0.5 bg-gray-100 rounded">new AxioDBCloud("axiodb://service-a-host:27019")</code> — see{" "}
                 <a href="#client-usage" className="underline font-medium">Client Usage</a> below.
               </p>
@@ -352,7 +352,7 @@ await client.connect(); // resolves even if some pool members were rejected`}
             TCP connections are unauthenticated by default (unchanged from before). Opt in with{" "}
             <code className="px-2 py-1 bg-white rounded">TCPAuth: true</code> to require a
             username/password on every connection - it reuses the <strong>exact same accounts and roles</strong> as
-            the GUI Control Server&apos;s RBAC system, so there&apos;s only one set of credentials to manage.
+            the HTTP Server&apos;s RBAC system, so there&apos;s only one set of credentials to manage.
           </p>
 
           <div>
@@ -395,10 +395,10 @@ await client2.login('admin', 'admin');`}
               <h4 className="font-bold text-emerald-700 mb-2">What&apos;s enforced</h4>
               <ul className="text-sm text-emerald-700 space-y-1.5">
                 <li>• Every command except PING/DISCONNECT/AUTHENTICATE requires a prior successful login on that connection</li>
-                <li>• Same role permissions as the GUI, checked per command (e.g. a View-role user gets 403 on CREATE_DB)</li>
-                <li>• Shared per-IP login rate limiter with the GUI: 5 failed attempts in 15 minutes locks that IP out for 15 minutes (429)</li>
-                <li>• Accounts still needing their forced password change are rejected outright (403) - complete it via the GUI first, or seed the admin account with <code>AdminPassword</code></li>
-                <li>• A password reset, role change, or deletion via the GUI immediately forces an already-open TCP connection to re-authenticate</li>
+                <li>• Same role permissions as the HTTP API, checked per command (e.g. a View-role user gets 403 on CREATE_DB)</li>
+                <li>• Shared per-IP login rate limiter with the HTTP API: 5 failed attempts in 15 minutes locks that IP out for 15 minutes (429)</li>
+                <li>• Accounts still needing their forced password change are rejected outright (403) - complete it via the HTTP API first, or seed the admin account with <code>AdminPassword</code></li>
+                <li>• A password reset, role change, or deletion via the HTTP API immediately forces an already-open TCP connection to re-authenticate</li>
               </ul>
             </div>
 
@@ -408,7 +408,7 @@ await client2.login('admin', 'admin');`}
                 Known limitations
               </h4>
               <ul className="text-sm text-amber-700 space-y-1.5">
-                <li>• No TCP command exists yet to change a password - that must go through the GUI</li>
+                <li>• No TCP command exists yet to change a password - that must go through the HTTP API</li>
               </ul>
             </div>
           </div>
@@ -656,7 +656,7 @@ main().catch(console.error);`}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
             { icon: CheckCircle, title: "30 Commands", desc: "Full CRUD, aggregation, indexing, and transactions" },
-            { icon: Lock, title: "Optional Auth (NEW!)", desc: "Shared RBAC with the GUI, per-IP rate limiting" },
+            { icon: Lock, title: "Optional Auth (NEW!)", desc: "Shared RBAC with the HTTP API, per-IP rate limiting" },
             { icon: RefreshCw, title: "Auto-Reconnect", desc: "Exponential backoff with 10 retry attempts" },
             { icon: Activity, title: "Heartbeat", desc: "PING/PONG every 30 seconds" },
             { icon: Network, title: "Connection Pool", desc: "1000+ concurrent connections" },

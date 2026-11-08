@@ -59,7 +59,7 @@ class HTTPAPITests extends TestRunner {
     if (fs.existsSync(this.testDir)) {
       fs.rmSync(this.testDir, { recursive: true, force: true });
     }
-    this.dbInstance = new AxioDB({ GUI: true, RootName: 'HttpApiTestDB', CustomPath: this.testDir });
+    this.dbInstance = new AxioDB({ HTTP: true, RootName: 'HttpApiTestDB', CustomPath: this.testDir });
     this.db = await this.dbInstance.createDB('TestDB');
     this.collection = await this.db.createCollection('Users');
     await this.collection.newIndex('email', 'age');

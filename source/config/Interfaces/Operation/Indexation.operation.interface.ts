@@ -1,8 +1,6 @@
 import { DatabaseMap } from "./database.operation.interface";
 
 export interface AxioDBOptions {
-  /** @deprecated The browser Web GUI is deprecated in favor of the official Desktop GUI (AxioDB Control). Use HTTP: true instead. */
-  GUI?: boolean;
   /** Enable HTTP REST API server on port 27018. Defaults to false. */
   HTTP?: boolean;
   RootName?: string;

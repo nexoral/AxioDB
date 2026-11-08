@@ -32,8 +32,8 @@ class AuthTests extends TestRunner {
       fs.rmSync(this.testDir, { recursive: true, force: true });
     }
 
-    // GUI:true triggers config DB seeding + starts the control server on :27018
-    this.dbInstance = new AxioDB({ GUI: true, RootName: 'AuthTestDB', CustomPath: this.testDir });
+    // HTTP:true triggers config DB seeding + starts the control server on :27018
+    this.dbInstance = new AxioDB({ HTTP: true, RootName: 'AuthTestDB', CustomPath: this.testDir });
     await this.waitForServerReady();
 
     this.log('Test environment ready', 'success');

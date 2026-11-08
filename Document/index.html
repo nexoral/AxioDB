@@ -14,7 +14,7 @@
        tools even though browsers use the first `<title>` per spec) with no route that actually needs the fallback,
        since the full route set is enumerated and prerendered - see App.tsx's routes array. -->
   <meta name="keywords"
-    content="AxioDB, Embedded NoSQL Database, TypeScript database, AI Agents, AI Agent Database, agentic state store, agent memory, llm memory, MCP database server, Model Context Protocol database, mcp server, local-first database, offline-first database, Bun database, Deno database, Node.js database, SQLite alternative, better-sqlite3 alternative, nedb alternative, lowdb alternative, lokijs alternative, advanced queries, file-based database, JSON database, document store, document database, zero dependencies, no native bindings, no node-gyp, zero-native-deps, Electron database, desktop app database, CLI database, in-memory cache, aggregation pipeline, worker threads, web GUI, localhost database, schema validation, bulk operations, ACID transactions, embedded nosql nodejs" />
+    content="AxioDB, Embedded NoSQL Database, TypeScript database, AI Agents, AI Agent Database, agentic state store, agent memory, llm memory, MCP database server, Model Context Protocol database, mcp server, local-first database, offline-first database, Bun database, Deno database, Node.js database, SQLite alternative, better-sqlite3 alternative, nedb alternative, lowdb alternative, lokijs alternative, advanced queries, file-based database, JSON database, document store, document database, zero dependencies, no native bindings, no node-gyp, zero-native-deps, Electron database, desktop app database, CLI database, in-memory cache, aggregation pipeline, worker threads, desktop GUI, localhost database, schema validation, bulk operations, ACID transactions, embedded nosql nodejs" />
   <meta name="author" content="Ankan Saha" />
   <meta name="robots" content="index, follow" />
   <meta name="language" content="English" />
@@ -235,7 +235,7 @@
           "name": "What is the best embedded database for Electron apps in 2026?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "AxioDB is the best choice for Electron apps in 2026. It has zero native dependencies (no electron-rebuild), ACID transactions, built-in InMemoryCache, Worker Threads for multi-core processing, a built-in web GUI dashboard, and TypeScript support. It handles 10K-500K documents with O(1) lookups by ID and fast indexed queries."
+            "text": "AxioDB is the best choice for Electron apps in 2026. It has zero native dependencies (no electron-rebuild), ACID transactions, built-in InMemoryCache, Worker Threads for multi-core processing, a standalone desktop GUI, and TypeScript support. It handles 10K-500K documents with O(1) lookups by ID and fast indexed queries."
           }
         },
         {
@@ -291,7 +291,7 @@
           "name": "How do I use AxioDB in an Electron app?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Create the AxioDB instance in Electron's main process only, storing data in the per-user data directory: new AxioDB({ RootName: 'AppData', CustomPath: app.getPath('userData'), GUI: false }). Never write inside the app bundle or app.asar — asar is read-only and app contents are replaced on update. Expose database operations to the renderer through ipcMain.handle plus contextBridge rather than enabling nodeIntegration. No electron-rebuild step and no packaging configuration for native modules is required."
+            "text": "Create the AxioDB instance in Electron's main process only, storing data in the per-user data directory: new AxioDB({ RootName: 'AppData', CustomPath: app.getPath('userData') }). Never write inside the app bundle or app.asar — asar is read-only and app contents are replaced on update. Expose database operations to the renderer through ipcMain.handle plus contextBridge rather than enabling nodeIntegration. No electron-rebuild step and no packaging configuration for native modules is required."
           }
         },
         {
@@ -307,7 +307,7 @@
           "name": "What ports does AxioDB use?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Port 27018 is the web Dashboard and its REST HTTP API, enabled with GUI: true. Port 27019 is the AxioDBCloud TCP server, enabled with TCP: true — it is a custom TCP protocol, not HTTP. Port 27020 is the MCP server, enabled in core with MCP: true or in Docker with AXIODB_MCP=true. Ports 27018 and 27019 are not configurable in code; remap them at the Docker layer. Only the MCP port can be changed, via AXIODB_MCP_PORT. By default the embedded library opens no ports at all."
+            "text": "Port 27018 is the REST HTTP API, enabled with HTTP: true. Port 27019 is the AxioDBCloud TCP server, enabled with TCP: true — it is a custom TCP protocol, not HTTP. Port 27020 is the MCP server, enabled in core with MCP: true or in Docker with AXIODB_MCP=true. Ports 27018 and 27019 are not configurable in code; remap them at the Docker layer. Only the MCP port can be changed, via AXIODB_MCP_PORT. By default the embedded library opens no ports at all."
           }
         },
         {

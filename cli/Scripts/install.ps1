@@ -132,7 +132,7 @@ if ($env:CHOICE) {
     Print-PanelRow "[1] CLI only   - Command-line tool (~5MB)" "> Interactive REPL: axiodb connect"
     Print-PanelRow "[2] GUI only   - Desktop control app (~80MB)" "> AI Context Server: axiodb serve mcp"
     Print-PanelRow "[3] Full Suite - CLI + GUI complete suite" "> Dual-Write Cache & Zero Native Deps"
-    Print-PanelRow "" "> Ports: GUI 27018 | TCP 27019 | MCP 27020"
+    Print-PanelRow "" "> Ports: HTTP 27018 | TCP 27019 | MCP 27020"
     Print-PanelBottom
     Write-Host ""
 
@@ -246,7 +246,7 @@ function Install-GUI {
         if ($installedGuiVer -eq $VERSION) {
             Print-PanelTop "AxioDB GUI (v$VERSION)" "Status & Suggestions"
             Print-PanelRow "✔ Already installed and up to date!" "> Launch desktop: AxioDB Control"
-            Print-PanelRow "" "> Web Dashboard:  http://localhost:27018"
+            Print-PanelRow "" "> HTTP REST API:   http://localhost:27018"
             Print-PanelBottom
             return
         }

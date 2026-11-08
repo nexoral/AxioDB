@@ -149,7 +149,7 @@ AxioDB/
 ├── source/                    # TypeScript 6.0 strict → lib/ (CJS)
 │   ├── Services/              # Collection, Database, CRUD Operation, Index, Aggregation, Transaction, Auth
 │   ├── engine/Filesystem/     # FileManager, FolderManager
-│   ├── server/                # HTTP GUI + REST API 27018 (Fastify)
+│   ├── server/                # HTTP REST API 27018 (Fastify)
 │   ├── tcp/                   # AxioDBCloud TCP 27019 + client Proxies
 │   ├── Helper/                # Converter, Response, PathSanitizer
 │   ├── Memory/                # InMemoryCache
@@ -158,7 +158,7 @@ AxioDB/
 ├── Test/node/modules/         # 14 suites (isolated child processes, singleton)
 ├── Document/                  # React docs site 5173 (single source serverApi.ts → openapi.json)
 ├── Docker/                    # Dockerfile 27018/27019/27020 + runner.js
-├── GUI/                       # Vite React GUI
+├── electron/                  # Electron Desktop GUI
 ├── cli/                       # Go CLI 12 platforms
 └── package.json               # 25.39.1
 ```

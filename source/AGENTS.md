@@ -17,7 +17,7 @@ server/     HTTP Fastify (27018) — router/Routers/Router.ts, controller/ (Auth
 tcp/        TCP (27019) — handler/CommandHandler.ts + handlers/, connection/, config/, types/
 client/     AxioDBCloud client — *Proxy.ts wrappers + PooledConnection.ts (pooling/reconnect)
 Helper/     static stateless helpers — {Feature}.helper.ts
-utility/    BufferLoaderWithWorker, Searcher, SortData, StaticFile, ZipUnzip, Cors, Cookie
+utility/    BufferLoaderWithWorker, Searcher, SortData, ZipUnzip, Cors, Cookie
 ```
 
 ## Commands (from repo root)

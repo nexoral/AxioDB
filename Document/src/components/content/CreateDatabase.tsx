@@ -11,7 +11,7 @@ const { AxioDB } = require("axiodb");
 const db = new AxioDB({ HTTP: true });
 console.log("AxioDB instance created with HTTP REST API at localhost:27018");
 `,
-    noGUI: `
+    embeddedMode: `
 // Create AxioDB instance in headless embedded mode (HTTP and TCP off)
 const db = new AxioDB();
 console.log("AxioDB instance created in embedded mode");
@@ -82,12 +82,12 @@ console.log("Database 'ProductsDB' created");
         </ul>
       </div>
 
-      <h3 className="text-2xl font-semibold mb-4">Setting the Admin Password (No GUI)</h3>
+      <h3 className="text-2xl font-semibold mb-4">Setting the Admin Password (Headless Mode)</h3>
       <p className="text-gray-600 mb-4">
         On first start AxioDB seeds an <code className="bg-gray-100 px-2 py-1 rounded">admin/admin</code>{" "}
         account and flags it <code className="bg-gray-100 px-2 py-1 rounded">mustChangePassword: true</code>.{" "}
-        The forced change can only be completed through the HTTP API or the GUI - so if you start
-        the server with <code className="bg-gray-100 px-2 py-1 rounded">GUI: false</code> and{" "}
+        The forced change can only be completed through the HTTP API - so if you start
+        the server with <code className="bg-gray-100 px-2 py-1 rounded">HTTP: false</code> and{" "}
         <code className="bg-gray-100 px-2 py-1 rounded">TCPAuth: true</code>, there would be no way
         to choose a password and TCP would reject every login. Pass{" "}
         <code className="bg-gray-100 px-2 py-1 rounded">AdminPassword</code> to seed the account
@@ -97,7 +97,6 @@ console.log("Database 'ProductsDB' created");
         code={`const db = new AxioDB({
   TCP: true,
   TCPAuth: true,
-  GUI: false,
   AdminPassword: 'my-secret-password',
 });
 
@@ -137,7 +136,7 @@ console.log("Database 'ProductsDB' created");
       <p className="text-gray-600 mb-4">
         For production environments where you don't need the web interface.
       </p>
-      <CodeBlock code={codeExamples.noGUI} language="javascript" />
+      <CodeBlock code={codeExamples.embeddedMode} language="javascript" />
 
       <h3 className="text-2xl font-semibold mt-8 mb-4">Custom Database Name</h3>
       <p className="text-gray-600 mb-4">
