@@ -13,6 +13,14 @@ import Seo from "../ui/Seo";
 
 const INSTALL_NPM = `npm install axiodb@latest --save`;
 
+const INSTALL_DENO = `// Deno (zero install via URL)
+import { AxioDB } from 'https://esm.sh/axiodb';
+
+const db = new AxioDB({ HTTP: true });
+const appDB = await db.createDB('AppDB');
+const users = await appDB.createCollection('users');
+await users.insert({ name: 'Alice', age: 30 });`;
+
 const INSTALL_CLI_LINUX = `curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | bash`;
 
 const INSTALL_CLI_WINDOWS = `irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex`;
@@ -133,6 +141,13 @@ const Installation: React.FC = () => {
 
           <div className="bg-gray-50 rounded-[3px] p-6 mb-6 border border-gray-200">
             <CodeBlock code={installationCode} language="bash" />
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Or in Deno (zero install via URL):</h3>
+            <div className="bg-gray-50 rounded-[3px] p-6 border border-gray-200">
+              <CodeBlock code={INSTALL_DENO} language="typescript" />
+            </div>
           </div>
 
           <div className="bg-accent-50 p-6 rounded-[3px] border border-accent-200">

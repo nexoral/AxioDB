@@ -54,6 +54,20 @@ console.log(result.data.documents[0].message); // Hello, Developer!
       code: HELLO_WORLD_CODE,
     },
     {
+      label: "Deno (no install)",
+      language: "typescript",
+      code: `// Zero installation in Deno — import directly via esm.sh
+import { AxioDB } from 'https://esm.sh/axiodb';
+
+const db = new AxioDB({ HTTP: true });
+const appDB = await db.createDB('DenoApp');
+const users = await appDB.createCollection('users');
+
+await users.insert({ name: 'Alice', age: 30 });
+const result = await users.query({ age: { $gt: 25 } }).exec();
+console.log(result.data.documents);`,
+    },
+    {
       label: "AI agent state",
       language: "javascript",
       code: `// Persist agent turns & execution state
@@ -849,6 +863,8 @@ const Introduction: React.FC = () => {
             <div className="pt-6 font-mono text-sm">
               <div className="text-accent-700 mb-2">$ npm install axiodb</div>
               <div className="text-gray-600 mb-3">+ axiodb@latest  # No native dependencies, no compilation</div>
+              <div className="text-accent-700 mb-2"># Or in Deno (zero-install via URL):</div>
+              <div className="text-gray-600 mb-3">import &#123; AxioDB &#125; from 'https://esm.sh/axiodb';</div>
               <div className="text-accent-700 mb-2">$ node app.js</div>
               <div className="text-gray-700 mb-1">✓ AxioDB initialized</div>
               <div className="text-gray-700 mb-1">✓ Database ready at ./AxioDB</div>
