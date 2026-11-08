@@ -52,9 +52,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -87,9 +87,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -122,9 +122,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -157,9 +157,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -192,9 +192,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -227,9 +227,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -262,9 +262,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -297,9 +297,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
