@@ -5,12 +5,12 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Sun, 08 Nov 2026 22:38:20 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 08 Nov 2026 22:57:10 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v26.40.4 — Single-file bundle distribution (axiodb.js), inlined memory worker threads, and 71% package size reduction</title>
+      <title>AxioDB v26.40.5 — Single-file bundle distribution (axiodb.js), inlined memory worker threads, and 71% package size reduction</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-26.40.4</guid>
+      <guid isPermaLink="false">axiodb-26.40.5</guid>
       <pubDate>Mon, 09 Nov 2026 00:00:00 GMT</pubDate>
       <description>Single-File Root Bundle: introduced axiodb.js and axiodb.d.ts directly in the project root powered by tsup, reducing published package files from 261 files to strictly 5 files | 71% Package Footprint Reduction: shrank unpacked install size from 1.18 MB down to 344 kB, and npm tarball download from 309 kB down to 86 kB | Inlined Worker Thread Scripts: migrated parallel multi-core buffer loading and query chunk search to self-contained inlined scripts using new Worker(script, { eval: true }), eliminating relative disk file paths and companion file loading issues</description>
     </item>

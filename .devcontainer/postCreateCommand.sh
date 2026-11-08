@@ -50,7 +50,7 @@ if [ -n "$NVM_SH" ]; then
   nvm alias default 24 >/dev/null
   nvm use 24 >/dev/null
 elif command -v node >/dev/null 2>&1 && [ "$(node -p 'process.versions.node.split(".")[0]')" -ge 24 ]; then
-  log "Node.js $(node -v) already satisfies the >=20 requirement"
+  log "Node.js $(node -v) already satisfies the >=22 requirement"
 else
   warn "nvm not found — installing Node.js 24 via Nodesource"
   curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -

@@ -66,16 +66,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
           cache: 'npm'
 
       - name: Cache node modules
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -101,16 +101,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
           cache: 'npm'
 
       - name: Cache node modules
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -136,16 +136,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
           cache: 'npm'
 
       - name: Cache node modules
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -171,16 +171,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
           cache: 'npm'
 
       - name: Cache node modules
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -206,16 +206,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
           cache: 'npm'
 
       - name: Cache node modules
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -241,16 +241,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
           cache: 'npm'
 
       - name: Cache node modules
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -276,16 +276,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '22.x'
           cache: 'npm'
 
       - name: Cache node modules
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-22.x-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-22.x-
             ${{ runner.os }}-node-
 
       - name: Install dependencies
@@ -305,7 +305,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        node-version: [20.x, 21.x, 22.x, 23.x, 24.x, 25.x, 26.x]
+        node-version: [22.x, 23.x, 24.x, 25.x, 26.x]
       fail-fast: false
     name: "Gate 8 — Node Matrix Test (Node ${{ matrix.node-version }})"
     steps:
@@ -403,7 +403,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Ensure npm 11.5.1 or later

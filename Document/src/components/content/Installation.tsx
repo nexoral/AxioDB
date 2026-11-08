@@ -25,7 +25,7 @@ const Installation: React.FC = () => {
     <section id="installation" className="pt-12 scroll-mt-20">
       <Seo
         title="Install AxioDB - Embedded NoSQL Database Installation Guide"
-        description="Install AxioDB in seconds with npm. Zero native dependencies, no node-gyp, no compilation. Verified on Node.js (>=20) and Bun for TypeScript and AI agent apps."
+        description="Install AxioDB in seconds with npm. Zero native dependencies, no node-gyp, no compilation. Verified on Node.js (>=22) and Bun for TypeScript and AI agent apps."
         path="/installation"
         ogType="article"
       />
@@ -148,7 +148,7 @@ const Installation: React.FC = () => {
                 </p>
                 <p className="text-sm text-accent-700 leading-relaxed">
                   AxioDB requires{" "}
-                  <strong>Node.js ≥ 20.0.0</strong>,{" "}
+                  <strong>Node.js ≥ 22.0.0</strong>,{" "}
                   <strong>Bun ≥ 1.4.0</strong>, or{" "}
                   <strong>Deno ≥ 2.9.6</strong>. Verify your
                   runtime version before installation.
