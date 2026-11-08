@@ -5,7 +5,7 @@ function parseBoolean(value, fallback) {
   return ['true', '1', 'yes'].includes(String(value).trim().toLowerCase());
 };
 
-const httpEnabled = parseBoolean(process.env.AXIODB_HTTP, parseBoolean(process.env.AXIODB_GUI, true));
+const httpEnabled = parseBoolean(process.env.AXIODB_HTTP, true);
 const tcpEnabled = parseBoolean(process.env.AXIODB_TCP, true);
 const tlsEnabled = parseBoolean(process.env.AXIODB_TLS, false);
 const mcpEnabled = parseBoolean(process.env.AXIODB_MCP, false);

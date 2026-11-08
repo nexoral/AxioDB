@@ -624,7 +624,7 @@ docker run -d \
 
 | Variable | Default | Description |
 |---|---|---|
-| `AXIODB_HTTP` | `true` | REST API on port 27018 (legacy `AXIODB_GUI` maps to `AXIODB_HTTP`) |
+| `AXIODB_HTTP` | `true` | REST API on port 27018 |
 | `AXIODB_TCP` | `true` | TCP server on port 27019 |
 | `AXIODB_TCP_AUTH_ENABLED` | `true` | Require TCP auth (shared RBAC with HTTP API) |
 | `AXIODB_ADMIN_PASSWORD` | *(none)* | Password `admin` is seeded with on first start. **Required** when TCP auth is on and `AXIODB_HTTP` is off, or the container exits at startup |

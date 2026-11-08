@@ -49,7 +49,7 @@ function parseNumber(value, fallback) {
 }
 
 const options = {
-  HTTP: parseBoolean(process.env.AXIODB_HTTP, parseBoolean(process.env.AXIODB_GUI, true)),
+  HTTP: parseBoolean(process.env.AXIODB_HTTP, true),
   TCP: parseBoolean(process.env.AXIODB_TCP, true),
   TCPAuth: parseBoolean(process.env.AXIODB_TCP_AUTH_ENABLED, true),
   TLS: parseBoolean(process.env.AXIODB_TLS, false),

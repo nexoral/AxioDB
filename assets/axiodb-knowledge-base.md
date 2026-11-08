@@ -66,7 +66,7 @@ The official Docker image (`theankansaha/axiodb`) packages the entire AxioDB sta
 
 | Variable | Default | Allowed Values | Description |
 | :--- | :--- | :--- | :--- |
-| `AXIODB_HTTP` | `true` | `true`, `false` | Controls the Fastify HTTP REST API server on port 27018 (legacy `AXIODB_GUI` maps to `AXIODB_HTTP`). |
+| `AXIODB_HTTP` | `true` | `true`, `false` | Controls the Fastify HTTP REST API server on port 27018. |
 | `AXIODB_TCP` | `true` | `true`, `false` | Enables the AxioDBCloud TCP remote server on port 27019. |
 | `AXIODB_TCP_AUTH_ENABLED` | `true` | `true`, `false` | Requires username/password authentication for TCP clients. Uses the same RBAC system as HTTP. |
 | `AXIODB_ADMIN_PASSWORD` | *(none)* | string | Seeds the initial password for `admin` on first startup, bypassing the mandatory password rotation. **Required** when `AXIODB_TCP_AUTH_ENABLED=true` and `AXIODB_HTTP=false` (headless mode). |

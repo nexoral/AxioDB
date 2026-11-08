@@ -115,7 +115,7 @@ const Docker: React.FC = () => {
                   <tr className="border-b border-gray-200">
                     <td className="py-2 pr-4 font-mono text-xs">AXIODB_HTTP</td>
                     <td className="py-2 pr-4"><code>true</code></td>
-                    <td className="py-2">Enable the HTTP REST API server on port 27018 (legacy AXIODB_GUI automatically maps to AXIODB_HTTP)</td>
+                    <td className="py-2">Enable the HTTP REST API server on port 27018</td>
                   </tr>
                   <tr className="border-b border-gray-200">
                     <td className="py-2 pr-4 font-mono text-xs">AXIODB_TCP</td>
