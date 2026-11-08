@@ -26,7 +26,7 @@ AxioDB enforces a strict singleton pattern per Node.js process:
 ## 4. TCP First-Login Authentication Requirement
 
 - AxioDB seeds a default `admin` user with password `admin`.
-- **Gotcha**: For security, TCP connections reject the initial `admin/admin` credentials until the password is changed via the HTTP Control Server / Web GUI (`http://localhost:27018`).
+- **Gotcha**: For security, TCP connections reject the initial `admin/admin` credentials until the password is changed via the HTTP Control Server (`http://localhost:27018`), Desktop GUI, or initialized via `AXIODB_ADMIN_PASSWORD`.
 - **Headless Bypass**: When starting headless instances or automated Docker containers without GUI access, you **must** supply `AXIODB_ADMIN_PASSWORD=<custom_password>` on initial creation. This automatically clears the password change requirement.
 
 ---

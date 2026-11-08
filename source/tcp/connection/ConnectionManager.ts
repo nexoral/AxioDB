@@ -180,7 +180,7 @@ export class ConnectionManager extends EventEmitter {
    * given username, following a role change, password reset, or account deletion
    * elsewhere (see AuthEvents). The connection itself is left open - the next
    * command on it will simply be treated as unauthenticated again, mirroring how a
-   * revoked GUI session cookie stops working without forcibly closing the browser tab.
+   * revoked session cookie stops working without forcibly closing the client connection.
    */
   revokeAuthForUser(username: string): void {
     for (const info of this.connections.values()) {

@@ -3,8 +3,8 @@ import { PERMISSIONS, PermissionKey } from '../../config/Keys/Permissions';
 
 /**
  * Maps each data-plane TCP command to the RBAC permission key required to run it.
- * Mirrors the GUI's per-route `requirePermission(key)` chain (see
- * `source/server/router/Routers/*.routes.ts`) so TCP and GUI enforce identical rules
+ * Mirrors the HTTP API's per-route `requirePermission(key)` chain (see
+ * `source/server/router/Routers/*.routes.ts`) so TCP and HTTP enforce identical rules
  * against the same `config` DB users/roles.
  *
  * Transaction commands require DOCUMENT_CREATE because they modify data.

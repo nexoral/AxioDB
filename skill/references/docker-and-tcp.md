@@ -3,7 +3,7 @@
 ## 1. Official Docker Container
 
 The official Docker image (`theankansaha/axiodb`) packages the entire AxioDB stack:
-- **HTTP REST API & Web GUI**: Port `27018`
+- **HTTP REST API**: Port `27018`
 - **TCP Remote Server (AxioDBCloud)**: Port `27019`
 - **MCP Server (Streamable HTTP for AI Agents)**: Port `27020` (Opt-in)
 
@@ -11,7 +11,7 @@ The official Docker image (`theankansaha/axiodb`) packages the entire AxioDB sta
 
 ## 2. Docker Quickstart Commands
 
-### Standard Setup (Persistent Data + HTTP GUI + TCP)
+### Standard Setup (Persistent Data + HTTP API + TCP)
 
 ```bash
 docker run -d \
@@ -22,17 +22,17 @@ docker run -d \
   theankansaha/axiodb
 ```
 
-> **Default Authentication**: `AXIODB_TCP_AUTH_ENABLED=true` by default. The database seeds an `admin` account with initial password `admin`. For security, first login must rotate this password via the Web GUI (`http://localhost:27018`) before TCP logins are allowed.
+> **Default Authentication**: `AXIODB_TCP_AUTH_ENABLED=true` by default. The database seeds an `admin` account with initial password `admin`. For security, first login must rotate this password via the HTTP API (`http://localhost:27018`), Desktop GUI, or `AXIODB_ADMIN_PASSWORD` before TCP logins are allowed.
 
 ### Headless TCP with Seeded Admin Password
 
-To run without HTTP/GUI while using TCP authentication, supply `AXIODB_ADMIN_PASSWORD`:
+To run without HTTP while using TCP authentication, supply `AXIODB_ADMIN_PASSWORD`:
 
 ```bash
 docker run -d \
   --name axiodb-server \
   -p 27019:27019 \
-  -e AXIODB_GUI=false \
+  -e AXIODB_HTTP=false \
   -e AXIODB_TCP_AUTH_ENABLED=true \
   -e AXIODB_ADMIN_PASSWORD="<ADMIN_PASSWORD>" \
   -v axiodb-data:/app \
@@ -58,11 +58,10 @@ docker run -d \
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
-| `AXIODB_GUI` | `true` | Enables the HTTP Control Server and Web GUI dashboard on port 27018. |
-| `AXIODB_HTTP` | Mirrors `AXIODB_GUI` | Controls HTTP API server. Note: setting `AXIODB_GUI=true` with `AXIODB_HTTP=false` is invalid. |
+| `AXIODB_HTTP` | `true` | Enables the HTTP REST API server on port 27018. |
 | `AXIODB_TCP` | `true` | Enables AxioDBCloud TCP server on port 27019. |
 | `AXIODB_TCP_AUTH_ENABLED` | `true` | Requires username/password authentication on all TCP connections. |
-| `AXIODB_ADMIN_PASSWORD` | *(none)* | Initial password for `admin` user on first run. Skips forced GUI password change. |
+| `AXIODB_ADMIN_PASSWORD` | *(none)* | Initial password for `admin` user on first run. Skips forced password change. |
 | `AXIODB_TLS` | `false` | Enables TLS encryption on TCP connections (requires cert & key paths). |
 | `AXIODB_TLS_CERT_PATH` | *(none)* | Path inside container to the PEM certificate file. |
 | `AXIODB_TLS_KEY_PATH` | *(none)* | Path inside container to the matching private key file. |
@@ -143,11 +142,11 @@ services:
     image: theankansaha/axiodb
     container_name: axiodb-server
     ports:
-      - "27018:27018"   # HTTP REST API & Web GUI
+      - "27018:27018"   # HTTP REST API
       - "27019:27019"   # TCP Remote Access
       - "27020:27020"   # MCP Streamable HTTP Server
     environment:
-      - AXIODB_GUI=true
+      - AXIODB_HTTP=true
       - AXIODB_TCP=true
       - AXIODB_TCP_AUTH_ENABLED=true
       - AXIODB_ADMIN_PASSWORD=ProductionPassword2026!

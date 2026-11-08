@@ -66,7 +66,7 @@
     "source": {
       "Services": "Core operations (Database, Collection, CRUD, Index, Transaction, Aggregation)",
       "engine": "File operations (FileManager, FolderManager)",
-      "server": "HTTP GUI (Fastify, port 27018)",
+      "server": "HTTP REST API (Fastify, port 27018)",
       "tcp": "TCP server (AxioDBCloud, port 27019)",
       "client": "TCP client + Proxies",
       "Helper": "Utilities (Converter, Crypto, Response)",

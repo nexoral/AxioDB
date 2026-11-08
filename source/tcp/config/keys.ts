@@ -86,7 +86,7 @@ export const ErrorMessage = {
   RESERVED_DATABASE: 'This is a reserved system database',
   TOO_MANY_LOGIN_ATTEMPTS: 'Too many failed login attempts. Try again later.',
   PASSWORD_CHANGE_REQUIRED:
-    'This account must change its password before it can be used over TCP. Log into the Control Server GUI to change the password, or authenticate with a different account that has already completed its password change.',
+    'This account must change its password before it can be used over TCP. Log into the HTTP API or Desktop GUI to change the password, or authenticate with a different account that has already completed its password change.',
 } as const;
 
 // Success Messages

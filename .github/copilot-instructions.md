@@ -2,7 +2,7 @@
 
 **AxioDB** - embedded NoSQL database for Node.js, zero native dependencies.
 TypeScript strict → CommonJS · Node.js ≥20 · singleton, file-per-document storage ·
-InMemoryCache, Worker Threads, ACID transactions, Web GUI, TCP remote access.
+InMemoryCache, Worker Threads, ACID transactions, Desktop GUI, TCP remote access.
 
 ## Core rules (NON-NEGOTIABLE)
 
@@ -47,7 +47,7 @@ Filenames live in `General` in `source/config/Keys/Keys.ts` - never hardcode the
 source/
 ├── Services/   Database, Collection, CRUD, Index, Transaction, Aggregation
 ├── engine/     FileManager, FolderManager (low-level)
-├── server/     HTTP GUI + REST API (Fastify, 27018)
+├── server/     HTTP REST API (Fastify, 27018)
 ├── tcp/        TCP server (AxioDBCloud, 27019)
 ├── client/     TCP client + Proxies
 ├── Helper/     Converter, Response, PathSanitizer

@@ -58,7 +58,7 @@ AxioDB provides the foundational storage for **Vector-Less RAG & Agent State**:
 ### 1.3 Official Docker Container & Container Orchestration
 
 The official Docker image (`theankansaha/axiodb`) packages the entire AxioDB stack:
-- **HTTP REST API & Web GUI Dashboard:** Port `27018`
+- **HTTP REST API:** Port `27018`
 - **AxioDBCloud TCP Remote Server:** Port `27019`
 - **MCP Server (Streamable HTTP for AI Agents):** Port `27020` (Opt-in via `AXIODB_MCP=true`)
 
@@ -66,11 +66,10 @@ The official Docker image (`theankansaha/axiodb`) packages the entire AxioDB sta
 
 | Variable | Default | Allowed Values | Description |
 | :--- | :--- | :--- | :--- |
-| `AXIODB_GUI` | `true` | `true`, `false`, `1`, `0` | Enables the Web GUI dashboard and HTTP control server on port 27018. |
-| `AXIODB_HTTP` | Mirrors `AXIODB_GUI` | `true`, `false` | Controls the Fastify HTTP REST API server on port 27018. Setting `AXIODB_GUI=true` with `AXIODB_HTTP=false` is an invalid configuration. |
+| `AXIODB_HTTP` | `true` | `true`, `false` | Controls the Fastify HTTP REST API server on port 27018. |
 | `AXIODB_TCP` | `true` | `true`, `false` | Enables the AxioDBCloud TCP remote server on port 27019. |
 | `AXIODB_TCP_AUTH_ENABLED` | `true` | `true`, `false` | Requires username/password authentication for TCP clients. Uses the same RBAC system as HTTP. |
-| `AXIODB_ADMIN_PASSWORD` | *(none)* | string | Seeds the initial password for `admin` on first startup, bypassing the mandatory GUI rotation. **Required** when `AXIODB_TCP_AUTH_ENABLED=true` and `AXIODB_HTTP=false` (headless mode). |
+| `AXIODB_ADMIN_PASSWORD` | *(none)* | string | Seeds the initial password for `admin` on first startup, bypassing the mandatory password rotation. **Required** when `AXIODB_TCP_AUTH_ENABLED=true` and `AXIODB_HTTP=false` (headless mode). |
 | `AXIODB_TLS` | `false` | `true`, `false` | Enables TLS encryption for incoming TCP connections on port 27019. |
 | `AXIODB_TLS_CERT_PATH` | *(none)* | file path | Path inside container to the PEM certificate file (required when `AXIODB_TLS=true`). |
 | `AXIODB_TLS_KEY_PATH` | *(none)* | file path | Path inside container to the PEM private key file (required when `AXIODB_TLS=true`). |
@@ -92,7 +91,7 @@ AxioDB's container runner (`Docker/runner.js`) inspects cgroup limits on startup
 
 #### Container Healthcheck
 The Docker image includes `healthcheck.js` which verifies all enabled subsystems concurrently with a 4000ms timeout:
-1. **HTTP GUI:** `GET http://localhost:27018/api/health` returns status `200 OK`.
+1. **HTTP REST API:** `GET http://localhost:27018/api/health` returns status `200 OK`.
 2. **TCP Server:** Connects via `AxioDBCloud` and issues a round-trip `PING` command on port 27019.
 3. **MCP Server:** Sends a probe to `GET http://localhost:27020/mcp`.
 
@@ -105,11 +104,11 @@ services:
     image: theankansaha/axiodb:latest
     container_name: axiodb-server
     ports:
-      - "27018:27018"   # HTTP REST API & Web GUI Dashboard
+      - "27018:27018"   # HTTP REST API Server
       - "27019:27019"   # AxioDBCloud TCP Remote Server
       - "27020:27020"   # MCP Streamable HTTP AI Server
     environment:
-      - AXIODB_GUI=true
+      - AXIODB_HTTP=true
       - AXIODB_TCP=true
       - AXIODB_TCP_AUTH_ENABLED=true
       - AXIODB_ADMIN_PASSWORD=my_strong_production_password
@@ -155,8 +154,8 @@ AxioDB enforces a **strict singleton pattern** per operating system process.
 new AxioDB(options?: {
   RootName?: string;      // Storage folder name (default: "AxioDB")
   CustomPath?: string;    // Parent directory (default: process.cwd())
-  GUI?: boolean;          // Enable Web Dashboard on port 27018 (default: false)
-  HTTP?: boolean;         // Enable REST API on port 27018 (default: true if GUI: true)
+  HTTP?: boolean;         // Enable REST API on port 27018 (default: false)
+  GUI?: boolean;          // Legacy alias for HTTP (deprecated, auto-maps to HTTP)
   TCP?: boolean;          // Enable TCP Server on port 27019 (default: false)
   TCPAuth?: boolean;      // Require authentication on TCP (default: false)
   AdminPassword?: string; // Seed password for 'admin' (skips forced change)
@@ -481,16 +480,16 @@ You can start the MCP server in two ways:
    
    const db = new AxioDB({
      MCP: true,     // Starts native MCP HTTP server at http://localhost:27020/mcp
-     GUI: true,     // Optional: also launch Web Dashboard on port 27018
+     HTTP: true,    // Optional: also launch HTTP API on port 27018
    });
    ```
 2. **Via Official Docker Container:** Run with `AXIODB_MCP=true`:
    ```bash
    docker run -d -p 27020:27020 -e AXIODB_MCP=true theankansaha/axiodb
    ```
-   *(Or run full stack with Web GUI on 27018, TCP on 27019, and MCP on 27020):*
+   *(Or run full stack with HTTP API on 27018, TCP on 27019, and MCP on 27020):*
    ```bash
-   docker run -d -p 27018:27018 -p 27019:27019 -p 27020:27020 -e AXIODB_GUI=true -e AXIODB_TCP=true -e AXIODB_MCP=true theankansaha/axiodb
+   docker run -d -p 27018:27018 -p 27019:27019 -p 27020:27020 -e AXIODB_HTTP=true -e AXIODB_TCP=true -e AXIODB_MCP=true theankansaha/axiodb
    ```
 
 ### 8.2 Connecting AI Clients
@@ -815,7 +814,7 @@ AxioDB provides a compiled standalone Go CLI binary (`axiodb`) available for Lin
 
 ### 13.2 Temporary Local Server (`axiodb serve`)
 Spins up an isolated, ephemeral instance in a temporary directory for local dev, scripts, or CI/CD:
-- `axiodb serve http`: Boots HTTP REST API & Web GUI only (Port 27018).
+- `axiodb serve http`: Boots HTTP REST API only (Port 27018).
 - `axiodb serve tcp`: Boots TCP server only without authentication (Port 27019).
 - `axiodb serve tcp-auth <password>`: Boots TCP server with authentication enabled and seeds the initial admin password.
 - `axiodb serve full [password]`: Boots full stack (HTTP on 27018 + TCP on 27019 with authentication).
@@ -984,7 +983,7 @@ try {
   kill -9 $(lsof -t -i:27018 -i:27019 -i:27020)
   ```
 
-### 3. `Error: 403 Must change password before TCP/GUI use`
+### 3. `Error: 403 Must change password before TCP use`
 * **Root Cause:** First-boot security requirement for default admin account.
 * **Fix:** Log in at `http://localhost:27018` to complete change, or pass `AdminPassword: "my_password"` on first start.
 
@@ -1038,7 +1037,7 @@ A: AxioDB does not support MongoDB update operators. All updates are flat shallo
 
 **Q: What ports does AxioDB use?**  
 A: AxioDB uses three distinct ports:
-- **Port 27018:** Web Dashboard GUI & Fastify REST API (`GUI: true` or `HTTP: true`).
+- **Port 27018:** Fastify REST API (`HTTP: true`).
 - **Port 27019:** AxioDBCloud TCP Wire Protocol Server (`TCP: true`).
 - **Port 27020:** Native Model Context Protocol (MCP) Streamable HTTP Server (`MCP: true`).
 
@@ -1067,7 +1066,7 @@ const users = await db.createCollection("users");
 ```
 
 **Q: Why does my headless Docker container fail on startup with "TCP authentication without AXIODB_HTTP requires AXIODB_ADMIN_PASSWORD"?**  
-A: When running headless (`AXIODB_GUI=false` or `AXIODB_HTTP=false`), the Web GUI and HTTP server on port 27018 are disabled. Because AxioDB security prohibits unrotated default `admin/admin` credentials from logging in over TCP, there would be no way to change the password. To bypass this, pass `-e AXIODB_ADMIN_PASSWORD="<password>"` when running the container. AxioDB seeds the account directly with that password, allowing immediate TCP connections.
+A: When running headless (`AXIODB_HTTP=false`), the HTTP server on port 27018 is disabled. Because AxioDB security prohibits unrotated default `admin/admin` credentials from logging in over TCP, there would be no way to change the password. To bypass this, pass `-e AXIODB_ADMIN_PASSWORD="<password>"` when running the container. AxioDB seeds the account directly with that password, allowing immediate TCP connections.
 
 **Q: How does connection pooling work in `AxioDBCloud`?**  
 A: `AxioDBCloud` maintains an internal pool of concurrent TCP connections (`maxPoolSize: 10` by default). Outgoing commands are routed dynamically to whichever connected socket currently has the lowest in-flight request queue. Each connection member reconnects independently with exponential backoff and transparent session re-authentication upon network disruption.

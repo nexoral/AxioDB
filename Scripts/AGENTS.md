@@ -17,7 +17,7 @@ setup.sh               installs the .git/hooks/pre-commit hook (no-op without .g
 ## versionController.sh
 
 * Fetches remote `package.json`, compares with local, prompts for a new (higher) semver, then rewrites every versioned file.
-* Targets (interactive menu): `root`, `cli`, `electron`, `gui`, `document`, `docker`; **`root` also syncs `CONTRIBUTING.md`** (not separately selectable).
+* Targets (interactive menu): `root`, `cli`, `electron`, `document`, `docker`, `skill`, `email`; **`root` also syncs `CONTRIBUTING.md`** (not separately selectable).
 * Defaults to **all** targets (empty input, `a`, or `all`).
 * On an all-targets run it also runs the post-bump pipeline: `cd Document && npm run build` (regenerates sitemap/llms/openapi/feed/markdown) and, only if graphify is installed **and** `graphify-out/` exists, rebuilds the graph. It never installs graphify or creates a graph — that is `AiGraphBuilder.sh`'s job.
 * Non-interactive: `./Scripts/versionController.sh <version>`.
@@ -29,7 +29,6 @@ Full target → file map (each sed is the authoritative location):
 | root | `package.json` · `package-lock.json` · `CONTRIBUTING.md` |
 | cli | `cli/VERSION` · `cli/cmd/version.go` |
 | electron | `electron/package.json` · `electron/src/layout/StatusBar.jsx` |
-| gui | `GUI/package.json` |
 | document | `Document/package.json` · `public/llms.txt` · `public/llms-full.txt` · `Document/index.html` · `src/components/layout/Footer.tsx` · `src/data/changelog.ts` |
 | docker | `Docker/README.md` (badge) |
 

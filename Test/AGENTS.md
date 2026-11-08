@@ -51,7 +51,7 @@ const { AxioDB } = require('../../../lib/config/DB.js');   // compiled output, n
 
 class MyTests extends TestRunner {
   constructor() { super('My Test Suite'); }
-  async setUp() { /* rm old temp dir, init DB with { GUI: false, CustomPath: <temp> } */ }
+  async setUp() { /* rm old temp dir, init DB with { HTTP: false, CustomPath: <temp> } */ }
   async tearDown() { /* rm -rf the temp dir */ }
   async runTests() {
     await this.describe('Group', async () => {

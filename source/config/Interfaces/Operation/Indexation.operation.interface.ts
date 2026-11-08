@@ -1,13 +1,12 @@
 import { DatabaseMap } from "./database.operation.interface";
 
 export interface AxioDBOptions {
-  GUI?: boolean;
-  /** Enable HTTP API server on port 27018. Auto-enables when GUI: true. If GUI: true and HTTP: false, throws error at startup. */
+  /** Enable HTTP REST API server on port 27018. Defaults to false. */
   HTTP?: boolean;
   RootName?: string;
   CustomPath?: string;
   TCP?: boolean;
-  /** Require username/password authentication (same RBAC users as the GUI) for TCP connections. Defaults to false. */
+  /** Require username/password authentication (same RBAC users as the HTTP server) for TCP connections. Defaults to false. */
   TCPAuth?: boolean;
   /** Enable native Model Context Protocol (MCP) HTTP server on fixed port 27020. Defaults to false. */
   MCP?: boolean;

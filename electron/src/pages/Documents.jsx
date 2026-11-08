@@ -52,6 +52,7 @@ const Documents = () => {
 
   // Compass-style Filter Bar inputs (accepts relaxed JS object literals)
   const [filterStr, setFilterStr] = useState("");
+  const [docIdInput, setDocIdInput] = useState("");
   const [sortStr, setSortStr] = useState("");
   const [projectStr, setProjectStr] = useState("");
   const [skipStr, setSkipStr] = useState("0");
@@ -68,6 +69,7 @@ const Documents = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [inspectorDoc, setInspectorDoc] = useState(null); // Side Drawer
+  const [copiedInspectorId, setCopiedInspectorId] = useState(false);
   const [showCreateColl, setShowCreateColl] = useState(false);
   const [collToDelete, setCollToDelete] = useState(null);
 
@@ -231,6 +233,10 @@ const Documents = () => {
       }
     }
 
+    if (docIdInput.trim()) {
+      parsedFilter.documentId = docIdInput.trim();
+    }
+
     setPage(1);
     setActiveFilterQuery(parsedFilter);
     fetchDocuments(1, false, parsedFilter);
@@ -238,6 +244,7 @@ const Documents = () => {
 
   const handleResetFilter = () => {
     setFilterStr("");
+    setDocIdInput("");
     setSortStr("");
     setProjectStr("");
     setSkipStr("0");
@@ -692,6 +699,31 @@ const Documents = () => {
                 />
               </div>
 
+              {/* Document ID */}
+              <div className="w-56 flex items-center bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 focus-within:border-emerald-500 focus-within:bg-white focus-within:ring-1 focus-within:ring-emerald-500/20 transition-all">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-2 font-mono">
+                  ID
+                </span>
+                <input
+                  type="text"
+                  value={docIdInput}
+                  onChange={(e) => setDocIdInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleApplyFilter()}
+                  placeholder="search by documentId..."
+                  className="w-full bg-transparent text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none"
+                />
+                {docIdInput && (
+                  <button
+                    type="button"
+                    onClick={() => setDocIdInput("")}
+                    className="text-slate-400 hover:text-slate-600 text-xs ml-1"
+                    title="Clear ID"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
               {/* Sort */}
               <div className="w-48 flex items-center bg-slate-50 border border-slate-200 rounded-md px-2.5 py-1 focus-within:border-emerald-500 focus-within:bg-white focus-within:ring-1 focus-within:ring-emerald-500/20 transition-all">
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-2 font-mono">
@@ -818,7 +850,34 @@ const Documents = () => {
                 <div className="p-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                   <div className="min-w-0">
                     <h3 className="text-xs font-bold text-slate-800">Document Inspector</h3>
-                    <p className="text-[10px] font-mono text-slate-400 truncate">ID: {inspectorDoc._id || inspectorDoc.documentId}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <p className="text-[10px] font-mono text-slate-400 truncate">
+                        ID: {inspectorDoc._id || inspectorDoc.documentId}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const id = String(inspectorDoc._id || inspectorDoc.documentId || "");
+                          if (id) {
+                            navigator.clipboard?.writeText(id);
+                            setCopiedInspectorId(true);
+                            setTimeout(() => setCopiedInspectorId(false), 1500);
+                          }
+                        }}
+                        className="p-0.5 rounded text-slate-400 hover:text-emerald-700 hover:bg-slate-200 transition-colors shrink-0 cursor-pointer"
+                        title={copiedInspectorId ? "Copied!" : "Copy ID"}
+                      >
+                        {copiedInspectorId ? (
+                          <svg className="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <button
                     onClick={() => setInspectorDoc(null)}

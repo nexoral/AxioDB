@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import authApi from "../../api/authApi";
 import { useAuthStore } from "../../store/authStore";
 
-const MIN_PASSWORD_LENGTH = 4;
+const MIN_PASSWORD_LENGTH = 8;
 
 const ForcePasswordChangeModal = ({ isOpen, onSuccess }) => {
   const [currentPassword, setCurrentPassword] = useState("");

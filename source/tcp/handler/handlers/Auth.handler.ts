@@ -10,7 +10,7 @@ type Params = TCPRequest['params'];
 /**
  * Auth Handler - Handles the AUTHENTICATE TCP command
  * Reuses the same `AuthService`/`config` DB RBAC system as the HTTP Control Server,
- * so GUI and TCP share one set of credentials, including the same per-IP login
+ * so HTTP and TCP share one set of credentials, including the same per-IP login
  * rate limiter (LoginRateLimiter).
  */
 export default class AuthHandler {
@@ -70,8 +70,8 @@ export default class AuthHandler {
     };
 
     // Correct credentials, but this account still needs its forced first/reset
-    // password change - which can only be completed via the GUI today (no TCP
-    // change-password command exists). Reject rather than silently allow, so a
+    // password change - which can only be completed via the HTTP API / Desktop GUI today
+    // (no TCP change-password command exists). Reject rather than silently allow, so a
     // never-rotated default admin/admin can't be used over TCP indefinitely.
     if (authUser.mustChangePassword) {
       return {

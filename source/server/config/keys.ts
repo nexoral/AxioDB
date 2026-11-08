@@ -1,5 +1,3 @@
-import path from "path";
-
 export enum ServerKeys {
   PORT = 27018,
   LOCALHOST = "127.0.0.1",
@@ -12,9 +10,7 @@ export enum ServerKeys {
 }
 
 // NOTE: ORIGIN cannot be "*" while ALLOW_CREDENTIALS is true - browsers reject
-// wildcard origins on credentialed (cookie-bearing) requests. 5173 is the GUI's
-// Vite dev server; 27018 is where the built GUI is served from in production
-// (same-origin there, so CORS doesn't matter for that case).
+// wildcard origins on credentialed (cookie-bearing) requests.
 export const CORS_CONFIG = {
   ORIGIN: ["http://localhost:5173", "http://localhost:27018"],
   METHODS: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
@@ -24,15 +20,8 @@ export const CORS_CONFIG = {
   ALLOW_CREDENTIALS: true,
 };
 
-export const staticPath: string = path.resolve(
-  __dirname,
-  "../public/AxioControl",
-);
-
 /**
  * Security headers applied to every HTTP response.
- * CSP allows 'unsafe-inline' only for styles: the GUI injects CSS via JS,
- * while all scripts are external (self).
  */
 export const SECURITY_HEADERS: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
@@ -84,7 +73,7 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       {
         method: "GET",
         path: "/api/dashboard-stats",
-        description: "Aggregated dashboard statistics for the GUI overview page",
+        description: "Aggregated dashboard statistics for the metrics overview page",
       },
     ],
   },

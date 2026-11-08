@@ -134,7 +134,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
       if (err.code === "ECONNREFUSED" || /ECONNREFUSED/i.test(msg)) {
         msg = formData.protocol === "tcp"
           ? `Connection refused at ${formData.host}:${formData.port}. Make sure AxioDB is running with TCP enabled.`
-          : `Connection refused at ${formData.host}:${formData.port}. Make sure AxioDB is running with HTTP enabled (GUI: true or AXIODB_GUI=true).`;
+          : `Connection refused at ${formData.host}:${formData.port}. Make sure AxioDB is running with HTTP enabled (HTTP: true or AXIODB_HTTP=true).`;
       } else if (err.code === "ENOTFOUND" || /ENOTFOUND/i.test(msg)) {
         msg = `Host "${formData.host}" not found. Please verify the hostname or IP address.`;
       } else if (err.code === "ETIMEDOUT" || /timed out/i.test(msg)) {
@@ -262,7 +262,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
         setConnectionError(
           formData.protocol === "tcp"
             ? `Connection refused to AxioDB at tcp://${formData.host}:${formData.port}. Please ensure the AxioDB TCP server is running and port ${formData.port} is accessible.`
-            : `Connection refused to AxioDB at ${formData.protocol}://${formData.host}:${formData.port}. Please ensure the AxioDB server is running and port ${formData.port} is accessible (GUI: true or AXIODB_GUI=true).`
+            : `Connection refused to AxioDB at ${formData.protocol}://${formData.host}:${formData.port}. Please ensure the AxioDB server is running and port ${formData.port} is accessible (HTTP: true or AXIODB_HTTP=true).`
         );
       } else if (err.code === "ENOTFOUND" || /ENOTFOUND/i.test(err.message)) {
         setConnectionError(

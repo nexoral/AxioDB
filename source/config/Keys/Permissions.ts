@@ -140,7 +140,7 @@ export const SESSION_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 export const SESSION_SWEEP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
- * Login rate limiting - shared by the GUI's /auth/login route and the TCP AUTHENTICATE
+ * Login rate limiting - shared by the HTTP API's /auth/login route and the TCP AUTHENTICATE
  * command (see LoginRateLimiter.service.ts). Tracked per client IP: after
  * LOGIN_RATE_LIMIT_MAX_ATTEMPTS failures within LOGIN_RATE_LIMIT_WINDOW_MS, that IP is
  * locked out for LOGIN_RATE_LIMIT_COOLDOWN_MS.

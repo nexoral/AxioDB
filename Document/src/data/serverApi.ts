@@ -106,9 +106,9 @@ export const apiCategories: ApiCategory[] = [
       "totalDatabases": 3
     },
     "services": [
-      { "name": "Dashboard + HTTP API", "port": 27018, "running": true },
-      { "name": "AxioDBCloud TCP", "port": 27019, "running": false },
-      { "name": "MCP server", "port": 27020, "running": false, "note": "Native in core & Docker" }
+      { "name": "HTTP Server", "port": 27018, "running": true },
+      { "name": "TCP Server", "port": 27019, "running": false },
+      { "name": "MCP Server", "port": 27020, "running": false, "note": "Native in core & Docker" }
     ]
   }
 }`,
@@ -201,7 +201,7 @@ export const apiCategories: ApiCategory[] = [
         {
           method: "GET",
           path: "/api/auth/me",
-          description: "Returns the currently authenticated user's username, role, resolved permissions, and whether a password change is still required. This is the endpoint the GUI calls on load to restore session state.",
+          description: "Returns the currently authenticated user's username, role, resolved permissions, and whether a password change is still required. This is the endpoint the Desktop GUI calls on load to restore session state.",
           responseExample: `{
   "statusCode": 200,
   "message": "OK",

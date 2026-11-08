@@ -4,7 +4,7 @@
 #
 # Installs the full toolchain (Node.js 24, Go, system packages, git config)
 # and then installs + builds every part of the monorepo:
-#   core (TS)  -> Document (Vite docs)  -> GUI (Vite web)  -> Electron  -> Go CLI
+#   core (TS)  -> Document (Vite docs)  -> Electron  -> Go CLI
 # ============================================================================
 set -euo pipefail
 
@@ -110,14 +110,7 @@ npm install --force
 npm run build
 
 # ---------------------------------------------------------------------------
-# 8. Web GUI (Vite + React, port 5173)
-# ---------------------------------------------------------------------------
-log "Installing the AxioDB Web GUI"
-cd "$REPO_ROOT/GUI"
-npm install --force || warn "GUI install incomplete — run 'cd GUI && npm install --force'"
-
-# ---------------------------------------------------------------------------
-# 9. Electron desktop GUI (downloads the Electron binary)
+# 8. Electron desktop GUI (downloads the Electron binary)
 # ---------------------------------------------------------------------------
 log "Installing the AxioDB Electron GUI"
 cd "$REPO_ROOT/electron"
@@ -127,8 +120,7 @@ npm install --force || warn "Electron install incomplete — run 'cd electron &&
 # Done
 # ---------------------------------------------------------------------------
 log "AxioDB workspace is ready!"
-log "  Server : node -e \"const {AxioDB}=require('./lib/config/DB.js'); new AxioDB({GUI:true})\""
-log "           -> Dashboard + HTTP API on port 27018, TCP on port 27019"
+log "  Server : node -e \"const {AxioDB}=require('./lib/config/DB.js'); new AxioDB({HTTP:true})\""
+log "           -> HTTP API on port 27018, TCP on port 27019"
 log "  Docs   : cd Document && npm run dev               -> port 5173"
-log "  GUI    : cd GUI && npm run dev                    -> port 5173"
 log "  CLI    : axiodb --help"

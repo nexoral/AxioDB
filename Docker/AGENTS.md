@@ -2,14 +2,14 @@
 
 Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Docker/` specifics — read the root first.
 
-**Role** — ships the compiled core (`lib/`) plus three surfaces in one container: HTTP GUI/API **27018**, TCP AxioDBCloud **27019**, opt-in MCP server **27020**. Image `theankansaha/axiodb`. Container runtime runs on Node 23 (`node:23-alpine`), while base engine maintains Node ≥20 compatibility.
+**Role** — ships the compiled core (`lib/`) plus three surfaces in one container: HTTP REST API **27018**, TCP AxioDBCloud **27019**, opt-in MCP server **27020**. Image `theankansaha/axiodb`. Container runtime runs on Node 23 (`node:23-alpine`), while base engine maintains Node ≥20 compatibility.
 
 ## Layout
 
 ```
 Dockerfile        node:23-alpine (Node 23 container runtime); drops to non-root `axiodb`; HEALTHCHECK → healthcheck.js
 runner.js         entrypoint: maps env → AxioDB options (including MCP), validates combos, UV_THREADPOOL_SIZE
-healthcheck.js    probes GUI /health + a real TCP PING/PONG round-trip
+healthcheck.js    probes HTTP /health + a real TCP PING/PONG round-trip
 README.md         user-facing docs + version badge
 ```
 
@@ -18,9 +18,7 @@ README.md         user-facing docs + version badge
 The Dockerfile does `COPY lib/ package*.json Scripts/` — none of which live inside `Docker/` in the repo. CI copies them in first:
 
 ```bash
-npm run build && (cd GUI && npm install && npm run build) \
-  && mv GUI/AxioControl lib/server/public
-mv lib/ Docker/ && cp package*.json Docker/ && cp -r Scripts/ Docker/
+npm run build && mv lib/ Docker/ && cp package*.json Docker/ && cp -r Scripts/ Docker/
 docker build -t theankansaha/axiodb Docker/
 ```
 
@@ -30,10 +28,9 @@ So a local `docker build Docker/` only works after those `mv`/`cp` steps. Don't 
 
 | Var | Default | Notes |
 | --- | --- | --- |
-| `AXIODB_GUI` | `true` | HTTP control server / GUI on 27018 |
-| `AXIODB_HTTP` | mirrors `AXIODB_GUI` | `GUI=true` + `HTTP=false` is a hard error |
+| `AXIODB_HTTP` | `true` | HTTP REST API server on 27018 |
 | `AXIODB_TCP` | `true` | 27019 |
-| `AXIODB_TCP_AUTH_ENABLED` | `true` | shared RBAC accounts with the GUI |
+| `AXIODB_TCP_AUTH_ENABLED` | `true` | shared RBAC accounts with the HTTP server |
 | `AXIODB_ADMIN_PASSWORD` | *(none)* | **required** when TCP auth on and HTTP off, else the container refuses to start |
 | `AXIODB_TLS` / `_CERT_PATH` / `_KEY_PATH` | `false` / — | TLS on 27019 |
 | `AXIODB_ROOT_NAME` | `AxioDB` | root DB folder under the data volume |

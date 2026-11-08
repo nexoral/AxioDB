@@ -59,12 +59,6 @@ sync_electron() {
   echo -e "  ${GREEN}Updated${NC} electron/package.json"
 }
 
-sync_gui() {
-  local NEW_VERSION="$1"
-  sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" GUI/package.json
-  echo -e "  ${GREEN}Updated${NC} GUI/package.json"
-}
-
 sync_email() {
   local NEW_VERSION="$1"
   if [ -f "Email/package.json" ]; then
@@ -164,7 +158,7 @@ sync_version() {
   # Build the final list of targets to sync
   local targets=()
   if [ ${#SELECTED_TARGETS[@]} -eq 0 ]; then
-    targets=(root cli electron gui email document docker skill)
+    targets=(root cli electron email document docker skill)
   else
     targets=("${SELECTED_TARGETS[@]}")
   fi
@@ -177,7 +171,6 @@ sync_version() {
       root)    sync_root "${NEW_VERSION}";     ran_any=true ;;
       cli)     sync_cli "${NEW_VERSION}";      ran_any=true ;;
       electron) sync_electron "${NEW_VERSION}"; sync_electron_version_label "${NEW_VERSION}"; ran_any=true ;;
-      gui)     sync_gui "${NEW_VERSION}";      ran_any=true ;;
       email)   sync_email "${NEW_VERSION}";    ran_any=true ;;
       document) sync_document "${NEW_VERSION}"; ran_any=true ;;
       docker)  sync_docker "${NEW_VERSION}";   ran_any=true ;;
@@ -198,7 +191,6 @@ sync_version() {
     sync_cli "${NEW_VERSION}"
     sync_electron "${NEW_VERSION}"
     sync_electron_version_label "${NEW_VERSION}"
-    sync_gui "${NEW_VERSION}"
     sync_email "${NEW_VERSION}"
     sync_document "${NEW_VERSION}"
     sync_docker "${NEW_VERSION}"
@@ -247,11 +239,10 @@ select_targets() {
     "1) Root package.json (package.json + package-lock.json + CONTRIBUTING.md)"
     "2) CLI (cli/VERSION + cli/cmd/version.go)"
     "3) Electron GUI (electron/package.json + src/layout/StatusBar.jsx)"
-    "4) Web GUI (GUI/package.json)"
-    "5) Document site (package.json + llms.txt + llms-full.txt + index.html + changelog.ts + Footer.tsx)"
-    "6) Docker (Docker/README.md version badge)"
-    "7) Skill (skill/SKILL.md)"
-    "8) Email Worker (Email/package.json)"
+    "4) Document site (package.json + llms.txt + llms-full.txt + index.html + changelog.ts + Footer.tsx)"
+    "5) Docker (Docker/README.md version badge)"
+    "6) Skill (skill/SKILL.md)"
+    "7) Email Worker (Email/package.json)"
   )
 
   printf '  %s\n' "${labels[@]}"
@@ -285,11 +276,10 @@ select_targets() {
       1) SELECTED_TARGETS+=("root") ;;
       2) SELECTED_TARGETS+=("cli") ;;
       3) SELECTED_TARGETS+=("electron") ;;
-      4) SELECTED_TARGETS+=("gui") ;;
-      5) SELECTED_TARGETS+=("document") ;;
-      6) SELECTED_TARGETS+=("docker") ;;
-      7) SELECTED_TARGETS+=("skill") ;;
-      8) SELECTED_TARGETS+=("email") ;;
+      4) SELECTED_TARGETS+=("document") ;;
+      5) SELECTED_TARGETS+=("docker") ;;
+      6) SELECTED_TARGETS+=("skill") ;;
+      7) SELECTED_TARGETS+=("email") ;;
       *) echo -e "  ${YELLOW}Unknown option: $part (ignored)${NC}" ;;
     esac
   done

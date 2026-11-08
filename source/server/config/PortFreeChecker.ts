@@ -24,7 +24,7 @@ export default async function checkPortAndDocker(port: number) {
   const inUse = await isPortInUse(port);
   if (inUse) {
     throw new Error(
-      `Port ${port} is already in use. Please Free the port to get the GUI.`,
+      `Port ${port} is already in use. Please free the port to start the HTTP server.`,
     );
   }
 }

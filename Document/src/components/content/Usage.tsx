@@ -388,13 +388,13 @@ console.log(paginatedDocuments);`,
                 code={`const { AxioDB } = require("axiodb");
 
 // Create a single AxioDB instance for your entire application
-// Enable GUI (most common): localhost:27018
-const Instance = new AxioDB({ GUI: true });
+// Enable HTTP REST API: localhost:27018
+const Instance = new AxioDB({ HTTP: true });
 
 // Other constructor options:
-const NoGUIInstance = new AxioDB({ GUI: false }); // Disable GUI
-const CustomNameInstance = new AxioDB({ GUI: true, RootName: "MyCustomDB" }); // Custom database name
-const CustomPathInstance = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./data" }); // Custom path
+const EmbeddedInstance = new AxioDB(); // Embedded mode (no HTTP or TCP server)
+const CustomNameInstance = new AxioDB({ HTTP: true, RootName: "MyCustomDB" }); // Custom database name
+const CustomPathInstance = new AxioDB({ HTTP: true, RootName: "MyDB", CustomPath: "./data" }); // Custom path
 
 const main = async () => {
   // Create database
@@ -499,13 +499,13 @@ main();`}
                 code={`import { AxioDB } from "axiodb";
 
 // Create a single AxioDB instance for your entire application
-// Enable GUI (most common): localhost:27018
-const Instance = new AxioDB({ GUI: true });
+// Enable HTTP REST API: localhost:27018
+const Instance = new AxioDB({ HTTP: true });
 
 // Other constructor options:
-const NoGUIInstance = new AxioDB({ GUI: false }); // Disable GUI
-const CustomNameInstance = new AxioDB({ GUI: true, RootName: "MyCustomDB" }); // Custom database name
-const CustomPathInstance = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./data" }); // Custom path
+const EmbeddedInstance = new AxioDB(); // Embedded mode (no HTTP or TCP server)
+const CustomNameInstance = new AxioDB({ HTTP: true, RootName: "MyCustomDB" }); // Custom database name
+const CustomPathInstance = new AxioDB({ HTTP: true, RootName: "MyDB", CustomPath: "./data" }); // Custom path
 
 const main = async () => {
   // Create database

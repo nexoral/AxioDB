@@ -59,7 +59,7 @@ class HTTPAPITests extends TestRunner {
     if (fs.existsSync(this.testDir)) {
       fs.rmSync(this.testDir, { recursive: true, force: true });
     }
-    this.dbInstance = new AxioDB({ GUI: true, RootName: 'HttpApiTestDB', CustomPath: this.testDir });
+    this.dbInstance = new AxioDB({ HTTP: true, RootName: 'HttpApiTestDB', CustomPath: this.testDir });
     this.db = await this.dbInstance.createDB('TestDB');
     this.collection = await this.db.createCollection('Users');
     await this.collection.newIndex('email', 'age');
@@ -415,10 +415,16 @@ class HTTPAPITests extends TestRunner {
       });
     });
 
-    await this.describe('Static file traversal protection', async () => {
-      await this.test('Encoded dot-dot segments cannot reach the static root', async () => {
-        const res = await request('GET', '/nested/%2E%2E/index.html');
-        assert.equal(res.status, 400);
+    await this.describe('Root Welcome & Non-API handling', async () => {
+      await this.test('GET / returns welcome message and GUI install instructions', async () => {
+        const res = await request('GET', '/');
+        assert.equal(res.status, 200);
+        assert.ok(typeof res.body === 'string' && res.body.includes('Welcome to AxioDB'));
+        assert.ok(res.body.includes('CHOICE=2 bash'));
+      });
+      await this.test('Non-existent non-API path returns 404', async () => {
+        const res = await request('GET', '/nested/unknown.html');
+        assert.equal(res.status, 404);
       });
     });
 

@@ -33,19 +33,19 @@ import { startMcpServer, stopMcpServer } from "../Helper/mcp/McpServer.helper";
 /**
  * Class representing the AxioDB database.
  * @param {AxioDBOptions} options - Configuration options for AxioDB
- * @param {boolean} options.GUI - Enable/disable HTTP GUI server (port 27018). Defaults to false.
+ * @param {boolean} options.HTTP - Enable/disable HTTP API server (port 27018). Defaults to false.
  * @param {string} options.RootName - Custom name for the database root folder. Defaults to "AxioDB".
  * @param {string} options.CustomPath - Custom path for database storage. Defaults to current directory.
  * @param {boolean} options.TCP - Enable/disable TCP server (port 27019). Defaults to false.
- * @param {boolean} options.TCPAuth - Require username/password authentication (same RBAC users as the GUI) for TCP connections. Defaults to false.
- * @param {string} options.AdminPassword - Password the admin account is seeded with when the config database is first created, clearing its forced password change so it can authenticate over TCP immediately. Defaults to the built-in admin/admin, which TCP rejects until rotated through the HTTP/GUI. Ignored once the users collection already exists.
+ * @param {boolean} options.TCPAuth - Require username/password authentication (same RBAC users as the HTTP server) for TCP connections. Defaults to false.
+ * @param {string} options.AdminPassword - Password the admin account is seeded with when the config database is first created, clearing its forced password change so it can authenticate over TCP immediately. Defaults to the built-in admin/admin, which TCP rejects until rotated through the HTTP API. Ignored once the users collection already exists.
  * @param {boolean} options.Cache - Enable the built-in InMemoryCache shared across the whole instance. Defaults to true.
  * @param {number} options.minTTL - Minimum cache entry lifetime in minutes. Defaults to 5.
  * @param {number} options.maxTTL - Maximum cache entry lifetime in minutes. Defaults to 15.
  * @param {number} options.cacheClearUp - Cache housekeeping cadence and search-query retention in seconds. Defaults to 86400.
  * @returns {AxioDB} - Returns the instance of AxioDB.
  * @example
- * const db = new AxioDB({ GUI: true, RootName: "MyDB", CustomPath: "./data" });
+ * const db = new AxioDB({ HTTP: true, RootName: "MyDB", CustomPath: "./data" });
  * @example
  * const db = new AxioDB({ TCP: true, TCPAuth: true, RootName: "MyDB", CustomPath: "./data" });
  */
@@ -59,7 +59,6 @@ export class AxioDB {
   private static _instance: AxioDB;
   private DatabaseMap: Map<string, DatabaseMap>;
   private readonly cache: InMemoryCache;
-  private GUI: boolean = General.DBMS_GUI_Enable;
   private HTTP: boolean = false;
   private TCP: boolean = false;
   private TCPAuth: boolean = false;
@@ -77,7 +76,7 @@ export class AxioDB {
     }
     AxioDB._instance = this;
 
-    const { GUI, RootName, CustomPath, TCP, TCPAuth, AdminPassword, TLS, TLSCertPath, TLSKeyPath, Cache, minTTL, maxTTL, cacheClearUp } = options;
+    const { RootName, CustomPath, TCP, TCPAuth, AdminPassword, TLS, TLSCertPath, TLSKeyPath, Cache, minTTL, maxTTL, cacheClearUp } = options;
 
     this.RootName = RootName || General.DBMS_Name;
     this.currentPATH = path.resolve(CustomPath || ".");
@@ -92,8 +91,7 @@ export class AxioDB {
       maxTTL: maxTTL ?? 15,
       cacheClearUp: cacheClearUp ?? 86400,
     });
-    this.GUI = GUI !== undefined ? GUI : General.DBMS_GUI_Enable;
-    this.HTTP = options.HTTP !== undefined ? options.HTTP : (this.GUI ? true : false);
+    this.HTTP = options.HTTP !== undefined ? options.HTTP : General.DBMS_HTTP_Enable;
     this.TCP = TCP !== undefined ? TCP : false;
     this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false;
     this.MCP = options.MCP !== undefined ? options.MCP : false;
@@ -114,12 +112,6 @@ export class AxioDB {
       if (!fs.existsSync(this.TLSKeyPath)) {
         throw new Error(`TLSKeyPath does not exist: ${this.TLSKeyPath}`);
       }
-    }
-
-    if (this.GUI && options.HTTP === false) {
-      throw new Error(
-        "GUI: true requires HTTP to be enabled. Set HTTP: true or remove the explicit HTTP: false.",
-      );
     }
 
     this._initializing = true;
@@ -154,13 +146,13 @@ export class AxioDB {
         Logger.info(`AxioDB folder created at: ${this.currentPATH}`);
       }
     }
-    if (this.GUI || this.HTTP || this.MCP || (this.TCP && this.TCPAuth)) {
+    if (this.HTTP || this.MCP || (this.TCP && this.TCPAuth)) {
       await new AuthSeeder(this, this.AdminPassword).seedIfNeeded();
       LoginRateLimiter.startCleanupSweep();
     }
     if (this.HTTP) {
-      Console.green(this.GUI ? "Starting AxioDB Control Server..." : "Starting AxioDB HTTP API Server (API only, GUI disabled)...");
-      createAxioDBControlServer(this, this.GUI);
+      Console.green("Starting AxioDB HTTP API Server...");
+      createAxioDBControlServer(this);
     }
     if (this.TCP) {
       Console.green(

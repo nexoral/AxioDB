@@ -6,7 +6,7 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Document
 
 ## Stack
 
-React 18 · Vite 6 · `vite-react-ssg` (SSG) · Tailwind CSS **v3** (`tailwind.config.js` + PostCSS) · `tsx` scripts · Turndown for markdown twins. This is **TypeScript** (`.tsx`/`.ts`) — unlike `GUI/`.
+React 18 · Vite 6 · `vite-react-ssg` (SSG) · Tailwind CSS **v3** (`tailwind.config.js` + PostCSS) · `tsx` scripts · Turndown for markdown twins. This is **TypeScript** (`.tsx`/`.ts`).
 
 ## Layout
 
@@ -38,7 +38,7 @@ npx tsx scripts/generate-seo-files.ts   # regen AI artifacts only
 * **Single source:** API reference comes from `src/data/serverApi.ts`, which feeds both the rendered docs and `public/openapi.json`. Edit the data file — never the generated `openapi.json` by hand.
 * `src/data/changelog.ts`'s newest entry version must equal `package.json`'s version.
 * Keep the four surfaces clearly separated in the prose — never blur core · Dashboard · HTTP API 27018 · TCP 27019 · MCP 27020 (native in core & Docker).
-* Tailwind **v3** config style here; do not copy GUI's v4 `@tailwindcss/vite` setup.
+* Tailwind **v3** config style here.
 * `AxioDB_Docs/` (build output), `.vite/`, `.wrangler/` are gitignored — never commit them.
 
 ## AI artifacts (regenerate, don't hand-edit where generated)

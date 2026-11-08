@@ -24,21 +24,16 @@ const INSTALL_GUI_LINUX =
 const INSTALL_GUI_WINDOWS =
   "$env:CHOICE=2; irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex";
 
-const SERVER_GUI_CONFIG_CODE = `import { AxioDB } from "axiodb";
+const SERVER_HTTP_CONFIG_CODE = `import { AxioDB } from "axiodb";
 
-// Starts the web GUI and the HTTP API on port 27018.
-const db = new AxioDB({ GUI: true });
+// Starts the HTTP API on port 27018.
+const db = new AxioDB({ HTTP: true });
 
 // Use db.createDB(), db.getDB(), or another database operation here.
 // AxioDB waits for its startup work before handling that operation.`;
 
-const SERVER_HTTP_CONFIG_CODE = `import { AxioDB } from "axiodb";
-
-// Starts the HTTP API on port 27018 without serving the web GUI.
-const db = new AxioDB({ GUI: false, HTTP: true });`;
-
 const ENVIRONMENT_CONFIG_CODE =
-  "docker run -d -p 27018:27018 \\\n  -e AXIODB_GUI=true -e AXIODB_HTTP=true \\\n  theankansaha/axiodb";
+  "docker run -d -p 27018:27018 \\\n  -e AXIODB_HTTP=true \\\n  theankansaha/axiodb";
 
 const ControlGui: React.FC = () => {
   const heroReveal = useScrollReveal<HTMLDivElement>();
@@ -186,37 +181,19 @@ const ControlGui: React.FC = () => {
                 <code className="font-mono">Port</code> option in
                 <code className="font-mono">AxioDB</code>.
               </p>
-              <div className="grid lg:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-gray-800 mb-2">
-                    GUI + HTTP API
-                  </p>
-                  <CodeBlock
-                    code={SERVER_GUI_CONFIG_CODE}
-                    language="typescript"
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-gray-800 mb-2">
-                    HTTP API only
-                  </p>
-                  <CodeBlock
-                    code={SERVER_HTTP_CONFIG_CODE}
-                    language="typescript"
-                  />
-                </div>
+              <div className="max-w-2xl">
+                <p className="text-sm font-semibold text-gray-800 mb-2">
+                  HTTP API Configuration
+                </p>
+                <CodeBlock
+                  code={SERVER_HTTP_CONFIG_CODE}
+                  language="typescript"
+                />
               </div>
               <div className="mt-4 rounded-lg bg-gray-50 border border-gray-200 p-4 text-sm text-gray-600 space-y-2">
                 <p>
-                  <strong className="text-gray-900">GUI: true</strong> enables
-                  both the browser dashboard and the HTTP API.
-                </p>
-                <p>
-                  <strong className="text-gray-900">
-                    HTTP: true, GUI: false
-                  </strong>{" "}
-                  enables the HTTP API for another client or application
-                  without serving the dashboard.
+                  <strong className="text-gray-900">HTTP: true</strong> enables
+                  the HTTP REST API on port 27018.
                 </p>
                 <p>
                   The server listens on{" "}
@@ -407,17 +384,13 @@ const ControlGui: React.FC = () => {
             </summary>
             <div className="border-t border-gray-200 p-4">
               <p className="text-sm text-gray-600 mb-2">
-                This Docker example starts both the web GUI and HTTP API. The
+                This Docker example starts the HTTP API server. The
                 AxioDB Docker runner reads these environment variables.
               </p>
               <CodeBlock code={ENVIRONMENT_CONFIG_CODE} language="bash" />
               <p className="text-sm text-gray-500 mt-3">
-                For HTTP-only Docker mode, use{" "}
-                <code className="font-mono">AXIODB_GUI=false</code> with{" "}
-                <code className="font-mono">AXIODB_HTTP=true</code> for
-                instead. When using the built-in HTTP server directly from
-                Node.js, set <code className="font-mono">GUI</code> and{" "}
-                <code className="font-mono">HTTP</code> in the
+                When using the built-in HTTP server directly from
+                Node.js, set <code className="font-mono">HTTP: true</code> in the
                 <code className="font-mono">AxioDB</code> options object.
                 The default seeded login is{" "}
                 <code className="font-mono">admin/admin</code>; change it

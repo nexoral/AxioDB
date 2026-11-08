@@ -1,6 +1,4 @@
-import path from "path";
-import fs from "fs";
-import { ServerKeys, staticPath } from "./keys";
+import { ServerKeys } from "./keys";
 import checkPortAndDocker from "./PortFreeChecker";
 import { AxioDB } from "../../Services/Indexation.operation";
 import mainRouter from "../router/Router";
@@ -9,28 +7,32 @@ import Logger from "../../Helper/Logger.helper";
 import HttpRouter from "../../Helper/http/HttpRouter.helper";
 import HttpServerHelper from "../../Helper/http/HttpServer.helper";
 
+const WELCOME_MESSAGE = `Welcome to AxioDB!
+
+The HTTP REST API is running on port 27018.
+
+To download the official Desktop GUI (AxioDB Control), run:
+  Linux / macOS:
+    curl -fsSL https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.sh | CHOICE=2 bash
+
+  Windows (PowerShell):
+    irm https://raw.githubusercontent.com/nexoral/AxioDB/main/cli/Scripts/install.ps1 | iex
+
+Explore the REST API:
+  Health check: /api/health
+  API Routes:   /api/routes
+`;
+
 export default async function createAxioDBControlServer(
   AxioDBInstance: AxioDB,
-  guiEnabled: boolean = true,
 ): Promise<void> {
   await checkPortAndDocker(ServerKeys.PORT);
 
   const rootRouter = new HttpRouter();
 
-  if (guiEnabled) {
-    rootRouter.get("/", async (_request, reply) => {
-      const indexPath = path.join(staticPath, "index.html");
-      const stream = fs.createReadStream(indexPath);
-      return reply.type("text/html").send(stream);
-    });
-  } else {
-    rootRouter.get("/", async (_request, reply) => {
-      return reply.type("application/json").send({
-        message: "AxioDB HTTP API is running. GUI is disabled. Enable it with GUI: true.",
-        api: "/api/health",
-      });
-    });
-  }
+  rootRouter.get("/", async (_request, reply) => {
+    return reply.type("text/plain; charset=utf-8").send(WELCOME_MESSAGE);
+  });
 
   await rootRouter.register(mainRouter, {
     prefix: "/api",
@@ -38,13 +40,12 @@ export default async function createAxioDBControlServer(
   });
 
   const server = new HttpServerHelper(rootRouter, {
-    guiEnabled,
-    staticPath,
     bodyLimit: 52428800,
   });
 
   try {
-    await server.listen(Number(ServerKeys.PORT), "0.0.0.0");
+    const host = process.env.AXIODB_HOST || "127.0.0.1";
+    await server.listen(Number(ServerKeys.PORT), host);
     SessionStore.startCleanupSweep();
     Logger.info(
       `AxioDB Control Server is running on http://localhost:${ServerKeys.PORT}`,

@@ -308,7 +308,7 @@ async function runBenchmark() {
   };
 
   console.log(`\n${c.bright}${c.blue}[1/6] Initializing Database & Indexes...${c.reset}`);
-  const db = new AxioDB({ GUI: false, RootName: 'BenchmarkDB', CustomPath: opts.dir });
+  const db = new AxioDB({ HTTP: false, RootName: 'BenchmarkDB', CustomPath: opts.dir });
   const testDB = await db.createDB('BenchDB');
   const collection = await testDB.createCollection('Users');
 

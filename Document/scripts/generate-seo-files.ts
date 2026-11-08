@@ -201,18 +201,18 @@ function buildOpenApi(): string {
     {
       openapi: "3.1.0",
       info: {
-        title: "AxioDB Dashboard HTTP API (Control Server)",
+        title: "AxioDB HTTP API (Control Server)",
         description: [
-          "REST API behind the AxioDB Dashboard - the web GUI AxioDB starts on port 27018 - for managing databases, collections, indexes, documents, users, and roles.",
+          "Fastify REST API server running on port 27018 for managing databases, collections, indexes, documents, users, and roles.",
           "",
-          "This is not a hosted service. It runs inside your own AxioDB process: enable it with `new AxioDB({ GUI: true })`, or with `AXIODB_GUI=true` on the `theankansaha/axiodb` Docker image. https://axiodb.in serves documentation only.",
+          "This is not a hosted service. It runs inside your own AxioDB process: enable it with `new AxioDB({ HTTP: true })`, or with `AXIODB_HTTP=true` on the `theankansaha/axiodb` Docker image. https://axiodb.in serves documentation only.",
           "",
           "This API is one of several AxioDB surfaces and is not interchangeable with the others:",
           "- Embedded library (`npm install axiodb`) - in-process, no HTTP at all. https://axiodb.in/api-reference",
           "- AxioDBCloud TCP server/client on port 27019 - its own wire protocol, not HTTP. https://axiodb.in/cloud",
           "- MCP server on port 27020 (core & Docker) - Streamable HTTP at /mcp, 45 tools. https://axiodb.in/mcp-server",
           "",
-          "The Dashboard, AxioDBCloud authentication, and the MCP server share one user and role store.",
+          "The HTTP API, AxioDBCloud authentication, and the MCP server share one user and role store.",
           "",
           "Human-readable reference: https://axiodb.in/server-api",
         ].join("\n"),

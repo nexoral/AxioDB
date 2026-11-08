@@ -5,15 +5,14 @@ function parseBoolean(value, fallback) {
   return ['true', '1', 'yes'].includes(String(value).trim().toLowerCase());
 };
 
-const guiEnabled = parseBoolean(process.env.AXIODB_GUI, true);
-const httpEnabled = parseBoolean(process.env.AXIODB_HTTP, guiEnabled);
+const httpEnabled = parseBoolean(process.env.AXIODB_HTTP, true);
 const tcpEnabled = parseBoolean(process.env.AXIODB_TCP, true);
 const tlsEnabled = parseBoolean(process.env.AXIODB_TLS, false);
 const mcpEnabled = parseBoolean(process.env.AXIODB_MCP, false);
 const mcpPort = parseInt(process.env.AXIODB_MCP_PORT || '27020', 10);
 const CHECK_TIMEOUT_MS = 4000;
 
-function checkGui() {
+function checkHttp() {
   return new Promise((resolve, reject) => {
     const request = http.get(
       { host: 'localhost', port: 27018, path: '/api/health', timeout: CHECK_TIMEOUT_MS },
@@ -22,11 +21,11 @@ function checkGui() {
         if (response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {
           resolve();
         } else {
-          reject(new Error(`GUI /api/health returned status ${response.statusCode}`));
+          reject(new Error(`HTTP /api/health returned status ${response.statusCode}`));
         }
       },
     );
-    request.on('timeout', () => request.destroy(new Error('GUI /api/health request timed out')));
+    request.on('timeout', () => request.destroy(new Error('HTTP /api/health request timed out')));
     request.on('error', reject);
   });
 }
@@ -64,7 +63,7 @@ function checkMcp() {
 
 async function main() {
   const checks = [];
-  if (httpEnabled) checks.push(checkGui());
+  if (httpEnabled) checks.push(checkHttp());
   if (tcpEnabled) checks.push(checkTcp());
   if (mcpEnabled) checks.push(checkMcp());
 

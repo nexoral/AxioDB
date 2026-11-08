@@ -81,7 +81,7 @@ const Security: React.FC = () => {
           <Users className="h-6 w-6" /> Control Server Authentication (RBAC)
         </h3>
         <p className="text-gray-600 mb-4">
-          The Control Server (the built-in web GUI at <code className="bg-white px-1 py-0.5 rounded">localhost:27018</code>) ships
+          The Control Server (the HTTP REST API server at <code className="bg-white px-1 py-0.5 rounded">localhost:27018</code>) ships
           with login and role-based access control. On first start it seeds a reserved{" "}
           <code className="bg-white px-1 py-0.5 rounded">config</code> database (hidden from the regular
           database list and unreachable through the generic database/collection/document routes) holding three collections -{" "}

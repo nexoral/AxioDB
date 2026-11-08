@@ -6,7 +6,7 @@ set -euo pipefail
 #   ./run_docker.sh [profile] [admin_password]
 # Profiles:
 #   standard    - HTTP (27018) + TCP (27019) with auth enabled (default)
-#   headless    - Headless TCP (27019) with seeded admin password (no GUI/HTTP)
+#   headless    - Headless TCP (27019) with seeded admin password (no HTTP)
 #   no-auth     - TCP without authentication (trusted/private networks only)
 #   mcp         - Full stack + MCP Server on port 27020 for AI agents
 
@@ -48,14 +48,14 @@ case "$PROFILE" in
       --name "${CONTAINER_NAME}" \
       -p 27018:27018 \
       -p 27019:27019 \
-      -e AXIODB_GUI=true \
+      -e AXIODB_HTTP=true \
       -e AXIODB_TCP=true \
       -e AXIODB_TCP_AUTH_ENABLED=true \
       -e AXIODB_ADMIN_PASSWORD="${PASSWORD}" \
       -v "${VOLUME_NAME}:/app" \
       "${IMAGE}"
     echo -e "${GREEN}✔ AxioDB running:${NC}"
-    echo "  - Web GUI & REST API: http://localhost:27018"
+    echo "  - REST API (HTTP):    http://localhost:27018/api"
     echo "  - TCP Remote:         axiodb://localhost:27019"
     echo "  - Admin Account:      admin / ${PASSWORD}"
     ;;
@@ -64,7 +64,7 @@ case "$PROFILE" in
     docker run -d \
       --name "${CONTAINER_NAME}" \
       -p 27019:27019 \
-      -e AXIODB_GUI=false \
+      -e AXIODB_HTTP=false \
       -e AXIODB_TCP=true \
       -e AXIODB_TCP_AUTH_ENABLED=true \
       -e AXIODB_ADMIN_PASSWORD="${PASSWORD}" \
@@ -85,7 +85,7 @@ case "$PROFILE" in
       -v "${VOLUME_NAME}:/app" \
       "${IMAGE}"
     echo -e "${GREEN}✔ AxioDB (No Auth) running:${NC}"
-    echo "  - Web GUI & REST API: http://localhost:27018"
+    echo "  - REST API (HTTP):    http://localhost:27018/api"
     echo "  - TCP Remote:         axiodb://localhost:27019"
     ;;
 
@@ -95,14 +95,14 @@ case "$PROFILE" in
       -p 27018:27018 \
       -p 27019:27019 \
       -p 27020:27020 \
-      -e AXIODB_GUI=true \
+      -e AXIODB_HTTP=true \
       -e AXIODB_TCP=true \
       -e AXIODB_MCP=true \
       -e AXIODB_ADMIN_PASSWORD="${PASSWORD}" \
       -v "${VOLUME_NAME}:/app" \
       "${IMAGE}"
     echo -e "${GREEN}✔ AxioDB with MCP running:${NC}"
-    echo "  - Web GUI & REST API: http://localhost:27018"
+    echo "  - REST API (HTTP):    http://localhost:27018/api"
     echo "  - TCP Remote:         axiodb://localhost:27019"
     echo "  - MCP AI Endpoint:    http://localhost:27020/mcp"
     echo "  - Admin Account:      admin / ${PASSWORD}"

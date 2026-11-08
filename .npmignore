@@ -51,11 +51,7 @@ benchmark/
 *.js.map
 lib/**/*.js.map
 
-# GUI build artifacts not consumed at runtime (Vite internals)
-lib/server/public/AxioControl/.vite/
-
-# Build artifacts and GUI (not needed in npm package)
-GUI/
+# Build artifacts and dev directories (not needed in npm package)
 Docker/
 Scripts/
 dist/

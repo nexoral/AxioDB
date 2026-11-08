@@ -20,10 +20,19 @@ const getDisplayFields = (doc) => {
 
 const DocumentCard = ({ doc, idx, isSelected, onInspect, onEdit, onDelete, copyToClipboard, lastDocRef }) => {
   const [expanded, setExpanded] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
   const displayFields = getDisplayFields(doc);
   const shownFields = expanded ? displayFields : displayFields.slice(0, FIELD_LIMIT);
   const hasMore = displayFields.length > FIELD_LIMIT;
   const docId = doc._id || doc.documentId || `doc-${idx}`;
+
+  const handleCopyId = (e) => {
+    e.stopPropagation();
+    const idToCopy = String(doc.documentId || doc._id || docId);
+    navigator.clipboard?.writeText(idToCopy);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 1500);
+  };
 
   const fieldColor = (key, val) => {
     if (typeof val === "number") return "text-amber-700";
@@ -50,9 +59,27 @@ const DocumentCard = ({ doc, idx, isSelected, onInspect, onEdit, onDelete, copyT
       `}
     >
       <div className="mb-2 flex items-center justify-between border-b border-slate-100 pb-1 text-[10px] font-mono text-slate-400">
-        <span className="font-bold text-emerald-800 truncate" title={docId}>
-          #{docId}
-        </span>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="font-bold text-emerald-800 truncate" title={docId}>
+            #{docId}
+          </span>
+          <button
+            type="button"
+            onClick={handleCopyId}
+            className="p-0.5 rounded text-slate-400 hover:text-emerald-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            title={copiedId ? "Copied!" : "Copy ID"}
+          >
+            {copiedId ? (
+              <svg className="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            )}
+          </button>
+        </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={(e) => {

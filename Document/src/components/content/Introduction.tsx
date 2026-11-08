@@ -32,8 +32,8 @@ import { useScrollReveal } from "../../hooks/useScrollReveal";
   const HELLO_WORLD_CODE = `// npm install axiodb
 const { AxioDB } = require('axiodb');
 
-// Create AxioDB instance with built-in GUI
-const db = new AxioDB({ GUI: true }); // Enable GUI at localhost:27018
+// Create AxioDB instance with built-in HTTP REST API
+const db = new AxioDB({ HTTP: true }); // Enable HTTP REST API at localhost:27018
 
 // Create database and collection
 const myDB = await db.createDB('HelloWorldDB');
@@ -937,23 +937,22 @@ const Introduction: React.FC = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="bg-accent-100 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide text-accent-700">
-                    Built-in GUI
+                    Official Desktop GUI
                   </span>
                 </div>
                 <h3 className="text-lg font-semibold mb-2">
                   Database Visualization Built In
                 </h3>
                 <p className="text-accent-700 mb-4 leading-relaxed">
-                  Start AxioDB with <code className="bg-accent-100 px-2 py-1 rounded text-accent-800">new AxioDB(&#123; GUI: true &#125;)</code> to
-                  enable the built-in web GUI on localhost:27018. Perfect for Electron apps—give
-                  your users a database inspector without extra dependencies.
+                  Manage your databases visually with our standalone Desktop GUI app (AxioDB Control).
+                  Connect over TCP or start the HTTP API with <code className="bg-accent-100 px-2 py-1 rounded text-accent-800">new AxioDB(&#123; HTTP: true &#125;)</code> on localhost:27018.
                 </p>
                 <a
-                  href="/usage#gui"
+                  href="/installation"
                   className="inline-flex items-center gap-2 bg-accent-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-accent-700 transition-colors shadow-sm hover:shadow-sm"
                 >
                   <Code className="h-4 w-4" />
-                  View GUI Documentation
+                  Install Desktop GUI
                   <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
@@ -1011,8 +1010,8 @@ const Introduction: React.FC = () => {
                 <div className="flex items-start gap-3 bg-white p-4 rounded-lg border border-green-200 shadow-sm">
                   <span className="text-green-500 text-lg mt-0.5">✓</span>
                   <div>
-                    <span className="font-semibold text-gray-700">Dual-Write In-Memory Cache &amp; GUI</span>
-                    <p className="text-sm text-gray-500">InMemoryCache with TTL jitter, Worker Threads, and built-in web dashboard</p>
+                    <span className="font-semibold text-gray-700">Dual-Write In-Memory Cache &amp; Desktop GUI</span>
+                    <p className="text-sm text-gray-500">InMemoryCache with TTL jitter, Worker Threads, and official Desktop GUI</p>
                   </div>
                 </div>
               </div>
@@ -1281,7 +1280,6 @@ const Introduction: React.FC = () => {
               code={`const db = new AxioDB({
   TCP: true,
   TCPAuth: true,
-  GUI: false,
   AdminPassword: 'my-secret-password',
 });`}
             />
@@ -1299,7 +1297,7 @@ axiodb serve full my-secret-password`}
             <CodeBlock
               language="bash"
               code={`docker run -d \\
-  -e AXIODB_GUI=false \\
+  -e AXIODB_HTTP=false \\
   -e AXIODB_ADMIN_PASSWORD=my-secret-password \\
   theankansaha/axiodb`}
             />

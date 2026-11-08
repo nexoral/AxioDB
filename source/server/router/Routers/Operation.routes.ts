@@ -3,7 +3,7 @@ import { AxioDB } from "../../../Services/Indexation.operation";
 import CRUDController from "../../controller/Operation/CRUD.controller";
 import { requireAuth, requireFreshPassword } from "../../middleware/auth.middleware";
 import { requirePermission } from "../../middleware/permission.middleware";
-import { PERMISSIONS } from "../../../config/Keys/Permissions";
+import { PERMISSIONS, isReservedDatabaseName } from "../../../config/Keys/Permissions";
 
 interface RouterOptions {
   AxioDBInstance: AxioDB;
@@ -29,8 +29,19 @@ export default async function OperationRouter(
       if (!dbName || !collectionName) {
         return { statusCode: 400, message: "dbName and collectionName are required" };
       }
+      if (isReservedDatabaseName(dbName)) {
+        return { statusCode: 403, message: "This is a reserved system database" };
+      }
       try {
+        const dbExists = await AxioDBInstance.isDatabaseExists(dbName);
+        if (!dbExists) {
+          return { statusCode: 404, message: "Database does not exist" };
+        }
         const database = await AxioDBInstance.createDB(dbName);
+        const colExists = await database.isCollectionExists(collectionName);
+        if (!colExists) {
+          return { statusCode: 404, message: "Collection does not exist" };
+        }
         const collection = await database.createCollection(collectionName);
         return collection.totalDocuments();
       } catch {

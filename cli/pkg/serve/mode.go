@@ -26,7 +26,6 @@ const (
 
 type ModeConfig struct {
 	Mode    Mode
-	GUI     bool
 	HTTP    bool
 	TCP     bool
 	TCPAuth bool
@@ -44,7 +43,7 @@ func ParseMode(value string) (ModeConfig, error) {
 	case ModeMCP:
 		return ModeConfig{Mode: ModeMCP, MCP: true}, nil
 	case ModeFull:
-		return ModeConfig{Mode: ModeFull, GUI: true, HTTP: true, TCP: true, TCPAuth: true, MCP: true}, nil
+		return ModeConfig{Mode: ModeFull, HTTP: true, TCP: true, TCPAuth: true, MCP: true}, nil
 	default:
 		return ModeConfig{}, fmt.Errorf("unknown serve mode %q (expected http, tcp, tcp-auth, mcp, or full)", value)
 	}

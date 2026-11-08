@@ -1,6 +1,4 @@
 import http, { IncomingMessage, ServerResponse } from "http";
-import fs from "fs";
-import nodePath from "path";
 import { Readable } from "stream";
 import { SECURITY_HEADERS } from "../../server/config/keys";
 import CookieHelper from "./Cookie.helper";
@@ -12,25 +10,19 @@ import {
   CookieSerializeOptions,
 } from "./HttpTypes";
 import MultipartHelper from "./Multipart.helper";
-import StaticFileHelper from "./StaticFile.helper";
+import SafeErrorMessage from "../SafeErrorMessage.helper";
 
 export interface HttpServerOptions {
-  guiEnabled?: boolean;
-  staticPath?: string;
   bodyLimit?: number;
 }
 
 export default class HttpServerHelper {
   private server: http.Server;
   private router: HttpRouter;
-  private guiEnabled: boolean;
-  private staticPath?: string;
   private bodyLimit: number;
 
   constructor(router: HttpRouter, options: HttpServerOptions = {}) {
     this.router = router;
-    this.guiEnabled = options.guiEnabled ?? false;
-    this.staticPath = options.staticPath;
     this.bodyLimit = options.bodyLimit ?? 52428800; // 50MB
 
     this.server = http.createServer(this.handleRequest.bind(this));
@@ -63,10 +55,10 @@ export default class HttpServerHelper {
       url: rawUrl,
       path,
       ip:
+        req.socket.remoteAddress ||
         (typeof req.headers["x-forwarded-for"] === "string"
           ? req.headers["x-forwarded-for"].split(",")[0].trim()
           : undefined) ||
-        req.socket.remoteAddress ||
         "127.0.0.1",
       query: Object.fromEntries(parsedUrl.searchParams),
       params: {},
@@ -195,11 +187,6 @@ export default class HttpServerHelper {
         return;
       }
 
-      if (this.guiEnabled && this.staticPath) {
-        const served = await StaticFileHelper.serve(this.staticPath, request, reply);
-        if (served) return;
-      }
-
       const contentType = req.headers["content-type"] ?? "";
       if (
         (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") &&
@@ -210,20 +197,6 @@ export default class HttpServerHelper {
 
       const handled = await this.router.handle(request, reply);
       if (!handled && !reply.sent && !res.writableEnded) {
-        if (
-          this.guiEnabled &&
-          this.staticPath &&
-          (request.method === "GET" || request.method === "HEAD") &&
-          !request.path.startsWith("/api")
-        ) {
-          const indexPath = nodePath.join(this.staticPath, "index.html");
-          if (fs.existsSync(indexPath)) {
-            const stream = fs.createReadStream(indexPath);
-            reply.type("text/html").send(stream);
-            return;
-          }
-        }
-
         reply.status(404).send({
           statusCode: 404,
           status: false,
@@ -235,7 +208,7 @@ export default class HttpServerHelper {
         reply.status(500).send({
           statusCode: 500,
           status: false,
-          message: error instanceof Error ? error.message : "Internal Server Error",
+          message: SafeErrorMessage.sanitize(error),
         });
       }
     }

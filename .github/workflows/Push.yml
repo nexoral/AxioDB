@@ -10,7 +10,6 @@ on:
       - 'package-lock.json'
       - 'tsconfig.json'
       - 'Docker/**'
-      - 'GUI/**'
       - 'Test/**'
       - 'Scripts/**'
       - 'cli/**'
@@ -27,8 +26,8 @@ jobs:
     outputs:
       run_test: ${{ steps.filter.outputs.test_scripts == 'true' || steps.filter.outputs.main == 'true' || steps.filter.outputs.docker == 'true' }}
       run_npm_github: ${{ steps.filter.outputs.main == 'true' }}
-      # 'main' already covers source/** and GUI/** (see filters below), so this fires the
-      # Docker publish whenever source, GUI, or Docker/** itself changes - not just Docker/**.
+      # 'main' covers source/** and dependencies, so this fires the
+      # Docker publish whenever source, or Docker/** itself changes - not just Docker/**.
       run_docker: ${{ steps.filter.outputs.docker == 'true' || steps.filter.outputs.main == 'true' }}
       run_cli_release: ${{ steps.filter.outputs.cli == 'true' }}
     steps:
@@ -44,7 +43,6 @@ jobs:
               - 'Test/**'
               - 'Scripts/**'
             main:
-              - 'GUI/**'
               - 'source/**'
               - 'package.json'
               - 'package-lock.json'
@@ -417,12 +415,6 @@ jobs:
       - name: Build package
         run: npm run build
 
-      - name: Run GUI Build
-        run: cd GUI && npm install && npm run build && cd ..
-
-      - name: Move GUI build files
-        run: cd ./GUI && mv AxioControl/ ../lib/server/public && cd ..
-
       - name: Publish to NPM Registry
         run: npm publish --access public
 
@@ -440,10 +432,6 @@ jobs:
         run: npm install
       - name: Build package
         run: npm run build
-      - name: Run GUI Build
-        run: cd GUI && npm install && npm run build && cd ..
-      - name: Move GUI build files
-        run: cd ./GUI && mv AxioControl/ ../lib/server/public && cd ..
       - name: Set GitHub Auth Token
         run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GIT_AUTH_TOKEN }}" >> ~/.npmrc
       - name: Change package name in package.json
@@ -469,12 +457,6 @@ jobs:
 
       - name: Build package
         run: npm run build
-
-      - name: Run GUI Build
-        run: cd GUI && npm install && npm run build && cd ..
-
-      - name: Move GUI build files
-        run: cd ./GUI && mv AxioControl/ ../lib/server/public && cd ..
 
       - name: Move the lib folder to Docker context
         run: mv lib/ Docker/

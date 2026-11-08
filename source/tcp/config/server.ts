@@ -64,7 +64,7 @@ export default async function createAxioDBTCPServer(
   // Setup connection manager event handlers
   setupConnectionManagerHandlers(connectionManager);
 
-  // Bridge GUI-side auth mutations (role change, password reset, deletion) into this
+  // Bridge HTTP-side auth mutations (role change, password reset, deletion) into this
   // TCP server's own connection state - see AuthEvents.service.ts. AxioDB is a
   // singleton with at most one TCP server per process, so this is a single
   // process-lifetime subscription, not a per-connection leak.
@@ -99,7 +99,8 @@ export default async function createAxioDBTCPServer(
   });
 
   // Start listening
-  server.listen(port, () => {
+  const host = process.env.AXIODB_HOST || "127.0.0.1";
+  server.listen(port, host, () => {
     Logger.info(
       `[AxioDB TCP Server] Started successfully on port ${port}${tlsOptions ? ' (TLS)' : ''}`,
     );

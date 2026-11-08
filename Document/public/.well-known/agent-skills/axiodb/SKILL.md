@@ -61,7 +61,7 @@ npm install axiodb
 const { AxioDB } = require("axiodb");
 
 const db = new AxioDB({
-  GUI: false,          // web GUI + HTTP API on port 27018 (default: false)
+  HTTP: false,         // HTTP REST API on port 27018 (default: false)
   RootName: "AxioDB",  // root storage folder name
   CustomPath: ".",     // custom storage path (default: cwd)
   Cache: true,         // per-instance InMemoryCache (default: true; false disables caching)
@@ -75,8 +75,8 @@ const db = new AxioDB({
 process throws `Only one instance of AxioDB is allowed.` Export one instance
 from one module.
 
-`GUI: true` opens port 27018 with a web dashboard and REST API. Leave it
-`false` for production / Electron apps.
+`HTTP: true` opens port 27018 with a Fastify REST API. Leave it
+`false` for headless embedded mode / Electron apps.
 
 Each instance owns its own cache: `Cache`, `minTTL`, `maxTTL`, and
 `cacheClearUp` (all optional) configure it. `Cache: false` disables caching
@@ -294,14 +294,14 @@ With authentication (recommended for production):
 ```javascript
 const db = new AxioDB({
   TCP: true,
-  TCPAuth: true,         // require username/password, same RBAC as GUI
+  TCPAuth: true,         // require username/password, same RBAC as HTTP API
   RootName: "MyDB",
   CustomPath: "./data",
 });
 
 // Default credentials: admin / admin (forced password change on first login)
 // Or pass AdminPassword: "<your password>" to seed a usable account instead
-// Create users/roles via the GUI (GUI: true) or HTTP API
+// Create users/roles via the Desktop GUI or HTTP API
 ```
 
 With TLS encryption:
@@ -437,13 +437,13 @@ const client = new AxioDBCloud("axiodb://myserver:27019", {
 
 ## Part 3: Electron
 
-Main process only, data in the per-user directory, GUI off:
+Main process only, data in the per-user directory, HTTP server off:
 
 ```javascript
 const db = new AxioDB({
   RootName: "AppData",
   CustomPath: app.getPath("userData"), // never inside app.asar
-  GUI: false,
+  HTTP: false,
 });
 ```
 
@@ -589,7 +589,7 @@ docker run -d \
   theankansaha/axiodb
 ```
 
-GUI at `http://localhost:27018`, TCP server at `localhost:27019`.
+HTTP API at `http://localhost:27018`, TCP server at `localhost:27019`.
 Default login: `admin` / `admin` (forced password change on first login).
 
 ### With MCP server (AI agents)
@@ -624,10 +624,9 @@ docker run -d \
 
 | Variable | Default | Description |
 |---|---|---|
-| `AXIODB_GUI` | `true` | Web GUI on port 27018 |
-| `AXIODB_HTTP` | mirrors GUI | REST API on port 27018 |
+| `AXIODB_HTTP` | `true` | REST API on port 27018 |
 | `AXIODB_TCP` | `true` | TCP server on port 27019 |
-| `AXIODB_TCP_AUTH_ENABLED` | `true` | Require TCP auth (shared RBAC with GUI) |
+| `AXIODB_TCP_AUTH_ENABLED` | `true` | Require TCP auth (shared RBAC with HTTP API) |
 | `AXIODB_ADMIN_PASSWORD` | *(none)* | Password `admin` is seeded with on first start. **Required** when TCP auth is on and `AXIODB_HTTP` is off, or the container exits at startup |
 | `AXIODB_TLS` | `false` | Encrypt TCP with TLS |
 | `AXIODB_TLS_CERT_PATH` | *(none)* | In-container path to PEM cert |
@@ -706,7 +705,7 @@ http://localhost:27020/mcp
 index management, dashboard stats, health checks, transaction operations
 (BEGIN/COMMIT/ROLLBACK/SAVEPOINT), and user/role management.
 
-Same RBAC as the GUI — a View-role session gets `403` on write tools.
+Same RBAC as the HTTP API — a View-role session gets `403` on write tools.
 Every tool except `axiodb_login` requires a `sessionId` from logging in first.
 
 ### Compatible AI tools
@@ -721,11 +720,11 @@ commands per tool.
 
 | Port | Protocol | Service | Configurable? | How to enable |
 |---|---|---|---|---|
-| **27018** | HTTP | Dashboard + REST API | No (remap with Docker `-p`) | `GUI: true` / `AXIODB_GUI=true` |
+| **27018** | HTTP | HTTP REST API | No (remap with Docker `-p`) | `HTTP: true` / `AXIODB_HTTP=true` |
 | **27019** | TCP (custom binary protocol) | AxioDBCloud server | No (remap with Docker `-p`) | `TCP: true` / `AXIODB_TCP=true` |
 | **27020** | HTTP (Streamable) | MCP server | Yes (`AXIODB_MCP_PORT`) | `{ MCP: true }` / `AXIODB_MCP=true` |
 
-**Port 27018** is HTTP — serves the web GUI and the REST API (41 endpoints).
+**Port 27018** is HTTP — serves the Fastify REST API (41 endpoints) and displays Desktop GUI installation instructions on GET `/`.
 Session cookie auth. This is NOT the TCP server.
 
 **Port 27019** is a custom binary-framed TCP protocol — NOT HTTP. Do not point

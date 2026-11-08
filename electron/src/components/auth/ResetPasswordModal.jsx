@@ -5,7 +5,7 @@ import Button from '../ui/Button'
 import { Input } from '../ui/Field'
 import { Alert } from '../ui/Feedback'
 
-const MIN_PASSWORD_LENGTH = 4
+const MIN_PASSWORD_LENGTH = 8
 
 const ResetPasswordModal = ({ isOpen, username, onClose, onPasswordReset }) => {
   const [newPassword, setNewPassword] = useState('')

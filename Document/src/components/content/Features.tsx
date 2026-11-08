@@ -393,16 +393,15 @@ const Features: React.FC = () => {
                 <BarChart3 className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
-                Built-in Web GUI
+                Built-in HTTP REST API
               </h3>
             </div>
             <p className="text-gray-600 leading-relaxed text-lg mb-4">
-              Enable the built-in web interface to visualize and inspect your databases.
-              Perfect for Electron apps—give your users a database inspector without
-              extra dependencies. Runs on localhost:27018.
+              Enable the built-in HTTP server on localhost:27018 to expose Fastify REST API
+              endpoints for remote clients, health checks, and the official Desktop GUI app (AxioDB Control).
             </p>
             <code className="bg-accent-50 px-3 py-2 rounded-lg text-fuchsia-600 font-semibold border border-fuchsia-200">
-              new AxioDB(&#123; GUI: true &#125;) // Enable GUI
+              new AxioDB(&#123; HTTP: true &#125;) // Enable HTTP REST API
             </code>
           </div>
         </div>
@@ -424,7 +423,7 @@ const Features: React.FC = () => {
               deployment flexibility across different environments.
             </p>
             <code className="bg-green-50 px-3 py-2 rounded-lg text-lime-300 font-semibold border border-lime-200">
-              new AxioDB(&#123; GUI: true, RootName: "MyDB", CustomPath: "./custom/path" &#125;)
+              new AxioDB(&#123; RootName: "MyDB", CustomPath: "./custom/path" &#125;)
             </code>
           </div>
         </div>

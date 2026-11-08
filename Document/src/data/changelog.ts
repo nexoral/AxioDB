@@ -12,6 +12,18 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "25.39.2",
+    date: "2026-11-09",
+    title: "Complete web GUI removal, dedicated HTTP REST API transition, and standalone Desktop GUI focus",
+    changes: [
+      "Full Web GUI Removal: completely removed the embedded web-based dashboard and legacy static file serving from the HTTP server (port 27018), transitioning the HTTP service strictly to a dedicated REST API",
+      "Configuration API Streamlining: removed legacy GUI configuration options and fallback logic in favor of clean { HTTP: boolean } initialization across the core engine",
+      "DevContainer & Script Modernization: streamlined devcontainer post-create scripts, release automation, and installer hooks to remove deprecated GUI build references",
+      "Desktop GUI (AxioDB Control) Focus: established the standalone Electron application as the sole official graphical interface for managing local and remote databases",
+      "Documentation & AI Context Alignment: updated API specifications, LLM reference guides, and installer scripts to cleanly delineate between the HTTP REST API (27018) and Desktop GUI",
+    ],
+  },
+  {
     version: "25.39.1",
     date: "2026-11-08",
     title: "AI-era terminal installer UI, desktop GUI checksum verification, smart up-to-date detection, and 'axiodb destroy' command",

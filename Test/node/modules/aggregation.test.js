@@ -31,7 +31,7 @@ class AggregationTests extends TestRunner {
     OperatorRegistry.clearAll();
 
     // Create database instance
-    this.dbInstance = new AxioDB({ GUI: false, RootName: 'AggregationTestDB', CustomPath: this.testDir });
+    this.dbInstance = new AxioDB({ RootName: 'AggregationTestDB', CustomPath: this.testDir });
     this.testDB = await this.dbInstance.createDB('TestDatabase');
 
     // Create collections

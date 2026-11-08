@@ -94,7 +94,7 @@ class CrashRecoveryTests extends TestRunner {
         const crashCode = `
           const { AxioDB } = require(${JSON.stringify(LIB_DB_PATH)});
           (async () => {
-            const db = new AxioDB({ GUI: false, RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
+            const db = new AxioDB({ RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
             const database = await db.createDB('TestDB');
             const collection = await database.createCollection('Users');
             let i = 0;
@@ -115,7 +115,7 @@ class CrashRecoveryTests extends TestRunner {
         const verifyCode = `
           const { AxioDB } = require(${JSON.stringify(LIB_DB_PATH)});
           (async () => {
-            const db = new AxioDB({ GUI: false, RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
+            const db = new AxioDB({ RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
             const database = await db.createDB('TestDB');
             const collection = await database.createCollection('Users');
             // Give the fire-and-forget recovery a moment to finish.
@@ -172,7 +172,7 @@ class CrashRecoveryTests extends TestRunner {
         const setupCode = `
           const { AxioDB } = require(${JSON.stringify(LIB_DB_PATH)});
           (async () => {
-            const db = new AxioDB({ GUI: false, RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
+            const db = new AxioDB({ RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
             const database = await db.createDB('TestDB');
             const collection = await database.createCollection('Users');
             await collection.insert({ name: 'Target', counter: 0 });
@@ -185,7 +185,7 @@ class CrashRecoveryTests extends TestRunner {
         const crashCode = `
           const { AxioDB } = require(${JSON.stringify(LIB_DB_PATH)});
           (async () => {
-            const db = new AxioDB({ GUI: false, RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
+            const db = new AxioDB({ RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
             const database = await db.createDB('TestDB');
             const collection = await database.createCollection('Users');
             let i = 0;
@@ -200,7 +200,7 @@ class CrashRecoveryTests extends TestRunner {
         const verifyCode = `
           const { AxioDB } = require(${JSON.stringify(LIB_DB_PATH)});
           (async () => {
-            const db = new AxioDB({ GUI: false, RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
+            const db = new AxioDB({ RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
             const database = await db.createDB('TestDB');
             const collection = await database.createCollection('Users');
             await new Promise((r) => setTimeout(r, 1000));
@@ -224,7 +224,7 @@ class CrashRecoveryTests extends TestRunner {
         const crashCode = `
           const { AxioDB } = require(${JSON.stringify(LIB_DB_PATH)});
           (async () => {
-            const db = new AxioDB({ GUI: false, RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
+            const db = new AxioDB({ RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
             const database = await db.createDB('TestDB');
             const collection = await database.createCollection('Users');
             await collection.newIndex('email', 'category', 'score');
@@ -242,7 +242,7 @@ class CrashRecoveryTests extends TestRunner {
         const verifyCode = `
           const { AxioDB } = require(${JSON.stringify(LIB_DB_PATH)});
           (async () => {
-            const db = new AxioDB({ GUI: false, RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
+            const db = new AxioDB({ RootName: 'CrashDB', CustomPath: ${JSON.stringify(dbPath)} });
             const database = await db.createDB('TestDB');
             const collection = await database.createCollection('Users');
             await new Promise((r) => setTimeout(r, 1000));

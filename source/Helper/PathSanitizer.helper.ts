@@ -76,8 +76,9 @@ export default class PathSanitizer {
   static validatePath(basePath: string, fullPath: string): void {
     const resolvedBase = path.resolve(basePath);
     const resolvedFull = path.resolve(fullPath);
+    const relative = path.relative(resolvedBase, resolvedFull);
 
-    if (!resolvedFull.startsWith(resolvedBase)) {
+    if (relative.startsWith("..") || path.isAbsolute(relative)) {
       throw new Error('Security violation: Path traversal attempt detected');
     }
   }

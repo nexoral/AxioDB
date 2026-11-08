@@ -1,6 +1,6 @@
 # AxioDB — Agent Instructions
 
-**AxioDB** — Embedded NoSQL Database for TypeScript & AI Agents. Zero native deps, TS 6.0 strict → CJS, Node ≥20 (engine minimum; Docker runs on Node 23; verified on Node, Bun & Deno), singleton, file-per-doc, `InMemoryCache`, Worker Threads, ACID transactions & WAL, GUI 27018, TCP 27019.
+**AxioDB** — Embedded NoSQL Database for TypeScript & AI Agents. Zero native deps, TS 6.0 strict → CJS, Node ≥20 (engine minimum; Docker runs on Node 23; verified on Node, Bun & Deno), singleton, file-per-doc, `InMemoryCache`, Worker Threads, ACID transactions & WAL, HTTP 27018, TCP 27019.
 
 ## Directory Layout
 
@@ -77,11 +77,10 @@ class MyTests extends TestRunner {
 }
 ```
 
-## Version sync (16 places — all must match)
+## Version sync (15 places — all must match)
 
 * `package.json` → `"version"`
 * `package-lock.json` → auto via `npm install`
-* `GUI/package.json` → `"version"`
 * `electron/package.json` → `"version"`
 * `Document/package.json` → `"version"`
 * `Email/package.json` → `"version"`
@@ -99,7 +98,7 @@ Regen AI artifacts: `cd Document && npx tsx scripts/generate-seo-files.ts`
 
 ## Documentation — same commit as code
 
-README, `Document/` (`npm run dev` 5173), `Dockerfile` ports/env, JSDoc with `@param/@returns/@throws/@example`. Single source: `Document/src/data/serverApi.ts` → docs + `openapi.json`. Never blur: core · Dashboard · HTTP API 27018 · TCP 27019 · MCP 27020 (core & Docker).
+README, `Document/` (`npm run dev` 5173), `Dockerfile` ports/env, JSDoc with `@param/@returns/@throws/@example`. Single source: `Document/src/data/serverApi.ts` → docs + `openapi.json`. Never blur: core · HTTP API 27018 · TCP 27019 · MCP 27020 (core & Docker) · Desktop App (Electron).
 
 ## Commands
 
