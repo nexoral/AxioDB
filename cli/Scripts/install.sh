@@ -14,6 +14,59 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+SPINNER_FRAMES=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+spin_pid=""
+
+# Cleanup handler to ensure cursor is always restored
+cleanup() {
+    if [ -n "$spin_pid" ]; then
+        kill "$spin_pid" >/dev/null 2>&1 || true
+        wait "$spin_pid" 2>/dev/null || true
+    fi
+    tput cnorm 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
+
+start_spinner() {
+    local msg="$1"
+    local file="$2"
+    if [ ! -t 1 ]; then
+        return
+    fi
+    tput civis 2>/dev/null || true
+    (
+        i=0
+        while true; do
+            local frame="${SPINNER_FRAMES[i]}"
+            local size_str=""
+            if [ -n "$file" ] && [ -f "$file" ]; then
+                local b
+                b=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo 0)
+                if [ "$b" -gt 0 ]; then
+                    local mb=$(awk -v b="$b" 'BEGIN {printf "%.1f", b/1048576}')
+                    size_str=" (${mb} MB)"
+                fi
+            fi
+            printf "\r  \033[36m│\033[0m \033[36m%s\033[0m %s%s" "$frame" "$msg" "$size_str"
+            i=$(( (i + 1) % ${#SPINNER_FRAMES[@]} ))
+            sleep 0.08
+        done
+    ) &
+    spin_pid=$!
+}
+
+stop_spinner() {
+    if [ -n "$spin_pid" ]; then
+        kill "$spin_pid" >/dev/null 2>&1 || true
+        wait "$spin_pid" 2>/dev/null || true
+        spin_pid=""
+    fi
+    if [ -t 1 ]; then
+        printf "\r\033[K"
+    fi
+    tput cnorm 2>/dev/null || true
+}
+
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
@@ -130,7 +183,6 @@ install_cli() {
     fi
 
     panel_top "Installing AxioDB CLI (v${VERSION})" "Suggestions for CLI"
-    panel_row "◇ Fetching binary (${BINARY_NAME}_${OS}_${ARCH})..." "> Instant server:  axiodb serve full"
 
     DOWNLOAD_FILE="${BINARY_NAME}_${OS}_${ARCH}"
     DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${DOWNLOAD_FILE}"
@@ -139,15 +191,18 @@ install_cli() {
     TMP_DIR=$(mktemp -d)
     cd "$TMP_DIR"
 
+    start_spinner "Downloading ${DOWNLOAD_FILE}..." "${TMP_DIR}/${DOWNLOAD_FILE}"
     if ! curl -fsSL -o "$DOWNLOAD_FILE" "$DOWNLOAD_URL"; then
+        stop_spinner
         panel_row "✖ Download failed" ""
         panel_bottom
         rm -rf "$TMP_DIR"
         exit 1
     fi
-    panel_row "✔ Download complete" "> AI context:      axiodb serve mcp"
+    stop_spinner
+    panel_row "✔ Download complete (${DOWNLOAD_FILE})" "> AI context:      axiodb serve mcp"
 
-    panel_row "◇ Verifying SHA-256 checksum..." "> Direct TCP:      port 27019"
+    start_spinner "Verifying SHA-256 cryptographic checksum..."
     if curl -fsSL -o "checksums.txt" "$CHECKSUM_URL" 2>/dev/null; then
         EXPECTED_CHECKSUM=$(grep "$DOWNLOAD_FILE" checksums.txt | awk '{print $1}')
         if [ -n "$EXPECTED_CHECKSUM" ]; then
@@ -157,13 +212,19 @@ install_cli() {
                 ACTUAL_CHECKSUM=$(shasum -a 256 "$DOWNLOAD_FILE" | awk '{print $1}')
             fi
             if [ -n "$ACTUAL_CHECKSUM" ] && [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
+                stop_spinner
                 panel_row "✖ Checksum verification failed!" ""
                 panel_bottom
                 rm -rf "$TMP_DIR"
                 exit 1
             fi
-            panel_row "✔ Checksum verified (SHA-256)" "> Self-uninstaller: axiodb destroy"
+            stop_spinner
+            panel_row "✔ Checksum verified (SHA-256)" "> Direct TCP:      port 27019"
+        else
+            stop_spinner
         fi
+    else
+        stop_spinner
     fi
 
     sudo mv "$DOWNLOAD_FILE" "$CLI_INSTALL_DIR/$BINARY_NAME"
@@ -173,7 +234,7 @@ install_cli() {
     rm -rf "$TMP_DIR"
 
     if command -v $BINARY_NAME &> /dev/null; then
-        panel_row "✔ Deployed to ${CLI_INSTALL_DIR}/${BINARY_NAME}" "> Ready to use:    axiodb --help"
+        panel_row "✔ Deployed to ${CLI_INSTALL_DIR}/${BINARY_NAME}" "> Instant server:  axiodb serve full"
         panel_bottom
     else
         panel_row "✖ CLI verification failed" ""
@@ -221,9 +282,10 @@ install_gui() {
     cd "$TMP_DIR"
 
     panel_top "Installing AxioDB GUI (v${VERSION})" "Suggestions for Desktop GUI"
-    panel_row "◇ Resolving release package..." "> Desktop control: axiodb-control"
 
+    start_spinner "Resolving release package..."
     RELEASE_JSON=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")
+    stop_spinner
     
     GUI_FILE=""
     GUI_TYPE=""
@@ -264,17 +326,19 @@ install_gui() {
     fi
 
     DOWNLOAD_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/${GUI_FILE}"
-    panel_row "◇ Fetching package (${GUI_FILE})..." "> Visualizer:     Documents & indexes"
+    start_spinner "Downloading package (${GUI_FILE})..." "${TMP_DIR}/${GUI_FILE}"
 
     if ! curl -fsSL -o "$GUI_FILE" "$DOWNLOAD_URL"; then
+        stop_spinner
         panel_row "✖ Failed to download GUI package" ""
         panel_bottom
         rm -rf "$TMP_DIR"
         exit 1
     fi
-    panel_row "✔ Download complete" "> Real-time:      Database metrics"
+    stop_spinner
+    panel_row "✔ Download complete (${GUI_FILE})" "> Visualizer:     Documents & indexes"
 
-    panel_row "◇ Verifying SHA-256 checksum..." "> Dual-write:     Fast index cache"
+    start_spinner "Verifying SHA-256 cryptographic checksum..."
     GUI_CHECKSUM_URL="https://github.com/$REPO/releases/download/cli-v${VERSION}/gui_checksums.txt"
     if curl -fsSL -o "gui_checksums.txt" "$GUI_CHECKSUM_URL" 2>/dev/null; then
         EXPECTED_CHECKSUM=$(tr ' ' '.' < gui_checksums.txt | grep "$GUI_FILE" | cut -c1-64)
@@ -285,13 +349,19 @@ install_gui() {
                 ACTUAL_CHECKSUM=$(shasum -a 256 "$GUI_FILE" | awk '{print $1}')
             fi
             if [ -n "$ACTUAL_CHECKSUM" ] && [ "$EXPECTED_CHECKSUM" != "$ACTUAL_CHECKSUM" ]; then
+                stop_spinner
                 panel_row "✖ Checksum verification failed!" ""
                 panel_bottom
                 rm -rf "$TMP_DIR"
                 exit 1
             fi
+            stop_spinner
             panel_row "✔ Checksum verified (SHA-256)" "> Security:       Audit logs & RBAC"
+        else
+            stop_spinner
         fi
+    else
+        stop_spinner
     fi
 
     case "$GUI_TYPE" in

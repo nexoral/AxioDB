@@ -28,6 +28,8 @@ if ($termWidth -gt 130) { $termWidth = 130 }
 $wLeft = [math]::Floor(($termWidth - 7) / 2)
 $wRight = $termWidth - 7 - $wLeft
 
+$SPINNER_FRAMES = @("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
+
 function Make-Bar([int]$len) {
     if ($len -le 0) { $len = 1 }
     return [string]::new([char]0x2500, $len)
@@ -67,6 +69,25 @@ function Print-PanelRow([string]$l, [string]$r) {
 function Print-PanelBottom {
     Write-Host "  " -NoNewline
     Write-Host ("╰" + (Make-Bar ($wLeft + 2)) + "┴" + (Make-Bar ($wRight + 2)) + "╯") -ForegroundColor Cyan
+}
+
+function Invoke-SpinnerAnimation([string]$msg, [scriptblock]$action) {
+    if (-not [Environment]::UserInteractive) {
+        & $action
+        return
+    }
+    try { [Console]::CursorVisible = $false } catch {}
+    $asyncResult = $action.BeginInvoke($null, $null)
+    $i = 0
+    while (-not $asyncResult.IsCompleted) {
+        $frame = $SPINNER_FRAMES[$i % $SPINNER_FRAMES.Length]
+        Write-Host ("`r  │ " + $frame + " " + $msg) -NoNewline -ForegroundColor Cyan
+        Start-Sleep -Milliseconds 80
+        $i++
+    }
+    $action.EndInvoke($asyncResult) | Out-Null
+    Write-Host "`r  │                                                                `r" -NoNewline
+    try { [Console]::CursorVisible = $true } catch {}
 }
 
 function Get-SystemArchitecture {
@@ -140,7 +161,6 @@ function Install-CLI {
     }
 
     Print-PanelTop "Installing AxioDB CLI (v$VERSION)" "Suggestions for CLI"
-    Print-PanelRow "◇ Fetching binary (axiodb_windows_${ARCH}.exe)..." "> Instant server:  axiodb serve full"
 
     $DOWNLOAD_FILE = "axiodb_windows_${ARCH}.exe"
     $DOWNLOAD_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/${DOWNLOAD_FILE}"
@@ -158,35 +178,32 @@ function Install-CLI {
 
     $TMP_FILE = Join-Path $env:TEMP $DOWNLOAD_FILE
 
-    try {
+    Invoke-SpinnerAnimation "Downloading $DOWNLOAD_FILE..." {
         Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $TMP_FILE -UseBasicParsing
-    } catch {
-        Print-PanelRow "✖ Download failed" ""
-        Print-PanelBottom
-        exit 1
     }
 
-    Print-PanelRow "✔ Download complete" "> AI context:      axiodb serve mcp"
-    Print-PanelRow "◇ Verifying SHA-256 checksum..." "> Direct TCP:      port 27019"
+    Print-PanelRow "✔ Download complete ($DOWNLOAD_FILE)" "> AI context:      axiodb serve mcp"
 
-    try {
-        $CHECKSUM_FILE = Join-Path $env:TEMP "checksums.txt"
-        Invoke-WebRequest -Uri $CHECKSUM_URL -OutFile $CHECKSUM_FILE -UseBasicParsing
-        $checksumContent = Get-Content $CHECKSUM_FILE
-        $expectedChecksum = ($checksumContent | Select-String -Pattern "$DOWNLOAD_FILE").Line -split '\s+' | Select-Object -First 1
-        if ($expectedChecksum) {
-            $actualChecksum = (Get-FileHash -Path $TMP_FILE -Algorithm SHA256).Hash.ToLower()
-            if ($actualChecksum -ne $expectedChecksum.ToLower()) {
-                Print-PanelRow "✖ Checksum verification failed!" ""
-                Print-PanelBottom
-                Remove-Item $TMP_FILE, $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
-                exit 1
+    Invoke-SpinnerAnimation "Verifying SHA-256 cryptographic checksum..." {
+        try {
+            $CHECKSUM_FILE = Join-Path $env:TEMP "checksums.txt"
+            Invoke-WebRequest -Uri $CHECKSUM_URL -OutFile $CHECKSUM_FILE -UseBasicParsing
+            $checksumContent = Get-Content $CHECKSUM_FILE
+            $expectedChecksum = ($checksumContent | Select-String -Pattern "$DOWNLOAD_FILE").Line -split '\s+' | Select-Object -First 1
+            if ($expectedChecksum) {
+                $actualChecksum = (Get-FileHash -Path $TMP_FILE -Algorithm SHA256).Hash.ToLower()
+                if ($actualChecksum -ne $expectedChecksum.ToLower()) {
+                    Print-PanelRow "✖ Checksum verification failed!" ""
+                    Print-PanelBottom
+                    Remove-Item $TMP_FILE, $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
+                    exit 1
+                }
+                Print-PanelRow "✔ Checksum verified (SHA-256)" "> Direct TCP:      port 27019"
             }
-            Print-PanelRow "✔ Checksum verified (SHA-256)" "> Self-uninstaller: axiodb destroy"
+            Remove-Item $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
+        } catch {
+            Print-PanelRow "! Checksum verification skipped" ""
         }
-        Remove-Item $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
-    } catch {
-        Print-PanelRow "! Checksum verification skipped" ""
     }
 
     $destPath = Join-Path $CLI_INSTALL_DIR $CLI_BINARY_NAME
@@ -234,66 +251,55 @@ function Install-GUI {
     } catch {}
 
     Print-PanelTop "Installing AxioDB GUI (v$VERSION)" "Suggestions for Desktop GUI"
-    Print-PanelRow "◇ Resolving release package..." "> Desktop control: AxioDB Control"
 
-    try {
+    $release = $null
+    Invoke-SpinnerAnimation "Resolving release package..." {
         $release = Invoke-RestMethod -Uri "https://api.github.com/repos/$REPO/releases/latest" -UseBasicParsing
-        $assets = $release.assets
-        
-        # Find .exe file for Windows
-        $guiAsset = $assets | Where-Object { $_.name -match "\.exe$" } | Select-Object -First 1
-        
-        if ($guiAsset) {
-            $GUI_INSTALLER = $guiAsset.name
-            $GUI_URL = $guiAsset.browser_download_url
-        } else {
-            Print-PanelRow "✖ No Windows GUI installer found" ""
-            Print-PanelBottom
-            exit 1
-        }
-    } catch {
-        Print-PanelRow "✖ Failed to fetch release info" ""
+    }
+    
+    $assets = $release.assets
+    $guiAsset = $assets | Where-Object { $_.name -match "\.exe$" } | Select-Object -First 1
+    
+    if (-not $guiAsset) {
+        Print-PanelRow "✖ No Windows GUI installer found" ""
         Print-PanelBottom
         exit 1
     }
 
-    Print-PanelRow "◇ Fetching package ($GUI_INSTALLER)..." "> Visualizer:     Documents & indexes"
-
+    $GUI_INSTALLER = $guiAsset.name
+    $GUI_URL = $guiAsset.browser_download_url
     $TMP_FILE = Join-Path $env:TEMP $GUI_INSTALLER
 
-    try {
+    Invoke-SpinnerAnimation "Downloading package ($GUI_INSTALLER)..." {
         Invoke-WebRequest -Uri $GUI_URL -OutFile $TMP_FILE -UseBasicParsing
-    } catch {
-        Print-PanelRow "✖ Failed to download GUI installer" ""
-        Print-PanelBottom
-        exit 1
     }
 
-    Print-PanelRow "✔ Download complete" "> Real-time:      Database metrics"
-    Print-PanelRow "◇ Verifying SHA-256 checksum..." "> Dual-write:     Fast index cache"
+    Print-PanelRow "✔ Download complete ($GUI_INSTALLER)" "> Visualizer:     Documents & indexes"
 
-    try {
-        $GUI_CHECKSUM_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/gui_checksums.txt"
-        $CHECKSUM_FILE = Join-Path $env:TEMP "gui_checksums.txt"
-        Invoke-WebRequest -Uri $GUI_CHECKSUM_URL -OutFile $CHECKSUM_FILE -UseBasicParsing
-        $checksumContent = Get-Content $CHECKSUM_FILE
-        $matchedLine = $checksumContent | Where-Object { $_.Replace(' ', '.') -like "*$GUI_INSTALLER*" } | Select-Object -First 1
-        if ($matchedLine) {
-            $expectedChecksum = ($matchedLine.Trim() -split '\s+')[0]
-            if ($expectedChecksum) {
-                $actualChecksum = (Get-FileHash -Path $TMP_FILE -Algorithm SHA256).Hash.ToLower()
-                if ($actualChecksum -ne $expectedChecksum.ToLower()) {
-                    Print-PanelRow "✖ Checksum verification failed!" ""
-                    Print-PanelBottom
-                    Remove-Item $TMP_FILE, $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
-                    exit 1
+    Invoke-SpinnerAnimation "Verifying SHA-256 cryptographic checksum..." {
+        try {
+            $GUI_CHECKSUM_URL = "https://github.com/$REPO/releases/download/cli-v${VERSION}/gui_checksums.txt"
+            $CHECKSUM_FILE = Join-Path $env:TEMP "gui_checksums.txt"
+            Invoke-WebRequest -Uri $GUI_CHECKSUM_URL -OutFile $CHECKSUM_FILE -UseBasicParsing
+            $checksumContent = Get-Content $CHECKSUM_FILE
+            $matchedLine = $checksumContent | Where-Object { $_.Replace(' ', '.') -like "*$GUI_INSTALLER*" } | Select-Object -First 1
+            if ($matchedLine) {
+                $expectedChecksum = ($matchedLine.Trim() -split '\s+')[0]
+                if ($expectedChecksum) {
+                    $actualChecksum = (Get-FileHash -Path $TMP_FILE -Algorithm SHA256).Hash.ToLower()
+                    if ($actualChecksum -ne $expectedChecksum.ToLower()) {
+                        Print-PanelRow "✖ Checksum verification failed!" ""
+                        Print-PanelBottom
+                        Remove-Item $TMP_FILE, $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
+                        exit 1
+                    }
+                    Print-PanelRow "✔ Checksum verified (SHA-256)" "> Security:       Audit logs & RBAC"
                 }
-                Print-PanelRow "✔ Checksum verified (SHA-256)" "> Security:       Audit logs & RBAC"
             }
+            Remove-Item $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
+        } catch {
+            Print-PanelRow "! Checksum verification skipped" ""
         }
-        Remove-Item $CHECKSUM_FILE -Force -ErrorAction SilentlyContinue
-    } catch {
-        Print-PanelRow "! Checksum verification skipped" ""
     }
 
     Print-PanelRow "◇ Launching installer wizard..." "> Complete setup: In wizard window"
