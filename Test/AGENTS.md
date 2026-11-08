@@ -12,7 +12,6 @@ bun/                      Bun test suite
   run.js                  orchestrator — spawns each suite in a child process with Bun
   helpers/                TestRunner, assertions, fixtures
   modules/*.test.js       the 14 suites running under Bun
-  key.js                  legacy benchmark data
 deno/                     Deno test suite
 node/
   run.js                  orchestrator — spawns each suite in a child process with Node
@@ -20,7 +19,6 @@ node/
   helpers/assertions.js   assert.* (isSuccess, isError, throws, equal, includes, …)
   helpers/fixtures.js     shared sample data
   modules/*.test.js       the suites
-  key.js                  legacy benchmark data (Data_To_Loop_*, schema, …)
 ```
 
 ## The 14 suites
@@ -72,7 +70,7 @@ Then register the file in the `testModules` map in `run.js` (key = suite name us
 * Use `fixtures` for data, not inline literals, where a fixture fits.
 * Always clean up in `setUp()` **and** `tearDown()` — leave no temp dirs; tests must be re-runnable and parallel-safe.
 * A `setUp()`/`runTests()` throw already counts as a failure (see `TestRunner.run`) — don't swallow it.
-* `fixtures.js` and `key.js` are shared; changing them ripples across suites.
+* `fixtures.js` is shared; changing it ripples across suites.
 * ESLint ignores `Test/**` — this is plain JS with `require`, not part of the typed core.
 
 ## Done for this folder

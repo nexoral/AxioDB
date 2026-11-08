@@ -75,7 +75,6 @@
     "wal-transactions",
     "in-memory-cache",
     "caching",
-    "schema-validation",
     "aggregation",
     "aggregation-pipeline",
     "bulk-operations",
