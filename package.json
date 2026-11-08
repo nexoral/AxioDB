@@ -2,10 +2,18 @@
   "name": "axiodb",
   "version": "25.39.2",
   "description": "Embedded NoSQL Database for TypeScript & AI Agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun.",
-  "main": "./lib/config/DB.js",
-  "types": "./lib/config/DB.d.ts",
+  "main": "./axiodb.js",
+  "types": "./axiodb.d.ts",
+  "jsdelivr": "./axiodb.js",
+  "exports": {
+    ".": {
+      "types": "./axiodb.d.ts",
+      "default": "./axiodb.js"
+    }
+  },
   "files": [
-    "lib",
+    "axiodb.js",
+    "axiodb.d.ts",
     "README.md",
     "LICENSE"
   ],
@@ -15,7 +23,7 @@
     "test": "npm run node-test --",
     "benchmark": "node -e \"if (!require('fs').existsSync('./lib/config/DB.js')) require('child_process').execSync('npm run build', { stdio: 'inherit' });\" && node ./benchmark/run.js",
     "bun-benchmark": "bun ./benchmark/run.js",
-    "build": "tsc",
+    "build": "tsc && tsup source/config/DB.ts --format cjs --dts --minify --target node20 --out-dir . --entry.axiodb source/config/DB.ts",
     "lint": "eslint source/",
     "lint:fix": "eslint source/ --fix"
   },
@@ -105,6 +113,7 @@
     "@typescript-eslint/parser": "^8.69.0",
     "eslint": "^10.9.1",
     "selfsigned": "^5.5.0",
+    "tsup": "^9.0.0",
     "typescript": "^6.0.3"
   },
   "engines": {

@@ -6,7 +6,7 @@ const { assert } = require('../helpers/assertions');
 const fs = require('fs');
 const path = require('path');
 
-const { AxioDB, OperatorRegistry } = require('../../../lib/config/DB.js');
+const { AxioDB, OperatorRegistry } = require('../../../axiodb.js');
 
 class AggregationTests extends TestRunner {
   constructor() {
@@ -615,7 +615,7 @@ class AggregationTests extends TestRunner {
       });
 
       await this.test('$lookup without resolver (standalone) throws', async () => {
-        const { InstanceTypes } = require('../../../lib/config/DB.js');
+        const { InstanceTypes } = require('../../../axiodb.js');
         const agg = new InstanceTypes.Aggregation('test', '/tmp/fake', [
           { $lookup: { from: 'other', localField: 'id', foreignField: 'id', as: 'data' } }
         ]);

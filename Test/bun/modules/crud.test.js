@@ -7,7 +7,7 @@ const fixtures = require('../helpers/fixtures');
 const fs = require('fs');
 const path = require('path');
 
-const { AxioDB } = require('../../../lib/config/DB.js');
+const { AxioDB } = require('../../../axiodb.js');
 
 class CRUDTests extends TestRunner {
   constructor() {

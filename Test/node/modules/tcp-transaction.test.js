@@ -8,7 +8,7 @@ const fs = require('fs');
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 
-const { AxioDB } = require('../../../lib/config/DB.js');
+const { AxioDB } = require('../../../axiodb.js');
 const { MessageFramer, MessageBuffer } = require('../../../lib/tcp/config/protocol');
 const { CommandType } = require('../../../lib/tcp/types/command.types');
 

@@ -1,5 +1,8 @@
 node_modules
 lib
+dist
+axiodb.js
+axiodb.d.ts
 AxioDB
 test.js
 a.js

@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { SchemaTypes } = require("../lib/config/DB.js");
+const { SchemaTypes } = require("../../axiodb.js");
 
 /* eslint-disable no-undef */
 const Data_Dir = "TestDB";

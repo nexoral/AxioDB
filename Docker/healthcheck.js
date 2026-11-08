@@ -31,7 +31,7 @@ function checkHttp() {
 }
 
 function checkTcp() {
-  const { AxioDBCloud } = require('./lib/config/DB.js');
+  const { AxioDBCloud } = require('./axiodb.js');
   const client = new AxioDBCloud('axiodb://localhost:27019', {
     timeout: CHECK_TIMEOUT_MS,
     maxPoolSize: 1,

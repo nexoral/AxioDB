@@ -5,7 +5,7 @@ const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 const fs = require('fs');
 
-const { AxioDB } = require('../../../lib/config/DB.js');
+const { AxioDB } = require('../../../axiodb.js');
 
 const BASE_URL = 'http://localhost:27018/api';
 
