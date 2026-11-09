@@ -85,9 +85,7 @@ export default class CRUDController {
     const bodySkip = (request.body as Record<string, unknown>)?.skip as number | undefined;
     const bodySort = (request.body as Record<string, unknown>)?.sort as Record<string, 1 | -1> | undefined;
 
-    const { query } = request.body as {
-      query: object;
-    };
+    const { query } = (request.body as { query: object } | undefined) ?? {};
 
     const PageNumber = page ? parseInt(String(page)) : 1;
     const effectiveLimit = limit !== undefined ? parseInt(String(limit)) : (bodyLimit !== undefined ? parseInt(String(bodyLimit)) : 25);
@@ -316,9 +314,9 @@ export default class CRUDController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-    const DB_Collection =
-      await databaseInstance.createCollection(collectionName);
+    const colOrError = await this.getExistingCollection(dbName, collectionName);
+    if ("statusCode" in colOrError) return colOrError;
+    const DB_Collection = colOrError;
 
     const updateResult = await DB_Collection.update({
       documentId: documentId,
@@ -363,9 +361,9 @@ export default class CRUDController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-    const DB_Collection =
-      await databaseInstance.createCollection(collectionName);
+    const colOrError = await this.getExistingCollection(dbName, collectionName);
+    if ("statusCode" in colOrError) return colOrError;
+    const DB_Collection = colOrError;
 
     if (isMany) {
       const updateResult =
@@ -409,9 +407,9 @@ export default class CRUDController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-    const DB_Collection =
-      await databaseInstance.createCollection(collectionName);
+    const colOrError = await this.getExistingCollection(dbName, collectionName);
+    if ("statusCode" in colOrError) return colOrError;
+    const DB_Collection = colOrError;
 
     const deleteResult = await DB_Collection.delete({
       documentId: documentId,
@@ -434,9 +432,7 @@ export default class CRUDController {
       isMany: boolean;
     };
 
-    const { query } = request.body as {
-      query: object;
-    };
+    const { query } = (request.body as { query: object } | undefined) ?? {};
 
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
@@ -451,9 +447,9 @@ export default class CRUDController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-    const DB_Collection =
-      await databaseInstance.createCollection(collectionName);
+    const colOrError = await this.getExistingCollection(dbName, collectionName);
+    if ("statusCode" in colOrError) return colOrError;
+    const DB_Collection = colOrError;
 
     const deleteResult = isMany
       ? await DB_Collection.delete(query).deleteMany()

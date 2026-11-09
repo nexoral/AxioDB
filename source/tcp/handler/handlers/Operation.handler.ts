@@ -1,4 +1,5 @@
 import { AxioDB } from '../../../Services/Indexation.operation';
+import Collection from '../../../Services/Collection/collection.operation';
 import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode } from '../../config/keys';
 import CRUDController from '../../../server/controller/Operation/CRUD.controller';
@@ -29,6 +30,29 @@ export default class OperationHandler {
   private error(id: string, statusCode: number, message: string): TCPResponse {
     const safeMessage = SafeErrorMessage.sanitize(message);
     return { id, statusCode, message: safeMessage, error: safeMessage };
+  }
+
+  private async getExistingCollection(
+    dbName?: string,
+    collectionName?: string,
+  ): Promise<{ collection?: Collection; error?: { statusCode: number; message: string } }> {
+    if (!dbName) {
+      return { error: { statusCode: StatusCode.BAD_REQUEST, message: 'Database name is required' } };
+    }
+    if (!collectionName) {
+      return { error: { statusCode: StatusCode.BAD_REQUEST, message: 'Collection name is required' } };
+    }
+    const dbExists = await this.axioDB.isDatabaseExists(dbName);
+    if (!dbExists) {
+      return { error: { statusCode: StatusCode.NOT_FOUND, message: 'Database does not exist' } };
+    }
+    const databaseInstance = await this.axioDB.createDB(dbName);
+    const colExists = await databaseInstance.isCollectionExists(collectionName);
+    if (!colExists) {
+      return { error: { statusCode: StatusCode.NOT_FOUND, message: 'Collection does not exist' } };
+    }
+    const collection = await databaseInstance.createCollection(collectionName);
+    return { collection };
   }
 
   async handleInsertDocument(requestId: string, params: Params, connectionId: string): Promise<TCPResponse> {
@@ -237,9 +261,11 @@ export default class OperationHandler {
   async handleTotalDocuments(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName } = params;
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName!);
-      const collection = await databaseInstance.createCollection(collectionName!);
-      const result = await collection.totalDocuments();
+      const { collection, error } = await this.getExistingCollection(dbName, collectionName);
+      if (error) {
+        return { id: requestId, statusCode: error.statusCode, message: error.message, error: error.message };
+      }
+      const result = await collection!.totalDocuments();
       return {
         id: requestId,
         statusCode: result.statusCode,
@@ -254,9 +280,11 @@ export default class OperationHandler {
   async handleCreateIndex(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, fieldNames } = params;
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName!);
-      const collection = await databaseInstance.createCollection(collectionName!);
-      const result = await collection.newIndex(...(fieldNames as string[]));
+      const { collection, error } = await this.getExistingCollection(dbName, collectionName);
+      if (error) {
+        return { id: requestId, statusCode: error.statusCode, message: error.message, error: error.message };
+      }
+      const result = await collection!.newIndex(...(fieldNames as string[]));
       return {
         id: requestId,
         statusCode: result ? result.statusCode : StatusCode.OK,
@@ -271,9 +299,11 @@ export default class OperationHandler {
   async handleListIndexes(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName } = params;
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName!);
-      const collection = await databaseInstance.createCollection(collectionName!);
-      const result = await collection.getIndexes();
+      const { collection, error } = await this.getExistingCollection(dbName, collectionName);
+      if (error) {
+        return { id: requestId, statusCode: error.statusCode, message: error.message, error: error.message };
+      }
+      const result = await collection!.getIndexes();
       return {
         id: requestId,
         statusCode: result.statusCode,
@@ -288,9 +318,11 @@ export default class OperationHandler {
   async handleDropIndex(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, indexName } = params;
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName!);
-      const collection = await databaseInstance.createCollection(collectionName!);
-      const result = await collection.dropIndex(indexName!);
+      const { collection, error } = await this.getExistingCollection(dbName, collectionName);
+      if (error) {
+        return { id: requestId, statusCode: error.statusCode, message: error.message, error: error.message };
+      }
+      const result = await collection!.dropIndex(indexName!);
       return {
         id: requestId,
         statusCode: result ? result.statusCode : StatusCode.OK,

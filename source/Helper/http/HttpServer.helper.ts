@@ -192,7 +192,7 @@ export default class HttpServerHelper {
 
       const contentType = req.headers["content-type"] ?? "";
       if (
-        (request.method === "POST" || request.method === "PUT" || request.method === "PATCH") &&
+        (request.method === "POST" || request.method === "PUT" || request.method === "PATCH" || request.method === "DELETE") &&
         !contentType.toLowerCase().startsWith("multipart/form-data")
       ) {
         request.body = await this.parseRequestBody(req);
