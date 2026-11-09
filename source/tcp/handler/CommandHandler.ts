@@ -119,6 +119,50 @@ export class CommandHandler {
             this.connectionManager,
           );
 
+        // User & Role Management commands
+        case CommandType.LIST_USERS:
+          return await this.authHandler.handleListUsers(id);
+
+        case CommandType.CREATE_USER:
+          return await this.authHandler.handleCreateUser(id, params);
+
+        case CommandType.UPDATE_USER_ROLE: {
+          const authUser = this.connectionManager.getAuthUser(context.connectionId);
+          return await this.authHandler.handleUpdateUserRole(id, params, authUser?.username);
+        }
+
+        case CommandType.RESET_USER_PASSWORD:
+          return await this.authHandler.handleResetUserPassword(id, params);
+
+        case CommandType.CHANGE_PASSWORD: {
+          const authUser = this.connectionManager.getAuthUser(context.connectionId);
+          return await this.authHandler.handleChangePassword(id, params, authUser);
+        }
+
+        case CommandType.DELETE_USER: {
+          const authUser = this.connectionManager.getAuthUser(context.connectionId);
+          return await this.authHandler.handleDeleteUser(id, params, authUser?.username);
+        }
+
+        case CommandType.LIST_ROLES:
+          return await this.authHandler.handleListRoles(id);
+
+        case CommandType.CREATE_ROLE:
+          return await this.authHandler.handleCreateRole(id, params);
+
+        case CommandType.DELETE_ROLE:
+          return await this.authHandler.handleDeleteRole(id, params);
+
+        case CommandType.LIST_PERMISSIONS:
+          return this.authHandler.handleListPermissions(id);
+
+        // System & Telemetry commands
+        case CommandType.GET_SYSTEM_INFO:
+          return await this.dbHandler.handleGetSystemInfo(id);
+
+        case CommandType.GET_DASHBOARD_STATS:
+          return await this.dbHandler.handleGetDashboardStats(id);
+
         // Database commands
         case CommandType.CREATE_DB:
           return await this.dbHandler.handleCreateDB(id, params);

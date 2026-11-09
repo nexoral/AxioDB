@@ -608,6 +608,7 @@ async function executeTcpRequest(fullUrl: URL, config: {
   }
 
   const timeout = config.timeout || 30000;
+  const method = (config.method || "GET").toUpperCase();
   const isTls =
     config.headers?.["x-axiodb-tls"] === "true" ||
     fullUrl.searchParams.get("tls") === "true";
@@ -1122,7 +1123,251 @@ async function executeTcpRequest(fullUrl: URL, config: {
     };
   }
 
-  // Fallback for unsupported features over TCP (Metrics, User Management, Import/Export)
+  // 15. Metrics & System Diagnostics
+  if (pathname.includes("/api/system")) {
+    const res = await tcpBridge.sendCommand(host, port, "GET_SYSTEM_INFO", {}, timeout, isTls);
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to get system info", error: res.error },
+      };
+    }
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+    };
+  }
+
+  if (pathname.includes("/api/dashboard-stats")) {
+    const res = await tcpBridge.sendCommand(host, port, "GET_DASHBOARD_STATS", {}, timeout, isTls);
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to get dashboard stats", error: res.error },
+      };
+    }
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+    };
+  }
+
+  // 16. User & Role Management
+  if (pathname.includes("/api/auth/roles/permissions")) {
+    const res = await tcpBridge.sendCommand(host, port, "LIST_PERMISSIONS", {}, timeout, isTls);
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to list permissions", error: res.error },
+      };
+    }
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+    };
+  }
+
+  if (pathname.includes("/api/auth/roles")) {
+    if (method === "GET") {
+      const res = await tcpBridge.sendCommand(host, port, "LIST_ROLES", {}, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to list roles", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+      };
+    }
+
+    if (method === "POST") {
+      const roleName = String(body.roleName || "");
+      const permissions = Array.isArray(body.permissions) ? body.permissions : [];
+      const res = await tcpBridge.sendCommand(host, port, "CREATE_ROLE", { roleName, permissions }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to create role", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 201,
+        statusText: "Created",
+        headers: {},
+        data: { statusCode: res.statusCode || 201, message: res.message, data: res.data },
+      };
+    }
+
+    if (method === "DELETE") {
+      const parts = pathname.split("/").filter(Boolean);
+      const roleName = decodeURIComponent(parts[parts.length - 1] || "");
+      const res = await tcpBridge.sendCommand(host, port, "DELETE_ROLE", { roleName }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to delete role", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message },
+      };
+    }
+  }
+
+  if (pathname.includes("/api/auth/change-password")) {
+    const res = await tcpBridge.sendCommand(host, port, "CHANGE_PASSWORD", {
+      currentPassword: String(body.currentPassword || ""),
+      newPassword: String(body.newPassword || ""),
+    }, timeout, isTls);
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to change password", error: res.error },
+      };
+    }
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message },
+    };
+  }
+
+  if (pathname.includes("/api/auth/users")) {
+    if (pathname.includes("/role")) {
+      const parts = pathname.split("/").filter(Boolean);
+      // /api/auth/users/:username/role -> index of users is parts[parts.indexOf("users") + 1]
+      const userIdx = parts.indexOf("users");
+      const username = userIdx >= 0 && parts[userIdx + 1] ? decodeURIComponent(parts[userIdx + 1]) : "";
+      const role = String(body.role || "");
+      const res = await tcpBridge.sendCommand(host, port, "UPDATE_USER_ROLE", { username, role }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to update role", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message },
+      };
+    }
+
+    if (pathname.includes("/reset-password")) {
+      const parts = pathname.split("/").filter(Boolean);
+      const userIdx = parts.indexOf("users");
+      const username = userIdx >= 0 && parts[userIdx + 1] ? decodeURIComponent(parts[userIdx + 1]) : "";
+      const newPassword = String(body.newPassword || "");
+      const res = await tcpBridge.sendCommand(host, port, "RESET_USER_PASSWORD", { username, newPassword }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to reset password", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message },
+      };
+    }
+
+    if (method === "GET") {
+      const res = await tcpBridge.sendCommand(host, port, "LIST_USERS", {}, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to list users", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+      };
+    }
+
+    if (method === "POST") {
+      const username = String(body.username || "");
+      const password = String(body.password || "");
+      const role = String(body.role || "");
+      const res = await tcpBridge.sendCommand(host, port, "CREATE_USER", { username, password, role }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to create user", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 201,
+        statusText: "Created",
+        headers: {},
+        data: { statusCode: res.statusCode || 201, message: res.message, data: res.data },
+      };
+    }
+
+    if (method === "DELETE") {
+      const parts = pathname.split("/").filter(Boolean);
+      const userIdx = parts.indexOf("users");
+      const username = userIdx >= 0 && parts[userIdx + 1] ? decodeURIComponent(parts[userIdx + 1]) : "";
+      const res = await tcpBridge.sendCommand(host, port, "DELETE_USER", { username }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to delete user", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message },
+      };
+    }
+  }
+
+  // Fallback for unsupported features over TCP (Import/Export only)
   return {
     status: 400,
     statusText: "Bad Request",

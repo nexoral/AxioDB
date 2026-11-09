@@ -60,11 +60,10 @@ const Dashboard = () => {
   const [latency, setLatency] = useState(0)
   const [lastRefreshed, setLastRefreshed] = useState(null)
 
-  const { isConnected, protocol } = useConnectionStore()
-  const isHttp = protocol !== 'tcp'
+  const { isConnected } = useConnectionStore()
 
   const fetchMetricsAndStatus = useCallback(async () => {
-    if (!isConnected || !isHttp) return
+    if (!isConnected) return
 
     const start = performance.now()
     try {
@@ -109,7 +108,7 @@ const Dashboard = () => {
     } finally {
       setLoading(false)
     }
-  }, [isConnected, isHttp])
+  }, [isConnected])
 
   useEffect(() => {
     fetchMetricsAndStatus()

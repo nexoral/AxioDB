@@ -4,6 +4,7 @@ import { ConnectionManager } from '../../connection/ConnectionManager';
 import AuthService from '../../../Services/Auth/AuthService.service';
 import LoginRateLimiter from '../../../Services/Auth/LoginRateLimiter.service';
 import { AuthenticatedUser } from '../../../config/Interfaces/Auth/auth.interface';
+import { PERMISSION_CATALOGUE } from '../../../config/Keys/Permissions';
 
 type Params = TCPRequest['params'];
 
@@ -91,5 +92,152 @@ export default class AuthHandler {
       message: SuccessMessage.AUTHENTICATED,
       data: authUser,
     };
+  }
+
+  /**
+   * Handle LIST_USERS command
+   */
+  async handleListUsers(requestId: string): Promise<TCPResponse> {
+    const users = await this.authService.listUsers();
+    return {
+      id: requestId,
+      statusCode: StatusCode.OK,
+      message: 'List of Users',
+      data: users,
+    };
+  }
+
+  /**
+   * Handle CREATE_USER command
+   */
+  async handleCreateUser(requestId: string, params: Params): Promise<TCPResponse> {
+    const { username, password, role } = params as { username: string; password: string; role: string };
+    if (!username || typeof username !== 'string' || username.trim() === '') {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'Username is required', error: 'Username is required' };
+    }
+    if (!password || typeof password !== 'string' || password.length < 8) {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'Password must be at least 8 characters', error: 'Password must be at least 8 characters' };
+    }
+    if (!role || typeof role !== 'string') {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'Role is required', error: 'Role is required' };
+    }
+
+    const result = await this.authService.createUser(username, password, role);
+    if (!result.success) {
+      const statusCode = result.conflict ? StatusCode.CONFLICT : StatusCode.BAD_REQUEST;
+      return { id: requestId, statusCode, message: result.message, error: result.message };
+    }
+
+    return {
+      id: requestId,
+      statusCode: StatusCode.CREATED,
+      message: result.message,
+      data: { username, role },
+    };
+  }
+
+  /**
+   * Handle UPDATE_USER_ROLE command
+   */
+  async handleUpdateUserRole(requestId: string, params: Params, actorUsername?: string): Promise<TCPResponse> {
+    const { username, role } = params as { username: string; role: string };
+    const result = await this.authService.updateUserRole(username, role, actorUsername);
+    if (!result.success) {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: result.message, error: result.message };
+    }
+    return { id: requestId, statusCode: StatusCode.OK, message: result.message };
+  }
+
+  /**
+   * Handle RESET_USER_PASSWORD command
+   */
+  async handleResetUserPassword(requestId: string, params: Params): Promise<TCPResponse> {
+    const { username, newPassword } = params as { username: string; newPassword: string };
+    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'Password must be at least 8 characters', error: 'Password must be at least 8 characters' };
+    }
+    const result = await this.authService.resetUserPassword(username, newPassword);
+    if (!result.success) {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: result.message, error: result.message };
+    }
+    return { id: requestId, statusCode: StatusCode.OK, message: result.message };
+  }
+
+  /**
+   * Handle CHANGE_PASSWORD command
+   */
+  async handleChangePassword(requestId: string, params: Params, authUser?: AuthenticatedUser): Promise<TCPResponse> {
+    const { currentPassword, newPassword } = params as { currentPassword: string; newPassword: string };
+    const username = (params as { username?: string }).username || authUser?.username;
+    if (!username) {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'Username is required', error: 'Username is required' };
+    }
+    if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'Password must be at least 8 characters', error: 'Password must be at least 8 characters' };
+    }
+    const result = await this.authService.changeOwnPassword(username, currentPassword, newPassword);
+    if (!result.success) {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: result.message, error: result.message };
+    }
+    return { id: requestId, statusCode: StatusCode.OK, message: result.message };
+  }
+
+  /**
+   * Handle DELETE_USER command
+   */
+  async handleDeleteUser(requestId: string, params: Params, actorUsername?: string): Promise<TCPResponse> {
+    const { username } = params as { username: string };
+    const actor = actorUsername || '';
+    const result = await this.authService.deleteUser(username, actor);
+    if (!result.success) {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: result.message, error: result.message };
+    }
+    return { id: requestId, statusCode: StatusCode.OK, message: result.message };
+  }
+
+  /**
+   * Handle LIST_ROLES command
+   */
+  async handleListRoles(requestId: string): Promise<TCPResponse> {
+    const roles = await this.authService.listRoles();
+    return { id: requestId, statusCode: StatusCode.OK, message: 'List of Roles', data: roles };
+  }
+
+  /**
+   * Handle CREATE_ROLE command
+   */
+  async handleCreateRole(requestId: string, params: Params): Promise<TCPResponse> {
+    const { roleName, permissions } = params as { roleName: string; permissions: string[] };
+    if (!roleName || typeof roleName !== 'string' || roleName.trim() === '') {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'Role name is required', error: 'Role name is required' };
+    }
+    if (!Array.isArray(permissions) || permissions.length === 0) {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'At least one permission is required', error: 'At least one permission is required' };
+    }
+    const result = await this.authService.createRole(roleName, permissions);
+    if (!result.success) {
+      const statusCode = result.conflict ? StatusCode.CONFLICT : StatusCode.BAD_REQUEST;
+      return { id: requestId, statusCode, message: result.message, error: result.message };
+    }
+    return { id: requestId, statusCode: StatusCode.CREATED, message: result.message, data: { roleName, permissions } };
+  }
+
+  /**
+   * Handle DELETE_ROLE command
+   */
+  async handleDeleteRole(requestId: string, params: Params): Promise<TCPResponse> {
+    const { roleName } = params as { roleName: string };
+    const result = await this.authService.deleteRole(roleName);
+    if (!result.success) {
+      return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: result.message, error: result.message };
+    }
+    return { id: requestId, statusCode: StatusCode.OK, message: result.message };
+  }
+
+  /**
+   * Handle LIST_PERMISSIONS command
+   */
+  handleListPermissions(requestId: string): TCPResponse {
+    return { id: requestId, statusCode: StatusCode.OK, message: 'Available permissions', data: PERMISSION_CATALOGUE };
   }
 }

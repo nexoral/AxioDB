@@ -112,9 +112,9 @@ const AppContent = () => {
         <MainLayout>
           <Routes>
             <Route path="/" element={<Documents />} />
-            <Route path="/metrics" element={isTcp ? <Navigate to="/" replace /> : <Dashboard />} />
+            <Route path="/metrics" element={<Dashboard />} />
             <Route path="/import" element={isTcp ? <Navigate to="/" replace /> : <Import />} />
-            <Route path="/users" element={isTcp ? <Navigate to="/" replace /> : <UserManagement />} />
+            <Route path="/users" element={<UserManagement />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </MainLayout>

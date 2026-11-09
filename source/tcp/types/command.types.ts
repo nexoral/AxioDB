@@ -49,6 +49,22 @@ export enum CommandType {
   SAVEPOINT = 'SAVEPOINT',
   ROLLBACK_TO_SAVEPOINT = 'ROLLBACK_TO_SAVEPOINT',
   RELEASE_SAVEPOINT = 'RELEASE_SAVEPOINT',
+
+  // User & Role Management
+  LIST_USERS = 'LIST_USERS',
+  CREATE_USER = 'CREATE_USER',
+  UPDATE_USER_ROLE = 'UPDATE_USER_ROLE',
+  RESET_USER_PASSWORD = 'RESET_USER_PASSWORD',
+  CHANGE_PASSWORD = 'CHANGE_PASSWORD',
+  DELETE_USER = 'DELETE_USER',
+  LIST_ROLES = 'LIST_ROLES',
+  CREATE_ROLE = 'CREATE_ROLE',
+  DELETE_ROLE = 'DELETE_ROLE',
+  LIST_PERMISSIONS = 'LIST_PERMISSIONS',
+
+  // Metrics & System Diagnostics
+  GET_SYSTEM_INFO = 'GET_SYSTEM_INFO',
+  GET_DASHBOARD_STATS = 'GET_DASHBOARD_STATS',
 }
 
 /**
@@ -87,4 +103,16 @@ export const CommandDocumentation: Record<CommandType, string> = {
   [CommandType.SAVEPOINT]: 'Create a savepoint within a transaction',
   [CommandType.ROLLBACK_TO_SAVEPOINT]: 'Rollback to a specific savepoint',
   [CommandType.RELEASE_SAVEPOINT]: 'Release a savepoint',
+  [CommandType.LIST_USERS]: 'List all registered users',
+  [CommandType.CREATE_USER]: 'Create a new user with role',
+  [CommandType.UPDATE_USER_ROLE]: 'Update a user assigned role',
+  [CommandType.RESET_USER_PASSWORD]: 'Administrative reset of a user password',
+  [CommandType.CHANGE_PASSWORD]: 'Change own password for authenticated user',
+  [CommandType.DELETE_USER]: 'Delete a user',
+  [CommandType.LIST_ROLES]: 'List all roles',
+  [CommandType.CREATE_ROLE]: 'Create a custom role with permissions',
+  [CommandType.DELETE_ROLE]: 'Delete a role',
+  [CommandType.LIST_PERMISSIONS]: 'List available system permissions',
+  [CommandType.GET_SYSTEM_INFO]: 'Get host, process, and service diagnostics',
+  [CommandType.GET_DASHBOARD_STATS]: 'Get aggregate storage, database tree, and cache metrics',
 };

@@ -459,6 +459,92 @@ class TcpAuthTests extends TestRunner {
         // Reaching this line at all proves the process survived the socket error.
       });
     });
+
+    await this.describe('TCP User Management & Telemetry commands', async () => {
+      await this.test('GET_SYSTEM_INFO returns system telemetry over TCP', async () => {
+        const client = await this.authenticatedClient('tcpadmin', 'TcpAdminPass1');
+        const res = await client.send(CommandType.GET_SYSTEM_INFO);
+        assert.equal(res.statusCode, 200);
+        assert.exists(res.data.process);
+        assert.exists(res.data.memory);
+        assert.exists(res.data.services);
+        client.close();
+      });
+
+      await this.test('GET_DASHBOARD_STATS returns dashboard statistics over TCP', async () => {
+        const client = await this.authenticatedClient('tcpadmin', 'TcpAdminPass1');
+        const res = await client.send(CommandType.GET_DASHBOARD_STATS);
+        assert.equal(res.statusCode, 200);
+        assert.exists(res.data.totalDatabases);
+        assert.exists(res.data.storageInfo);
+        client.close();
+      });
+
+      await this.test('LIST_USERS returns registered users over TCP', async () => {
+        const client = await this.authenticatedClient('tcpadmin', 'TcpAdminPass1');
+        const res = await client.send(CommandType.LIST_USERS);
+        assert.equal(res.statusCode, 200);
+        assert.ok(Array.isArray(res.data));
+        assert.ok(res.data.some((u) => u.username === 'tcpadmin'));
+        client.close();
+      });
+
+      await this.test('CREATE_USER, UPDATE_USER_ROLE, RESET_USER_PASSWORD and DELETE_USER lifecycle', async () => {
+        const client = await this.authenticatedClient('tcpadmin', 'TcpAdminPass1');
+
+        const createRes = await client.send(CommandType.CREATE_USER, {
+          username: 'tcp_test_user',
+          password: 'Password123!',
+          role: 'readOnly',
+        });
+        assert.equal(createRes.statusCode, 201);
+        assert.equal(createRes.data.username, 'tcp_test_user');
+
+        const updateRoleRes = await client.send(CommandType.UPDATE_USER_ROLE, {
+          username: 'tcp_test_user',
+          role: 'readWrite',
+        });
+        assert.equal(updateRoleRes.statusCode, 200);
+
+        const resetRes = await client.send(CommandType.RESET_USER_PASSWORD, {
+          username: 'tcp_test_user',
+          newPassword: 'NewPassword123!',
+        });
+        assert.equal(resetRes.statusCode, 200);
+
+        const deleteRes = await client.send(CommandType.DELETE_USER, {
+          username: 'tcp_test_user',
+        });
+        assert.equal(deleteRes.statusCode, 200);
+
+        client.close();
+      });
+
+      await this.test('LIST_PERMISSIONS, CREATE_ROLE, LIST_ROLES and DELETE_ROLE lifecycle', async () => {
+        const client = await this.authenticatedClient('tcpadmin', 'TcpAdminPass1');
+
+        const permsRes = await client.send(CommandType.LIST_PERMISSIONS);
+        assert.equal(permsRes.statusCode, 200);
+        assert.ok(Array.isArray(permsRes.data));
+
+        const createRoleRes = await client.send(CommandType.CREATE_ROLE, {
+          roleName: 'tcp_custom_role',
+          permissions: ['database:view', 'document:view'],
+        });
+        assert.equal(createRoleRes.statusCode, 201);
+
+        const listRolesRes = await client.send(CommandType.LIST_ROLES);
+        assert.equal(listRolesRes.statusCode, 200);
+        assert.ok(listRolesRes.data.some((r) => r.name === 'tcp_custom_role'));
+
+        const deleteRoleRes = await client.send(CommandType.DELETE_ROLE, {
+          roleName: 'tcp_custom_role',
+        });
+        assert.equal(deleteRoleRes.statusCode, 200);
+
+        client.close();
+      });
+    });
   }
 }
 

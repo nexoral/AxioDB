@@ -270,10 +270,57 @@ export class MessageValidator {
         }
         break;
 
+      case CommandType.CREATE_USER:
+        if (!params.username || !params.password || !params.role) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: username, password, role`);
+        }
+        break;
+
+      case CommandType.UPDATE_USER_ROLE:
+        if (!params.username || !params.role) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: username, role`);
+        }
+        break;
+
+      case CommandType.RESET_USER_PASSWORD:
+        if (!params.username || !params.newPassword) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: username, newPassword`);
+        }
+        break;
+
+      case CommandType.CHANGE_PASSWORD:
+        if (!params.currentPassword || !params.newPassword) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: currentPassword, newPassword`);
+        }
+        break;
+
+      case CommandType.DELETE_USER:
+        if (!params.username) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: username`);
+        }
+        break;
+
+      case CommandType.CREATE_ROLE:
+        if (!params.roleName || !params.permissions) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: roleName, permissions`);
+        }
+        break;
+
+      case CommandType.DELETE_ROLE:
+        if (!params.roleName) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: roleName`);
+        }
+        break;
+
       case CommandType.PING:
       case CommandType.HEALTH:
       case CommandType.DISCONNECT:
       case CommandType.GET_INSTANCE_INFO:
+      case CommandType.LIST_USERS:
+      case CommandType.LIST_ROLES:
+      case CommandType.LIST_PERMISSIONS:
+      case CommandType.GET_SYSTEM_INFO:
+      case CommandType.GET_DASHBOARD_STATS:
         // No required params
         break;
 

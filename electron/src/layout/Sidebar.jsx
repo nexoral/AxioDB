@@ -122,26 +122,18 @@ const Sidebar = () => {
             </button>
 
             <button
-              onClick={() => !isTcp && navigate("/metrics")}
-              disabled={isTcp}
+              onClick={() => navigate("/metrics")}
               className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-md transition-all relative ${
-                isTcp
-                  ? "opacity-55 cursor-not-allowed text-slate-400 bg-slate-50"
-                  : activePath === "/metrics"
+                activePath === "/metrics"
                   ? "bg-white text-emerald-700 shadow-xs font-semibold"
                   : "hover:text-slate-900 hover:bg-slate-200/60"
               }`}
-              title={isTcp ? "Server Metrics require HTTP connection (Need HTTP)" : "Real-time Server Metrics"}
+              title="Real-time Server Metrics"
             >
               <svg className="w-4 h-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
               <span>Metrics</span>
-              {isTcp && (
-                <span className="text-[8px] font-mono font-bold text-amber-700 bg-amber-100/90 px-1 py-0.2 rounded mt-0.5 leading-none">
-                  Need HTTP
-                </span>
-              )}
             </button>
 
             <button
@@ -167,28 +159,20 @@ const Sidebar = () => {
               )}
             </button>
 
-            {(isTcp || !permissions || permissions.includes("user:view") || permissions.includes("*") || role === "super_admin") && (
+            {(!permissions || permissions.includes("user:view") || permissions.includes("*") || role === "super_admin") && (
               <button
-                onClick={() => !isTcp && navigate("/users")}
-                disabled={isTcp}
+                onClick={() => navigate("/users")}
                 className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-md transition-all relative ${
-                  isTcp
-                    ? "opacity-55 cursor-not-allowed text-slate-400 bg-slate-50"
-                    : activePath === "/users"
+                  activePath === "/users"
                     ? "bg-white text-emerald-700 shadow-xs font-semibold"
                     : "hover:text-slate-900 hover:bg-slate-200/60"
                 }`}
-                title={isTcp ? "User management requires HTTP connection (Need HTTP)" : "Users & Roles RBAC"}
+                title="Users & Roles RBAC"
               >
                 <svg className="w-4 h-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
                 <span>Users</span>
-                {isTcp && (
-                  <span className="text-[8px] font-mono font-bold text-amber-700 bg-amber-100/90 px-1 py-0.2 rounded mt-0.5 leading-none">
-                    Need HTTP
-                  </span>
-                )}
               </button>
             )}
           </div>

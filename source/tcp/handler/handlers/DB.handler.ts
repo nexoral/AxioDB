@@ -2,6 +2,8 @@ import { AxioDB } from '../../../Services/Indexation.operation';
 import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode, SuccessMessage } from '../../config/keys';
 import DatabaseController from '../../../server/controller/Database/Databse.controller';
+import StatsController from '../../../server/controller/Stats.controller';
+import { getSystemInfo } from '../../../Helper/SystemInfo.helper';
 import { AxioHttpRequest } from '../../../Helper/http/HttpTypes';
 import SafeErrorMessage from '../../../Helper/SafeErrorMessage.helper';
 
@@ -104,5 +106,49 @@ export default class DBHandler {
       message: result.message,
       data: result.data,
     };
+  }
+
+  /**
+   * Handle GET_SYSTEM_INFO command
+   */
+  async handleGetSystemInfo(requestId: string): Promise<TCPResponse> {
+    try {
+      const data = await getSystemInfo(this.axioDB);
+      return {
+        id: requestId,
+        statusCode: StatusCode.OK,
+        message: 'System information',
+        data,
+      };
+    } catch (error) {
+      return {
+        id: requestId,
+        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
+        message: SafeErrorMessage.sanitize(error),
+        error: SafeErrorMessage.sanitize(error),
+      };
+    }
+  }
+
+  /**
+   * Handle GET_DASHBOARD_STATS command
+   */
+  async handleGetDashboardStats(requestId: string): Promise<TCPResponse> {
+    try {
+      const result = await new StatsController(this.axioDB).getDashBoardStat() as { statusCode?: number; message?: string; data?: unknown };
+      return {
+        id: requestId,
+        statusCode: result.statusCode || StatusCode.OK,
+        message: result.message || 'Dashboard stats fetched successfully',
+        data: result.data,
+      };
+    } catch (error) {
+      return {
+        id: requestId,
+        statusCode: StatusCode.INTERNAL_SERVER_ERROR,
+        message: SafeErrorMessage.sanitize(error),
+        error: SafeErrorMessage.sanitize(error),
+      };
+    }
   }
 }
