@@ -254,7 +254,7 @@ const CliPage: React.FC = () => {
             <p className="text-sm font-bold text-amber-800">Enable HTTP & TCP on the server first</p>
             <p className="text-sm text-amber-700 mt-1">
               The CLI needs <code className="px-1 py-0.5 bg-white rounded">TCP 27019</code> enabled (<code className="px-1 py-0.5 bg-white rounded">new AxioDB(&#123; TCP: true &#125;)</code> or <code className="px-1 py-0.5 bg-white rounded">AXIODB_TCP=true</code>) for data commands: <code className="px-1 py-0.5 bg-white rounded">db</code>, <code className="px-1 py-0.5 bg-white rounded">collection</code>, <code className="px-1 py-0.5 bg-white rounded">document</code>, <code className="px-1 py-0.5 bg-white rounded">index</code>, <code className="px-1 py-0.5 bg-white rounded">transaction</code>, <code className="px-1 py-0.5 bg-white rounded">ping</code>, <code className="px-1 py-0.5 bg-white rounded">health</code>, <code className="px-1 py-0.5 bg-white rounded">connect</code>.
-              Management commands (<code className="px-1 py-0.5 bg-white rounded">user</code>, <code className="px-1 py-0.5 bg-white rounded">role</code>, <code className="px-1 py-0.5 bg-white rounded">user change-password</code>, <code className="px-1 py-0.5 bg-white rounded">export</code>/<code className="px-1 py-0.5 bg-white rounded">import</code>) need <code className="px-1 py-0.5 bg-white rounded">HTTP 27018</code> enabled (<code className="px-1 py-0.5 bg-white rounded">HTTP: true</code> / <code className="px-1 py-0.5 bg-white rounded">AXIODB_HTTP=true</code>). TCP is data-plane only by design — no user/role management over TCP.
+              Management commands in the CLI (<code className="px-1 py-0.5 bg-white rounded">user</code>, <code className="px-1 py-0.5 bg-white rounded">role</code>, <code className="px-1 py-0.5 bg-white rounded">user change-password</code>, <code className="px-1 py-0.5 bg-white rounded">export</code>/<code className="px-1 py-0.5 bg-white rounded">import</code>) use <code className="px-1 py-0.5 bg-white rounded">HTTP 27018</code> (<code className="px-1 py-0.5 bg-white rounded">HTTP: true</code> / <code className="px-1 py-0.5 bg-white rounded">AXIODB_HTTP=true</code>).
             </p>
           </div>
         </div>
@@ -462,7 +462,7 @@ const CliPage: React.FC = () => {
 
         <div className="mt-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-3">User & Role Administration (via HTTP API)</h3>
-          <p className="text-sm text-gray-600 mb-3">Management commands use HTTP port 27018. The TCP protocol remains data-plane only.</p>
+          <p className="text-sm text-gray-600 mb-3">CLI management commands communicate via HTTP port 27018.</p>
           <CodeBlock code={USAGE_ADMIN} language="bash" />
         </div>
 

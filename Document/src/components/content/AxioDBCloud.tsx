@@ -394,21 +394,24 @@ await client2.login('admin', 'admin');`}
             <div className="p-4 bg-emerald-100/20 rounded-lg border border-emerald-200">
               <h4 className="font-bold text-emerald-700 mb-2">What&apos;s enforced</h4>
               <ul className="text-sm text-emerald-700 space-y-1.5">
-                <li>• Every command except PING/DISCONNECT/AUTHENTICATE requires a prior successful login on that connection</li>
+                <li>• Every command except PING/HEALTH/DISCONNECT/AUTHENTICATE requires a prior successful login on that connection</li>
                 <li>• Same role permissions as the HTTP API, checked per command (e.g. a View-role user gets 403 on CREATE_DB)</li>
                 <li>• Shared per-IP login rate limiter with the HTTP API: 5 failed attempts in 15 minutes locks that IP out for 15 minutes (429)</li>
-                <li>• Accounts still needing their forced password change are rejected outright (403) - complete it via the HTTP API first, or seed the admin account with <code>AdminPassword</code></li>
-                <li>• A password reset, role change, or deletion via the HTTP API immediately forces an already-open TCP connection to re-authenticate</li>
+                <li>• Accounts still needing their forced password change must update it (via <code>CHANGE_PASSWORD</code> over TCP or the HTTP API) before general data commands are accepted</li>
+                <li>• A password reset, role change, or deletion immediately forces an already-open TCP connection to re-authenticate</li>
+                <li>• Full user &amp; role management over TCP (<code>LIST_USERS</code>, <code>CREATE_USER</code>, <code>UPDATE_USER_ROLE</code>, <code>DELETE_USER</code>, <code>LIST_ROLES</code>, <code>CREATE_ROLE</code>, <code>DELETE_ROLE</code>, <code>LIST_PERMISSIONS</code>)</li>
               </ul>
             </div>
 
-            <div className="p-4 bg-amber-100/20 rounded-lg border border-amber-200">
-              <h4 className="font-bold text-amber-700 mb-2 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                Known limitations
+            <div className="p-4 bg-accent-100/20 rounded-lg border border-accent-200">
+              <h4 className="font-bold text-accent-700 mb-2 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4" />
+                Surface Differences
               </h4>
-              <ul className="text-sm text-amber-700 space-y-1.5">
-                <li>• No TCP command exists yet to change a password - that must go through the HTTP API</li>
+              <ul className="text-sm text-accent-700 space-y-1.5">
+                <li>• <strong>ACID Transactions:</strong> TCP exclusive (interactive transactions with WAL, savepoints, and connection pinning)</li>
+                <li>• <strong>Database Archives (.tar.gz):</strong> HTTP exclusive (database export and import stream binary archives over port 27018)</li>
+                <li>• <strong>Web Sessions:</strong> HTTP uses cookie/bearer sessions; TCP maintains auth state per persistent socket</li>
               </ul>
             </div>
           </div>
@@ -655,7 +658,7 @@ main().catch(console.error);`}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
-            { icon: CheckCircle, title: "30 Commands", desc: "Full CRUD, aggregation, indexing, and transactions" },
+            { icon: CheckCircle, title: "44 Commands", desc: "Full CRUD, aggregation, indexing, transactions, user/role management, and metrics" },
             { icon: Lock, title: "Optional Auth (NEW!)", desc: "Shared RBAC with the HTTP API, per-IP rate limiting" },
             { icon: RefreshCw, title: "Auto-Reconnect", desc: "Exponential backoff with 10 retry attempts" },
             { icon: Activity, title: "Heartbeat", desc: "PING/PONG every 30 seconds" },
