@@ -286,6 +286,31 @@ class HTTPAPITests extends TestRunner {
         assert.equal(res.body.statusCode, 200);
       });
 
+      await this.test('POST /api/operation/all/by-query/ - non-existent DB returns 404 and does not create folder (SEC-08)', async () => {
+        const fakeDbName = 'NonExistentDbSec08';
+        const res = await request('POST', `/api/operation/all/by-query/?dbName=${fakeDbName}&collectionName=Users&page=1`, {
+          body: { query: { active: true } },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 404);
+        assert.includes(res.body.message, 'does not exist');
+
+        const fakePath = path.join(this.testDir, 'HttpApiTestDB', fakeDbName);
+        assert.ok(!fs.existsSync(fakePath), 'Non-existent DB folder should NOT be created by read query');
+      });
+
+      await this.test('GET /api/operation/all/ - non-existent collection returns 404 and does not create folder (SEC-08)', async () => {
+        const fakeColName = 'NonExistentColSec08';
+        const res = await request('GET', `/api/operation/all/?dbName=TestDB&collectionName=${fakeColName}&page=1`, {
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 404);
+        assert.includes(res.body.message, 'does not exist');
+
+        const fakeColPath = path.join(this.testDir, 'HttpApiTestDB', 'TestDB', fakeColName);
+        assert.ok(!fs.existsSync(fakeColPath), 'Non-existent collection folder should NOT be created by read query');
+      });
+
       await this.test('POST /api/operation/all/by-ids/ - batch read by IDs', async () => {
         const ids = this.documentIds.slice(0, 2);
         const res = await request('POST', '/api/operation/all/by-ids/?dbName=TestDB&collectionName=Users', {

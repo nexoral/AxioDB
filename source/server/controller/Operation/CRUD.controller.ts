@@ -2,7 +2,7 @@ import { StatusCodes } from "../../../config/Keys/StatusCode";
 import { AxioDB } from "../../../Services/Indexation.operation";
 import buildResponse from "../../helper/responseBuilder.helper";
 import { AxioHttpRequest } from "../../../Helper/http/HttpTypes";
-import Database from "../../../Services/Database/database.operation";
+import Collection from "../../../Services/Collection/collection.operation";
 import { isReservedDatabaseName } from "../../../config/Keys/Permissions";
 import Logger from "../../../Helper/Logger.helper";
 
@@ -11,6 +11,22 @@ export default class CRUDController {
 
   constructor(AxioDBInstance: AxioDB) {
     this.AxioDBInstance = AxioDBInstance;
+  }
+
+  private async getExistingCollection(
+    dbName: string,
+    collectionName: string,
+  ): Promise<Collection | ReturnType<typeof buildResponse>> {
+    const dbExists = await this.AxioDBInstance.isDatabaseExists(dbName);
+    if (!dbExists) {
+      return buildResponse(StatusCodes.NOT_FOUND, "Database does not exist");
+    }
+    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
+    const colExists = await databaseInstance.isCollectionExists(collectionName);
+    if (!colExists) {
+      return buildResponse(StatusCodes.NOT_FOUND, "Collection does not exist");
+    }
+    return await databaseInstance.createCollection(collectionName);
   }
 
   public async getAllDocuments(request: AxioHttpRequest) {
@@ -37,10 +53,9 @@ export default class CRUDController {
     }
 
     const skip = (page - 1) * 25;
-    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-
-    const DB_Collection =
-      await databaseInstance.createCollection(collectionName);
+    const colOrError = await this.getExistingCollection(dbName, collectionName);
+    if ("statusCode" in colOrError) return colOrError;
+    const DB_Collection = colOrError;
 
     const allDocuments = await DB_Collection.query({})
       .Limit(25)
@@ -98,11 +113,9 @@ export default class CRUDController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const databaseInstance: Database =
-      await this.AxioDBInstance.createDB(dbName);
-
-    const DB_Collection =
-      await databaseInstance.createCollection(collectionName);
+    const colOrError = await this.getExistingCollection(dbName, collectionName);
+    if ("statusCode" in colOrError) return colOrError;
+    const DB_Collection = colOrError;
 
     let queryBuilder = DB_Collection.query({ ...query });
     if (!isNaN(effectiveLimit) && effectiveLimit > 0) {
@@ -149,11 +162,9 @@ export default class CRUDController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const databaseInstance: Database =
-      await this.AxioDBInstance.createDB(dbName);
-
-    const DB_Collection =
-      await databaseInstance.createCollection(collectionName);
+    const colOrError = await this.getExistingCollection(dbName, collectionName);
+    if ("statusCode" in colOrError) return colOrError;
+    const DB_Collection = colOrError;
 
     const allDocuments = await DB_Collection.query({ documentId: documentId })
       .findOne(true)
@@ -189,11 +200,9 @@ export default class CRUDController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const databaseInstance: Database =
-      await this.AxioDBInstance.createDB(dbName);
-
-    const DB_Collection =
-      await databaseInstance.createCollection(collectionName);
+    const colOrError = await this.getExistingCollection(dbName, collectionName);
+    if ("statusCode" in colOrError) return colOrError;
+    const DB_Collection = colOrError;
 
     const result = await DB_Collection.findByIds(ids);
     if (!result.data) {
@@ -491,9 +500,9 @@ export default class CRUDController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-    const DB_Collection =
-      await databaseInstance.createCollection(collectionName);
+    const colOrError = await this.getExistingCollection(dbName, collectionName);
+    if ("statusCode" in colOrError) return colOrError;
+    const DB_Collection = colOrError;
 
     const aggregationResult = await DB_Collection.aggregate(aggregation).exec();
     if (!aggregationResult || aggregationResult.statusCode !== StatusCodes.OK) {
