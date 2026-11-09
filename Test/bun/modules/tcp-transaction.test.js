@@ -9,7 +9,8 @@ const path = require('path');
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 
-const { AxioDB } = require('../../../axiodb.js');
+const { AxioDB, CoreDBMS } = require('../../../axiodb.js');
+const { TransactionManager } = CoreDBMS;
 const { MessageFramer, MessageBuffer } = require('../../../lib/tcp/config/protocol');
 const { CommandType } = require('../../../lib/tcp/types/command.types');
 
@@ -91,6 +92,7 @@ class TcpTransactionTests extends TestRunner {
       ['TxnDisconnect', 'Col'],
       ['TxnRead', 'Items'],
       ['TxnReadAgg', 'Items'],
+      ['TxnIdle', 'Col'],
     ];
     for (const [db, col] of setupCollections) {
       const dbInstance = await this.dbInstance.createDB(db);
@@ -536,6 +538,67 @@ class TcpTransactionTests extends TestRunner {
         assert.equal(query.statusCode, 200);
         assert.equal(getDocs(query).length, 0);
 
+        client2.close();
+      });
+    });
+
+    await this.describe('Idle Transaction Cleanup', async () => {
+      await this.test('Idle transaction exceeding timeout is automatically rolled back and frees resources', async () => {
+        const client1 = new RawTcpClient();
+        await client1.connect();
+
+        const begin1 = await client1.send(CommandType.BEGIN_TRANSACTION, { dbName: 'TxnIdle', collectionName: 'Col' });
+        assert.equal(begin1.statusCode, 200);
+        const txnId1 = begin1.data.transactionId;
+
+        await client1.send(CommandType.INSERT_DOCUMENT, {
+          dbName: 'TxnIdle', collectionName: 'Col',
+          data: { name: 'ExpiredTxnData' },
+          transactionId: txnId1,
+        });
+
+        // Small delay to ensure elapsed time > 1ms
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        // Trigger cleanup of idle transactions exceeding 1ms
+        const rolledBack = await TransactionManager.getInstance().cleanupExpired(1);
+        assert.ok(rolledBack >= 1, 'Expected at least 1 idle transaction to be rolled back');
+
+        // Subsequent operation with expired transaction ID should fail
+        const commitExpired = await client1.send(CommandType.COMMIT_TRANSACTION, { transactionId: txnId1 });
+        assert.ok(commitExpired.statusCode !== 200, 'Expired transaction commit should fail');
+
+        // Verify data was not committed
+        const client2 = new RawTcpClient();
+        await client2.connect();
+        const query = await client2.send(CommandType.QUERY_DOCUMENTS, {
+          dbName: 'TxnIdle', collectionName: 'Col', query: {},
+        });
+        assert.equal(query.statusCode, 200);
+        assert.equal(getDocs(query).length, 0);
+
+        // Verify another transaction can now begin and commit operations cleanly on the collection
+        const begin2 = await client2.send(CommandType.BEGIN_TRANSACTION, { dbName: 'TxnIdle', collectionName: 'Col' });
+        assert.equal(begin2.statusCode, 200);
+        const txnId2 = begin2.data.transactionId;
+
+        await client2.send(CommandType.INSERT_DOCUMENT, {
+          dbName: 'TxnIdle', collectionName: 'Col',
+          data: { name: 'NewTxnData' },
+          transactionId: txnId2,
+        });
+
+        const commit2 = await client2.send(CommandType.COMMIT_TRANSACTION, { transactionId: txnId2 });
+        assert.equal(commit2.statusCode, 200);
+
+        const queryAfter = await client2.send(CommandType.QUERY_DOCUMENTS, {
+          dbName: 'TxnIdle', collectionName: 'Col', query: {},
+        });
+        assert.equal(queryAfter.statusCode, 200);
+        assert.equal(getDocs(queryAfter).length, 1);
+        assert.equal(getDocs(queryAfter)[0].name, 'NewTxnData');
+
+        client1.close();
         client2.close();
       });
     });

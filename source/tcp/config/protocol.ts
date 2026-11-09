@@ -1,6 +1,6 @@
 import { TCPRequest, TCPResponse } from '../types/protocol.types';
 import { CommandType } from '../types/command.types';
-import { MAX_MESSAGE_SIZE, MESSAGE_LENGTH_BYTES, ENCODING, ErrorMessage, StatusCode } from './keys';
+import { MAX_MESSAGE_SIZE, MAX_BUFFER_SIZE, MESSAGE_LENGTH_BYTES, ENCODING, ErrorMessage, StatusCode } from './keys';
 
 /**
  * Message Framing - Handles encoding/decoding of TCP messages
@@ -64,6 +64,11 @@ export class MessageBuffer {
    * Add chunk to buffer and extract complete messages
    */
   addChunk(chunk: Buffer): (TCPRequest | TCPResponse)[] {
+    if (this.buffer.length + chunk.length > MAX_BUFFER_SIZE) {
+      this.buffer = Buffer.alloc(0);
+      throw new Error(ErrorMessage.MESSAGE_TOO_LARGE);
+    }
+
     this.buffer = Buffer.concat([this.buffer, chunk]);
     const messages: (TCPRequest | TCPResponse)[] = [];
 

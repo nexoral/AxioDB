@@ -11,6 +11,7 @@ const { assert } = require('../helpers/assertions');
 const { AxioDB } = require('../../../axiodb.js');
 const { MessageFramer, MessageBuffer } = require('../../../lib/tcp/config/protocol');
 const { CommandType } = require('../../../lib/tcp/types/command.types');
+const { MAX_BUFFER_SIZE, ErrorMessage } = require('../../../lib/tcp/config/keys');
 
 const TCP_HOST = '127.0.0.1';
 const TCP_PORT = 27019;
@@ -318,6 +319,39 @@ class TcpNoAuthTests extends TestRunner {
         } finally {
           client.close();
         }
+      });
+    });
+
+    await this.describe('SEC-18: MessageBuffer Memory and Size Protection', async () => {
+      await this.test('MessageBuffer rejects single chunk exceeding MAX_BUFFER_SIZE', async () => {
+        const msgBuffer = new MessageBuffer();
+        const oversizedChunk = Buffer.alloc(MAX_BUFFER_SIZE + 1);
+
+        await assert.throws(
+          () => msgBuffer.addChunk(oversizedChunk),
+          ErrorMessage.MESSAGE_TOO_LARGE,
+          'Should reject chunk exceeding MAX_BUFFER_SIZE'
+        );
+
+        assert.equal(msgBuffer.size, 0, 'Buffer should be cleared to 0 after rejection');
+      });
+
+      await this.test('MessageBuffer rejects accumulated chunks exceeding MAX_BUFFER_SIZE', async () => {
+        const msgBuffer = new MessageBuffer();
+        const initialChunk = Buffer.alloc(1024);
+        initialChunk.writeUInt32BE(2048, 0);
+        msgBuffer.addChunk(initialChunk);
+        assert.equal(msgBuffer.size, 1024);
+
+        const overflowChunk = Buffer.alloc(MAX_BUFFER_SIZE - 500);
+
+        await assert.throws(
+          () => msgBuffer.addChunk(overflowChunk),
+          ErrorMessage.MESSAGE_TOO_LARGE,
+          'Should reject accumulation exceeding MAX_BUFFER_SIZE'
+        );
+
+        assert.equal(msgBuffer.size, 0, 'Buffer should be cleared to 0 after accumulation overflow');
       });
     });
   }

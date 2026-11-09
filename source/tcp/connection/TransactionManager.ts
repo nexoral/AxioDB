@@ -17,6 +17,8 @@ export default class TransactionManager {
   private activeTransactions: Map<string, Map<string, Transaction>> = new Map();
   private transactionPaths: Map<string, string> = new Map();
   private connectionCollections: Map<string, Map<string, string>> = new Map();
+  private lastActive: Map<string, number> = new Map();
+  private cleanupInterval: NodeJS.Timeout | null = null;
 
   private constructor() {}
 
@@ -25,6 +27,25 @@ export default class TransactionManager {
       TransactionManager.instance = new TransactionManager();
     }
     return TransactionManager.instance;
+  }
+
+  public startCleanupSweep(intervalMs: number = 10000, timeoutMs: number = 30000): void {
+    if (this.cleanupInterval) return;
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupExpired(timeoutMs).catch((err: unknown) => {
+        Logger.error('[TransactionManager] Cleanup sweep error:', err);
+      });
+    }, intervalMs);
+    if (typeof this.cleanupInterval.unref === 'function') {
+      this.cleanupInterval.unref();
+    }
+  }
+
+  public stopCleanupSweep(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
   }
 
   beginTransaction(connectionId: string, collectionPath: string, cache: InMemoryCache): Transaction {
@@ -39,6 +60,7 @@ export default class TransactionManager {
 
     connTxns.set(transactionId, txn);
     this.transactionPaths.set(transactionId, collectionPath);
+    this.lastActive.set(transactionId, Date.now());
 
     let connCollections = this.connectionCollections.get(connectionId);
     if (!connCollections) {
@@ -52,7 +74,11 @@ export default class TransactionManager {
   }
 
   getTransaction(connectionId: string, transactionId: string): Transaction | undefined {
-    return this.activeTransactions.get(connectionId)?.get(transactionId);
+    const txn = this.activeTransactions.get(connectionId)?.get(transactionId);
+    if (txn) {
+      this.lastActive.set(transactionId, Date.now());
+    }
+    return txn;
   }
 
   removeTransaction(connectionId: string, transactionId: string): void {
@@ -64,6 +90,7 @@ export default class TransactionManager {
       }
     }
     this.transactionPaths.delete(transactionId);
+    this.lastActive.delete(transactionId);
 
     const connCollections = this.connectionCollections.get(connectionId);
     if (connCollections) {
@@ -72,6 +99,39 @@ export default class TransactionManager {
         this.connectionCollections.delete(connectionId);
       }
     }
+  }
+
+  public async cleanupExpired(timeoutMs: number = 30000): Promise<number> {
+    const now = Date.now();
+    const expired: { connectionId: string; transactionId: string; txn: Transaction }[] = [];
+
+    for (const [connId, connTxns] of this.activeTransactions) {
+      for (const [txnId, txn] of connTxns) {
+        const last = this.lastActive.get(txnId) ?? 0;
+        if (now - last > timeoutMs) {
+          expired.push({ connectionId: connId, transactionId: txnId, txn });
+        }
+      }
+    }
+
+    let rolledBackCount = 0;
+    for (const { connectionId, transactionId, txn } of expired) {
+      this.removeTransaction(connectionId, transactionId);
+      try {
+        Logger.warn(
+          `[TransactionManager] Auto-rolled-back expired transaction ${transactionId} on connection ${connectionId} (idle > ${timeoutMs}ms)`,
+        );
+        await txn.rollback();
+        rolledBackCount++;
+      } catch (err: unknown) {
+        Logger.error(
+          `[TransactionManager] Failed to rollback expired transaction ${transactionId}:`,
+          err,
+        );
+      }
+    }
+
+    return rolledBackCount;
   }
 
   getCollectionPath(transactionId: string): string | undefined {
@@ -91,6 +151,8 @@ export default class TransactionManager {
       } catch (error) {
         Logger.error(`[TransactionManager] Failed to rollback ${txnId}:`, error);
       }
+      this.transactionPaths.delete(txnId);
+      this.lastActive.delete(txnId);
     }
 
     this.activeTransactions.delete(connectionId);
