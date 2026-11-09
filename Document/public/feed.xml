@@ -5,8 +5,15 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Mon, 09 Nov 2026 19:29:41 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 09 Nov 2026 19:45:32 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AxioDB v27.43.10 — Comprehensive security hardening across core engine, TCP, HTTP API, MCP, and worker threads (SEC-01 – SEC-11)</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-27.43.10</guid>
+      <pubDate>Tue, 10 Nov 2026 00:00:00 GMT</pubDate>
+      <description>SEC-01 (Prototype Pollution Prevention): Sanitized object traversal and aggregation operations to reject __proto__, constructor, and prototype pollution attacks across grouping and accumulation pipelines | SEC-02 (Secure TCP Defaults): Defaulted TCPAuth to true when TCP is enabled, requiring authenticated handshakes and TLS support to prevent unauthenticated network access | SEC-03 (MCP Security &amp; Session Revocation): Hardened MCP server against wildcard CORS origins and enforced strict session termination on client disconnect</description>
+    </item>
     <item>
       <title>AxioDB v27.42.9 — Chunked TCP database export &amp; import, HTTP ACID transactions, Desktop GUI backup parity, and streamlined CLI</title>
       <link>https://axiodb.in/changelog</link>
