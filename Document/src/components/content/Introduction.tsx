@@ -458,7 +458,7 @@ const Introduction: React.FC = () => {
                 <span className="text-gray-800 font-semibold">
                   Node.js{" "}
                   <span className="text-gray-500 font-normal">
-                    ≥ v20 · officially supported
+                    ≥ v22 · officially supported
                   </span>
                 </span>
               </div>
@@ -471,7 +471,20 @@ const Introduction: React.FC = () => {
                 <span className="text-gray-800 font-semibold">
                   Bun{" "}
                   <span className="text-gray-500 font-normal">
-                    verified on v1.4.0
+                    officially supported
+                  </span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <img
+                  src="/logos/deno.svg"
+                  alt="Deno"
+                  className="h-8 w-8"
+                />
+                <span className="text-gray-800 font-semibold">
+                  Deno{" "}
+                  <span className="text-gray-500 font-normal">
+                    officially supported
                   </span>
                 </span>
               </div>
@@ -500,11 +513,10 @@ const Introduction: React.FC = () => {
             <p className="text-sm text-gray-500 leading-relaxed">
               All 14 test suites — CRUD, transactions, reads, aggregation,
               auth, HTTP API, TCP (auth/no-auth/transaction/TLS), crash
-              recovery, MCP, and cache options — pass on the machine's Node
-              (v26.8.1) and Bun (v1.4.0), including the worker-thread data
-              paths (reads of ≥100-file collections, searches over ≥10,000
-              documents). Node 22+ is the supported baseline; Bun is verified on
-              the installed v1.4.0 with native test runner support.
+              recovery, MCP, and cache options — pass across Node.js, Bun,
+              and Deno, including the worker-thread data paths (reads of
+              ≥100-file collections, searches over ≥10,000 documents).
+              Node.js ≥ 22, Bun, and Deno are officially supported runtimes.
             </p>
           </div>
 

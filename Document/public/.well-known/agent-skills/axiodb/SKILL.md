@@ -907,7 +907,7 @@ Indexed queries stay at 1-2 ms even at 100K documents. Full scan at 100K:
 - Login: 5 failures per IP per 15 min → 15 min lockout
 - Ports 27018 (HTTP) and 27019 (TCP) are fixed — remap with Docker `-p`
 - Database name `config` is reserved
-- Node.js >= 20 (also verified on Bun v1.4.0, Deno v2.9.6)
+- Node.js >= 22 (officially supported; also verified on Bun v1.4.0, Deno v2.9.6)
 
 ---
 

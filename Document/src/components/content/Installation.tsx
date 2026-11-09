@@ -306,7 +306,7 @@ const Installation: React.FC = () => {
                 </strong>
               </div>
               <p className="text-gray-600">
-                v20.0.0 or higher
+                v22.0.0 or higher
               </p>
             </div>
 
