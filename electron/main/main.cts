@@ -620,7 +620,12 @@ async function executeTcpRequest(fullUrl: URL, config: {
       status: res.statusCode || 200,
       statusText: "OK",
       headers: {},
-      data: { success: true, message: res.message || "PONG" },
+      data: {
+        status: "ok",
+        success: true,
+        message: res.message || "PONG",
+        timestamp: new Date().toISOString(),
+      },
     };
   }
 

@@ -59,6 +59,7 @@ export const TCP_COMMAND_PERMISSIONS: Partial<Record<CommandType, PermissionKey>
 /** Commands that never require authentication, even when the TCP server has `TCPAuth` enabled. */
 export const TCP_AUTH_EXEMPT_COMMANDS: ReadonlySet<CommandType> = new Set([
   CommandType.PING,
+  CommandType.HEALTH,
   CommandType.DISCONNECT,
   CommandType.AUTHENTICATE,
   CommandType.CHANGE_PASSWORD,

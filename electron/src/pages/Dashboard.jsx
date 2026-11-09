@@ -122,7 +122,7 @@ const Dashboard = () => {
   const memory = systemInfo?.memory ?? {}
   const instance = systemInfo?.instance ?? {}
   const services = systemInfo?.services ?? []
-  const isHealthy = healthInfo?.status === 'ok'
+  const isHealthy = healthInfo?.status === 'ok' || healthInfo?.success === true
 
   return (
     <div className='flex-1 overflow-y-auto bg-slate-50 p-6 font-sans select-none'>
