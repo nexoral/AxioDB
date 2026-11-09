@@ -864,6 +864,38 @@ class AggregationTests extends TestRunner {
         assert.isSuccess(result);
         assert.ok(result.data.length >= 3);
       });
+
+      await this.test('Prototype pollution protection in $unwind', async () => {
+        const result = await this.usersCollection.aggregate([
+          { $match: { name: 'Alice' } },
+          { $unwind: { path: '$__proto__.polluted' } }
+        ]).exec();
+        assert.isSuccess(result);
+        assert.equal(({}).polluted, undefined);
+        assert.equal(Object.prototype.polluted, undefined);
+      });
+
+      await this.test('Prototype pollution protection in $unwind via constructor', async () => {
+        const result = await this.usersCollection.aggregate([
+          { $match: { name: 'Alice' } },
+          { $unwind: { path: '$constructor.prototype.polluted' } }
+        ]).exec();
+        assert.isSuccess(result);
+        assert.equal(({}).polluted, undefined);
+        assert.equal(Object.prototype.polluted, undefined);
+      });
+
+      await this.test('Legitimate nested path in $unwind', async () => {
+        await this.productsCollection.insert({ name: 'UnwindNested', category: 'Test', price: 20, stock: 3, meta: { tags: ['alpha', 'beta'] } });
+        const result = await this.productsCollection.aggregate([
+          { $match: { name: 'UnwindNested' } },
+          { $unwind: { path: '$meta.tags' } }
+        ]).exec();
+        assert.isSuccess(result);
+        assert.equal(result.data.length, 2);
+        assert.equal(result.data[0].meta.tags, 'alpha');
+        assert.equal(result.data[1].meta.tags, 'beta');
+      });
     });
 
     // ============================================================

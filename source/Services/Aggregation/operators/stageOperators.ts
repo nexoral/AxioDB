@@ -1,5 +1,5 @@
 import { CollectionResolver } from "../../../config/Interfaces/Operation/aggregation.interface";
-import { evaluateExpression, getNestedValue } from "./expressionOperators";
+import { evaluateExpression, getNestedValue, setNestedValue } from "./expressionOperators";
 import { BUILT_IN_ACCUMULATORS } from "./accumulatorOperators";
 import { OperatorRegistry } from "../OperatorRegistry";
 import RegexGuard from "../../../Helper/RegexGuard.helper";
@@ -237,15 +237,6 @@ export function executeUnwind(input: Record<string, unknown>[], unwindExpr: Reco
   return result;
 }
 
-function setNestedValue(obj: Record<string, unknown>, path: string, value: unknown): void {
-  const parts = path.split(".");
-  let current: Record<string, unknown> = obj;
-  for (let i = 0; i < parts.length - 1; i++) {
-    if (current[parts[i]] === undefined) current[parts[i]] = {};
-    current = current[parts[i]] as Record<string, unknown>;
-  }
-  current[parts[parts.length - 1]] = value;
-}
 
 export function executeAddFields(input: Record<string, unknown>[], addFieldsExpr: Record<string, unknown>): Record<string, unknown>[] {
   return input.map(item => {
