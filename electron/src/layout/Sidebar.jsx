@@ -137,26 +137,18 @@ const Sidebar = () => {
             </button>
 
             <button
-              onClick={() => !isTcp && navigate("/import")}
-              disabled={isTcp}
+              onClick={() => navigate("/import")}
               className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-md transition-all relative ${
-                isTcp
-                  ? "opacity-55 cursor-not-allowed text-slate-400 bg-slate-50"
-                  : activePath === "/import"
+                activePath === "/import"
                   ? "bg-white text-emerald-700 shadow-xs font-semibold"
                   : "hover:text-slate-900 hover:bg-slate-200/60"
               }`}
-              title={isTcp ? "Import & Export require HTTP connection (Need HTTP)" : "Import & Export"}
+              title="Import & Export"
             >
               <svg className="w-4 h-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
               <span>Backup</span>
-              {isTcp && (
-                <span className="text-[8px] font-mono font-bold text-amber-700 bg-amber-100/90 px-1 py-0.2 rounded mt-0.5 leading-none">
-                  Need HTTP
-                </span>
-              )}
             </button>
 
             {(!permissions || permissions.length === 0 || permissions.includes("user:view") || permissions.includes("*") || role?.toLowerCase().includes("admin") || role === "super_admin") && (
@@ -351,15 +343,11 @@ const Sidebar = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (!isTcp) handleExportDatabase(dbName);
+                          handleExportDatabase(dbName);
                         }}
-                        disabled={isTcp || exportingDb === dbName}
-                        className={`p-0.5 rounded transition-opacity outline-none focus:outline-none ${
-                          isTcp
-                            ? "opacity-35 cursor-not-allowed text-slate-300"
-                            : "opacity-0 group-hover/db:opacity-100 text-slate-400 hover:text-amber-600 hover:bg-amber-50 disabled:opacity-50"
-                        }`}
-                        title={isTcp ? "Database export requires HTTP connection (Need HTTP)" : "Export Database"}
+                        disabled={exportingDb === dbName}
+                        className="p-0.5 rounded transition-opacity outline-none focus:outline-none opacity-0 group-hover/db:opacity-100 text-slate-400 hover:text-amber-600 hover:bg-amber-50 disabled:opacity-50"
+                        title="Export Database"
                       >
                         {exportingDb === dbName ? (
                           <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">

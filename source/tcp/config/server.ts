@@ -62,7 +62,7 @@ export default async function createAxioDBTCPServer(
   ConnectionRateLimiter.startCleanupSweep();
 
   // Setup connection manager event handlers
-  setupConnectionManagerHandlers(connectionManager);
+  setupConnectionManagerHandlers(connectionManager, commandHandler);
 
   // Bridge HTTP-side auth mutations (role change, password reset, deletion) into this
   // TCP server's own connection state - see AuthEvents.service.ts. AxioDB is a
@@ -112,13 +112,14 @@ export default async function createAxioDBTCPServer(
 /**
  * Setup connection manager event handlers
  */
-function setupConnectionManagerHandlers(connectionManager: ConnectionManager): void {
+function setupConnectionManagerHandlers(connectionManager: ConnectionManager, commandHandler: CommandHandler): void {
   connectionManager.on('connection:added', (connectionId: string, remoteAddress: string) => {
     Logger.info(`[AxioDB TCP] Client connected: ${connectionId} from ${remoteAddress}`);
   });
 
   connectionManager.on('connection:removed', (connectionId: string) => {
     Logger.info(`[AxioDB TCP] Client disconnected: ${connectionId}`);
+    commandHandler.getDBHandler().cleanupConnection(connectionId);
     TransactionManager.getInstance().rollbackAllForConnection(connectionId).catch((error) => {
       Logger.error(`[AxioDB TCP] Error rolling back transactions for ${connectionId}:`, error);
     });

@@ -5,7 +5,7 @@ import {
   CONNECTION_RATE_LIMIT_WINDOW_MS,
 } from '../config/keys';
 
-interface AttemptRecord {
+export interface AttemptRecord {
   /** Timestamps of connection attempts within the current sliding window, oldest first. */
   attemptTimestamps: number[];
   lockedUntil?: number;
@@ -22,7 +22,7 @@ interface AttemptRecord {
  * Same true-sliding-window + cooldown design as LoginRateLimiter.service.ts, applied to
  * connection attempts instead of failed logins. In-memory only, reset on process restart.
  */
-class ConnectionRateLimiter {
+export class ConnectionRateLimiter {
   private static instance: ConnectionRateLimiter;
   private readonly attempts: Map<string, AttemptRecord> = new Map();
   private sweepIntervalHandle: NodeJS.Timeout | undefined;

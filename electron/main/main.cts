@@ -286,11 +286,62 @@ ipcMain.handle("network:clearCookies", () => {
   return true;
 });
 
-// Streaming database archive import via HTTP multipart
+// Streaming database archive import via HTTP multipart or chunked TCP
 ipcMain.handle("network:uploadDatabase", async (_event, { filePath, url }: { filePath: string; url: string }) => {
   if (!allowedImportFiles.has(filePath)) {
     throw new Error("Access denied: File was not selected via file dialog");
   }
+
+  if (url.startsWith("tcp://")) {
+    const fullUrl = new URL(url);
+    const host = fullUrl.hostname || "127.0.0.1";
+    const port = parseInt(fullUrl.port || "27019", 10);
+    const isTls = fullUrl.searchParams.get("tls") === "true";
+
+    const fileStats = await fs.promises.stat(filePath);
+    const chunkSize = 2 * 1024 * 1024;
+    const totalChunks = Math.ceil(fileStats.size / chunkSize) || 1;
+    const transferId = `tcp-import-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const fd = await fs.promises.open(filePath, "r");
+
+    let lastRes: { id: string; statusCode: number; message: string; data?: unknown; error?: string } | null = null;
+    try {
+      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        const start = chunkIndex * chunkSize;
+        const end = Math.min(start + chunkSize, fileStats.size);
+        const length = end - start;
+        const buf = Buffer.alloc(length);
+        await fd.read(buf, 0, length, start);
+
+        const res = await tcpBridge.sendCommand(
+          host,
+          port,
+          "IMPORT_DATABASE",
+          {
+            chunkIndex,
+            totalChunks,
+            data: buf.toString("base64"),
+            transferId,
+          },
+          120000,
+          isTls
+        );
+
+        if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+          throw new Error(res.message || res.error || `Failed to import chunk ${chunkIndex}`);
+        }
+        lastRes = res;
+      }
+    } finally {
+      await fd.close();
+    }
+
+    return {
+      status: 200,
+      data: (lastRes?.data as Record<string, unknown>) || { message: "Database imported successfully" },
+    };
+  }
+
   return new Promise((resolve, reject) => {
     try {
       const fullUrl = new URL(url);
@@ -1956,6 +2007,72 @@ ipcMain.handle(
 
     if (saveResult.canceled || !saveResult.filePath) {
       return { canceled: true };
+    }
+
+    if (baseUrl.startsWith("tcp://")) {
+      const fullUrl = new URL(baseUrl);
+      const host = fullUrl.hostname || "127.0.0.1";
+      const port = parseInt(fullUrl.port || "27019", 10);
+      const isTls = fullUrl.searchParams.get("tls") === "true";
+
+      const chunkSize = 2 * 1024 * 1024;
+      const firstRes = await tcpBridge.sendCommand(
+        host,
+        port,
+        "EXPORT_DATABASE",
+        { dbName, chunkIndex: 0, chunkSize },
+        60000,
+        isTls
+      );
+
+      if (firstRes.statusCode && (firstRes.statusCode < 200 || firstRes.statusCode >= 300)) {
+        throw new Error(firstRes.message || firstRes.error || "Export failed over TCP");
+      }
+
+      const expData = firstRes.data as {
+        chunkIndex: number;
+        totalChunks: number;
+        totalSize: number;
+        data: string;
+        isLast: boolean;
+      };
+      const totalChunks = expData.totalChunks;
+      const fileStream = fs.createWriteStream(saveResult.filePath);
+      const firstBuf = Buffer.from(expData.data, "base64");
+      fileStream.write(firstBuf);
+      let downloadedBytes = firstBuf.length;
+
+      for (let i = 1; i < totalChunks; i++) {
+        const chunkRes = await tcpBridge.sendCommand(
+          host,
+          port,
+          "EXPORT_DATABASE",
+          { dbName, chunkIndex: i, chunkSize },
+          60000,
+          isTls
+        );
+        if (chunkRes.statusCode && (chunkRes.statusCode < 200 || chunkRes.statusCode >= 300)) {
+          fileStream.close();
+          await fs.promises.unlink(saveResult.filePath).catch(() => {});
+          throw new Error(chunkRes.message || chunkRes.error || `Export chunk ${i} failed`);
+        }
+        const cData = chunkRes.data as { data: string };
+        const chunkBuf = Buffer.from(cData.data, "base64");
+        fileStream.write(chunkBuf);
+        downloadedBytes += chunkBuf.length;
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        fileStream.end(() => resolve());
+        fileStream.on("error", reject);
+      });
+
+      return {
+        canceled: false,
+        success: true,
+        filePath: saveResult.filePath,
+        bytes: downloadedBytes,
+      };
     }
 
     return new Promise((resolve, reject) => {

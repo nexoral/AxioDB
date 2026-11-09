@@ -566,6 +566,38 @@ class TcpAuthTests extends TestRunner {
 
         client.close();
       });
+
+      await this.test('EXPORT_DATABASE and IMPORT_DATABASE RBAC enforcement', async () => {
+        const superClient = await this.authenticatedClient('tcpsuperadmin', 'TcpSuperPass1');
+        await superClient.send(CommandType.CREATE_DB, { dbName: 'TcpAuthExportDB' });
+
+        // Unblock tcpview whose password was reset in earlier test
+        await authService.changeOwnPassword('tcpview', 'TcpViewReset1', 'TcpViewPass2');
+        const viewClient = await this.authenticatedClient('tcpview', 'TcpViewPass2');
+
+        // View-only user cannot export
+        const viewExportRes = await viewClient.send(CommandType.EXPORT_DATABASE, { dbName: 'TcpAuthExportDB', chunkIndex: 0 });
+        assert.equal(viewExportRes.statusCode, 403);
+        viewClient.close();
+
+        // Superadmin can export
+        const exportRes = await superClient.send(CommandType.EXPORT_DATABASE, { dbName: 'TcpAuthExportDB', chunkIndex: 0 });
+        assert.equal(exportRes.statusCode, 200);
+        assert.exists(exportRes.data.data);
+
+        // Superadmin can import
+        await superClient.send(CommandType.DELETE_DB, { dbName: 'TcpAuthExportDB' });
+        const importRes = await superClient.send(CommandType.IMPORT_DATABASE, {
+          chunkIndex: 0,
+          totalChunks: 1,
+          data: exportRes.data.data,
+          transferId: 'auth-test-import',
+        });
+        assert.equal(importRes.statusCode, 200);
+
+        await superClient.send(CommandType.DELETE_DB, { dbName: 'TcpAuthExportDB' });
+        superClient.close();
+      });
     });
   }
 }

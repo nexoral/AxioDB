@@ -33,13 +33,19 @@ class RawTcpClient {
     return new Promise((resolve, reject) => {
       this.socket = net.createConnection(TCP_PORT, TCP_HOST, () => resolve());
       this.socket.once('error', reject);
+      this.socket.on('close', () => {
+        for (const [id, pending] of this.pending.entries()) {
+          pending.reject(new Error(`Socket closed before response received for request ${id}`));
+        }
+        this.pending.clear();
+      });
       this.socket.on('data', (chunk) => {
         const messages = this.buffer.addChunk(chunk);
         for (const message of messages) {
           const pending = this.pending.get(message.id);
           if (pending) {
             this.pending.delete(message.id);
-            pending(message);
+            pending.resolve(message);
           }
         }
       });
@@ -47,9 +53,9 @@ class RawTcpClient {
   }
 
   send(command, params = {}) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const id = crypto.randomUUID();
-      this.pending.set(id, resolve);
+      this.pending.set(id, { resolve, reject });
       this.socket.write(MessageFramer.encode({ id, command, params }));
     });
   }
@@ -204,9 +210,7 @@ class TcpNoAuthTests extends TestRunner {
     await this.describe('Connection-attempt rate limiting (CONNECTION_RATE_LIMIT_MAX_ATTEMPTS)', async () => {
       await this.test('a burst of connection attempts from one IP triggers a temporary rate-limit lockout, independent of MAX_CONNECTIONS_PER_IP', async () => {
         const { CONNECTION_RATE_LIMIT_MAX_ATTEMPTS } = require('../../../lib/tcp/config/keys');
-        // Same singleton instance the running TCP server uses (test process hosts both) -
-        // clearAll() at the end so this lockout doesn't leak into later tests/files sharing 127.0.0.1.
-        const ConnectionRateLimiter = require('../../../lib/tcp/connection/ConnectionRateLimiter').default;
+        const { ConnectionRateLimiter } = require('../../../axiodb.js').CoreDBMS;
 
         try {
           // Every attempt counts towards the limiter regardless of outcome (accepted or
@@ -239,6 +243,80 @@ class TcpNoAuthTests extends TestRunner {
           assert.equal(rejected.error, 'Too many connection attempts from this IP address. Try again later.');
         } finally {
           ConnectionRateLimiter.clearAll();
+        }
+      });
+    });
+
+    await this.describe('Chunked Database Export & Import over TCP', async () => {
+      await this.test('Export and re-import database in chunks', async () => {
+        const { ConnectionRateLimiter } = require('../../../axiodb.js').CoreDBMS;
+        await new Promise((r) => setTimeout(r, 100));
+        ConnectionRateLimiter.clearAll();
+
+        const client = new RawTcpClient();
+        await client.connect();
+
+        try {
+          await client.send(CommandType.CREATE_DB, { dbName: 'TcpBackupDB' });
+          await client.send(CommandType.CREATE_COLLECTION, { dbName: 'TcpBackupDB', collectionName: 'Items' });
+          await client.send(CommandType.INSERT_DOCUMENT, {
+            dbName: 'TcpBackupDB',
+            collectionName: 'Items',
+            data: { name: 'BackupItem', value: 42 },
+          });
+
+          // Export chunk 0 with small chunkSize to test multiple chunks
+          const chunkSize = 2048;
+          const expRes0 = await client.send(CommandType.EXPORT_DATABASE, {
+            dbName: 'TcpBackupDB',
+            chunkIndex: 0,
+            chunkSize,
+          });
+          assert.equal(expRes0.statusCode, 200);
+          assert.exists(expRes0.data.totalChunks);
+          assert.exists(expRes0.data.data);
+
+          const totalChunks = expRes0.data.totalChunks;
+          const chunks = [expRes0.data.data];
+
+          for (let i = 1; i < totalChunks; i++) {
+            const expRes = await client.send(CommandType.EXPORT_DATABASE, {
+              dbName: 'TcpBackupDB',
+              chunkIndex: i,
+              chunkSize,
+            });
+            assert.equal(expRes.statusCode, 200);
+            chunks.push(expRes.data.data);
+          }
+
+          // Delete original database so we can test importing
+          await client.send(CommandType.DELETE_DB, { dbName: 'TcpBackupDB' });
+
+          // Import chunks
+          const transferId = 'test-transfer-' + Date.now();
+          for (let i = 0; i < totalChunks; i++) {
+            const impRes = await client.send(CommandType.IMPORT_DATABASE, {
+              chunkIndex: i,
+              totalChunks,
+              data: chunks[i],
+              transferId,
+            });
+            assert.equal(impRes.statusCode, 200);
+            if (i === totalChunks - 1) {
+              assert.equal(impRes.data.database, 'TcpBackupDB');
+            }
+          }
+
+          // Verify imported database has data
+          const queryRes = await client.send(CommandType.QUERY_DOCUMENTS, {
+            dbName: 'TcpBackupDB',
+            collectionName: 'Items',
+            query: { name: 'BackupItem' },
+          });
+          assert.equal(queryRes.statusCode, 200);
+          assert.equal(queryRes.data.data.documents[0].value, 42);
+        } finally {
+          client.close();
         }
       });
     });

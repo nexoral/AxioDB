@@ -150,8 +150,15 @@ export class MessageValidator {
       case CommandType.CREATE_DB:
       case CommandType.DELETE_DB:
       case CommandType.DB_EXISTS:
+      case CommandType.EXPORT_DATABASE:
         if (!params.dbName) {
           throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName`);
+        }
+        break;
+
+      case CommandType.IMPORT_DATABASE:
+        if (params.chunkIndex === undefined || params.totalChunks === undefined || params.data === undefined) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: chunkIndex, totalChunks, data`);
         }
         break;
 

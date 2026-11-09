@@ -17,6 +17,8 @@ export enum CommandType {
   DELETE_DB = 'DELETE_DB',
   DB_EXISTS = 'DB_EXISTS',
   GET_INSTANCE_INFO = 'GET_INSTANCE_INFO',
+  EXPORT_DATABASE = 'EXPORT_DATABASE',
+  IMPORT_DATABASE = 'IMPORT_DATABASE',
 
   // Collection Operations
   CREATE_COLLECTION = 'CREATE_COLLECTION',
@@ -115,4 +117,6 @@ export const CommandDocumentation: Record<CommandType, string> = {
   [CommandType.LIST_PERMISSIONS]: 'List available system permissions',
   [CommandType.GET_SYSTEM_INFO]: 'Get host, process, and service diagnostics',
   [CommandType.GET_DASHBOARD_STATS]: 'Get aggregate storage, database tree, and cache metrics',
+  [CommandType.EXPORT_DATABASE]: 'Export database as chunked archive',
+  [CommandType.IMPORT_DATABASE]: 'Import database from chunked archive',
 };

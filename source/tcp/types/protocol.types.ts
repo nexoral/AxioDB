@@ -21,8 +21,14 @@ export interface TCPRequest {
     key?: string;
 
     // Document data
-    data?: Record<string, unknown>;
+    data?: Record<string, unknown> | string;
     documents?: Record<string, unknown>[];
+
+    // Import/Export chunk parameters
+    chunkIndex?: number;
+    totalChunks?: number;
+    chunkSize?: number;
+    transferId?: string;
 
     // Query parameters
     query?: Record<string, unknown>;
