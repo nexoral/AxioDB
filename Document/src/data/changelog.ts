@@ -12,6 +12,17 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "27.44.11",
+    date: "2026-11-10",
+    title: "Security hardening across user creation, auto-creation DoS, native MCP ingestion, and export lifecycle (SEC-12 – SEC-15)",
+    changes: [
+      "SEC-12 (Super Admin Actor Verification): Enforced mandatory actor verification and Super Admin role checks during user creation (createUser), preventing delegated roles from provisioning unauthorized Super Admin accounts",
+      "SEC-13 (Auto-Creation Inode/Disk DoS Prevention): Eliminated auto-creation of missing databases and collections on update, delete, index management, and document count queries across HTTP, TCP, and MCP protocols, returning explicit 404/400 errors",
+      "SEC-14 (Native MCP Stream Body Limit & Fast Rejection): Protected native HTTP MCP endpoint against unbounded payload memory exhaustion (OOM) with 10MB Content-Length header verification and streaming byte counter limits",
+      "SEC-15 (Isolated Database Export & Stream Lifecycle Cleanup): Isolated database export archives in secure temporary directories (os.tmpdir()) to eliminate project root pollution, and bound stream lifecycle events (error, end, close) to guarantee immediate temporary file cleanup on client disconnections",
+    ],
+  },
+  {
     version: "27.43.10",
     date: "2026-11-10",
     title: "Comprehensive security hardening across core engine, TCP, HTTP API, MCP, and worker threads (SEC-01 – SEC-11)",
