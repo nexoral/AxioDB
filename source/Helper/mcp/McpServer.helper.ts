@@ -7,6 +7,7 @@ import {
   MCP_PROTOCOL_VERSION,
   MCP_SERVER_NAME,
   MCP_SERVER_VERSION,
+  DEFAULT_MAX_MCP_BODY_SIZE,
   JsonRpcRequest,
   JsonRpcResponse,
 } from "./McpKeys";
@@ -153,10 +154,61 @@ export async function startMcpServer(
       return;
     }
 
-    // Read body
+    const contentLength = parseInt((req.headers["content-length"] as string) || "0", 10);
+    if (contentLength > DEFAULT_MAX_MCP_BODY_SIZE) {
+      res.writeHead(413, {
+        "Content-Type": "application/json",
+        "Connection": "close",
+        ...getCorsHeaders(origin),
+      });
+      res.end(
+        JSON.stringify({
+          jsonrpc: "2.0",
+          id: null,
+          error: {
+            code: -32600,
+            message: `Payload Too Large: Request body exceeds ${DEFAULT_MAX_MCP_BODY_SIZE} bytes limit`,
+          },
+        }),
+      );
+      req.resume();
+      return;
+    }
+
+    // Read body with streaming size enforcement
     const chunks: Buffer[] = [];
-    req.on("data", (chunk) => chunks.push(chunk));
+    let totalLength = 0;
+    let exceeded = false;
+
+    req.on("data", (chunk: Buffer) => {
+      if (exceeded) return;
+      totalLength += chunk.length;
+      if (totalLength > DEFAULT_MAX_MCP_BODY_SIZE) {
+        exceeded = true;
+        chunks.length = 0;
+        res.writeHead(413, {
+          "Content-Type": "application/json",
+          "Connection": "close",
+          ...getCorsHeaders(origin),
+        });
+        res.end(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: null,
+            error: {
+              code: -32600,
+              message: `Payload Too Large: Request body exceeds ${DEFAULT_MAX_MCP_BODY_SIZE} bytes limit`,
+            },
+          }),
+        );
+        req.resume();
+        return;
+      }
+      chunks.push(chunk);
+    });
+
     req.on("end", async () => {
+      if (exceeded) return;
       let rpc: JsonRpcRequest;
       try {
         const raw = Buffer.concat(chunks).toString("utf8");
