@@ -214,6 +214,24 @@ class HTTPAPITests extends TestRunner {
         assert.isAbove(res.body.statusCode, 399);
       });
 
+      await this.test('POST /api/db/create-database - reserved db name returns 403 (SEC-11)', async () => {
+        const res = await request('POST', '/api/db/create-database', {
+          body: { name: 'config' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 403);
+        assert.ok(res.body.message.includes('reserved'));
+      });
+
+      await this.test('POST /api/db/create-database - case-insensitive reserved db name returns 403 (SEC-11)', async () => {
+        const res = await request('POST', '/api/db/create-database', {
+          body: { name: 'Config' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 403);
+        assert.ok(res.body.message.includes('reserved'));
+      });
+
       await this.test('DELETE /api/db/delete-database - deletes a database', async () => {
         const res = await request('DELETE', '/api/db/delete-database?dbName=TempDB', this.cookieHeader());
         assert.equal(res.body.statusCode, 200);

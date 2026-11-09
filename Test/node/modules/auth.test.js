@@ -236,6 +236,19 @@ class AuthTests extends TestRunner {
     });
 
     await this.describe('Reserved "config" database guard', async () => {
+      await this.test('Cannot create config via the generic database route (SEC-11)', async () => {
+        const res = await fetch(`${BASE_URL}/db/create-database`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Cookie: this.adminCookie,
+          },
+          body: JSON.stringify({ name: 'config' }),
+        });
+        const body = await res.json();
+        assert.equal(body.statusCode, 403);
+      });
+
       await this.test('Cannot delete config via the generic database route', async () => {
         const res = await fetch(`${BASE_URL}/db/delete-database?dbName=config`, {
           method: 'DELETE',

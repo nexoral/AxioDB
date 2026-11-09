@@ -42,10 +42,6 @@ export default class DatabaseController {
     const { name } = request.body as { name: string };
 
     try {
-      const exists = await this.AxioDBInstance.isDatabaseExists(name);
-      if (exists) {
-        return buildResponse(StatusCodes.CONFLICT, "Database already exists");
-      }
       if (!name) {
         return buildResponse(
           StatusCodes.BAD_REQUEST,
@@ -56,6 +52,16 @@ export default class DatabaseController {
       if (typeof name !== "string" || name.trim() === "") {
         return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
       }
+
+      if (isReservedDatabaseName(name)) {
+        return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+      }
+
+      const exists = await this.AxioDBInstance.isDatabaseExists(name);
+      if (exists) {
+        return buildResponse(StatusCodes.CONFLICT, "Database already exists");
+      }
+
       await this.AxioDBInstance.createDB(name);
       return buildResponse(StatusCodes.CREATED, "Database Created", {
         Database_Name: name,
