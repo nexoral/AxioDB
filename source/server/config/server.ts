@@ -3,6 +3,7 @@ import checkPortAndDocker from "./PortFreeChecker";
 import { AxioDB } from "../../Services/Indexation.operation";
 import mainRouter from "../router/Router";
 import SessionStore from "../../Services/Auth/SessionStore.service";
+import HttpTransactionManager from "../helper/HttpTransactionManager.helper";
 import Logger from "../../Helper/Logger.helper";
 import HttpRouter from "../../Helper/http/HttpRouter.helper";
 import HttpServerHelper from "../../Helper/http/HttpServer.helper";
@@ -47,6 +48,7 @@ export default async function createAxioDBControlServer(
     const host = process.env.AXIODB_HOST || "127.0.0.1";
     await server.listen(Number(ServerKeys.PORT), host);
     SessionStore.startCleanupSweep();
+    HttpTransactionManager.getInstance().startCleanupSweep();
     Logger.info(
       `AxioDB Control Server is running on http://localhost:${ServerKeys.PORT}`,
     );

@@ -345,6 +345,66 @@ export const AvailableRoutes: RouteGroupInterface[] = [
       },
     ],
   },
+  {
+    groupName: "Transactions",
+    description: "ACID Transaction Management Endpoints",
+    Paths: [
+      {
+        method: "POST",
+        path: "/api/transaction/begin",
+        description: "Start a new ACID transaction on a collection",
+        payload: { dbName: "string", collectionName: "string" },
+      },
+      {
+        method: "POST",
+        path: "/api/transaction/insert",
+        description: "Buffer a document insert inside an active transaction",
+        payload: { transactionId: "string", document: "object" },
+      },
+      {
+        method: "POST",
+        path: "/api/transaction/update",
+        description: "Buffer an update operation inside an active transaction",
+        payload: { transactionId: "string", query: "object", update: "object" },
+      },
+      {
+        method: "POST",
+        path: "/api/transaction/delete",
+        description: "Buffer a delete operation inside an active transaction",
+        payload: { transactionId: "string", query: "object" },
+      },
+      {
+        method: "POST",
+        path: "/api/transaction/savepoint",
+        description: "Create a named savepoint inside an active transaction",
+        payload: { transactionId: "string", savepointName: "string" },
+      },
+      {
+        method: "POST",
+        path: "/api/transaction/rollback-to-savepoint",
+        description: "Rollback transaction operations to a named savepoint",
+        payload: { transactionId: "string", savepointName: "string" },
+      },
+      {
+        method: "POST",
+        path: "/api/transaction/release-savepoint",
+        description: "Release a named savepoint",
+        payload: { transactionId: "string", savepointName: "string" },
+      },
+      {
+        method: "POST",
+        path: "/api/transaction/commit",
+        description: "Commit an active transaction",
+        payload: { transactionId: "string" },
+      },
+      {
+        method: "POST",
+        path: "/api/transaction/rollback",
+        description: "Rollback and discard an active transaction",
+        payload: { transactionId: "string" },
+      },
+    ],
+  },
 ];
 
 type AuthorInfoType = {

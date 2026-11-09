@@ -15,6 +15,7 @@ import OperationRouter from "./Routers/Operation.routes";
 import authRouter from "./Routers/Auth.routes";
 import userManagementRouter from "./Routers/UserManagement.routes";
 import roleManagementRouter from "./Routers/RoleManagement.routes";
+import transactionRouter from "./Routers/Transaction.routes";
 import StatsController from "../controller/Stats.controller";
 import { getSystemInfo } from "../../Helper/SystemInfo.helper";
 import { requireAuth, requireFreshPassword } from "../middleware/auth.middleware";
@@ -131,6 +132,11 @@ export default async function mainRouter(
 
   await router.register(indexRouter, {
     prefix: "/index",
+    AxioDBInstance: AxioDBInstance,
+  });
+
+  await router.register(transactionRouter, {
+    prefix: "/transaction",
     AxioDBInstance: AxioDBInstance,
   });
 
