@@ -499,6 +499,53 @@ class ReadOptimizationTests extends TestRunner {
           assert.ok(doc.name.toLowerCase().includes('alice'));
         });
       });
+
+      await this.test('ReDoS protection rejects catastrophic nested quantifiers in query', async () => {
+        let threw = false;
+        try {
+          await this.collection
+            .query({ name: { $regex: '(a+)+$' } })
+            .exec();
+        } catch (err) {
+          threw = true;
+          assert.ok(err.message.includes('catastrophic backtracking') || err.message.includes('rejected'));
+        }
+        assert.ok(threw, 'Expected query with catastrophic regex to be rejected');
+      });
+
+      await this.test('ReDoS protection rejects excessively long regex patterns', async () => {
+        let threw = false;
+        try {
+          const longPattern = 'a'.repeat(600);
+          await this.collection
+            .query({ name: { $regex: longPattern } })
+            .exec();
+        } catch (err) {
+          threw = true;
+          assert.ok(err.message.includes('maximum length'));
+        }
+        assert.ok(threw, 'Expected excessively long regex to be rejected');
+      });
+
+      await this.test('Worker script rejects catastrophic ReDoS without freezing worker thread', async () => {
+        const { Worker } = require('worker_threads');
+        const { workerSearchScript } = require('../../../lib/engine/node/workerScript.engine');
+        const chunk = [{ name: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa!' }];
+        const unsafeQuery = { name: { $regex: '(a+)+$' } };
+
+        const start = Date.now();
+        const res = await new Promise((resolve) => {
+          const worker = new Worker(workerSearchScript, {
+            eval: true,
+            workerData: { chunk, query: unsafeQuery },
+          });
+          worker.on('message', resolve);
+          worker.on('error', (err) => resolve({ error: err.message }));
+        });
+        const elapsed = Date.now() - start;
+        assert.ok(elapsed < 2000, `Worker ReDoS took too long: ${elapsed}ms`);
+        assert.ok(Array.isArray(res) ? res.length === 0 : true);
+      });
     });
 
     // Complex Query Tests

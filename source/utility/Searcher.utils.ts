@@ -168,6 +168,10 @@ export default class Searcher {
     findOne: boolean = false,
     limit?: number,
   ): Promise<Record<string, unknown>[]> {
+    if (query && typeof query === "object") {
+      RegexGuard.validateQuery(query);
+    }
+
     // Pre-compile query for faster matching
     const hasLogicalOps = '$or' in query || '$and' in query || '$nor' in query;
     let compiled: CompiledQuery[] | null = hasLogicalOps
