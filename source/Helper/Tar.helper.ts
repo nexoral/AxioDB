@@ -171,7 +171,7 @@ class TarExtractor extends Writable {
 
   override _destroy(error: Error | null, callback: (error?: Error | null) => void): void {
     if (this.currentWriteStream) {
-      this.currentWriteStream.destroy(error || undefined);
+      this.currentWriteStream.destroy();
       this.currentWriteStream = null;
     }
     callback(error);
@@ -284,6 +284,7 @@ class TarExtractor extends Writable {
       } else {
         await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
         this.currentWriteStream = fs.createWriteStream(targetPath);
+        this.currentWriteStream.on("error", () => {});
         this.remainingFileSize = size;
         this.remainingPadding = (512 - (size % 512)) % 512;
       }
