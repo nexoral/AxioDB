@@ -400,6 +400,7 @@ class AuthTests extends TestRunner {
 
         const archive = Buffer.from(await exportRes.arrayBuffer());
         assert.isAbove(archive.length, 0, 'Exported archive should not be empty');
+        assert.ok(!fs.existsSync('./RoundTripDB.tar.gz'), 'Export should NOT leave files in project root (SEC-15)');
 
         await fetch(`${BASE_URL}/db/delete-database?dbName=RoundTripDB`, {
           method: 'DELETE',
@@ -427,6 +428,41 @@ class AuthTests extends TestRunner {
         });
         const list = await listRes.json();
         assert.includes(list.data.ListOfDatabases, 'RoundTripDB', 'Imported database should be listed');
+      });
+
+      await this.test('Aborted export download cleans up temporary files without disk leak (SEC-15)', async () => {
+        const http = require('http');
+        const parsedUrl = new URL(`${BASE_URL}/db/export-database/?dbName=RoundTripDB`);
+
+        await fetch(`${BASE_URL}/db/create-database`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ name: 'AbortExportDB' }),
+        });
+
+        await new Promise((resolve) => {
+          const req = http.request({
+            hostname: parsedUrl.hostname,
+            port: parsedUrl.port,
+            path: `${parsedUrl.pathname}?dbName=AbortExportDB`,
+            method: 'GET',
+            headers: { Cookie: this.adminCookie },
+          }, (res) => {
+            res.once('data', () => {
+              req.destroy();
+              resolve();
+            });
+          });
+          req.end();
+        });
+
+        await new Promise((r) => setTimeout(r, 50));
+        assert.ok(!fs.existsSync('./AbortExportDB.tar.gz'), 'Aborted export should not pollute project root');
+
+        await fetch(`${BASE_URL}/db/delete-database?dbName=AbortExportDB`, {
+          method: 'DELETE',
+          headers: { Cookie: this.adminCookie },
+        });
       });
 
       await this.test('A valid archive that is not an AxioDB export is rejected and leaves no trash', async () => {
