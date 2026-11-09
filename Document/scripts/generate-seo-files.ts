@@ -142,8 +142,8 @@ function buildOperation(endpoint: ApiEndpoint): Record<string, unknown> {
       .replace(/[^a-zA-Z0-9]/g, "")}`,
     parameters: params.map((p) => ({
       name: p.name,
-      in: p.type === "header" ? "header" : "query",
-      required: p.required,
+      in: p.type === "header" ? "header" : p.type === "path" ? "path" : "query",
+      required: p.type === "path" ? true : p.required,
       description: p.description,
       schema: toSchema(p.dataType),
     })),

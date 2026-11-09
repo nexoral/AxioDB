@@ -913,7 +913,7 @@
         "parameters": [
           {
             "name": "roleName",
-            "in": "query",
+            "in": "path",
             "required": true,
             "description": "Role name",
             "schema": {
