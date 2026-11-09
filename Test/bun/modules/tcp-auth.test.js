@@ -209,7 +209,7 @@ class TcpAuthTests extends TestRunner {
 
     await this.describe('User bootstrap (stand-in for GUI user management + forced password change)', async () => {
       await this.test('Super Admin can create Admin-role and View-role TCP users via the shared config DB', async () => {
-        const superUser = await authService.createUser('tcpsuperadmin', 'TcpSuperTemp1', 'Super Admin');
+        const superUser = await authService.createUser('tcpsuperadmin', 'TcpSuperTemp1', 'Super Admin', 'admin');
         assert.equal(superUser.success, true);
 
         const adminUser = await authService.createUser('tcpadmin', 'TcpAdminTemp1', 'Admin');

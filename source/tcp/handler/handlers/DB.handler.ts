@@ -12,6 +12,7 @@ import SafeErrorMessage from '../../../Helper/SafeErrorMessage.helper';
 import { tarGzFolder, unzipFile } from '../../../utility/ZipUnzip.utils';
 import { readExportedDatabaseName } from '../../../server/helper/databaseImport.helper';
 import { isReservedDatabaseName } from '../../../config/Keys/Permissions';
+import PathSanitizer from '../../../Helper/PathSanitizer.helper';
 
 type Params = TCPRequest['params'];
 
@@ -194,7 +195,8 @@ export default class DBHandler {
           return { id: requestId, statusCode: StatusCode.NOT_FOUND, message: 'Database not found', error: 'Database not found' };
         }
 
-        const currDatabasePathData = `${this.axioDB.GetPath}/${dbName}`;
+        const sanitizedDbName = PathSanitizer.sanitizePathComponent(dbName);
+        const currDatabasePathData = PathSanitizer.safePath(this.axioDB.GetPath, sanitizedDbName);
         const tempArchive = path.join(os.tmpdir(), `axiodb-export-${Date.now()}-${Math.random().toString(36).slice(2)}.tar.gz`);
 
         await tarGzFolder(currDatabasePathData, tempArchive);

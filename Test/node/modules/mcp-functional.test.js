@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 
 const Module = require('module');
+const http = require('http');
 const path = require('path');
 const fs = require('fs');
 const TestRunner = require('../helpers/TestRunner');
@@ -648,6 +649,41 @@ class McpFunctionalTests extends TestRunner {
         headers: { Origin: 'https://attacker.example.org' },
       });
       assert.equal(getEvilRes.headers.get('access-control-allow-origin'), null);
+    });
+
+    await this.test('Native HTTP MCP Server enforces body size limits (SEC-14)', async () => {
+      // 1. Content-Length header exceeding limit rejects with 413 immediately
+      const res = await new Promise((resolve, reject) => {
+        const req = http.request({
+          hostname: '127.0.0.1',
+          port: 27020,
+          path: '/mcp',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': String(20 * 1024 * 1024),
+          },
+        }, (res) => {
+          const chunks = [];
+          res.on('data', (c) => chunks.push(c));
+          res.on('end', () => {
+            const body = JSON.parse(Buffer.concat(chunks).toString());
+            resolve({ statusCode: res.statusCode, body });
+          });
+        });
+        req.on('error', reject);
+        req.end();
+      });
+      assert.equal(res.statusCode, 413);
+      assert.includes(res.body.error.message, 'Payload Too Large');
+
+      // 2. Normal ping request works under limit
+      const normalRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1000, method: 'ping' }),
+      });
+      assert.equal(normalRes.status, 200);
     });
   }
 }

@@ -5,8 +5,15 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Mon, 09 Nov 2026 19:45:32 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 09 Nov 2026 21:08:14 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AxioDB v27.44.11 — Security hardening across user creation, auto-creation DoS, native MCP ingestion, and export lifecycle (SEC-12 – SEC-15)</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-27.44.11</guid>
+      <pubDate>Tue, 10 Nov 2026 00:00:00 GMT</pubDate>
+      <description>SEC-12 (Super Admin Actor Verification): Enforced mandatory actor verification and Super Admin role checks during user creation (createUser), preventing delegated roles from provisioning unauthorized Super Admin accounts | SEC-13 (Auto-Creation Inode/Disk DoS Prevention): Eliminated auto-creation of missing databases and collections on update, delete, index management, and document count queries across HTTP, TCP, and MCP protocols, returning explicit 404/400 errors | SEC-14 (Native MCP Stream Body Limit &amp; Fast Rejection): Protected native HTTP MCP endpoint against unbounded payload memory exhaustion (OOM) with 10MB Content-Length header verification and streaming byte counter limits</description>
+    </item>
     <item>
       <title>AxioDB v27.43.10 — Comprehensive security hardening across core engine, TCP, HTTP API, MCP, and worker threads (SEC-01 – SEC-11)</title>
       <link>https://axiodb.in/changelog</link>

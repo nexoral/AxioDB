@@ -41,7 +41,8 @@ export default class UserManagementController {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Role is required"));
     }
 
-    const result = await this.authService.createUser(username, password, role);
+    const actorUsername = request.authUser?.username;
+    const result = await this.authService.createUser(username.trim(), password, role, actorUsername);
     if (!result.success) {
       const statusCode = result.conflict ? StatusCodes.CONFLICT : StatusCodes.BAD_REQUEST;
       return sendResponse(reply, buildResponse(statusCode, result.message));
@@ -70,6 +71,13 @@ export default class UserManagementController {
     }
 
     const actorUsername = request.authUser?.username;
+    if (!actorUsername) {
+      return sendResponse(
+        reply,
+        buildResponse(StatusCodes.UNAUTHORIZED, "Session invalid or expired"),
+      );
+    }
+
     const result = await this.authService.resetUserPassword(username, newPassword, actorUsername);
     if (!result.success) {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, result.message));

@@ -2,6 +2,7 @@ export const DEFAULT_MCP_PORT = 27020;
 export const MCP_PROTOCOL_VERSION = "2024-11-05";
 export const MCP_SERVER_NAME = "axiodb-mcp-server";
 export const MCP_SERVER_VERSION = "24.33.5";
+export const DEFAULT_MAX_MCP_BODY_SIZE = 10 * 1024 * 1024; // 10MB
 
 export interface JsonRpcRequest {
   jsonrpc: "2.0";

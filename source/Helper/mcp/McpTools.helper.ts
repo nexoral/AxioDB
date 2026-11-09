@@ -754,7 +754,15 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
     async (args) => {
       const dbName = extractDbName(args);
       const collectionName = extractCollectionName(args);
+      const dbExists = await axioDBInstance.isDatabaseExists(dbName);
+      if (!dbExists) {
+        return { statusCode: 404, message: "Database does not exist" };
+      }
       const db = await axioDBInstance.createDB(dbName);
+      const colExists = await db.isCollectionExists(collectionName);
+      if (!colExists) {
+        return { statusCode: 404, message: "Collection does not exist" };
+      }
       const col = await db.createCollection(collectionName);
       return col.totalDocuments();
     },
@@ -1029,7 +1037,15 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
     async (args, session) => {
       const dbName = extractDbName(args);
       const collectionName = extractCollectionName(args);
+      const dbExists = await axioDBInstance.isDatabaseExists(dbName);
+      if (!dbExists) {
+        return { statusCode: 404, message: "Database does not exist" };
+      }
       const db = await axioDBInstance.createDB(dbName);
+      const colExists = await db.isCollectionExists(collectionName);
+      if (!colExists) {
+        return { statusCode: 404, message: "Collection does not exist" };
+      }
       const col = await db.createCollection(collectionName);
       const txn = new Transaction(col.getCollectionPath(), axioDBInstance.Cache);
       activeTransactions.set(txn.getId(), { transaction: txn, sessionId: session!.sid });

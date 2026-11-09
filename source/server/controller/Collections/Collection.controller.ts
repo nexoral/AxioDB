@@ -32,6 +32,11 @@ export default class CollectionController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
+    const dbExists = await this.AxioDBInstance.isDatabaseExists(dbName);
+    if (!dbExists) {
+      return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
+    }
+
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);
 
     const isCollectionExists =
@@ -71,6 +76,11 @@ export default class CollectionController {
     }
     if (isReservedDatabaseName(databaseName)) {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+    }
+
+    const dbExists = await this.AxioDBInstance.isDatabaseExists(databaseName);
+    if (!dbExists) {
+      return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
     }
 
     try {
@@ -130,6 +140,11 @@ export default class CollectionController {
     }
     if (isReservedDatabaseName(dbName)) {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+    }
+
+    const dbExists = await this.AxioDBInstance.isDatabaseExists(dbName);
+    if (!dbExists) {
+      return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
     }
 
     const databaseInstance = await this.AxioDBInstance.createDB(dbName);

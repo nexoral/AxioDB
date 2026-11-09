@@ -23,6 +23,7 @@ import {
   releaseImport,
 } from "../../helper/databaseImport.helper";
 import SafeErrorMessage from "../../../Helper/SafeErrorMessage.helper";
+import PathSanitizer from "../../../Helper/PathSanitizer.helper";
 
 export default class DatabaseController {
   private AxioDBInstance: AxioDB;
@@ -129,18 +130,33 @@ export default class DatabaseController {
         });
       }
 
-      const currDatabasePathData = `${this.AxioDBInstance.GetPath}/${dbName}`;
-
-      const responseZipTar = await tarGzFolder(
-        currDatabasePathData,
-        `./${dbName}.tar.gz`,
+      const sanitizedDbName = PathSanitizer.sanitizePathComponent(dbName);
+      const currDatabasePathData = PathSanitizer.safePath(
+        this.AxioDBInstance.GetPath,
+        sanitizedDbName,
       );
 
-      const fs = await import("fs");
+      const workDir = await fs.promises.mkdtemp(
+        path.join(os.tmpdir(), "axiodb-export-"),
+      );
+      const responseZipTar = path.join(workDir, `${sanitizedDbName}.tar.gz`);
+
+      await tarGzFolder(currDatabasePathData, responseZipTar);
+
       const stats = await fs.promises.stat(responseZipTar);
 
+      let cleanedUp = false;
+      const safeCleanup = () => {
+        if (!cleanedUp) {
+          cleanedUp = true;
+          fs.promises.rm(workDir, { recursive: true, force: true }).catch((err) => {
+            Logger.error("Error cleaning up export temp directory:", err);
+          });
+        }
+      };
+
       if (stats.size === 0) {
-        await fs.promises.unlink(responseZipTar);
+        safeCleanup();
         return reply.status(500).send({
           success: false,
           message: "Generated export file is empty",
@@ -150,27 +166,27 @@ export default class DatabaseController {
       reply.header("Content-Type", "application/gzip");
       reply.header(
         "Content-Disposition",
-        `attachment; filename="${dbName}.tar.gz"`,
+        `attachment; filename="${sanitizedDbName}.tar.gz"`,
       );
       reply.header("Content-Length", stats.size.toString());
 
       const stream = fs.createReadStream(responseZipTar);
 
-      stream.on("error", async (error: unknown) => {
+      stream.on("error", (error: unknown) => {
         Logger.error("Stream error:", error);
-        try {
-          await fs.promises.unlink(responseZipTar);
-        } catch (unlinkError) {
-          Logger.error("Error cleaning up temp file:", unlinkError);
-        }
+        safeCleanup();
       });
 
-      stream.on("end", async () => {
-        try {
-          await fs.promises.unlink(responseZipTar);
-        } catch (unlinkError) {
-          Logger.error("Error cleaning up temp file:", unlinkError);
-        }
+      stream.on("end", () => {
+        safeCleanup();
+      });
+
+      stream.on("close", () => {
+        safeCleanup();
+      });
+
+      reply.raw.on("close", () => {
+        safeCleanup();
       });
 
       return reply.send(stream);

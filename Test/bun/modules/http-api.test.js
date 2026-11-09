@@ -14,7 +14,12 @@ function request(method, urlPath, { body, cookie } = {}) {
   return new Promise((resolve, reject) => {
     const headers = {};
     if (cookie) headers['Cookie'] = cookie;
-    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    let payload;
+    if (body !== undefined) {
+      payload = JSON.stringify(body);
+      headers['Content-Type'] = 'application/json';
+      headers['Content-Length'] = Buffer.byteLength(payload);
+    }
 
     const req = http.request({
       hostname: '127.0.0.1',
@@ -38,7 +43,7 @@ function request(method, urlPath, { body, cookie } = {}) {
       });
     });
     req.on('error', reject);
-    if (body !== undefined) req.write(JSON.stringify(body));
+    if (payload !== undefined) req.write(payload);
     req.end();
   });
 }
@@ -309,6 +314,52 @@ class HTTPAPITests extends TestRunner {
 
         const fakeColPath = path.join(this.testDir, 'HttpApiTestDB', 'TestDB', fakeColName);
         assert.ok(!fs.existsSync(fakeColPath), 'Non-existent collection folder should NOT be created by read query');
+      });
+
+      await this.test('PATCH /api/operation/update/by-id/ - non-existent DB returns 404 and does not create folder (SEC-13)', async () => {
+        const fakeDbName = 'NonExistentDbUpdateSec13';
+        const res = await request('PATCH', `/api/operation/update/by-id/?dbName=${fakeDbName}&collectionName=Users&documentId=fake1`, {
+          body: { name: 'NewName' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 404);
+
+        const fakePath = path.join(this.testDir, 'HttpApiTestDB', fakeDbName);
+        assert.ok(!fs.existsSync(fakePath), 'Non-existent DB folder should NOT be created by update by id');
+      });
+
+      await this.test('DELETE /api/operation/delete/by-id/ - non-existent DB returns 404 and does not create folder (SEC-13)', async () => {
+        const fakeDbName = 'NonExistentDbDeleteSec13';
+        const res = await request('DELETE', `/api/operation/delete/by-id/?dbName=${fakeDbName}&collectionName=Users&documentId=fake1`, {
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 404);
+
+        const fakePath = path.join(this.testDir, 'HttpApiTestDB', fakeDbName);
+        assert.ok(!fs.existsSync(fakePath), 'Non-existent DB folder should NOT be created by delete by id');
+      });
+
+      await this.test('DELETE /api/operation/delete/by-query/ - non-existent collection returns 404 and does not create folder (SEC-13)', async () => {
+        const fakeColName = 'NonExistentColDeleteSec13';
+        const res = await request('DELETE', `/api/operation/delete/by-query/?dbName=TestDB&collectionName=${fakeColName}&isMany=false`, {
+          body: { query: { name: 'test' } },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 404);
+
+        const fakeColPath = path.join(this.testDir, 'HttpApiTestDB', 'TestDB', fakeColName);
+        assert.ok(!fs.existsSync(fakeColPath), 'Non-existent collection folder should NOT be created by delete by query');
+      });
+
+      await this.test('GET /api/indexes - non-existent DB returns 404 and does not create folder (SEC-13)', async () => {
+        const fakeDbName = 'NonExistentDbIndexSec13';
+        const res = await request('GET', `/api/indexes?dbName=${fakeDbName}&collectionName=Users`, {
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 404);
+
+        const fakePath = path.join(this.testDir, 'HttpApiTestDB', fakeDbName);
+        assert.ok(!fs.existsSync(fakePath), 'Non-existent DB folder should NOT be created by get indexes');
       });
 
       await this.test('POST /api/operation/all/by-ids/ - batch read by IDs', async () => {

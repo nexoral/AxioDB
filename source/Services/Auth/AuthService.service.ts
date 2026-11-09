@@ -80,9 +80,26 @@ export default class AuthService {
     username: string,
     password: string,
     role: string,
+    actorUsername?: string,
   ): Promise<MutationResult> {
     if (!PermissionChecker.roleExists(role)) {
       return { success: false, message: `Role "${role}" does not exist` };
+    }
+
+    if (role === SUPER_ADMIN_ROLE) {
+      if (!actorUsername) {
+        return {
+          success: false,
+          message: `Only a ${SUPER_ADMIN_ROLE} can create a ${SUPER_ADMIN_ROLE} user`,
+        };
+      }
+      const actor = await this.findUserByUsername(actorUsername);
+      if (!actor || actor.role !== SUPER_ADMIN_ROLE) {
+        return {
+          success: false,
+          message: `Only a ${SUPER_ADMIN_ROLE} can create a ${SUPER_ADMIN_ROLE} user`,
+        };
+      }
     }
 
     const existingUser = await this.findUserByUsername(username);
@@ -139,7 +156,13 @@ export default class AuthService {
       return { success: false, message: "User not found" };
     }
 
-    if (user.role === SUPER_ADMIN_ROLE && actorUsername) {
+    if (user.role === SUPER_ADMIN_ROLE) {
+      if (!actorUsername) {
+        return {
+          success: false,
+          message: `Only a ${SUPER_ADMIN_ROLE} can reset the password of a ${SUPER_ADMIN_ROLE}`,
+        };
+      }
       const actor = await this.findUserByUsername(actorUsername);
       if (!actor || actor.role !== SUPER_ADMIN_ROLE) {
         return {
@@ -190,7 +213,13 @@ export default class AuthService {
       }
     }
 
-    if ((user.role === SUPER_ADMIN_ROLE || newRole === SUPER_ADMIN_ROLE) && actorUsername) {
+    if (user.role === SUPER_ADMIN_ROLE || newRole === SUPER_ADMIN_ROLE) {
+      if (!actorUsername) {
+        return {
+          success: false,
+          message: `Only a ${SUPER_ADMIN_ROLE} can assign or modify the ${SUPER_ADMIN_ROLE} role`,
+        };
+      }
       const actor = await this.findUserByUsername(actorUsername);
       if (!actor || actor.role !== SUPER_ADMIN_ROLE) {
         return {
@@ -240,14 +269,18 @@ export default class AuthService {
     }
 
     if (user.role === SUPER_ADMIN_ROLE) {
-      if (actorUsername) {
-        const actor = await this.findUserByUsername(actorUsername);
-        if (!actor || actor.role !== SUPER_ADMIN_ROLE) {
-          return {
-            success: false,
-            message: `Only a ${SUPER_ADMIN_ROLE} can delete a ${SUPER_ADMIN_ROLE}`,
-          };
-        }
+      if (!actorUsername) {
+        return {
+          success: false,
+          message: `Only a ${SUPER_ADMIN_ROLE} can delete a ${SUPER_ADMIN_ROLE}`,
+        };
+      }
+      const actor = await this.findUserByUsername(actorUsername);
+      if (!actor || actor.role !== SUPER_ADMIN_ROLE) {
+        return {
+          success: false,
+          message: `Only a ${SUPER_ADMIN_ROLE} can delete a ${SUPER_ADMIN_ROLE}`,
+        };
       }
       const lastAdminGuard = await this.assertNotLastSuperAdmin(username);
       if (!lastAdminGuard.success) {

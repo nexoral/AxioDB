@@ -120,8 +120,10 @@ export class CommandHandler {
         case CommandType.LIST_USERS:
           return await this.authHandler.handleListUsers(id);
 
-        case CommandType.CREATE_USER:
-          return await this.authHandler.handleCreateUser(id, params);
+        case CommandType.CREATE_USER: {
+          const authUser = this.connectionManager.getAuthUser(context.connectionId);
+          return await this.authHandler.handleCreateUser(id, params, authUser?.username);
+        }
 
         case CommandType.UPDATE_USER_ROLE: {
           const authUser = this.connectionManager.getAuthUser(context.connectionId);
