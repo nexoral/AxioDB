@@ -188,7 +188,15 @@ export default class DatabaseController {
    */
   public async importDatabase(request: AxioHttpRequest, reply: AxioHttpResponse) {
     const username = request.authUser?.username ?? "another user";
-    const data = await request.file();
+    let data;
+    try {
+      data = await request.file();
+    } catch (err) {
+      return reply.status(400).send({
+        success: false,
+        message: err instanceof Error ? err.message : String(err),
+      });
+    }
 
     if (!data) {
       return reply.status(400).send({ success: false, message: "No file uploaded" });

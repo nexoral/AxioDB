@@ -686,6 +686,45 @@ class AuthTests extends TestRunner {
         const health = await fetch(`${BASE_URL}/health`);
         assert.equal(health.status, 200, 'Server should survive a corrupt upload');
       });
+
+      await this.test('Multipart headers exceeding size limit reject immediately to prevent OOM (SEC-09)', async () => {
+        const boundary = '----AxioTestBoundary' + Date.now();
+        const hugeHeader = 'X-Header: ' + 'A'.repeat(70 * 1024);
+        const payload = `--${boundary}\r\n${hugeHeader}`;
+
+        const res = await fetch(`${BASE_URL}/db/import-database/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
+            Cookie: this.adminCookie,
+          },
+          body: payload,
+        });
+        assert.ok(res.status >= 400, 'Expected error response for oversize multipart header');
+
+        const health = await fetch(`${BASE_URL}/health`);
+        assert.equal(health.status, 200, 'Server should survive oversize header attempt');
+      });
+
+      await this.test('MultipartHelper.parseFile rejects streams with headers > 64KB (SEC-09)', async () => {
+        const { Readable } = require('stream');
+        const MultipartHelper = require('../../../lib/Helper/http/Multipart.helper.js').default;
+        const boundary = 'test-boundary';
+        const stream = new Readable({
+          read() {
+            this.push(Buffer.alloc(70 * 1024, 'X'));
+            this.push(null);
+          },
+        });
+        let rejected = false;
+        try {
+          await MultipartHelper.parseFile(stream, boundary);
+        } catch (err) {
+          rejected = true;
+          assert.includes(err.message, 'Multipart headers exceed maximum allowed size');
+        }
+        assert.ok(rejected, 'Expected parseFile to reject oversized header buffer');
+      });
     });
 
     await this.describe('Self-deletion guard', async () => {
