@@ -40,7 +40,7 @@ export default class DatabaseController {
   public async createDatabase(
     request: AxioHttpRequest,
   ): Promise<ResponseBuilder> {
-    const { name } = request.body as { name: string };
+    const name = (request.body as { name?: string } | undefined)?.name;
 
     try {
       if (!name) {
@@ -79,7 +79,11 @@ export default class DatabaseController {
   public async deleteDatabase(
     request: AxioHttpRequest,
   ): Promise<ResponseBuilder> {
-    const { dbName } = request.query as { dbName: string };
+    const dbName = (request.query as { dbName?: string } | undefined)?.dbName;
+    if (!dbName || typeof dbName !== "string" || !dbName.trim()) {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Database name is required");
+    }
+
     if (isReservedDatabaseName(dbName)) {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
@@ -106,10 +110,10 @@ export default class DatabaseController {
    * deletes the temp file once the stream closes (whether it finished or errored).
    */
   public async exportDatabase(request: AxioHttpRequest, reply: AxioHttpResponse) {
-    const { dbName } = request.query as { dbName: string };
+    const dbName = (request.query as { dbName?: string } | undefined)?.dbName;
 
     try {
-      if (!dbName) {
+      if (!dbName || typeof dbName !== "string" || !dbName.trim()) {
         return reply.status(400).send({
           success: false,
           message: "Database name is required",

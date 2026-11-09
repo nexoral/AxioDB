@@ -186,22 +186,34 @@ export async function unzipFile(
     },
   });
 
-  await pipeline(
-    fs.createReadStream(zipFilePath),
-    inputMeter,
-    zlib.createUnzip(),
-    meter,
-    TarHelper.createExtractor(destFolder, (entryPath, type) => {
-      entryCount += 1;
-      if (entryCount > maxEntries) {
-        rejection = `Archive contains more than ${maxEntries} entries.`;
-      } else if (!isSafeEntry(entryPath, type)) {
-        rejection = `Archive contains an unsafe entry: ${entryPath}`;
-      }
+  try {
+    await pipeline(
+      fs.createReadStream(zipFilePath),
+      inputMeter,
+      zlib.createUnzip(),
+      meter,
+      TarHelper.createExtractor(destFolder, (entryPath, type) => {
+        entryCount += 1;
+        if (entryCount > maxEntries) {
+          rejection = `Archive contains more than ${maxEntries} entries.`;
+        } else if (!isSafeEntry(entryPath, type)) {
+          rejection = `Archive contains an unsafe entry: ${entryPath}`;
+        }
 
-      return rejection === null;
-    }),
-  );
+        return rejection === null;
+      }),
+    );
+  } catch (err: unknown) {
+    if (err instanceof UnsafeArchiveError) throw err;
+    const msg = err instanceof Error ? err.message : String(err);
+    if (
+      msg.includes("Unsupported or unsafe tar entry type") ||
+      msg.includes("Archive entry escapes destination")
+    ) {
+      throw new UnsafeArchiveError(msg);
+    }
+    throw err;
+  }
 
   if (rejection !== null) throw new UnsafeArchiveError(rejection);
 

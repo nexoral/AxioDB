@@ -213,6 +213,20 @@ class HTTPAPITests extends TestRunner {
         const res = await request('DELETE', '/api/db/delete-database?dbName=NonExistent', this.cookieHeader());
         assert.isAbove(res.body.statusCode, 399);
       });
+
+      await this.test('DELETE /api/db/delete-database - missing or empty dbName returns 400 (SEC-21)', async () => {
+        const resMissing = await request('DELETE', '/api/db/delete-database', this.cookieHeader());
+        assert.equal(resMissing.body.statusCode, 400);
+        assert.equal(resMissing.body.message, 'Database name is required');
+
+        const resEmpty = await request('DELETE', '/api/db/delete-database?dbName=', this.cookieHeader());
+        assert.equal(resEmpty.body.statusCode, 400);
+        assert.equal(resEmpty.body.message, 'Database name is required');
+
+        const resWhitespace = await request('DELETE', '/api/db/delete-database?dbName=%20%20', this.cookieHeader());
+        assert.equal(resWhitespace.body.statusCode, 400);
+        assert.equal(resWhitespace.body.message, 'Database name is required');
+      });
     });
 
     await this.describe('Document Count Endpoint', async () => {

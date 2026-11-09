@@ -549,6 +549,48 @@ class TransactionTests extends TestRunner {
         assert.ok(!fs.existsSync(fakeColPath), 'Non-existent collection folder should NOT be created');
       });
     });
+
+    await this.describe('Transaction Lock Path Traversal Sanitization (SEC-23)', async () => {
+      await this.test('Transaction lock operations targeting a documentId with path traversal are sanitized and stay within lock directory', async () => {
+        const LockManager =
+          require('../../../lib/Services/Transaction/LockManager.service.js').default;
+        const lockManager = LockManager.getInstance(this.collection.path);
+
+        const maliciousDocId = '../../evil_lock';
+        const lockDir = `${this.collection.path}/.transactions/locks`;
+        const outsideLockFile1 = `${this.collection.path}/evil_lock.lock`;
+        const outsideLockFile2 = `${this.testDir}/evil_lock.lock`;
+
+        // 1. Acquire lock with traversal documentId
+        const acquireResult = await lockManager.acquireLock(maliciousDocId, 'TXN_SEC23_TEST', Date.now());
+        assert.isSuccess(acquireResult);
+
+        // 2. Verify no lock file escaped outside the locks directory
+        assert.ok(!fs.existsSync(outsideLockFile1), 'Lock file must not be created in collection root');
+        assert.ok(!fs.existsSync(outsideLockFile2), 'Lock file must not be created in test root');
+
+        // 3. Verify lock file was placed inside designated lockDir with sanitized filename
+        const expectedSanitizedLockFile = `${lockDir}/____evil_lock.lock`;
+        assert.ok(fs.existsSync(expectedSanitizedLockFile), 'Lock file must exist in designated lockDir with sanitized filename');
+
+        // 4. Verify isLocked and getLockOwner query the sanitized lock
+        const isLocked = await lockManager.isLocked(maliciousDocId);
+        assert.equal(isLocked, true, 'isLocked must recognize sanitized lock');
+
+        const owner = await lockManager.getLockOwner(maliciousDocId);
+        assert.ok(owner !== null, 'Lock owner should be returned');
+        assert.equal(owner.transactionId, 'TXN_SEC23_TEST');
+        assert.equal(owner.documentId, maliciousDocId);
+
+        // 5. Verify releaseLock removes the sanitized lock file
+        const releaseResult = await lockManager.releaseLock(maliciousDocId);
+        assert.isSuccess(releaseResult);
+        assert.ok(!fs.existsSync(expectedSanitizedLockFile), 'Sanitized lock file should be deleted upon release');
+
+        const isLockedAfter = await lockManager.isLocked(maliciousDocId);
+        assert.equal(isLockedAfter, false, 'isLocked must return false after release');
+      });
+    });
   }
 }
 

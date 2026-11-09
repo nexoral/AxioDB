@@ -169,6 +169,14 @@ class TarExtractor extends Writable {
     }
   }
 
+  override _destroy(error: Error | null, callback: (error?: Error | null) => void): void {
+    if (this.currentWriteStream) {
+      this.currentWriteStream.destroy(error || undefined);
+      this.currentWriteStream = null;
+    }
+    callback(error);
+  }
+
   private async processBuffer(): Promise<void> {
     while (this.buffer.length > 0 && !this.isFinished) {
       if (this.skippingBytes > 0) {
@@ -234,12 +242,26 @@ class TarExtractor extends Writable {
       }
 
       const sizeStr = headerBlock.toString("ascii", 124, 136).replace(/\0.*$/, "").trim();
-      const size = sizeStr ? parseInt(sizeStr, 8) || 0 : 0;
+      const size = sizeStr ? Math.max(0, parseInt(sizeStr, 8) || 0) : 0;
       const typeflag = headerBlock[156];
-      const type: "File" | "Directory" = typeflag === 0x35 || rawName.endsWith("/") ? "Directory" : "File";
 
       const cleanPath = rawName.replace(/^(\.\/|\/)+/, "");
+
+      // POSIX tar standard type flags:
+      // - 0x30 ('0') or 0x00 ('\0'): Regular file
+      // - 0x35 ('5') or trailing slash: Directory
+      // Reject any other type flags (0x31 hardlink, 0x32 symlink, 0x33 char dev, 0x34 block dev, 0x36 fifo, etc.)
+      // Clean path or raw name with trailing slashes must not bypass this check.
+      if (typeflag !== 0x35 && typeflag !== 0x30 && typeflag !== 0x00) {
+        throw new Error(
+          `Unsupported or unsafe tar entry type: 0x${typeflag.toString(16)} for ${cleanPath || rawName}`,
+        );
+      }
+
       if (!cleanPath) continue;
+
+      const type: "File" | "Directory" =
+        typeflag === 0x35 || rawName.endsWith("/") || cleanPath.endsWith("/") ? "Directory" : "File";
 
       if (this.onEntry && !this.onEntry(cleanPath, type)) {
         const padding = (512 - (size % 512)) % 512;
@@ -255,6 +277,10 @@ class TarExtractor extends Writable {
 
       if (type === "Directory") {
         await fs.promises.mkdir(targetPath, { recursive: true });
+        if (size > 0) {
+          const padding = (512 - (size % 512)) % 512;
+          this.skippingBytes = size + padding;
+        }
       } else {
         await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
         this.currentWriteStream = fs.createWriteStream(targetPath);
