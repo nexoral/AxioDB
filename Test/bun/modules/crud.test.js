@@ -690,6 +690,23 @@ class CRUDTests extends TestRunner {
           'Dropped index should not appear in the list'
         );
       });
+
+      await this.test('newIndex and dropIndex with directory traversal fails safely without escaping directory (SEC-31)', async () => {
+        const outsideTarget = path.join(this.testDir, 'traversal_escape.jsonl');
+        const outsideVictim = path.join(this.testDir, 'traversal_victim.jsonl');
+        fs.writeFileSync(outsideVictim, 'protected content');
+
+        // Attempt newIndex with path traversal
+        await this.collection.newIndex('../../traversal_escape');
+        assert.ok(!fs.existsSync(outsideTarget), 'newIndex must not write outside indexes directory');
+
+        // Attempt dropIndex with path traversal targeting the existing file outside
+        await this.collection.dropIndex('../../traversal_victim');
+        assert.ok(fs.existsSync(outsideVictim), 'dropIndex must not delete file outside indexes directory');
+
+        // Clean up victim file
+        fs.unlinkSync(outsideVictim);
+      });
     });
 
     // Document Counting - the collection folder also holds indexes/ and

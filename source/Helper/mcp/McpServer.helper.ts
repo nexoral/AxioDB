@@ -11,9 +11,10 @@ import {
   JsonRpcRequest,
   JsonRpcResponse,
 } from "./McpKeys";
-import { buildMcpTools, RegisteredTool } from "./McpTools.helper";
+import { buildMcpTools, McpToolsMap } from "./McpTools.helper";
 
 let activeServer: http.Server | null = null;
+let activeTools: McpToolsMap | null = null;
 const activeSseResponses = new Set<http.ServerResponse>();
 
 function isAllowedOrigin(origin?: string): boolean {
@@ -90,7 +91,8 @@ export async function startMcpServer(
     throw new Error(`MCP port must be strictly ${DEFAULT_MCP_PORT}. Ports 27018, 27019 and other ports are forbidden.`);
   }
 
-  const tools: Map<string, RegisteredTool> = buildMcpTools(axioDBInstance);
+  const tools: McpToolsMap = buildMcpTools(axioDBInstance);
+  activeTools = tools;
 
   const server = http.createServer(async (req, res) => {
     const origin = req.headers.origin as string | undefined;
@@ -364,6 +366,11 @@ export async function startMcpServer(
 }
 
 export async function stopMcpServer(): Promise<void> {
+  if (activeTools?.stopCleanupSweep) {
+    activeTools.stopCleanupSweep();
+    activeTools = null;
+  }
+
   for (const sseRes of activeSseResponses) {
     try {
       sseRes.end();

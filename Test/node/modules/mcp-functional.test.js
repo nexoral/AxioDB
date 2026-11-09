@@ -98,6 +98,111 @@ class McpFunctionalTests extends TestRunner {
       assert.equal(count.data.total, 2);
     });
 
+    await this.test('Calling axiodb_logout rolls back any pending transaction belonging to that session (SEC-32)', async () => {
+      const loginRes = await this.call('axiodb_login', { username: 'admin', password: 'admin' });
+      const testSessionId = loginRes.data.sessionId;
+
+      const begin = await this.call('axiodb_begin_transaction', {
+        sessionId: testSessionId,
+        dbName: 'McpDB',
+        collectionName: 'items',
+      });
+      assert.equal(begin.statusCode, 200);
+      const txId = begin.data.transactionId;
+
+      const insertRes = await this.call('axiodb_transaction_insert', {
+        sessionId: testSessionId,
+        transactionId: txId,
+        document: { category: 'logout-abort', name: 'WillBeRolledBack' },
+      });
+      assert.equal(insertRes.statusCode, 200);
+
+      // Calling axiodb_logout should revoke session and rollback the transaction
+      const logoutRes = await this.call('axiodb_logout', { sessionId: testSessionId });
+      assert.equal(logoutRes.statusCode, 200);
+
+      // Attempting to commit with the logged-out session should fail auth (401)
+      const commitRes = await this.call('axiodb_commit_transaction', {
+        sessionId: testSessionId,
+        transactionId: txId,
+      });
+      assert.equal(commitRes.statusCode, 401);
+
+      // Attempting to commit with a new active session should fail (404 - transaction rolled back & deleted)
+      const newLogin = await this.call('axiodb_login', { username: 'admin', password: 'admin' });
+      const verifySessionId = newLogin.data.sessionId;
+      const commitWithNewSession = await this.call('axiodb_commit_transaction', {
+        sessionId: verifySessionId,
+        transactionId: txId,
+      });
+      assert.equal(commitWithNewSession.statusCode, 404);
+
+      // Verify uncommitted document was discarded and not written
+      const queryRes = await this.call('axiodb_query_documents', {
+        sessionId: verifySessionId,
+        dbName: 'McpDB',
+        collectionName: 'items',
+        query: { category: 'logout-abort' },
+      });
+      assert.equal(queryRes.statusCode, 200);
+      const docs = queryRes.data.documents ?? queryRes.data.data?.documents ?? [];
+      assert.equal(docs.length, 0);
+
+      await this.call('axiodb_logout', { sessionId: verifySessionId });
+    });
+
+    await this.test('Idle MCP transaction sweep automatically rolls back abandoned transactions (SEC-32)', async () => {
+      const fastSweepTools = buildMcpTools(this.db, { idleTimeoutMs: 50, sweepIntervalMs: 25 });
+      const fastCall = async (name, args) => {
+        const handler = fastSweepTools.get(name)?.handler;
+        if (!handler) throw new Error(`MCP tool not found: ${name}`);
+        const result = await handler(args);
+        return JSON.parse(result.content[0].text);
+      };
+
+      const loginRes = await fastCall('axiodb_login', { username: 'admin', password: 'admin' });
+      const sweepSessionId = loginRes.data.sessionId;
+
+      const beginRes = await fastCall('axiodb_begin_transaction', {
+        sessionId: sweepSessionId,
+        dbName: 'McpDB',
+        collectionName: 'items',
+      });
+      assert.equal(beginRes.statusCode, 200);
+      const txId = beginRes.data.transactionId;
+
+      await fastCall('axiodb_transaction_insert', {
+        sessionId: sweepSessionId,
+        transactionId: txId,
+        document: { category: 'idle-abort', name: 'WillBeCleanedUp' },
+      });
+
+      // Wait for idle sweep interval to run and roll back the expired transaction
+      await new Promise((resolve) => setTimeout(resolve, 120));
+
+      const commitRes = await fastCall('axiodb_commit_transaction', {
+        sessionId: sweepSessionId,
+        transactionId: txId,
+      });
+      assert.equal(commitRes.statusCode, 404);
+
+      // Verify document was not committed
+      const queryRes = await fastCall('axiodb_query_documents', {
+        sessionId: sweepSessionId,
+        dbName: 'McpDB',
+        collectionName: 'items',
+        query: { category: 'idle-abort' },
+      });
+      assert.equal(queryRes.statusCode, 200);
+      const docs = queryRes.data.documents ?? queryRes.data.data?.documents ?? [];
+      assert.equal(docs.length, 0);
+
+      if (typeof fastSweepTools.stopCleanupSweep === 'function') {
+        fastSweepTools.stopCleanupSweep();
+      }
+      await fastCall('axiodb_logout', { sessionId: sweepSessionId });
+    });
+
     await this.test('Rejects access to reserved system database (config) in MCP tools (SEC-33)', async () => {
       const colExistsRes = await this.call('axiodb_collection_exists', { sessionId, dbName: 'config', collectionName: 'users' });
       assert.equal(colExistsRes.statusCode, 403);
