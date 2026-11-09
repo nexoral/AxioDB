@@ -43,7 +43,7 @@ export default class AuthHandler {
       };
     }
 
-    const cooldownRemaining = LoginRateLimiter.getCooldownRemaining(remoteIp);
+    const cooldownRemaining = LoginRateLimiter.getCooldownRemaining(remoteIp, username);
     if (cooldownRemaining > 0) {
       return {
         id: requestId,
@@ -55,7 +55,7 @@ export default class AuthHandler {
 
     const result = await this.authService.login(username, password);
     if (!result.success || !result.user) {
-      LoginRateLimiter.recordFailure(remoteIp);
+      LoginRateLimiter.recordFailure(remoteIp, username);
       return {
         id: requestId,
         statusCode: StatusCode.UNAUTHORIZED,
@@ -63,7 +63,7 @@ export default class AuthHandler {
         error: ErrorMessage.INVALID_CREDENTIALS,
       };
     }
-    LoginRateLimiter.recordSuccess(remoteIp);
+    LoginRateLimiter.recordSuccess(remoteIp, username);
 
     const permissions = PermissionChecker.getPermissionsForRole(result.user.role);
     const authUser: AuthenticatedUser = {

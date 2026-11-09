@@ -149,6 +149,27 @@ class AuthTests extends TestRunner {
         });
         assert.equal(blockedEvenWithGoodCreds.status, 429);
       });
+
+      await this.test('Lockout on one account does not cause denial of service on other accounts (SEC-07)', async () => {
+        // 'admin' is locked out from the test above.
+        // A login attempt for a different user ('otheruser') should NOT return 429
+        const otherRes = await fetch(`${BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'otheruser', password: 'somepassword' }),
+        });
+        assert.equal(otherRes.status, 401);
+      });
+
+      await this.test('X-Forwarded-For header identifies distinct client IP behind reverse proxy (SEC-07)', async () => {
+        // Attempting login with X-Forwarded-For from a distinct IP should not be blocked by 127.0.0.1 lockout
+        const proxyRes = await fetch(`${BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '203.0.113.195' },
+          body: JSON.stringify({ username: 'admin', password: 'wrongpassword' }),
+        });
+        assert.equal(proxyRes.status, 401);
+      });
     });
 
     // Reset the shared rate limiter directly so the lockout above doesn't block the

@@ -55,10 +55,13 @@ export default class HttpServerHelper {
       url: rawUrl,
       path,
       ip:
-        req.socket.remoteAddress ||
         (typeof req.headers["x-forwarded-for"] === "string"
           ? req.headers["x-forwarded-for"].split(",")[0].trim()
           : undefined) ||
+        (typeof req.headers["x-real-ip"] === "string"
+          ? req.headers["x-real-ip"].trim()
+          : undefined) ||
+        req.socket.remoteAddress ||
         "127.0.0.1",
       query: Object.fromEntries(parsedUrl.searchParams),
       params: {},

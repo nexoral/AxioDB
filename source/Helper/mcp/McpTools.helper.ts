@@ -108,7 +108,7 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
       const password = String(args.password || "");
       const clientIp = typeof args._clientIp === "string" ? args._clientIp : "127.0.0.1";
 
-      const cooldown = LoginRateLimiter.getCooldownRemaining(clientIp);
+      const cooldown = LoginRateLimiter.getCooldownRemaining(clientIp, username);
       if (cooldown > 0) {
         return {
           statusCode: 429,
@@ -118,10 +118,10 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
 
       const result = await authService.login(username, password);
       if (!result.success || !result.user) {
-        LoginRateLimiter.recordFailure(clientIp);
+        LoginRateLimiter.recordFailure(clientIp, username);
         return { statusCode: 401, message: result.message };
       }
-      LoginRateLimiter.recordSuccess(clientIp);
+      LoginRateLimiter.recordSuccess(clientIp, username);
 
       const session = SessionStore.createSession(
         result.user.username,
