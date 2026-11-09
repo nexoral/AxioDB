@@ -98,6 +98,20 @@ class McpFunctionalTests extends TestRunner {
       assert.equal(count.data.total, 2);
     });
 
+    await this.test('Rejects access to reserved system database (config) in MCP tools (SEC-33)', async () => {
+      const colExistsRes = await this.call('axiodb_collection_exists', { sessionId, dbName: 'config', collectionName: 'users' });
+      assert.equal(colExistsRes.statusCode, 403);
+      assert.equal(colExistsRes.message, 'This is a reserved system database');
+
+      const totalDocsRes = await this.call('axiodb_total_documents', { sessionId, dbName: 'config', collectionName: 'users' });
+      assert.equal(totalDocsRes.statusCode, 403);
+      assert.equal(totalDocsRes.message, 'This is a reserved system database');
+
+      const beginTxnRes = await this.call('axiodb_begin_transaction', { sessionId, dbName: 'config', collectionName: 'users' });
+      assert.equal(beginTxnRes.statusCode, 403);
+      assert.equal(beginTxnRes.message, 'This is a reserved system database');
+    });
+
     await this.test('Executes MCP user, role, dashboard, and session handlers', async () => {
       assert.equal((await this.call('axiodb_whoami', { sessionId })).statusCode, 200);
       assert.equal((await this.call('axiodb_list_users', { sessionId })).statusCode, 200);

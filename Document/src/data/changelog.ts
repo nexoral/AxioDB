@@ -14,7 +14,7 @@ export const changelog: ChangelogEntry[] = [
   {
     version: "27.45.12",
     date: "2026-11-10",
-    title: "Comprehensive security hardening across transactions, archives, TCP buffer limits, and input validation (SEC-16 – SEC-27)",
+    title: "Comprehensive security hardening across transactions, archives, cache housekeeping, input validation, and stream lifecycle (SEC-16 – SEC-30)",
     changes: [
       "SEC-16 (Path Traversal Prevention in Update & Delete): Enforced PathSanitizer on target documentId resolution in Update and Delete operations, neutralizing path traversal attempts",
       "SEC-17 (Transaction Inode/Disk DoS Prevention): Eliminated auto-creation of missing databases and collections on transaction initiation across HTTP and TCP protocols",
@@ -28,6 +28,9 @@ export const changelog: ChangelogEntry[] = [
       "SEC-25 (TCP Multi-Chunk Transfer Idle Cleanup): Added background cleanup sweep in DBHandler to automatically purge abandoned in-flight export archives and import directories after 60s inactivity",
       "SEC-26 (Dynamic Mount Point Storage Metrics): Dynamically queried the volume holding the AxioDB data path in StatsController instead of hardcoding root '/', fixing cross-platform metrics",
       "SEC-27 (Least-Privilege Directory Permissions): Replaced insecure 0o777 permissions with safe 0o750 in FolderManager.UnlockDirectory, adhering to CWE-732 least-privilege standards",
+      "SEC-28 (InMemoryCache Event-Loop Starvation Prevention): Aligned housekeeping interval timing with JavaScript's millisecond contract (cacheClearUp * 1000), preventing event loop starvation and 100% CPU spikes",
+      "SEC-29 (Strict Input Validation in Batch & CRUD Operations): Enforced strict object-type guards rejecting raw arrays in single-document endpoints, validated non-empty object arrays in batch inserts, and wrapped operations in try/catch to return HTTP 400 Bad Request instead of uncaught HTTP 500 errors",
+      "SEC-30 (FileManager Stream Lifecycle & FD Leak Prevention): Wrapped ReadLines stream readline iteration in try/finally blocks guaranteeing rl.close() and stream.destroy() are always invoked on errors or aborted iterations, preventing EMFILE file descriptor leaks",
     ],
   },
   {
