@@ -209,6 +209,9 @@ class TcpAuthTests extends TestRunner {
 
     await this.describe('User bootstrap (stand-in for GUI user management + forced password change)', async () => {
       await this.test('Super Admin can create Admin-role and View-role TCP users via the shared config DB', async () => {
+        const superUser = await authService.createUser('tcpsuperadmin', 'TcpSuperTemp1', 'Super Admin');
+        assert.equal(superUser.success, true);
+
         const adminUser = await authService.createUser('tcpadmin', 'TcpAdminTemp1', 'Admin');
         assert.equal(adminUser.success, true);
 
@@ -227,6 +230,9 @@ class TcpAuthTests extends TestRunner {
       await this.test('Completing the forced password change (as the GUI would) unblocks TCP login', async () => {
         // No TCP change-password command exists yet - this stands in for the GUI's
         // PATCH /auth/change-password, which is the only place a password can change today.
+        const superChange = await authService.changeOwnPassword('tcpsuperadmin', 'TcpSuperTemp1', 'TcpSuperPass1');
+        assert.equal(superChange.success, true);
+
         const adminChange = await authService.changeOwnPassword('tcpadmin', 'TcpAdminTemp1', 'TcpAdminPass1');
         assert.equal(adminChange.success, true);
 
@@ -480,38 +486,54 @@ class TcpAuthTests extends TestRunner {
         client.close();
       });
 
-      await this.test('LIST_USERS returns registered users over TCP', async () => {
-        const client = await this.authenticatedClient('tcpadmin', 'TcpAdminPass1');
-        const res = await client.send(CommandType.LIST_USERS);
+      await this.test('LIST_USERS requires USER_VIEW permission (rejected for Admin, allowed for Super Admin)', async () => {
+        const adminCl = await this.authenticatedClient('tcpadmin', 'TcpAdminPass1');
+        const rejectedRes = await adminCl.send(CommandType.LIST_USERS);
+        assert.equal(rejectedRes.statusCode, 403, 'Admin without USER_VIEW must be rejected with 403');
+        adminCl.close();
+
+        const superCl = await this.authenticatedClient('tcpsuperadmin', 'TcpSuperPass1');
+        const res = await superCl.send(CommandType.LIST_USERS);
         assert.equal(res.statusCode, 200);
         assert.ok(Array.isArray(res.data));
-        assert.ok(res.data.some((u) => u.username === 'tcpadmin'));
-        client.close();
+        assert.ok(res.data.some((u) => u.username === 'tcpsuperadmin'));
+        superCl.close();
       });
 
-      await this.test('CREATE_USER, UPDATE_USER_ROLE, RESET_USER_PASSWORD and DELETE_USER lifecycle', async () => {
-        const client = await this.authenticatedClient('tcpadmin', 'TcpAdminPass1');
+      await this.test('CREATE_USER, UPDATE_USER_ROLE, CHANGE_PASSWORD, RESET_USER_PASSWORD and DELETE_USER lifecycle', async () => {
+        const client = await this.authenticatedClient('tcpsuperadmin', 'TcpSuperPass1');
 
         const createRes = await client.send(CommandType.CREATE_USER, {
           username: 'tcp_test_user',
           password: 'Password123!',
-          role: 'readOnly',
+          role: 'View',
         });
         assert.equal(createRes.statusCode, 201);
         assert.equal(createRes.data.username, 'tcp_test_user');
 
+        // 2. Update role
         const updateRoleRes = await client.send(CommandType.UPDATE_USER_ROLE, {
           username: 'tcp_test_user',
-          role: 'readWrite',
+          role: 'Admin',
         });
         assert.equal(updateRoleRes.statusCode, 200);
 
+        // 3. Change own password
+        const changePwdRes = await client.send(CommandType.CHANGE_PASSWORD, {
+          username: 'tcp_test_user',
+          currentPassword: 'Password123!',
+          newPassword: 'ChangedPassword123!',
+        });
+        assert.equal(changePwdRes.statusCode, 200);
+
+        // 4. Reset password
         const resetRes = await client.send(CommandType.RESET_USER_PASSWORD, {
           username: 'tcp_test_user',
           newPassword: 'NewPassword123!',
         });
         assert.equal(resetRes.statusCode, 200);
 
+        // 5. Delete user
         const deleteRes = await client.send(CommandType.DELETE_USER, {
           username: 'tcp_test_user',
         });
@@ -521,7 +543,7 @@ class TcpAuthTests extends TestRunner {
       });
 
       await this.test('LIST_PERMISSIONS, CREATE_ROLE, LIST_ROLES and DELETE_ROLE lifecycle', async () => {
-        const client = await this.authenticatedClient('tcpadmin', 'TcpAdminPass1');
+        const client = await this.authenticatedClient('tcpsuperadmin', 'TcpSuperPass1');
 
         const permsRes = await client.send(CommandType.LIST_PERMISSIONS);
         assert.equal(permsRes.statusCode, 200);
@@ -529,13 +551,13 @@ class TcpAuthTests extends TestRunner {
 
         const createRoleRes = await client.send(CommandType.CREATE_ROLE, {
           roleName: 'tcp_custom_role',
-          permissions: ['database:view', 'document:view'],
+          permissions: ['db:view', 'document:view'],
         });
         assert.equal(createRoleRes.statusCode, 201);
 
         const listRolesRes = await client.send(CommandType.LIST_ROLES);
         assert.equal(listRolesRes.statusCode, 200);
-        assert.ok(listRolesRes.data.some((r) => r.name === 'tcp_custom_role'));
+        assert.ok(listRolesRes.data.some((r) => r.roleName === 'tcp_custom_role' || r.name === 'tcp_custom_role'));
 
         const deleteRoleRes = await client.send(CommandType.DELETE_ROLE, {
           roleName: 'tcp_custom_role',
