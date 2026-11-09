@@ -74,9 +74,8 @@ export default class CollectionController {
     }
 
     try {
-      const collections = await (
-        await this.AxioDBInstance.createDB(databaseName)
-      ).getCollectionInfo();
+      const dbInstance = await this.AxioDBInstance.createDB(databaseName);
+      const collections = await dbInstance.getCollectionInfo();
       
       if (!collections || !("data" in collections)) {
         return buildResponse(
@@ -86,13 +85,18 @@ export default class CollectionController {
       }
 
       const mainData = collections.data as Record<string, unknown>;
-      const FolderPaths = (mainData.AllCollectionsPaths as string[]) || [];
+      const collectionsList = (mainData.ListOfCollections as string[]) || [];
       mainData.CollectionSizeMap = [];
 
       await Promise.all([
-        ...FolderPaths.map(async (folderPath: string) => {
+        ...collectionsList.map(async (collectionName: string) => {
+          const folderPath = dbInstance.getCollectionPath(collectionName);
           const fileCount = await countDocumentsInFolder(folderPath);
-          (mainData.CollectionSizeMap as Array<{ folderPath: string; fileCount: number }>).push({ folderPath, fileCount });
+          (mainData.CollectionSizeMap as Array<{ collectionName: string; folderPath: string; fileCount: number }>).push({
+            collectionName,
+            folderPath: collectionName,
+            fileCount,
+          });
         }),
       ]);
 

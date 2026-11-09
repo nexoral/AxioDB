@@ -4,6 +4,7 @@
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
 const fs = require('fs');
+const path = require('path');
 const http = require('http');
 
 const { AxioDB } = require('../../../axiodb.js');
@@ -183,6 +184,20 @@ class HTTPAPITests extends TestRunner {
         assert.ok(Array.isArray(res.body.data.ListOfDatabases));
       });
 
+      await this.test('GET /api/db/databases - does not leak host filesystem paths (SEC-10)', async () => {
+        const res = await request('GET', '/api/db/databases', this.cookieHeader());
+        assert.equal(res.body.statusCode, 200);
+        const data = res.body.data;
+        if (data.CurrentPath) {
+          assert.equal(path.isAbsolute(data.CurrentPath), false);
+        }
+        if (Array.isArray(data.AllDatabasesPaths)) {
+          for (const p of data.AllDatabasesPaths) {
+            assert.equal(path.isAbsolute(p), false);
+          }
+        }
+      });
+
       await this.test('POST /api/db/create-database - creates a database', async () => {
         const res = await request('POST', '/api/db/create-database', {
           body: { name: 'TempDB' },
@@ -223,6 +238,34 @@ class HTTPAPITests extends TestRunner {
         const res = await request('GET', '/api/collection/all/?databaseName=TestDB', this.cookieHeader());
         assert.equal(res.body.statusCode, 200);
         assert.ok(res.body.data);
+      });
+
+      await this.test('GET /api/collection/all/ - does not leak host filesystem paths (SEC-10)', async () => {
+        const res = await request('GET', '/api/collection/all/?databaseName=TestDB', this.cookieHeader());
+        assert.equal(res.body.statusCode, 200);
+        const data = res.body.data;
+        if (data.CurrentPath) {
+          assert.equal(path.isAbsolute(data.CurrentPath), false);
+        }
+        if (Array.isArray(data.AllCollectionsPaths)) {
+          for (const p of data.AllCollectionsPaths) {
+            assert.equal(path.isAbsolute(p), false);
+          }
+        }
+        if (Array.isArray(data.CollectionSizeMap)) {
+          for (const entry of data.CollectionSizeMap) {
+            if (entry.folderPath) {
+              assert.equal(path.isAbsolute(entry.folderPath), false);
+            }
+          }
+        }
+        if (Array.isArray(data.collectionMetaStatus)) {
+          for (const meta of data.collectionMetaStatus) {
+            if (meta.path) {
+              assert.equal(path.isAbsolute(meta.path), false);
+            }
+          }
+        }
       });
 
       await this.test('POST /api/collection/create-collection - creates a collection', async () => {
@@ -435,6 +478,16 @@ class HTTPAPITests extends TestRunner {
         const tcpService = res.body.data.services.find((s) => s.name === 'TCP Server');
         assert.exists(tcpService);
         assert.equal(tcpService.running, false);
+      });
+
+      await this.test('GET /api/system - does not leak host filesystem path in instance (SEC-10)', async () => {
+        const res = await request('GET', '/api/system', this.cookieHeader());
+        assert.equal(res.body.statusCode, 200);
+        const inst = res.body.data.instance;
+        assert.exists(inst);
+        if (inst.path) {
+          assert.equal(path.isAbsolute(inst.path), false);
+        }
       });
 
       await this.test('GET /api/routes - lists available routes', async () => {

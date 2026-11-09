@@ -21,6 +21,7 @@ import FolderManager from "../../engine/Filesystem/FolderManager";
 import { IndexManager } from "../Index/Index.service";
 import { IndexCache } from "../Index/IndexCache.service";
 import type { InMemoryCache } from "../../Memory/memory.operation";
+import RegexGuard from "../../Helper/RegexGuard.helper";
 
 /**
  * Represents a collection inside a database.
@@ -237,6 +238,7 @@ export default class Collection {
     if (!query) {
       throw new Error("Query cannot be empty");
     }
+    RegexGuard.validateQuery(query);
     return new Reader(
       this.name,
       this.path,
@@ -299,6 +301,7 @@ export default class Collection {
     if (!query) {
       throw new Error("Query cannot be empty");
     }
+    RegexGuard.validateQuery(query);
     // Delete the data
     return new DeleteOperation(
       this.name,
@@ -312,6 +315,7 @@ export default class Collection {
     if (!query) {
       throw new Error("Query cannot be empty");
     }
+    RegexGuard.validateQuery(query);
     return new UpdateOperation(
       this.name,
       this.path,

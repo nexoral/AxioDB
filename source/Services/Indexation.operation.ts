@@ -219,7 +219,7 @@ export class AxioDB {
     const newDB = new Database(DBName, dbPath, this.cache);
     // Store database metadata in the DatabaseMap
     // Note: The DatabaseMap is now storing an object instead of a Database instance
-    this.DatabaseMap.set(DBName, { DatabaseName: DBName, path: dbPath });
+    this.DatabaseMap.set(DBName, { DatabaseName: DBName, path: path.join(this.RootName, DBName) });
     return newDB;
   }
 
@@ -256,14 +256,14 @@ export class AxioDB {
         (db: string) => db.toLowerCase() !== RESERVED_DB_NAME,
       );
       const FinalDatabaseInfo: FinalDatabaseInfo = {
-        CurrentPath: this.currentPATH,
+        CurrentPath: this.RootName,
         RootName: this.RootName,
         TotalSize: visibleDatabases.length === 0 ? 0 : parseFloat(totalSize.data as string),
         TotalDatabases: `${visibleDatabases.length} Databases`,
         ListOfDatabases: visibleDatabases,
         DatabaseMap: this.DatabaseMap,
         AllDatabasesPaths: visibleDatabases.map((db: string) =>
-          path.join(this.currentPATH, db),
+          path.join(this.RootName, db),
         ),
       };
       return this.ResponseHelper.Success(FinalDatabaseInfo);
@@ -287,14 +287,14 @@ export class AxioDB {
         (db: string) => db.toLowerCase() !== RESERVED_DB_NAME,
       );
       const FinalDatabaseInfo: FinalDatabaseInfo = {
-        CurrentPath: this.currentPATH,
+        CurrentPath: this.RootName,
         RootName: this.RootName,
         TotalSize: 0,
         TotalDatabases: `${visibleDatabases.length} Databases`,
         ListOfDatabases: visibleDatabases,
         DatabaseMap: this.DatabaseMap,
         AllDatabasesPaths: visibleDatabases.map((db: string) =>
-          path.join(this.currentPATH, db),
+          path.join(this.RootName, db),
         ),
       };
       return this.ResponseHelper.Success(FinalDatabaseInfo);

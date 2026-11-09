@@ -102,7 +102,7 @@ export const apiCategories: ApiCategory[] = [
     "instance": {
       "version": "22.2.0",
       "rootName": "AxioDB",
-      "path": "/app/AxioDB",
+      "path": "AxioDB",
       "totalDatabases": 3
     },
     "services": [
@@ -434,7 +434,7 @@ export const apiCategories: ApiCategory[] = [
   "status": "success",
   "message": "List of Databases",
   "data": {
-    "CurrentPath": "/path/to/AxioDB",
+    "CurrentPath": "AxioDB",
     "RootName": "AxioDB",
     "TotalSize": 52428800,
     "TotalDatabases": "5 Databases",
@@ -583,10 +583,10 @@ file: [database.tar.gz file]`,
   "data": {
     "DatabaseName": "UserDB",
     "TotalCollections": 3,
-    "AllCollectionsPaths": ["/path/to/users", "/path/to/sessions"],
+    "AllCollectionsPaths": ["UserDB/users", "UserDB/sessions"],
     "CollectionSizeMap": [
-      { "folderPath": "/path/to/users", "fileCount": 150 },
-      { "folderPath": "/path/to/sessions", "fileCount": 45 }
+      { "collectionName": "users", "folderPath": "users", "fileCount": 150 },
+      { "collectionName": "sessions", "folderPath": "sessions", "fileCount": 45 }
     ]
   }
 }`,

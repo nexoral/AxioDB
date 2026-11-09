@@ -103,7 +103,7 @@ export const useDbStore = create((set, get) => ({
 
               const formatted = collList.map((collName) => {
                 const meta = metaStatus.find((m) => m.name === collName || m.collectionName === collName) || {};
-                const sizeEntry = sizeMap.find((s) => s.folderPath?.endsWith(`/${collName}`)) || {};
+                const sizeEntry = sizeMap.find((s) => s.collectionName === collName || s.folderPath === collName || s.folderPath?.endsWith(`/${collName}`)) || {};
                 return {
                   name: collName,
                   count: sizeEntry.fileCount ?? meta.totalDocuments ?? meta.count ?? 0,
@@ -160,7 +160,7 @@ export const useDbStore = create((set, get) => ({
 
         const formatted = list.map((collName) => {
           const meta = metaStatus.find((m) => m.name === collName || m.collectionName === collName) || {};
-          const sizeEntry = sizeMap.find((s) => s.folderPath?.endsWith(`/${collName}`)) || {};
+          const sizeEntry = sizeMap.find((s) => s.collectionName === collName || s.folderPath === collName || s.folderPath?.endsWith(`/${collName}`)) || {};
           return {
             name: collName,
             count: sizeEntry.fileCount ?? meta.totalDocuments ?? meta.count ?? 0,
