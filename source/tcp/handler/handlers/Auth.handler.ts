@@ -83,7 +83,12 @@ export default class AuthHandler {
         statusCode: StatusCode.FORBIDDEN,
         message: ErrorMessage.PASSWORD_CHANGE_REQUIRED,
         error: ErrorMessage.PASSWORD_CHANGE_REQUIRED,
-        data: { mustChangePassword: true },
+        data: {
+          username: authUser.username,
+          role: authUser.role,
+          permissions,
+          mustChangePassword: true,
+        },
       };
     }
 

@@ -401,6 +401,14 @@ class TcpClientBridge {
     this.savedPassword = password;
   }
 
+  public getSavedUsername(): string | null {
+    return this.savedUsername;
+  }
+
+  public getSavedPassword(): string | null {
+    return this.savedPassword;
+  }
+
   public clearCredentials() {
     this.savedUsername = null;
     this.savedPassword = null;
@@ -634,6 +642,7 @@ async function executeTcpRequest(fullUrl: URL, config: {
     const username = String(body.username || query.username || "");
     const password = String(body.password || query.password || "");
     const res = await tcpBridge.sendCommand(host, port, "AUTHENTICATE", { username, password }, timeout, isTls);
+    const resData = (res.data || {}) as { username?: string; role?: string; permissions?: string[]; mustChangePassword?: boolean };
     if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
       tcpBridge.setCredentials(username, password);
       return {
@@ -645,6 +654,27 @@ async function executeTcpRequest(fullUrl: URL, config: {
           message: res.message || "Authenticated successfully",
           user: res.data,
           data: res.data,
+        },
+      };
+    } else if (res.statusCode === 403 && resData.mustChangePassword) {
+      // User must change their password on first login or after reset
+      tcpBridge.setCredentials(username, password);
+      const userPayload = {
+        username: resData.username || username,
+        role: resData.role || "Super Admin",
+        permissions: resData.permissions || [],
+        mustChangePassword: true,
+      };
+      return {
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        data: {
+          statusCode: 200,
+          success: true,
+          message: "Password change required",
+          user: userPayload,
+          data: userPayload,
         },
       };
     } else {
@@ -1245,9 +1275,13 @@ async function executeTcpRequest(fullUrl: URL, config: {
   }
 
   if (pathname.includes("/api/auth/change-password")) {
+    const username = String(body.username || tcpBridge.getSavedUsername() || "");
+    const currentPassword = String(body.currentPassword || "");
+    const newPassword = String(body.newPassword || "");
     const res = await tcpBridge.sendCommand(host, port, "CHANGE_PASSWORD", {
-      currentPassword: String(body.currentPassword || ""),
-      newPassword: String(body.newPassword || ""),
+      username,
+      currentPassword,
+      newPassword,
     }, timeout, isTls);
     if (res.statusCode && res.statusCode >= 400) {
       return {
@@ -1257,11 +1291,27 @@ async function executeTcpRequest(fullUrl: URL, config: {
         data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to change password", error: res.error },
       };
     }
+    // Update saved credentials and re-authenticate socket with the new password
+    tcpBridge.setCredentials(username, newPassword);
+    const authRes = await tcpBridge.sendCommand(host, port, "AUTHENTICATE", {
+      username,
+      password: newPassword,
+    }, timeout, isTls);
+    const authData = (authRes.data || {}) as { username?: string; role?: string; permissions?: string[] };
     return {
-      status: res.statusCode || 200,
+      status: 200,
       statusText: "OK",
       headers: {},
-      data: { statusCode: res.statusCode || 200, message: res.message },
+      data: {
+        statusCode: 200,
+        message: res.message || "Password changed successfully",
+        data: {
+          username,
+          role: authData.role || "Super Admin",
+          permissions: authData.permissions || [],
+          mustChangePassword: false,
+        },
+      },
     };
   }
 
