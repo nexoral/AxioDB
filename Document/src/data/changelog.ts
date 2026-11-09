@@ -12,6 +12,25 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "27.45.12",
+    date: "2026-11-10",
+    title: "Comprehensive security hardening across transactions, archives, TCP buffer limits, and input validation (SEC-16 – SEC-27)",
+    changes: [
+      "SEC-16 (Path Traversal Prevention in Update & Delete): Enforced PathSanitizer on target documentId resolution in Update and Delete operations, neutralizing path traversal attempts",
+      "SEC-17 (Transaction Inode/Disk DoS Prevention): Eliminated auto-creation of missing databases and collections on transaction initiation across HTTP and TCP protocols",
+      "SEC-18 (TCP Buffer Memory Protection): Enforced preemptive MAX_BUFFER_SIZE bounds check in MessageBuffer to prevent unbounded buffer accumulation and OOM attacks",
+      "SEC-19 (Idle TCP Transaction Auto-Rollback): Introduced idle transaction tracking with configurable cleanup sweeps in TransactionManager to prevent lock starvation and resource leaks",
+      "SEC-20 (Prototype Tampering in Aggregation): Enforced DANGEROUS_KEYS validation on $lookup 'as' and $unwind 'includeArrayIndex' fields to reject prototype pollution attempts",
+      "SEC-21 (Graceful Input Validation on Database Deletion): Added early parameter validation returning HTTP 400 Bad Request instead of unhandled 500 crashes on missing or whitespace database names",
+      "SEC-22 (Strict Tar Typeflag Validation): Enforced POSIX tar typeflag verification in TarHelper and ZipUnzip, strictly accepting regular files and directories while rejecting symlinks and special devices",
+      "SEC-23 (Transaction Lock Path Traversal Sanitization): Integrated PathSanitizer on documentId in LockManager to trap all transaction lock files strictly within designated lock directories",
+      "SEC-24 (RFC-Compliant Payload Size Enforcement): Implemented PayloadTooLargeError in HttpServerHelper, returning HTTP 413 Payload Too Large with socket stream draining when requests exceed bodyLimit",
+      "SEC-25 (TCP Multi-Chunk Transfer Idle Cleanup): Added background cleanup sweep in DBHandler to automatically purge abandoned in-flight export archives and import directories after 60s inactivity",
+      "SEC-26 (Dynamic Mount Point Storage Metrics): Dynamically queried the volume holding the AxioDB data path in StatsController instead of hardcoding root '/', fixing cross-platform metrics",
+      "SEC-27 (Least-Privilege Directory Permissions): Replaced insecure 0o777 permissions with safe 0o750 in FolderManager.UnlockDirectory, adhering to CWE-732 least-privilege standards",
+    ],
+  },
+  {
     version: "27.44.11",
     date: "2026-11-10",
     title: "Security hardening across user creation, auto-creation DoS, native MCP ingestion, and export lifecycle (SEC-12 – SEC-15)",
