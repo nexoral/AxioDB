@@ -54,7 +54,7 @@ console.log(result.data.documents[0].message); // Hello, Developer!
       code: HELLO_WORLD_CODE,
     },
     {
-      label: "Deno (no install)",
+      label: "Deno",
       language: "typescript",
       code: `// Zero installation in Deno — import directly via esm.sh
 import { AxioDB } from 'https://esm.sh/axiodb';

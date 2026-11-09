@@ -409,8 +409,8 @@ await client2.login('admin', 'admin');`}
                 Surface Differences
               </h4>
               <ul className="text-sm text-accent-700 space-y-1.5">
-                <li>• <strong>ACID Transactions:</strong> TCP exclusive (interactive transactions with WAL, savepoints, and connection pinning)</li>
-                <li>• <strong>Database Archives (.tar.gz):</strong> HTTP exclusive (database export and import stream binary archives over port 27018)</li>
+                <li>• <strong>ACID Transactions:</strong> Available on TCP (interactive transactions with WAL, savepoints, and connection pinning) and HTTP (/api/transaction/)</li>
+                <li>• <strong>Database Archives (.tar.gz):</strong> Supported over both TCP (chunked <code>EXPORT_DATABASE</code> &amp; <code>IMPORT_DATABASE</code>) and HTTP (streaming multipart archive endpoint)</li>
                 <li>• <strong>Web Sessions:</strong> HTTP uses cookie/bearer sessions; TCP maintains auth state per persistent socket</li>
               </ul>
             </div>
