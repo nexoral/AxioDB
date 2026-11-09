@@ -13,10 +13,11 @@ import { tarGzFolder, unzipFile } from '../../../utility/ZipUnzip.utils';
 import { readExportedDatabaseName } from '../../../server/helper/databaseImport.helper';
 import { isReservedDatabaseName } from '../../../config/Keys/Permissions';
 import PathSanitizer from '../../../Helper/PathSanitizer.helper';
+import Logger from '../../../Helper/Logger.helper';
 
 type Params = TCPRequest['params'];
 
-interface ActiveExportEntry {
+export interface ActiveExportEntry {
   filePath: string;
   totalSize: number;
   totalChunks: number;
@@ -24,7 +25,7 @@ interface ActiveExportEntry {
   createdAt: number;
 }
 
-interface ActiveImportEntry {
+export interface ActiveImportEntry {
   workDir: string;
   archivePath: string;
   stagingDir: string;
@@ -32,14 +33,72 @@ interface ActiveImportEntry {
 }
 
 export default class DBHandler {
+  private static latestInstance: DBHandler | null = null;
   private controller: DatabaseController;
   private axioDB: AxioDB;
   private activeExports = new Map<string, ActiveExportEntry>();
   private activeImports = new Map<string, ActiveImportEntry>();
+  private cleanupInterval: NodeJS.Timeout | null = null;
+  private readonly transferTimeoutMs: number = 60000;
 
   constructor(axioDB: AxioDB) {
     this.axioDB = axioDB;
     this.controller = new DatabaseController(axioDB);
+    DBHandler.latestInstance = this;
+  }
+
+  public static getLatestInstance(): DBHandler | null {
+    return DBHandler.latestInstance;
+  }
+
+  startCleanupSweep(intervalMs: number = 10000, timeoutMs: number = 60000): void {
+    if (this.cleanupInterval) return;
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupExpired(timeoutMs).catch((err: unknown) => {
+        Logger.error('[DBHandler] Cleanup sweep error:', err);
+      });
+    }, intervalMs);
+    if (typeof this.cleanupInterval.unref === 'function') {
+      this.cleanupInterval.unref();
+    }
+  }
+
+  stopCleanupSweep(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+  }
+
+  async cleanupExpired(timeoutMs: number = 60000): Promise<number> {
+    const now = Date.now();
+    let cleaned = 0;
+
+    for (const [key, entry] of this.activeExports) {
+      if (now - entry.createdAt > timeoutMs) {
+        this.activeExports.delete(key);
+        await fs.promises.unlink(entry.filePath).catch(() => {});
+        cleaned++;
+      }
+    }
+
+    for (const [key, entry] of this.activeImports) {
+      if (now - entry.createdAt > timeoutMs) {
+        this.activeImports.delete(key);
+        await fs.promises.rm(entry.workDir, { recursive: true, force: true }).catch(() => {});
+        cleaned++;
+      }
+    }
+
+    return cleaned;
+  }
+
+  getActiveExports(): ReadonlyMap<string, ActiveExportEntry> {
+    return this.activeExports;
+  }
+
+  getActiveImports(): ReadonlyMap<string, ActiveImportEntry> {
+    return this.activeImports;
   }
 
   /**

@@ -61,6 +61,7 @@ export default async function createAxioDBTCPServer(
   // independent of TCPAuth (it guards raw connection churn, not logins).
   ConnectionRateLimiter.startCleanupSweep();
   TransactionManager.getInstance().startCleanupSweep();
+  commandHandler.getDBHandler().startCleanupSweep();
 
   // Setup connection manager event handlers
   setupConnectionManagerHandlers(connectionManager, commandHandler);
@@ -96,6 +97,7 @@ export default async function createAxioDBTCPServer(
 
   server.on('close', () => {
     TransactionManager.getInstance().stopCleanupSweep();
+    commandHandler.getDBHandler().stopCleanupSweep();
   });
 
   server.on('listening', () => {

@@ -15,6 +15,7 @@ import ConfigDatabase from "../Services/Auth/ConfigDatabase.service";
 import AuthSeeder from "../Services/Auth/AuthSeeder.service";
 import ConnectionRateLimiter from "../tcp/connection/ConnectionRateLimiter";
 import TransactionManager from "../tcp/connection/TransactionManager";
+import DBHandler from "../tcp/handler/handlers/DB.handler";
 
 const InstanceTypes = {
   Collection,
@@ -35,6 +36,7 @@ const CoreDBMS = {
   AuthSeeder,
   ConnectionRateLimiter,
   TransactionManager,
+  DBHandler,
 };
 
 export {

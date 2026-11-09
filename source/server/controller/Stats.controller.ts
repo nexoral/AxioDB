@@ -2,6 +2,7 @@ import { StatusCodes } from "../../config/Keys/StatusCode";
 import { AxioDB } from "../../Services/Indexation.operation";
 import buildResponse from "../helper/responseBuilder.helper";
 import fs from "fs";
+import path from "path";
 import Logger from "../../Helper/Logger.helper";
 
 export default class StatsController {
@@ -73,16 +74,23 @@ export default class StatsController {
       let totalMachineStorage = 0;
       const instanceInfoData = InstanceInfo?.data as Record<string, unknown> | undefined;
       let totalUsedStorage = (instanceInfoData?.TotalSize as number) || 0;
+      totalUsedStorage = parseFloat(
+        (totalUsedStorage / (1024 * 1024)).toFixed(2),
+      );
 
       try {
-        const stats = fs.statfsSync("/");
+        const targetPath = this.AxioDBInstance.GetPath || process.cwd();
+        let stats: fs.StatsFs;
+        try {
+          stats = fs.statfsSync(targetPath);
+        } catch {
+          const fallbackPath = path.parse(targetPath).root || process.cwd();
+          stats = fs.statfsSync(fallbackPath);
+        }
         const totalBytes = stats.blocks * stats.bsize;
 
         totalMachineStorage = parseFloat(
           (totalBytes / (1024 * 1024)).toFixed(2),
-        );
-        totalUsedStorage = parseFloat(
-          (totalUsedStorage / (1024 * 1024)).toFixed(2),
         );
       } catch (storageError) {
         Logger.error("Error fetching machine storage:", storageError);

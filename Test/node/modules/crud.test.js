@@ -750,6 +750,23 @@ class CRUDTests extends TestRunner {
         const missingRes = await fileManager.GetFileSize(path.join(this.testDir, 'non-existent.txt'));
         assert.isError(missingRes);
       });
+
+      await this.test('FolderManager.UnlockDirectory applies restrictive permissions (0o750) and prevents world-writable access', async () => {
+        const FolderManager = require('../../../lib/engine/Filesystem/FolderManager.js').default;
+        const folderManager = new FolderManager();
+        const testUnlockDir = path.join(this.testDir, 'secure-unlock-dir');
+        fs.mkdirSync(testUnlockDir, { recursive: true, mode: 0o700 });
+
+        const res = await folderManager.UnlockDirectory(testUnlockDir);
+        assert.isSuccess(res);
+
+        const stat = fs.statSync(testUnlockDir);
+        const mode = stat.mode & 0o777;
+        if (process.platform !== 'win32') {
+          assert.equal(mode, 0o750, `Expected permissions 0o750, got 0o${mode.toString(8)}`);
+        }
+        assert.ok(!(mode & 0o002), 'Directory must not be world-writable');
+      });
     });
 
     await this.describe('Tar & Archive Security (SEC-22)', async () => {

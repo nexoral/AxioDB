@@ -523,9 +523,14 @@ class HTTPAPITests extends TestRunner {
     });
 
     await this.describe('Dashboard Stats Endpoint', async () => {
-      await this.test('GET /api/dashboard-stats - returns dashboard stats', async () => {
+      await this.test('GET /api/dashboard-stats - returns dashboard stats with volume metrics (SEC-26)', async () => {
         const res = await request('GET', '/api/dashboard-stats', this.cookieHeader());
         assert.equal(res.body.statusCode, 200);
+        assert.exists(res.body.data);
+        assert.exists(res.body.data.storageInfo);
+        assert.equal(typeof res.body.data.storageInfo.machine, 'number');
+        assert.equal(typeof res.body.data.storageInfo.total, 'number');
+        assert.equal(res.body.data.storageInfo.matrixUnit, 'MB');
       });
     });
 
@@ -800,6 +805,53 @@ class HTTPAPITests extends TestRunner {
     });
 
     await this.describe('Error handling', async () => {
+      await this.test('POST /api/operation/create/ - oversized body returns 413 Payload Too Large (SEC-24)', async () => {
+        const HttpServerHelper = require('../../../lib/Helper/http/HttpServer.helper').default || require('../../../lib/Helper/http/HttpServer.helper');
+        const HttpRouter = require('../../../lib/Helper/http/HttpRouter.helper').default || require('../../../lib/Helper/http/HttpRouter.helper');
+
+        const router = new HttpRouter();
+        router.post('/api/operation/create/', async (_req, reply) => {
+          reply.status(200).send({ statusCode: 200, status: true });
+        });
+
+        const testServer = new HttpServerHelper(router, { bodyLimit: 128 });
+        await testServer.listen(0, '127.0.0.1');
+        const testPort = testServer.server.address().port;
+
+        try {
+          const res = await new Promise((resolve, reject) => {
+            const req = http.request({
+              hostname: '127.0.0.1',
+              port: testPort,
+              path: '/api/operation/create/',
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }, (response) => {
+              const chunks = [];
+              response.on('data', (c) => chunks.push(c));
+              response.on('end', () => {
+                const raw = Buffer.concat(chunks).toString();
+                let parsed;
+                try { parsed = JSON.parse(raw); } catch { parsed = raw; }
+                resolve({ status: response.statusCode, body: parsed });
+              });
+            });
+            req.on('error', reject);
+            req.write(JSON.stringify({ data: 'x'.repeat(256) }));
+            req.end();
+          });
+
+          assert.equal(res.status, 413);
+          assert.equal(res.body.statusCode, 413);
+          assert.equal(res.body.status, false);
+          assert.ok(typeof res.body.message === 'string' && res.body.message.includes('Payload Too Large'));
+        } finally {
+          await testServer.close();
+        }
+      });
+
       await this.test('POST /api/operation/create/ - missing dbName returns error', async () => {
         const res = await request('POST', '/api/operation/create/?collectionName=Users', {
           body: { name: 'Test' },
