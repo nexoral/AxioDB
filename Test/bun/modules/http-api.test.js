@@ -406,6 +406,10 @@ class HTTPAPITests extends TestRunner {
         assert.equal(res.body.statusCode, 200);
         assert.exists(res.body.data.process);
         assert.exists(res.body.data.memory);
+        assert.exists(res.body.data.services);
+        const tcpService = res.body.data.services.find((s) => s.name === 'TCP Server');
+        assert.exists(tcpService);
+        assert.equal(tcpService.running, false);
       });
 
       await this.test('GET /api/routes - lists available routes', async () => {
