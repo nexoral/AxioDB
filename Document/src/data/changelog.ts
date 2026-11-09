@@ -14,7 +14,7 @@ export const changelog: ChangelogEntry[] = [
   {
     version: "27.45.12",
     date: "2026-11-10",
-    title: "Comprehensive security hardening across transactions, archives, cache housekeeping, input validation, and stream lifecycle (SEC-16 – SEC-30)",
+    title: "Comprehensive security hardening across transactions, archives, cache housekeeping, input validation, stream lifecycle, index traversal, and MCP lifecycle (SEC-16 – SEC-33)",
     changes: [
       "SEC-16 (Path Traversal Prevention in Update & Delete): Enforced PathSanitizer on target documentId resolution in Update and Delete operations, neutralizing path traversal attempts",
       "SEC-17 (Transaction Inode/Disk DoS Prevention): Eliminated auto-creation of missing databases and collections on transaction initiation across HTTP and TCP protocols",
@@ -31,6 +31,9 @@ export const changelog: ChangelogEntry[] = [
       "SEC-28 (InMemoryCache Event-Loop Starvation Prevention): Aligned housekeeping interval timing with JavaScript's millisecond contract (cacheClearUp * 1000), preventing event loop starvation and 100% CPU spikes",
       "SEC-29 (Strict Input Validation in Batch & CRUD Operations): Enforced strict object-type guards rejecting raw arrays in single-document endpoints, validated non-empty object arrays in batch inserts, and wrapped operations in try/catch to return HTTP 400 Bad Request instead of uncaught HTTP 500 errors",
       "SEC-30 (FileManager Stream Lifecycle & FD Leak Prevention): Wrapped ReadLines stream readline iteration in try/finally blocks guaranteeing rl.close() and stream.destroy() are always invoked on errors or aborted iterations, preventing EMFILE file descriptor leaks",
+      "SEC-31 (Secondary Index Path Traversal Prevention): Sanitized fieldName and indexName with PathSanitizer and enforced strict folder boundaries in IndexManager and IndexController, preventing arbitrary file creation and deletion outside the index directory",
+      "SEC-32 (MCP Idle Transaction Auto-Rollback & Session Revocation): Introduced 30-second idle transaction timeout sweeping in the native MCP server and automated transaction rollback on session logout, eliminating lock starvation and memory leaks",
+      "SEC-33 (MCP Reserved System Database Guard): Enforced isReservedDatabaseName verification across axiodb_begin_transaction, axiodb_total_documents, and axiodb_collection_exists in native MCP tools, blocking unauthorized tampering with internal auth databases",
     ],
   },
   {
