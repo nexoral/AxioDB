@@ -5,6 +5,8 @@ import { AxioDB } from "../Services/Indexation.operation";
 
 export interface SystemInfoData {
   process: {
+    runtime: string;
+    runtimeVersion: string;
     uptimeSeconds: number;
     startedAt: string;
     pid: number;
@@ -34,6 +36,17 @@ export interface SystemInfoData {
   services: Array<{ name: string; port: number; running: boolean; note?: string }>;
 }
 
+function getRuntimeInfo(): { runtime: string; runtimeVersion: string } {
+  const versions = process.versions as Record<string, string | undefined>;
+  if (versions?.bun) {
+    return { runtime: "Bun", runtimeVersion: `v${versions.bun}` };
+  }
+  if (versions?.deno) {
+    return { runtime: "Deno", runtimeVersion: `v${versions.deno}` };
+  }
+  return { runtime: "Node.js", runtimeVersion: process.version };
+}
+
 async function getPackageVersion(): Promise<string> {
   const packagePaths = [
     path.resolve(__dirname, "../../package.json"),
@@ -53,6 +66,7 @@ async function getPackageVersion(): Promise<string> {
 
 export async function getSystemInfo(axioDB: AxioDB): Promise<SystemInfoData> {
   const version = await getPackageVersion();
+  const runtimeInfo = getRuntimeInfo();
   const memory = process.memoryUsage();
   const toMB = (bytes: number) => parseFloat((bytes / 1024 / 1024).toFixed(2));
   const cache = await axioDB.Cache.getCacheDetails();
@@ -62,6 +76,8 @@ export async function getSystemInfo(axioDB: AxioDB): Promise<SystemInfoData> {
 
   return {
     process: {
+      runtime: runtimeInfo.runtime,
+      runtimeVersion: runtimeInfo.runtimeVersion,
       uptimeSeconds: Math.floor(process.uptime()),
       startedAt: new Date(Date.now() - process.uptime() * 1000).toISOString(),
       pid: process.pid,

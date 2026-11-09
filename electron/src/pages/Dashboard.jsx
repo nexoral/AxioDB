@@ -265,7 +265,12 @@ const Dashboard = () => {
                 mono
                 loading={loading}
               />
-              <DetailRow label='Node.js' value={proc.nodeVersion} mono loading={loading} />
+              <DetailRow
+                label={proc.runtime || 'Node.js'}
+                value={proc.runtimeVersion || proc.nodeVersion}
+                mono
+                loading={loading}
+              />
               <DetailRow
                 label='Platform'
                 value={proc.platform && `${proc.platform} (${proc.arch})`}
