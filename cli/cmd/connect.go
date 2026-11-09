@@ -14,7 +14,7 @@ import (
 )
 
 var replCommands = []string{
-	"use", "show dbs", "show collections", "ping", "help", "exit", "quit", "clear",
+	"use", "show dbs", "show collections", "ping", "auth", "authenticate", "help", "exit", "quit", "clear",
 	"db.createCollection(", "db..insert(", "db..insertMany(",
 	"db..find(", "db..findOne(", "db..updateOne(", "db..updateMany(",
 	"db..deleteOne(", "db..deleteMany(", "db..aggregate(",
@@ -53,6 +53,12 @@ var connectCmd = &cobra.Command{
 
 		fmt.Println("AxioDB Shell. Type 'help' for commands, 'exit' to quit.")
 
+		if cfg.Username == "" {
+			if _, err := commands.GetInstanceInfo(client); err != nil && isAuthRequiredError(err) {
+				printAuthRequiredGuidance(cfg.Host, cfg.Port)
+			}
+		}
+
 		for {
 			rl.SetPrompt(buildPrompt(currentDB, currentColl))
 			line, err := rl.Readline()
@@ -66,7 +72,12 @@ var connectCmd = &cobra.Command{
 			}
 
 			if err := handleREPLInput(client, input, &currentDB, &currentColl); err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				if isAuthRequiredError(err) {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					printAuthRequiredGuidance(cfg.Host, cfg.Port)
+				} else {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+				}
 			}
 		}
 
@@ -94,6 +105,8 @@ var completerItems = []readline.PrefixCompleterInterface{
 		readline.PcItem("dbs"),
 		readline.PcItem("collections"),
 	),
+	readline.PcItem("auth"),
+	readline.PcItem("authenticate"),
 	readline.PcItem("ping"),
 	readline.PcItem("help"),
 	readline.PcItem("exit"),
@@ -115,6 +128,32 @@ func handleREPLInput(client *protocol.Client, input string, db, coll *string) er
 
 	case input == "clear":
 		fmt.Print("\033[H\033[2J")
+
+	case input == "auth" || input == "authenticate":
+		return fmt.Errorf("syntax: auth <username> <password>")
+
+	case strings.HasPrefix(input, "auth ") || strings.HasPrefix(input, "authenticate "):
+		cmdName := "auth"
+		if strings.HasPrefix(input, "authenticate ") {
+			cmdName = "authenticate"
+		}
+		rawArgs := strings.TrimSpace(strings.TrimPrefix(input, cmdName))
+		parts := strings.Fields(rawArgs)
+		if len(parts) < 2 {
+			return fmt.Errorf("syntax: auth <username> <password>")
+		}
+		username := parts[0]
+		password := parts[1]
+		result, err := protocol.Authenticate(client, username, password)
+		if err != nil {
+			return err
+		}
+		if result.MustChangePassword {
+			fmt.Printf("Authenticated as '%s' (role: %s).\n⚠️  Notice: Password change is required before running write operations.\n", result.Username, result.Role)
+		} else {
+			fmt.Printf("Authenticated as '%s' (role: %s)\n", result.Username, result.Role)
+		}
+		return nil
 
 	case strings.HasPrefix(input, "use "):
 		target := strings.TrimSpace(strings.TrimPrefix(input, "use"))
@@ -573,6 +612,7 @@ func printREPLHelp() {
   use <db>.<collection>           Switch database and collection
   show dbs                        List all databases
   show collections                List collections in current db
+  auth <user> <pass>              Authenticate with username and password
   ping                            Test connection
   clear                           Clear screen
   db.createCollection(<name>)     Create collection
@@ -594,4 +634,23 @@ func printREPLHelp() {
   db.<coll>.delete(<id>)          Delete document by ID
   help                            Show this help
   exit / quit                     Exit shell`)
+}
+
+func isAuthRequiredError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "authentication required") ||
+		strings.Contains(msg, "send an authenticate command")
+}
+
+func printAuthRequiredGuidance(host string, port int) {
+	fmt.Println("\n🔒 Authentication Required")
+	fmt.Println("This AxioDB server has authentication enabled.")
+	fmt.Println("\nTo authenticate in this shell:")
+	fmt.Println("  auth <username> <password>")
+	fmt.Println("\nOr reconnect using credentials:")
+	fmt.Printf("  axiodb connect -u <username> -p <password> -c axiodb://%s:%d\n", host, port)
+	fmt.Printf("  axiodb connect -c axiodb://<username>:<password>@%s:%d\n\n", host, port)
 }

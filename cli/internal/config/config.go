@@ -47,34 +47,53 @@ func FromFlags(cmd *cobra.Command) (*Config, error) {
 	cfg.HTTPPort, _ = cmd.Flags().GetInt("http-port")
 
 	if cfg.ConnString != "" {
-		host, port, err := parseConnectionString(cfg.ConnString)
+		host, port, user, pass, err := parseConnectionString(cfg.ConnString)
 		if err != nil {
 			return nil, err
 		}
 		cfg.Host = host
 		cfg.Port = port
+		if cfg.Username == "" && user != "" {
+			cfg.Username = user
+		}
+		if cfg.Password == "" && pass != "" {
+			cfg.Password = pass
+		}
 	}
 
 	return cfg, nil
 }
 
-func parseConnectionString(connStr string) (string, int, error) {
+func parseConnectionString(connStr string) (string, int, string, string, error) {
 	if !strings.HasPrefix(connStr, "axiodb://") {
-		return "", 0, fmt.Errorf("invalid connection string format (expected axiodb://host:port): %s", connStr)
+		return "", 0, "", "", fmt.Errorf("invalid connection string format (expected axiodb://[user:pass@]host:port): %s", connStr)
 	}
 
-	hostPort := strings.TrimPrefix(connStr, "axiodb://")
-	parts := strings.SplitN(hostPort, ":", 2)
+	body := strings.TrimPrefix(connStr, "axiodb://")
+	var username, password string
+
+	if atIdx := strings.LastIndex(body, "@"); atIdx != -1 {
+		userInfo := body[:atIdx]
+		body = body[atIdx+1:]
+
+		userParts := strings.SplitN(userInfo, ":", 2)
+		username = userParts[0]
+		if len(userParts) > 1 {
+			password = userParts[1]
+		}
+	}
+
+	parts := strings.SplitN(body, ":", 2)
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return "", 0, fmt.Errorf("invalid connection string format (expected axiodb://host:port): %s", connStr)
+		return "", 0, "", "", fmt.Errorf("invalid connection string format (expected axiodb://[user:pass@]host:port): %s", connStr)
 	}
 
 	port, err := strconv.Atoi(parts[1])
 	if err != nil || port <= 0 || port > 65535 {
-		return "", 0, fmt.Errorf("invalid port number in connection string: %s", parts[1])
+		return "", 0, "", "", fmt.Errorf("invalid port number in connection string: %s", parts[1])
 	}
 
-	return parts[0], port, nil
+	return parts[0], port, username, password, nil
 }
 
 func (c *Config) NewClient() *protocol.Client {
