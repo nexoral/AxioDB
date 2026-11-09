@@ -377,26 +377,30 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
       </aside>
 
       {/* Main Connection Form Panel */}
-      <main className="flex-1 overflow-y-auto flex items-center justify-center p-8 bg-slate-50">
-        <div className="max-w-xl w-full">
+      <main className="flex-1 overflow-y-auto p-6 md:p-8 lg:p-10 bg-slate-50 flex flex-col">
+        <div className="w-full flex-1 flex flex-col">
           {/* Card Header */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center p-2 shadow-xs">
                 <img src={axioLogo} alt="AxioDB Logo" className="h-full w-full object-contain" />
               </div>
               <div>
                 <h1 className="text-xl font-bold tracking-tight text-slate-900">Connect to AxioDB</h1>
-                <p className="text-xs text-slate-500 mt-0.5">Connect via HTTP to manage your databases and collections</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {formData.protocol === "tcp"
+                    ? "Connect via TCP remote protocol to manage your databases and collections"
+                    : "Connect via HTTP to manage your databases and collections"}
+                </p>
               </div>
             </div>
-            <span className="text-[10px] uppercase font-mono px-2 py-1 rounded bg-white border border-slate-200 text-slate-600 shadow-2xs">
-              Default Port: 27018
+            <span className="text-[10px] uppercase font-mono px-2.5 py-1 rounded-md bg-white border border-slate-200 text-slate-600 shadow-2xs">
+              Default Port: {formData.protocol === "tcp" ? "27019" : "27018"}
             </span>
           </div>
 
           {/* Form Box */}
-          <div className="rounded-2xl bg-white border border-slate-200 p-6 shadow-md relative overflow-hidden">
+          <div className="rounded-2xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm flex-1 flex flex-col justify-between relative overflow-hidden">
             {/* Animated Connecting Overlay */}
             <AnimatePresence>
               {isConnecting && (
@@ -421,220 +425,221 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleConnect} className="space-y-4">
-              {/* Nickname & Protocol */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Connection Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="e.g. Local Dev Cluster"
-                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Protocol</label>
-                  <select
-                    name="protocol"
-                    value={formData.protocol}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25 cursor-pointer"
-                  >
-                    <option value="http">HTTP</option>
-                    <option value="tcp">TCP</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Host & Port */}
-              <div className="grid grid-cols-3 gap-3">
-                <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Host / IP / Domain</label>
-                  <input
-                    type="text"
-                    name="host"
-                    value={formData.host}
-                    onChange={handleChange}
-                    placeholder="localhost or 192.168.1.100"
-                    required
-                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 font-mono text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Port</label>
-                  <input
-                    type="number"
-                    name="port"
-                    value={formData.port}
-                    onChange={handleChange}
-                    placeholder="27018"
-                    required
-                    className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 font-mono text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
-                  />
-                </div>
-              </div>
-
-              {/* TCP TLS Toggle */}
-              {formData.protocol === "tcp" && (
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-all">
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-7 w-7 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-7H2v7a2 2 0 002 2zM10 11V7a2 2 0 012-2h2a2 2 0 012 2v4m-6 0h6m-6 0l1.5-1.5" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-semibold text-slate-800">Enable TLS / SSL</p>
-                        <span className="text-[10px] font-mono text-emerald-700 bg-emerald-100/80 px-1 py-0.2 rounded font-medium">
-                          Encrypted
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-500 mt-0.5">
-                        Connect to AxioDB TCP TLS server (no client certificate required)
-                      </p>
-                    </div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="tls"
-                      checked={formData.tls}
-                      onChange={handleChange}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
-                  </label>
-                </div>
-              )}
-
-              {/* TCP No Authentication Toggle */}
-              {formData.protocol === "tcp" && (
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-all">
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-7 w-7 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-xs font-semibold text-slate-800">No Authentication</p>
-                        <span className="text-[10px] font-mono text-amber-800 bg-amber-100 px-1 py-0.2 rounded font-medium">
-                          No Auth
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-500 mt-0.5">
-                        Connect without credentials when AxioDB TCP server has no-auth mode enabled
-                      </p>
-                    </div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="noAuth"
-                      checked={formData.noAuth}
-                      onChange={handleChange}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-600"></div>
-                  </label>
-                </div>
-              )}
-
-              {/* Username & Password — hidden if TCP No Auth is enabled */}
-              {!(formData.protocol === "tcp" && formData.noAuth) && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Username</label>
+            <form onSubmit={handleConnect} className="flex-1 flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                {/* Nickname & Protocol */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Connection Name</label>
                     <input
                       type="text"
-                      name="username"
-                      value={formData.username}
+                      name="name"
+                      value={formData.name}
                       onChange={handleChange}
-                      placeholder="admin"
-                      required
-                      className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
+                      placeholder="e.g. Local Dev Cluster"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder="••••••••"
-                        required
-                        className="w-full px-3 py-2 pr-8 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2 top-2 text-slate-400 hover:text-slate-600"
-                      >
-                        {showPassword ? (
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Protocol</label>
+                    <select
+                      name="protocol"
+                      value={formData.protocol}
+                      onChange={handleChange}
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25 cursor-pointer"
+                    >
+                      <option value="http">HTTP</option>
+                      <option value="tcp">TCP</option>
+                    </select>
                   </div>
                 </div>
-              )}
 
-              {/* Save to Favorites checkbox */}
-              <div className="pt-1">
-                <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="saveToFavorites"
-                    checked={formData.saveToFavorites}
-                    onChange={handleChange}
-                    className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                  <span>Save this connection for future sessions</span>
-                </label>
+                {/* Host & Port */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Host / IP / Domain</label>
+                    <input
+                      type="text"
+                      name="host"
+                      value={formData.host}
+                      onChange={handleChange}
+                      placeholder="localhost or 192.168.1.100"
+                      required
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 font-mono text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Port</label>
+                    <input
+                      type="number"
+                      name="port"
+                      value={formData.port}
+                      onChange={handleChange}
+                      placeholder="27018"
+                      required
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 font-mono text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
+                    />
+                  </div>
+                </div>
+
+                {/* TCP Options: TLS & No Authentication */}
+                {formData.protocol === "tcp" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-all">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-7 w-7 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-7H2v7a2 2 0 002 2zM10 11V7a2 2 0 012-2h2a2 2 0 012 2v4m-6 0h6m-6 0l1.5-1.5" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-xs font-semibold text-slate-800">Enable TLS / SSL</p>
+                            <span className="text-[10px] font-mono text-emerald-700 bg-emerald-100/80 px-1 py-0.2 rounded font-medium">
+                              Encrypted
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 mt-0.5">
+                            Connect to AxioDB TCP TLS server (no client certificate required)
+                          </p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer ml-3">
+                        <input
+                          type="checkbox"
+                          name="tls"
+                          checked={formData.tls}
+                          onChange={handleChange}
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                      </label>
+                    </div>
+
+                    <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between transition-all">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-7 w-7 rounded-md bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-xs font-semibold text-slate-800">No Authentication</p>
+                            <span className="text-[10px] font-mono text-amber-800 bg-amber-100 px-1 py-0.2 rounded font-medium">
+                              No Auth
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 mt-0.5">
+                            Connect without credentials when AxioDB TCP server has no-auth mode enabled
+                          </p>
+                        </div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer ml-3">
+                        <input
+                          type="checkbox"
+                          name="noAuth"
+                          checked={formData.noAuth}
+                          onChange={handleChange}
+                          className="sr-only peer"
+                        />
+                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-600"></div>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Username & Password — hidden if TCP No Auth is enabled */}
+                {!(formData.protocol === "tcp" && formData.noAuth) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Username</label>
+                      <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleChange}
+                        placeholder="admin"
+                        required
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          name="password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          placeholder="••••••••"
+                          required
+                          className="w-full px-3.5 py-2.5 pr-8 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/25"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-2.5 top-3 text-slate-400 hover:text-slate-600"
+                        >
+                          {showPassword ? (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Save to Favorites checkbox */}
+                <div className="pt-1">
+                  <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="saveToFavorites"
+                      checked={formData.saveToFavorites}
+                      onChange={handleChange}
+                      className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    />
+                    <span>Save this connection for future sessions</span>
+                  </label>
+                </div>
+
+                {/* Test Result Banner */}
+                {testResult && (
+                  <div
+                    className={`p-3 rounded-lg text-xs font-mono flex items-center gap-2 border ${
+                      testResult.success
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                        : "bg-red-50 border-red-200 text-red-700"
+                    }`}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${testResult.success ? "bg-emerald-500" : "bg-red-500"}`} />
+                    <span className="truncate">{testResult.message}</span>
+                  </div>
+                )}
+
+                {/* Error Message */}
+                {connectionError && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs leading-relaxed">
+                    {connectionError}
+                  </div>
+                )}
               </div>
 
-              {/* Test Result Banner */}
-              {testResult && (
-                <div
-                  className={`p-3 rounded-lg text-xs font-mono flex items-center gap-2 border ${
-                    testResult.success
-                      ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                      : "bg-red-50 border-red-200 text-red-700"
-                  }`}
-                >
-                  <span className={`h-2 w-2 rounded-full ${testResult.success ? "bg-emerald-500" : "bg-red-500"}`} />
-                  <span className="truncate">{testResult.message}</span>
-                </div>
-              )}
-
-              {/* Error Message */}
-              {connectionError && (
-                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs leading-relaxed">
-                  {connectionError}
-                </div>
-              )}
-
-              {/* Buttons */}
-              <div className="pt-2 flex items-center justify-between gap-3">
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={handleTestConnection}
                   disabled={isTesting || isConnecting}
-                  className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-[0.98] border border-slate-200 text-slate-700 text-xs font-semibold transition-all disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-5 py-2.5 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-[0.98] border border-slate-200 text-slate-700 text-xs font-semibold transition-all disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {isTesting ? (
                     <>
@@ -652,7 +657,7 @@ const ConnectionHub = ({ onConnected, onForcePasswordChange }) => {
                 <button
                   type="submit"
                   disabled={isConnecting}
-                  className="flex-1 py-2.5 px-6 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2"
+                  className="px-8 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2"
                 >
                   <span>Connect</span>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
