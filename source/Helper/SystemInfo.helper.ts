@@ -101,7 +101,7 @@ export async function getSystemInfo(axioDB: AxioDB): Promise<SystemInfoData> {
     instance: {
       version,
       rootName: (instanceData?.RootName as string) ?? null,
-      path: (instanceData?.CurrentPath as string) ?? null,
+      path: (instanceData?.CurrentPath as string) ?? (instanceData?.RootName as string) ?? null,
       totalDatabases: ((instanceData?.ListOfDatabases as unknown[])?.length) ?? 0,
     },
     services: [

@@ -278,4 +278,24 @@ export default class RegexGuard {
     if (/^\d+,$/.test(body)) return true;
     return null;
   }
+
+  /**
+   * Recursively validates that all regex patterns in a query are safe and bounded.
+   * @param query - The query object or value to validate.
+   * @throws Error if any pattern exceeds MAX_PATTERN_LENGTH or contains catastrophic backtracking.
+   */
+  static validateQuery(query: unknown): void {
+    if (!query || typeof query !== "object") return;
+    for (const [key, value] of Object.entries(query as Record<string, unknown>)) {
+      if (key === "$regex") {
+        if (typeof value === "string") {
+          this.compileRegex(value);
+        } else if (value instanceof RegExp) {
+          this.compileRegex(value.source, value.flags);
+        }
+      } else if (typeof value === "object" && value !== null) {
+        this.validateQuery(value);
+      }
+    }
+  }
 }

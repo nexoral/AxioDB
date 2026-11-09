@@ -132,10 +132,21 @@ export default class AuthService {
   public async resetUserPassword(
     username: string,
     newPassword: string,
+    actorUsername?: string,
   ): Promise<{ success: boolean; message: string }> {
     const user = await this.findUserByUsername(username);
     if (!user) {
       return { success: false, message: "User not found" };
+    }
+
+    if (user.role === SUPER_ADMIN_ROLE && actorUsername) {
+      const actor = await this.findUserByUsername(actorUsername);
+      if (!actor || actor.role !== SUPER_ADMIN_ROLE) {
+        return {
+          success: false,
+          message: `Only a ${SUPER_ADMIN_ROLE} can reset the password of a ${SUPER_ADMIN_ROLE}`,
+        };
+      }
     }
 
     const passwordHash = await PasswordHasher.hashPassword(newPassword);
@@ -179,6 +190,16 @@ export default class AuthService {
       }
     }
 
+    if ((user.role === SUPER_ADMIN_ROLE || newRole === SUPER_ADMIN_ROLE) && actorUsername) {
+      const actor = await this.findUserByUsername(actorUsername);
+      if (!actor || actor.role !== SUPER_ADMIN_ROLE) {
+        return {
+          success: false,
+          message: `Only a ${SUPER_ADMIN_ROLE} can assign or modify the ${SUPER_ADMIN_ROLE} role`,
+        };
+      }
+    }
+
     await ConfigDatabase.getUsersCollection()
       .update({ username })
       .UpdateOne({ role: newRole });
@@ -219,6 +240,15 @@ export default class AuthService {
     }
 
     if (user.role === SUPER_ADMIN_ROLE) {
+      if (actorUsername) {
+        const actor = await this.findUserByUsername(actorUsername);
+        if (!actor || actor.role !== SUPER_ADMIN_ROLE) {
+          return {
+            success: false,
+            message: `Only a ${SUPER_ADMIN_ROLE} can delete a ${SUPER_ADMIN_ROLE}`,
+          };
+        }
+      }
       const lastAdminGuard = await this.assertNotLastSuperAdmin(username);
       if (!lastAdminGuard.success) {
         return lastAdminGuard;

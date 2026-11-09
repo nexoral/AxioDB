@@ -3,6 +3,7 @@ import Converter from "../Helper/Converter.helper";
 import Logger from "../Helper/Logger.helper";
 import WorkerPool, { calculateOptimalWorkers } from "../Helper/WorkerPool.helper";
 import Searcher from "./Searcher.utils";
+import RegexGuard from "../Helper/RegexGuard.helper";
 import { workerDataLoadScript } from "../engine/node/workerScript.engine";
 
 export default async function ReaderWithWorker(
@@ -12,6 +13,9 @@ export default async function ReaderWithWorker(
   query?: Record<string, unknown>,
 ): Promise<unknown[]> {
   const hasQuery = Boolean(query && Object.keys(query).length > 0);
+  if (hasQuery) {
+    RegexGuard.validateQuery(query);
+  }
 
   if (DataFilesList.length < 150) {
     const fileManager = new FileManager();

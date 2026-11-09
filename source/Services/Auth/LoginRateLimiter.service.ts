@@ -40,24 +40,33 @@ export class LoginRateLimiter {
     return LoginRateLimiter.instance;
   }
 
-  /** Milliseconds remaining before this IP may attempt login again, or 0 if it's clear. */
-  public getCooldownRemaining(ip: string): number {
-    const record = this.attempts.get(ip);
+  private makeKey(ip: string, username?: string): string {
+    const cleanIp = ip ? ip.trim() : "127.0.0.1";
+    return username && typeof username === "string" && username.trim().length > 0
+      ? `${cleanIp}:${username.trim().toLowerCase()}`
+      : cleanIp;
+  }
+
+  /** Milliseconds remaining before this client/account may attempt login again, or 0 if it's clear. */
+  public getCooldownRemaining(ip: string, username?: string): number {
+    const key = this.makeKey(ip, username);
+    const record = this.attempts.get(key);
     if (!record?.lockedUntil) {
       return 0;
     }
     const remaining = record.lockedUntil - Date.now();
     if (remaining <= 0) {
-      this.attempts.delete(ip);
+      this.attempts.delete(key);
       return 0;
     }
     return remaining;
   }
 
-  /** Records a failed login attempt, locking the IP out once the threshold is crossed. */
-  public recordFailure(ip: string): void {
+  /** Records a failed login attempt, locking the client/account out once the threshold is crossed. */
+  public recordFailure(ip: string, username?: string): void {
+    const key = this.makeKey(ip, username);
     const now = Date.now();
-    const record = this.attempts.get(ip) ?? { failureTimestamps: [] };
+    const record = this.attempts.get(key) ?? { failureTimestamps: [] };
 
     // Slide the window: drop failures older than the trailing window before counting.
     record.failureTimestamps = record.failureTimestamps.filter(
@@ -68,12 +77,13 @@ export class LoginRateLimiter {
     if (record.failureTimestamps.length >= LOGIN_RATE_LIMIT_MAX_ATTEMPTS) {
       record.lockedUntil = now + LOGIN_RATE_LIMIT_COOLDOWN_MS;
     }
-    this.attempts.set(ip, record);
+    this.attempts.set(key, record);
   }
 
-  /** Clears the failure counter for an IP following a successful login. */
-  public recordSuccess(ip: string): void {
-    this.attempts.delete(ip);
+  /** Clears the failure counter for a client/account following a successful login. */
+  public recordSuccess(ip: string, username?: string): void {
+    const key = this.makeKey(ip, username);
+    this.attempts.delete(key);
   }
 
   /** Clears every tracked IP's failure counter and any active lockouts. */

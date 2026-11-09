@@ -149,6 +149,27 @@ class AuthTests extends TestRunner {
         });
         assert.equal(blockedEvenWithGoodCreds.status, 429);
       });
+
+      await this.test('Lockout on one account does not cause denial of service on other accounts (SEC-07)', async () => {
+        // 'admin' is locked out from the test above.
+        // A login attempt for a different user ('otheruser') should NOT return 429
+        const otherRes = await fetch(`${BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'otheruser', password: 'somepassword' }),
+        });
+        assert.equal(otherRes.status, 401);
+      });
+
+      await this.test('X-Forwarded-For header identifies distinct client IP behind reverse proxy (SEC-07)', async () => {
+        // Attempting login with X-Forwarded-For from a distinct IP should not be blocked by 127.0.0.1 lockout
+        const proxyRes = await fetch(`${BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': '203.0.113.195' },
+          body: JSON.stringify({ username: 'admin', password: 'wrongpassword' }),
+        });
+        assert.equal(proxyRes.status, 401);
+      });
     });
 
     // Reset the shared rate limiter directly so the lockout above doesn't block the
@@ -215,6 +236,19 @@ class AuthTests extends TestRunner {
     });
 
     await this.describe('Reserved "config" database guard', async () => {
+      await this.test('Cannot create config via the generic database route (SEC-11)', async () => {
+        const res = await fetch(`${BASE_URL}/db/create-database`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Cookie: this.adminCookie,
+          },
+          body: JSON.stringify({ name: 'config' }),
+        });
+        const body = await res.json();
+        assert.equal(body.statusCode, 403);
+      });
+
       await this.test('Cannot delete config via the generic database route', async () => {
         const res = await fetch(`${BASE_URL}/db/delete-database?dbName=config`, {
           method: 'DELETE',
@@ -665,6 +699,45 @@ class AuthTests extends TestRunner {
         const health = await fetch(`${BASE_URL}/health`);
         assert.equal(health.status, 200, 'Server should survive a corrupt upload');
       });
+
+      await this.test('Multipart headers exceeding size limit reject immediately to prevent OOM (SEC-09)', async () => {
+        const boundary = '----AxioTestBoundary' + Date.now();
+        const hugeHeader = 'X-Header: ' + 'A'.repeat(70 * 1024);
+        const payload = `--${boundary}\r\n${hugeHeader}`;
+
+        const res = await fetch(`${BASE_URL}/db/import-database/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': `multipart/form-data; boundary=${boundary}`,
+            Cookie: this.adminCookie,
+          },
+          body: payload,
+        });
+        assert.ok(res.status >= 400, 'Expected error response for oversize multipart header');
+
+        const health = await fetch(`${BASE_URL}/health`);
+        assert.equal(health.status, 200, 'Server should survive oversize header attempt');
+      });
+
+      await this.test('MultipartHelper.parseFile rejects streams with headers > 64KB (SEC-09)', async () => {
+        const { Readable } = require('stream');
+        const MultipartHelper = require('../../../lib/Helper/http/Multipart.helper.js').default;
+        const boundary = 'test-boundary';
+        const stream = new Readable({
+          read() {
+            this.push(Buffer.alloc(70 * 1024, 'X'));
+            this.push(null);
+          },
+        });
+        let rejected = false;
+        try {
+          await MultipartHelper.parseFile(stream, boundary);
+        } catch (err) {
+          rejected = true;
+          assert.includes(err.message, 'Multipart headers exceed maximum allowed size');
+        }
+        assert.ok(rejected, 'Expected parseFile to reject oversized header buffer');
+      });
     });
 
     await this.describe('Self-deletion guard', async () => {
@@ -750,6 +823,79 @@ class AuthTests extends TestRunner {
         const body = await res.json();
         assert.equal(res.status, 400);
         assert.includes(body.message.toLowerCase(), 'super admin');
+      });
+    });
+
+    await this.describe('Privilege escalation prevention (SEC-06)', async () => {
+      let subAdminCookie = null;
+
+      await this.test('Create delegated manager role with user management permissions', async () => {
+        await fetch(`${BASE_URL}/auth/roles`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({
+            roleName: 'DelegatedManager',
+            permissions: ['user:view', 'user:reset-password', 'user:update-role', 'user:delete'],
+          }),
+        });
+
+        await fetch(`${BASE_URL}/auth/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ username: 'subadmin', password: 'SubAdminPass1', role: 'DelegatedManager' }),
+        });
+
+        subAdminCookie = await this.loginFlow('subadmin', 'SubAdminPass1', 'SubAdminPass2');
+        assert.ok(subAdminCookie);
+      });
+
+      await this.test('Delegated manager cannot reset SuperAdmin password', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/admin/reset-password`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: subAdminCookie },
+          body: JSON.stringify({ newPassword: 'NewHackedPass1!' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.includes(body.message, 'Only a Super Admin can reset the password of a Super Admin');
+      });
+
+      await this.test('Delegated manager cannot promote a user to SuperAdmin', async () => {
+        await fetch(`${BASE_URL}/auth/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ username: 'target_peer', password: 'PeerPass123!', role: 'View' }),
+        });
+
+        const res = await fetch(`${BASE_URL}/auth/users/target_peer/role`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: subAdminCookie },
+          body: JSON.stringify({ role: 'Super Admin' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.includes(body.message, 'Only a Super Admin can assign or modify the Super Admin role');
+      });
+
+      await this.test('Delegated manager cannot delete a SuperAdmin', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/admin`, {
+          method: 'DELETE',
+          headers: { Cookie: subAdminCookie },
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.includes(body.message, 'Only a Super Admin can delete a Super Admin');
+      });
+
+      await this.test('SuperAdmin CAN reset another user password', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/target_peer/reset-password`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ newPassword: 'ResetByAdmin1!' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 200);
+        assert.includes(body.message, 'Password reset successfully');
       });
     });
   }

@@ -37,7 +37,7 @@ import { startMcpServer, stopMcpServer } from "../Helper/mcp/McpServer.helper";
  * @param {string} options.RootName - Custom name for the database root folder. Defaults to "AxioDB".
  * @param {string} options.CustomPath - Custom path for database storage. Defaults to current directory.
  * @param {boolean} options.TCP - Enable/disable TCP server (port 27019). Defaults to false.
- * @param {boolean} options.TCPAuth - Require username/password authentication (same RBAC users as the HTTP server) for TCP connections. Defaults to false.
+ * @param {boolean} options.TCPAuth - Require username/password authentication (same RBAC users as the HTTP server) for TCP connections. Defaults to true when TCP is enabled, or false if explicitly set.
  * @param {string} options.AdminPassword - Password the admin account is seeded with when the config database is first created, clearing its forced password change so it can authenticate over TCP immediately. Defaults to the built-in admin/admin, which TCP rejects until rotated through the HTTP API. Ignored once the users collection already exists.
  * @param {boolean} options.Cache - Enable the built-in InMemoryCache shared across the whole instance. Defaults to true.
  * @param {number} options.minTTL - Minimum cache entry lifetime in minutes. Defaults to 5.
@@ -93,7 +93,7 @@ export class AxioDB {
     });
     this.HTTP = options.HTTP !== undefined ? options.HTTP : General.DBMS_HTTP_Enable;
     this.TCP = TCP !== undefined ? TCP : false;
-    this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false;
+    this.TCPAuth = TCPAuth !== undefined ? TCPAuth : (this.TCP ? true : false);
     this.MCP = options.MCP !== undefined ? options.MCP : false;
     this.AdminPassword = AdminPassword;
     this.TLS = TLS !== undefined ? TLS : false;
@@ -219,7 +219,7 @@ export class AxioDB {
     const newDB = new Database(DBName, dbPath, this.cache);
     // Store database metadata in the DatabaseMap
     // Note: The DatabaseMap is now storing an object instead of a Database instance
-    this.DatabaseMap.set(DBName, { DatabaseName: DBName, path: dbPath });
+    this.DatabaseMap.set(DBName, { DatabaseName: DBName, path: path.join(this.RootName, DBName) });
     return newDB;
   }
 
@@ -256,14 +256,14 @@ export class AxioDB {
         (db: string) => db.toLowerCase() !== RESERVED_DB_NAME,
       );
       const FinalDatabaseInfo: FinalDatabaseInfo = {
-        CurrentPath: this.currentPATH,
+        CurrentPath: this.RootName,
         RootName: this.RootName,
         TotalSize: visibleDatabases.length === 0 ? 0 : parseFloat(totalSize.data as string),
         TotalDatabases: `${visibleDatabases.length} Databases`,
         ListOfDatabases: visibleDatabases,
         DatabaseMap: this.DatabaseMap,
         AllDatabasesPaths: visibleDatabases.map((db: string) =>
-          path.join(this.currentPATH, db),
+          path.join(this.RootName, db),
         ),
       };
       return this.ResponseHelper.Success(FinalDatabaseInfo);
@@ -287,14 +287,14 @@ export class AxioDB {
         (db: string) => db.toLowerCase() !== RESERVED_DB_NAME,
       );
       const FinalDatabaseInfo: FinalDatabaseInfo = {
-        CurrentPath: this.currentPATH,
+        CurrentPath: this.RootName,
         RootName: this.RootName,
         TotalSize: 0,
         TotalDatabases: `${visibleDatabases.length} Databases`,
         ListOfDatabases: visibleDatabases,
         DatabaseMap: this.DatabaseMap,
         AllDatabasesPaths: visibleDatabases.map((db: string) =>
-          path.join(this.currentPATH, db),
+          path.join(this.RootName, db),
         ),
       };
       return this.ResponseHelper.Success(FinalDatabaseInfo);

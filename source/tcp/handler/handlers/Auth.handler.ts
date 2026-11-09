@@ -43,7 +43,7 @@ export default class AuthHandler {
       };
     }
 
-    const cooldownRemaining = LoginRateLimiter.getCooldownRemaining(remoteIp);
+    const cooldownRemaining = LoginRateLimiter.getCooldownRemaining(remoteIp, username);
     if (cooldownRemaining > 0) {
       return {
         id: requestId,
@@ -55,7 +55,7 @@ export default class AuthHandler {
 
     const result = await this.authService.login(username, password);
     if (!result.success || !result.user) {
-      LoginRateLimiter.recordFailure(remoteIp);
+      LoginRateLimiter.recordFailure(remoteIp, username);
       return {
         id: requestId,
         statusCode: StatusCode.UNAUTHORIZED,
@@ -63,7 +63,7 @@ export default class AuthHandler {
         error: ErrorMessage.INVALID_CREDENTIALS,
       };
     }
-    LoginRateLimiter.recordSuccess(remoteIp);
+    LoginRateLimiter.recordSuccess(remoteIp, username);
 
     const permissions = PermissionChecker.getPermissionsForRole(result.user.role);
     const authUser: AuthenticatedUser = {
@@ -159,12 +159,12 @@ export default class AuthHandler {
   /**
    * Handle RESET_USER_PASSWORD command
    */
-  async handleResetUserPassword(requestId: string, params: Params): Promise<TCPResponse> {
+  async handleResetUserPassword(requestId: string, params: Params, actorUsername?: string): Promise<TCPResponse> {
     const { username, newPassword } = params as { username: string; newPassword: string };
     if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
       return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'Password must be at least 8 characters', error: 'Password must be at least 8 characters' };
     }
-    const result = await this.authService.resetUserPassword(username, newPassword);
+    const result = await this.authService.resetUserPassword(username, newPassword, actorUsername);
     if (!result.success) {
       return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: result.message, error: result.message };
     }

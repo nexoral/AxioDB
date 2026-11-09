@@ -72,7 +72,7 @@ class TcpTransactionTests extends TestRunner {
       fs.rmSync(this.testDir, { recursive: true, force: true });
     }
 
-    this.dbInstance = new AxioDB({ TCP: true, RootName: 'TcpTxnTestDB', CustomPath: this.testDir });
+    this.dbInstance = new AxioDB({ TCP: true, TCPAuth: false, RootName: 'TcpTxnTestDB', CustomPath: this.testDir });
     await this.waitForServerReady();
     this.log('Test environment ready', 'success');
   }
@@ -507,6 +507,7 @@ class TcpTransactionTests extends TestRunner {
       await this.test('AGGREGATE and GET_INSTANCE_INFO are available over TCP', async () => {
         const client = new RawTcpClient();
         await client.connect();
+        await client.send(CommandType.INSERT_DOCUMENT, { dbName: 'TxnReadAgg', collectionName: 'Items', data: { value: 1 } });
         const aggregate = await client.send(CommandType.AGGREGATE, { dbName: 'TxnReadAgg', collectionName: 'Items', pipeline: [{ $count: 'total' }] });
         assert.equal(aggregate.statusCode, 200);
         const info = await client.send(CommandType.GET_INSTANCE_INFO, {});

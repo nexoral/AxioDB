@@ -32,7 +32,7 @@ export default class AuthController {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Password is required"));
     }
 
-    const cooldownRemaining = LoginRateLimiter.getCooldownRemaining(request.ip);
+    const cooldownRemaining = LoginRateLimiter.getCooldownRemaining(request.ip, username);
     if (cooldownRemaining > 0) {
       return sendResponse(
         reply,
@@ -45,10 +45,10 @@ export default class AuthController {
 
     const result = await this.authService.login(username, password);
     if (!result.success || !result.user) {
-      LoginRateLimiter.recordFailure(request.ip);
+      LoginRateLimiter.recordFailure(request.ip, username);
       return sendResponse(reply, buildResponse(StatusCodes.UNAUTHORIZED, result.message));
     }
-    LoginRateLimiter.recordSuccess(request.ip);
+    LoginRateLimiter.recordSuccess(request.ip, username);
 
     const session = SessionStore.createSession(
       result.user.username,

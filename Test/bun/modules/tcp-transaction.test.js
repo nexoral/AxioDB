@@ -72,7 +72,7 @@ class TcpTransactionTests extends TestRunner {
       fs.rmSync(this.testDir, { recursive: true, force: true });
     }
 
-    this.dbInstance = new AxioDB({ TCP: true, RootName: 'TcpTxnTestDB', CustomPath: this.testDir });
+    this.dbInstance = new AxioDB({ TCP: true, TCPAuth: false, RootName: 'TcpTxnTestDB', CustomPath: this.testDir });
     await this.waitForServerReady();
     this.log('Test environment ready', 'success');
   }

@@ -50,7 +50,7 @@ const CONNECTION_REJECTION_RESPONSES: Record<
 export default async function createAxioDBTCPServer(
   axioDB: AxioDB,
   port: number = DEFAULT_TCP_PORT,
-  requireAuth: boolean = false,
+  requireAuth: boolean = true,
   tlsOptions?: TCPTLSOptions,
 ): Promise<Server> {
   const connectionManager = new ConnectionManager();

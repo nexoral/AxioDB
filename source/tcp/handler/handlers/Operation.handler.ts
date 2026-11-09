@@ -81,7 +81,15 @@ export default class OperationHandler {
     const { dbName, collectionName, query = {}, limit, skip, sort, findOne, hint } = params;
 
     try {
+      const dbExists = await this.axioDB.isDatabaseExists(dbName!);
+      if (!dbExists) {
+        return { id: requestId, statusCode: StatusCode.NOT_FOUND, message: 'Database does not exist', error: 'Database does not exist' };
+      }
       const databaseInstance = await this.axioDB.createDB(dbName!);
+      const colExists = await databaseInstance.isCollectionExists(collectionName!);
+      if (!colExists) {
+        return { id: requestId, statusCode: StatusCode.NOT_FOUND, message: 'Collection does not exist', error: 'Collection does not exist' };
+      }
       const collection = await databaseInstance.createCollection(collectionName!);
 
       let queryBuilder = collection.query(query as Record<string, unknown>);
@@ -110,7 +118,15 @@ export default class OperationHandler {
   async handleFindByIds(requestId: string, params: Params): Promise<TCPResponse> {
     const { dbName, collectionName, ids } = params;
     try {
+      const dbExists = await this.axioDB.isDatabaseExists(dbName!);
+      if (!dbExists) {
+        return { id: requestId, statusCode: StatusCode.NOT_FOUND, message: 'Database does not exist', error: 'Database does not exist' };
+      }
       const databaseInstance = await this.axioDB.createDB(dbName!);
+      const colExists = await databaseInstance.isCollectionExists(collectionName!);
+      if (!colExists) {
+        return { id: requestId, statusCode: StatusCode.NOT_FOUND, message: 'Collection does not exist', error: 'Collection does not exist' };
+      }
       const collection = await databaseInstance.createCollection(collectionName!);
       const result = await collection.findByIds(ids!);
       return { id: requestId, statusCode: result.statusCode, message: 'Documents retrieved successfully', data: result.data };

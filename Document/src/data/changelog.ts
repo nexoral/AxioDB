@@ -12,6 +12,24 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "27.43.10",
+    date: "2026-11-10",
+    title: "Comprehensive security hardening across core engine, TCP, HTTP API, MCP, and worker threads (SEC-01 – SEC-11)",
+    changes: [
+      "SEC-01 (Prototype Pollution Prevention): Sanitized object traversal and aggregation operations to reject __proto__, constructor, and prototype pollution attacks across grouping and accumulation pipelines",
+      "SEC-02 (Secure TCP Defaults): Defaulted TCPAuth to true when TCP is enabled, requiring authenticated handshakes and TLS support to prevent unauthenticated network access",
+      "SEC-03 (MCP Security & Session Revocation): Hardened MCP server against wildcard CORS origins and enforced strict session termination on client disconnect",
+      "SEC-04 (Worker Thread ReDoS Protection): Implemented static regex guard preventing catastrophic backtracking (nested quantifiers and unbounded alternations) and restricted regex pattern length to 512 characters",
+      "SEC-05 (TOCTOU & Permission Integrity): Preserved file permissions and eliminated chmod tampering vulnerabilities during file size inspection in FileManager",
+      "SEC-06 (Privilege Escalation Guard): Blocked non-SuperAdmin roles from resetting SuperAdmin passwords, modifying SuperAdmin users, or escalating privileges",
+      "SEC-07 (Proxy-Aware Rate Limiting): Tracked client IP via X-Forwarded-For headers with per-username lockout isolation to prevent global login lockout denial-of-service behind reverse proxies",
+      "SEC-08 (Resource Exhaustion Prevention): Replaced automatic database/collection creation on read queries with explicit 404 responses, preventing unauthenticated disk and inode exhaustion",
+      "SEC-09 (Streaming OOM Protection): Enforced strict 64KB multipart header limits in database import streaming parser, preventing unbounded memory exhaustion attacks",
+      "SEC-10 (Host Filesystem Path Redaction): Redacted absolute server filesystem paths across system info, instance info, and collection size map APIs, exposing only sanitized relative identifiers",
+      "SEC-11 (Reserved Database Protection): Enforced isReservedDatabaseName checks in createDatabase (POST /api/db/create-database) to prevent creation or tampering with internal 'config' RBAC tables",
+    ],
+  },
+  {
     version: "27.42.9",
     date: "2026-11-09",
     title: "Chunked TCP database export & import, HTTP ACID transactions, Desktop GUI backup parity, and streamlined CLI",

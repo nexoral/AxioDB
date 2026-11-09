@@ -8,6 +8,35 @@
  */
 
 const MATCHES_QUERY_FN = `
+var MAX_REGEX_LENGTH = 512;
+function isSafeRegexPattern(pattern) {
+  if (typeof pattern !== 'string' || pattern.length === 0 || pattern.length > MAX_REGEX_LENGTH) return false;
+  var inClass = false, escaped = false;
+  var groups = [];
+  for (var i = 0; i < pattern.length; i++) {
+    var c = pattern[i];
+    if (escaped) { escaped = false; continue; }
+    if (c === '\\\\') { escaped = true; continue; }
+    if (inClass) { if (c === ']') inClass = false; continue; }
+    if (c === '[') { inClass = true; continue; }
+    if (c === '(') { groups.push(false); continue; }
+    if (c === ')') {
+      var hasQuant = groups.pop();
+      var next = pattern[i + 1];
+      var isUnbounded = next === '+' || next === '*';
+      if (isUnbounded && hasQuant) return false;
+      if ((isUnbounded || hasQuant) && groups.length > 0) {
+        groups[groups.length - 1] = true;
+      }
+      continue;
+    }
+    if ((c === '+' || c === '*') && groups.length > 0) {
+      groups[groups.length - 1] = true;
+    }
+  }
+  return true;
+}
+
 function matchesQuery(item, query, isUpdated) {
   if (!query || typeof query !== 'object') return true;
   var keys = Object.keys(query);
@@ -37,8 +66,17 @@ function matchesQuery(item, query, isUpdated) {
 
     if (typeof qv === 'object' && qv !== null) {
       if ('$regex' in qv) {
-        var regex = qv.$regex instanceof RegExp ? qv.$regex : new RegExp(qv.$regex, qv.$options || 'i');
-        if (!regex.test(String(itemValue))) return false;
+        if (!qv._compiledRegex) {
+          var pattern = qv.$regex;
+          if (pattern instanceof RegExp) {
+            qv._compiledRegex = pattern;
+          } else if (typeof pattern === 'string' && isSafeRegexPattern(pattern)) {
+            qv._compiledRegex = new RegExp(pattern, qv.$options || 'i');
+          } else {
+            return false;
+          }
+        }
+        if (!qv._compiledRegex.test(String(itemValue))) return false;
         continue;
       }
 

@@ -72,7 +72,7 @@ console.log("Database 'ProductsDB' created");
           <li><strong>RootName</strong> (string, optional): Custom root folder name - defaults to "AxioDB"</li>
           <li><strong>CustomPath</strong> (string, optional): Custom storage path - defaults to current directory</li>
           <li><strong>TCP</strong> (boolean, optional): Enable the AxioDBCloud TCP server on port 27019 - defaults to false</li>
-          <li><strong>TCPAuth</strong> (boolean, optional): Require username/password authentication (same RBAC users as HTTP API) on TCP connections - defaults to false</li>
+          <li><strong>TCPAuth</strong> (boolean, optional): Require username/password authentication (same RBAC users as HTTP API) on TCP connections - defaults to true when TCP is enabled (set to false to disable)</li>
           <li><strong>AdminPassword</strong> (string, optional): Password the admin account is seeded with on first start, skipping the forced first-login change - defaults to the built-in admin/admin</li>
           <li><strong>TLS</strong> (boolean, optional): Encrypt the TCP server with TLS - requires TLSCertPath + TLSKeyPath PEM files - defaults to false</li>
           <li><strong>Cache</strong> (boolean, optional): Enable the per-instance InMemoryCache - defaults to true (set false to disable caching entirely)</li>

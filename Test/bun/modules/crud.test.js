@@ -716,6 +716,27 @@ class CRUDTests extends TestRunner {
         assert.equal(await countDocumentsInFolder(collectionPath), 3);
       });
     });
+
+    await this.describe('FileManager Security & Integrity', async () => {
+      await this.test('GetFileSize returns accurate size and preserves strict file permissions without chmod tampering', async () => {
+        const FileManager = require('../../../lib/engine/Filesystem/FileManager.js').default;
+        const fileManager = new FileManager();
+        const testFilePath = path.join(this.testDir, 'secure-test.txt');
+        const content = 'AxioDB secure file inspection test';
+        fs.writeFileSync(testFilePath, content, { mode: 0o600 });
+
+        const beforeStat = fs.statSync(testFilePath);
+        const res = await fileManager.GetFileSize(testFilePath);
+        assert.isSuccess(res);
+        assert.equal(res.data, Buffer.byteLength(content));
+
+        const afterStat = fs.statSync(testFilePath);
+        assert.equal(afterStat.mode, beforeStat.mode);
+
+        const missingRes = await fileManager.GetFileSize(path.join(this.testDir, 'non-existent.txt'));
+        assert.isError(missingRes);
+      });
+    });
   }
 }
 

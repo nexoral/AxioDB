@@ -48,6 +48,14 @@ export default class Database {
   }
 
   /**
+   * Returns the internal filesystem path for a collection within this database.
+   */
+  public getCollectionPath(collectionName: string): string {
+    const sanitized = PathSanitizer.sanitizePathComponent(collectionName);
+    return PathSanitizer.safePath(this.path, sanitized);
+  }
+
+  /**
    * Creates a new collection inside the specified database.
    * @param {string} collectionName - Name of the collection.
    * @returns {Promise<AxioDB>} - Returns the instance of AxioDB.
@@ -152,15 +160,15 @@ export default class Database {
 
     if ("data" in totalSize) {
       const FinalCollections: FinalCollectionsInfo = {
-        CurrentPath: this.path,
+        CurrentPath: this.name,
         RootName: this.name,
         MatrixUnits: "MB",
         TotalCollections: `${filteredCollections.length} Collections`,
         TotalSize: parseInt(((totalSize.data as number) / 1024 / 1024).toFixed(4)),
         ListOfCollections: filteredCollections,
-        collectionMetaStatus: CollectionStatus.filter((m): m is CollectionMetadata => m !== undefined).map(m => ({ collectionName: m.name, path: m.path })),
+        collectionMetaStatus: CollectionStatus.filter((m): m is CollectionMetadata => m !== undefined).map(m => ({ collectionName: m.name, path: path.join(this.name, m.name) })),
         AllCollectionsPaths: filteredCollections.map((collection: string) =>
-          path.join(this.path, collection),
+          path.join(this.name, collection),
         ),
       };
       return this.ResponseHelper.Success(FinalCollections);

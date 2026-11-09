@@ -1,25 +1,37 @@
 
 import RegexGuard from "../../../Helper/RegexGuard.helper";
 
+const DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
 export function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   if (!path || !obj) return undefined;
   const parts = path.split(".");
   let current = obj as Record<string, unknown>;
   for (const part of parts) {
-    if (current === null || current === undefined) return undefined;
+    if (current === null || current === undefined || DANGEROUS_KEYS.has(part)) return undefined;
     current = current[part] as Record<string, unknown>;
   }
   return current;
 }
 
 export function setNestedValue(obj: Record<string, unknown>, path: string, value: unknown): void {
+  if (!path || !obj) return;
   const parts = path.split(".");
   let current = obj;
   for (let i = 0; i < parts.length - 1; i++) {
-    if (current[parts[i]] === undefined) current[parts[i]] = {};
-    current = current[parts[i]] as Record<string, unknown>;
+    const key = parts[i];
+    if (DANGEROUS_KEYS.has(key)) return;
+    if (current[key] === undefined || current[key] === null || typeof current[key] !== "object") {
+      current[key] = {};
+    } else {
+      current[key] = { ...(current[key] as Record<string, unknown>) };
+    }
+    current = current[key] as Record<string, unknown>;
   }
-  current[parts[parts.length - 1]] = value;
+  const lastKey = parts[parts.length - 1];
+  if (!DANGEROUS_KEYS.has(lastKey)) {
+    current[lastKey] = value;
+  }
 }
 
 export function evaluateExpression(doc: Record<string, unknown>, expr: unknown): unknown {

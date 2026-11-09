@@ -15,13 +15,26 @@ import { buildMcpTools, RegisteredTool } from "./McpTools.helper";
 let activeServer: http.Server | null = null;
 const activeSseResponses = new Set<http.ServerResponse>();
 
-function getCorsHeaders(sessionId?: string): Record<string, string> {
+function isAllowedOrigin(origin?: string): boolean {
+  if (!origin || typeof origin !== "string") return false;
+  try {
+    const parsed = new URL(origin);
+    return parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
+function getCorsHeaders(origin?: string, sessionId?: string): Record<string, string> {
   const headers: Record<string, string> = {
-    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization, mcp-session-id, Mcp-Session-Id",
     "Access-Control-Expose-Headers": "Content-Type, mcp-session-id, Mcp-Session-Id",
   };
+  if (origin && isAllowedOrigin(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+    headers["Vary"] = "Origin";
+  }
   if (sessionId) {
     headers["mcp-session-id"] = sessionId;
   }
@@ -33,19 +46,22 @@ function sendJson(
   statusCode: number,
   data: unknown,
   extraHeaders?: Record<string, string>,
+  origin?: string,
 ): void {
+  const resolvedOrigin = origin ?? (res.req?.headers?.origin as string | undefined);
   const body = JSON.stringify(data);
   res.writeHead(statusCode, {
     "Content-Type": "application/json",
     "Content-Length": Buffer.byteLength(body),
-    ...getCorsHeaders(),
+    ...getCorsHeaders(resolvedOrigin),
     ...(extraHeaders || {}),
   });
   res.end(body);
 }
 
-function sendAccepted(res: http.ServerResponse, sessionId?: string): void {
-  res.writeHead(202, getCorsHeaders(sessionId));
+function sendAccepted(res: http.ServerResponse, sessionId?: string, origin?: string): void {
+  const resolvedOrigin = origin ?? (res.req?.headers?.origin as string | undefined);
+  res.writeHead(202, getCorsHeaders(resolvedOrigin, sessionId));
   res.end();
 }
 
@@ -76,16 +92,18 @@ export async function startMcpServer(
   const tools: Map<string, RegisteredTool> = buildMcpTools(axioDBInstance);
 
   const server = http.createServer(async (req, res) => {
+    const origin = req.headers.origin as string | undefined;
+
     // Handle CORS pre-flight
     if (req.method === "OPTIONS") {
-      res.writeHead(204, getCorsHeaders());
+      res.writeHead(204, getCorsHeaders(origin));
       res.end();
       return;
     }
 
     // Handle session termination
     if (req.method === "DELETE") {
-      res.writeHead(204, getCorsHeaders());
+      res.writeHead(204, getCorsHeaders(origin));
       res.end();
       return;
     }
@@ -103,7 +121,7 @@ export async function startMcpServer(
           "Content-Type": "text/event-stream",
           "Cache-Control": "no-cache",
           "Connection": "keep-alive",
-          ...getCorsHeaders(streamSessionId),
+          ...getCorsHeaders(origin, streamSessionId),
         });
         res.write(": connected\n\n");
         activeSseResponses.add(res);

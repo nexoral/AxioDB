@@ -128,8 +128,10 @@ export class CommandHandler {
           return await this.authHandler.handleUpdateUserRole(id, params, authUser?.username);
         }
 
-        case CommandType.RESET_USER_PASSWORD:
-          return await this.authHandler.handleResetUserPassword(id, params);
+        case CommandType.RESET_USER_PASSWORD: {
+          const authUser = this.connectionManager.getAuthUser(context.connectionId);
+          return await this.authHandler.handleResetUserPassword(id, params, authUser?.username);
+        }
 
         case CommandType.CHANGE_PASSWORD: {
           const authUser = this.connectionManager.getAuthUser(context.connectionId);

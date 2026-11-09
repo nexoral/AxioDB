@@ -3,6 +3,8 @@ import { PassThrough } from "stream";
 import { MultipartFile } from "./HttpTypes";
 
 export default class MultipartHelper {
+  public static readonly MAX_HEADER_SIZE = 64 * 1024;
+
   public static async parseFile(req: IncomingMessage, boundary: string): Promise<MultipartFile | null> {
     const headerEnd = Buffer.from("\r\n\r\n");
 
@@ -20,6 +22,17 @@ export default class MultipartHelper {
       const onData = (chunk: Buffer): void => {
         if (!foundHeaders) {
           headerBuffer = Buffer.concat([headerBuffer, chunk]);
+          if (headerBuffer.length > MultipartHelper.MAX_HEADER_SIZE) {
+            req.removeListener("data", onData);
+            req.resume();
+            fileStream.destroy();
+            if (!resolved) {
+              resolved = true;
+              reject(new Error("Multipart headers exceed maximum allowed size"));
+            }
+            return;
+          }
+
           const headerEndIndex = headerBuffer.indexOf(headerEnd);
           if (headerEndIndex !== -1) {
             foundHeaders = true;
