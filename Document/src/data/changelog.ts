@@ -12,6 +12,18 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "27.42.9",
+    date: "2026-11-09",
+    title: "Chunked TCP database export & import, HTTP ACID transactions, Desktop GUI backup parity, and streamlined CLI",
+    changes: [
+      "Chunked Database Export & Import over TCP: introduced EXPORT_DATABASE and IMPORT_DATABASE wire protocol commands (:27019) with 2MB chunked Base64 streaming, atomic extraction, and automatic temporary file cleanup on disconnect",
+      "HTTP REST API ACID Transactions: implemented interactive transactions with WAL and savepoints over HTTP (:27018) via session cookie routing across /api/transaction/",
+      "Desktop GUI (AxioDB Control) Parity: enabled database backup, export, and import features across TCP connections, bridging native chunked streaming through Electron IPC",
+      "Streamlined CLI Export & Import: updated 'axiodb export' and 'axiodb import' to route over TCP (:27019) by default using standard -H/--host and -P/--port flags without requiring --http-host or --http-port directives, with optional --http fallback",
+      "TCP Connection Rate Limiting Core Integration: exposed ConnectionRateLimiter in CoreDBMS to ensure consistent sliding-window rate limit tracking across bundled distributions and test suites",
+    ],
+  },
+  {
     version: "26.41.8",
     date: "2026-11-09",
     title: "Single-file bundle distribution (axiodb.js), inlined memory worker threads, and 71% package size reduction",
