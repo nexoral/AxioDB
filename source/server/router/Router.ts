@@ -130,7 +130,7 @@ export default async function mainRouter(
         },
         services: [
           { name: "HTTP Server", port: 27018, running: true },
-          { name: "TCP Server", port: 27019, running: Boolean(process.env.AXIODB_TCP === "true") },
+          { name: "TCP Server", port: 27019, running: Boolean(AxioDBInstance.isTCP || process.env.AXIODB_TCP === "true") },
           { name: "MCP Server", port: 27020, running: Boolean(AxioDBInstance.isMCP || process.env.AXIODB_MCP === "true"), note: "Native in core & Docker" },
         ],
       });

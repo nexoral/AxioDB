@@ -191,6 +191,11 @@ export class AxioDB {
     return this.MCP;
   }
 
+  /** Whether the TCP server is enabled on this AxioDB instance. */
+  public get isTCP(): boolean {
+    return this.TCP;
+  }
+
   /** Stops the native MCP HTTP server if active. */
   public async stopMCPServer(): Promise<void> {
     await stopMcpServer();
