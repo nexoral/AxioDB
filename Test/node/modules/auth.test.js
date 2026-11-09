@@ -835,7 +835,7 @@ class AuthTests extends TestRunner {
           headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
           body: JSON.stringify({
             roleName: 'DelegatedManager',
-            permissions: ['user:view', 'user:reset-password', 'user:update-role', 'user:delete'],
+            permissions: ['user:view', 'user:create', 'user:reset-password', 'user:update-role', 'user:delete'],
           }),
         });
 
@@ -847,6 +847,51 @@ class AuthTests extends TestRunner {
 
         subAdminCookie = await this.loginFlow('subadmin', 'SubAdminPass1', 'SubAdminPass2');
         assert.ok(subAdminCookie);
+      });
+
+      await this.test('Delegated manager cannot create a Super Admin user', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: subAdminCookie },
+          body: JSON.stringify({ username: 'fake_superadmin', password: 'FakeSuperPass1!', role: 'Super Admin' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.includes(body.message, 'Only a Super Admin can create a Super Admin user');
+      });
+
+      await this.test('Delegated manager CAN create a normal user', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: subAdminCookie },
+          body: JSON.stringify({ username: 'normal_created', password: 'NormalPass123!', role: 'View' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 201);
+        assert.equal(body.statusCode, 201);
+      });
+
+      await this.test('Super Admin CAN create another Super Admin user', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ username: 'second_superadmin', password: 'SecondSuperPass1!', role: 'Super Admin' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 201);
+        assert.equal(body.statusCode, 201);
+      });
+
+      await this.test('Direct AuthService calls without actor cannot create or reset Super Admin', async () => {
+        const CoreDBMS = require('../../../axiodb.js').CoreDBMS;
+        const authService = new CoreDBMS.AuthService();
+        const createResult = await authService.createUser('no_actor_super', 'NoActorPass1!', 'Super Admin');
+        assert.equal(createResult.success, false);
+        assert.includes(createResult.message, 'Only a Super Admin can create a Super Admin user');
+
+        const resetResult = await authService.resetUserPassword('admin', 'NoActorReset1!');
+        assert.equal(resetResult.success, false);
+        assert.includes(resetResult.message, 'Only a Super Admin can reset the password of a Super Admin');
       });
 
       await this.test('Delegated manager cannot reset SuperAdmin password', async () => {

@@ -118,7 +118,7 @@ export default class AuthHandler {
   /**
    * Handle CREATE_USER command
    */
-  async handleCreateUser(requestId: string, params: Params): Promise<TCPResponse> {
+  async handleCreateUser(requestId: string, params: Params, actorUsername?: string): Promise<TCPResponse> {
     const { username, password, role } = params as { username: string; password: string; role: string };
     if (!username || typeof username !== 'string' || username.trim() === '') {
       return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'Username is required', error: 'Username is required' };
@@ -130,7 +130,7 @@ export default class AuthHandler {
       return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'Role is required', error: 'Role is required' };
     }
 
-    const result = await this.authService.createUser(username, password, role);
+    const result = await this.authService.createUser(username.trim(), password, role, actorUsername);
     if (!result.success) {
       const statusCode = result.conflict ? StatusCode.CONFLICT : StatusCode.BAD_REQUEST;
       return { id: requestId, statusCode, message: result.message, error: result.message };
