@@ -189,6 +189,37 @@ func handleREPLInput(client *protocol.Client, input string, db, coll *string) er
 		}
 		fmt.Println("PONG")
 
+	case input == "info" || input == "system":
+		resp, err := commands.GetSystemInfo(client)
+		if err != nil {
+			return err
+		}
+		return printOutput("json", resp.Data)
+
+	case input == "stats":
+		resp, err := commands.GetDashboardStats(client)
+		if err != nil {
+			return err
+		}
+		return printOutput("json", resp.Data)
+
+	case strings.HasPrefix(input, "changePassword ") || strings.HasPrefix(input, "change-password "):
+		cmdName := "changePassword"
+		if strings.HasPrefix(input, "change-password ") {
+			cmdName = "change-password"
+		}
+		rawArgs := strings.TrimSpace(strings.TrimPrefix(input, cmdName))
+		parts := strings.Fields(rawArgs)
+		if len(parts) < 2 {
+			return fmt.Errorf("syntax: changePassword <currentPassword> <newPassword>")
+		}
+		resp, err := commands.ChangeOwnPassword(client, "", parts[0], parts[1])
+		if err != nil {
+			return err
+		}
+		fmt.Println(resp.Message)
+		return nil
+
 	case strings.HasPrefix(input, "db."):
 		return handleDBCommand(client, input, *db, *coll)
 
@@ -613,6 +644,9 @@ func printREPLHelp() {
   show dbs                        List all databases
   show collections                List collections in current db
   auth <user> <pass>              Authenticate with username and password
+  changePassword <cur> <new>      Change password for current account
+  info                            Get server runtime diagnostics
+  stats                           Get dashboard statistics
   ping                            Test connection
   clear                           Clear screen
   db.createCollection(<name>)     Create collection

@@ -111,11 +111,19 @@ axiodb import ./backups/mydb.tar.gz \\
   --http-host localhost --http-port 27018 \\
   -u admin -p secret`;
 
-const USAGE_ADMIN = `# User and role administration uses the HTTP API (port 27018)
-axiodb user list --http-host localhost --http-port 27018 -u admin -p secret
-axiodb user create analyst analyst123 View --http-host localhost --http-port 27018 -u admin -p secret
-axiodb role list --http-host localhost --http-port 27018 -u admin -p secret
-axiodb role create Auditor document:view,document:query --http-host localhost --http-port 27018 -u admin -p secret`;
+const USAGE_ADMIN = `# User and role administration via TCP (port 27019, default)
+axiodb user list -u admin -p secret
+axiodb user create analyst analyst123 View -u admin -p secret
+axiodb user change-password oldpass newpass -u admin -p oldpass
+axiodb role list -u admin -p secret
+axiodb role create Auditor db:view,document:view -u admin -p secret
+
+# Or over HTTP port 27018 using --http flag
+axiodb user list --http -u admin -p secret
+
+# Server runtime diagnostics and stats
+axiodb info -u admin -p secret
+axiodb stats -u admin -p secret`;
 
 const USAGE_TRANSACTION = `# Run transaction steps from a JSON file on one TCP connection
 cat > transfer.json <<'EOF'
@@ -251,10 +259,9 @@ const CliPage: React.FC = () => {
             <Server className="h-5 w-5 text-amber-600" />
           </div>
           <div>
-            <p className="text-sm font-bold text-amber-800">Enable HTTP & TCP on the server first</p>
+            <p className="text-sm font-bold text-amber-800">Connection & Services</p>
             <p className="text-sm text-amber-700 mt-1">
-              The CLI needs <code className="px-1 py-0.5 bg-white rounded">TCP 27019</code> enabled (<code className="px-1 py-0.5 bg-white rounded">new AxioDB(&#123; TCP: true &#125;)</code> or <code className="px-1 py-0.5 bg-white rounded">AXIODB_TCP=true</code>) for data commands: <code className="px-1 py-0.5 bg-white rounded">db</code>, <code className="px-1 py-0.5 bg-white rounded">collection</code>, <code className="px-1 py-0.5 bg-white rounded">document</code>, <code className="px-1 py-0.5 bg-white rounded">index</code>, <code className="px-1 py-0.5 bg-white rounded">transaction</code>, <code className="px-1 py-0.5 bg-white rounded">ping</code>, <code className="px-1 py-0.5 bg-white rounded">health</code>, <code className="px-1 py-0.5 bg-white rounded">connect</code>.
-              Management commands in the CLI (<code className="px-1 py-0.5 bg-white rounded">user</code>, <code className="px-1 py-0.5 bg-white rounded">role</code>, <code className="px-1 py-0.5 bg-white rounded">user change-password</code>, <code className="px-1 py-0.5 bg-white rounded">export</code>/<code className="px-1 py-0.5 bg-white rounded">import</code>) use <code className="px-1 py-0.5 bg-white rounded">HTTP 27018</code> (<code className="px-1 py-0.5 bg-white rounded">HTTP: true</code> / <code className="px-1 py-0.5 bg-white rounded">AXIODB_HTTP=true</code>).
+              The CLI connects over <code className="px-1 py-0.5 bg-white rounded">TCP 27019</code> by default for database, collection, document CRUD, aggregation, indexes, transactions, telemetry (<code>info</code>, <code>stats</code>), and user/role administration. Database archive export and import use <code className="px-1 py-0.5 bg-white rounded">HTTP 27018</code>.
             </p>
           </div>
         </div>
@@ -461,8 +468,8 @@ const CliPage: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">User & Role Administration (via HTTP API)</h3>
-          <p className="text-sm text-gray-600 mb-3">CLI management commands communicate via HTTP port 27018.</p>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">User & Role Administration</h3>
+          <p className="text-sm text-gray-600 mb-3">Manage users, roles, and permissions over TCP (port 27019, default) or HTTP (port 27018 with <code>--http</code>).</p>
           <CodeBlock code={USAGE_ADMIN} language="bash" />
         </div>
 
@@ -490,8 +497,8 @@ const CliPage: React.FC = () => {
         <div className="grid md:grid-cols-2 gap-4">
           {[
             { title: "TCP Data Operations", desc: "Database, collection, document CRUD, aggregation, indexing, counts, hints, find-by-IDs, and transactions" },
-            { title: "Health & Diagnostics", desc: "Check TCP service health and retrieve instance information" },
-            { title: "HTTP Administration", desc: "Manage users and roles without adding management commands to the TCP client" },
+            { title: "Health & Telemetry", desc: "Check TCP health and retrieve instance diagnostics and stats with 'axiodb info' and 'axiodb stats'" },
+            { title: "User & Role Administration", desc: "Manage users, roles, and permissions directly over TCP or HTTP with shared RBAC" },
             { title: "Interactive REPL", desc: "MongoDB shell syntax with tab autocomplete" },
             { title: "Export & Import", desc: "Backup/restore databases via HTTP API, tab-completes file paths" },
             { title: "TLS Encryption", desc: "--tls, --tls-cert, --tls-skip-verify flags" },
