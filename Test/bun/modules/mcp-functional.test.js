@@ -111,6 +111,8 @@ class McpFunctionalTests extends TestRunner {
       assert.equal((await this.call('axiodb_delete_user', { sessionId, username: 'mcp-temp-user' })).statusCode, 200);
       assert.equal((await this.call('axiodb_delete_role', { sessionId, roleName: 'McpTempRole' })).statusCode, 200);
       assert.equal((await this.call('axiodb_logout', { sessionId })).statusCode, 200);
+      const postLogoutWhoami = await this.call('axiodb_whoami', { sessionId });
+      assert.equal(postLogoutWhoami.statusCode, 401);
     });
 
     await this.test('Native HTTP MCP Server on port 27020 handles JSON-RPC 2.0 and tells unauthenticated agents to log in', async () => {
@@ -616,6 +618,36 @@ class McpFunctionalTests extends TestRunner {
       });
       const deleteRoleJson = await deleteRoleRes.json();
       assert.equal(JSON.parse(deleteRoleJson.result.content[0].text).statusCode, 200);
+    });
+
+    await this.test('Native HTTP MCP Server enforces CORS restrictions (localhost and 127.0.0.1 only)', async () => {
+      // 1. Allowed origin localhost
+      const localRes = await fetch('http://localhost:27020/mcp', {
+        method: 'OPTIONS',
+        headers: { Origin: 'http://localhost:3000' },
+      });
+      assert.equal(localRes.headers.get('access-control-allow-origin'), 'http://localhost:3000');
+
+      // 2. Allowed origin 127.0.0.1
+      const ipRes = await fetch('http://localhost:27020/mcp', {
+        method: 'OPTIONS',
+        headers: { Origin: 'http://127.0.0.1:8080' },
+      });
+      assert.equal(ipRes.headers.get('access-control-allow-origin'), 'http://127.0.0.1:8080');
+
+      // 3. Disallowed origin
+      const evilRes = await fetch('http://localhost:27020/mcp', {
+        method: 'OPTIONS',
+        headers: { Origin: 'https://evil-site.com' },
+      });
+      assert.equal(evilRes.headers.get('access-control-allow-origin'), null);
+
+      // 4. Disallowed origin on GET
+      const getEvilRes = await fetch('http://localhost:27020/mcp', {
+        method: 'GET',
+        headers: { Origin: 'https://attacker.example.org' },
+      });
+      assert.equal(getEvilRes.headers.get('access-control-allow-origin'), null);
     });
   }
 }

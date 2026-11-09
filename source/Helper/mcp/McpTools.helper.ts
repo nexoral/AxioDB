@@ -156,9 +156,10 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
       },
     },
     null,
-    (args, session) => {
-      if (session) {
-        SessionStore.revokeSession(session.sid);
+    (args) => {
+      const sessionId = typeof args.sessionId === "string" ? args.sessionId.trim() : "";
+      if (sessionId) {
+        SessionStore.revokeSession(sessionId);
       }
       return { statusCode: 200, message: "Logged out successfully" };
     },
