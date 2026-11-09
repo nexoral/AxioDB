@@ -286,11 +286,62 @@ ipcMain.handle("network:clearCookies", () => {
   return true;
 });
 
-// Streaming database archive import via HTTP multipart
+// Streaming database archive import via HTTP multipart or chunked TCP
 ipcMain.handle("network:uploadDatabase", async (_event, { filePath, url }: { filePath: string; url: string }) => {
   if (!allowedImportFiles.has(filePath)) {
     throw new Error("Access denied: File was not selected via file dialog");
   }
+
+  if (url.startsWith("tcp://")) {
+    const fullUrl = new URL(url);
+    const host = fullUrl.hostname || "127.0.0.1";
+    const port = parseInt(fullUrl.port || "27019", 10);
+    const isTls = fullUrl.searchParams.get("tls") === "true";
+
+    const fileStats = await fs.promises.stat(filePath);
+    const chunkSize = 2 * 1024 * 1024;
+    const totalChunks = Math.ceil(fileStats.size / chunkSize) || 1;
+    const transferId = `tcp-import-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const fd = await fs.promises.open(filePath, "r");
+
+    let lastRes: { id: string; statusCode: number; message: string; data?: unknown; error?: string } | null = null;
+    try {
+      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        const start = chunkIndex * chunkSize;
+        const end = Math.min(start + chunkSize, fileStats.size);
+        const length = end - start;
+        const buf = Buffer.alloc(length);
+        await fd.read(buf, 0, length, start);
+
+        const res = await tcpBridge.sendCommand(
+          host,
+          port,
+          "IMPORT_DATABASE",
+          {
+            chunkIndex,
+            totalChunks,
+            data: buf.toString("base64"),
+            transferId,
+          },
+          120000,
+          isTls
+        );
+
+        if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+          throw new Error(res.message || res.error || `Failed to import chunk ${chunkIndex}`);
+        }
+        lastRes = res;
+      }
+    } finally {
+      await fd.close();
+    }
+
+    return {
+      status: 200,
+      data: (lastRes?.data as Record<string, unknown>) || { message: "Database imported successfully" },
+    };
+  }
+
   return new Promise((resolve, reject) => {
     try {
       const fullUrl = new URL(url);
@@ -399,6 +450,14 @@ class TcpClientBridge {
   public setCredentials(username: string, password: string) {
     this.savedUsername = username;
     this.savedPassword = password;
+  }
+
+  public getSavedUsername(): string | null {
+    return this.savedUsername;
+  }
+
+  public getSavedPassword(): string | null {
+    return this.savedPassword;
   }
 
   public clearCredentials() {
@@ -608,6 +667,7 @@ async function executeTcpRequest(fullUrl: URL, config: {
   }
 
   const timeout = config.timeout || 30000;
+  const method = (config.method || "GET").toUpperCase();
   const isTls =
     config.headers?.["x-axiodb-tls"] === "true" ||
     fullUrl.searchParams.get("tls") === "true";
@@ -619,7 +679,12 @@ async function executeTcpRequest(fullUrl: URL, config: {
       status: res.statusCode || 200,
       statusText: "OK",
       headers: {},
-      data: { success: true, message: res.message || "PONG" },
+      data: {
+        status: "ok",
+        success: true,
+        message: res.message || "PONG",
+        timestamp: new Date().toISOString(),
+      },
     };
   }
 
@@ -628,6 +693,7 @@ async function executeTcpRequest(fullUrl: URL, config: {
     const username = String(body.username || query.username || "");
     const password = String(body.password || query.password || "");
     const res = await tcpBridge.sendCommand(host, port, "AUTHENTICATE", { username, password }, timeout, isTls);
+    const resData = (res.data || {}) as { username?: string; role?: string; permissions?: string[]; mustChangePassword?: boolean };
     if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
       tcpBridge.setCredentials(username, password);
       return {
@@ -639,6 +705,27 @@ async function executeTcpRequest(fullUrl: URL, config: {
           message: res.message || "Authenticated successfully",
           user: res.data,
           data: res.data,
+        },
+      };
+    } else if (res.statusCode === 403 && resData.mustChangePassword) {
+      // User must change their password on first login or after reset
+      tcpBridge.setCredentials(username, password);
+      const userPayload = {
+        username: resData.username || username,
+        role: resData.role || "Super Admin",
+        permissions: resData.permissions || [],
+        mustChangePassword: true,
+      };
+      return {
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        data: {
+          statusCode: 200,
+          success: true,
+          message: "Password change required",
+          user: userPayload,
+          data: userPayload,
         },
       };
     } else {
@@ -1122,7 +1209,271 @@ async function executeTcpRequest(fullUrl: URL, config: {
     };
   }
 
-  // Fallback for unsupported features over TCP (Metrics, User Management, Import/Export)
+  // 15. Metrics & System Diagnostics
+  if (pathname.includes("/api/system")) {
+    const res = await tcpBridge.sendCommand(host, port, "GET_SYSTEM_INFO", {}, timeout, isTls);
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to get system info", error: res.error },
+      };
+    }
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+    };
+  }
+
+  if (pathname.includes("/api/dashboard-stats")) {
+    const res = await tcpBridge.sendCommand(host, port, "GET_DASHBOARD_STATS", {}, timeout, isTls);
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to get dashboard stats", error: res.error },
+      };
+    }
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+    };
+  }
+
+  // 16. User & Role Management
+  if (pathname.includes("/api/auth/roles/permissions")) {
+    const res = await tcpBridge.sendCommand(host, port, "LIST_PERMISSIONS", {}, timeout, isTls);
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to list permissions", error: res.error },
+      };
+    }
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+    };
+  }
+
+  if (pathname.includes("/api/auth/roles")) {
+    if (method === "GET") {
+      const res = await tcpBridge.sendCommand(host, port, "LIST_ROLES", {}, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to list roles", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+      };
+    }
+
+    if (method === "POST") {
+      const roleName = String(body.roleName || "");
+      const permissions = Array.isArray(body.permissions) ? body.permissions : [];
+      const res = await tcpBridge.sendCommand(host, port, "CREATE_ROLE", { roleName, permissions }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to create role", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 201,
+        statusText: "Created",
+        headers: {},
+        data: { statusCode: res.statusCode || 201, message: res.message, data: res.data },
+      };
+    }
+
+    if (method === "DELETE") {
+      const parts = pathname.split("/").filter(Boolean);
+      const roleName = decodeURIComponent(parts[parts.length - 1] || "");
+      const res = await tcpBridge.sendCommand(host, port, "DELETE_ROLE", { roleName }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to delete role", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message },
+      };
+    }
+  }
+
+  if (pathname.includes("/api/auth/change-password")) {
+    const username = String(body.username || tcpBridge.getSavedUsername() || "");
+    const currentPassword = String(body.currentPassword || "");
+    const newPassword = String(body.newPassword || "");
+    const res = await tcpBridge.sendCommand(host, port, "CHANGE_PASSWORD", {
+      username,
+      currentPassword,
+      newPassword,
+    }, timeout, isTls);
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to change password", error: res.error },
+      };
+    }
+    // Update saved credentials and re-authenticate socket with the new password
+    tcpBridge.setCredentials(username, newPassword);
+    const authRes = await tcpBridge.sendCommand(host, port, "AUTHENTICATE", {
+      username,
+      password: newPassword,
+    }, timeout, isTls);
+    const authData = (authRes.data || {}) as { username?: string; role?: string; permissions?: string[] };
+    return {
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      data: {
+        statusCode: 200,
+        message: res.message || "Password changed successfully",
+        data: {
+          username,
+          role: authData.role || "Super Admin",
+          permissions: authData.permissions || [],
+          mustChangePassword: false,
+        },
+      },
+    };
+  }
+
+  if (pathname.includes("/api/auth/users")) {
+    if (pathname.includes("/role")) {
+      const parts = pathname.split("/").filter(Boolean);
+      // /api/auth/users/:username/role -> index of users is parts[parts.indexOf("users") + 1]
+      const userIdx = parts.indexOf("users");
+      const username = userIdx >= 0 && parts[userIdx + 1] ? decodeURIComponent(parts[userIdx + 1]) : "";
+      const role = String(body.role || "");
+      const res = await tcpBridge.sendCommand(host, port, "UPDATE_USER_ROLE", { username, role }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to update role", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message },
+      };
+    }
+
+    if (pathname.includes("/reset-password")) {
+      const parts = pathname.split("/").filter(Boolean);
+      const userIdx = parts.indexOf("users");
+      const username = userIdx >= 0 && parts[userIdx + 1] ? decodeURIComponent(parts[userIdx + 1]) : "";
+      const newPassword = String(body.newPassword || "");
+      const res = await tcpBridge.sendCommand(host, port, "RESET_USER_PASSWORD", { username, newPassword }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to reset password", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message },
+      };
+    }
+
+    if (method === "GET") {
+      const res = await tcpBridge.sendCommand(host, port, "LIST_USERS", {}, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to list users", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message, data: res.data },
+      };
+    }
+
+    if (method === "POST") {
+      const username = String(body.username || "");
+      const password = String(body.password || "");
+      const role = String(body.role || "");
+      const res = await tcpBridge.sendCommand(host, port, "CREATE_USER", { username, password, role }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to create user", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 201,
+        statusText: "Created",
+        headers: {},
+        data: { statusCode: res.statusCode || 201, message: res.message, data: res.data },
+      };
+    }
+
+    if (method === "DELETE") {
+      const parts = pathname.split("/").filter(Boolean);
+      const userIdx = parts.indexOf("users");
+      const username = userIdx >= 0 && parts[userIdx + 1] ? decodeURIComponent(parts[userIdx + 1]) : "";
+      const res = await tcpBridge.sendCommand(host, port, "DELETE_USER", { username }, timeout, isTls);
+      if (res.statusCode && res.statusCode >= 400) {
+        return {
+          status: res.statusCode,
+          statusText: "Error",
+          headers: {},
+          data: { statusCode: res.statusCode, message: res.message || res.error || "Failed to delete user", error: res.error },
+        };
+      }
+      return {
+        status: res.statusCode || 200,
+        statusText: "OK",
+        headers: {},
+        data: { statusCode: res.statusCode || 200, message: res.message },
+      };
+    }
+  }
+
+  // Fallback for unsupported features over TCP (Import/Export only)
   return {
     status: 400,
     statusText: "Bad Request",
@@ -1656,6 +2007,72 @@ ipcMain.handle(
 
     if (saveResult.canceled || !saveResult.filePath) {
       return { canceled: true };
+    }
+
+    if (baseUrl.startsWith("tcp://")) {
+      const fullUrl = new URL(baseUrl);
+      const host = fullUrl.hostname || "127.0.0.1";
+      const port = parseInt(fullUrl.port || "27019", 10);
+      const isTls = fullUrl.searchParams.get("tls") === "true";
+
+      const chunkSize = 2 * 1024 * 1024;
+      const firstRes = await tcpBridge.sendCommand(
+        host,
+        port,
+        "EXPORT_DATABASE",
+        { dbName, chunkIndex: 0, chunkSize },
+        60000,
+        isTls
+      );
+
+      if (firstRes.statusCode && (firstRes.statusCode < 200 || firstRes.statusCode >= 300)) {
+        throw new Error(firstRes.message || firstRes.error || "Export failed over TCP");
+      }
+
+      const expData = firstRes.data as {
+        chunkIndex: number;
+        totalChunks: number;
+        totalSize: number;
+        data: string;
+        isLast: boolean;
+      };
+      const totalChunks = expData.totalChunks;
+      const fileStream = fs.createWriteStream(saveResult.filePath);
+      const firstBuf = Buffer.from(expData.data, "base64");
+      fileStream.write(firstBuf);
+      let downloadedBytes = firstBuf.length;
+
+      for (let i = 1; i < totalChunks; i++) {
+        const chunkRes = await tcpBridge.sendCommand(
+          host,
+          port,
+          "EXPORT_DATABASE",
+          { dbName, chunkIndex: i, chunkSize },
+          60000,
+          isTls
+        );
+        if (chunkRes.statusCode && (chunkRes.statusCode < 200 || chunkRes.statusCode >= 300)) {
+          fileStream.close();
+          await fs.promises.unlink(saveResult.filePath).catch(() => {});
+          throw new Error(chunkRes.message || chunkRes.error || `Export chunk ${i} failed`);
+        }
+        const cData = chunkRes.data as { data: string };
+        const chunkBuf = Buffer.from(cData.data, "base64");
+        fileStream.write(chunkBuf);
+        downloadedBytes += chunkBuf.length;
+      }
+
+      await new Promise<void>((resolve, reject) => {
+        fileStream.end(() => resolve());
+        fileStream.on("error", reject);
+      });
+
+      return {
+        canceled: false,
+        success: true,
+        filePath: saveResult.filePath,
+        bytes: downloadedBytes,
+      };
     }
 
     return new Promise((resolve, reject) => {

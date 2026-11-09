@@ -406,6 +406,10 @@ class HTTPAPITests extends TestRunner {
         assert.equal(res.body.statusCode, 200);
         assert.exists(res.body.data.process);
         assert.exists(res.body.data.memory);
+        assert.exists(res.body.data.services);
+        const tcpService = res.body.data.services.find((s) => s.name === 'TCP Server');
+        assert.exists(tcpService);
+        assert.equal(tcpService.running, false);
       });
 
       await this.test('GET /api/routes - lists available routes', async () => {
@@ -415,10 +419,196 @@ class HTTPAPITests extends TestRunner {
       });
     });
 
-    await this.describe('Static file traversal protection', async () => {
-      await this.test('Encoded dot-dot segments cannot reach the static root', async () => {
-        const res = await request('GET', '/nested/%2E%2E/index.html');
-        assert.equal(res.status, 400);
+    await this.describe('Transaction Endpoints', async () => {
+      await this.test('POST /api/transaction/begin - missing dbName returns 400', async () => {
+        const res = await request('POST', '/api/transaction/begin', {
+          body: { collectionName: 'Users' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
+
+      await this.test('POST /api/transaction/begin - reserved db returns 403', async () => {
+        const res = await request('POST', '/api/transaction/begin', {
+          body: { dbName: 'config', collectionName: 'Users' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 403);
+      });
+
+      await this.test('POST /api/transaction/begin - starts transaction successfully', async () => {
+        const res = await request('POST', '/api/transaction/begin', {
+          body: { dbName: 'TestDB', collectionName: 'Users' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 200);
+        assert.exists(res.body.data.transactionId);
+      });
+
+      await this.test('Transaction lifecycle: begin, insert, savepoint, rollback-to-savepoint, commit', async () => {
+        const beginRes = await request('POST', '/api/transaction/begin', {
+          body: { dbName: 'TestDB', collectionName: 'Users' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(beginRes.body.statusCode, 200);
+        const txnId = beginRes.body.data.transactionId;
+
+        const ins1 = await request('POST', '/api/transaction/insert', {
+          body: { transactionId: txnId, document: { name: 'TxUser1', email: 'tx1@test.com' } },
+          ...this.cookieHeader(),
+        });
+        assert.equal(ins1.body.statusCode, 200);
+
+        const spRes = await request('POST', '/api/transaction/savepoint', {
+          body: { transactionId: txnId, savepointName: 'sp1' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(spRes.body.statusCode, 200);
+
+        const ins2 = await request('POST', '/api/transaction/insert', {
+          body: { transactionId: txnId, document: { name: 'TxUser2', email: 'tx2@test.com' } },
+          ...this.cookieHeader(),
+        });
+        assert.equal(ins2.body.statusCode, 200);
+
+        const rbSpRes = await request('POST', '/api/transaction/rollback-to-savepoint', {
+          body: { transactionId: txnId, savepointName: 'sp1' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(rbSpRes.body.statusCode, 200);
+
+        const commitRes = await request('POST', '/api/transaction/commit', {
+          body: { transactionId: txnId },
+          ...this.cookieHeader(),
+        });
+        assert.equal(commitRes.body.statusCode, 200);
+
+        const query1 = await request('POST', '/api/operation/all/by-query/?dbName=TestDB&collectionName=Users&page=1', {
+          body: { query: { email: 'tx1@test.com' } },
+          ...this.cookieHeader(),
+        });
+        assert.equal(query1.body.statusCode, 200);
+        assert.isAbove(query1.body.data.data.documents.length, 0);
+
+        const query2 = await request('POST', '/api/operation/all/by-query/?dbName=TestDB&collectionName=Users&page=1', {
+          body: { query: { email: 'tx2@test.com' } },
+          ...this.cookieHeader(),
+        });
+        assert.equal(query2.body.statusCode, 200);
+        assert.equal(query2.body.data.data.documents.length, 0);
+      });
+
+      await this.test('Transaction rollback discards buffered operations', async () => {
+        const beginRes = await request('POST', '/api/transaction/begin', {
+          body: { dbName: 'TestDB', collectionName: 'Users' },
+          ...this.cookieHeader(),
+        });
+        const txnId = beginRes.body.data.transactionId;
+
+        const ins = await request('POST', '/api/transaction/insert', {
+          body: { transactionId: txnId, document: { name: 'DiscardMe', email: 'discard@test.com' } },
+          ...this.cookieHeader(),
+        });
+        assert.equal(ins.body.statusCode, 200);
+
+        const rbRes = await request('POST', '/api/transaction/rollback', {
+          body: { transactionId: txnId },
+          ...this.cookieHeader(),
+        });
+        assert.equal(rbRes.body.statusCode, 200);
+
+        const query = await request('POST', '/api/operation/all/by-query/?dbName=TestDB&collectionName=Users&page=1', {
+          body: { query: { email: 'discard@test.com' } },
+          ...this.cookieHeader(),
+        });
+        assert.equal(query.body.statusCode, 200);
+        assert.equal(query.body.data.data.documents.length, 0);
+      });
+
+      await this.test('Transaction update and delete operations in transaction', async () => {
+        const insDirect = await request('POST', '/api/operation/create/?dbName=TestDB&collectionName=Users', {
+          body: { name: 'DirectUser', email: 'direct@test.com', status: 'pending' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(insDirect.body.statusCode, 201);
+
+        const beginRes = await request('POST', '/api/transaction/begin', {
+          body: { dbName: 'TestDB', collectionName: 'Users' },
+          ...this.cookieHeader(),
+        });
+        const txnId = beginRes.body.data.transactionId;
+
+        const updRes = await request('POST', '/api/transaction/update', {
+          body: {
+            transactionId: txnId,
+            query: { email: 'direct@test.com' },
+            update: { status: 'verified' },
+          },
+          ...this.cookieHeader(),
+        });
+        assert.equal(updRes.body.statusCode, 200);
+
+        const commitRes = await request('POST', '/api/transaction/commit', {
+          body: { transactionId: txnId },
+          ...this.cookieHeader(),
+        });
+        assert.equal(commitRes.body.statusCode, 200);
+
+        const queryUpdated = await request('POST', '/api/operation/all/by-query/?dbName=TestDB&collectionName=Users&page=1', {
+          body: { query: { email: 'direct@test.com' } },
+          ...this.cookieHeader(),
+        });
+        assert.equal(queryUpdated.body.statusCode, 200);
+        assert.equal(queryUpdated.body.data.data.documents[0].status, 'verified');
+
+        const beginRes2 = await request('POST', '/api/transaction/begin', {
+          body: { dbName: 'TestDB', collectionName: 'Users' },
+          ...this.cookieHeader(),
+        });
+        const txnId2 = beginRes2.body.data.transactionId;
+
+        const delRes = await request('POST', '/api/transaction/delete', {
+          body: {
+            transactionId: txnId2,
+            query: { email: 'direct@test.com' },
+          },
+          ...this.cookieHeader(),
+        });
+        assert.equal(delRes.body.statusCode, 200);
+
+        const commitRes2 = await request('POST', '/api/transaction/commit', {
+          body: { transactionId: txnId2 },
+          ...this.cookieHeader(),
+        });
+        assert.equal(commitRes2.body.statusCode, 200);
+
+        const queryDeleted = await request('POST', '/api/operation/all/by-query/?dbName=TestDB&collectionName=Users&page=1', {
+          body: { query: { email: 'direct@test.com' } },
+          ...this.cookieHeader(),
+        });
+        assert.equal(queryDeleted.body.statusCode, 200);
+        assert.equal(queryDeleted.body.data.data.documents.length, 0);
+      });
+
+      await this.test('Operations on non-existent or completed transaction return 404', async () => {
+        const res = await request('POST', '/api/transaction/commit', {
+          body: { transactionId: 'non-existent-id' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 404);
+      });
+    });
+
+    await this.describe('Root Welcome & Non-API handling', async () => {
+      await this.test('GET / returns welcome message and GUI install instructions', async () => {
+        const res = await request('GET', '/');
+        assert.equal(res.status, 200);
+        assert.ok(typeof res.body === 'string' && res.body.includes('Welcome to AxioDB'));
+        assert.ok(res.body.includes('CHOICE=2 bash'));
+      });
+      await this.test('Non-existent non-API path returns 404', async () => {
+        const res = await request('GET', '/nested/unknown.html');
+        assert.equal(res.status, 404);
       });
     });
 

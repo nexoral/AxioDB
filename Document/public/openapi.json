@@ -43,6 +43,10 @@
     {
       "name": "Document Operations (CRUD)",
       "description": "Create, read, update, and delete documents with advanced query support"
+    },
+    {
+      "name": "Transactions",
+      "description": "ACID transaction operations including begin, insert, update, delete, savepoints, commit, and rollback"
     }
   ],
   "paths": {
@@ -909,7 +913,7 @@
         "parameters": [
           {
             "name": "roleName",
-            "in": "query",
+            "in": "path",
             "required": true,
             "description": "Role name",
             "schema": {
@@ -2646,6 +2650,494 @@
           },
           "500": {
             "description": "Internal Server Error - Aggregation failed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/transaction/begin": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Begins a new ACID transaction on a target collection.",
+        "description": "Begins a new ACID transaction on a target collection.",
+        "operationId": "postApiTransactionBegin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "dbName": "Ecommerce",
+                "collectionName": "Orders"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Transaction initialized",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Transaction started",
+                  "data": {
+                    "transactionId": "TX1731139200000"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Missing or invalid dbName/collectionName"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          },
+          "403": {
+            "description": "Forbidden - Reserved database or insufficient permissions"
+          },
+          "500": {
+            "description": "Internal Server Error - Failed to initialize transaction"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/transaction/insert": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Buffers a document insertion operation inside an active transaction.",
+        "description": "Buffers a document insertion operation inside an active transaction.",
+        "operationId": "postApiTransactionInsert",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "transactionId": "TX1731139200000",
+                "document": {
+                  "orderId": "ORD-101",
+                  "total": 99.99
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Document buffered",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Document buffered in transaction",
+                  "data": {
+                    "transactionId": "TX1731139200000"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid document payload"
+          },
+          "404": {
+            "description": "Not Found - Transaction not found or already completed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/transaction/update": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Buffers a document update operation matching query criteria inside an active transaction.",
+        "description": "Buffers a document update operation matching query criteria inside an active transaction.",
+        "operationId": "postApiTransactionUpdate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "transactionId": "TX1731139200000",
+                "query": {
+                  "orderId": "ORD-101"
+                },
+                "update": {
+                  "status": "completed"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Update buffered",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Update buffered in transaction",
+                  "data": {
+                    "transactionId": "TX1731139200000"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid query or update payload"
+          },
+          "404": {
+            "description": "Not Found - Transaction not found or already completed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/transaction/delete": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Buffers a document deletion operation matching query criteria inside an active transaction.",
+        "description": "Buffers a document deletion operation matching query criteria inside an active transaction.",
+        "operationId": "postApiTransactionDelete",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "transactionId": "TX1731139200000",
+                "query": {
+                  "orderId": "ORD-101"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Delete buffered",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Delete buffered in transaction",
+                  "data": {
+                    "transactionId": "TX1731139200000"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid query payload"
+          },
+          "404": {
+            "description": "Not Found - Transaction not found or already completed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/transaction/savepoint": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Creates a named savepoint inside an active transaction for partial rollback checkpoints.",
+        "description": "Creates a named savepoint inside an active transaction for partial rollback checkpoints.",
+        "operationId": "postApiTransactionSavepoint",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "transactionId": "TX1731139200000",
+                "savepointName": "before_discount"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Savepoint created",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Savepoint 'before_discount' created",
+                  "data": {
+                    "transactionId": "TX1731139200000",
+                    "savepointName": "before_discount"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid or duplicate savepoint name"
+          },
+          "404": {
+            "description": "Not Found - Transaction not found or already completed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/transaction/rollback-to-savepoint": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Rolls back transaction operations to a named savepoint, discarding operations staged after it.",
+        "description": "Rolls back transaction operations to a named savepoint, discarding operations staged after it.",
+        "operationId": "postApiTransactionRollbackToSavepoint",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "transactionId": "TX1731139200000",
+                "savepointName": "before_discount"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Rolled back to savepoint",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Rolled back to savepoint 'before_discount'",
+                  "data": {
+                    "transactionId": "TX1731139200000",
+                    "savepointName": "before_discount"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Savepoint not found"
+          },
+          "404": {
+            "description": "Not Found - Transaction not found or already completed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/transaction/release-savepoint": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Releases a named savepoint without reverting any buffered operations.",
+        "description": "Releases a named savepoint without reverting any buffered operations.",
+        "operationId": "postApiTransactionReleaseSavepoint",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "transactionId": "TX1731139200000",
+                "savepointName": "before_discount"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Savepoint released",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Savepoint 'before_discount' released",
+                  "data": {
+                    "transactionId": "TX1731139200000",
+                    "savepointName": "before_discount"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Savepoint not found"
+          },
+          "404": {
+            "description": "Not Found - Transaction not found or already completed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/transaction/commit": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Atomically commits all buffered operations in the transaction to disk and WAL.",
+        "description": "Atomically commits all buffered operations in the transaction to disk and WAL.",
+        "operationId": "postApiTransactionCommit",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "transactionId": "TX1731139200000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Transaction committed",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Transaction committed successfully",
+                  "data": {
+                    "message": "Transaction committed successfully",
+                    "transactionId": "TX1731139200000",
+                    "operationsCount": 3
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Transaction not found or already completed"
+          },
+          "500": {
+            "description": "Internal Server Error - Transaction commit failed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/transaction/rollback": {
+      "post": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Discards and rolls back all buffered operations in an active transaction.",
+        "description": "Discards and rolls back all buffered operations in an active transaction.",
+        "operationId": "postApiTransactionRollback",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "example": {
+                "transactionId": "TX1731139200000"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Transaction rolled back",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Transaction rolled back successfully",
+                  "data": {
+                    "message": "Transaction rolled back successfully",
+                    "transactionId": "TX1731139200000"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Transaction not found or already completed"
+          },
+          "500": {
+            "description": "Internal Server Error - Rollback failed"
           }
         },
         "security": [

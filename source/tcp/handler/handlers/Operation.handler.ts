@@ -47,7 +47,7 @@ export default class OperationHandler {
 
     const mockRequest: MockRequest = {
       query: { dbName: dbName!, collectionName: collectionName! },
-      body: data,
+      body: data as Document,
     };
     const result = await this.controller.createNewDocument(mockRequest as unknown as AxioHttpRequest);
     return { id: requestId, statusCode: result.statusCode, message: result.message, data: result.data };

@@ -6,7 +6,6 @@ import buildResponse, {
 import { StatusCodes } from "../../config/Keys/StatusCode";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
-import { cpus } from "node:os";
 import { AxioDB } from "../../Services/Indexation.operation";
 
 import dbRouter from "./Routers/DB.routes";
@@ -16,7 +15,9 @@ import OperationRouter from "./Routers/Operation.routes";
 import authRouter from "./Routers/Auth.routes";
 import userManagementRouter from "./Routers/UserManagement.routes";
 import roleManagementRouter from "./Routers/RoleManagement.routes";
+import transactionRouter from "./Routers/Transaction.routes";
 import StatsController from "../controller/Stats.controller";
+import { getSystemInfo } from "../../Helper/SystemInfo.helper";
 import { requireAuth, requireFreshPassword } from "../middleware/auth.middleware";
 import { requirePermission } from "../middleware/permission.middleware";
 import { PERMISSIONS } from "../../config/Keys/Permissions";
@@ -92,48 +93,8 @@ export default async function mainRouter(
     "/system",
     { preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DASHBOARD_VIEW)] },
     async () => {
-      const PackageFile = await getPackageInfo();
-      const memory = process.memoryUsage();
-      const toMB = (bytes: number) => parseFloat((bytes / 1024 / 1024).toFixed(2));
-      const cache = await AxioDBInstance.Cache.getCacheDetails();
-      const instance = await AxioDBInstance.getInstanceInfo();
-      const cacheData = cache as { cacheSizeInBytes: number; availableMemoryInBytes: number } | false;
-      const instanceData = instance?.data as Record<string, unknown> | undefined;
-
-      return buildResponse(StatusCodes.OK, "System information", {
-        process: {
-          uptimeSeconds: Math.floor(process.uptime()),
-          startedAt: new Date(Date.now() - process.uptime() * 1000).toISOString(),
-          pid: process.pid,
-          nodeVersion: process.version,
-          platform: process.platform,
-          arch: process.arch,
-          cpuCount: cpus().length,
-        },
-        memory: {
-          rss: toMB(memory.rss),
-          heapUsed: toMB(memory.heapUsed),
-          heapTotal: toMB(memory.heapTotal),
-          external: toMB(memory.external),
-          unit: "MB",
-        },
-        cache: {
-          used: parseFloat(((cacheData ? cacheData.cacheSizeInBytes : 0) / 1024 / 1024).toFixed(2)),
-          max: parseFloat(((cacheData ? cacheData.availableMemoryInBytes : 0) / 1024 / 1024).toFixed(2)),
-          unit: "MB",
-        },
-        instance: {
-          version: PackageFile.version,
-          rootName: (instanceData?.RootName as string) ?? null,
-          path: (instanceData?.CurrentPath as string) ?? null,
-          totalDatabases: ((instanceData?.ListOfDatabases as unknown[])?.length) ?? 0,
-        },
-        services: [
-          { name: "HTTP Server", port: 27018, running: true },
-          { name: "TCP Server", port: 27019, running: Boolean(process.env.AXIODB_TCP === "true") },
-          { name: "MCP Server", port: 27020, running: Boolean(AxioDBInstance.isMCP || process.env.AXIODB_MCP === "true"), note: "Native in core & Docker" },
-        ],
-      });
+      const systemData = await getSystemInfo(AxioDBInstance);
+      return buildResponse(StatusCodes.OK, "System information", systemData);
     },
   );
 
@@ -171,6 +132,11 @@ export default async function mainRouter(
 
   await router.register(indexRouter, {
     prefix: "/index",
+    AxioDBInstance: AxioDBInstance,
+  });
+
+  await router.register(transactionRouter, {
+    prefix: "/transaction",
     AxioDBInstance: AxioDBInstance,
   });
 

@@ -60,11 +60,10 @@ const Dashboard = () => {
   const [latency, setLatency] = useState(0)
   const [lastRefreshed, setLastRefreshed] = useState(null)
 
-  const { isConnected, protocol } = useConnectionStore()
-  const isHttp = protocol !== 'tcp'
+  const { isConnected } = useConnectionStore()
 
   const fetchMetricsAndStatus = useCallback(async () => {
-    if (!isConnected || !isHttp) return
+    if (!isConnected) return
 
     const start = performance.now()
     try {
@@ -109,7 +108,7 @@ const Dashboard = () => {
     } finally {
       setLoading(false)
     }
-  }, [isConnected, isHttp])
+  }, [isConnected])
 
   useEffect(() => {
     fetchMetricsAndStatus()
@@ -123,7 +122,7 @@ const Dashboard = () => {
   const memory = systemInfo?.memory ?? {}
   const instance = systemInfo?.instance ?? {}
   const services = systemInfo?.services ?? []
-  const isHealthy = healthInfo?.status === 'ok'
+  const isHealthy = healthInfo?.status === 'ok' || healthInfo?.success === true
 
   return (
     <div className='flex-1 overflow-y-auto bg-slate-50 p-6 font-sans select-none'>
@@ -266,7 +265,12 @@ const Dashboard = () => {
                 mono
                 loading={loading}
               />
-              <DetailRow label='Node.js' value={proc.nodeVersion} mono loading={loading} />
+              <DetailRow
+                label={proc.runtime || 'Node.js'}
+                value={proc.runtimeVersion || proc.nodeVersion}
+                mono
+                loading={loading}
+              />
               <DetailRow
                 label='Platform'
                 value={proc.platform && `${proc.platform} (${proc.arch})`}

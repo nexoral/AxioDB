@@ -17,7 +17,7 @@ export interface ApiEndpoint {
   description: string;
   parameters?: {
     name: string;
-    type: "query" | "body" | "header";
+    type: "query" | "body" | "header" | "path";
     dataType: string;
     required: boolean;
     description: string;
@@ -1387,6 +1387,211 @@ file: [database.tar.gz file]`,
             { code: 200, description: "Success - Returns aggregation results" },
             { code: 400, description: "Bad Request - Invalid pipeline" },
             { code: 500, description: "Internal Server Error - Aggregation failed" },
+          ],
+        },
+      ],
+    },
+    {
+      title: "Transactions",
+      description: "ACID transaction operations including begin, insert, update, delete, savepoints, commit, and rollback",
+      endpoints: [
+        {
+          method: "POST",
+          path: "/api/transaction/begin",
+          description: "Begins a new ACID transaction on a target collection.",
+          requestBody: `{
+  "dbName": "Ecommerce",
+  "collectionName": "Orders"
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Transaction started",
+  "data": {
+    "transactionId": "TX1731139200000"
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Transaction initialized" },
+            { code: 400, description: "Bad Request - Missing or invalid dbName/collectionName" },
+            { code: 401, description: "Unauthorized - Authentication required" },
+            { code: 403, description: "Forbidden - Reserved database or insufficient permissions" },
+            { code: 500, description: "Internal Server Error - Failed to initialize transaction" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/transaction/insert",
+          description: "Buffers a document insertion operation inside an active transaction.",
+          requestBody: `{
+  "transactionId": "TX1731139200000",
+  "document": {
+    "orderId": "ORD-101",
+    "total": 99.99
+  }
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Document buffered in transaction",
+  "data": {
+    "transactionId": "TX1731139200000"
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Document buffered" },
+            { code: 400, description: "Bad Request - Invalid document payload" },
+            { code: 404, description: "Not Found - Transaction not found or already completed" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/transaction/update",
+          description: "Buffers a document update operation matching query criteria inside an active transaction.",
+          requestBody: `{
+  "transactionId": "TX1731139200000",
+  "query": { "orderId": "ORD-101" },
+  "update": { "status": "completed" }
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Update buffered in transaction",
+  "data": {
+    "transactionId": "TX1731139200000"
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Update buffered" },
+            { code: 400, description: "Bad Request - Invalid query or update payload" },
+            { code: 404, description: "Not Found - Transaction not found or already completed" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/transaction/delete",
+          description: "Buffers a document deletion operation matching query criteria inside an active transaction.",
+          requestBody: `{
+  "transactionId": "TX1731139200000",
+  "query": { "orderId": "ORD-101" }
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Delete buffered in transaction",
+  "data": {
+    "transactionId": "TX1731139200000"
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Delete buffered" },
+            { code: 400, description: "Bad Request - Invalid query payload" },
+            { code: 404, description: "Not Found - Transaction not found or already completed" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/transaction/savepoint",
+          description: "Creates a named savepoint inside an active transaction for partial rollback checkpoints.",
+          requestBody: `{
+  "transactionId": "TX1731139200000",
+  "savepointName": "before_discount"
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Savepoint 'before_discount' created",
+  "data": {
+    "transactionId": "TX1731139200000",
+    "savepointName": "before_discount"
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Savepoint created" },
+            { code: 400, description: "Bad Request - Invalid or duplicate savepoint name" },
+            { code: 404, description: "Not Found - Transaction not found or already completed" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/transaction/rollback-to-savepoint",
+          description: "Rolls back transaction operations to a named savepoint, discarding operations staged after it.",
+          requestBody: `{
+  "transactionId": "TX1731139200000",
+  "savepointName": "before_discount"
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Rolled back to savepoint 'before_discount'",
+  "data": {
+    "transactionId": "TX1731139200000",
+    "savepointName": "before_discount"
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Rolled back to savepoint" },
+            { code: 400, description: "Bad Request - Savepoint not found" },
+            { code: 404, description: "Not Found - Transaction not found or already completed" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/transaction/release-savepoint",
+          description: "Releases a named savepoint without reverting any buffered operations.",
+          requestBody: `{
+  "transactionId": "TX1731139200000",
+  "savepointName": "before_discount"
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Savepoint 'before_discount' released",
+  "data": {
+    "transactionId": "TX1731139200000",
+    "savepointName": "before_discount"
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Savepoint released" },
+            { code: 400, description: "Bad Request - Savepoint not found" },
+            { code: 404, description: "Not Found - Transaction not found or already completed" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/transaction/commit",
+          description: "Atomically commits all buffered operations in the transaction to disk and WAL.",
+          requestBody: `{
+  "transactionId": "TX1731139200000"
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Transaction committed successfully",
+  "data": {
+    "message": "Transaction committed successfully",
+    "transactionId": "TX1731139200000",
+    "operationsCount": 3
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Transaction committed" },
+            { code: 404, description: "Not Found - Transaction not found or already completed" },
+            { code: 500, description: "Internal Server Error - Transaction commit failed" },
+          ],
+        },
+        {
+          method: "POST",
+          path: "/api/transaction/rollback",
+          description: "Discards and rolls back all buffered operations in an active transaction.",
+          requestBody: `{
+  "transactionId": "TX1731139200000"
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Transaction rolled back successfully",
+  "data": {
+    "message": "Transaction rolled back successfully",
+    "transactionId": "TX1731139200000"
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Transaction rolled back" },
+            { code: 404, description: "Not Found - Transaction not found or already completed" },
+            { code: 500, description: "Internal Server Error - Rollback failed" },
           ],
         },
       ],

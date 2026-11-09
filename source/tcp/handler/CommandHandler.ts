@@ -10,7 +10,6 @@ import { isReservedDatabaseName } from '../../config/Keys/Permissions';
 import PermissionChecker from '../../Services/Auth/PermissionChecker.helper';
 import SafeErrorMessage from '../../Helper/SafeErrorMessage.helper';
 
-// Handlers
 import DBHandler from './handlers/DB.handler';
 import CollectionHandler from './handlers/Collection.handler';
 import OperationHandler from './handlers/Operation.handler';
@@ -19,32 +18,31 @@ import TransactionHandler from './handlers/Transaction.handler';
 import TransactionManager from '../connection/TransactionManager';
 
 /**
- * Command Handler - Main dispatcher for TCP commands
- * Routes commands to appropriate handlers
+ * Command Handler - Routes TCP commands to appropriate service handlers
  */
 export class CommandHandler {
-  private axioDB: AxioDB;
-  private connectionManager: ConnectionManager;
-  private requireAuth: boolean;
   private dbHandler: DBHandler;
   private collectionHandler: CollectionHandler;
   private operationHandler: OperationHandler;
   private authHandler: AuthHandler;
   private transactionHandler: TransactionHandler;
   private txnManager: TransactionManager;
+  private connectionManager: ConnectionManager;
+  private requireAuth: boolean;
 
-  constructor(axioDB: AxioDB, connectionManager: ConnectionManager, requireAuth: boolean = false) {
-    this.axioDB = axioDB;
+  constructor(axioDB: AxioDB, connectionManager: ConnectionManager, requireAuth = false) {
     this.connectionManager = connectionManager;
     this.requireAuth = requireAuth;
-
-    // Initialize handlers
     this.dbHandler = new DBHandler(axioDB);
     this.collectionHandler = new CollectionHandler(axioDB);
     this.operationHandler = new OperationHandler(axioDB);
     this.authHandler = new AuthHandler();
     this.transactionHandler = new TransactionHandler(axioDB);
     this.txnManager = TransactionManager.getInstance();
+  }
+
+  getDBHandler(): DBHandler {
+    return this.dbHandler;
   }
 
   /**
@@ -99,7 +97,7 @@ export class CommandHandler {
 
     try {
       switch (command) {
-        // Connection commands
+        // System commands
         case CommandType.PING:
           return this.handlePing(id);
 
@@ -109,15 +107,51 @@ export class CommandHandler {
         case CommandType.DISCONNECT:
           return this.handleDisconnect(id);
 
-        // Authentication commands
+        case CommandType.GET_SYSTEM_INFO:
+          return await this.dbHandler.handleGetSystemInfo(id);
+
+        case CommandType.GET_DASHBOARD_STATS:
+          return await this.dbHandler.handleGetDashboardStats(id);
+
+        // Authentication & User management commands
         case CommandType.AUTHENTICATE:
-          return await this.authHandler.handleAuthenticate(
-            id,
-            params,
-            context.connectionId,
-            context.remoteIp,
-            this.connectionManager,
-          );
+          return await this.authHandler.handleAuthenticate(id, params, context.connectionId, context.remoteAddress, this.connectionManager);
+
+        case CommandType.LIST_USERS:
+          return await this.authHandler.handleListUsers(id);
+
+        case CommandType.CREATE_USER:
+          return await this.authHandler.handleCreateUser(id, params);
+
+        case CommandType.UPDATE_USER_ROLE: {
+          const authUser = this.connectionManager.getAuthUser(context.connectionId);
+          return await this.authHandler.handleUpdateUserRole(id, params, authUser?.username);
+        }
+
+        case CommandType.RESET_USER_PASSWORD:
+          return await this.authHandler.handleResetUserPassword(id, params);
+
+        case CommandType.CHANGE_PASSWORD: {
+          const authUser = this.connectionManager.getAuthUser(context.connectionId);
+          return await this.authHandler.handleChangePassword(id, params, authUser);
+        }
+
+        case CommandType.DELETE_USER: {
+          const authUser = this.connectionManager.getAuthUser(context.connectionId);
+          return await this.authHandler.handleDeleteUser(id, params, authUser?.username);
+        }
+
+        case CommandType.LIST_ROLES:
+          return await this.authHandler.handleListRoles(id);
+
+        case CommandType.CREATE_ROLE:
+          return await this.authHandler.handleCreateRole(id, params);
+
+        case CommandType.DELETE_ROLE:
+          return await this.authHandler.handleDeleteRole(id, params);
+
+        case CommandType.LIST_PERMISSIONS:
+          return await this.authHandler.handleListPermissions(id);
 
         // Database commands
         case CommandType.CREATE_DB:
@@ -132,6 +166,12 @@ export class CommandHandler {
         case CommandType.GET_INSTANCE_INFO:
           return await this.dbHandler.handleGetInstanceInfo(id);
 
+        case CommandType.EXPORT_DATABASE:
+          return await this.dbHandler.handleExportDatabase(id, params, context.connectionId);
+
+        case CommandType.IMPORT_DATABASE:
+          return await this.dbHandler.handleImportDatabase(id, params, context.connectionId);
+
         // Collection commands
         case CommandType.CREATE_COLLECTION:
           return await this.collectionHandler.handleCreateCollection(id, params);
@@ -145,7 +185,7 @@ export class CommandHandler {
         case CommandType.GET_COLLECTION_INFO:
           return await this.collectionHandler.handleGetCollectionInfo(id, params);
 
-        // CRUD operations
+        // Document commands
         case CommandType.INSERT_DOCUMENT:
           return await this.operationHandler.handleInsertDocument(id, params, context.connectionId);
 
@@ -179,7 +219,7 @@ export class CommandHandler {
         case CommandType.TOTAL_DOCUMENTS:
           return await this.operationHandler.handleTotalDocuments(id, params);
 
-        // Index operations
+        // Index commands
         case CommandType.CREATE_INDEX:
           return await this.operationHandler.handleCreateIndex(id, params);
 
@@ -189,7 +229,7 @@ export class CommandHandler {
         case CommandType.LIST_INDEXES:
           return await this.operationHandler.handleListIndexes(id, params);
 
-        // Transaction operations
+        // Transaction commands
         case CommandType.BEGIN_TRANSACTION:
           return await this.transactionHandler.handleBegin(id, params, context.connectionId);
 

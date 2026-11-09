@@ -90,32 +90,38 @@ axiodb:mydb:users> db.users.deleteOne({name: "Bob"})
 axiodb:mydb:users> db.users.countDocuments()
 axiodb:mydb:users> exit`;
 
-const USAGE_EXPORT_IMPORT = `# Export database (saves mydb.tar.gz in current directory)
-axiodb export mydb \\
-  --http-host localhost --http-port 27018 \\
-  -u admin -p secret
+const USAGE_EXPORT_IMPORT = `# Export database over TCP (:27019 default, saves mydb.tar.gz in current directory)
+axiodb export mydb -u admin -p secret
 
-# Export from remote server
-axiodb export mydb \\
-  --http-host prod.example.com --http-port 27018 \\
-  -u admin -p secret
+# Export from remote server over TCP
+axiodb export mydb --host prod.example.com --port 27019 -u admin -p secret
 
-# Import database from file (tab completes .tar.gz files)
-axiodb import ./backups/mydb.tar.gz \\
-  --http-host localhost --http-port 27018 \\
-  -u admin -p secret
+# Optional HTTP export via --http flag
+axiodb export mydb --http --http-host localhost --http-port 27018 -u admin -p secret
+
+# Import database from file over TCP (:27019 default, tab completes .tar.gz files)
+axiodb import ./backups/mydb.tar.gz -u admin -p secret
 
 # Import overwrites if database already exists — delete first via GUI or CLI
-axiodb db delete mydb -c axiodb://localhost:27019 -u admin -p secret
-axiodb import ./backups/mydb.tar.gz \\
-  --http-host localhost --http-port 27018 \\
-  -u admin -p secret`;
+axiodb db delete mydb -u admin -p secret
+axiodb import ./backups/mydb.tar.gz -u admin -p secret
 
-const USAGE_ADMIN = `# User and role administration uses the HTTP API (port 27018)
-axiodb user list --http-host localhost --http-port 27018 -u admin -p secret
-axiodb user create analyst analyst123 View --http-host localhost --http-port 27018 -u admin -p secret
-axiodb role list --http-host localhost --http-port 27018 -u admin -p secret
-axiodb role create Auditor document:view,document:query --http-host localhost --http-port 27018 -u admin -p secret`;
+# Optional HTTP import via --http flag
+axiodb import ./backups/mydb.tar.gz --http --http-host localhost --http-port 27018 -u admin -p secret`;
+
+const USAGE_ADMIN = `# User and role administration via TCP (port 27019, default)
+axiodb user list -u admin -p secret
+axiodb user create analyst analyst123 View -u admin -p secret
+axiodb user change-password oldpass newpass -u admin -p oldpass
+axiodb role list -u admin -p secret
+axiodb role create Auditor db:view,document:view -u admin -p secret
+
+# Or over HTTP port 27018 using --http flag
+axiodb user list --http -u admin -p secret
+
+# Server runtime diagnostics and stats
+axiodb info -u admin -p secret
+axiodb stats -u admin -p secret`;
 
 const USAGE_TRANSACTION = `# Run transaction steps from a JSON file on one TCP connection
 cat > transfer.json <<'EOF'
@@ -251,10 +257,9 @@ const CliPage: React.FC = () => {
             <Server className="h-5 w-5 text-amber-600" />
           </div>
           <div>
-            <p className="text-sm font-bold text-amber-800">Enable HTTP & TCP on the server first</p>
+            <p className="text-sm font-bold text-amber-800">Connection & Services</p>
             <p className="text-sm text-amber-700 mt-1">
-              The CLI needs <code className="px-1 py-0.5 bg-white rounded">TCP 27019</code> enabled (<code className="px-1 py-0.5 bg-white rounded">new AxioDB(&#123; TCP: true &#125;)</code> or <code className="px-1 py-0.5 bg-white rounded">AXIODB_TCP=true</code>) for data commands: <code className="px-1 py-0.5 bg-white rounded">db</code>, <code className="px-1 py-0.5 bg-white rounded">collection</code>, <code className="px-1 py-0.5 bg-white rounded">document</code>, <code className="px-1 py-0.5 bg-white rounded">index</code>, <code className="px-1 py-0.5 bg-white rounded">transaction</code>, <code className="px-1 py-0.5 bg-white rounded">ping</code>, <code className="px-1 py-0.5 bg-white rounded">health</code>, <code className="px-1 py-0.5 bg-white rounded">connect</code>.
-              Management commands (<code className="px-1 py-0.5 bg-white rounded">user</code>, <code className="px-1 py-0.5 bg-white rounded">role</code>, <code className="px-1 py-0.5 bg-white rounded">user change-password</code>, <code className="px-1 py-0.5 bg-white rounded">export</code>/<code className="px-1 py-0.5 bg-white rounded">import</code>) need <code className="px-1 py-0.5 bg-white rounded">HTTP 27018</code> enabled (<code className="px-1 py-0.5 bg-white rounded">HTTP: true</code> / <code className="px-1 py-0.5 bg-white rounded">AXIODB_HTTP=true</code>). TCP is data-plane only by design — no user/role management over TCP.
+              The CLI connects over <code className="px-1 py-0.5 bg-white rounded">TCP 27019</code> by default for all operations: database, collection, document CRUD, aggregation, indexes, transactions, archive export/import, telemetry (<code>info</code>, <code>stats</code>), and user/role administration. Optional HTTP fallback for export/import is available via <code className="px-1 py-0.5 bg-white rounded">--http</code> (port 27018).
             </p>
           </div>
         </div>
@@ -414,8 +419,9 @@ const CliPage: React.FC = () => {
                 { flag: "--timeout", short: "", def: "30", desc: "Request timeout in seconds" },
                 { flag: "--db", short: "", def: '""', desc: "Database name (for single commands)" },
                 { flag: "--collection", short: "", def: '""', desc: "Collection name (for single commands)" },
-                { flag: "--http-host", short: "", def: "localhost", desc: "HTTP server host (for export/import)" },
-                { flag: "--http-port", short: "", def: "27018", desc: "HTTP server port (for export/import)" },
+                { flag: "--http", short: "", def: "false", desc: "Use HTTP API instead of TCP for export/import" },
+                { flag: "--http-host", short: "", def: "localhost", desc: "HTTP server host (when using --http)" },
+                { flag: "--http-port", short: "", def: "27018", desc: "HTTP server port (when using --http)" },
               ].map((row, i) => (
                 <tr key={i} className="border-b border-gray-100">
                   <td className="py-2 px-3 font-mono text-xs text-emerald-700">{row.flag}</td>
@@ -431,7 +437,7 @@ const CliPage: React.FC = () => {
           <p className="text-sm text-gray-600">
             <strong>Note:</strong> <code className="px-1 py-0.5 bg-white rounded">-c</code> overrides <code className="px-1 py-0.5 bg-white rounded">--host</code> and <code className="px-1 py-0.5 bg-white rounded">--port</code> when both are provided.
             Auth flags (<code className="px-1 py-0.5 bg-white rounded">-u</code>/<code className="px-1 py-0.5 bg-white rounded">-p</code>) are only sent if the server has <code className="px-1 py-0.5 bg-white rounded">TCPAuth: true</code> enabled.
-            Export/import use the HTTP API (port 27018) — <code className="px-1 py-0.5 bg-white rounded">--http-host</code> and <code className="px-1 py-0.5 bg-white rounded">--http-port</code> are separate from the TCP flags.
+            Export/import route over TCP (port 27019) by default; passing <code className="px-1 py-0.5 bg-white rounded">--http</code> uses the HTTP API (port 27018 with <code className="px-1 py-0.5 bg-white rounded">--http-host</code> / <code className="px-1 py-0.5 bg-white rounded">--http-port</code>).
           </p>
         </div>
       </div>
@@ -451,18 +457,18 @@ const CliPage: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Export & Import (via HTTP API)</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">Export & Import (via TCP / HTTP)</h3>
           <p className="text-sm text-gray-600 mb-3">
-            Export and import use the HTTP Dashboard API (port 27018), not the TCP protocol.
-            They require <code className="px-1 py-0.5 bg-gray-100 rounded">-u</code>/<code className="px-1 py-0.5 bg-gray-100 rounded">-p</code> flags for HTTP session authentication.
+            Export and import default to the TCP protocol (port 27019) with chunked transfer.
+            Pass <code className="px-1 py-0.5 bg-gray-100 rounded">--http</code> to route through the HTTP Dashboard API (port 27018).
             Tab completes <code className="px-1 py-0.5 bg-gray-100 rounded">.tar.gz</code> file paths automatically.
           </p>
           <CodeBlock code={USAGE_EXPORT_IMPORT} language="bash" />
         </div>
 
         <div className="mt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">User & Role Administration (via HTTP API)</h3>
-          <p className="text-sm text-gray-600 mb-3">Management commands use HTTP port 27018. The TCP protocol remains data-plane only.</p>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">User & Role Administration</h3>
+          <p className="text-sm text-gray-600 mb-3">Manage users, roles, and permissions over TCP (port 27019, default) or HTTP (port 27018 with <code>--http</code>).</p>
           <CodeBlock code={USAGE_ADMIN} language="bash" />
         </div>
 
@@ -490,10 +496,10 @@ const CliPage: React.FC = () => {
         <div className="grid md:grid-cols-2 gap-4">
           {[
             { title: "TCP Data Operations", desc: "Database, collection, document CRUD, aggregation, indexing, counts, hints, find-by-IDs, and transactions" },
-            { title: "Health & Diagnostics", desc: "Check TCP service health and retrieve instance information" },
-            { title: "HTTP Administration", desc: "Manage users and roles without adding management commands to the TCP client" },
+            { title: "Health & Telemetry", desc: "Check TCP health and retrieve instance diagnostics and stats with 'axiodb info' and 'axiodb stats'" },
+            { title: "User & Role Administration", desc: "Manage users, roles, and permissions directly over TCP or HTTP with shared RBAC" },
             { title: "Interactive REPL", desc: "MongoDB shell syntax with tab autocomplete" },
-            { title: "Export & Import", desc: "Backup/restore databases via HTTP API, tab-completes file paths" },
+            { title: "Export & Import", desc: "Backup/restore databases via TCP (default) or HTTP API, tab-completes file paths" },
             { title: "TLS Encryption", desc: "--tls, --tls-cert, --tls-skip-verify flags" },
             { title: "TCP Authentication", desc: "-u / -p flags, shared RBAC with GUI" },
             { title: "Self-Removal (Destroy)", desc: "One-line clean uninstallation with 'axiodb destroy' (-y / --force)" },
@@ -570,8 +576,8 @@ const CliPage: React.FC = () => {
         </div>
         <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-700">
-            <strong>Note:</strong> The CLI uses two protocols: TCP (port 27019) for queries/CRUD, and HTTP (port 27018) for export/import.
-            They are separate surfaces — TCP commands cannot talk to the HTTP API and vice versa.
+            <strong>Note:</strong> The CLI operates over TCP (port 27019) for all database operations, administration, and chunked archive export/import.
+            HTTP (port 27018) is optionally supported via the <code className="px-1 py-0.5 bg-white rounded">--http</code> flag.
             TCPAuth and TLS features require AxioDB server version 15.0.0 or later.
           </p>
         </div>

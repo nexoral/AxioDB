@@ -50,6 +50,7 @@ export interface CookiePayload {
 export interface AuthenticatedUser {
   username: string;
   role: string;
+  permissions?: string[];
   mustChangePassword: boolean;
 }
 

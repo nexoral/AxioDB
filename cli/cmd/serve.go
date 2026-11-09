@@ -97,9 +97,16 @@ func runServe(cmd *cobra.Command, modeName, password string) (runErr error) {
 	child.Dir = tempDir
 	child.Stdout = output
 	child.Stderr = errorOutput
+	child.Env = os.Environ()
+	if config.TCP {
+		child.Env = append(child.Env, "AXIODB_TCP=true")
+	}
+	if config.MCP {
+		child.Env = append(child.Env, "AXIODB_MCP=true")
+	}
 	// Passed via the environment so the credential is not written to server.js.
 	if password != "" {
-		child.Env = append(os.Environ(), adminPasswordEnv+"="+password)
+		child.Env = append(child.Env, adminPasswordEnv+"="+password)
 	}
 
 	signals := make(chan os.Signal, 1)

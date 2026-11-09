@@ -191,6 +191,11 @@ export class AxioDB {
     return this.MCP;
   }
 
+  /** Whether the TCP server is enabled on this AxioDB instance. */
+  public get isTCP(): boolean {
+    return this.TCP;
+  }
+
   /** Stops the native MCP HTTP server if active. */
   public async stopMCPServer(): Promise<void> {
     await stopMcpServer();
@@ -253,7 +258,7 @@ export class AxioDB {
       const FinalDatabaseInfo: FinalDatabaseInfo = {
         CurrentPath: this.currentPATH,
         RootName: this.RootName,
-        TotalSize: parseFloat(totalSize.data as string),
+        TotalSize: visibleDatabases.length === 0 ? 0 : parseFloat(totalSize.data as string),
         TotalDatabases: `${visibleDatabases.length} Databases`,
         ListOfDatabases: visibleDatabases,
         DatabaseMap: this.DatabaseMap,

@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 26.41.7 | License: MIT | Node.js >= 20.0.0
+Version: 27.42.9 | License: MIT | Node.js >= 22.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -50,7 +50,7 @@ AxioDB is one package with several distinct surfaces. They are **not interchange
 npm install axiodb
 ```
 
-Requires Node.js >= 20.0.0, npm >= 6.0.0 (also verified on Bun v1.4.0). Server-side/desktop only — does not run in a browser (needs the filesystem).
+Requires Node.js >= 22.0.0, npm >= 6.0.0 (also verified on Bun v1.4.0, Deno v2.9.6). Server-side/desktop only — does not run in a browser (needs the filesystem).
 
 ### CLI & Desktop GUI (system-wide)
 
@@ -501,9 +501,9 @@ Login rate limiting: 5 failed attempts from one IP within a trailing 15-minute w
 
 ## AxioDBCloud — Remote TCP Access
 
-Same API as embedded AxioDB, over a TCP connection. The wire protocol has exactly **32 commands** (`source/tcp/types/command.types.ts`):
+Same API as embedded AxioDB, over a TCP connection. The wire protocol has exactly **46 commands** (`source/tcp/types/command.types.ts`):
 
-`PING`, `HEALTH`, `DISCONNECT`, `AUTHENTICATE`, `CREATE_DB`, `DELETE_DB`, `DB_EXISTS`, `GET_INSTANCE_INFO`, `CREATE_COLLECTION`, `DELETE_COLLECTION`, `COLLECTION_EXISTS`, `GET_COLLECTION_INFO`, `INSERT_DOCUMENT`, `INSERT_MANY_DOCUMENTS`, `QUERY_DOCUMENTS`, `QUERY_BY_ID`, `UPDATE_DOCUMENT_BY_ID`, `UPDATE_DOCUMENTS_BY_QUERY`, `DELETE_DOCUMENT_BY_ID`, `DELETE_DOCUMENTS_BY_QUERY`, `AGGREGATE`, `TOTAL_DOCUMENTS`, `CREATE_INDEX`, `DROP_INDEX`, `LIST_INDEXES`, `BEGIN_TRANSACTION`, `COMMIT_TRANSACTION`, `ROLLBACK_TRANSACTION`, `SAVEPOINT`, `ROLLBACK_TO_SAVEPOINT`, `RELEASE_SAVEPOINT`, `FIND_BY_IDS`
+`PING`, `HEALTH`, `DISCONNECT`, `AUTHENTICATE`, `CREATE_DB`, `DELETE_DB`, `DB_EXISTS`, `GET_INSTANCE_INFO`, `EXPORT_DATABASE`, `IMPORT_DATABASE`, `CREATE_COLLECTION`, `DELETE_COLLECTION`, `COLLECTION_EXISTS`, `GET_COLLECTION_INFO`, `INSERT_DOCUMENT`, `INSERT_MANY_DOCUMENTS`, `QUERY_DOCUMENTS`, `QUERY_BY_ID`, `FIND_BY_IDS`, `UPDATE_DOCUMENT_BY_ID`, `UPDATE_DOCUMENTS_BY_QUERY`, `DELETE_DOCUMENT_BY_ID`, `DELETE_DOCUMENTS_BY_QUERY`, `AGGREGATE`, `TOTAL_DOCUMENTS`, `CREATE_INDEX`, `DROP_INDEX`, `LIST_INDEXES`, `BEGIN_TRANSACTION`, `COMMIT_TRANSACTION`, `ROLLBACK_TRANSACTION`, `SAVEPOINT`, `ROLLBACK_TO_SAVEPOINT`, `RELEASE_SAVEPOINT`, `LIST_USERS`, `CREATE_USER`, `UPDATE_USER_ROLE`, `RESET_USER_PASSWORD`, `CHANGE_PASSWORD`, `DELETE_USER`, `LIST_ROLES`, `CREATE_ROLE`, `DELETE_ROLE`, `LIST_PERMISSIONS`, `GET_SYSTEM_INFO`, `GET_DASHBOARD_STATS`
 
 You normally never send these by hand — the `AxioDBCloud` client wraps them behind the same `createDB`/`createCollection`/`query` API as the embedded library. `client.sendCommand()` is the escape hatch if you need one directly.
 

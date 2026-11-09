@@ -123,7 +123,7 @@ jobs:
         run: npm run node-test tcp-auth
 
   tcp_noauth_compat_gate:
-    name: "Gate 3 — TCP No-Auth (Backward Compatibility) Test Suite"
+    name: "Gate 3 — TCP No-Auth Test Suite"
     needs: [detect_changes]
     if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
@@ -154,7 +154,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run TCP No-Auth (backward compatibility) tests
+      - name: Run TCP No-Auth tests
         run: npm run node-test tcp-noauth
 
   http_api_gate:
