@@ -752,6 +752,79 @@ class AuthTests extends TestRunner {
         assert.includes(body.message.toLowerCase(), 'super admin');
       });
     });
+
+    await this.describe('Privilege escalation prevention (SEC-06)', async () => {
+      let subAdminCookie = null;
+
+      await this.test('Create delegated manager role with user management permissions', async () => {
+        await fetch(`${BASE_URL}/auth/roles`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({
+            roleName: 'DelegatedManager',
+            permissions: ['user:view', 'user:reset-password', 'user:update-role', 'user:delete'],
+          }),
+        });
+
+        await fetch(`${BASE_URL}/auth/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ username: 'subadmin', password: 'SubAdminPass1', role: 'DelegatedManager' }),
+        });
+
+        subAdminCookie = await this.loginFlow('subadmin', 'SubAdminPass1', 'SubAdminPass2');
+        assert.ok(subAdminCookie);
+      });
+
+      await this.test('Delegated manager cannot reset SuperAdmin password', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/admin/reset-password`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: subAdminCookie },
+          body: JSON.stringify({ newPassword: 'NewHackedPass1!' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.includes(body.message, 'Only a Super Admin can reset the password of a Super Admin');
+      });
+
+      await this.test('Delegated manager cannot promote a user to SuperAdmin', async () => {
+        await fetch(`${BASE_URL}/auth/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ username: 'target_peer', password: 'PeerPass123!', role: 'View' }),
+        });
+
+        const res = await fetch(`${BASE_URL}/auth/users/target_peer/role`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: subAdminCookie },
+          body: JSON.stringify({ role: 'Super Admin' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.includes(body.message, 'Only a Super Admin can assign or modify the Super Admin role');
+      });
+
+      await this.test('Delegated manager cannot delete a SuperAdmin', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/admin`, {
+          method: 'DELETE',
+          headers: { Cookie: subAdminCookie },
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.includes(body.message, 'Only a Super Admin can delete a Super Admin');
+      });
+
+      await this.test('SuperAdmin CAN reset another user password', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/target_peer/reset-password`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ newPassword: 'ResetByAdmin1!' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 200);
+        assert.includes(body.message, 'Password reset successfully');
+      });
+    });
   }
 }
 

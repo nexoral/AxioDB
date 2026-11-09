@@ -69,7 +69,8 @@ export default class UserManagementController {
       );
     }
 
-    const result = await this.authService.resetUserPassword(username, newPassword);
+    const actorUsername = request.authUser?.username;
+    const result = await this.authService.resetUserPassword(username, newPassword, actorUsername);
     if (!result.success) {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, result.message));
     }

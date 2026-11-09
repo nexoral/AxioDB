@@ -159,12 +159,12 @@ export default class AuthHandler {
   /**
    * Handle RESET_USER_PASSWORD command
    */
-  async handleResetUserPassword(requestId: string, params: Params): Promise<TCPResponse> {
+  async handleResetUserPassword(requestId: string, params: Params, actorUsername?: string): Promise<TCPResponse> {
     const { username, newPassword } = params as { username: string; newPassword: string };
     if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
       return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: 'Password must be at least 8 characters', error: 'Password must be at least 8 characters' };
     }
-    const result = await this.authService.resetUserPassword(username, newPassword);
+    const result = await this.authService.resetUserPassword(username, newPassword, actorUsername);
     if (!result.success) {
       return { id: requestId, statusCode: StatusCode.BAD_REQUEST, message: result.message, error: result.message };
     }
