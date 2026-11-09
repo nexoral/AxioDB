@@ -257,6 +257,13 @@ class CRUDTests extends TestRunner {
         assert.isError(manyResult, 'UpdateMany with no matching documents should return an error');
       });
 
+      await this.test('UpdateOne with directory traversal in documentId safely fails without escaping directory (SEC-16)', async () => {
+        const result = await this.collection
+          .update({ documentId: '../../traversal_test' })
+          .UpdateOne({ marked: true });
+        assert.isError(result, 'UpdateOne with path traversal should return an error');
+      });
+
       await this.test('Updating one document does not disturb an unrelated one sharing the same indexed value', async () => {
         // Regression test: two documents sharing an indexed field's value used to have
         // their shared index bucket silently reordered on every update to either one -
@@ -643,6 +650,13 @@ class CRUDTests extends TestRunner {
           .delete({ name: 'NoSuchUserAtAll' })
           .deleteMany();
         assert.isError(manyResult, 'deleteMany with no matching documents should return an error');
+      });
+
+      await this.test('deleteOne with directory traversal in documentId safely fails without escaping directory (SEC-16)', async () => {
+        const result = await this.collection
+          .delete({ documentId: '../../traversal_test' })
+          .deleteOne();
+        assert.isError(result, 'deleteOne with path traversal should return an error');
       });
     });
 

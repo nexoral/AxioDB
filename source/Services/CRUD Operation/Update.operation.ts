@@ -4,6 +4,7 @@ import {
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import ResponseHelper from "../../Helper/response.helper";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
+import PathSanitizer from "../../Helper/PathSanitizer.helper";
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
 import { TransactionOperation } from "../../config/Interfaces/Transaction/transaction.interface";
@@ -177,9 +178,13 @@ export default class UpdateOperation {
   private async resolveTargetDocumentId(): Promise<string | null> {
     let ReadResponse: SuccessInterface | ErrorInterface;
     if (this.baseQuery?.documentId !== undefined) {
-      const FilePath = [
-        `${this.baseQuery.documentId}${General.DBMS_File_EXT}`,
-      ];
+      const sanitizeDocId = (id: string) =>
+        `${PathSanitizer.sanitizePathComponent(id)}${General.DBMS_File_EXT}`;
+
+      const FilePath = Array.isArray(this.baseQuery.documentId)
+        ? this.baseQuery.documentId.map((id) => sanitizeDocId(String(id)))
+        : [sanitizeDocId(String(this.baseQuery.documentId))];
+
       ReadResponse = await this.LoadAllBufferRawData(FilePath);
     } else {
       const fileNames = await new ReadIndex(this.path).getFileFromIndex(this.baseQuery);

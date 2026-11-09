@@ -519,6 +519,36 @@ class TransactionTests extends TestRunner {
         await wal.deleteWAL();
       });
     });
+
+    await this.describe('Transaction HTTP Validation (SEC-17)', async () => {
+      await this.test('HTTP POST /api/transaction/begin - non-existent database returns 404 and does not create folder', async () => {
+        const { default: TransactionController } = require('../../../lib/server/controller/Transaction/Transaction.controller.js');
+        const controller = new TransactionController(this.dbInstance);
+        let statusCode = 200;
+        const mockReply = { code: (c) => { statusCode = c; return mockReply; } };
+        const mockRequest = { body: { dbName: 'NonExistentDbTxnSec17', collectionName: 'Users' } };
+        const res = await controller.beginTransaction(mockRequest, mockReply);
+        assert.equal(statusCode, 404);
+        assert.equal(res.statusCode, 404);
+        assert.equal(res.message, 'Database not found');
+        const fakeDbPath = `${this.testDir}/TransactionTestDB/NonExistentDbTxnSec17`;
+        assert.ok(!fs.existsSync(fakeDbPath), 'Non-existent DB folder should NOT be created');
+      });
+
+      await this.test('HTTP POST /api/transaction/begin - non-existent collection returns 404 and does not create folder', async () => {
+        const { default: TransactionController } = require('../../../lib/server/controller/Transaction/Transaction.controller.js');
+        const controller = new TransactionController(this.dbInstance);
+        let statusCode = 200;
+        const mockReply = { code: (c) => { statusCode = c; return mockReply; } };
+        const mockRequest = { body: { dbName: 'TestDB', collectionName: 'NonExistentColTxnSec17' } };
+        const res = await controller.beginTransaction(mockRequest, mockReply);
+        assert.equal(statusCode, 404);
+        assert.equal(res.statusCode, 404);
+        assert.equal(res.message, 'Collection not found');
+        const fakeColPath = `${this.testDir}/TransactionTestDB/TestDB/NonExistentColTxnSec17`;
+        assert.ok(!fs.existsSync(fakeColPath), 'Non-existent collection folder should NOT be created');
+      });
+    });
   }
 }
 

@@ -4,6 +4,7 @@
 const net = require('net');
 const crypto = require('crypto');
 const fs = require('fs');
+const path = require('path');
 
 const TestRunner = require('../helpers/TestRunner');
 const { assert } = require('../helpers/assertions');
@@ -73,6 +74,29 @@ class TcpTransactionTests extends TestRunner {
     }
 
     this.dbInstance = new AxioDB({ TCP: true, TCPAuth: false, RootName: 'TcpTxnTestDB', CustomPath: this.testDir });
+
+    const setupCollections = [
+      ['TxnDb1', 'Col1'],
+      ['TxnDb2', 'Col2'],
+      ['TxnRollback1', 'Col1'],
+      ['TxnCrud1', 'Users'],
+      ['TxnCrud2', 'Items'],
+      ['TxnCrud3', 'Users'],
+      ['TxnCrud4', 'Items'],
+      ['TxnSp1', 'Col'],
+      ['TxnSp2', 'Col'],
+      ['TxnSp3', 'Col'],
+      ['TxnCross', 'Col'],
+      ['TxnIso', 'Col'],
+      ['TxnDisconnect', 'Col'],
+      ['TxnRead', 'Items'],
+      ['TxnReadAgg', 'Items'],
+    ];
+    for (const [db, col] of setupCollections) {
+      const dbInstance = await this.dbInstance.createDB(db);
+      await dbInstance.createCollection(col);
+    }
+
     await this.waitForServerReady();
     this.log('Test environment ready', 'success');
   }
@@ -364,6 +388,32 @@ class TcpTransactionTests extends TestRunner {
     });
 
     await this.describe('Validation & Edge Cases', async () => {
+      await this.test('BEGIN with non-existent database returns 404 and does not create folder (SEC-17)', async () => {
+        const client = new RawTcpClient();
+        await client.connect();
+        const fakeDb = 'NonExistentDbTxnSec17';
+        const res = await client.send(CommandType.BEGIN_TRANSACTION, { dbName: fakeDb, collectionName: 'Col1' });
+        assert.equal(res.statusCode, 404);
+        assert.equal(res.message, 'Database not found');
+
+        const fakeDbPath = path.join(this.testDir, 'TcpTxnTestDB', fakeDb);
+        assert.ok(!fs.existsSync(fakeDbPath), 'Non-existent DB folder should NOT be created');
+        client.close();
+      });
+
+      await this.test('BEGIN with non-existent collection returns 404 and does not create folder (SEC-17)', async () => {
+        const client = new RawTcpClient();
+        await client.connect();
+        const fakeCol = 'NonExistentColTxnSec17';
+        const res = await client.send(CommandType.BEGIN_TRANSACTION, { dbName: 'TxnDb1', collectionName: fakeCol });
+        assert.equal(res.statusCode, 404);
+        assert.equal(res.message, 'Collection not found');
+
+        const fakeColPath = path.join(this.testDir, 'TcpTxnTestDB', 'TxnDb1', fakeCol);
+        assert.ok(!fs.existsSync(fakeColPath), 'Non-existent collection folder should NOT be created');
+        client.close();
+      });
+
       await this.test('BEGIN without dbName returns error', async () => {
         const client = new RawTcpClient();
         await client.connect();

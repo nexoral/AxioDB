@@ -583,6 +583,32 @@ class HTTPAPITests extends TestRunner {
         assert.equal(res.body.statusCode, 403);
       });
 
+      await this.test('POST /api/transaction/begin - non-existent database returns 404 and does not create folder (SEC-17)', async () => {
+        const fakeDbName = 'NonExistentDbTxnSec17';
+        const res = await request('POST', '/api/transaction/begin', {
+          body: { dbName: fakeDbName, collectionName: 'Users' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 404);
+        assert.equal(res.body.message, 'Database not found');
+
+        const fakeDbPath = path.join(this.testDir, 'HttpApiTestDB', fakeDbName);
+        assert.ok(!fs.existsSync(fakeDbPath), 'Non-existent DB folder should NOT be created');
+      });
+
+      await this.test('POST /api/transaction/begin - non-existent collection returns 404 and does not create folder (SEC-17)', async () => {
+        const fakeColName = 'NonExistentColTxnSec17';
+        const res = await request('POST', '/api/transaction/begin', {
+          body: { dbName: 'TestDB', collectionName: fakeColName },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 404);
+        assert.equal(res.body.message, 'Collection not found');
+
+        const fakeColPath = path.join(this.testDir, 'HttpApiTestDB', 'TestDB', fakeColName);
+        assert.ok(!fs.existsSync(fakeColPath), 'Non-existent collection folder should NOT be created');
+      });
+
       await this.test('POST /api/transaction/begin - starts transaction successfully', async () => {
         const res = await request('POST', '/api/transaction/begin', {
           body: { dbName: 'TestDB', collectionName: 'Users' },
