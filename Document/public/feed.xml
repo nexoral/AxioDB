@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Mon, 09 Nov 2026 08:42:09 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 09 Nov 2026 17:45:38 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v27.42.9 — Chunked TCP database export &amp; import, HTTP ACID transactions, Desktop GUI backup parity, and streamlined CLI</title>

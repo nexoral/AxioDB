@@ -73,9 +73,9 @@ class TcpAuthTests extends TestRunner {
       fs.rmSync(this.testDir, { recursive: true, force: true });
     }
 
-    // TCP:true + TCPAuth:true triggers config DB seeding (shared with GUI RBAC)
-    // and starts the TCP server with the auth/permission gate enabled.
-    this.dbInstance = new AxioDB({ TCP: true, TCPAuth: true, RootName: 'TcpAuthTestDB', CustomPath: this.testDir });
+    // TCP:true defaults TCPAuth to true, triggering config DB seeding
+    // and starting the TCP server with the auth/permission gate enabled.
+    this.dbInstance = new AxioDB({ TCP: true, RootName: 'TcpAuthTestDB', CustomPath: this.testDir });
     await this.waitForServerReady();
 
     this.log('Test environment ready', 'success');

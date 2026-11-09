@@ -63,6 +63,7 @@ class TcpTlsTests extends TestRunner {
 
     this.dbInstance = new AxioDB({
       TCP: true,
+      TCPAuth: false,
       TLS: true,
       TLSCertPath: this.certPath,
       TLSKeyPath: this.keyPath,

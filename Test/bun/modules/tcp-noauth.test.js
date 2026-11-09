@@ -81,8 +81,8 @@ class TcpNoAuthTests extends TestRunner {
       fs.rmSync(this.testDir, { recursive: true, force: true });
     }
 
-    // TCPAuth intentionally omitted - defaults to false, matching pre-auth behavior.
-    this.dbInstance = new AxioDB({ TCP: true, RootName: 'TcpNoAuthTestDB', CustomPath: this.testDir });
+    // TCPAuth explicitly disabled to test unauthenticated mode.
+    this.dbInstance = new AxioDB({ TCP: true, TCPAuth: false, RootName: 'TcpNoAuthTestDB', CustomPath: this.testDir });
     await this.waitForServerReady();
 
     this.log('Test environment ready', 'success');

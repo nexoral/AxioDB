@@ -37,7 +37,7 @@ import { startMcpServer, stopMcpServer } from "../Helper/mcp/McpServer.helper";
  * @param {string} options.RootName - Custom name for the database root folder. Defaults to "AxioDB".
  * @param {string} options.CustomPath - Custom path for database storage. Defaults to current directory.
  * @param {boolean} options.TCP - Enable/disable TCP server (port 27019). Defaults to false.
- * @param {boolean} options.TCPAuth - Require username/password authentication (same RBAC users as the HTTP server) for TCP connections. Defaults to false.
+ * @param {boolean} options.TCPAuth - Require username/password authentication (same RBAC users as the HTTP server) for TCP connections. Defaults to true when TCP is enabled, or false if explicitly set.
  * @param {string} options.AdminPassword - Password the admin account is seeded with when the config database is first created, clearing its forced password change so it can authenticate over TCP immediately. Defaults to the built-in admin/admin, which TCP rejects until rotated through the HTTP API. Ignored once the users collection already exists.
  * @param {boolean} options.Cache - Enable the built-in InMemoryCache shared across the whole instance. Defaults to true.
  * @param {number} options.minTTL - Minimum cache entry lifetime in minutes. Defaults to 5.
@@ -93,7 +93,7 @@ export class AxioDB {
     });
     this.HTTP = options.HTTP !== undefined ? options.HTTP : General.DBMS_HTTP_Enable;
     this.TCP = TCP !== undefined ? TCP : false;
-    this.TCPAuth = TCPAuth !== undefined ? TCPAuth : false;
+    this.TCPAuth = TCPAuth !== undefined ? TCPAuth : (this.TCP ? true : false);
     this.MCP = options.MCP !== undefined ? options.MCP : false;
     this.AdminPassword = AdminPassword;
     this.TLS = TLS !== undefined ? TLS : false;
