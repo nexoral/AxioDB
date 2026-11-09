@@ -83,18 +83,22 @@ export default class FileManager {
    */
   public async ReadLines(path: string): Promise<string[]> {
     const lines: string[] = [];
+    let stream: ReturnType<typeof createReadStream> | undefined;
+    let rl: ReturnType<typeof createInterface> | undefined;
     try {
-      const stream = createReadStream(path, { encoding: "utf-8" });
-      const rl = createInterface({ input: stream, crlfDelay: Infinity });
+      stream = createReadStream(path, { encoding: "utf-8" });
+      rl = createInterface({ input: stream, crlfDelay: Infinity });
       for await (const line of rl) {
         const trimmed = line.trim();
         if (trimmed) {
           lines.push(trimmed);
         }
       }
-      rl.close();
     } catch {
       return []; // Return empty array on error (e.g., file not found)
+    } finally {
+      if (rl) rl.close();
+      if (stream) stream.destroy();
     }
     return lines;
   }

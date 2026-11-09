@@ -485,6 +485,38 @@ class HTTPAPITests extends TestRunner {
         });
         assert.equal(res.body.statusCode, 201);
       });
+
+      await this.test('POST /api/operation/create/ - passing array payload returns 400 (SEC-29)', async () => {
+        const res = await request('POST', '/api/operation/create/?dbName=TestDB&collectionName=Users', {
+          body: [{ name: 'ArrayPayload' }],
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
+
+      await this.test('POST /api/operation/create-many/ - passing non-array payload returns 400 (SEC-29)', async () => {
+        const res = await request('POST', '/api/operation/create-many/?dbName=TestDB&collectionName=Users', {
+          body: { name: 'SingleObject' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
+
+      await this.test('POST /api/operation/create-many/ - passing empty array returns 400 (SEC-29)', async () => {
+        const res = await request('POST', '/api/operation/create-many/?dbName=TestDB&collectionName=Users', {
+          body: [],
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
+
+      await this.test('POST /api/operation/create-many/ - passing array with non-objects returns 400 (SEC-29)', async () => {
+        const res = await request('POST', '/api/operation/create-many/?dbName=TestDB&collectionName=Users', {
+          body: ['invalid', 123, null],
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
     });
 
     await this.describe('Index Endpoints', async () => {

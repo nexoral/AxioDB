@@ -100,6 +100,27 @@ class CacheOptionsTests extends TestRunner {
         );
       });
 
+      await this.test('Housekeeping interval delay is scheduled in milliseconds (cacheClearUp * 1000)', async () => {
+        let capturedDelay = null;
+        let createdTimer = null;
+        const originalSetInterval = global.setInterval;
+        try {
+          global.setInterval = function (fn, delay, ...args) {
+            capturedDelay = delay;
+            createdTimer = originalSetInterval(fn, delay, ...args);
+            return createdTimer;
+          };
+          const cache = new InMemoryCache({ cacheClearUp: 45 });
+          assert.equal(capturedDelay, 45000, 'housekeeping interval delay must be cacheClearUp in milliseconds');
+          assert.ok(cache, 'cache instance created');
+        } finally {
+          global.setInterval = originalSetInterval;
+          if (createdTimer) {
+            clearInterval(createdTimer);
+          }
+        }
+      });
+
       await this.test('Disabled cache stores nothing and every lookup misses', async () => {
         const cache = new InMemoryCache({ enabled: false });
         assert.equal(await cache.setCache('key-disabled', 'value'), true, 'setCache reports success');

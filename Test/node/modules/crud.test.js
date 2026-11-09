@@ -767,6 +767,34 @@ class CRUDTests extends TestRunner {
         }
         assert.ok(!(mode & 0o002), 'Directory must not be world-writable');
       });
+
+      await this.test('FileManager.ReadLines reads valid files and cleanly handles non-existent or unreadable targets (SEC-30)', async () => {
+        const FileManager = require('../../../lib/engine/Filesystem/FileManager.js').default;
+        const fileManager = new FileManager();
+
+        // 1. Valid file with whitespace and empty lines
+        const testLinesFile = path.join(this.testDir, 'readlines-test.txt');
+        fs.writeFileSync(testLinesFile, 'line 1\n\n  line 2  \nline 3\n\n');
+
+        const lines = await fileManager.ReadLines(testLinesFile);
+        assert.equal(lines.length, 3);
+        assert.equal(lines[0], 'line 1');
+        assert.equal(lines[1], 'line 2');
+        assert.equal(lines[2], 'line 3');
+
+        // 2. Non-existent file returns [] without throwing or leaking
+        const nonExistent = path.join(this.testDir, 'does-not-exist.txt');
+        const emptyResult = await fileManager.ReadLines(nonExistent);
+        assert.ok(Array.isArray(emptyResult));
+        assert.equal(emptyResult.length, 0);
+
+        // 3. Unreadable/directory target emits stream error and returns []
+        const dirTarget = path.join(this.testDir, 'readlines-dir');
+        fs.mkdirSync(dirTarget, { recursive: true });
+        const dirResult = await fileManager.ReadLines(dirTarget);
+        assert.ok(Array.isArray(dirResult));
+        assert.equal(dirResult.length, 0);
+      });
     });
 
     await this.describe('Tar & Archive Security (SEC-22)', async () => {
