@@ -159,7 +159,7 @@ const Sidebar = () => {
               )}
             </button>
 
-            {(!permissions || permissions.includes("user:view") || permissions.includes("*") || role === "super_admin") && (
+            {(!permissions || permissions.length === 0 || permissions.includes("user:view") || permissions.includes("*") || role?.toLowerCase().includes("admin") || role === "super_admin") && (
               <button
                 onClick={() => navigate("/users")}
                 className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-md transition-all relative ${

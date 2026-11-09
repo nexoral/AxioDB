@@ -5,6 +5,7 @@ import AuthService from '../../../Services/Auth/AuthService.service';
 import LoginRateLimiter from '../../../Services/Auth/LoginRateLimiter.service';
 import { AuthenticatedUser } from '../../../config/Interfaces/Auth/auth.interface';
 import { PERMISSION_CATALOGUE } from '../../../config/Keys/Permissions';
+import PermissionChecker from '../../../Services/Auth/PermissionChecker.helper';
 
 type Params = TCPRequest['params'];
 
@@ -64,9 +65,11 @@ export default class AuthHandler {
     }
     LoginRateLimiter.recordSuccess(remoteIp);
 
+    const permissions = PermissionChecker.getPermissionsForRole(result.user.role);
     const authUser: AuthenticatedUser = {
       username: result.user.username,
       role: result.user.role,
+      permissions,
       mustChangePassword: result.user.mustChangePassword,
     };
 
