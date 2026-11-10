@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "27.46.14",
+    version: "27.47.0",
     date: "2026-11-10",
     title: "Strict typing compliance, route parameter validation, HTTP security headers, and OpenSSF Best Practices Gold & OSPS Baseline Level 3 Certifications",
     changes: [
