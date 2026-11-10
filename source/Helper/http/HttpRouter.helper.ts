@@ -82,6 +82,14 @@ export default class HttpRouter {
 
     const result = await match.route.handler(request, reply);
     if (!reply.sent && !reply.raw.writableEnded && result !== undefined) {
+      if (
+        result !== null &&
+        typeof result === "object" &&
+        "statusCode" in result &&
+        typeof (result as { statusCode: unknown }).statusCode === "number"
+      ) {
+        reply.status((result as { statusCode: number }).statusCode);
+      }
       await reply.send(result);
     }
 

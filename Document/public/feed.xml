@@ -5,10 +5,10 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Mon, 09 Nov 2026 23:57:18 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 10 Nov 2026 00:14:00 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v27.45.12 — Comprehensive security hardening across transactions, archives, cache housekeeping, input validation, stream lifecycle, index traversal, and MCP lifecycle (SEC-16 – SEC-33)</title>
+      <title>AxioDB v27.45.12 — Comprehensive security hardening across transactions, archives, cache housekeeping, input validation, stream lifecycle, index traversal, controller body destructuring, and MCP lifecycle (SEC-16 – SEC-36)</title>
       <link>https://axiodb.in/changelog</link>
       <guid isPermaLink="false">axiodb-27.45.12</guid>
       <pubDate>Tue, 10 Nov 2026 00:00:00 GMT</pubDate>

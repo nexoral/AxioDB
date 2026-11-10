@@ -135,6 +135,12 @@ class HTTPAPITests extends TestRunner {
         assert.isAbove(res.body.statusCode, 399);
       });
 
+      await this.test('POST /api/auth/login - null body returns 400 Bad Request (SEC-34)', async () => {
+        const res = await request('POST', '/api/auth/login', { body: null });
+        assert.equal(res.status, 400);
+        assert.equal(res.body.statusCode, 400);
+      });
+
       await this.test('GET /api/auth/me - returns current user with mustChangePassword', async () => {
         const res = await request('GET', '/api/auth/me', this.cookieHeader());
         assert.equal(res.body.statusCode, 200);
@@ -325,6 +331,42 @@ class HTTPAPITests extends TestRunner {
         const res = await request('DELETE', '/api/collection/delete-collection/?dbName=TestDB&collectionName=TempColl', this.cookieHeader());
         assert.equal(res.body.statusCode, 200);
       });
+
+      await this.test('GET /api/collection/all/ - array query parameter returns 400 (SEC-35)', async () => {
+        const res = await request('GET', '/api/collection/all/?databaseName=a&databaseName=b', this.cookieHeader());
+        assert.equal(res.status, 400);
+        assert.equal(res.body.statusCode, 400);
+      });
+
+      await this.test('GET /api/collection/all/ - whitespace databaseName returns 400 (SEC-35)', async () => {
+        const res = await request('GET', '/api/collection/all/?databaseName=%20%20%20', this.cookieHeader());
+        assert.equal(res.status, 400);
+        assert.equal(res.body.statusCode, 400);
+      });
+
+      await this.test('POST /api/collection/create-collection - whitespace dbName or collectionName returns 400 (SEC-35)', async () => {
+        const resDb = await request('POST', '/api/collection/create-collection', {
+          body: { dbName: '   ', collectionName: 'ValidColl' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(resDb.status, 400);
+        assert.equal(resDb.body.statusCode, 400);
+
+        const resCol = await request('POST', '/api/collection/create-collection', {
+          body: { dbName: 'TestDB', collectionName: '   ' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(resCol.status, 400);
+        assert.equal(resCol.body.statusCode, 400);
+      });
+
+      await this.test('POST /api/collection/create-collection - null body returns 400 Bad Request (SEC-34)', async () => {
+        const res = await request('POST', '/api/collection/create-collection', {
+          body: null,
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
     });
 
     await this.describe('Document CRUD Endpoints', async () => {
@@ -454,6 +496,14 @@ class HTTPAPITests extends TestRunner {
         assert.isAbove(res.body.statusCode, 399);
       });
 
+      await this.test('POST /api/operation/all/by-ids/ - null body returns 400 Bad Request (SEC-34)', async () => {
+        const res = await request('POST', '/api/operation/all/by-ids/?dbName=TestDB&collectionName=Users', {
+          body: null,
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
+
       await this.test('PUT /api/operation/update/by-id/ - updates a document', async () => {
         const res = await request('PUT', `/api/operation/update/by-id/?dbName=TestDB&collectionName=Users&documentId=${newDocId}`, {
           body: { age: 29 },
@@ -551,6 +601,14 @@ class HTTPAPITests extends TestRunner {
           ...this.cookieHeader(),
         });
         assert.equal(res.body.statusCode, 200);
+      });
+
+      await this.test('POST /api/operation/aggregate/ - null body returns 400 Bad Request (SEC-34)', async () => {
+        const res = await request('POST', '/api/operation/aggregate/?dbName=TestDB&collectionName=Users', {
+          body: null,
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
       });
     });
 

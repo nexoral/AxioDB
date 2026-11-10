@@ -86,13 +86,23 @@ export async function tarGzFolder(
 ): Promise<string> {
   const gzip = zlib.createGzip();
   const dest = fs.createWriteStream(outPath);
-  const pipePromise = pipeline(gzip, dest);
+  let pipelineError: unknown = null;
+  const pipePromise = pipeline(gzip, dest).catch((err) => {
+    pipelineError = err;
+  });
 
-  await TarHelper.packFolder(sourceFolder, gzip);
-  gzip.end();
-  await pipePromise;
-
-  return outPath;
+  try {
+    await TarHelper.packFolder(sourceFolder, gzip);
+    gzip.end();
+    await pipePromise;
+    if (pipelineError) throw pipelineError;
+    return outPath;
+  } catch (err) {
+    gzip.destroy();
+    dest.destroy();
+    await fs.promises.unlink(outPath).catch(() => {});
+    throw err;
+  }
 }
 
 /**

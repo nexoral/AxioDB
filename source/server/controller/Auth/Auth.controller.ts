@@ -23,7 +23,7 @@ export default class AuthController {
   }
 
   public async login(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
-    const { username, password } = request.body as LoginRequestBody;
+    const { username, password } = (request.body as LoginRequestBody | undefined) ?? {};
 
     if (!username || typeof username !== "string") {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Username is required"));
@@ -102,7 +102,7 @@ export default class AuthController {
       return sendResponse(reply, buildResponse(StatusCodes.UNAUTHORIZED, "Not authenticated"));
     }
 
-    const { currentPassword, newPassword } = request.body as ChangePasswordRequestBody;
+    const { currentPassword, newPassword } = (request.body as ChangePasswordRequestBody | undefined) ?? {};
     if (!currentPassword || typeof currentPassword !== "string") {
       return sendResponse(
         reply,

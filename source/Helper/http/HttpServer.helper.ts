@@ -70,7 +70,22 @@ export default class HttpServerHelper {
           : undefined) ||
         req.socket.remoteAddress ||
         "127.0.0.1",
-      query: Object.fromEntries(parsedUrl.searchParams),
+      query: (() => {
+        const queryMap: Record<string, unknown> = {};
+        for (const [key, value] of parsedUrl.searchParams) {
+          if (Object.prototype.hasOwnProperty.call(queryMap, key)) {
+            const existing = queryMap[key];
+            if (Array.isArray(existing)) {
+              existing.push(value);
+            } else {
+              queryMap[key] = [existing, value];
+            }
+          } else {
+            queryMap[key] = value;
+          }
+        }
+        return queryMap;
+      })(),
       params: {},
       headers: req.headers,
       body: undefined,

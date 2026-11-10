@@ -818,7 +818,7 @@ class CRUDTests extends TestRunner {
       const zlib = require('zlib');
       const { pipeline } = require('node:stream/promises');
       const TarHelper = require('../../../lib/Helper/Tar.helper.js').default;
-      const { unzipFile, UnsafeArchiveError } = require('../../../lib/utility/ZipUnzip.utils.js');
+      const { unzipFile, UnsafeArchiveError, tarGzFolder } = require('../../../lib/utility/ZipUnzip.utils.js');
 
       function encodeTarHeaderWithTypeflag(entry, typeflag) {
         const header = TarHelper.encodeHeader(entry);
@@ -983,6 +983,24 @@ class CRUDTests extends TestRunner {
             `Error message should mention unsafe typeflag: ${failed ? failed.message : ''}`
           );
         }
+      });
+
+      await this.test('tarGzFolder on non-existent source folder rejects, destroys streams, and leaves no residual file (SEC-36)', async () => {
+        const nonExistentFolder = path.join(this.testDir, 'non-existent-source-folder');
+        const outArchive = path.join(this.testDir, 'failed-archive.tar.gz');
+
+        let error = null;
+        try {
+          await tarGzFolder(nonExistentFolder, outArchive);
+        } catch (err) {
+          error = err;
+        }
+
+        assert.ok(error !== null, 'tarGzFolder must reject when source folder does not exist');
+        assert.ok(
+          !fs.existsSync(outArchive),
+          'Residual archive file must not exist on disk after compression failure'
+        );
       });
     });
   }

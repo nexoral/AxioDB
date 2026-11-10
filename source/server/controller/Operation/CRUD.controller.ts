@@ -190,7 +190,7 @@ export default class CRUDController {
       dbName: string;
       collectionName: string;
     };
-    const { ids } = request.body as { ids: string[] };
+    const { ids } = (request.body as { ids?: string[] } | undefined) ?? {};
 
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
@@ -536,9 +536,9 @@ export default class CRUDController {
       collectionName: string;
     };
 
-    const { aggregation } = request.body as {
-      aggregation: Record<string, unknown>[];
-    };
+    const { aggregation } = (request.body as {
+      aggregation?: Record<string, unknown>[];
+    } | undefined) ?? {};
 
     if (!Array.isArray(aggregation) || aggregation.length === 0) {
       return buildResponse(

@@ -17,34 +17,33 @@ export default class CollectionController {
   public async createCollection(
     request: AxioHttpRequest,
   ): Promise<ResponseBuilder> {
-    const { dbName, collectionName } = request.body as {
-      dbName: string;
-      collectionName: string;
-    };
+    const { dbName, collectionName } =
+      (request.body as { dbName?: string; collectionName?: string } | undefined) ?? {};
 
-    if (!dbName || typeof dbName !== "string") {
+    if (!dbName || typeof dbName !== "string" || !dbName.trim()) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
     }
-    if (!collectionName || typeof collectionName !== "string") {
+    if (!collectionName || typeof collectionName !== "string" || !collectionName.trim()) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
     }
     if (isReservedDatabaseName(dbName)) {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const dbExists = await this.AxioDBInstance.isDatabaseExists(dbName);
-    if (!dbExists) {
-      return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
-    }
-
-    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-
-    const isCollectionExists =
-      await databaseInstance.isCollectionExists(collectionName);
-    if (isCollectionExists) {
-      return buildResponse(StatusCodes.CONFLICT, "Collection already exists");
-    }
     try {
+      const dbExists = await this.AxioDBInstance.isDatabaseExists(dbName);
+      if (!dbExists) {
+        return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
+      }
+
+      const databaseInstance = await this.AxioDBInstance.createDB(dbName);
+
+      const isCollectionExists =
+        await databaseInstance.isCollectionExists(collectionName);
+      if (isCollectionExists) {
+        return buildResponse(StatusCodes.CONFLICT, "Collection already exists");
+      }
+
       await databaseInstance.createCollection(collectionName);
       return buildResponse(
         StatusCodes.CREATED,
@@ -66,9 +65,10 @@ export default class CollectionController {
   public async getCollections(
     request: AxioHttpRequest,
   ): Promise<ResponseBuilder> {
-    const { databaseName } = request.query as { databaseName: string };
+    const { databaseName } =
+      (request.query as { databaseName?: string } | undefined) ?? {};
 
-    if (!databaseName) {
+    if (!databaseName || typeof databaseName !== "string" || !databaseName.trim()) {
       return buildResponse(
         StatusCodes.BAD_REQUEST,
         "Database name is required",
@@ -78,12 +78,12 @@ export default class CollectionController {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const dbExists = await this.AxioDBInstance.isDatabaseExists(databaseName);
-    if (!dbExists) {
-      return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
-    }
-
     try {
+      const dbExists = await this.AxioDBInstance.isDatabaseExists(databaseName);
+      if (!dbExists) {
+        return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
+      }
+
       const dbInstance = await this.AxioDBInstance.createDB(databaseName);
       const collections = await dbInstance.getCollectionInfo();
       
@@ -127,35 +127,33 @@ export default class CollectionController {
   public async deleteCollection(
     request: AxioHttpRequest,
   ): Promise<ResponseBuilder> {
-    const { dbName, collectionName } = request.query as {
-      dbName: string;
-      collectionName: string;
-    };
+    const { dbName, collectionName } =
+      (request.query as { dbName?: string; collectionName?: string } | undefined) ?? {};
 
-    if (!dbName || typeof dbName !== "string") {
+    if (!dbName || typeof dbName !== "string" || !dbName.trim()) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
     }
-    if (!collectionName || typeof collectionName !== "string") {
+    if (!collectionName || typeof collectionName !== "string" || !collectionName.trim()) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
     }
     if (isReservedDatabaseName(dbName)) {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const dbExists = await this.AxioDBInstance.isDatabaseExists(dbName);
-    if (!dbExists) {
-      return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
-    }
-
-    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-
-    const isCollectionExists =
-      await databaseInstance.isCollectionExists(collectionName);
-    if (!isCollectionExists) {
-      return buildResponse(StatusCodes.NOT_FOUND, "Collection not found");
-    }
-
     try {
+      const dbExists = await this.AxioDBInstance.isDatabaseExists(dbName);
+      if (!dbExists) {
+        return buildResponse(StatusCodes.NOT_FOUND, "Database not found");
+      }
+
+      const databaseInstance = await this.AxioDBInstance.createDB(dbName);
+
+      const isCollectionExists =
+        await databaseInstance.isCollectionExists(collectionName);
+      if (!isCollectionExists) {
+        return buildResponse(StatusCodes.NOT_FOUND, "Collection not found");
+      }
+
       await databaseInstance.deleteCollection(collectionName);
       return buildResponse(StatusCodes.OK, "Collection deleted successfully");
     } catch (error) {

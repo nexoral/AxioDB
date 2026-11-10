@@ -23,7 +23,7 @@ export default class UserManagementController {
   }
 
   public async createUser(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
-    const { username, password, role } = request.body as CreateUserRequestBody;
+    const { username, password, role } = (request.body as CreateUserRequestBody | undefined) ?? {};
 
     if (!username || typeof username !== "string" || username.trim() === "") {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Username is required"));
@@ -58,7 +58,7 @@ export default class UserManagementController {
     reply: AxioHttpResponse,
   ): Promise<ResponseBuilder> {
     const { username } = request.params as { username: string };
-    const { newPassword } = request.body as ResetPasswordRequestBody;
+    const { newPassword } = (request.body as ResetPasswordRequestBody | undefined) ?? {};
 
     if (!newPassword || typeof newPassword !== "string" || newPassword.length < MIN_PASSWORD_LENGTH) {
       return sendResponse(
@@ -90,7 +90,7 @@ export default class UserManagementController {
     reply: AxioHttpResponse,
   ): Promise<ResponseBuilder> {
     const { username } = request.params as { username: string };
-    const { role } = request.body as UpdateUserRoleRequestBody;
+    const { role } = (request.body as UpdateUserRoleRequestBody | undefined) ?? {};
 
     if (!role || typeof role !== "string") {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Role is required"));

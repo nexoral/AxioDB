@@ -14,7 +14,7 @@ export const changelog: ChangelogEntry[] = [
   {
     version: "27.45.12",
     date: "2026-11-10",
-    title: "Comprehensive security hardening across transactions, archives, cache housekeeping, input validation, stream lifecycle, index traversal, and MCP lifecycle (SEC-16 – SEC-33)",
+    title: "Comprehensive security hardening across transactions, archives, cache housekeeping, input validation, stream lifecycle, index traversal, controller body destructuring, and MCP lifecycle (SEC-16 – SEC-36)",
     changes: [
       "SEC-16 (Path Traversal Prevention in Update & Delete): Enforced PathSanitizer on target documentId resolution in Update and Delete operations, neutralizing path traversal attempts",
       "SEC-17 (Transaction Inode/Disk DoS Prevention): Eliminated auto-creation of missing databases and collections on transaction initiation across HTTP and TCP protocols",
@@ -34,6 +34,9 @@ export const changelog: ChangelogEntry[] = [
       "SEC-31 (Secondary Index Path Traversal Prevention): Sanitized fieldName and indexName with PathSanitizer and enforced strict folder boundaries in IndexManager and IndexController, preventing arbitrary file creation and deletion outside the index directory",
       "SEC-32 (MCP Idle Transaction Auto-Rollback & Session Revocation): Introduced 30-second idle transaction timeout sweeping in the native MCP server and automated transaction rollback on session logout, eliminating lock starvation and memory leaks",
       "SEC-33 (MCP Reserved System Database Guard): Enforced isReservedDatabaseName verification across axiodb_begin_transaction, axiodb_total_documents, and axiodb_collection_exists in native MCP tools, blocking unauthorized tampering with internal auth databases",
+      "SEC-34 (Controller Safe Body Destructuring & TypeError Prevention): Coalesced request body to empty objects (?? {}) across Collection, Auth, UserManagement, RoleManagement, and CRUD controllers, returning clean HTTP 400 Bad Request instead of uncaught 500 TypeErrors on nullish JSON bodies",
+      "SEC-35 (Collection Controller Query Array Guard & Sanitizer Containment): Validated query string types rejecting arrays in CollectionController and wrapped path resolution in try/catch blocks, returning HTTP 400 Bad Request on malformed inputs",
+      "SEC-36 (tarGzFolder Stream Lifecycle Cleanup & FD Leak Prevention): Bounded stream lifecycle destruction and automated partial file unlinking in tarGzFolder on write errors, eliminating file descriptor leaks and unhandled promise rejections on non-existent directories",
     ],
   },
   {
