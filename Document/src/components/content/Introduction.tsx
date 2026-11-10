@@ -5,21 +5,17 @@ import {
   Code,
   Database,
   Download,
-  GitBranch,
   RefreshCw,
   Server,
   Shield,
   Sparkles,
-  Star,
   Terminal,
-  Users,
   Zap,
   TrendingUp,
   Command,
   Copy,
   Check,
   Monitor,
-  Globe,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -310,7 +306,6 @@ const Introduction: React.FC = () => {
 
   const badgeUrls = {
     npm: githubApi.getBadgeUrl('npm'),
-    codeql: githubApi.getBadgeUrl('github-actions'),
     stars: githubApi.getBadgeUrl('stars')
   };
 
@@ -321,7 +316,12 @@ const Introduction: React.FC = () => {
   // (downloads, stars) drift slightly as their figures change, but reserving the
   // space keeps the layout stable regardless.
   const BADGES = [
-    { src: badgeUrls.npm, alt: "npm version", width: 168 },
+    {
+      src: "https://github.com/nexoral/AxioDB/actions/workflows/Push.yml/badge.svg",
+      alt: "CI",
+      width: 140,
+      href: "https://github.com/nexoral/AxioDB/actions/workflows/Push.yml",
+    },
     {
       src: "https://www.bestpractices.dev/projects/16511/badge",
       alt: "OpenSSF Best Practices Gold",
@@ -346,7 +346,12 @@ const Introduction: React.FC = () => {
       width: 130,
       href: "https://socket.dev/npm/package/axiodb",
     },
-    { src: badgeUrls.codeql, alt: "CodeQL", width: 156 },
+    {
+      src: badgeUrls.npm,
+      alt: "npm version",
+      width: 168,
+      href: "https://badge.fury.io/js/axiodb",
+    },
     { src: "https://img.shields.io/badge/dependencies-0%20native-success", alt: "Zero native dependencies", width: 168 },
     { src: "https://img.shields.io/badge/ACID-WAL%20Durability-blueviolet", alt: "ACID Durability", width: 154 },
     { src: "https://img.shields.io/badge/TypeScript-6.0-blue", alt: "TypeScript", width: 116 },
