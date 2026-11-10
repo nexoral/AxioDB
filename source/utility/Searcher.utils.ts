@@ -160,7 +160,7 @@ export default class Searcher {
    * @param additionalFiled - Optional field to extract from each item for matching.
    * @param findOne - If true, stops after finding the first match (early exit)
    * @param limit - Optional limit for early termination (returns when limit reached)
-   * @returns {Promise<any[]>} - A promise that resolves to an array of matching items.
+   * @returns {Promise<Record<string, unknown>[]>} - A promise that resolves to an array of matching items.
    */
   public async find(
     query: Record<string, unknown>,

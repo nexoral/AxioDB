@@ -37,7 +37,7 @@ interface MainRoutesInterface {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   path: string;
   description: string;
-  payload?: Record<string, any>;
+  payload?: Record<string, unknown>;
 }
 interface RouteGroupInterface {
   groupName?: string;

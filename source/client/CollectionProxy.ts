@@ -18,7 +18,7 @@ export default class CollectionProxy {
     this.collectionName = collectionName;
   }
 
-  async insert(data: object): Promise<any> {
+  async insert(data: object): Promise<unknown> {
     return await this.client.sendCommand(CommandType.INSERT_DOCUMENT, {
       dbName: this.dbName,
       collectionName: this.collectionName,
@@ -26,7 +26,7 @@ export default class CollectionProxy {
     });
   }
 
-  async insertMany(documents: object[]): Promise<any> {
+  async insertMany(documents: object[]): Promise<unknown> {
     return await this.client.sendCommand(CommandType.INSERT_MANY_DOCUMENTS, {
       dbName: this.dbName,
       collectionName: this.collectionName,
@@ -34,7 +34,7 @@ export default class CollectionProxy {
     });
   }
 
-  async findByIds(ids: string[]): Promise<any> {
+  async findByIds(ids: string[]): Promise<unknown> {
     return await this.client.sendCommand(CommandType.FIND_BY_IDS, {
       dbName: this.dbName,
       collectionName: this.collectionName,
@@ -58,14 +58,14 @@ export default class CollectionProxy {
     return new AggregationProxy(this.client, this.dbName, this.collectionName, pipeline);
   }
 
-  async totalDocuments(): Promise<any> {
+  async totalDocuments(): Promise<unknown> {
     return await this.client.sendCommand(CommandType.TOTAL_DOCUMENTS, {
       dbName: this.dbName,
       collectionName: this.collectionName,
     });
   }
 
-  async newIndex(...fieldNames: string[]): Promise<any> {
+  async newIndex(...fieldNames: string[]): Promise<unknown> {
     return await this.client.sendCommand(CommandType.CREATE_INDEX, {
       dbName: this.dbName,
       collectionName: this.collectionName,
@@ -73,7 +73,7 @@ export default class CollectionProxy {
     });
   }
 
-  async dropIndex(indexName: string): Promise<any> {
+  async dropIndex(indexName: string): Promise<unknown> {
     return await this.client.sendCommand(CommandType.DROP_INDEX, {
       dbName: this.dbName,
       collectionName: this.collectionName,
@@ -81,7 +81,7 @@ export default class CollectionProxy {
     });
   }
 
-  async listIndexes(): Promise<any> {
+  async listIndexes(): Promise<unknown> {
     return await this.client.sendCommand(CommandType.LIST_INDEXES, {
       dbName: this.dbName,
       collectionName: this.collectionName,

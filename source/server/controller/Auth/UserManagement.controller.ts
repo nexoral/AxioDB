@@ -57,7 +57,11 @@ export default class UserManagementController {
     request: AxioHttpRequest,
     reply: AxioHttpResponse,
   ): Promise<ResponseBuilder> {
-    const { username } = request.params as { username: string };
+    const { username } = (request.params as { username?: string } | undefined) ?? {};
+    if (!username || typeof username !== "string" || username.trim().length === 0) {
+      return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Username is required"));
+    }
+
     const { newPassword } = (request.body as ResetPasswordRequestBody | undefined) ?? {};
 
     if (!newPassword || typeof newPassword !== "string" || newPassword.length < MIN_PASSWORD_LENGTH) {
@@ -78,7 +82,7 @@ export default class UserManagementController {
       );
     }
 
-    const result = await this.authService.resetUserPassword(username, newPassword, actorUsername);
+    const result = await this.authService.resetUserPassword(username.trim(), newPassword, actorUsername);
     if (!result.success) {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, result.message));
     }
@@ -89,7 +93,11 @@ export default class UserManagementController {
     request: AxioHttpRequest,
     reply: AxioHttpResponse,
   ): Promise<ResponseBuilder> {
-    const { username } = request.params as { username: string };
+    const { username } = (request.params as { username?: string } | undefined) ?? {};
+    if (!username || typeof username !== "string" || username.trim().length === 0) {
+      return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Username is required"));
+    }
+
     const { role } = (request.body as UpdateUserRoleRequestBody | undefined) ?? {};
 
     if (!role || typeof role !== "string") {
@@ -104,7 +112,7 @@ export default class UserManagementController {
       );
     }
 
-    const result = await this.authService.updateUserRole(username, role, actorUsername);
+    const result = await this.authService.updateUserRole(username.trim(), role, actorUsername);
     if (!result.success) {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, result.message));
     }
@@ -112,7 +120,10 @@ export default class UserManagementController {
   }
 
   public async deleteUser(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
-    const { username } = request.params as { username: string };
+    const { username } = (request.params as { username?: string } | undefined) ?? {};
+    if (!username || typeof username !== "string" || username.trim().length === 0) {
+      return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Username is required"));
+    }
 
     const actorUsername = request.authUser?.username;
     if (!actorUsername) {
@@ -122,7 +133,7 @@ export default class UserManagementController {
       );
     }
 
-    const result = await this.authService.deleteUser(username, actorUsername);
+    const result = await this.authService.deleteUser(username.trim(), actorUsername);
     if (!result.success) {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, result.message));
     }

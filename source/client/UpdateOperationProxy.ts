@@ -15,7 +15,7 @@ export default class UpdateOperationProxy {
     this.query = query;
   }
 
-  async UpdateOne(data: object): Promise<any> {
+  async UpdateOne(data: object): Promise<unknown> {
     return await this.client.sendCommand(CommandType.UPDATE_DOCUMENTS_BY_QUERY, {
       dbName: this.dbName,
       collectionName: this.collectionName,
@@ -25,7 +25,7 @@ export default class UpdateOperationProxy {
     });
   }
 
-  async UpdateMany(data: object): Promise<any> {
+  async UpdateMany(data: object): Promise<unknown> {
     return await this.client.sendCommand(CommandType.UPDATE_DOCUMENTS_BY_QUERY, {
       dbName: this.dbName,
       collectionName: this.collectionName,

@@ -145,10 +145,10 @@ export default class Collection {
    * half-written document.
    *
    * @param {object} data - The data to be inserted.
-   * @returns {Promise<any>} - A promise that resolves with the response of the insertion operation.
+   * @returns {Promise<SuccessInterface | ErrorInterface | undefined>} - A promise that resolves with the response of the insertion operation.
    */
   public async insert(
-    data: object | any,
+    data: object,
   ): Promise<SuccessInterface | ErrorInterface | undefined> {
     // Check if data is empty or not
     if (!data) {
@@ -234,7 +234,7 @@ export default class Collection {
    * @param {object} query - The query to be executed
    * @returns {Reader} - An instance of the Reader class.
    */
-  public query(query: object | any): Reader {
+  public query(query: Record<string, unknown>): Reader {
     if (!query) {
       throw new Error("Query cannot be empty");
     }
@@ -296,7 +296,7 @@ export default class Collection {
    * collection.delete({ age: { $gt: 30 } });
    * ```
    */
-  public delete(query: object | any): DeleteOperation {
+  public delete(query: Record<string, unknown>): DeleteOperation {
     // Check if documentId is empty or not
     if (!query) {
       throw new Error("Query cannot be empty");
@@ -311,7 +311,7 @@ export default class Collection {
     );
   }
 
-  public update(query: object | any): UpdateOperation {
+  public update(query: Record<string, unknown>): UpdateOperation {
     if (!query) {
       throw new Error("Query cannot be empty");
     }

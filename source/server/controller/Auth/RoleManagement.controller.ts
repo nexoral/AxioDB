@@ -48,9 +48,12 @@ export default class RoleManagementController {
   }
 
   public async deleteRole(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
-    const { roleName } = request.params as { roleName: string };
+    const { roleName } = (request.params as { roleName?: string } | undefined) ?? {};
+    if (!roleName || typeof roleName !== "string" || roleName.trim().length === 0) {
+      return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Role name is required"));
+    }
 
-    const result = await this.authService.deleteRole(roleName);
+    const result = await this.authService.deleteRole(roleName.trim());
     if (!result.success) {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, result.message));
     }

@@ -15,7 +15,7 @@ export default class AggregationProxy {
     this.pipeline = pipeline;
   }
 
-  async exec(): Promise<any> {
+  async exec(): Promise<unknown> {
     return await this.client.sendCommand(CommandType.AGGREGATE, {
       dbName: this.dbName,
       collectionName: this.collectionName,

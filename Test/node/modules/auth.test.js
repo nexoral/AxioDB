@@ -979,6 +979,50 @@ class AuthTests extends TestRunner {
         assert.includes(body.message, 'Password reset successfully');
       });
     });
+
+    await this.describe('Route parameter validation', async () => {
+      await this.test('Reset password with whitespace username returns 400', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/%20/reset-password`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ newPassword: 'NewPassword123!' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.equal(body.message, 'Username is required');
+      });
+
+      await this.test('Update role with whitespace username returns 400', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/%20/role`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ role: 'View' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.equal(body.message, 'Username is required');
+      });
+
+      await this.test('Delete user with whitespace username returns 400', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/%20`, {
+          method: 'DELETE',
+          headers: { Cookie: this.adminCookie },
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.equal(body.message, 'Username is required');
+      });
+
+      await this.test('Delete role with whitespace roleName returns 400', async () => {
+        const res = await fetch(`${BASE_URL}/auth/roles/%20`, {
+          method: 'DELETE',
+          headers: { Cookie: this.adminCookie },
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.equal(body.message, 'Role name is required');
+      });
+    });
   }
 }
 
