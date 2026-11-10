@@ -47,8 +47,8 @@ Before creating bug reports, please check the [existing issues](https://github.c
 ## Bug: Range query returns stale results after index creation
 
 **Environment:**
-- AxioDB: 22.17.1
-- Node.js: 20.10.0
+- AxioDB: 27.45.12
+- Node.js: 22.12.0
 - OS: Ubuntu 22.04
 
 **Steps to Reproduce:**
@@ -103,8 +103,8 @@ We actively welcome your pull requests! Here's the process:
 
 ### Prerequisites
 
-- Node.js >= 20.0.0
-- npm >= 6.0.0
+- Node.js >= 22.0.0
+- npm >= 10.0.0
 - Git
 
 ### Setup Steps
@@ -189,7 +189,7 @@ async insert(data: object): Promise<SuccessInterface | ErrorInterface> {
 ### Code Quality
 
 - **Linting**: Run `npm run lint` before committing
-- **Type Safety**: No `any` types unless absolutely necessary
+- **Type Safety**: Strictly no `any` types — use `unknown` with type guards
 - **Error Handling**: Always handle errors appropriately
 - **Performance**: Consider performance implications
 - **Security**: Follow security best practices
@@ -249,11 +249,11 @@ Fixes #456
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all test suites (isolated singleton child processes)
 npm run node-test
 
-# Run specific test file
-node ./Test/node/run.js
+# Run a specific test suite (e.g. crud, auth, http-api, tcp-transaction)
+npm run node-test crud
 ```
 
 ### Writing Tests
@@ -268,7 +268,8 @@ node ./Test/node/run.js
 ```javascript
 // Test for insert operation
 const testInsert = async () => {
-  const collection = await db.createCollection('test', false);
+  const testDB = await db.createDB('TestDB');
+  const collection = await testDB.createCollection('test');
   const result = await collection.insert({ name: 'Test User' });
 
   if (result.success) {
