@@ -2,7 +2,7 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-import { Document, SortSpec, ProjectionSpec, QueryValue } from "../../config/Interfaces/shared.types";
+import { Document, SortSpec, ProjectionSpec } from "../../config/Interfaces/shared.types";
 
 // Import All helpers
 import type { InMemoryCache } from "../../Memory/memory.operation";
@@ -23,7 +23,7 @@ export default class Reader {
   private readonly collectionName: string;
   private readonly path: string;
   private readonly Converter: Converter;
-  private readonly baseQuery: Record<string, QueryValue>;
+  private readonly baseQuery: Record<string, unknown>;
   private limit: number | undefined;
   private skip: number | undefined;
   private sort: SortSpec;
@@ -45,7 +45,7 @@ export default class Reader {
   constructor(
     collectionName: string,
     path: string,
-    baseQuery: Record<string, QueryValue>,
+    baseQuery: Record<string, unknown>,
     cache: InMemoryCache,
   ) {
     this.collectionName = collectionName;
@@ -86,7 +86,7 @@ export default class Reader {
 
   /**
    * Reads the data from a file.
-   * @returns {Promise<any>} A promise that resolves with the response of the read operation.
+   * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves with the response of the read operation.
    */
   public async exec(): Promise<SuccessInterface | ErrorInterface> {
     try {
@@ -527,7 +527,7 @@ export default class Reader {
    * and returns the sliced data. If either `limit` or `skip` is not defined,
    * it returns the original `FinalData` array.
    *
-   * @param {any[]} FinalData - The array of data to apply skip and limit to.
+   * @param {Document[]} FinalData - The array of data to apply skip and limit to.
    * @returns {Promise<SuccessInterface | ErrorInterface>} - A promise that resolves to a success interface containing the sliced data or the original data.
    */
   private async ApplySkipAndLimit(

@@ -16,15 +16,15 @@ import PathSanitizer from "../../Helper/PathSanitizer.helper";
  */
 export default class Insertion {
   private readonly collectionName: string;
-  private readonly path: string | any;
+  private readonly path: string;
   private readonly Converter: Converter;
 
   /**
    * Creates an instance of Insertion.
    * @param {string} collectionName - The name of the collection.
-   * @param {string | any} path - The data to be inserted.
+   * @param {string} path - The data to be inserted.
    */
-  constructor(collectionName: string, path: string | any) {
+  constructor(collectionName: string, path: string) {
     this.collectionName = collectionName;
     this.path = path;
     this.Converter = new Converter();
@@ -32,10 +32,10 @@ export default class Insertion {
 
   /**
    * Saves the data to a file.
-   * @returns {Promise<any>} A promise that resolves with the response of the save operation.
+   * @returns {Promise<SuccessInterface | ErrorInterface>} A promise that resolves with the response of the save operation.
    */
   public async Save(
-    data: object | any,
+    data: object,
     ExistingdocumentId?: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {

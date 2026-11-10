@@ -322,6 +322,12 @@ const Introduction: React.FC = () => {
   // space keeps the layout stable regardless.
   const BADGES = [
     { src: badgeUrls.npm, alt: "npm version", width: 168 },
+    {
+      src: "https://www.bestpractices.dev/projects/16511/badge",
+      alt: "OpenSSF Best Practices",
+      width: 184,
+      href: "https://www.bestpractices.dev/projects/16511",
+    },
     { src: "https://img.shields.io/npm/v/axiodb?logo=npm&label=npm", alt: "npm shields", width: 134 },
     { src: "https://img.shields.io/npm/dt/axiodb.svg", alt: "npm downloads total", width: 120 },
     { src: "https://img.shields.io/npm/dy/axiodb.svg", alt: "npm downloads yearly", width: 154 },
@@ -431,16 +437,34 @@ const Introduction: React.FC = () => {
       {/* Badges - wrapped into even rows on a centered strip, matching the
           partner tiles on nodejs.org, instead of one long scrolling line. */}
       <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
-        {BADGES.map((badge) => (
-          <img
-            key={badge.alt}
-            src={badge.src}
-            alt={badge.alt}
-            width={badge.width}
-            height={24}
-            className="h-6 rounded-[3px]"
-          />
-        ))}
+        {BADGES.map((badge) =>
+          "href" in badge && badge.href ? (
+            <a
+              key={badge.alt}
+              href={badge.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block hover:opacity-90 transition-opacity"
+            >
+              <img
+                src={badge.src}
+                alt={badge.alt}
+                width={badge.width}
+                height={24}
+                className="h-6 rounded-[3px]"
+              />
+            </a>
+          ) : (
+            <img
+              key={badge.alt}
+              src={badge.src}
+              alt={badge.alt}
+              width={badge.width}
+              height={24}
+              className="h-6 rounded-[3px]"
+            />
+          )
+        )}
       </div>
 
           {/* Runtime Compatibility & Tested Cases */}

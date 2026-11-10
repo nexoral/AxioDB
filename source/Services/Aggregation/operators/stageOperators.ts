@@ -1,4 +1,4 @@
-import { CollectionResolver } from "../../../config/Interfaces/Operation/aggregation.interface";
+import { CollectionResolver, AccumulatorFn } from "../../../config/Interfaces/Operation/aggregation.interface";
 import { DANGEROUS_KEYS, evaluateExpression, getNestedValue, setNestedValue } from "./expressionOperators";
 import { BUILT_IN_ACCUMULATORS } from "./accumulatorOperators";
 import { OperatorRegistry } from "../OperatorRegistry";
@@ -138,7 +138,7 @@ export function executeGroup(input: Record<string, unknown>[], groupExpr: Record
 
       if (accInfo.custom) {
         const registered = OperatorRegistry.getOperator(accInfo.op as string);
-        if (registered) result[fieldKey] = (registered.fn as any)(docs, accInfo.expr);
+        if (registered) result[fieldKey] = (registered.fn as AccumulatorFn)(docs, accInfo.expr);
       } else {
         const accFn = BUILT_IN_ACCUMULATORS[accInfo.op as string];
         if (accFn) result[fieldKey] = accFn(docs, accInfo.expr);

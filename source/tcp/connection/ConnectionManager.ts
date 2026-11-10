@@ -280,7 +280,7 @@ export class ConnectionManager extends EventEmitter {
   /**
    * Get connection statistics
    */
-  getStats(): Record<string, any> {
+  getStats(): Record<string, unknown> {
     let totalRequests = 0;
     let oldestConnection = Date.now();
 

@@ -15,7 +15,7 @@ export default class DeleteOperationProxy {
     this.query = query;
   }
 
-  async deleteOne(): Promise<any> {
+  async deleteOne(): Promise<unknown> {
     return await this.client.sendCommand(CommandType.DELETE_DOCUMENTS_BY_QUERY, {
       dbName: this.dbName,
       collectionName: this.collectionName,
@@ -24,7 +24,7 @@ export default class DeleteOperationProxy {
     });
   }
 
-  async deleteMany(): Promise<any> {
+  async deleteMany(): Promise<unknown> {
     return await this.client.sendCommand(CommandType.DELETE_DOCUMENTS_BY_QUERY, {
       dbName: this.dbName,
       collectionName: this.collectionName,

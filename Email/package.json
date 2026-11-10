@@ -1,6 +1,6 @@
 {
   "name": "email-r2-agent",
-  "version": "27.45.12",
+  "version": "27.45.13",
   "description": "",
   "main": "index.js",
   "scripts": {

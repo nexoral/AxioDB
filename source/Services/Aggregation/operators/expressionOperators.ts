@@ -1,5 +1,6 @@
 
 import RegexGuard from "../../../Helper/RegexGuard.helper";
+import { ExpressionFn } from "../../../config/Interfaces/Operation/aggregation.interface";
 
 export const DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
@@ -453,7 +454,7 @@ export function evaluateExpression(doc: Record<string, unknown>, expr: unknown):
       const { OperatorRegistry } = require("../OperatorRegistry");
       const registered = OperatorRegistry.getOperator(op);
       if (registered && registered.type === "expression") {
-        return (registered.fn as any)(doc, exprObj[op]);
+        return (registered.fn as ExpressionFn)(doc, exprObj[op]);
       }
       return expr;
     }
