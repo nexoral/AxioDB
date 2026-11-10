@@ -52,8 +52,21 @@ export default class TransactionController {
     }
 
     try {
-      const databaseInstance = await this.axioDB.createDB(dbName.trim());
-      const collection = await databaseInstance.createCollection(collectionName.trim());
+      const trimmedDb = dbName.trim();
+      const trimmedColl = collectionName.trim();
+
+      const dbExists = await this.axioDB.isDatabaseExists(trimmedDb);
+      if (!dbExists) {
+        return sendResponse(reply, buildResponse(StatusCodes.NOT_FOUND, "Database not found"));
+      }
+
+      const databaseInstance = await this.axioDB.createDB(trimmedDb);
+      const colExists = await databaseInstance.isCollectionExists(trimmedColl);
+      if (!colExists) {
+        return sendResponse(reply, buildResponse(StatusCodes.NOT_FOUND, "Collection not found"));
+      }
+
+      const collection = await databaseInstance.createCollection(trimmedColl);
       const collectionPath = (collection as unknown as { getCollectionPath(): string }).getCollectionPath();
 
       const username = request.authUser?.username || "anonymous";

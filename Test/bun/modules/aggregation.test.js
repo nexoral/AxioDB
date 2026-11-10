@@ -885,6 +885,45 @@ class AggregationTests extends TestRunner {
         assert.equal(Object.prototype.polluted, undefined);
       });
 
+      await this.test('Aggregation $lookup with as: "__proto__" throws and rejects prototype tampering', async () => {
+        let threw = false;
+        try {
+          await this.usersCollection.aggregate([
+            {
+              $lookup: {
+                from: 'Orders',
+                localField: 'userId',
+                foreignField: 'userId',
+                as: '__proto__'
+              }
+            }
+          ]).exec();
+        } catch (e) {
+          threw = true;
+          assert.ok(e.message.includes('reserved prototype property'));
+        }
+        assert.ok(threw, 'Should throw for __proto__ as output field');
+        assert.equal(({}).polluted, undefined);
+        assert.equal(Object.prototype.polluted, undefined);
+      });
+
+      await this.test('Aggregation $unwind with includeArrayIndex: "__proto__" throws and rejects prototype tampering', async () => {
+        await this.productsCollection.insert({ name: 'UnwindProto', category: 'Test', price: 10, stock: 1, items: ['a', 'b'] });
+        let threw = false;
+        try {
+          await this.productsCollection.aggregate([
+            { $match: { name: 'UnwindProto' } },
+            { $unwind: { path: '$items', includeArrayIndex: '__proto__' } }
+          ]).exec();
+        } catch (e) {
+          threw = true;
+          assert.ok(e.message.includes('reserved prototype property'));
+        }
+        assert.ok(threw, 'Should throw for __proto__ array index field');
+        assert.equal(({}).polluted, undefined);
+        assert.equal(Object.prototype.polluted, undefined);
+      });
+
       await this.test('Legitimate nested path in $unwind', async () => {
         await this.productsCollection.insert({ name: 'UnwindNested', category: 'Test', price: 20, stock: 3, meta: { tags: ['alpha', 'beta'] } });
         const result = await this.productsCollection.aggregate([

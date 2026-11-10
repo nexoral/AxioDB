@@ -1,7 +1,7 @@
 
 import RegexGuard from "../../../Helper/RegexGuard.helper";
 
-const DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+export const DANGEROUS_KEYS = new Set(["__proto__", "constructor", "prototype"]);
 
 export function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   if (!path || !obj) return undefined;

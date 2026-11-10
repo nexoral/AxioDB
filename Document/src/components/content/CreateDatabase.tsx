@@ -7,14 +7,14 @@ const CreateDatabase: React.FC = () => {
     defaultInstance: `
 const { AxioDB } = require("axiodb");
 
+// Quick boilerplate - create AxioDB instance in embedded mode
+const db = new AxioDB();
+console.log("AxioDB instance created in embedded mode");
+`,
+    httpMode: `
 // Create AxioDB instance with HTTP REST API enabled
 const db = new AxioDB({ HTTP: true });
 console.log("AxioDB instance created with HTTP REST API at localhost:27018");
-`,
-    embeddedMode: `
-// Create AxioDB instance in headless embedded mode (HTTP and TCP off)
-const db = new AxioDB();
-console.log("AxioDB instance created in embedded mode");
 `,
     customName: `
 // Create AxioDB instance with HTTP API and custom root folder name
@@ -68,7 +68,7 @@ console.log("Database 'ProductsDB' created");
           💡 Constructor Parameters
         </h3>
         <ul className="space-y-2 text-gray-600">
-          <li><strong>HTTP</strong> (boolean, optional): Enable HTTP REST API server on port 27018 - defaults to false (legacy <code>GUI</code> option is automatically mapped to <code>HTTP</code>)</li>
+          <li><strong>HTTP</strong> (boolean, optional): Enable HTTP REST API server on port 27018 - defaults to false</li>
           <li><strong>RootName</strong> (string, optional): Custom root folder name - defaults to "AxioDB"</li>
           <li><strong>CustomPath</strong> (string, optional): Custom storage path - defaults to current directory</li>
           <li><strong>TCP</strong> (boolean, optional): Enable the AxioDBCloud TCP server on port 27019 - defaults to false</li>
@@ -126,17 +126,17 @@ console.log("Database 'ProductsDB' created");
         </ul>
       </div>
 
-      <h3 className="text-2xl font-semibold mb-4">Basic Instance (With GUI)</h3>
+      <h3 className="text-2xl font-semibold mb-4">Quick Boilerplate (Embedded Mode)</h3>
       <p className="text-gray-600 mb-4">
-        Most common use case - enable the built-in GUI for data inspection.
+        Quick start with zero configuration — runs in embedded mode with sub-millisecond in-memory caching and ACID disk persistence.
       </p>
       <CodeBlock code={codeExamples.defaultInstance} language="javascript" />
 
-      <h3 className="text-2xl font-semibold mt-8 mb-4">Instance Without GUI</h3>
+      <h3 className="text-2xl font-semibold mt-8 mb-4">Instance with HTTP REST API</h3>
       <p className="text-gray-600 mb-4">
-        For production environments where you don't need the web interface.
+        Enable the HTTP REST API server on port 27018 for remote clients or management tools.
       </p>
-      <CodeBlock code={codeExamples.embeddedMode} language="javascript" />
+      <CodeBlock code={codeExamples.httpMode} language="javascript" />
 
       <h3 className="text-2xl font-semibold mt-8 mb-4">Custom Database Name</h3>
       <p className="text-gray-600 mb-4">
@@ -174,7 +174,7 @@ console.log("Database 'ProductsDB' created");
         </h3>
         <ul className="space-y-2 text-gray-600 list-disc pl-6">
           <li>Only one AxioDB instance is allowed per application (singleton pattern)</li>
-          <li>GUI runs on localhost:27018 and starts automatically when enabled</li>
+          <li>HTTP REST API runs on localhost:27018 and starts automatically when enabled</li>
           <li>Database files are stored in the root folder you specify</li>
           <li>Each database can contain multiple collections</li>
         </ul>

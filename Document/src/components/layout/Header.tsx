@@ -40,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar, isSidebarOpen }) => {
     { title: "Basic Usage & Operations", path: "/usage", description: "CRUD operations and basic database usage" },
     { title: "Advanced Features", path: "/advanced-features", description: "Advanced querying, aggregation, and optimization" },
     { title: "API Reference", path: "/api-reference", description: "Complete JavaScript/TypeScript API documentation" },
-    { title: "Server API (HTTP)", path: "/server-api", description: "RESTful HTTP API for AxioDB GUI Server, including index routes" },
+    { title: "Server API (HTTP)", path: "/server-api", description: "RESTful HTTP API for AxioDB HTTP Server, including index routes" },
     { title: "Security & Access Control", path: "/security", description: "RBAC and TCP authentication" },
     { title: "Performance Comparison", path: "/comparison", description: "See how AxioDB compares to other databases" },
     { title: "Community & Contributing", path: "/community", description: "Join the community and contribute to AxioDB" },

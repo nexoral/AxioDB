@@ -387,14 +387,13 @@ console.log(paginatedDocuments);`,
                 language="javascript"
                 code={`const { AxioDB } = require("axiodb");
 
-// Create a single AxioDB instance for your entire application
-// Enable HTTP REST API: localhost:27018
-const Instance = new AxioDB({ HTTP: true });
+// Create a single AxioDB instance for your entire application (embedded mode)
+const Instance = new AxioDB();
 
-// Other constructor options:
-const EmbeddedInstance = new AxioDB(); // Embedded mode (no HTTP or TCP server)
-const CustomNameInstance = new AxioDB({ HTTP: true, RootName: "MyCustomDB" }); // Custom database name
-const CustomPathInstance = new AxioDB({ HTTP: true, RootName: "MyDB", CustomPath: "./data" }); // Custom path
+// Optional constructor options:
+// const Instance = new AxioDB({ HTTP: true }); // Enable HTTP REST API on localhost:27018
+// const Instance = new AxioDB({ RootName: "MyCustomDB" }); // Custom database name
+// const Instance = new AxioDB({ RootName: "MyDB", CustomPath: "./data" }); // Custom path
 
 const main = async () => {
   // Create database
@@ -498,14 +497,13 @@ main();`}
                 language="javascript"
                 code={`import { AxioDB } from "axiodb";
 
-// Create a single AxioDB instance for your entire application
-// Enable HTTP REST API: localhost:27018
-const Instance = new AxioDB({ HTTP: true });
+// Create a single AxioDB instance for your entire application (embedded mode)
+const Instance = new AxioDB();
 
-// Other constructor options:
-const EmbeddedInstance = new AxioDB(); // Embedded mode (no HTTP or TCP server)
-const CustomNameInstance = new AxioDB({ HTTP: true, RootName: "MyCustomDB" }); // Custom database name
-const CustomPathInstance = new AxioDB({ HTTP: true, RootName: "MyDB", CustomPath: "./data" }); // Custom path
+// Optional constructor options:
+// const Instance = new AxioDB({ HTTP: true }); // Enable HTTP REST API on localhost:27018
+// const Instance = new AxioDB({ RootName: "MyCustomDB" }); // Custom database name
+// const Instance = new AxioDB({ RootName: "MyDB", CustomPath: "./data" }); // Custom path
 
 const main = async () => {
   // Create database

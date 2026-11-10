@@ -257,6 +257,13 @@ class CRUDTests extends TestRunner {
         assert.isError(manyResult, 'UpdateMany with no matching documents should return an error');
       });
 
+      await this.test('UpdateOne with directory traversal in documentId safely fails without escaping directory (SEC-16)', async () => {
+        const result = await this.collection
+          .update({ documentId: '../../traversal_test' })
+          .UpdateOne({ marked: true });
+        assert.isError(result, 'UpdateOne with path traversal should return an error');
+      });
+
       await this.test('Updating one document does not disturb an unrelated one sharing the same indexed value', async () => {
         // Regression test: two documents sharing an indexed field's value used to have
         // their shared index bucket silently reordered on every update to either one -
@@ -644,6 +651,13 @@ class CRUDTests extends TestRunner {
           .deleteMany();
         assert.isError(manyResult, 'deleteMany with no matching documents should return an error');
       });
+
+      await this.test('deleteOne with directory traversal in documentId safely fails without escaping directory (SEC-16)', async () => {
+        const result = await this.collection
+          .delete({ documentId: '../../traversal_test' })
+          .deleteOne();
+        assert.isError(result, 'deleteOne with path traversal should return an error');
+      });
     });
 
     // Index Tests
@@ -675,6 +689,23 @@ class CRUDTests extends TestRunner {
           !result.data.some((entry) => entry.indexFieldName === 'city'),
           'Dropped index should not appear in the list'
         );
+      });
+
+      await this.test('newIndex and dropIndex with directory traversal fails safely without escaping directory (SEC-31)', async () => {
+        const outsideTarget = path.join(this.testDir, 'traversal_escape.jsonl');
+        const outsideVictim = path.join(this.testDir, 'traversal_victim.jsonl');
+        fs.writeFileSync(outsideVictim, 'protected content');
+
+        // Attempt newIndex with path traversal
+        await this.collection.newIndex('../../traversal_escape');
+        assert.ok(!fs.existsSync(outsideTarget), 'newIndex must not write outside indexes directory');
+
+        // Attempt dropIndex with path traversal targeting the existing file outside
+        await this.collection.dropIndex('../../traversal_victim');
+        assert.ok(fs.existsSync(outsideVictim), 'dropIndex must not delete file outside indexes directory');
+
+        // Clean up victim file
+        fs.unlinkSync(outsideVictim);
       });
     });
 
@@ -735,6 +766,223 @@ class CRUDTests extends TestRunner {
 
         const missingRes = await fileManager.GetFileSize(path.join(this.testDir, 'non-existent.txt'));
         assert.isError(missingRes);
+      });
+
+      await this.test('FolderManager.UnlockDirectory applies restrictive permissions (0o750) and prevents world-writable access', async () => {
+        const FolderManager = require('../../../lib/engine/Filesystem/FolderManager.js').default;
+        const folderManager = new FolderManager();
+        const testUnlockDir = path.join(this.testDir, 'secure-unlock-dir');
+        fs.mkdirSync(testUnlockDir, { recursive: true, mode: 0o700 });
+
+        const res = await folderManager.UnlockDirectory(testUnlockDir);
+        assert.isSuccess(res);
+
+        const stat = fs.statSync(testUnlockDir);
+        const mode = stat.mode & 0o777;
+        if (process.platform !== 'win32') {
+          assert.equal(mode, 0o750, `Expected permissions 0o750, got 0o${mode.toString(8)}`);
+        }
+        assert.ok(!(mode & 0o002), 'Directory must not be world-writable');
+      });
+
+      await this.test('FileManager.ReadLines reads valid files and cleanly handles non-existent or unreadable targets (SEC-30)', async () => {
+        const FileManager = require('../../../lib/engine/Filesystem/FileManager.js').default;
+        const fileManager = new FileManager();
+
+        // 1. Valid file with whitespace and empty lines
+        const testLinesFile = path.join(this.testDir, 'readlines-test.txt');
+        fs.writeFileSync(testLinesFile, 'line 1\n\n  line 2  \nline 3\n\n');
+
+        const lines = await fileManager.ReadLines(testLinesFile);
+        assert.equal(lines.length, 3);
+        assert.equal(lines[0], 'line 1');
+        assert.equal(lines[1], 'line 2');
+        assert.equal(lines[2], 'line 3');
+
+        // 2. Non-existent file returns [] without throwing or leaking
+        const nonExistent = path.join(this.testDir, 'does-not-exist.txt');
+        const emptyResult = await fileManager.ReadLines(nonExistent);
+        assert.ok(Array.isArray(emptyResult));
+        assert.equal(emptyResult.length, 0);
+
+        // 3. Unreadable/directory target emits stream error and returns []
+        const dirTarget = path.join(this.testDir, 'readlines-dir');
+        fs.mkdirSync(dirTarget, { recursive: true });
+        const dirResult = await fileManager.ReadLines(dirTarget);
+        assert.ok(Array.isArray(dirResult));
+        assert.equal(dirResult.length, 0);
+      });
+    });
+
+    await this.describe('Tar & Archive Security (SEC-22)', async () => {
+      const zlib = require('zlib');
+      const { pipeline } = require('node:stream/promises');
+      const TarHelper = require('../../../lib/Helper/Tar.helper.js').default;
+      const { unzipFile, UnsafeArchiveError } = require('../../../lib/utility/ZipUnzip.utils.js');
+
+      function encodeTarHeaderWithTypeflag(entry, typeflag) {
+        const header = TarHelper.encodeHeader(entry);
+        header.fill(0x20, 148, 156);
+        header[156] = typeof typeflag === 'string' ? typeflag.charCodeAt(0) : typeflag;
+        let checksum = 0;
+        for (let i = 0; i < 512; i++) {
+          checksum += header[i];
+        }
+        header.write(checksum.toString(8).padStart(6, '0') + '\0 ', 148, 8, 'ascii');
+        return header;
+      }
+
+      await this.test('TarExtractor rejects an entry with typeflag 2 (symlink) and prevents file creation', async () => {
+        const testExtractDir = path.join(this.testDir, 'tar-symlink-extract');
+        fs.mkdirSync(testExtractDir, { recursive: true });
+
+        const header = encodeTarHeaderWithTypeflag(
+          { name: 'symlink.txt', size: 12, type: 'File' },
+          0x32 // '2' = symlink
+        );
+
+        const extractor = TarHelper.createExtractor(testExtractDir);
+        let errorCaught = null;
+
+        await new Promise((resolve) => {
+          extractor.on('error', (err) => {
+            errorCaught = err;
+            resolve();
+          });
+          extractor.on('finish', () => resolve());
+          extractor.write(header);
+          extractor.write(Buffer.from('evil link 12'));
+          extractor.write(Buffer.alloc(512 - 12));
+          extractor.write(Buffer.alloc(1024));
+          extractor.end();
+        });
+
+        assert.ok(errorCaught !== null, 'Extractor should emit an error on symlink typeflag');
+        assert.ok(
+          errorCaught.message.includes('Unsupported or unsafe tar entry type: 0x32'),
+          `Error message should indicate unsafe typeflag: ${errorCaught ? errorCaught.message : ''}`
+        );
+        assert.ok(
+          !fs.existsSync(path.join(testExtractDir, 'symlink.txt')),
+          'Symlink entry must not be extracted to destination'
+        );
+      });
+
+      await this.test('unzipFile rejects a .tar.gz archive with symlink entry (typeflag 2)', async () => {
+        const testArchive = path.join(this.testDir, 'symlink-archive.tar.gz');
+        const testDest = path.join(this.testDir, 'symlink-dest');
+        fs.mkdirSync(testDest, { recursive: true });
+
+        const header = encodeTarHeaderWithTypeflag(
+          { name: 'symlink_target.txt', size: 10, type: 'File' },
+          0x32 // '2' = symlink
+        );
+
+        const gzip = zlib.createGzip();
+        const sink = fs.createWriteStream(testArchive);
+        const pipePromise = pipeline(gzip, sink);
+        gzip.write(header);
+        gzip.write(Buffer.from('0123456789'));
+        gzip.write(Buffer.alloc(512 - 10));
+        gzip.write(Buffer.alloc(1024));
+        gzip.end();
+        await pipePromise;
+
+        let failed = null;
+        try {
+          await unzipFile(testArchive, testDest);
+        } catch (err) {
+          failed = err;
+        }
+
+        assert.ok(failed !== null, 'unzipFile must throw when encountering a symlink entry');
+        assert.ok(
+          failed instanceof UnsafeArchiveError || (failed && failed.name === 'UnsafeArchiveError'),
+          `Should throw UnsafeArchiveError, got ${failed ? failed.name : 'null'}`
+        );
+        assert.ok(
+          failed.message.includes('Unsupported or unsafe tar entry type: 0x32'),
+          `Error message should mention unsafe typeflag: ${failed ? failed.message : ''}`
+        );
+        assert.ok(
+          !fs.existsSync(path.join(testDest, 'symlink_target.txt')),
+          'File from symlink archive must not exist in extraction destination'
+        );
+      });
+
+      await this.test('Trailing slash cannot bypass symlink typeflag rejection (spoofed directory)', async () => {
+        const testArchive = path.join(this.testDir, 'spoofed-dir-archive.tar.gz');
+        const testDest = path.join(this.testDir, 'spoofed-dir-dest');
+        fs.mkdirSync(testDest, { recursive: true });
+
+        // Trailing slash with symlink typeflag '2'
+        const header = encodeTarHeaderWithTypeflag(
+          { name: 'spoofed_dir/', size: 0, type: 'Directory' },
+          0x32 // '2' = symlink
+        );
+
+        const gzip = zlib.createGzip();
+        const sink = fs.createWriteStream(testArchive);
+        const pipePromise = pipeline(gzip, sink);
+        gzip.write(header);
+        gzip.write(Buffer.alloc(1024));
+        gzip.end();
+        await pipePromise;
+
+        let failed = null;
+        try {
+          await unzipFile(testArchive, testDest);
+        } catch (err) {
+          failed = err;
+        }
+
+        assert.ok(failed !== null, 'unzipFile must throw on spoofed directory with symlink typeflag');
+        assert.ok(
+          failed instanceof UnsafeArchiveError || (failed && failed.name === 'UnsafeArchiveError'),
+          `Should throw UnsafeArchiveError, got ${failed ? failed.name : 'null'}`
+        );
+        assert.ok(
+          failed.message.includes('Unsupported or unsafe tar entry type: 0x32'),
+          `Error message should mention unsafe typeflag: ${failed ? failed.message : ''}`
+        );
+        assert.ok(
+          !fs.existsSync(path.join(testDest, 'spoofed_dir')),
+          'Spoofed directory must not be created'
+        );
+      });
+
+      await this.test('Special device and invalid typeflags (0x31 hardlink, 0x33 char dev, 0x34 block dev, 0x36 fifo) are rejected', async () => {
+        const testDest = path.join(this.testDir, 'special-dev-dest');
+        fs.mkdirSync(testDest, { recursive: true });
+
+        for (const flag of [0x31, 0x33, 0x34, 0x36]) {
+          const testArchive = path.join(this.testDir, `special-${flag}.tar.gz`);
+          const header = encodeTarHeaderWithTypeflag(
+            { name: `special_${flag}.dev`, size: 0, type: 'File' },
+            flag
+          );
+
+          const gzip = zlib.createGzip();
+          const sink = fs.createWriteStream(testArchive);
+          const pipePromise = pipeline(gzip, sink);
+          gzip.write(header);
+          gzip.write(Buffer.alloc(1024));
+          gzip.end();
+          await pipePromise;
+
+          let failed = null;
+          try {
+            await unzipFile(testArchive, testDest);
+          } catch (err) {
+            failed = err;
+          }
+
+          assert.ok(failed !== null, `unzipFile must throw for typeflag 0x${flag.toString(16)}`);
+          assert.ok(
+            failed.message.includes(`Unsupported or unsafe tar entry type: 0x${flag.toString(16)}`),
+            `Error message should mention unsafe typeflag: ${failed ? failed.message : ''}`
+          );
+        }
       });
     });
   }

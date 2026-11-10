@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import path from 'path';
 import {
   ErrorInterface,
   SuccessInterface,
@@ -7,6 +8,7 @@ import { LockInfo } from "../../config/Interfaces/Transaction/transaction.interf
 import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import Converter from "../../Helper/Converter.helper";
+import PathSanitizer from "../../Helper/PathSanitizer.helper";
 import ResponseHelper from "../../Helper/response.helper";
 
 export default class LockManager {
@@ -24,7 +26,7 @@ export default class LockManager {
 
   private constructor(collectionPath: string) {
     this.collectionPath = collectionPath;
-    this.lockDir = `${collectionPath}/.transactions/locks`;
+    this.lockDir = path.join(collectionPath, '.transactions', 'locks');
     this.FileManager = new FileManager();
     this.FolderManager = new FolderManager();
     this.Converter = new Converter();
@@ -52,7 +54,12 @@ export default class LockManager {
         await this.FolderManager.CreateDirectory(this.lockDir);
       }
 
-      const lockFilePath = `${this.lockDir}/${documentId}.lock`;
+      const safeDocId = PathSanitizer.sanitizePathComponent(documentId);
+      const lockFilePath = path.join(this.lockDir, `${safeDocId}.lock`);
+      PathSanitizer.ensureWithinFolder(this.lockDir, lockFilePath);
+      if (!path.resolve(lockFilePath).startsWith(path.resolve(this.lockDir))) {
+        throw new Error("Security violation: Path traversal attempt detected");
+      }
       const lockContent = this.buildLockContent(documentId, transactionId, transactionTimestamp);
       const startTime = Date.now();
 
@@ -106,7 +113,12 @@ export default class LockManager {
 
   public async releaseLock(documentId: string): Promise<SuccessInterface | ErrorInterface> {
     try {
-      const lockFilePath = `${this.lockDir}/${documentId}.lock`;
+      const safeDocId = PathSanitizer.sanitizePathComponent(documentId);
+      const lockFilePath = path.join(this.lockDir, `${safeDocId}.lock`);
+      PathSanitizer.ensureWithinFolder(this.lockDir, lockFilePath);
+      if (!path.resolve(lockFilePath).startsWith(path.resolve(this.lockDir))) {
+        throw new Error("Security violation: Path traversal attempt detected");
+      }
       const fileExists = await this.FileManager.FileExists(lockFilePath);
 
       if (fileExists.status) {
@@ -131,7 +143,12 @@ export default class LockManager {
 
   public async isLocked(documentId: string): Promise<boolean> {
     try {
-      const lockFilePath = `${this.lockDir}/${documentId}.lock`;
+      const safeDocId = PathSanitizer.sanitizePathComponent(documentId);
+      const lockFilePath = path.join(this.lockDir, `${safeDocId}.lock`);
+      PathSanitizer.ensureWithinFolder(this.lockDir, lockFilePath);
+      if (!path.resolve(lockFilePath).startsWith(path.resolve(this.lockDir))) {
+        throw new Error("Security violation: Path traversal attempt detected");
+      }
       const fileExists = await this.FileManager.FileExists(lockFilePath);
       return fileExists.status;
     } catch {
@@ -141,7 +158,12 @@ export default class LockManager {
 
   public async getLockOwner(documentId: string): Promise<LockInfo | null> {
     try {
-      const lockFilePath = `${this.lockDir}/${documentId}.lock`;
+      const safeDocId = PathSanitizer.sanitizePathComponent(documentId);
+      const lockFilePath = path.join(this.lockDir, `${safeDocId}.lock`);
+      PathSanitizer.ensureWithinFolder(this.lockDir, lockFilePath);
+      if (!path.resolve(lockFilePath).startsWith(path.resolve(this.lockDir))) {
+        throw new Error("Security violation: Path traversal attempt detected");
+      }
       const fileExists = await this.FileManager.FileExists(lockFilePath);
 
       if (!fileExists.status) {

@@ -135,6 +135,12 @@ class HTTPAPITests extends TestRunner {
         assert.isAbove(res.body.statusCode, 399);
       });
 
+      await this.test('POST /api/auth/login - null body returns 400 Bad Request (SEC-34)', async () => {
+        const res = await request('POST', '/api/auth/login', { body: null });
+        assert.equal(res.status, 400);
+        assert.equal(res.body.statusCode, 400);
+      });
+
       await this.test('GET /api/auth/me - returns current user with mustChangePassword', async () => {
         const res = await request('GET', '/api/auth/me', this.cookieHeader());
         assert.equal(res.body.statusCode, 200);
@@ -246,6 +252,20 @@ class HTTPAPITests extends TestRunner {
         const res = await request('DELETE', '/api/db/delete-database?dbName=NonExistent', this.cookieHeader());
         assert.isAbove(res.body.statusCode, 399);
       });
+
+      await this.test('DELETE /api/db/delete-database - missing or empty dbName returns 400 (SEC-21)', async () => {
+        const resMissing = await request('DELETE', '/api/db/delete-database', this.cookieHeader());
+        assert.equal(resMissing.body.statusCode, 400);
+        assert.equal(resMissing.body.message, 'Database name is required');
+
+        const resEmpty = await request('DELETE', '/api/db/delete-database?dbName=', this.cookieHeader());
+        assert.equal(resEmpty.body.statusCode, 400);
+        assert.equal(resEmpty.body.message, 'Database name is required');
+
+        const resWhitespace = await request('DELETE', '/api/db/delete-database?dbName=%20%20', this.cookieHeader());
+        assert.equal(resWhitespace.body.statusCode, 400);
+        assert.equal(resWhitespace.body.message, 'Database name is required');
+      });
     });
 
     await this.describe('Document Count Endpoint', async () => {
@@ -310,6 +330,42 @@ class HTTPAPITests extends TestRunner {
       await this.test('DELETE /api/collection/delete-collection/ - deletes a collection', async () => {
         const res = await request('DELETE', '/api/collection/delete-collection/?dbName=TestDB&collectionName=TempColl', this.cookieHeader());
         assert.equal(res.body.statusCode, 200);
+      });
+
+      await this.test('GET /api/collection/all/ - array query parameter returns 400 (SEC-35)', async () => {
+        const res = await request('GET', '/api/collection/all/?databaseName=a&databaseName=b', this.cookieHeader());
+        assert.equal(res.status, 400);
+        assert.equal(res.body.statusCode, 400);
+      });
+
+      await this.test('GET /api/collection/all/ - whitespace databaseName returns 400 (SEC-35)', async () => {
+        const res = await request('GET', '/api/collection/all/?databaseName=%20%20%20', this.cookieHeader());
+        assert.equal(res.status, 400);
+        assert.equal(res.body.statusCode, 400);
+      });
+
+      await this.test('POST /api/collection/create-collection - whitespace dbName or collectionName returns 400 (SEC-35)', async () => {
+        const resDb = await request('POST', '/api/collection/create-collection', {
+          body: { dbName: '   ', collectionName: 'ValidColl' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(resDb.status, 400);
+        assert.equal(resDb.body.statusCode, 400);
+
+        const resCol = await request('POST', '/api/collection/create-collection', {
+          body: { dbName: 'TestDB', collectionName: '   ' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(resCol.status, 400);
+        assert.equal(resCol.body.statusCode, 400);
+      });
+
+      await this.test('POST /api/collection/create-collection - null body returns 400 Bad Request (SEC-34)', async () => {
+        const res = await request('POST', '/api/collection/create-collection', {
+          body: null,
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
       });
     });
 
@@ -440,6 +496,14 @@ class HTTPAPITests extends TestRunner {
         assert.isAbove(res.body.statusCode, 399);
       });
 
+      await this.test('POST /api/operation/all/by-ids/ - null body returns 400 Bad Request (SEC-34)', async () => {
+        const res = await request('POST', '/api/operation/all/by-ids/?dbName=TestDB&collectionName=Users', {
+          body: null,
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
+
       await this.test('PUT /api/operation/update/by-id/ - updates a document', async () => {
         const res = await request('PUT', `/api/operation/update/by-id/?dbName=TestDB&collectionName=Users&documentId=${newDocId}`, {
           body: { age: 29 },
@@ -470,6 +534,38 @@ class HTTPAPITests extends TestRunner {
           ...this.cookieHeader(),
         });
         assert.equal(res.body.statusCode, 201);
+      });
+
+      await this.test('POST /api/operation/create/ - passing array payload returns 400 (SEC-29)', async () => {
+        const res = await request('POST', '/api/operation/create/?dbName=TestDB&collectionName=Users', {
+          body: [{ name: 'ArrayPayload' }],
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
+
+      await this.test('POST /api/operation/create-many/ - passing non-array payload returns 400 (SEC-29)', async () => {
+        const res = await request('POST', '/api/operation/create-many/?dbName=TestDB&collectionName=Users', {
+          body: { name: 'SingleObject' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
+
+      await this.test('POST /api/operation/create-many/ - passing empty array returns 400 (SEC-29)', async () => {
+        const res = await request('POST', '/api/operation/create-many/?dbName=TestDB&collectionName=Users', {
+          body: [],
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
+
+      await this.test('POST /api/operation/create-many/ - passing array with non-objects returns 400 (SEC-29)', async () => {
+        const res = await request('POST', '/api/operation/create-many/?dbName=TestDB&collectionName=Users', {
+          body: ['invalid', 123, null],
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
       });
     });
 
@@ -506,12 +602,25 @@ class HTTPAPITests extends TestRunner {
         });
         assert.equal(res.body.statusCode, 200);
       });
+
+      await this.test('POST /api/operation/aggregate/ - null body returns 400 Bad Request (SEC-34)', async () => {
+        const res = await request('POST', '/api/operation/aggregate/?dbName=TestDB&collectionName=Users', {
+          body: null,
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 400);
+      });
     });
 
     await this.describe('Dashboard Stats Endpoint', async () => {
-      await this.test('GET /api/dashboard-stats - returns dashboard stats', async () => {
+      await this.test('GET /api/dashboard-stats - returns dashboard stats with volume metrics (SEC-26)', async () => {
         const res = await request('GET', '/api/dashboard-stats', this.cookieHeader());
         assert.equal(res.body.statusCode, 200);
+        assert.exists(res.body.data);
+        assert.exists(res.body.data.storageInfo);
+        assert.equal(typeof res.body.data.storageInfo.machine, 'number');
+        assert.equal(typeof res.body.data.storageInfo.total, 'number');
+        assert.equal(res.body.data.storageInfo.matrixUnit, 'MB');
       });
     });
 
@@ -581,6 +690,32 @@ class HTTPAPITests extends TestRunner {
           ...this.cookieHeader(),
         });
         assert.equal(res.body.statusCode, 403);
+      });
+
+      await this.test('POST /api/transaction/begin - non-existent database returns 404 and does not create folder (SEC-17)', async () => {
+        const fakeDbName = 'NonExistentDbTxnSec17';
+        const res = await request('POST', '/api/transaction/begin', {
+          body: { dbName: fakeDbName, collectionName: 'Users' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 404);
+        assert.equal(res.body.message, 'Database not found');
+
+        const fakeDbPath = path.join(this.testDir, 'HttpApiTestDB', fakeDbName);
+        assert.ok(!fs.existsSync(fakeDbPath), 'Non-existent DB folder should NOT be created');
+      });
+
+      await this.test('POST /api/transaction/begin - non-existent collection returns 404 and does not create folder (SEC-17)', async () => {
+        const fakeColName = 'NonExistentColTxnSec17';
+        const res = await request('POST', '/api/transaction/begin', {
+          body: { dbName: 'TestDB', collectionName: fakeColName },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 404);
+        assert.equal(res.body.message, 'Collection not found');
+
+        const fakeColPath = path.join(this.testDir, 'HttpApiTestDB', 'TestDB', fakeColName);
+        assert.ok(!fs.existsSync(fakeColPath), 'Non-existent collection folder should NOT be created');
       });
 
       await this.test('POST /api/transaction/begin - starts transaction successfully', async () => {
@@ -760,6 +895,53 @@ class HTTPAPITests extends TestRunner {
     });
 
     await this.describe('Error handling', async () => {
+      await this.test('POST /api/operation/create/ - oversized body returns 413 Payload Too Large (SEC-24)', async () => {
+        const HttpServerHelper = require('../../../lib/Helper/http/HttpServer.helper').default || require('../../../lib/Helper/http/HttpServer.helper');
+        const HttpRouter = require('../../../lib/Helper/http/HttpRouter.helper').default || require('../../../lib/Helper/http/HttpRouter.helper');
+
+        const router = new HttpRouter();
+        router.post('/api/operation/create/', async (_req, reply) => {
+          reply.status(200).send({ statusCode: 200, status: true });
+        });
+
+        const testServer = new HttpServerHelper(router, { bodyLimit: 128 });
+        await testServer.listen(0, '127.0.0.1');
+        const testPort = testServer.server.address().port;
+
+        try {
+          const res = await new Promise((resolve, reject) => {
+            const req = http.request({
+              hostname: '127.0.0.1',
+              port: testPort,
+              path: '/api/operation/create/',
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }, (response) => {
+              const chunks = [];
+              response.on('data', (c) => chunks.push(c));
+              response.on('end', () => {
+                const raw = Buffer.concat(chunks).toString();
+                let parsed;
+                try { parsed = JSON.parse(raw); } catch { parsed = raw; }
+                resolve({ status: response.statusCode, body: parsed });
+              });
+            });
+            req.on('error', reject);
+            req.write(JSON.stringify({ data: 'x'.repeat(256) }));
+            req.end();
+          });
+
+          assert.equal(res.status, 413);
+          assert.equal(res.body.statusCode, 413);
+          assert.equal(res.body.status, false);
+          assert.ok(typeof res.body.message === 'string' && res.body.message.includes('Payload Too Large'));
+        } finally {
+          await testServer.close();
+        }
+      });
+
       await this.test('POST /api/operation/create/ - missing dbName returns error', async () => {
         const res = await request('POST', '/api/operation/create/?collectionName=Users', {
           body: { name: 'Test' },

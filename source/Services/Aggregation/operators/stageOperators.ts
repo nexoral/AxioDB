@@ -1,5 +1,5 @@
 import { CollectionResolver } from "../../../config/Interfaces/Operation/aggregation.interface";
-import { evaluateExpression, getNestedValue, setNestedValue } from "./expressionOperators";
+import { DANGEROUS_KEYS, evaluateExpression, getNestedValue, setNestedValue } from "./expressionOperators";
 import { BUILT_IN_ACCUMULATORS } from "./accumulatorOperators";
 import { OperatorRegistry } from "../OperatorRegistry";
 import RegexGuard from "../../../Helper/RegexGuard.helper";
@@ -206,6 +206,10 @@ export function executeUnwind(input: Record<string, unknown>[], unwindExpr: Reco
     fieldPath = unwindValue.path.startsWith("$") ? unwindValue.path.substring(1) : unwindValue.path;
     includeArrayIndex = unwindValue.includeArrayIndex;
     preserveNull = unwindValue.preserveNullAndEmptyArrays || false;
+  }
+
+  if (includeArrayIndex && typeof includeArrayIndex === "string" && DANGEROUS_KEYS.has(includeArrayIndex)) {
+    throw new Error(`Invalid array index field name: "${includeArrayIndex}" is a reserved prototype property.`);
   }
 
   const result: Record<string, unknown>[] = [];
@@ -415,6 +419,9 @@ export async function executeLookup(input: Record<string, unknown>[], lookupExpr
 
   if (!from) throw new Error("$lookup requires a 'from' field specifying the foreign collection name.");
   if (!as) throw new Error("$lookup requires an 'as' field specifying the output array field name.");
+  if (as && typeof as === "string" && DANGEROUS_KEYS.has(as)) {
+    throw new Error(`Invalid output field name: "${as}" is a reserved prototype property.`);
+  }
 
   let foreignData: Record<string, unknown>[];
 

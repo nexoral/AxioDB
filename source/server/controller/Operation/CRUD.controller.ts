@@ -85,7 +85,7 @@ export default class CRUDController {
     const bodySkip = (request.body as Record<string, unknown>)?.skip as number | undefined;
     const bodySort = (request.body as Record<string, unknown>)?.sort as Record<string, 1 | -1> | undefined;
 
-    const { query } = (request.body as { query: object } | undefined) ?? {};
+    const { query } = (request.body as { query?: Record<string, unknown> } | undefined) ?? {};
 
     const PageNumber = page ? parseInt(String(page)) : 1;
     const effectiveLimit = limit !== undefined ? parseInt(String(limit)) : (bodyLimit !== undefined ? parseInt(String(bodyLimit)) : 25);
@@ -104,7 +104,7 @@ export default class CRUDController {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid page number");
     }
 
-    if (!query || typeof query !== "object") {
+    if (!query || typeof query !== "object" || Array.isArray(query)) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid query");
     }
     if (isReservedDatabaseName(dbName)) {
@@ -128,16 +128,23 @@ export default class CRUDController {
       queryBuilder = queryBuilder.Skip(effectiveSkip);
     }
 
-    const allDocuments = await queryBuilder.exec();
-    if (!allDocuments.data) {
-      return buildResponse(StatusCodes.NOT_FOUND, "No documents found");
-    }
+    try {
+      const allDocuments = await queryBuilder.exec();
+      if (!allDocuments.data) {
+        return buildResponse(StatusCodes.NOT_FOUND, "No documents found");
+      }
 
-    return buildResponse(
-      StatusCodes.OK,
-      "Documents retrieved successfully",
-      allDocuments,
-    );
+      return buildResponse(
+        StatusCodes.OK,
+        "Documents retrieved successfully",
+        allDocuments,
+      );
+    } catch (error) {
+      return buildResponse(
+        StatusCodes.BAD_REQUEST,
+        error instanceof Error ? error.message : "Failed to query documents",
+      );
+    }
   }
 
   public async getDocumentsById(request: AxioHttpRequest) {
@@ -183,7 +190,7 @@ export default class CRUDController {
       dbName: string;
       collectionName: string;
     };
-    const { ids } = request.body as { ids: string[] };
+    const { ids } = (request.body as { ids?: string[] } | undefined) ?? {};
 
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
@@ -219,7 +226,7 @@ export default class CRUDController {
       dbName: string;
       collectionName: string;
     };
-    const documentData = request.body as Record<string, any>;
+    const documentData = request.body as Record<string, unknown>;
 
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
@@ -227,29 +234,36 @@ export default class CRUDController {
     if (!collectionName || typeof collectionName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
     }
-    if (!documentData || typeof documentData !== "object") {
+    if (!documentData || typeof documentData !== "object" || Array.isArray(documentData)) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid document data");
     }
     if (isReservedDatabaseName(dbName)) {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-    const DB_Collection =
-      await databaseInstance.createCollection(collectionName);
+    try {
+      const databaseInstance = await this.AxioDBInstance.createDB(dbName);
+      const DB_Collection =
+        await databaseInstance.createCollection(collectionName);
 
-    const insertResult = await DB_Collection.insert(documentData);
-    if (!insertResult || insertResult.statusCode !== StatusCodes.OK) {
+      const insertResult = await DB_Collection.insert(documentData);
+      if (!insertResult || insertResult.statusCode !== StatusCodes.OK) {
+        return buildResponse(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "Failed to insert document",
+        );
+      }
       return buildResponse(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Failed to insert document",
+        StatusCodes.CREATED,
+        "Document created successfully",
+        insertResult.data,
+      );
+    } catch (error) {
+      return buildResponse(
+        StatusCodes.BAD_REQUEST,
+        error instanceof Error ? error.message : "Failed to insert document",
       );
     }
-    return buildResponse(
-      StatusCodes.CREATED,
-      "Document created successfully",
-      insertResult.data,
-    );
   }
 
   public async createManyNewDocument(request: AxioHttpRequest) {
@@ -257,7 +271,7 @@ export default class CRUDController {
       dbName: string;
       collectionName: string;
     };
-    const documentData = request.body as Record<string, any>;
+    const documentData = request.body as Record<string, unknown>[];
 
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
@@ -265,29 +279,41 @@ export default class CRUDController {
     if (!collectionName || typeof collectionName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
     }
-    if (!documentData || typeof documentData !== "object") {
+    if (
+      !documentData ||
+      !Array.isArray(documentData) ||
+      documentData.length === 0 ||
+      !documentData.every(d => d && typeof d === "object" && !Array.isArray(d))
+    ) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid document data");
     }
     if (isReservedDatabaseName(dbName)) {
       return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
     }
 
-    const databaseInstance = await this.AxioDBInstance.createDB(dbName);
-    const DB_Collection =
-      await databaseInstance.createCollection(collectionName);
+    try {
+      const databaseInstance = await this.AxioDBInstance.createDB(dbName);
+      const DB_Collection =
+        await databaseInstance.createCollection(collectionName);
 
-    const insertResult = await DB_Collection.insertMany(documentData);
-    if (!insertResult || insertResult.statusCode !== StatusCodes.OK) {
+      const insertResult = await DB_Collection.insertMany(documentData);
+      if (!insertResult || insertResult.statusCode !== StatusCodes.OK) {
+        return buildResponse(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "Failed to insert document",
+        );
+      }
       return buildResponse(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Failed to insert document",
+        StatusCodes.CREATED,
+        "Document created successfully",
+        insertResult.data,
+      );
+    } catch (error) {
+      return buildResponse(
+        StatusCodes.BAD_REQUEST,
+        error instanceof Error ? error.message : "Failed to insert document",
       );
     }
-    return buildResponse(
-      StatusCodes.CREATED,
-      "Document created successfully",
-      insertResult.data,
-    );
   }
 
   public async updateDocumentById(request: AxioHttpRequest) {
@@ -296,7 +322,7 @@ export default class CRUDController {
       collectionName: string;
       documentId: string;
     };
-    const updatedData = request.body as Record<string, any>;
+    const updatedData = request.body as Record<string, unknown>;
 
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
@@ -307,7 +333,7 @@ export default class CRUDController {
     if (!documentId || typeof documentId !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid document ID");
     }
-    if (!updatedData || typeof updatedData !== "object") {
+    if (!updatedData || typeof updatedData !== "object" || Array.isArray(updatedData)) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid updated data");
     }
     if (isReservedDatabaseName(dbName)) {
@@ -318,20 +344,27 @@ export default class CRUDController {
     if ("statusCode" in colOrError) return colOrError;
     const DB_Collection = colOrError;
 
-    const updateResult = await DB_Collection.update({
-      documentId: documentId,
-    }).UpdateOne(updatedData);
-    if (!updateResult || updateResult.statusCode !== StatusCodes.OK) {
+    try {
+      const updateResult = await DB_Collection.update({
+        documentId: documentId,
+      }).UpdateOne(updatedData);
+      if (!updateResult || updateResult.statusCode !== StatusCodes.OK) {
+        return buildResponse(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "Failed to update document",
+        );
+      }
       return buildResponse(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Failed to update document",
+        StatusCodes.OK,
+        "Document updated successfully",
+        updateResult.data,
+      );
+    } catch (error) {
+      return buildResponse(
+        StatusCodes.BAD_REQUEST,
+        error instanceof Error ? error.message : "Failed to update document",
       );
     }
-    return buildResponse(
-      StatusCodes.OK,
-      "Document updated successfully",
-      updateResult.data,
-    );
   }
 
   public async updateDocumentByQuery(request: AxioHttpRequest) {
@@ -340,10 +373,10 @@ export default class CRUDController {
       collectionName: string;
       isMany: boolean;
     };
-    const { query, update: updatedData } = request.body as {
-      query: Record<string, any>;
-      update: Record<string, any>;
-    };
+    const { query, update: updatedData } = (request.body as {
+      query?: Record<string, unknown>;
+      update?: Record<string, unknown>;
+    } | undefined) ?? {};
 
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
@@ -351,10 +384,10 @@ export default class CRUDController {
     if (!collectionName || typeof collectionName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
     }
-    if (!query || typeof query !== "object") {
+    if (!query || typeof query !== "object" || Array.isArray(query)) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid query");
     }
-    if (!updatedData || typeof updatedData !== "object") {
+    if (!updatedData || typeof updatedData !== "object" || Array.isArray(updatedData)) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid updated data");
     }
     if (isReservedDatabaseName(dbName)) {
@@ -365,26 +398,33 @@ export default class CRUDController {
     if ("statusCode" in colOrError) return colOrError;
     const DB_Collection = colOrError;
 
-    if (isMany) {
-      const updateResult =
-        await DB_Collection.update(query).UpdateMany(updatedData);
-      if (!updateResult || updateResult.statusCode !== StatusCodes.OK) {
-        return buildResponse(
-          StatusCodes.INTERNAL_SERVER_ERROR,
-          "Failed to update document",
-        );
+    try {
+      if (isMany) {
+        const updateResult =
+          await DB_Collection.update(query).UpdateMany(updatedData);
+        if (!updateResult || updateResult.statusCode !== StatusCodes.OK) {
+          return buildResponse(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            "Failed to update document",
+          );
+        }
+      } else {
+        const updateResult =
+          await DB_Collection.update(query).UpdateOne(updatedData);
+        if (!updateResult || updateResult.statusCode !== StatusCodes.OK) {
+          return buildResponse(
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            "Failed to update document",
+          );
+        }
       }
-    } else {
-      const updateResult =
-        await DB_Collection.update(query).UpdateOne(updatedData);
-      if (!updateResult || updateResult.statusCode !== StatusCodes.OK) {
-        return buildResponse(
-          StatusCodes.INTERNAL_SERVER_ERROR,
-          "Failed to update document",
-        );
-      }
+      return buildResponse(StatusCodes.OK, "Document updated successfully");
+    } catch (error) {
+      return buildResponse(
+        StatusCodes.BAD_REQUEST,
+        error instanceof Error ? error.message : "Failed to update document",
+      );
     }
-    return buildResponse(StatusCodes.OK, "Document updated successfully");
   }
 
   public async deleteDocumentById(request: AxioHttpRequest) {
@@ -411,18 +451,25 @@ export default class CRUDController {
     if ("statusCode" in colOrError) return colOrError;
     const DB_Collection = colOrError;
 
-    const deleteResult = await DB_Collection.delete({
-      documentId: documentId,
-    }).deleteOne();
-    Logger.info(deleteResult);
-    if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
+    try {
+      const deleteResult = await DB_Collection.delete({
+        documentId: documentId,
+      }).deleteOne();
+      Logger.info(deleteResult);
+      if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
+        return buildResponse(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "Failed to delete document",
+        );
+      }
+
+      return buildResponse(StatusCodes.OK, "Document deleted successfully");
+    } catch (error) {
       return buildResponse(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Failed to delete document",
+        StatusCodes.BAD_REQUEST,
+        error instanceof Error ? error.message : "Failed to delete document",
       );
     }
-
-    return buildResponse(StatusCodes.OK, "Document deleted successfully");
   }
 
   public async deleteDocumentByQuery(request: AxioHttpRequest) {
@@ -432,7 +479,7 @@ export default class CRUDController {
       isMany: boolean;
     };
 
-    const { query } = (request.body as { query: object } | undefined) ?? {};
+    const { query } = (request.body as { query?: Record<string, unknown> } | undefined) ?? {};
 
     if (!dbName || typeof dbName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
@@ -440,7 +487,7 @@ export default class CRUDController {
     if (!collectionName || typeof collectionName !== "string") {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
     }
-    if (!query || typeof query !== "object") {
+    if (!query || typeof query !== "object" || Array.isArray(query)) {
       return buildResponse(StatusCodes.BAD_REQUEST, "Invalid query");
     }
     if (isReservedDatabaseName(dbName)) {
@@ -451,18 +498,25 @@ export default class CRUDController {
     if ("statusCode" in colOrError) return colOrError;
     const DB_Collection = colOrError;
 
-    const deleteResult = isMany
-      ? await DB_Collection.delete(query).deleteMany()
-      : await DB_Collection.delete(query).deleteOne();
+    try {
+      const deleteResult = isMany
+        ? await DB_Collection.delete(query).deleteMany()
+        : await DB_Collection.delete(query).deleteOne();
 
-    if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
+      if (!deleteResult || deleteResult.statusCode !== StatusCodes.OK) {
+        return buildResponse(
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "Failed to delete document",
+        );
+      }
+
+      return buildResponse(StatusCodes.OK, "Document deleted successfully");
+    } catch (error) {
       return buildResponse(
-        StatusCodes.INTERNAL_SERVER_ERROR,
-        "Failed to delete document",
+        StatusCodes.BAD_REQUEST,
+        error instanceof Error ? error.message : "Failed to delete document",
       );
     }
-
-    return buildResponse(StatusCodes.OK, "Document deleted successfully");
   }
 
   /**
@@ -482,9 +536,9 @@ export default class CRUDController {
       collectionName: string;
     };
 
-    const { aggregation } = request.body as {
-      aggregation: Record<string, unknown>[];
-    };
+    const { aggregation } = (request.body as {
+      aggregation?: Record<string, unknown>[];
+    } | undefined) ?? {};
 
     if (!Array.isArray(aggregation) || aggregation.length === 0) {
       return buildResponse(

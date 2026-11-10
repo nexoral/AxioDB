@@ -84,6 +84,17 @@ export default class PathSanitizer {
   }
 
   /**
+   * Ensures that resolved path is within basePath (alias for validatePath)
+   *
+   * @param basePath - Expected parent directory
+   * @param fullPath - Constructed path to validate
+   * @throws Error if path traversal detected
+   */
+  static ensureWithinFolder(basePath: string, fullPath: string): void {
+    this.validatePath(basePath, fullPath);
+  }
+
+  /**
    * Safe path join with automatic sanitization and validation
    *
    * Combines base path with one or more path components after sanitizing

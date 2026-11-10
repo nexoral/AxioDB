@@ -361,7 +361,7 @@ export class InMemoryCache {
           return diff < this.cacheClearUp * 1000;
         });
       },
-      parseInt(String(this.cacheClearUp)),
+      parseInt(String(this.cacheClearUp)) * 1000,
     );
 
     // Background housekeeping must never be the reason a short-lived script or CLI

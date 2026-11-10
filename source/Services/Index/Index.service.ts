@@ -4,6 +4,7 @@ import FileManager from "../../engine/Filesystem/FileManager";
 import FolderManager from "../../engine/Filesystem/FolderManager";
 import Converter from "../../Helper/Converter.helper";
 import ResponseHelper from "../../Helper/response.helper";
+import PathSanitizer from "../../Helper/PathSanitizer.helper";
 
 export interface IndexMetaEntry {
   indexFieldName: string;
@@ -135,10 +136,17 @@ export class IndexManager {
     const EffectedIndexes: string[] = [];
     const FailedIndexes: string[] = [];
     for (const fieldName of fieldNames) {
-      const indexName = fieldName;
-      const indexFilePath = `${this.indexFolderPath}/${indexName}${INDEX_EXT}`;
+      let sanitizedName: string;
+      let indexFilePath: string;
+      try {
+        sanitizedName = PathSanitizer.sanitizePathComponent(fieldName);
+        indexFilePath = PathSanitizer.safePath(this.indexFolderPath, `${sanitizedName}${INDEX_EXT}`);
+      } catch {
+        FailedIndexes.push(fieldName);
+        continue;
+      }
       const DemoIndexHash = {
-        fieldName: indexName,
+        fieldName: sanitizedName,
         indexEntries: {},
         sortedValues: [],
       };
@@ -148,26 +156,28 @@ export class IndexManager {
         await this.fileManager.WriteFile(indexFilePath, IndexManager.serializeIndexData(DemoIndexHash));
         // Append to index.meta.jsonl (O(1) — no read-modify-rewrite)
         const metaEntry = {
-          indexFieldName: indexName,
-          fileName: `${indexName}${INDEX_EXT}`,
+          indexFieldName: sanitizedName,
+          fileName: `${sanitizedName}${INDEX_EXT}`,
           path: indexFilePath,
         };
         const existsMeta = await this.fileManager.FileExists(this.indexMetaPath);
         if (!existsMeta.status) {
           // First index — write the initial meta file
           await this.fileManager.WriteFile(this.indexMetaPath, this.converter.ToString(metaEntry) + "\n");
-          EffectedIndexes.push(indexName);
+          EffectedIndexes.push(sanitizedName);
         } else {
           // Check for duplicate by streaming meta lines (stop on first match)
           const existingMeta = await this.listMetaEntries();
-          const indexExists = existingMeta.some((entry: IndexMetaEntry) => entry.indexFieldName === indexName);
+          const indexExists = existingMeta.some((entry: IndexMetaEntry) => entry.indexFieldName === sanitizedName);
           if (!indexExists) {
             await this.fileManager.AppendFile(this.indexMetaPath, this.converter.ToString(metaEntry) + "\n");
-            EffectedIndexes.push(indexName);
+            EffectedIndexes.push(sanitizedName);
           } else {
-            FailedIndexes.push(indexName);
+            FailedIndexes.push(sanitizedName);
           }
         }
+      } else {
+        FailedIndexes.push(sanitizedName);
       }
     }
     const messageParts: string[] = [];
@@ -186,7 +196,14 @@ export class IndexManager {
    * Deletes an index file and removes its entry from the index metadata.
    */
   public async dropIndex(indexName: string): Promise<SuccessInterface | ErrorInterface> {
-    const indexFilePath = `${this.indexFolderPath}/${indexName}${INDEX_EXT}`;
+    let sanitizedName: string;
+    let indexFilePath: string;
+    try {
+      sanitizedName = PathSanitizer.sanitizePathComponent(indexName);
+      indexFilePath = PathSanitizer.safePath(this.indexFolderPath, `${sanitizedName}${INDEX_EXT}`);
+    } catch {
+      return this.ResponseHelper.Error(`Invalid index name: ${indexName}`);
+    }
     // check if index file exists
     const exists = await this.fileManager.FileExists(indexFilePath);
     if (exists.status === true) {
@@ -194,16 +211,16 @@ export class IndexManager {
       await this.fileManager.DeleteFile(indexFilePath);
       // update index.meta.jsonl — stream-filter instead of full parse+rewrite
       const existingMeta = await this.listMetaEntries();
-      const filtered = existingMeta.filter((entry: IndexMetaEntry) => entry.indexFieldName !== indexName);
+      const filtered = existingMeta.filter((entry: IndexMetaEntry) => entry.indexFieldName !== sanitizedName);
       if (filtered.length === 0) {
         await this.fileManager.DeleteFile(this.indexMetaPath);
       } else {
         const lines = filtered.map((e: IndexMetaEntry) => this.converter.ToString(e)).join("\n") + "\n";
         await this.fileManager.WriteFile(this.indexMetaPath, lines);
       }
-      return this.ResponseHelper.Success(`Index: ${indexName} deleted successfully`);
+      return this.ResponseHelper.Success(`Index: ${sanitizedName} deleted successfully`);
     } else {
-      return this.ResponseHelper.Error(`Index: ${indexName} does not exist`);
+      return this.ResponseHelper.Error(`Index: ${sanitizedName} does not exist`);
     }
   }
 

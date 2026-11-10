@@ -11,6 +11,7 @@ const { assert } = require('../helpers/assertions');
 const { AxioDB } = require('../../../axiodb.js');
 const { MessageFramer, MessageBuffer } = require('../../../lib/tcp/config/protocol');
 const { CommandType } = require('../../../lib/tcp/types/command.types');
+const { MAX_BUFFER_SIZE, ErrorMessage } = require('../../../lib/tcp/config/keys');
 
 const TCP_HOST = '127.0.0.1';
 const TCP_PORT = 27019;
@@ -318,6 +319,133 @@ class TcpNoAuthTests extends TestRunner {
         } finally {
           client.close();
         }
+      });
+    });
+
+    await this.describe('SEC-18: MessageBuffer Memory and Size Protection', async () => {
+      await this.test('MessageBuffer rejects single chunk exceeding MAX_BUFFER_SIZE', async () => {
+        const msgBuffer = new MessageBuffer();
+        const oversizedChunk = Buffer.alloc(MAX_BUFFER_SIZE + 1);
+
+        await assert.throws(
+          () => msgBuffer.addChunk(oversizedChunk),
+          ErrorMessage.MESSAGE_TOO_LARGE,
+          'Should reject chunk exceeding MAX_BUFFER_SIZE'
+        );
+
+        assert.equal(msgBuffer.size, 0, 'Buffer should be cleared to 0 after rejection');
+      });
+
+      await this.test('MessageBuffer rejects accumulated chunks exceeding MAX_BUFFER_SIZE', async () => {
+        const msgBuffer = new MessageBuffer();
+        const initialChunk = Buffer.alloc(1024);
+        initialChunk.writeUInt32BE(2048, 0);
+        msgBuffer.addChunk(initialChunk);
+        assert.equal(msgBuffer.size, 1024);
+
+        const overflowChunk = Buffer.alloc(MAX_BUFFER_SIZE - 500);
+
+        await assert.throws(
+          () => msgBuffer.addChunk(overflowChunk),
+          ErrorMessage.MESSAGE_TOO_LARGE,
+          'Should reject accumulation exceeding MAX_BUFFER_SIZE'
+        );
+
+        assert.equal(msgBuffer.size, 0, 'Buffer should be cleared to 0 after accumulation overflow');
+      });
+    });
+
+    await this.describe('SEC-25: Multi-chunk Transfer Idle Cleanup & Leak Protection', async () => {
+      await this.test('cleanupExpired cleanly removes expired export and import entries and removes temp files from disk without waiting for socket disconnect', async () => {
+        const { DBHandler } = require('../../../axiodb.js').CoreDBMS;
+        const dbHandler = DBHandler.getLatestInstance() || new DBHandler(this.dbInstance);
+
+        const client = new RawTcpClient();
+        await client.connect();
+
+        try {
+          await client.send(CommandType.CREATE_DB, { dbName: 'TcpCleanupDB' });
+          await client.send(CommandType.CREATE_COLLECTION, { dbName: 'TcpCleanupDB', collectionName: 'Items' });
+          for (let i = 0; i < 10; i++) {
+            await client.send(CommandType.INSERT_DOCUMENT, {
+              dbName: 'TcpCleanupDB',
+              collectionName: 'Items',
+              data: { name: `Item_${i}`, payload: 'x'.repeat(200) },
+            });
+          }
+
+          // Request chunk 0 of an export with small chunkSize so totalChunks > 1 and export remains active
+          const expRes0 = await client.send(CommandType.EXPORT_DATABASE, {
+            dbName: 'TcpCleanupDB',
+            chunkIndex: 0,
+            chunkSize: 64,
+          });
+          assert.equal(expRes0.statusCode, 200);
+          assert.equal(expRes0.data.isLast, false);
+
+          // Start a multi-chunk import (chunk 0 of 2)
+          const transferId = 'abandoned-transfer-' + Date.now();
+          const impRes0 = await client.send(CommandType.IMPORT_DATABASE, {
+            chunkIndex: 0,
+            totalChunks: 2,
+            data: Buffer.from('partial-archive-chunk').toString('base64'),
+            transferId,
+          });
+          assert.equal(impRes0.statusCode, 200);
+          assert.equal(impRes0.data.isLast, false);
+
+          // Verify entries exist in dbHandler
+          const activeExports = dbHandler.getActiveExports();
+          const activeImports = dbHandler.getActiveImports();
+          assert.ok(activeExports.size >= 1, 'Active export entry should exist');
+          assert.ok(activeImports.size >= 1, 'Active import entry should exist');
+
+          // Grab the temporary paths from the entries
+          const exportFiles = Array.from(activeExports.values()).map((e) => e.filePath);
+          const importDirs = Array.from(activeImports.values()).map((e) => e.workDir);
+
+          for (const filePath of exportFiles) {
+            assert.ok(fs.existsSync(filePath), `Export temp file ${filePath} should exist on disk`);
+          }
+          for (const workDir of importDirs) {
+            assert.ok(fs.existsSync(workDir), `Import temp workDir ${workDir} should exist on disk`);
+          }
+
+          // The client socket is STILL connected and alive (no disconnect)
+          assert.ok(client.socket && !client.socket.destroyed, 'Client socket should still be connected');
+
+          // Delay slightly so elapsed time > 10ms
+          await new Promise((r) => setTimeout(r, 20));
+
+          // Run cleanupExpired with a 10ms timeout threshold
+          const cleanedCount = await dbHandler.cleanupExpired(10);
+          assert.ok(cleanedCount >= 2, `Expected at least 2 entries cleaned, got ${cleanedCount}`);
+
+          // Verify files and directories are completely removed from disk
+          for (const filePath of exportFiles) {
+            assert.equal(fs.existsSync(filePath), false, `Export temp file ${filePath} should have been deleted`);
+          }
+          for (const workDir of importDirs) {
+            assert.equal(fs.existsSync(workDir), false, `Import temp workDir ${workDir} should have been deleted`);
+          }
+
+          // Verify calling cleanupExpired again cleans 0 entries
+          const cleanedAgain = await dbHandler.cleanupExpired(10);
+          assert.equal(cleanedAgain, 0, 'No more expired entries should remain');
+        } finally {
+          client.close();
+        }
+      });
+
+      await this.test('startCleanupSweep and stopCleanupSweep manage interval lifecycle', async () => {
+        const { DBHandler } = require('../../../axiodb.js').CoreDBMS;
+        const dbHandler = new DBHandler(this.dbInstance);
+        dbHandler.startCleanupSweep(50, 100);
+        // Repeated start is idempotent
+        dbHandler.startCleanupSweep(50, 100);
+        dbHandler.stopCleanupSweep();
+        // Repeated stop is safe
+        dbHandler.stopCleanupSweep();
       });
     });
   }

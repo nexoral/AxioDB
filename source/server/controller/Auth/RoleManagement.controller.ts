@@ -18,7 +18,7 @@ export default class RoleManagementController {
   }
 
   public async createRole(request: AxioHttpRequest, reply: AxioHttpResponse): Promise<ResponseBuilder> {
-    const { roleName, permissions } = request.body as CreateRoleRequestBody;
+    const { roleName, permissions } = (request.body as CreateRoleRequestBody | undefined) ?? {};
 
     if (!roleName || typeof roleName !== "string" || roleName.trim() === "") {
       return sendResponse(reply, buildResponse(StatusCodes.BAD_REQUEST, "Role name is required"));

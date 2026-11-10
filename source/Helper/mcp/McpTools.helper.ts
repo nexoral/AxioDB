@@ -5,7 +5,7 @@ import SessionStore from "../../Services/Auth/SessionStore.service";
 import { SessionRecord } from "../../config/Interfaces/Auth/auth.interface";
 import PermissionChecker from "../../Services/Auth/PermissionChecker.helper";
 import LoginRateLimiter from "../../Services/Auth/LoginRateLimiter.service";
-import { PERMISSIONS } from "../../config/Keys/Permissions";
+import { PERMISSIONS, isReservedDatabaseName } from "../../config/Keys/Permissions";
 import DatabaseController from "../../server/controller/Database/Databse.controller";
 import CollectionController from "../../server/controller/Collections/Collection.controller";
 import CRUDController from "../../server/controller/Operation/CRUD.controller";
@@ -63,8 +63,22 @@ export interface RegisteredTool {
   handler: (args: Record<string, unknown>) => Promise<McpToolResult>;
 }
 
-export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredTool> {
-  const tools = new Map<string, RegisteredTool>();
+export interface McpToolsOptions {
+  idleTimeoutMs?: number;
+  sweepIntervalMs?: number;
+}
+
+export interface McpToolsMap extends Map<string, RegisteredTool> {
+  cleanupExpired?: (timeoutMs?: number) => Promise<number>;
+  getActiveTransactionsCount?: () => number;
+  stopCleanupSweep?: () => void;
+}
+
+export function buildMcpTools(
+  axioDBInstance: AxioDB,
+  options?: McpToolsOptions,
+): McpToolsMap {
+  const tools = new Map<string, RegisteredTool>() as McpToolsMap;
 
   const authService = new AuthService();
   const dbController = new DatabaseController(axioDBInstance);
@@ -75,7 +89,50 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
   const roleController = new RoleManagementController();
   const statsController = new StatsController(axioDBInstance);
 
-  const activeTransactions = new Map<string, { transaction: Transaction; sessionId: string }>();
+  const idleTimeoutMs = options?.idleTimeoutMs ?? 30000;
+  const sweepIntervalMs = options?.sweepIntervalMs ?? 10000;
+
+  const activeTransactions = new Map<
+    string,
+    { transaction: Transaction; sessionId: string; lastActivity: number }
+  >();
+
+  const cleanupExpired = async (timeoutMs: number = idleTimeoutMs): Promise<number> => {
+    const now = Date.now();
+    const expired: string[] = [];
+    for (const [id, entry] of activeTransactions.entries()) {
+      if (now - entry.lastActivity > timeoutMs) {
+        expired.push(id);
+      }
+    }
+    let count = 0;
+    for (const id of expired) {
+      const entry = activeTransactions.get(id);
+      if (!entry) continue;
+      activeTransactions.delete(id);
+      try {
+        await entry.transaction.rollback();
+        count++;
+      } catch {
+        // Ignore rollback errors during idle cleanup
+      }
+    }
+    return count;
+  };
+
+  const sweepInterval = setInterval(() => {
+    cleanupExpired(idleTimeoutMs).catch(() => {});
+  }, sweepIntervalMs);
+
+  if (typeof sweepInterval.unref === "function") {
+    sweepInterval.unref();
+  }
+
+  tools.cleanupExpired = cleanupExpired;
+  tools.getActiveTransactionsCount = () => activeTransactions.size;
+  tools.stopCleanupSweep = () => {
+    clearInterval(sweepInterval);
+  };
 
   function register(
     definition: McpToolDefinition,
@@ -156,10 +213,20 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
       },
     },
     null,
-    (args) => {
+    async (args) => {
       const sessionId = typeof args.sessionId === "string" ? args.sessionId.trim() : "";
       if (sessionId) {
         SessionStore.revokeSession(sessionId);
+        for (const [id, entry] of Array.from(activeTransactions.entries())) {
+          if (entry.sessionId === sessionId) {
+            activeTransactions.delete(id);
+            try {
+              await entry.transaction.rollback();
+            } catch {
+              // Ignore rollback errors during session logout cleanup
+            }
+          }
+        }
       }
       return { statusCode: 200, message: "Logged out successfully" };
     },
@@ -418,6 +485,9 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
           statusCode: 400,
           message: "Collection name is required (pass 'collectionName' or 'collection')",
         };
+      }
+      if (isReservedDatabaseName(dbName)) {
+        return { statusCode: 403, message: "This is a reserved system database" };
       }
       const dbExists = await axioDBInstance.isDatabaseExists(dbName);
       if (!dbExists) {
@@ -754,6 +824,9 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
     async (args) => {
       const dbName = extractDbName(args);
       const collectionName = extractCollectionName(args);
+      if (isReservedDatabaseName(dbName)) {
+        return { statusCode: 403, message: "This is a reserved system database" };
+      }
       const dbExists = await axioDBInstance.isDatabaseExists(dbName);
       if (!dbExists) {
         return { statusCode: 404, message: "Database does not exist" };
@@ -1016,6 +1089,7 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
     if (entry.sessionId !== sessionId) {
       return { error: { statusCode: 403, message: "Transaction belongs to another MCP session" } };
     }
+    entry.lastActivity = Date.now();
     return { transaction: entry.transaction };
   }
 
@@ -1037,6 +1111,9 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
     async (args, session) => {
       const dbName = extractDbName(args);
       const collectionName = extractCollectionName(args);
+      if (isReservedDatabaseName(dbName)) {
+        return { statusCode: 403, message: "This is a reserved system database" };
+      }
       const dbExists = await axioDBInstance.isDatabaseExists(dbName);
       if (!dbExists) {
         return { statusCode: 404, message: "Database does not exist" };
@@ -1048,7 +1125,11 @@ export function buildMcpTools(axioDBInstance: AxioDB): Map<string, RegisteredToo
       }
       const col = await db.createCollection(collectionName);
       const txn = new Transaction(col.getCollectionPath(), axioDBInstance.Cache);
-      activeTransactions.set(txn.getId(), { transaction: txn, sessionId: session!.sid });
+      activeTransactions.set(txn.getId(), {
+        transaction: txn,
+        sessionId: session!.sid,
+        lastActivity: Date.now(),
+      });
       return {
         statusCode: 200,
         message: "Transaction begun",

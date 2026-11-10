@@ -16,6 +16,13 @@ export interface HttpServerOptions {
   bodyLimit?: number;
 }
 
+export class PayloadTooLargeError extends Error {
+  constructor(message: string = "Request body exceeds limit") {
+    super(message);
+    this.name = "PayloadTooLargeError";
+  }
+}
+
 export default class HttpServerHelper {
   private server: http.Server;
   private router: HttpRouter;
@@ -63,7 +70,22 @@ export default class HttpServerHelper {
           : undefined) ||
         req.socket.remoteAddress ||
         "127.0.0.1",
-      query: Object.fromEntries(parsedUrl.searchParams),
+      query: (() => {
+        const queryMap: Record<string, unknown> = {};
+        for (const [key, value] of parsedUrl.searchParams) {
+          if (Object.prototype.hasOwnProperty.call(queryMap, key)) {
+            const existing = queryMap[key];
+            if (Array.isArray(existing)) {
+              existing.push(value);
+            } else {
+              queryMap[key] = [existing, value];
+            }
+          } else {
+            queryMap[key] = value;
+          }
+        }
+        return queryMap;
+      })(),
       params: {},
       headers: req.headers,
       body: undefined,
@@ -208,6 +230,18 @@ export default class HttpServerHelper {
       }
     } catch (error) {
       if (!reply.sent && !res.writableEnded) {
+        if (
+          error instanceof PayloadTooLargeError ||
+          (error && typeof error === "object" && (error as { name?: string }).name === "PayloadTooLargeError")
+        ) {
+          reply.status(413).send({
+            statusCode: 413,
+            status: false,
+            message: "Payload Too Large: Request body exceeds limit",
+          });
+          return;
+        }
+
         reply.status(500).send({
           statusCode: 500,
           status: false,
@@ -221,17 +255,22 @@ export default class HttpServerHelper {
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
       let totalLength = 0;
+      let exceeded = false;
 
       req.on("data", (chunk: Buffer) => {
+        if (exceeded) return;
         totalLength += chunk.length;
         if (totalLength > this.bodyLimit) {
-          req.destroy(new Error("Request body exceeds limit"));
+          exceeded = true;
+          req.resume();
+          reject(new PayloadTooLargeError("Request body exceeds limit"));
           return;
         }
         chunks.push(chunk);
       });
 
       req.on("end", () => {
+        if (exceeded) return;
         if (chunks.length === 0) {
           resolve(undefined);
           return;
@@ -248,7 +287,10 @@ export default class HttpServerHelper {
         }
       });
 
-      req.on("error", reject);
+      req.on("error", (err) => {
+        if (exceeded) return;
+        reject(err);
+      });
     });
   }
 }

@@ -30,7 +30,17 @@ export default class TransactionHandler {
     }
 
     try {
+      const dbExists = await this.axioDB.isDatabaseExists(dbName);
+      if (!dbExists) {
+        return this.error(requestId, StatusCode.NOT_FOUND, 'Database not found');
+      }
+
       const databaseInstance = await this.axioDB.createDB(dbName);
+      const colExists = await databaseInstance.isCollectionExists(collectionName);
+      if (!colExists) {
+        return this.error(requestId, StatusCode.NOT_FOUND, 'Collection not found');
+      }
+
       const collection = await databaseInstance.createCollection(collectionName);
       const collectionPath = (collection as unknown as { getCollectionPath(): string }).getCollectionPath();
 

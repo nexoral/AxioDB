@@ -77,11 +77,20 @@ export default class FolderManager {
     }
   }
 
+  /**
+   * Unlocks a directory by applying safe, restrictive permissions (0o750: owner rwx, group r-x, others none)
+   * in accordance with the principle of least privilege (CWE-732).
+   * Avoids world-writable directory permissions (0o777) that could allow arbitrary modification
+   * or deletion of database files by untrusted local users.
+   *
+   * @param path - Directory path to unlock
+   * @returns SuccessInterface if successful, ErrorInterface otherwise
+   */
   public async UnlockDirectory(
     path: string,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
-      await this.fileSystem.chmod(path, 0o777);
+      await this.fileSystem.chmod(path, 0o750);
       return this.responseHelper.Success(`Directory unlocked: ${path}`);
     } catch (error) {
       return this.responseHelper.Error(`Failed to unlock directory: ${error}`);

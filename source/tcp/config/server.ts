@@ -60,6 +60,8 @@ export default async function createAxioDBTCPServer(
   // Connection-attempt rate limiting is relevant as soon as the TCP surface is up at all,
   // independent of TCPAuth (it guards raw connection churn, not logins).
   ConnectionRateLimiter.startCleanupSweep();
+  TransactionManager.getInstance().startCleanupSweep();
+  commandHandler.getDBHandler().startCleanupSweep();
 
   // Setup connection manager event handlers
   setupConnectionManagerHandlers(connectionManager, commandHandler);
@@ -91,6 +93,11 @@ export default async function createAxioDBTCPServer(
   // Setup server error handling
   server.on('error', (error: Error) => {
     Logger.error('[AxioDB TCP Server] Server error:', error);
+  });
+
+  server.on('close', () => {
+    TransactionManager.getInstance().stopCleanupSweep();
+    commandHandler.getDBHandler().stopCleanupSweep();
   });
 
   server.on('listening', () => {

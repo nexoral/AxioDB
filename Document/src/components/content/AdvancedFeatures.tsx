@@ -10,8 +10,7 @@ const AdvancedFeatures: React.FC = () => {
   const featuresCode = {
     "multi-db": `const { AxioDB } = require("axiodb");
 
-const Instance = new AxioDB({ HTTP: true }); // Enable HTTP REST API
-const CustomPathInstance = new AxioDB({ HTTP: true, RootName: "NewDB", CustomPath: "./DB" });
+const Instance = new AxioDB(); // Embedded mode (zero configuration)
 
 const setup = async () => {
   // Create database

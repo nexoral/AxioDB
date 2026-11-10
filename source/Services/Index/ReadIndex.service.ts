@@ -2,6 +2,7 @@ import { General } from "../../config/Keys/Keys";
 import { IndexManager, IndexMetaEntry } from "./Index.service";
 import { IndexCache } from "./IndexCache.service";
 import SortedIndexValues from "../../Helper/SortedIndexValues.helper";
+import PathSanitizer from "../../Helper/PathSanitizer.helper";
 
 export class ReadIndex extends IndexManager {
   private indexCache: IndexCache;
@@ -55,8 +56,9 @@ export class ReadIndex extends IndexManager {
       }
 
       // Cache miss - fall back to disk read (cold start recovery), stream JSONL
-      const indexPath = `${this.indexFolderPath}/${matchedIndexFile.indexFieldName}${General.Index_File_EXT}`;
       try {
+        const sanitizedFieldName = PathSanitizer.sanitizePathComponent(matchedIndexFile.indexFieldName);
+        const indexPath = PathSanitizer.safePath(this.indexFolderPath, `${sanitizedFieldName}${General.Index_File_EXT}`);
         const lines = await this.fileManager.ReadLines(indexPath);
         await this.indexCache.ensureDocMapLoaded();
         const indexData = IndexManager.deserializeIndexData(lines, this.indexCache.getDocMap());

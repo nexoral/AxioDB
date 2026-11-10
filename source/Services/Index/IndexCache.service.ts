@@ -3,6 +3,7 @@ import FileManager from "../../engine/Filesystem/FileManager";
 import Converter from "../../Helper/Converter.helper";
 import { IndexManager } from "./Index.service";
 import Logger from "../../Helper/Logger.helper";
+import PathSanitizer from "../../Helper/PathSanitizer.helper";
 
 /**
  * Structure of index data stored in index files
@@ -242,7 +243,8 @@ export class IndexCache {
     }
 
     try {
-      const indexPath = `${this.indexFolderPath}/${fieldName}${General.Index_File_EXT}`;
+      const sanitizedFieldName = PathSanitizer.sanitizePathComponent(fieldName);
+      const indexPath = PathSanitizer.safePath(this.indexFolderPath, `${sanitizedFieldName}${General.Index_File_EXT}`);
       const lines = await this.fileManager.ReadLines(indexPath);
       if (lines.length > 0) {
         const indexData = IndexManager.deserializeIndexData(lines, this.docMap);
@@ -286,7 +288,8 @@ export class IndexCache {
         }
       }
 
-      const indexPath = `${this.indexFolderPath}/${fieldName}${General.Index_File_EXT}`;
+      const sanitizedFieldName = PathSanitizer.sanitizePathComponent(fieldName);
+      const indexPath = PathSanitizer.safePath(this.indexFolderPath, `${sanitizedFieldName}${General.Index_File_EXT}`);
       const jsonlContent = IndexManager.serializeIndexData(indexData, this.docMapLookup);
       const writeResult = await this.fileManager.WriteFile(indexPath, jsonlContent);
 
