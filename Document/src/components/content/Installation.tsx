@@ -16,7 +16,7 @@ const INSTALL_NPM = `npm install axiodb@latest --save`;
 const INSTALL_DENO = `// Deno (zero install via URL)
 import { AxioDB } from 'https://esm.sh/axiodb';
 
-const db = new AxioDB({ HTTP: true });
+const db = new AxioDB();
 const appDB = await db.createDB('AppDB');
 const users = await appDB.createCollection('users');
 await users.insert({ name: 'Alice', age: 30 });`;

@@ -51,7 +51,7 @@ npm install axiodb
 ```javascript
 const { AxioDB } = require('axiodb');
 
-const db = new AxioDB({ HTTP: true });         // REST API at http://localhost:27018
+const db = new AxioDB();
 const users = await (await db.createDB('AppDB')).createCollection('users');
 
 await users.insert({ name: 'Alice', age: 30 });
@@ -66,7 +66,7 @@ No installation required in Deno — import directly via `esm.sh`:
 ```typescript
 import { AxioDB } from 'https://esm.sh/axiodb';
 
-const db = new AxioDB({ HTTP: true });
+const db = new AxioDB();
 const users = await (await db.createDB('AppDB')).createCollection('users');
 
 await users.insert({ name: 'Alice', age: 30 });

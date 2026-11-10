@@ -155,7 +155,6 @@ new AxioDB(options?: {
   RootName?: string;      // Storage folder name (default: "AxioDB")
   CustomPath?: string;    // Parent directory (default: process.cwd())
   HTTP?: boolean;         // Enable REST API on port 27018 (default: false)
-  GUI?: boolean;          // Legacy alias for HTTP (deprecated, auto-maps to HTTP)
   TCP?: boolean;          // Enable TCP Server on port 27019 (default: false)
   TCPAuth?: boolean;      // Require authentication on TCP (default: false)
   AdminPassword?: string; // Seed password for 'admin' (skips forced change)

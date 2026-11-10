@@ -32,8 +32,8 @@ import { useScrollReveal } from "../../hooks/useScrollReveal";
   const HELLO_WORLD_CODE = `// npm install axiodb
 const { AxioDB } = require('axiodb');
 
-// Create AxioDB instance with built-in HTTP REST API
-const db = new AxioDB({ HTTP: true }); // Enable HTTP REST API at localhost:27018
+// Create AxioDB instance (embedded mode)
+const db = new AxioDB();
 
 // Create database and collection
 const myDB = await db.createDB('HelloWorldDB');
@@ -59,7 +59,7 @@ console.log(result.data.documents[0].message); // Hello, Developer!
       code: `// Zero installation in Deno — import directly via esm.sh
 import { AxioDB } from 'https://esm.sh/axiodb';
 
-const db = new AxioDB({ HTTP: true });
+const db = new AxioDB();
 const appDB = await db.createDB('DenoApp');
 const users = await appDB.createCollection('users');
 

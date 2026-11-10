@@ -64,14 +64,14 @@ const ServerApiReference: React.FC = () => {
                 HTTP Server API Reference
               </h1>
               <p className="text-xl text-gray-600 font-light mt-2">
-                RESTful API documentation for AxioDB GUI Server
+                RESTful API documentation for AxioDB HTTP Server
               </p>
             </div>
           </div>
 
           <div className="space-y-4">
             <p className="text-lg text-gray-600 leading-relaxed">
-              The AxioDB GUI Server provides a comprehensive RESTful API for managing databases, collections, and documents
+              The AxioDB HTTP Server provides a comprehensive RESTful API for managing databases, collections, and documents
               over HTTP. All endpoints return JSON responses and support standard HTTP status codes. Base URL: <code className="bg-fuchsia-100 text-fuchsia-800 px-2 py-1 rounded">http://localhost:27018</code>
             </p>
             <p className="text-lg text-gray-600 leading-relaxed">
@@ -328,8 +328,8 @@ const ServerApiReference: React.FC = () => {
           <p className="text-gray-600 flex items-center gap-2">
             <span className="text-fuchsia-600 text-xl">ℹ️</span>
             <span>
-              The AxioDB GUI Server runs on <code className="bg-white px-2 py-1 rounded mx-1">localhost:27018</code> by default.
-              All API endpoints are available when GUI is enabled in AxioDB initialization. For more details on the JavaScript/TypeScript API,
+              The AxioDB HTTP Server runs on <code className="bg-white px-2 py-1 rounded mx-1">localhost:27018</code> by default.
+              All API endpoints are available when HTTP is enabled (<code className="bg-white px-2 py-1 rounded mx-1">HTTP: true</code>) in AxioDB initialization. For more details on the JavaScript/TypeScript API,
               see the <a href="/api-reference" className="text-fuchsia-600 hover:underline font-semibold">Core API Reference</a>.
             </span>
           </p>
