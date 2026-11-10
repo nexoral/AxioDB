@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Tue, 10 Nov 2026 03:14:57 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 10 Nov 2026 03:16:04 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v27.45.13 — Strict typing compliance, route parameter validation, HTTP security headers, and OpenSSF Best Practices Silver Certification</title>
@@ -15,9 +15,9 @@
       <description>Route Parameter Security Validation: Enforced strict validation and string-trimming on route parameters (username, roleName) across UserManagement and RoleManagement controllers, preventing empty or whitespace mutations and returning HTTP 400 Bad Request | Zero-Any Strict Typing Compliance (AGENTS.md): Eliminated all occurrences of 'any' across client proxies (CollectionProxy, DatabaseProxy, AggregationProxy, DeleteOperationProxy, UpdateOperationProxy), aggregation operators (stageOperators, expressionOperators), and CRUD operations in favor of strict 'unknown' and typed signatures | HTTP Transport &amp; Site Hardening: Enforced Strict-Transport-Security (HSTS) with preloading and Content-Security-Policy (CSP) headers across production site deployments, securing transport against MITM and injection attacks</description>
     </item>
     <item>
-      <title>AxioDB v27.45.13 — Comprehensive security hardening across transactions, archives, cache housekeeping, input validation, stream lifecycle, index traversal, controller body destructuring, and MCP lifecycle (SEC-16 – SEC-36)</title>
+      <title>AxioDB v27.45.12 — Comprehensive security hardening across transactions, archives, cache housekeeping, input validation, stream lifecycle, index traversal, controller body destructuring, and MCP lifecycle (SEC-16 – SEC-36)</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-27.45.13</guid>
+      <guid isPermaLink="false">axiodb-27.45.12</guid>
       <pubDate>Tue, 10 Nov 2026 00:00:00 GMT</pubDate>
       <description>SEC-16 (Path Traversal Prevention in Update &amp; Delete): Enforced PathSanitizer on target documentId resolution in Update and Delete operations, neutralizing path traversal attempts | SEC-17 (Transaction Inode/Disk DoS Prevention): Eliminated auto-creation of missing databases and collections on transaction initiation across HTTP and TCP protocols | SEC-18 (TCP Buffer Memory Protection): Enforced preemptive MAX_BUFFER_SIZE bounds check in MessageBuffer to prevent unbounded buffer accumulation and OOM attacks</description>
     </item>

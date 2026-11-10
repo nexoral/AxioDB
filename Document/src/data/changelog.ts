@@ -24,7 +24,7 @@ export const changelog: ChangelogEntry[] = [
     ],
   },
   {
-    version: "27.45.13",
+    version: "27.45.12",
     date: "2026-11-10",
     title: "Comprehensive security hardening across transactions, archives, cache housekeeping, input validation, stream lifecycle, index traversal, controller body destructuring, and MCP lifecycle (SEC-16 – SEC-36)",
     changes: [
