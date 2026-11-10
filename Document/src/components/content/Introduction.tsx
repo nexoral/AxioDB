@@ -335,12 +335,6 @@ const Introduction: React.FC = () => {
       href: "https://www.bestpractices.dev/projects/16511",
     },
     {
-      src: "https://api.scorecard.dev/projects/github.com/nexoral/AxioDB/badge",
-      alt: "OpenSSF Scorecard",
-      width: 145,
-      href: "https://scorecard.dev/viewer/?uri=github.com/nexoral/AxioDB",
-    },
-    {
       src: "https://snyk.io/test/npm/axiodb/badge.svg",
       alt: "Snyk Vulnerabilities: 0",
       width: 140,

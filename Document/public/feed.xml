@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Tue, 10 Nov 2026 05:16:27 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 10 Nov 2026 05:26:51 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v27.47.1 — Strict typing compliance, route parameter validation, HTTP security headers, and OpenSSF Best Practices Gold &amp; OSPS Baseline Level 3 Certifications</title>
