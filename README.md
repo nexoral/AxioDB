@@ -15,6 +15,7 @@
 </p>
 
 [![CI](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml/badge.svg)](https://github.com/nexoral/AxioDB/actions/workflows/Push.yml)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16511/badge)](https://www.bestpractices.dev/projects/16511)
 [![npm version](https://badge.fury.io/js/axiodb.svg)](https://badge.fury.io/js/axiodb)
 [![npm downloads total](https://img.shields.io/npm/dt/axiodb.svg)](https://www.npmjs.com/package/axiodb)
 [![npm downloads yearly](https://img.shields.io/npm/dy/axiodb.svg)](https://www.npmjs.com/package/axiodb)
