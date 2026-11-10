@@ -12,14 +12,14 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "27.45.13",
+    version: "27.46.14",
     date: "2026-11-10",
-    title: "Strict typing compliance, route parameter validation, HTTP security headers, and OpenSSF Best Practices Silver Certification",
+    title: "Strict typing compliance, route parameter validation, HTTP security headers, and OpenSSF Best Practices Gold & OSPS Baseline Level 3 Certifications",
     changes: [
       "Route Parameter Security Validation: Enforced strict validation and string-trimming on route parameters (username, roleName) across UserManagement and RoleManagement controllers, preventing empty or whitespace mutations and returning HTTP 400 Bad Request",
       "Zero-Any Strict Typing Compliance (AGENTS.md): Eliminated all occurrences of 'any' across client proxies (CollectionProxy, DatabaseProxy, AggregationProxy, DeleteOperationProxy, UpdateOperationProxy), aggregation operators (stageOperators, expressionOperators), and CRUD operations in favor of strict 'unknown' and typed signatures",
       "HTTP Transport & Site Hardening: Enforced Strict-Transport-Security (HSTS) with preloading and Content-Security-Policy (CSP) headers across production site deployments, securing transport against MITM and injection attacks",
-      "OpenSSF Best Practices Silver Badge: Achieved official Linux Foundation / OpenSSF Best Practices Silver Certification (Project #16511), certifying cryptographic rigor, 0 CVEs, and supply-chain integrity",
+      "OpenSSF Best Practices Gold & Baseline Level 3 Badges: Achieved top-tier Linux Foundation / OpenSSF Best Practices Gold Badge and OSPS Baseline Level 3 Certification (Project #16511), certifying highest cryptographic rigor, EU CRA/NIST SSDF compliance, and supply-chain integrity",
       "Comprehensive Test Suite Verification: Expanded test suite with route parameter validation test cases in Test/node/modules/auth.test.js, maintaining 100% pass rate across all 14 test suites",
     ],
   },

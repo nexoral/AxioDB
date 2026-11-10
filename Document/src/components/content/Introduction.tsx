@@ -324,7 +324,13 @@ const Introduction: React.FC = () => {
     { src: badgeUrls.npm, alt: "npm version", width: 168 },
     {
       src: "https://www.bestpractices.dev/projects/16511/badge",
-      alt: "OpenSSF Best Practices",
+      alt: "OpenSSF Best Practices Gold",
+      width: 184,
+      href: "https://www.bestpractices.dev/projects/16511",
+    },
+    {
+      src: "https://www.bestpractices.dev/projects/16511/baseline",
+      alt: "OpenSSF Baseline Level 3",
       width: 184,
       href: "https://www.bestpractices.dev/projects/16511",
     },
