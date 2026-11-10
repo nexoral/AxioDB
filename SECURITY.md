@@ -70,7 +70,7 @@ Please include the following information in your report:
 
 1. **Triage**: We assess the severity and impact of the reported vulnerability
 2. **Fix Development**: We develop and test a fix in a private repository
-3. **Release**: Security fixes are released as patch versions (e.g., 27.45.12)
+3. **Release**: Security fixes are released as patch versions (e.g., 27.45.13)
 4. **Disclosure**: After release, we publish a security advisory with details
 5. **Credit**: We credit researchers who responsibly disclose vulnerabilities (unless they prefer to remain anonymous)
 
