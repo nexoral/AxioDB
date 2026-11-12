@@ -26,6 +26,7 @@ const Cli = lazy(() => import("./components/content/Cli"));
 const ControlGui = lazy(() => import("./components/content/ControlGui"));
 const Docker = lazy(() => import("./components/content/Docker"));
 const McpServer = lazy(() => import("./components/content/McpServer"));
+const VectorSearch = lazy(() => import("./components/content/VectorSearch"));
 const Troubleshooting = lazy(() => import("./components/content/Troubleshooting"));
 const Changelog = lazy(() => import("./components/content/Changelog"));
 const Performance = lazy(() => import("./components/content/Performance"));
@@ -60,6 +61,7 @@ export const routes: RouteRecord[] = [
       { path: "gui", element: <ControlGui /> },
       { path: "docker", element: <Docker /> },
       { path: "mcp-server", element: <McpServer /> },
+      { path: "vector-search", element: <VectorSearch /> },
       { path: "troubleshooting", element: <Troubleshooting /> },
       { path: "changelog", element: <Changelog /> },
       { path: "performance", element: <Performance /> },
