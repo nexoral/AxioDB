@@ -5,12 +5,19 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Thu, 12 Nov 2026 11:07:11 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 12 Nov 2026 12:02:21 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v28.49.3 — Multi-process PID directory locking, reverse-proxy trust boundary validation, transaction deep-merge integrity, TCP Slowloris protection, and full Bun test parity</title>
+      <title>AxioDB v28.49.4 — Native Vector Search (k-NN similarity), MCP 46th tool, and comprehensive AI artifact updates</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-28.49.3</guid>
+      <guid isPermaLink="false">axiodb-28.49.4</guid>
+      <pubDate>Thu, 12 Nov 2026 00:00:00 GMT</pubDate>
+      <description>Native Vector Search: Implemented exact k-NN similarity search with Cosine, Dot Product, and Euclidean distance metrics over document embedding fields — zero native dependencies, Worker Thread accelerated, available across all surfaces (embedded, HTTP 27018, TCP 27019, MCP 27020) | MCP 46th Tool: Added axiodb_vector_search tool to the native MCP server, enabling AI agents to perform semantic similarity queries with topK, minScore, and metric options | AI Artifact Documentation: Updated all skill files, llms.txt, llms-full.txt, .well-known agent skills, and documentation with complete vector search API syntax and usage examples</description>
+    </item>
+    <item>
+      <title>AxioDB v27.48.2 — Multi-process PID directory locking, reverse-proxy trust boundary validation, transaction deep-merge integrity, TCP Slowloris protection, and full Bun test parity</title>
+      <link>https://axiodb.in/changelog</link>
+      <guid isPermaLink="false">axiodb-27.48.2</guid>
       <pubDate>Thu, 12 Nov 2026 00:00:00 GMT</pubDate>
       <description>Multi-Process Directory Isolation &amp; PID Locking: Implemented non-blocking OS PID lock file (axiodb.pid.lock) with process liveness checks (process.kill(pid, 0)) and automatic exit cleanup, preventing conflicting WALs and data corruption across concurrent engine processes while gracefully recovering from stale locks after sudden crashes | Reverse-Proxy Security &amp; IP Spoofing Prevention: Restricted X-Forwarded-For and X-Real-IP header evaluation to loopback addresses or when AXIODB_TRUST_PROXY=true is explicitly configured, defeating spoofed IP bypasses against failed login rate limiters | Transaction Deep Property Preservation &amp; Prototype Shield: Upgraded transaction document updates to recursive deepMerge, preserving sibling nested properties while strictly filtering prototype-polluting keys (__proto__, constructor, prototype)</description>
     </item>

@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "28.49.3",
+    version: "28.49.4",
     date: "2026-11-12",
     title: "Native Vector Search (k-NN similarity), MCP 46th tool, and comprehensive AI artifact updates",
     changes: [
