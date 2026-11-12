@@ -391,6 +391,122 @@ Expression evaluator supports 80+ operators across arithmetic, string, compariso
 
 ---
 
+## Vector Search (Semantic Similarity)
+
+AxioDB supports native vector similarity search for semantic queries over document embedding fields. This enables AI-powered semantic search, recommendations, and similarity matching without external vector databases.
+
+```typescript
+collection.vectorSearch(
+  field: string,           // Document field containing the embedding vector (array of numbers)
+  vector: number[],        // Query vector to compare against
+  options?: {
+    topK?: number;         // Number of results to return (default: 10)
+    minScore?: number;     // Minimum similarity score threshold (0-1)
+    metric?: 'cosine' | 'dot' | 'euclidean';  // Distance metric (default: 'cosine')
+  }
+): Promise<SuccessInterface | ErrorInterface>
+```
+
+**Distance Metrics:**
+- **`cosine`** (default) — Cosine similarity. Best for direction-based similarity regardless of magnitude. Range: 0-1 (1 = identical).
+- **`dot`** — Dot product. Good for dense vectors where magnitude matters. Range: -1 to 1.
+- **`euclidean`** — Euclidean distance. Best for geometric proximity. Converted to similarity score: `1 / (1 + distance)`.
+
+**Return Value:** Results include a `_score` field with the similarity score (higher = more similar). Results are sorted by score descending.
+
+### Basic Usage
+
+```javascript
+// Assuming documents have an 'embedding' field with numeric vectors
+const results = await collection.vectorSearch('embedding', [0.14, 0.84, -0.32, 0.44], {
+  topK: 5,
+  metric: 'cosine'
+});
+
+console.log(results.data.documents);
+// [
+//   { _id: 'doc1', _score: 0.95, text: 'Hello world', embedding: [...] },
+//   { _id: 'doc2', _score: 0.87, text: 'Greetings', embedding: [...] },
+//   { _id: 'doc3', _score: 0.82, text: 'Hi there', embedding: [...] }
+// ]
+```
+
+### With Query Pre-filter
+
+Combine structured filters with semantic search using the chainable query builder:
+
+```javascript
+// First filter by status, then rank by vector similarity
+const results = await collection
+  .query({ status: 'active', category: 'tech' })
+  .vectorSearch('embedding', queryVector, { topK: 10, metric: 'cosine' })
+  .exec();
+
+// Or use aggregate for more complex pipelines
+const semanticDocs = await collection.aggregate([
+  { $match: { status: 'active' } },
+  { $vectorSearch: { field: 'embedding', vector: queryVector, topK: 5 } }
+]).exec();
+```
+
+### HTTP API
+
+```bash
+# POST /api/operation/vector-search/
+curl -X POST http://localhost:27018/api/operation/vector-search/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dbName": "MyDB",
+    "collectionName": "Documents",
+    "field": "embedding",
+    "vector": [0.14, 0.84, -0.32, 0.44],
+    "options": {
+      "topK": 5,
+      "minScore": 0.5,
+      "metric": "cosine"
+    }
+  }'
+```
+
+### MCP Tool
+
+The MCP server exposes `axiodb_vector_search` as the 46th tool:
+
+```json
+{
+  "name": "axiodb_vector_search",
+  "description": "Performs semantic vector similarity search using Exact k-NN with cosine, dot product, or euclidean metrics.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "dbName": { "type": "string", "description": "Database name" },
+      "collectionName": { "type": "string", "description": "Collection name" },
+      "field": { "type": "string", "description": "Document field containing embedding vector" },
+      "vector": { "type": "array", "items": { "type": "number" }, "description": "Query vector" },
+      "options": {
+        "type": "object",
+        "properties": {
+          "topK": { "type": "number", "description": "Number of results (default: 10)" },
+          "minScore": { "type": "number", "description": "Minimum similarity score 0-1" },
+          "metric": { "type": "string", "enum": ["cosine", "dot", "euclidean"], "description": "Distance metric" }
+        }
+      }
+    },
+    "required": ["dbName", "collectionName", "field", "vector"]
+  }
+}
+```
+
+### Implementation Details
+
+- **Zero native dependencies** — pure TypeScript implementation
+- **Worker Thread accelerated** — vector computations run in a separate thread to avoid blocking the main event loop
+- **Dual-write indexes** — vector indexes are cached in memory with randomized TTL (5-15 minutes), persisted to disk
+- **Exact k-NN** — uses brute-force search (no approximate nearest neighbor indexing yet)
+- **Available on all surfaces** — embedded library, HTTP API (27018), TCP (27019), MCP (27020)
+
+---
+
 ## Transactions
 
 Transactions are ACID and scoped to a single collection, with savepoints, rollback, and Write-Ahead Logging for crash recovery.
