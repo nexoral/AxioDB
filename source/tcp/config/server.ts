@@ -110,16 +110,11 @@ export default async function createAxioDBTCPServer(
     commandHandler.getDBHandler().stopCleanupSweep();
   });
 
-  server.on('listening', () => {
-    const address = server.address();
-    Logger.info(`[AxioDB TCP Server] Listening on port ${typeof address === 'object' ? address?.port : port}`);
-  });
-
   // Start listening
   const host = process.env.AXIODB_HOST || "127.0.0.1";
   server.listen(port, host, () => {
     Logger.info(
-      `[AxioDB TCP Server] Started successfully on port ${port}${tlsOptions ? ' (TLS)' : ''}`,
+      `[AxioDB TCP Server] Started Listening on port ${port}${tlsOptions ? ' (TLS)' : ''}`,
     );
   });
 

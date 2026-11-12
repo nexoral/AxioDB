@@ -216,7 +216,7 @@ export class AxioDB {
       });
     }
     if (this.MCP) {
-      Console.green("Starting AxioDB Native MCP Server (Port 27020)...");
+      Console.green("Starting AxioDB MCP Server...");
       startMcpServer(this).catch((error) => {
         Logger.error("[AxioDB MCP Server] Failed to start:", error);
       });
