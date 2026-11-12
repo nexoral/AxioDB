@@ -448,6 +448,64 @@ class TcpNoAuthTests extends TestRunner {
         dbHandler.stopCleanupSweep();
       });
     });
+
+    await this.describe('Slowloris and Idle Socket Timeout Protection', async () => {
+      await this.test('idle socket exceeding inactivity timeout is closed cleanly by server without hanging', async () => {
+        process.env.AXIODB_TCP_IDLE_TIMEOUT = '150';
+        const socket = net.createConnection(TCP_PORT, TCP_HOST);
+
+        try {
+          await new Promise((resolve, reject) => {
+            socket.once('connect', resolve);
+            socket.once('error', reject);
+          });
+
+          const closed = await new Promise((resolve) => {
+            socket.once('close', () => resolve(true));
+            socket.once('error', () => resolve(true));
+            setTimeout(() => resolve(false), 2000);
+          });
+
+          assert.equal(closed, true, 'Idle socket exceeding timeout should be disconnected by server');
+
+          const client = new RawTcpClient();
+          await client.connect();
+          const response = await client.send(CommandType.PING);
+          assert.equal(response.statusCode, 200, 'Server should remain responsive after idle socket disconnect');
+          client.close();
+        } finally {
+          delete process.env.AXIODB_TCP_IDLE_TIMEOUT;
+          if (!socket.destroyed) socket.destroy();
+        }
+      });
+
+      await this.test('incoming data resets idle timeout timer so active socket remains connected', async () => {
+        process.env.AXIODB_TCP_IDLE_TIMEOUT = '200';
+        const client = new RawTcpClient();
+        await client.connect();
+
+        try {
+          for (let i = 0; i < 3; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 80));
+            const pingRes = await client.send(CommandType.PING);
+            assert.equal(pingRes.statusCode, 200);
+          }
+
+          assert.equal(client.socket.destroyed, false, 'Socket should remain open while data continues to arrive');
+
+          const closed = await new Promise((resolve) => {
+            client.socket.once('close', () => resolve(true));
+            client.socket.once('error', () => resolve(true));
+            setTimeout(() => resolve(false), 2000);
+          });
+
+          assert.equal(closed, true, 'Socket should disconnect once it becomes idle longer than timeout');
+        } finally {
+          delete process.env.AXIODB_TCP_IDLE_TIMEOUT;
+          client.close();
+        }
+      });
+    });
   }
 }
 

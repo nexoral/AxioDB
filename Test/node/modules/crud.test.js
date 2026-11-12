@@ -813,6 +813,27 @@ class CRUDTests extends TestRunner {
         assert.ok(Array.isArray(dirResult));
         assert.equal(dirResult.length, 0);
       });
+
+      await this.test('Corrupted or malformed .axiodb file in collection does not crash queries or totalDocuments', async () => {
+        const corruptFilePath = path.join(this.collection.getCollectionPath(), 'MALFORMED_DOC.axiodb');
+        fs.writeFileSync(corruptFilePath, '{"broken_json_content": true, missing_close_bracket: ', 'utf8');
+
+        try {
+          const totalRes = await this.collection.totalDocuments();
+          assert.isSuccess(totalRes);
+
+          const validQuery = await this.collection.query({ name: 'InsertTest' }).exec();
+          assert.isSuccess(validQuery);
+
+          const allDocs = await this.collection.query({}).exec();
+          assert.isSuccess(allDocs);
+          assert.ok(Array.isArray(allDocs.data.documents));
+        } finally {
+          if (fs.existsSync(corruptFilePath)) {
+            fs.unlinkSync(corruptFilePath);
+          }
+        }
+      });
     });
 
     await this.describe('Tar & Archive Security (SEC-22)', async () => {

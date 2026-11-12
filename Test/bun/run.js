@@ -75,9 +75,15 @@ function runTestModule(name, modulePath) {
     `;
     
     const runtime = process.versions?.bun ? 'bun' : (process.execPath || 'bun');
+    const noProxyList = 'localhost,127.0.0.1,::1';
     const child = spawn(runtime, ['-e', runnerCode], {
       cwd: path.join(__dirname, '../..'),
-      stdio: 'inherit'
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        NO_PROXY: process.env.NO_PROXY ? `${process.env.NO_PROXY},${noProxyList}` : noProxyList,
+        no_proxy: process.env.no_proxy ? `${process.env.no_proxy},${noProxyList}` : noProxyList,
+      }
     });
     
     child.on('close', (code) => {

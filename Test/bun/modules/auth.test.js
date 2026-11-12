@@ -170,6 +170,50 @@ class AuthTests extends TestRunner {
         });
         assert.equal(proxyRes.status, 401);
       });
+
+      await this.test('Untrusted direct connection ignores fake X-Forwarded-For header', async () => {
+        const HttpServerHelper = require('../../../lib/Helper/http/HttpServer.helper').default || require('../../../lib/Helper/http/HttpServer.helper');
+        const HttpRouter = require('../../../lib/Helper/http/HttpRouter.helper').default || require('../../../lib/Helper/http/HttpRouter.helper');
+
+        const router = new HttpRouter();
+        let detectedIp = null;
+        router.get('/test/client-ip', async (req, reply) => {
+          detectedIp = req.ip;
+          reply.status(200).send({ ip: req.ip });
+        });
+
+        const testServer = new HttpServerHelper(router);
+        const prevTrust = process.env.AXIODB_TRUST_PROXY;
+        delete process.env.AXIODB_TRUST_PROXY;
+
+        try {
+          const mockReq = {
+            method: 'GET',
+            url: '/test/client-ip',
+            headers: { 'x-forwarded-for': '203.0.113.195' },
+            socket: { remoteAddress: '198.51.100.25' },
+          };
+          const mockRes = {
+            writableEnded: false,
+            setHeader: () => {},
+            writeHead: () => {},
+            end: () => {},
+          };
+
+          await testServer.handleRequest(mockReq, mockRes);
+          assert.equal(detectedIp, '198.51.100.25');
+
+          process.env.AXIODB_TRUST_PROXY = 'true';
+          await testServer.handleRequest(mockReq, mockRes);
+          assert.equal(detectedIp, '203.0.113.195');
+        } finally {
+          if (prevTrust !== undefined) {
+            process.env.AXIODB_TRUST_PROXY = prevTrust;
+          } else {
+            delete process.env.AXIODB_TRUST_PROXY;
+          }
+        }
+      });
     });
 
     // Reset the shared rate limiter directly so the lockout above doesn't block the
@@ -236,6 +280,19 @@ class AuthTests extends TestRunner {
     });
 
     await this.describe('Reserved "config" database guard', async () => {
+      await this.test('Cannot create config via the generic database route (SEC-11)', async () => {
+        const res = await fetch(`${BASE_URL}/db/create-database`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Cookie: this.adminCookie,
+          },
+          body: JSON.stringify({ name: 'config' }),
+        });
+        const body = await res.json();
+        assert.equal(body.statusCode, 403);
+      });
+
       await this.test('Cannot delete config via the generic database route', async () => {
         const res = await fetch(`${BASE_URL}/db/delete-database?dbName=config`, {
           method: 'DELETE',
@@ -364,6 +421,62 @@ class AuthTests extends TestRunner {
 
         const staleSessionRes = await fetch(`${BASE_URL}/auth/me`, { headers: { Cookie: adminRoleCookie } });
         assert.equal(staleSessionRes.status, 401, 'Old session should be revoked after password reset');
+      });
+
+      await this.test('User changing own password revokes all other concurrent sessions for that user', async () => {
+        await fetch(`${BASE_URL}/auth/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ username: 'multiuser', password: 'MultiUserPass1', role: 'Admin' }),
+        });
+
+        const initialLoginRes = await fetch(`${BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'multiuser', password: 'MultiUserPass1' }),
+        });
+        const initialCookie = extractCookie(initialLoginRes);
+
+        const changeForcedRes = await fetch(`${BASE_URL}/auth/change-password`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: initialCookie },
+          body: JSON.stringify({ currentPassword: 'MultiUserPass1', newPassword: 'MultiUserPass2' }),
+        });
+        const device1Cookie = extractCookie(changeForcedRes);
+
+        const device2LoginRes = await fetch(`${BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'multiuser', password: 'MultiUserPass2' }),
+        });
+        const device2Cookie = extractCookie(device2LoginRes);
+
+        const d1Before = await fetch(`${BASE_URL}/auth/me`, { headers: { Cookie: device1Cookie } });
+        const d2Before = await fetch(`${BASE_URL}/auth/me`, { headers: { Cookie: device2Cookie } });
+        assert.equal(d1Before.status, 200);
+        assert.equal(d2Before.status, 200);
+
+        const d1ChangeRes = await fetch(`${BASE_URL}/auth/change-password`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: device1Cookie },
+          body: JSON.stringify({ currentPassword: 'MultiUserPass2', newPassword: 'MultiUserPass3' }),
+        });
+        assert.equal(d1ChangeRes.status, 200);
+
+        const d2After = await fetch(`${BASE_URL}/auth/me`, { headers: { Cookie: device2Cookie } });
+        assert.equal(d2After.status, 401, 'Concurrent session from device 2 must be revoked after device 1 changed password');
+      });
+
+      await this.test('SessionStore TTL boundary: session expires immediately once expiresAt is exceeded', async () => {
+        const SessionStore = require('../../../lib/Services/Auth/SessionStore.service').default || require('../../../lib/Services/Auth/SessionStore.service');
+        const store = typeof SessionStore.getInstance === 'function' ? SessionStore.getInstance() : SessionStore;
+        const testSession = store.createSession('boundaryUser', 'View', false);
+
+        assert.ok(store.getSession(testSession.sid) !== null, 'Session should be valid immediately after creation');
+
+        testSession.expiresAt = Date.now() - 1;
+        assert.equal(store.getSession(testSession.sid), null, 'Expired session must return null');
+        assert.equal(store.getSession(testSession.sid), null, 'Expired session should have been purged from the store');
       });
     });
 
@@ -964,6 +1077,50 @@ class AuthTests extends TestRunner {
         const body = await res.json();
         assert.equal(res.status, 200);
         assert.includes(body.message, 'Password reset successfully');
+      });
+    });
+
+    await this.describe('Route parameter validation', async () => {
+      await this.test('Reset password with whitespace username returns 400', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/%20/reset-password`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ newPassword: 'NewPassword123!' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.equal(body.message, 'Username is required');
+      });
+
+      await this.test('Update role with whitespace username returns 400', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/%20/role`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Cookie: this.adminCookie },
+          body: JSON.stringify({ role: 'View' }),
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.equal(body.message, 'Username is required');
+      });
+
+      await this.test('Delete user with whitespace username returns 400', async () => {
+        const res = await fetch(`${BASE_URL}/auth/users/%20`, {
+          method: 'DELETE',
+          headers: { Cookie: this.adminCookie },
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.equal(body.message, 'Username is required');
+      });
+
+      await this.test('Delete role with whitespace roleName returns 400', async () => {
+        const res = await fetch(`${BASE_URL}/auth/roles/%20`, {
+          method: 'DELETE',
+          headers: { Cookie: this.adminCookie },
+        });
+        const body = await res.json();
+        assert.equal(res.status, 400);
+        assert.equal(body.message, 'Role name is required');
       });
     });
   }
