@@ -65,7 +65,7 @@ export class AxioDB {
   private MCP: boolean = false;
   private readonly AdminPassword?: string;
   private TLS: boolean = false;
-  private ready: Promise<void>;
+  public readonly ready: Promise<void>;
   private _initializing = false;
   private TLSCertPath?: string;
   private TLSKeyPath?: string;
@@ -114,8 +114,7 @@ export class AxioDB {
       }
     }
 
-    this._initializing = true;
-    this.ready = this.initializeRoot().finally(() => { this._initializing = false; });
+    this.ready = this.initializeRoot();
   }
 
   /**
@@ -146,8 +145,59 @@ export class AxioDB {
         Logger.info(`AxioDB folder created at: ${this.currentPATH}`);
       }
     }
+
+    const lockPath = path.join(this.currentPATH, General.PID_Lock_File);
+    try {
+      const storedPid = (await fs.promises.readFile(lockPath, "utf8")).trim();
+      const numericPid = Number(storedPid);
+      if (!isNaN(numericPid) && numericPid > 0) {
+        let isAlive = false;
+        try {
+          process.kill(numericPid, 0);
+          isAlive = true;
+        } catch (e: unknown) {
+          const err = e as { code?: string; message?: string };
+          if (err.code === "EPERM") {
+            isAlive = true;
+          }
+        }
+        if (isAlive) {
+          throw new Error(
+            `Database directory is locked by another running process (PID: ${storedPid}).`,
+          );
+        }
+      }
+    } catch (e: unknown) {
+      const err = e as { code?: string; message?: string };
+      if (err.message && err.message.startsWith("Database directory is locked")) {
+        throw e;
+      }
+    }
+
+    await fs.promises.writeFile(lockPath, String(process.pid), "utf8");
+
+    const cleanLock = (): void => {
+      try {
+        if (fs.existsSync(lockPath)) {
+          const pid = fs.readFileSync(lockPath, "utf8").trim();
+          if (pid === String(process.pid)) {
+            fs.unlinkSync(lockPath);
+          }
+        }
+      } catch {}
+    };
+
+    process.once("exit", cleanLock);
+    process.once("SIGINT", cleanLock);
+    process.once("SIGTERM", cleanLock);
+
     if (this.HTTP || this.MCP || (this.TCP && this.TCPAuth)) {
-      await new AuthSeeder(this, this.AdminPassword).seedIfNeeded();
+      this._initializing = true;
+      try {
+        await new AuthSeeder(this, this.AdminPassword).seedIfNeeded();
+      } finally {
+        this._initializing = false;
+      }
       LoginRateLimiter.startCleanupSweep();
     }
     if (this.HTTP) {

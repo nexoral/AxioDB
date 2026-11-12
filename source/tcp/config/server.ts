@@ -7,7 +7,7 @@ import { CommandHandler } from '../handler/CommandHandler';
 import { RequestContext } from '../connection/RequestContext';
 import { TCPRequest, TCPResponse } from '../types/protocol.types';
 import { MessageFramer } from './protocol';
-import { DEFAULT_TCP_PORT, ErrorMessage, StatusCode } from './keys';
+import { CONNECTION_TIMEOUT, DEFAULT_TCP_PORT, ErrorMessage, StatusCode } from './keys';
 import { CommandType } from '../types/command.types';
 import AuthEvents from '../../Services/Auth/AuthEvents.service';
 import ConnectionRateLimiter from '../connection/ConnectionRateLimiter';
@@ -75,7 +75,17 @@ export default async function createAxioDBTCPServer(
   });
 
   const connectionListener = (socket: Socket): void => {
+    const idleTimeout = Number(process.env.AXIODB_TCP_IDLE_TIMEOUT) || CONNECTION_TIMEOUT;
+    socket.setTimeout(idleTimeout);
+    socket.on('timeout', () => {
+      Logger.warn(`[AxioDB TCP] Socket inactive for 60s from ${socket.remoteAddress}, closing connection.`);
+      socket.destroy();
+    });
+    socket.on('data', () => {
+      socket.setTimeout(idleTimeout);
+    });
     handleNewConnection(socket, connectionManager, commandHandler);
+    socket.setTimeout(idleTimeout);
   };
 
   if (tlsOptions) {

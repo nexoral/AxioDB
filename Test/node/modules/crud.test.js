@@ -6,6 +6,7 @@ const { assert } = require('../helpers/assertions');
 const fixtures = require('../helpers/fixtures');
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const { AxioDB } = require('../../../axiodb.js');
 
@@ -1001,6 +1002,76 @@ class CRUDTests extends TestRunner {
           !fs.existsSync(outArchive),
           'Residual archive file must not exist on disk after compression failure'
         );
+      });
+    });
+
+    // Directory Lock Tests
+    await this.describe('Directory PID Lock', async () => {
+      await this.test('Active PID lock prevents another process from opening same database directory', async () => {
+        const script = `
+          const { AxioDB } = require('./axiodb.js');
+          (async () => {
+            try {
+              const db = new AxioDB({ RootName: 'CRUDTestDB', CustomPath: '${this.testDir}' });
+              await db.ready;
+              console.log('LOCK_STATUS=ACQUIRED');
+            } catch (err) {
+              console.log('LOCK_STATUS=ERROR:' + err.message);
+            }
+          })();
+        `;
+        const runtime = process.versions?.bun ? 'bun' : (process.execPath || 'node');
+        const stdout = execFileSync(runtime, ['-e', script], {
+          cwd: path.resolve(__dirname, '../../..'),
+          encoding: 'utf8',
+        });
+        const line = stdout.split('\n').find((l) => l.startsWith('LOCK_STATUS='));
+        assert.exists(line, 'child process should output a lock status');
+        assert.ok(
+          line.includes(`Database directory is locked by another running process (PID: ${process.pid})`),
+          `Expected lock error mentioning PID ${process.pid}, got: ${line}`
+        );
+      });
+
+      await this.test('Stale PID lock from non-existent process is safely acquired', async () => {
+        let deadPid = 999999;
+        while (deadPid < 1100000) {
+          try {
+            process.kill(deadPid, 0);
+            deadPid++;
+          } catch {
+            break;
+          }
+        }
+
+        const staleDir = path.join(this.testDir, 'StaleLockTest');
+        const staleDbDir = path.join(staleDir, 'StaleDB');
+        fs.mkdirSync(staleDbDir, { recursive: true });
+        const lockFile = path.join(staleDbDir, 'axiodb.pid.lock');
+        fs.writeFileSync(lockFile, String(deadPid), 'utf8');
+
+        const script = `
+          const { AxioDB } = require('./axiodb.js');
+          const fs = require('fs');
+          (async () => {
+            try {
+              const db = new AxioDB({ RootName: 'StaleDB', CustomPath: '${staleDir}' });
+              await db.ready;
+              const currentPid = fs.readFileSync('${lockFile}', 'utf8').trim();
+              console.log('STALE_STATUS=' + (currentPid === String(process.pid) ? 'OVERWRITTEN' : 'NOT_MATCHING'));
+            } catch (err) {
+              console.log('STALE_STATUS=ERROR:' + err.message);
+            }
+          })();
+        `;
+        const runtime = process.versions?.bun ? 'bun' : (process.execPath || 'node');
+        const stdout = execFileSync(runtime, ['-e', script], {
+          cwd: path.resolve(__dirname, '../../..'),
+          encoding: 'utf8',
+        });
+        const line = stdout.split('\n').find((l) => l.startsWith('STALE_STATUS='));
+        assert.exists(line, 'child process should output stale lock status');
+        assert.equal(line, 'STALE_STATUS=OVERWRITTEN', 'stale lock should be overwritten by child process PID');
       });
     });
   }

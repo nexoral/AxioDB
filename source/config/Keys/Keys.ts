@@ -7,6 +7,7 @@ export const General = {
   Collection_Meta_File : "collection.meta.jsonl", // Per-database collection registry
   Transaction_Registry_File : "txn-meta.jsonl",   // In-flight transaction registry
   WAL_File_EXT : ".wal.jsonl",
+  PID_Lock_File : "axiodb.pid.lock",
   DocumentId_Length : 16, // Length of auto-generated alphanumeric document IDs
 }
 

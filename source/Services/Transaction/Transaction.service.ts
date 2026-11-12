@@ -367,7 +367,7 @@ export default class Transaction {
 
           const oldData = this.Converter.ToObject(readResult.data as string) as Record<string, unknown>;
 
-          const newData = { ...oldData, ...op.data as Record<string, unknown> };
+          const newData = Transaction.deepMerge(oldData, op.data as Record<string, unknown>);
 
           resolvedOperations.push({
             type: 'UPDATE',
@@ -589,5 +589,35 @@ export default class Transaction {
       return [];
     }
     return (listing.data as string[]).filter((name) => name.endsWith(WAL_FILE_EXT));
+  }
+
+  private static deepMerge(
+    target: Record<string, unknown>,
+    source: Record<string, unknown>
+  ): Record<string, unknown> {
+    const result: Record<string, unknown> = { ...target };
+    for (const key of Object.keys(source)) {
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        continue;
+      }
+      const targetVal = result[key];
+      const sourceVal = source[key];
+      if (
+        typeof targetVal === 'object' &&
+        targetVal !== null &&
+        !Array.isArray(targetVal) &&
+        typeof sourceVal === 'object' &&
+        sourceVal !== null &&
+        !Array.isArray(sourceVal)
+      ) {
+        result[key] = Transaction.deepMerge(
+          targetVal as Record<string, unknown>,
+          sourceVal as Record<string, unknown>
+        );
+      } else {
+        result[key] = sourceVal;
+      }
+    }
+    return result;
   }
 }

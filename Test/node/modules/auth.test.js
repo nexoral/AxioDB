@@ -170,6 +170,50 @@ class AuthTests extends TestRunner {
         });
         assert.equal(proxyRes.status, 401);
       });
+
+      await this.test('Untrusted direct connection ignores fake X-Forwarded-For header', async () => {
+        const HttpServerHelper = require('../../../lib/Helper/http/HttpServer.helper').default || require('../../../lib/Helper/http/HttpServer.helper');
+        const HttpRouter = require('../../../lib/Helper/http/HttpRouter.helper').default || require('../../../lib/Helper/http/HttpRouter.helper');
+
+        const router = new HttpRouter();
+        let detectedIp = null;
+        router.get('/test/client-ip', async (req, reply) => {
+          detectedIp = req.ip;
+          reply.status(200).send({ ip: req.ip });
+        });
+
+        const testServer = new HttpServerHelper(router);
+        const prevTrust = process.env.AXIODB_TRUST_PROXY;
+        delete process.env.AXIODB_TRUST_PROXY;
+
+        try {
+          const mockReq = {
+            method: 'GET',
+            url: '/test/client-ip',
+            headers: { 'x-forwarded-for': '203.0.113.195' },
+            socket: { remoteAddress: '198.51.100.25' },
+          };
+          const mockRes = {
+            writableEnded: false,
+            setHeader: () => {},
+            writeHead: () => {},
+            end: () => {},
+          };
+
+          await testServer.handleRequest(mockReq, mockRes);
+          assert.equal(detectedIp, '198.51.100.25');
+
+          process.env.AXIODB_TRUST_PROXY = 'true';
+          await testServer.handleRequest(mockReq, mockRes);
+          assert.equal(detectedIp, '203.0.113.195');
+        } finally {
+          if (prevTrust !== undefined) {
+            process.env.AXIODB_TRUST_PROXY = prevTrust;
+          } else {
+            delete process.env.AXIODB_TRUST_PROXY;
+          }
+        }
+      });
     });
 
     // Reset the shared rate limiter directly so the lockout above doesn't block the
