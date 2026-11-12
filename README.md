@@ -2,7 +2,7 @@
   <img src="https://axiodb.in/AXioDB.png" alt="AxioDB Logo" width="120" height="120" />
 </p>
 
-<h1 align="center">Embedded NoSQL Database for TypeScript & Agents</h1>
+<h1 align="center">Embedded NoSQL Database for TypeScript & Ai Agents</h1>
 <p align="center"><b>Zero-native embedded database with ACID transactions & in-memory cache — verified on Node.js & Bun.</b></p>
 
 <p align="center">
