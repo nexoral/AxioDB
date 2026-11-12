@@ -4,6 +4,7 @@ import {
 } from "../../config/Interfaces/Helper/response.helper.interface";
 import { SessionOptions } from "../../config/Interfaces/Transaction/transaction.interface";
 import { CollectionResolver } from "../../config/Interfaces/Operation/aggregation.interface";
+import { VectorSearchOptions } from "../../config/Interfaces/shared.types";
 import ResponseHelper from "../../Helper/response.helper";
 // Operations
 import Reader from "../CRUD Operation/Reader.operation";
@@ -234,8 +235,8 @@ export default class Collection {
    * @param {object} query - The query to be executed
    * @returns {Reader} - An instance of the Reader class.
    */
-  public query(query: Record<string, unknown>): Reader {
-    if (!query) {
+  public query(query: Record<string, unknown> = {}): Reader {
+    if (!query || typeof query !== "object") {
       throw new Error("Query cannot be empty");
     }
     RegexGuard.validateQuery(query);
@@ -245,6 +246,22 @@ export default class Collection {
       query,
       this.cache,
     );
+  }
+
+  /**
+   * Performs semantic vector search on documents in this collection.
+   *
+   * @param field - Document field name containing vector embeddings (number[]).
+   * @param vector - Target query vector to compare against.
+   * @param options - Vector search options (topK, minScore, metric).
+   * @returns A promise resolving to matching documents with `_score`.
+   */
+  public async vectorSearch(
+    field: string,
+    vector: number[],
+    options: VectorSearchOptions = {},
+  ): Promise<SuccessInterface | ErrorInterface> {
+    return this.query({}).vectorSearch(field, vector, options).exec();
   }
 
   /**

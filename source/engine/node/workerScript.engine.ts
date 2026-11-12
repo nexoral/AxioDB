@@ -158,6 +158,51 @@ function matchesQuery(item, query, isUpdated) {
 }
 `;
 
+const VECTOR_MATH_FN = `
+function isValidVector(v, expectedDim) {
+  if (!Array.isArray(v) || v.length === 0) return false;
+  if (expectedDim !== undefined && expectedDim > 0 && v.length !== expectedDim) return false;
+  for (var i = 0; i < v.length; i++) {
+    var val = v[i];
+    if (typeof val !== 'number' || !Number.isFinite(val)) return false;
+  }
+  return true;
+}
+
+function cosineSimilarity(a, b) {
+  if (a.length !== b.length || a.length === 0) return 0;
+  var dot = 0, normA = 0, normB = 0;
+  for (var i = 0; i < a.length; i++) {
+    var valA = a[i], valB = b[i];
+    dot += valA * valB;
+    normA += valA * valA;
+    normB += valB * valB;
+  }
+  if (normA === 0 || normB === 0) return 0;
+  var similarity = dot / (Math.sqrt(normA) * Math.sqrt(normB));
+  return Math.max(-1, Math.min(1, similarity));
+}
+
+function dotProduct(a, b) {
+  if (a.length !== b.length || a.length === 0) return 0;
+  var dot = 0;
+  for (var i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+  }
+  return dot;
+}
+
+function euclideanDistance(a, b) {
+  if (a.length !== b.length || a.length === 0) return Infinity;
+  var sum = 0;
+  for (var i = 0; i < a.length; i++) {
+    var diff = a[i] - b[i];
+    sum += diff * diff;
+  }
+  return Math.sqrt(sum);
+}
+`;
+
 /**
  * Worker script for parallel disk-file reading, JSON parsing, and optional query filtering.
  */
@@ -166,12 +211,18 @@ const { parentPort, workerData } = require('worker_threads');
 const fs = require('fs').promises;
 
 ${MATCHES_QUERY_FN}
+${VECTOR_MATH_FN}
 
 const BATCH_SIZE = 128;
 
-async function processFiles(chunk, basePath, storeFileName, query) {
-  const result = [];
+async function processFiles(chunk, basePath, storeFileName, query, vectorConfig) {
+  let result = [];
   const hasQuery = Boolean(query && Object.keys(query).length > 0);
+  const hasVector = Boolean(vectorConfig && vectorConfig.field && Array.isArray(vectorConfig.vector));
+  const targetDim = hasVector ? vectorConfig.vector.length : 0;
+  const metric = hasVector && vectorConfig.options && vectorConfig.options.metric ? vectorConfig.options.metric : 'cosine';
+  const minScore = hasVector && vectorConfig.options ? vectorConfig.options.minScore : undefined;
+  const candidateLimit = hasVector && vectorConfig.candidateLimit ? vectorConfig.candidateLimit : undefined;
 
   for (let i = 0; i < chunk.length; i += BATCH_SIZE) {
     const batch = chunk.slice(i, i + BATCH_SIZE);
@@ -182,6 +233,34 @@ async function processFiles(chunk, basePath, storeFileName, query) {
 
         if (hasQuery && !matchesQuery(parsedData, query)) {
           return null;
+        }
+
+        if (hasVector) {
+          const docVec = (parsedData && typeof parsedData === 'object') ? parsedData[vectorConfig.field] : undefined;
+          if (!isValidVector(docVec, targetDim)) {
+            return null;
+          }
+
+          let score = 0;
+          if (metric === 'cosine') {
+            score = cosineSimilarity(vectorConfig.vector, docVec);
+          } else if (metric === 'dot') {
+            score = dotProduct(vectorConfig.vector, docVec);
+          } else if (metric === 'euclidean') {
+            score = euclideanDistance(vectorConfig.vector, docVec);
+          }
+
+          if (metric === 'euclidean') {
+            if (minScore !== undefined && score > minScore) {
+              return null;
+            }
+          } else {
+            if (minScore !== undefined && score < minScore) {
+              return null;
+            }
+          }
+
+          parsedData._score = Number(score.toFixed(6));
         }
 
         return storeFileName ? { fileName, data: parsedData } : parsedData;
@@ -199,6 +278,26 @@ async function processFiles(chunk, basePath, storeFileName, query) {
     }
   }
 
+  if (hasVector && candidateLimit && result.length > candidateLimit) {
+    const maxLocalCandidates = Math.max(candidateLimit * 2, 10);
+    if (result.length > maxLocalCandidates) {
+      if (metric === 'euclidean') {
+        result.sort(function(a, b) {
+          const scoreA = storeFileName ? a.data._score : a._score;
+          const scoreB = storeFileName ? b.data._score : b._score;
+          return scoreA - scoreB;
+        });
+      } else {
+        result.sort(function(a, b) {
+          const scoreA = storeFileName ? a.data._score : a._score;
+          const scoreB = storeFileName ? b.data._score : b._score;
+          return scoreB - scoreA;
+        });
+      }
+      result = result.slice(0, maxLocalCandidates);
+    }
+  }
+
   return result;
 }
 
@@ -209,7 +308,8 @@ if (parentPort) {
         msg.chunk,
         msg.path,
         Boolean(msg.storeFileName),
-        msg.query
+        msg.query,
+        msg.vectorConfig
       );
       parentPort.postMessage({ jobId: msg.jobId, result: items });
     } catch (error) {
@@ -223,7 +323,8 @@ if (workerData && workerData.chunk) {
     workerData.chunk,
     workerData.path,
     Boolean(workerData.storeFileName),
-    workerData.query
+    workerData.query,
+    workerData.vectorConfig
   )
     .then((results) => {
       if (parentPort) parentPort.postMessage(results);

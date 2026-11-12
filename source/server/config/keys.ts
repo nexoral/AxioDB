@@ -260,6 +260,17 @@ export const AvailableRoutes: RouteGroupInterface[] = [
           aggregation: "array",
         },
       },
+      {
+        method: "POST",
+        description:
+          "Perform vector similarity search on documents in a collection",
+        path: "/api/operation/vector-search/?dbName&collectionName",
+        payload: {
+          field: "string",
+          vector: "array of numbers",
+          options: "optional object with topK, minScore, metric",
+        },
+      },
     ],
   },
   {

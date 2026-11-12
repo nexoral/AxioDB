@@ -1,6 +1,6 @@
 # AxioDB — Complete Documentation
 
-Version: 27.48.2 | License: MIT | Node.js >= 22.0.0
+Version: 28.49.3 | License: MIT | Node.js >= 22.0.0
 npm: https://www.npmjs.com/package/axiodb
 GitHub: https://github.com/nexoral/AxioDB
 Docs: https://axiodb.in
@@ -32,7 +32,7 @@ AxioDB is one package with several distinct surfaces. They are **not interchange
 | **AxioDBCloud TCP server** | Lets other processes/machines use this database | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ TCP: true })` / `AXIODB_TCP=true` | **27019** |
 | **AxioDBCloud client** | Connects to that TCP server, same API as embedded | ✅ Yes | ✅ Yes | `const { AxioDBCloud } = require('axiodb')` | — |
 | **CLI** | Command line interface — TCP queries, REPL, export/import via HTTP | ✅ Yes | ✅ Yes | `axiodb` binary | — |
-| **MCP server (45 tools)** | Lets an AI agent operate the database | ✅ Yes | ✅ Yes | `{ MCP: true }` / `AXIODB_MCP=true` | **27020** |
+| **MCP server (46 tools)** | Lets an AI agent operate the database | ✅ Yes | ✅ Yes | `{ MCP: true }` / `AXIODB_MCP=true` | **27020** |
 
 **The MCP server is native in core and Docker.** It is built directly into AxioDB (`new AxioDB({ MCP: true })`) and also available via the `theankansaha/axiodb` Docker image with `AXIODB_MCP=true`.
 
@@ -391,6 +391,122 @@ Expression evaluator supports 80+ operators across arithmetic, string, compariso
 
 ---
 
+## Vector Search (Semantic Similarity)
+
+AxioDB supports native vector similarity search for semantic queries over document embedding fields. This enables AI-powered semantic search, recommendations, and similarity matching without external vector databases.
+
+```typescript
+collection.vectorSearch(
+  field: string,           // Document field containing the embedding vector (array of numbers)
+  vector: number[],        // Query vector to compare against
+  options?: {
+    topK?: number;         // Number of results to return (default: 10)
+    minScore?: number;     // Minimum similarity score threshold (0-1)
+    metric?: 'cosine' | 'dot' | 'euclidean';  // Distance metric (default: 'cosine')
+  }
+): Promise<SuccessInterface | ErrorInterface>
+```
+
+**Distance Metrics:**
+- **`cosine`** (default) — Cosine similarity. Best for direction-based similarity regardless of magnitude. Range: 0-1 (1 = identical).
+- **`dot`** — Dot product. Good for dense vectors where magnitude matters. Range: -1 to 1.
+- **`euclidean`** — Euclidean distance. Best for geometric proximity. Converted to similarity score: `1 / (1 + distance)`.
+
+**Return Value:** Results include a `_score` field with the similarity score (higher = more similar). Results are sorted by score descending.
+
+### Basic Usage
+
+```javascript
+// Assuming documents have an 'embedding' field with numeric vectors
+const results = await collection.vectorSearch('embedding', [0.14, 0.84, -0.32, 0.44], {
+  topK: 5,
+  metric: 'cosine'
+});
+
+console.log(results.data.documents);
+// [
+//   { _id: 'doc1', _score: 0.95, text: 'Hello world', embedding: [...] },
+//   { _id: 'doc2', _score: 0.87, text: 'Greetings', embedding: [...] },
+//   { _id: 'doc3', _score: 0.82, text: 'Hi there', embedding: [...] }
+// ]
+```
+
+### With Query Pre-filter
+
+Combine structured filters with semantic search using the chainable query builder:
+
+```javascript
+// First filter by status, then rank by vector similarity
+const results = await collection
+  .query({ status: 'active', category: 'tech' })
+  .vectorSearch('embedding', queryVector, { topK: 10, metric: 'cosine' })
+  .exec();
+
+// Or use aggregate for more complex pipelines
+const semanticDocs = await collection.aggregate([
+  { $match: { status: 'active' } },
+  { $vectorSearch: { field: 'embedding', vector: queryVector, topK: 5 } }
+]).exec();
+```
+
+### HTTP API
+
+```bash
+# POST /api/operation/vector-search/
+curl -X POST http://localhost:27018/api/operation/vector-search/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dbName": "MyDB",
+    "collectionName": "Documents",
+    "field": "embedding",
+    "vector": [0.14, 0.84, -0.32, 0.44],
+    "options": {
+      "topK": 5,
+      "minScore": 0.5,
+      "metric": "cosine"
+    }
+  }'
+```
+
+### MCP Tool
+
+The MCP server exposes `axiodb_vector_search` as the 46th tool:
+
+```json
+{
+  "name": "axiodb_vector_search",
+  "description": "Performs semantic vector similarity search using Exact k-NN with cosine, dot product, or euclidean metrics.",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "dbName": { "type": "string", "description": "Database name" },
+      "collectionName": { "type": "string", "description": "Collection name" },
+      "field": { "type": "string", "description": "Document field containing embedding vector" },
+      "vector": { "type": "array", "items": { "type": "number" }, "description": "Query vector" },
+      "options": {
+        "type": "object",
+        "properties": {
+          "topK": { "type": "number", "description": "Number of results (default: 10)" },
+          "minScore": { "type": "number", "description": "Minimum similarity score 0-1" },
+          "metric": { "type": "string", "enum": ["cosine", "dot", "euclidean"], "description": "Distance metric" }
+        }
+      }
+    },
+    "required": ["dbName", "collectionName", "field", "vector"]
+  }
+}
+```
+
+### Implementation Details
+
+- **Zero native dependencies** — pure TypeScript implementation
+- **Worker Thread accelerated** — vector computations run in a separate thread to avoid blocking the main event loop
+- **Dual-write indexes** — vector indexes are cached in memory with randomized TTL (5-15 minutes), persisted to disk
+- **Exact k-NN** — uses brute-force search (no approximate nearest neighbor indexing yet)
+- **Available on all surfaces** — embedded library, HTTP API (27018), TCP (27019), MCP (27020)
+
+---
+
 ## Transactions
 
 Transactions are ACID and scoped to a single collection, with savepoints, rollback, and Write-Ahead Logging for crash recovery.
@@ -639,7 +755,7 @@ docker run -d -e AXIODB_HTTP=true -e AXIODB_MCP=true \
   -v axiodb-data:/app theankansaha/axiodb
 ```
 
-45 tools at `http://localhost:27020/mcp` covering databases, collections, documents, aggregation, indexes, dashboard stats, health, transactions, and user/role management — gated by the same RBAC as the HTTP API (a View-role session gets a real `403` on write tools). Every tool except `axiodb_login` requires a `sessionId` from logging in first. Compatible with Claude Code, Codex CLI, opencode, GitHub Copilot CLI, Cursor, Windsurf, and Google Antigravity — see https://axiodb.in/mcp-server for exact registration commands per tool.
+46 tools at `http://localhost:27020/mcp` covering databases, collections, documents, aggregation, indexes, dashboard stats, health, transactions, vector search, and user/role management — gated by the same RBAC as the HTTP API (a View-role session gets a real `403` on write tools). Every tool except `axiodb_login` requires a `sessionId` from logging in first. Compatible with Claude Code, Codex CLI, opencode, GitHub Copilot CLI, Cursor, Windsurf, and Google Antigravity — see https://axiodb.in/mcp-server for exact registration commands per tool.
 
 ---
 
@@ -718,7 +834,7 @@ Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js 
 | Built-in caching | No | Yes |
 | GUI | No | Yes (Desktop GUI - AxioDB Control) |
 | TCP remote access | No | Yes (AxioDBCloud) |
-| MCP server (AI) | No | Yes (45 tools) |
+| MCP server (AI) | No | Yes (46 tools) |
 
 ### vs LokiJS
 
@@ -1037,14 +1153,14 @@ Add the deployment constraint that nothing else solves: **your install must neve
 
 ---
 
-## The 45 MCP Tools (Core & Docker)
+## The 46 MCP Tools (Core & Docker)
 
 Available via `new AxioDB({ MCP: true })` or the Docker image with `AXIODB_MCP=true`, at `http://localhost:27020/mcp` (Streamable HTTP). Every tool except `axiodb_login` requires a `sessionId` returned by `axiodb_login`. Destructive tools additionally prompt the human through the MCP client before running.
 
 - **Auth (4):** `axiodb_login`, `axiodb_logout`, `axiodb_whoami`, `axiodb_change_own_password`
 - **Database (4):** `axiodb_create_database`, `axiodb_delete_database`, `axiodb_database_exists`, `axiodb_get_instance_info`
 - **Collection (4):** `axiodb_create_collection`, `axiodb_delete_collection`, `axiodb_collection_exists`, `axiodb_get_collection_info`
-- **Document (8):** `axiodb_insert_document`, `axiodb_insert_many_documents`, `axiodb_query_documents`, `axiodb_update_document`, `axiodb_delete_document`, `axiodb_aggregate`, `axiodb_total_documents`, `axiodb_find_documents_by_ids`
+- **Document (9):** `axiodb_insert_document`, `axiodb_insert_many_documents`, `axiodb_query_documents`, `axiodb_update_document`, `axiodb_delete_document`, `axiodb_aggregate`, `axiodb_total_documents`, `axiodb_find_documents_by_ids`, `axiodb_vector_search`
 - **Index (3):** `axiodb_create_index`, `axiodb_drop_index`, `axiodb_list_indexes`
 - **Dashboard & Monitoring (4):** `axiodb_health`, `axiodb_get_dashboard_stats`, `axiodb_instance_info`, `axiodb_ping`
 - **User (5):** `axiodb_create_user`, `axiodb_delete_user`, `axiodb_list_users`, `axiodb_update_user_role`, `axiodb_reset_user_password`

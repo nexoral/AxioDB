@@ -10,8 +10,9 @@ It provides:
 - **File-per-Document Storage**: Each document is persisted as an individual JSON file inside database and collection folders on disk.
 - **Dual-Write Indexing**: Secondary indexes exist in RAM (`IndexCache`) and are persisted as append-only registry files on disk.
 - **Randomized Cache TTL**: Built-in `InMemoryCache` randomizes TTL between 5 to 15 minutes (`minTTL`/`maxTTL`) to prevent cache stampedes.
-- **Worker Threads**: Offloads compute-heavy document scanning and query filtering to worker threads (`WorkerForSearch.engine.ts`, `WorkerForDataLoad.engine.ts`).
+- **Worker Threads**: Offloads compute-heavy document scanning, query filtering, and vector similarity computation to worker threads (`WorkerForSearch.engine.ts`, `WorkerForDataLoad.engine.ts`).
 - **ACID Transactions**: Staged working directory with atomic commit/rollback mechanisms.
+- **Native Vector Search**: Exact k-NN similarity search (Cosine, Dot product, Euclidean) over `number[]` embedding fields — zero native dependencies, Worker Thread accelerated, available across all surfaces (embedded, HTTP 27018, TCP 27019, MCP 27020).
 
 ---
 
@@ -24,7 +25,7 @@ AxioDB components are strictly partitioned across 5 distinct execution environme
 | **Core Embedded** | In-process | Node.js | Direct in-memory/disk access (`new AxioDB(options)`). Single-process singleton. Highest performance, zero network overhead. |
 | **HTTP Control Server** | `27018` | Fastify | REST API (`/api/*`). Visiting `http://localhost:27018` shows desktop GUI install instructions. Enabled via `HTTP: true` or `AXIODB_HTTP=true`. |
 | **TCP Remote Server** | `27019` | Node `net` | Binary length-prefixed TCP protocol. Used by `AxioDBCloud` client for remote Node.js applications and CLI. Supports connection pooling (`maxPoolSize: 10`) and RBAC authentication. |
-| **MCP Server** | `27020` | Streamable HTTP | Native in core (`new AxioDB({ MCP: true })`) and Docker (`AXIODB_MCP=true`). Exposes 45 database management tools to AI agents. |
+| **MCP Server** | `27020` | Streamable HTTP | Native in core (`new AxioDB({ MCP: true })`) and Docker (`AXIODB_MCP=true`). Exposes 46 database management tools to AI agents. |
 | **Desktop GUI** | Local OS Window | Electron + React | Native desktop viewer for Linux, macOS, and Windows. Connects to local or remote AxioDB instances over TCP. |
 | **CLI Tool** | Terminal | Go Binary | Standalone compiled CLI for 12 platforms. Supports interactive REPL, admin commands, and temporary server spinning (`axiodb serve`). |
 

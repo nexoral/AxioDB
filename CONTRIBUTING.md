@@ -160,7 +160,7 @@ AxioDB/
 ├── Docker/                    # Dockerfile 27018/27019/27020 + runner.js
 ├── electron/                  # Electron Desktop GUI
 ├── cli/                       # Go CLI 12 platforms
-└── package.json               # 27.48.2
+└── package.json               # 28.49.3
 ```
 
 ## Coding Standards

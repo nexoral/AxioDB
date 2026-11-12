@@ -1,4 +1,5 @@
 import { SuccessInterface, ErrorInterface } from '../config/Interfaces/Helper/response.helper.interface';
+import { VectorSearchConfig } from '../config/Interfaces/shared.types';
 import FolderManager from '../engine/Filesystem/FolderManager';
 import ReaderWithWorker from '../utility/BufferLoaderWithWorker.utils';
 import responseHelper from './response.helper';
@@ -18,6 +19,7 @@ export default class DocumentLoader {
     query?: Record<string, unknown>,
     maxFiles?: number,
     limit?: number,
+    vectorConfig?: VectorSearchConfig,
   ): Promise<SuccessInterface | ErrorInterface> {
     try {
       const dataFilesList: string[] = [];
@@ -43,6 +45,7 @@ export default class DocumentLoader {
       }
 
       if (
+        !vectorConfig &&
         limit !== undefined &&
         limit > 0 &&
         query &&
@@ -58,6 +61,7 @@ export default class DocumentLoader {
             collectionPath,
             includeFileName,
             query,
+            vectorConfig,
           );
           matchedResults.push(...chunkResult);
           if (matchedResults.length >= limit) {
@@ -73,6 +77,7 @@ export default class DocumentLoader {
         collectionPath,
         includeFileName,
         query,
+        vectorConfig,
       );
 
       return this.ResponseHelper.Success(resultData);

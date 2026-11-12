@@ -1,7 +1,7 @@
 # AxioDB Docker Image
 
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
-[![AxioDB](https://img.shields.io/badge/AxioDB-27.48.2-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
+[![AxioDB](https://img.shields.io/badge/AxioDB-28.49.3-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
 
 This Docker image provides AxioDB: Embedded NoSQL Database for TypeScript & AI Agents — zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno. It includes a REST API server, TCP remote access (AxioDBCloud), and an optional MCP server for AI agent integration.
 
@@ -333,7 +333,7 @@ Register the endpoint (`http://localhost:27020/mcp`) with whichever AI tool you 
 | **Windsurf** | Add to `~/.codeium/windsurf/mcp_config.json`: `{ "mcpServers": { "axiodb": { "serverUrl": "..." } } }` |
 | **Google Antigravity** (IDE & CLI) | Add to `~/.gemini/config/mcp_config.json`: `{ "mcpServers": { "axiodb": { "serverUrl": "..." } } }` — note `serverUrl`, not `url` |
 
-**45 tools**, covering:
+**46 tools**, covering:
 
 - **Session**: `axiodb_login`, `axiodb_logout`, `axiodb_whoami`, `axiodb_change_own_password`
 - **Database**: create/delete/exists/instance-info

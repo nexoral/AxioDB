@@ -48,9 +48,10 @@ class McpFunctionalTests extends TestRunner {
 
   async runTests() {
     await this.test('Registers all MCP tool families, including transactions', async () => {
-      assert.equal(this.handlers.size, 45);
+      assert.equal(this.handlers.size, 46);
       assert.ok(this.handlers.has('axiodb_login'));
       assert.ok(this.handlers.has('axiodb_begin_transaction'));
+      assert.ok(this.handlers.has('axiodb_vector_search'));
       assert.ok(this.handlers.has('axiodb_create_user'));
       assert.ok(this.handlers.has('axiodb_create_role'));
       assert.ok(this.handlers.has('axiodb_health'));
@@ -273,8 +274,9 @@ class McpFunctionalTests extends TestRunner {
       });
       const listJson = await listRes.json();
       assert.ok(Array.isArray(listJson.result.tools));
-      assert.equal(listJson.result.tools.length, 45);
+      assert.equal(listJson.result.tools.length, 46);
       assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_login'));
+      assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_vector_search'));
       assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_query_documents'));
       assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_get_instance_info'));
       assert.ok(listJson.result.tools.some((t) => t.name === 'axiodb_collection_exists'));

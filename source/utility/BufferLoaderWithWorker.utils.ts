@@ -5,12 +5,14 @@ import WorkerPool, { calculateOptimalWorkers } from "../Helper/WorkerPool.helper
 import Searcher from "./Searcher.utils";
 import RegexGuard from "../Helper/RegexGuard.helper";
 import { workerDataLoadScript } from "../engine/node/workerScript.engine";
+import { VectorSearchConfig } from "../config/Interfaces/shared.types";
 
 export default async function ReaderWithWorker(
   DataFilesList: string[],
   path: string,
   storeFileName = false,
   query?: Record<string, unknown>,
+  vectorConfig?: VectorSearchConfig,
 ): Promise<unknown[]> {
   const hasQuery = Boolean(query && Object.keys(query).length > 0);
   if (hasQuery) {
@@ -59,13 +61,20 @@ export default async function ReaderWithWorker(
 
   if (DataFilesList.length < 5000) {
     return await pool.execute<
-      { chunk: string[]; path: string; storeFileName: boolean; query?: Record<string, unknown> },
+      {
+        chunk: string[];
+        path: string;
+        storeFileName: boolean;
+        query?: Record<string, unknown>;
+        vectorConfig?: VectorSearchConfig;
+      },
       unknown[]
     >({
       chunk: DataFilesList,
       path,
       storeFileName,
       query,
+      vectorConfig,
     });
   }
 
@@ -81,13 +90,20 @@ export default async function ReaderWithWorker(
 
     tasks.push(
       pool.execute<
-        { chunk: string[]; path: string; storeFileName: boolean; query?: Record<string, unknown> },
+        {
+          chunk: string[];
+          path: string;
+          storeFileName: boolean;
+          query?: Record<string, unknown>;
+          vectorConfig?: VectorSearchConfig;
+        },
         unknown[]
       >({
         chunk: dataChunk,
         path,
         storeFileName,
         query,
+        vectorConfig,
       }),
     );
   }

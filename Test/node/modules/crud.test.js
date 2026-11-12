@@ -1144,6 +1144,202 @@ class CRUDTests extends TestRunner {
         assert.ok(pidRestored, 'Tampered lock file content must be restored back to owning process.pid');
       });
     });
+
+    // Vector & Semantic Search Operations
+    await this.describe('Vector & Semantic Search Operations', async () => {
+      let vectorColl;
+
+      await this.test('Setup vector collection with known embeddings and mixed documents', async () => {
+        vectorColl = await this.testDB.createCollection('VectorTestColl');
+        assert.exists(vectorColl);
+
+        // Valid embedding documents (dimension = 3)
+        await vectorColl.insert({ title: 'DocX', category: 'ai', vec: [1, 0, 0] });
+        await vectorColl.insert({ title: 'DocY', category: 'ai', vec: [0.7071, 0.7071, 0] });
+        await vectorColl.insert({ title: 'DocZ', category: 'web', vec: [0, 1, 0] });
+
+        // Edge case documents in same collection (mixed data)
+        await vectorColl.insert({ title: 'DocNoVec', category: 'ai' }); // missing field
+        await vectorColl.insert({ title: 'DocNullVec', category: 'ai', vec: null }); // null field
+        await vectorColl.insert({ title: 'DocStrVec', category: 'ai', vec: 'not_a_vector' }); // string field
+        await vectorColl.insert({ title: 'DocDimMismatch', category: 'ai', vec: [1, 0] }); // 2-dim instead of 3
+        await vectorColl.insert({ title: 'DocNaNVec', category: 'ai', vec: [1, NaN, 0] }); // NaN element
+      });
+
+      await this.test('Cosine similarity search ranks closest document first with _score', async () => {
+        const res = await vectorColl.vectorSearch('vec', [1, 0, 0], { topK: 3 });
+        assert.isSuccess(res);
+        const docs = res.data.documents;
+        assert.isAbove(docs.length, 0);
+        assert.equal(docs[0].title, 'DocX');
+        assert.ok(Math.abs(docs[0]._score - 1.0) < 0.001);
+        assert.equal(docs[1].title, 'DocY');
+        assert.ok(Math.abs(docs[1]._score - 0.7071) < 0.01);
+        assert.equal(docs[2].title, 'DocZ');
+        assert.ok(Math.abs(docs[2]._score - 0.0) < 0.001);
+      });
+
+      await this.test('Mixed documents without valid embeddings are safely skipped without errors', async () => {
+        const res = await vectorColl.vectorSearch('vec', [1, 0, 0], { topK: 10 });
+        assert.isSuccess(res);
+        const docs = res.data.documents;
+        // Only DocX, DocY, DocZ have valid 3-dim vectors
+        assert.equal(docs.length, 3);
+        const titles = docs.map((d) => d.title);
+        assert.ok(!titles.includes('DocNoVec'));
+        assert.ok(!titles.includes('DocNullVec'));
+        assert.ok(!titles.includes('DocStrVec'));
+        assert.ok(!titles.includes('DocDimMismatch'));
+        assert.ok(!titles.includes('DocNaNVec'));
+      });
+
+      await this.test('Hybrid search: normal query filter + vector search combined', async () => {
+        // Only category === "ai" should be considered (excludes DocZ which is "web")
+        const res = await vectorColl
+          .query({ category: 'ai' })
+          .vectorSearch('vec', [1, 0, 0], { topK: 5 })
+          .exec();
+        assert.isSuccess(res);
+        const docs = res.data.documents;
+        assert.equal(docs.length, 2);
+        assert.equal(docs[0].title, 'DocX');
+        assert.equal(docs[1].title, 'DocY');
+      });
+
+      await this.test('minScore filter excludes results below similarity threshold', async () => {
+        const res = await vectorColl.vectorSearch('vec', [1, 0, 0], { minScore: 0.9 });
+        assert.isSuccess(res);
+        const docs = res.data.documents;
+        assert.equal(docs.length, 1);
+        assert.equal(docs[0].title, 'DocX');
+      });
+
+      await this.test('Dot product and Euclidean distance metrics', async () => {
+        const dotRes = await vectorColl.vectorSearch('vec', [1, 0, 0], { metric: 'dot', topK: 1 });
+        assert.isSuccess(dotRes);
+        assert.equal(dotRes.data.documents[0].title, 'DocX');
+
+        const eucRes = await vectorColl.vectorSearch('vec', [1, 0, 0], { metric: 'euclidean', topK: 1 });
+        assert.isSuccess(eucRes);
+        assert.equal(eucRes.data.documents[0].title, 'DocX');
+        assert.ok(Math.abs(eucRes.data.documents[0]._score - 0.0) < 0.001);
+      });
+
+      await this.test('Vector search on empty collection returns empty array gracefully', async () => {
+        const emptyColl = await this.testDB.createCollection('EmptyVectorColl');
+        const res = await emptyColl.vectorSearch('vec', [1, 2, 3], { topK: 5 });
+        assert.isSuccess(res);
+        assert.equal(res.data.documents.length, 0);
+      });
+
+      await this.test('Validation rejects invalid vector parameters with informative errors', async () => {
+        let errEmptyField = null;
+        try {
+          vectorColl.query({}).vectorSearch('', [1, 2, 3]);
+        } catch (e) {
+          errEmptyField = e;
+        }
+        assert.exists(errEmptyField);
+        assert.ok(errEmptyField.message.includes('non-empty string'));
+
+        let errEmptyVec = null;
+        try {
+          vectorColl.query({}).vectorSearch('vec', []);
+        } catch (e) {
+          errEmptyVec = e;
+        }
+        assert.exists(errEmptyVec);
+        assert.ok(errEmptyVec.message.includes('non-empty array'));
+
+        let errNaNVec = null;
+        try {
+          vectorColl.query({}).vectorSearch('vec', [1, NaN, 3]);
+        } catch (e) {
+          errNaNVec = e;
+        }
+        assert.exists(errNaNVec);
+        assert.ok(errNaNVec.message.includes('finite numbers'));
+
+        let errBadTopK = null;
+        try {
+          vectorColl.query({}).vectorSearch('vec', [1, 2, 3], { topK: -5 });
+        } catch (e) {
+          errBadTopK = e;
+        }
+        assert.exists(errBadTopK);
+        assert.ok(errBadTopK.message.includes('positive integer'));
+
+        let errBadMetric = null;
+        try {
+          vectorColl.query({}).vectorSearch('vec', [1, 2, 3], { metric: 'invalid_metric' });
+        } catch (e) {
+          errBadMetric = e;
+        }
+        assert.exists(errBadMetric);
+        assert.ok(errBadMetric.message.includes('Unsupported metric'));
+      });
+
+      await this.test('Worker-accelerated vector search (>150 docs) in parallel threads', async () => {
+        const workerVecColl = await this.testDB.createCollection('WorkerVectorColl');
+        assert.exists(workerVecColl);
+
+        // Generate 180 documents (> 150 threshold to trigger WorkerPool)
+        const docsToInsert = [];
+        for (let i = 0; i < 180; i++) {
+          if (i === 42) {
+            docsToInsert.push({ idx: i, title: 'TargetHero', status: 'active', vec: [1, 0, 0] });
+          } else if (i === 100) {
+            docsToInsert.push({ idx: i, title: 'OrthogonalHero', status: 'inactive', vec: [0, 1, 0] });
+          } else if (i === 150) {
+            docsToInsert.push({ idx: i, title: 'CorruptedVecDoc', status: 'active', vec: 'bad_vector' });
+          } else if (i === 160) {
+            docsToInsert.push({ idx: i, title: 'DimMismatchDoc', status: 'active', vec: [1, 0] });
+          } else {
+            docsToInsert.push({
+              idx: i,
+              title: `Doc_${i}`,
+              status: i % 2 === 0 ? 'active' : 'pending',
+              vec: [0.01, (i % 10) * 0.05, 0.5]
+            });
+          }
+        }
+
+        const insertRes = await workerVecColl.insertMany(docsToInsert);
+        assert.isSuccess(insertRes);
+
+        // 1. Pure vector search across worker threads
+        const pureRes = await workerVecColl.vectorSearch('vec', [1, 0, 0], { topK: 3 });
+        assert.isSuccess(pureRes);
+        const pureDocs = pureRes.data.documents;
+        assert.equal(pureDocs.length, 3);
+        assert.equal(pureDocs[0].title, 'TargetHero');
+        assert.ok(Math.abs(pureDocs[0]._score - 1.0) < 0.001);
+
+        // 2. Hybrid search across worker threads (query + vector)
+        const hybridRes = await workerVecColl
+          .query({ status: 'active' })
+          .vectorSearch('vec', [1, 0, 0], { topK: 2 })
+          .exec();
+        assert.isSuccess(hybridRes);
+        const hybridDocs = hybridRes.data.documents;
+        assert.equal(hybridDocs.length, 2);
+        assert.equal(hybridDocs[0].title, 'TargetHero');
+        assert.equal(hybridDocs[0].status, 'active');
+
+        // 3. Euclidean distance in worker threads
+        const eucRes = await workerVecColl.vectorSearch('vec', [1, 0, 0], { metric: 'euclidean', topK: 1 });
+        assert.isSuccess(eucRes);
+        assert.equal(eucRes.data.documents[0].title, 'TargetHero');
+        assert.ok(Math.abs(eucRes.data.documents[0]._score - 0.0) < 0.001);
+
+        // 4. Worker thread edge case safety: verify bad vectors, strings, dim mismatches were skipped
+        const allVecDocs = await workerVecColl.vectorSearch('vec', [1, 0, 0]);
+        assert.isSuccess(allVecDocs);
+        const returnedTitles = allVecDocs.data.documents.map((d) => d.title);
+        assert.ok(!returnedTitles.includes('CorruptedVecDoc'));
+        assert.ok(!returnedTitles.includes('DimMismatchDoc'));
+      });
+    });
   }
 }
 

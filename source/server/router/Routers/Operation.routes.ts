@@ -127,4 +127,12 @@ export default async function OperationRouter(
     },
     async (request) => new CRUDController(AxioDBInstance).runAggregation(request),
   );
+
+  router.post(
+    "/vector-search/",
+    {
+      preHandler: [requireAuth, requireFreshPassword, requirePermission(PERMISSIONS.DOCUMENT_QUERY)],
+    },
+    async (request) => new CRUDController(AxioDBInstance).runVectorSearch(request),
+  );
 }

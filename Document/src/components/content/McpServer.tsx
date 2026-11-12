@@ -59,12 +59,13 @@ const toolGroups: ToolGroup[] = [
   },
   {
     title: "Documents & Aggregation",
-    count: 8,
-    description: "CRUD operations and aggregation pipelines",
+    count: 9,
+    description: "CRUD operations, aggregation pipelines, and vector similarity search",
     tools: [
       "axiodb_insert_document",
       "axiodb_insert_many_documents",
       "axiodb_query_documents",
+      "axiodb_vector_search",
       "axiodb_update_document",
       "axiodb_delete_document",
       "axiodb_total_documents",
@@ -159,7 +160,7 @@ const McpServer: React.FC = () => {
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
                 Connect AI coding assistants and autonomous agents directly to AxioDB via the{" "}
                 <strong>Model Context Protocol (MCP)</strong>. AxioDB includes a built-in MCP server
-                providing <strong>45 tools</strong> on port <strong>27020</strong> with full RBAC authentication,
+                providing <strong>46 tools</strong> on port <strong>27020</strong> with full RBAC authentication,
                 JSON-RPC 2.0 / SSE support, and zero external dependencies.
               </p>
 

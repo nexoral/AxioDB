@@ -12,6 +12,20 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "28.49.3",
+    date: "2026-11-12",
+    title: "Native Vector Search (k-NN similarity), MCP 46th tool, and comprehensive AI artifact updates",
+    changes: [
+      "Native Vector Search: Implemented exact k-NN similarity search with Cosine, Dot Product, and Euclidean distance metrics over document embedding fields — zero native dependencies, Worker Thread accelerated, available across all surfaces (embedded, HTTP 27018, TCP 27019, MCP 27020)",
+      "MCP 46th Tool: Added axiodb_vector_search tool to the native MCP server, enabling AI agents to perform semantic similarity queries with topK, minScore, and metric options",
+      "AI Artifact Documentation: Updated all skill files, llms.txt, llms-full.txt, .well-known agent skills, and documentation with complete vector search API syntax and usage examples",
+      "Vector Search API: Collection.vectorSearch(field, vector, options) — supports topK (default 10), minScore threshold, and metric selection — returns documents with _score field for similarity ranking",
+      "Chainable Query Builder: Pre-filter collections with .query({...}) before vector ranking using .vectorSearch(), combining structured filters with semantic search",
+      "TCP Command Support: VECTOR_SEARCH command added to AxioDBCloud protocol with full client proxy support",
+      "HTTP Endpoint: POST /api/document/vector-search/ for REST API vector queries with JSON body payload",
+    ],
+  },
+  {
     version: "27.48.2",
     date: "2026-11-12",
     title: "Multi-process PID directory locking, reverse-proxy trust boundary validation, transaction deep-merge integrity, TCP Slowloris protection, and full Bun test parity",

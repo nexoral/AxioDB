@@ -154,6 +154,44 @@ class TcpNoAuthTests extends TestRunner {
         client.close();
       });
 
+      await this.test('VECTOR_SEARCH command works over TCP', async () => {
+        const client = new RawTcpClient();
+        await client.connect();
+
+        await client.send(CommandType.CREATE_COLLECTION, {
+          dbName: 'NoAuthDB',
+          collectionName: 'VecItems',
+        });
+
+        await client.send(CommandType.INSERT_DOCUMENT, {
+          dbName: 'NoAuthDB',
+          collectionName: 'VecItems',
+          data: { name: 'Alpha', vec: [1, 0, 0] },
+        });
+
+        await client.send(CommandType.INSERT_DOCUMENT, {
+          dbName: 'NoAuthDB',
+          collectionName: 'VecItems',
+          data: { name: 'Beta', vec: [0, 1, 0] },
+        });
+
+        const vecRes = await client.send(CommandType.VECTOR_SEARCH, {
+          dbName: 'NoAuthDB',
+          collectionName: 'VecItems',
+          field: 'vec',
+          vector: [1, 0, 0],
+          options: { topK: 1 },
+        });
+
+        assert.equal(vecRes.statusCode, 200);
+        assert.ok(Array.isArray(vecRes.data.documents));
+        assert.equal(vecRes.data.documents.length, 1);
+        assert.equal(vecRes.data.documents[0].name, 'Alpha');
+        assert.ok(typeof vecRes.data.documents[0]._score === 'number');
+
+        client.close();
+      });
+
       await this.test('The reserved config database is still protected even with TCPAuth off', async () => {
         const client = new RawTcpClient();
         await client.connect();

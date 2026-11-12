@@ -3,7 +3,7 @@ import Collection from '../../../Services/Collection/collection.operation';
 import { TCPResponse, TCPRequest } from '../../types/protocol.types';
 import { StatusCode } from '../../config/keys';
 import CRUDController from '../../../server/controller/Operation/CRUD.controller';
-import { Document } from '../../../config/Interfaces/shared.types';
+import { Document, ProjectionSpec, VectorSearchOptions } from '../../../config/Interfaces/shared.types';
 import { AxioHttpRequest } from '../../../Helper/http/HttpTypes';
 import TransactionManager from '../../connection/TransactionManager';
 import SafeErrorMessage from '../../../Helper/SafeErrorMessage.helper';
@@ -102,7 +102,7 @@ export default class OperationHandler {
   }
 
   async handleQueryDocuments(requestId: string, params: Params): Promise<TCPResponse> {
-    const { dbName, collectionName, query = {}, limit, skip, sort, findOne, hint } = params;
+    const { dbName, collectionName, query = {}, limit, skip, sort, project, findOne, hint, vectorConfig } = params;
 
     try {
       const dbExists = await this.axioDB.isDatabaseExists(dbName!);
@@ -117,9 +117,17 @@ export default class OperationHandler {
       const collection = await databaseInstance.createCollection(collectionName!);
 
       let queryBuilder = collection.query(query as Record<string, unknown>);
+      if (vectorConfig && vectorConfig.field && Array.isArray(vectorConfig.vector)) {
+        queryBuilder = queryBuilder.vectorSearch(
+          vectorConfig.field,
+          vectorConfig.vector,
+          (vectorConfig.options ?? {}) as VectorSearchOptions,
+        );
+      }
       if (limit !== undefined) queryBuilder = queryBuilder.Limit(limit);
       if (skip !== undefined) queryBuilder = queryBuilder.Skip(skip);
       if (sort) queryBuilder = queryBuilder.Sort(sort);
+      if (project) queryBuilder = queryBuilder.setProject(project as ProjectionSpec);
       if (findOne) queryBuilder = queryBuilder.findOne(findOne);
       if (hint) queryBuilder = queryBuilder.hint(hint);
 
@@ -328,6 +336,38 @@ export default class OperationHandler {
         statusCode: result ? result.statusCode : StatusCode.OK,
         message: result && 'message' in result ? (result.message as string) || 'Index dropped successfully' : 'Index dropped successfully',
         data: result ? result.data : undefined,
+      };
+    } catch (error) {
+      return this.error(requestId, StatusCode.INTERNAL_SERVER_ERROR, error instanceof Error ? error.message : String(error));
+    }
+  }
+
+  async handleVectorSearch(requestId: string, params: Params): Promise<TCPResponse> {
+    const { dbName, collectionName, field, vector, options, query } = params;
+    try {
+      const { collection, error } = await this.getExistingCollection(dbName, collectionName);
+      if (error) {
+        return { id: requestId, statusCode: error.statusCode, message: error.message, error: error.message };
+      }
+      let result;
+      if (query && typeof query === "object" && Object.keys(query).length > 0) {
+        result = await collection!.query(query as Record<string, unknown>).vectorSearch(
+          field as string,
+          vector as number[],
+          (options ?? {}) as Record<string, unknown>,
+        ).exec();
+      } else {
+        result = await collection!.vectorSearch(
+          field as string,
+          vector as number[],
+          (options ?? {}) as Record<string, unknown>,
+        );
+      }
+      return {
+        id: requestId,
+        statusCode: result.statusCode,
+        message: 'message' in result ? (result.message as string) || 'Vector search completed' : 'Vector search completed',
+        data: result.data,
       };
     } catch (error) {
       return this.error(requestId, StatusCode.INTERNAL_SERVER_ERROR, error instanceof Error ? error.message : String(error));

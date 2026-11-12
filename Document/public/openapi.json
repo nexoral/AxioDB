@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "AxioDB HTTP API (Control Server)",
-    "description": "Fastify REST API server running on port 27018 for managing databases, collections, indexes, documents, users, and roles.\n\nThis is not a hosted service. It runs inside your own AxioDB process: enable it with `new AxioDB({ HTTP: true })`, or with `AXIODB_HTTP=true` on the `theankansaha/axiodb` Docker image. https://axiodb.in serves documentation only.\n\nThis API is one of several AxioDB surfaces and is not interchangeable with the others:\n- Embedded library (`npm install axiodb`) - in-process, no HTTP at all. https://axiodb.in/api-reference\n- AxioDBCloud TCP server/client on port 27019 - its own wire protocol, not HTTP. https://axiodb.in/cloud\n- MCP server on port 27020 (core & Docker) - Streamable HTTP at /mcp, 45 tools. https://axiodb.in/mcp-server\n\nThe HTTP API, AxioDBCloud authentication, and the MCP server share one user and role store.\n\nHuman-readable reference: https://axiodb.in/server-api",
+    "description": "Fastify REST API server running on port 27018 for managing databases, collections, indexes, documents, users, and roles.\n\nThis is not a hosted service. It runs inside your own AxioDB process: enable it with `new AxioDB({ HTTP: true })`, or with `AXIODB_HTTP=true` on the `theankansaha/axiodb` Docker image. https://axiodb.in serves documentation only.\n\nThis API is one of several AxioDB surfaces and is not interchangeable with the others:\n- Embedded library (`npm install axiodb`) - in-process, no HTTP at all. https://axiodb.in/api-reference\n- AxioDBCloud TCP server/client on port 27019 - its own wire protocol, not HTTP. https://axiodb.in/cloud\n- MCP server on port 27020 (core & Docker) - Streamable HTTP at /mcp, 46 tools. https://axiodb.in/mcp-server\n\nThe HTTP API, AxioDBCloud authentication, and the MCP server share one user and role store.\n\nHuman-readable reference: https://axiodb.in/server-api",
     "version": "1.0.0",
     "license": {
       "name": "MIT",
@@ -2652,6 +2652,118 @@
           },
           "500": {
             "description": "Internal Server Error - Aggregation failed"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/api/operation/vector-search/": {
+      "post": {
+        "tags": [
+          "Document Operations (CRUD)"
+        ],
+        "summary": "Performs semantic vector similarity search using Exact k-NN with cosine, dot product, or euclidean metrics.",
+        "description": "Performs semantic vector similarity search using Exact k-NN with cosine, dot product, or euclidean metrics.",
+        "operationId": "postApiOperationVectorSearch",
+        "parameters": [
+          {
+            "name": "dbName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the database",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "collectionName",
+            "in": "query",
+            "required": true,
+            "description": "The name of the collection",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "description": "Field name containing the stored embeddings"
+                  },
+                  "vector": {
+                    "type": "array",
+                    "items": {},
+                    "description": "Target query vector (numbers array)"
+                  },
+                  "options": {
+                    "type": "object",
+                    "description": "Optional topK, minScore, and metric ('cosine' | 'dot' | 'euclidean')"
+                  }
+                },
+                "required": [
+                  "field",
+                  "vector"
+                ]
+              },
+              "example": {
+                "field": "embedding",
+                "vector": [
+                  0.14,
+                  0.84,
+                  -0.32,
+                  0.44
+                ],
+                "options": {
+                  "topK": 5,
+                  "minScore": 0.8,
+                  "metric": "cosine"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success - Returns matching documents ranked by _score",
+            "content": {
+              "application/json": {
+                "example": {
+                  "statusCode": 200,
+                  "message": "Vector search completed successfully",
+                  "data": {
+                    "documents": [
+                      {
+                        "title": "TypeScript Guide",
+                        "_score": 0.9998
+                      }
+                    ],
+                    "totalDocuments": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Missing field, vector, or invalid parameters"
+          },
+          "403": {
+            "description": "Forbidden - Reserved system database"
+          },
+          "404": {
+            "description": "Not Found - Database or collection does not exist"
+          },
+          "500": {
+            "description": "Internal Server Error - Vector search failed"
           }
         },
         "security": [

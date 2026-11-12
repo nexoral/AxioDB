@@ -1,13 +1,13 @@
 ---
 name: skill
 description: >-
-  Expert operational guide, runbook, and architectural reference for AxioDB (version 27.48.2).
+  Expert operational guide, runbook, and architectural reference for AxioDB (version 28.49.3).
   Use this skill when developing, querying, installing, configuring, troubleshooting,
   or automating AxioDB embedded NoSQL, TCP remote access (AxioDBCloud), Docker containers,
   MCP server integration, Desktop GUI, or CLI operations.
 ---
 
-# AxioDB Operational Skill (v27.48.2)
+# AxioDB Operational Skill (v28.49.3)
 
 AxioDB is an embedded NoSQL database for TypeScript & AI agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js (>=22) and Bun.
 
@@ -29,6 +29,7 @@ Choose the appropriate mode based on the user's requirement:
 | **Desktop App (Visual GUI)** | Electron GUI | Desktop OS | Download from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest) |
 | **Terminal / Scripts / REPL** | CLI Tool | Terminal | Download from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest) |
 | **Unit Testing / CI Mocking** | Ephemeral Instance | Temp Folder | Read [installation-and-setup.md](references/installation-and-setup.md) |
+| **Vector / Semantic Search** | Embedded Core / All Surfaces | In-process or via TCP/HTTP/MCP | See [core-api-and-syntax.md §9](references/core-api-and-syntax.md) |
 
 ---
 
@@ -39,12 +40,13 @@ AxioDB features are strictly partitioned across specific surfaces:
 1. **Embedded Core (`axiodb` npm package)**:
    - In-process NoSQL engine with file-per-document storage.
    - Singleton pattern: `new AxioDB()` can only be called once per process.
+   - Includes native exact k-NN **Vector Search** (Cosine, Dot, Euclidean) — available on all surfaces.
 2. **HTTP API (Port 27018)**:
    - Fastify control server providing REST API endpoints (`/api/*`).
 3. **TCP Remote Access (Port 27019)**:
    - High-throughput binary protocol used by `AxioDBCloud` client with connection pooling (`maxPoolSize: 10`) and RBAC authentication.
 4. **MCP Server (Port 27020)**:
-   - Native in core (`new AxioDB({ MCP: true })`) and Docker (`AXIODB_MCP=true`). Exposes 45 database management tools over Streamable HTTP for AI agents.
+   - Native in core (`new AxioDB({ MCP: true })`) and Docker (`AXIODB_MCP=true`). Exposes 46 database management tools over Streamable HTTP for AI agents.
 5. **Desktop GUI (Electron)**:
    - Standalone native desktop viewer connecting over TCP or HTTP.
 
@@ -122,6 +124,27 @@ const users = await db.createCollection("users");
 ```
 
 For complete query operators (`$in`, `$regex`, `$gt`, etc.), aggregation pipelines, index hints, and ACID transactions, refer to [core-api-and-syntax.md](references/core-api-and-syntax.md).
+
+### D. Vector Similarity Search
+Store `number[]` embeddings on documents and search by similarity:
+```typescript
+// Insert documents with embeddings
+await products.insert({ title: "Headphones", embedding: [0.12, 0.85, 0.34] });
+
+// Exact k-NN search (returns docs with `_score` field)
+const results = await products.vectorSearch("embedding", queryVector, {
+  topK: 5,
+  minScore: 0.75,
+  metric: "cosine", // "cosine" (default) | "dot" | "euclidean"
+});
+
+// With pre-filter (only search within a subset)
+const filtered = await products
+  .query({ category: "audio" })
+  .vectorSearch("embedding", queryVector, { topK: 5 })
+  .exec();
+```
+Available on **all surfaces**: embedded, HTTP `POST /api/document/vector-search/`, TCP (`collection.vectorSearch()`), and MCP (`axiodb_vector_search`). Full syntax in [core-api-and-syntax.md §9](references/core-api-and-syntax.md).
 
 ---
 

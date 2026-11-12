@@ -610,6 +610,49 @@ class HTTPAPITests extends TestRunner {
         });
         assert.equal(res.body.statusCode, 400);
       });
+
+      await this.test('POST /api/operation/vector-search/ - executes vector search with scores', async () => {
+        await request('POST', '/api/collection/create-collection', {
+          body: { dbName: 'TestDB', collectionName: 'VecDocs' },
+          ...this.cookieHeader(),
+        });
+        await request('POST', '/api/operation/create/?dbName=TestDB&collectionName=VecDocs', {
+          body: { name: 'ItemA', embedding: [1, 0, 0] },
+          ...this.cookieHeader(),
+        });
+        await request('POST', '/api/operation/create/?dbName=TestDB&collectionName=VecDocs', {
+          body: { name: 'ItemB', embedding: [0, 1, 0] },
+          ...this.cookieHeader(),
+        });
+
+        const res = await request('POST', '/api/operation/vector-search/?dbName=TestDB&collectionName=VecDocs', {
+          body: {
+            field: 'embedding',
+            vector: [1, 0, 0],
+            options: { topK: 1, metric: 'cosine' },
+          },
+          ...this.cookieHeader(),
+        });
+        assert.equal(res.body.statusCode, 200);
+        assert.ok(Array.isArray(res.body.data.documents));
+        assert.equal(res.body.data.documents.length, 1);
+        assert.equal(res.body.data.documents[0].name, 'ItemA');
+        assert.ok(typeof res.body.data.documents[0]._score === 'number');
+      });
+
+      await this.test('POST /api/operation/vector-search/ - rejects invalid field or vector', async () => {
+        const resMissingField = await request('POST', '/api/operation/vector-search/?dbName=TestDB&collectionName=VecDocs', {
+          body: { vector: [1, 0, 0] },
+          ...this.cookieHeader(),
+        });
+        assert.equal(resMissingField.body.statusCode, 400);
+
+        const resInvalidVec = await request('POST', '/api/operation/vector-search/?dbName=TestDB&collectionName=VecDocs', {
+          body: { field: 'embedding', vector: 'not-an-array' },
+          ...this.cookieHeader(),
+        });
+        assert.equal(resInvalidVec.body.statusCode, 400);
+      });
     });
 
     await this.describe('Dashboard Stats Endpoint', async () => {

@@ -223,6 +223,9 @@ export class CommandHandler {
         case CommandType.TOTAL_DOCUMENTS:
           return await this.operationHandler.handleTotalDocuments(id, params);
 
+        case CommandType.VECTOR_SEARCH:
+          return await this.operationHandler.handleVectorSearch(id, params);
+
         // Index commands
         case CommandType.CREATE_INDEX:
           return await this.operationHandler.handleCreateIndex(id, params);

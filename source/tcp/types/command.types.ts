@@ -38,6 +38,7 @@ export enum CommandType {
   DELETE_DOCUMENTS_BY_QUERY = 'DELETE_DOCUMENTS_BY_QUERY',
   AGGREGATE = 'AGGREGATE',
   TOTAL_DOCUMENTS = 'TOTAL_DOCUMENTS',
+  VECTOR_SEARCH = 'VECTOR_SEARCH',
 
   // Index Operations
   CREATE_INDEX = 'CREATE_INDEX',
@@ -96,6 +97,7 @@ export const CommandDocumentation: Record<CommandType, string> = {
   [CommandType.DELETE_DOCUMENTS_BY_QUERY]: 'Delete documents matching query',
   [CommandType.AGGREGATE]: 'Run aggregation pipeline',
   [CommandType.TOTAL_DOCUMENTS]: 'Get total document count',
+  [CommandType.VECTOR_SEARCH]: 'Run vector similarity search on a collection',
   [CommandType.CREATE_INDEX]: 'Create index on collection fields',
   [CommandType.DROP_INDEX]: 'Drop existing index',
   [CommandType.LIST_INDEXES]: 'List all indexes registered on a collection',

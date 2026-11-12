@@ -34,6 +34,7 @@ export const routeMeta: RouteMeta[] = [
   { path: "/gui", label: "AxioDB Control (Desktop GUI)" },
   { path: "/docker", label: "Docker Deployment" },
   { path: "/mcp-server", label: "MCP Server (AI Agent Integration)" },
+  { path: "/vector-search", label: "Vector Search (AI & Semantic)" },
   { path: "/troubleshooting", label: "Troubleshooting" },
   { path: "/changelog", label: "Changelog" },
   { path: "/performance", label: "Performance Benchmarks" },
