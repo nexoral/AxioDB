@@ -1723,6 +1723,10 @@ export function buildMcpTools(
           name: { type: "string", description: "Alias for dbName" },
           collectionName: { type: "string", description: "Target collection name (or 'collection')" },
           collection: { type: "string", description: "Alias for collectionName" },
+          query: {
+            type: "object",
+            description: "Optional metadata filter query (e.g. { category: 'tech' }) to combine traditional filtering with vector ranking (Hybrid Search)",
+          },
           field: { type: "string", description: "Document field that contains the stored embedding vector (e.g. 'embedding')" },
           vector: {
             type: "array",
@@ -1749,6 +1753,7 @@ export function buildMcpTools(
       const field = args.field as string;
       const vector = args.vector as number[];
       const options = (args.options ?? {}) as Record<string, unknown>;
+      const query = (args.query ?? args.filter) as Record<string, unknown> | undefined;
 
       if (typeof field !== "string" || field.trim().length === 0) {
         return { statusCode: 400, message: "field must be a non-empty string" };
@@ -1760,7 +1765,7 @@ export function buildMcpTools(
       return crudController.runVectorSearch(
         mockRequest({
           query: { dbName, collectionName },
-          body: { field: field.trim(), vector, options },
+          body: { field: field.trim(), vector, options, query },
         }),
       );
     },

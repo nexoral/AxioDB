@@ -593,6 +593,7 @@ export default class CRUDController {
     const field = body.field;
     const vector = body.vector;
     const options = (body.options ?? {}) as Record<string, unknown>;
+    const query = (body.query ?? body.filter) as Record<string, unknown> | undefined;
 
     if (typeof field !== "string" || field.trim().length === 0) {
       return buildResponse(StatusCodes.BAD_REQUEST, "field must be a non-empty string");
@@ -606,11 +607,20 @@ export default class CRUDController {
     const DB_Collection = colOrError;
 
     try {
-      const result = await DB_Collection.vectorSearch(
-        field.trim(),
-        vector as number[],
-        options as Record<string, unknown>,
-      );
+      let result;
+      if (query && typeof query === "object" && Object.keys(query).length > 0) {
+        result = await DB_Collection.query(query).vectorSearch(
+          field.trim(),
+          vector as number[],
+          options as Record<string, unknown>,
+        ).exec();
+      } else {
+        result = await DB_Collection.vectorSearch(
+          field.trim(),
+          vector as number[],
+          options as Record<string, unknown>,
+        );
+      }
       return buildResponse(StatusCodes.OK, "Vector search completed successfully", result.data);
     } catch (err) {
       Logger.error("Vector search failed", err);

@@ -343,17 +343,26 @@ export default class OperationHandler {
   }
 
   async handleVectorSearch(requestId: string, params: Params): Promise<TCPResponse> {
-    const { dbName, collectionName, field, vector, options } = params;
+    const { dbName, collectionName, field, vector, options, query } = params;
     try {
       const { collection, error } = await this.getExistingCollection(dbName, collectionName);
       if (error) {
         return { id: requestId, statusCode: error.statusCode, message: error.message, error: error.message };
       }
-      const result = await collection!.vectorSearch(
-        field as string,
-        vector as number[],
-        (options ?? {}) as Record<string, unknown>,
-      );
+      let result;
+      if (query && typeof query === "object" && Object.keys(query).length > 0) {
+        result = await collection!.query(query as Record<string, unknown>).vectorSearch(
+          field as string,
+          vector as number[],
+          (options ?? {}) as Record<string, unknown>,
+        ).exec();
+      } else {
+        result = await collection!.vectorSearch(
+          field as string,
+          vector as number[],
+          (options ?? {}) as Record<string, unknown>,
+        );
+      }
       return {
         id: requestId,
         statusCode: result.statusCode,

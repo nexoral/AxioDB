@@ -64,7 +64,7 @@ const result = await users.query({ age: { $gt: 25 } }).exec();
 console.log(result.data.documents);`,
     },
     {
-      label: "AI agent state",
+      label: "AI agent",
       language: "javascript",
       code: `// Persist agent turns & execution state
 const agentDB = await db.createDB('AgentState');
