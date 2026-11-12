@@ -438,33 +438,39 @@ export default class Reader {
       const doc = data[i];
       if (!doc || typeof doc !== "object") continue;
 
-      const docVec = (doc as Record<string, unknown>)[field];
-      if (!VectorMath.isValidVector(docVec, targetDim)) {
-        continue;
-      }
-
       let score = 0;
-      if (metric === "cosine") {
-        score = VectorMath.cosineSimilarity(vector, docVec);
-      } else if (metric === "dot") {
-        score = VectorMath.dotProduct(vector, docVec);
-      } else if (metric === "euclidean") {
-        score = VectorMath.euclideanDistance(vector, docVec);
-      }
-
-      if (metric === "euclidean") {
-        if (minScore !== undefined && score > minScore) {
-          continue;
-        }
+      if (typeof (doc as Record<string, unknown>)._score === "number") {
+        score = (doc as Record<string, unknown>)._score as number;
       } else {
-        if (minScore !== undefined && score < minScore) {
+        const docVec = (doc as Record<string, unknown>)[field];
+        if (!VectorMath.isValidVector(docVec, targetDim)) {
           continue;
         }
+
+        if (metric === "cosine") {
+          score = VectorMath.cosineSimilarity(vector, docVec);
+        } else if (metric === "dot") {
+          score = VectorMath.dotProduct(vector, docVec);
+        } else if (metric === "euclidean") {
+          score = VectorMath.euclideanDistance(vector, docVec);
+        }
+
+        if (metric === "euclidean") {
+          if (minScore !== undefined && score > minScore) {
+            continue;
+          }
+        } else {
+          if (minScore !== undefined && score < minScore) {
+            continue;
+          }
+        }
+
+        score = Number(score.toFixed(6));
       }
 
       scored.push({
         ...doc,
-        _score: Number(score.toFixed(6)),
+        _score: score,
       });
     }
 
@@ -631,6 +637,23 @@ export default class Reader {
     maxFiles?: number,
     limit?: number,
   ): Promise<SuccessInterface | ErrorInterface> {
+    let vectorConfigWithLimit: VectorSearchConfig | undefined = undefined;
+    if (this.vectorConfig) {
+      const topK = this.vectorConfig.options.topK;
+      const candidateLimit =
+        !this.totalCount &&
+        (this.limit !== undefined && this.limit > 0
+          ? (this.skip || 0) + this.limit
+          : topK !== undefined
+            ? topK
+            : undefined);
+
+      vectorConfigWithLimit = {
+        ...this.vectorConfig,
+        candidateLimit: candidateLimit ? candidateLimit : undefined,
+      };
+    }
+
     // Use shared DocumentLoader helper (DRY - consolidates duplicated code)
     const result = await DocumentLoader.loadDocuments(
       this.path,
@@ -639,6 +662,7 @@ export default class Reader {
       this.baseQuery,
       maxFiles,
       limit,
+      vectorConfigWithLimit,
     );
 
     // Store result in AllData if successful

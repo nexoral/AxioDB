@@ -56,4 +56,5 @@ export interface VectorSearchConfig {
   field: string;
   vector: number[];
   options: VectorSearchOptions;
+  candidateLimit?: number;
 }

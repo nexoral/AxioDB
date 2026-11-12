@@ -1278,6 +1278,67 @@ class CRUDTests extends TestRunner {
         assert.exists(errBadMetric);
         assert.ok(errBadMetric.message.includes('Unsupported metric'));
       });
+
+      await this.test('Worker-accelerated vector search (>150 docs) in parallel threads', async () => {
+        const workerVecColl = await this.testDB.createCollection('WorkerVectorColl');
+        assert.exists(workerVecColl);
+
+        // Generate 180 documents (> 150 threshold to trigger WorkerPool)
+        const docsToInsert = [];
+        for (let i = 0; i < 180; i++) {
+          if (i === 42) {
+            docsToInsert.push({ idx: i, title: 'TargetHero', status: 'active', vec: [1, 0, 0] });
+          } else if (i === 100) {
+            docsToInsert.push({ idx: i, title: 'OrthogonalHero', status: 'inactive', vec: [0, 1, 0] });
+          } else if (i === 150) {
+            docsToInsert.push({ idx: i, title: 'CorruptedVecDoc', status: 'active', vec: 'bad_vector' });
+          } else if (i === 160) {
+            docsToInsert.push({ idx: i, title: 'DimMismatchDoc', status: 'active', vec: [1, 0] });
+          } else {
+            docsToInsert.push({
+              idx: i,
+              title: `Doc_${i}`,
+              status: i % 2 === 0 ? 'active' : 'pending',
+              vec: [0.01, (i % 10) * 0.05, 0.5]
+            });
+          }
+        }
+
+        const insertRes = await workerVecColl.insertMany(docsToInsert);
+        assert.isSuccess(insertRes);
+
+        // 1. Pure vector search across worker threads
+        const pureRes = await workerVecColl.vectorSearch('vec', [1, 0, 0], { topK: 3 });
+        assert.isSuccess(pureRes);
+        const pureDocs = pureRes.data.documents;
+        assert.equal(pureDocs.length, 3);
+        assert.equal(pureDocs[0].title, 'TargetHero');
+        assert.ok(Math.abs(pureDocs[0]._score - 1.0) < 0.001);
+
+        // 2. Hybrid search across worker threads (query + vector)
+        const hybridRes = await workerVecColl
+          .query({ status: 'active' })
+          .vectorSearch('vec', [1, 0, 0], { topK: 2 })
+          .exec();
+        assert.isSuccess(hybridRes);
+        const hybridDocs = hybridRes.data.documents;
+        assert.equal(hybridDocs.length, 2);
+        assert.equal(hybridDocs[0].title, 'TargetHero');
+        assert.equal(hybridDocs[0].status, 'active');
+
+        // 3. Euclidean distance in worker threads
+        const eucRes = await workerVecColl.vectorSearch('vec', [1, 0, 0], { metric: 'euclidean', topK: 1 });
+        assert.isSuccess(eucRes);
+        assert.equal(eucRes.data.documents[0].title, 'TargetHero');
+        assert.ok(Math.abs(eucRes.data.documents[0]._score - 0.0) < 0.001);
+
+        // 4. Worker thread edge case safety: verify bad vectors, strings, dim mismatches were skipped
+        const allVecDocs = await workerVecColl.vectorSearch('vec', [1, 0, 0]);
+        assert.isSuccess(allVecDocs);
+        const returnedTitles = allVecDocs.data.documents.map((d) => d.title);
+        assert.ok(!returnedTitles.includes('CorruptedVecDoc'));
+        assert.ok(!returnedTitles.includes('DimMismatchDoc'));
+      });
     });
   }
 }
