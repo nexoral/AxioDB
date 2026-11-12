@@ -264,7 +264,6 @@ export class AxioDB {
     const exists = await this.folderManager.DirectoryExists(dbPath);
     if (exists.statusCode !== StatusCodes.OK) {
       await this.folderManager.CreateDirectory(dbPath);
-      Logger.info(`Database Created: ${dbPath}`);
     }
     const newDB = new Database(DBName, dbPath, this.cache);
     // Store database metadata in the DatabaseMap

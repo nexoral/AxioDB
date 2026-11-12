@@ -15,7 +15,6 @@ import { IndexManager } from "../Index/Index.service";
 import { IndexCache } from "../Index/IndexCache.service";
 import { General } from "../../config/Keys/Keys";
 import DocumentLoader from "../../Helper/DocumentLoader.helper";
-import Logger from "../../Helper/Logger.helper";
 import type { InMemoryCache } from "../../Memory/memory.operation";
 
 // Types
@@ -75,7 +74,6 @@ export default class Database {
     // If the collection does not exist, create it
     if (collectionExists.statusCode !== StatusCodes.OK) {
       await this.folderManager.CreateDirectory(collectionPath);
-      Logger.info(`Collection Created: ${collectionPath}`);
     }
 
     // Create AutoIndex meta for the collection
