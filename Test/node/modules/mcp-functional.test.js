@@ -236,6 +236,240 @@ class McpFunctionalTests extends TestRunner {
       assert.equal(postLogoutWhoami.statusCode, 401);
     });
 
+    await this.test('axiodb_vector_search handler: scores, ranks, filters, and supports hybrid search', async () => {
+      // Re-login — previous session may have been logged out in earlier test
+      const vsLogin = await this.call('axiodb_login', { username: 'admin', password: 'admin' });
+      const vsSession = vsLogin.data.sessionId;
+
+      // Create a dedicated collection for vector search
+      await this.call('axiodb_create_collection', { sessionId: vsSession, dbName: 'McpDB', collectionName: 'vectors' });
+
+      // Insert documents with 3-dimensional embeddings and mixed invalid docs
+      await this.call('axiodb_insert_document', { sessionId: vsSession, dbName: 'McpDB', collectionName: 'vectors', document: { title: 'VecA', category: 'ai',  embedding: [1, 0, 0] } });
+      await this.call('axiodb_insert_document', { sessionId: vsSession, dbName: 'McpDB', collectionName: 'vectors', document: { title: 'VecB', category: 'ai',  embedding: [0.7071, 0.7071, 0] } });
+      await this.call('axiodb_insert_document', { sessionId: vsSession, dbName: 'McpDB', collectionName: 'vectors', document: { title: 'VecC', category: 'web', embedding: [0, 1, 0] } });
+      await this.call('axiodb_insert_document', { sessionId: vsSession, dbName: 'McpDB', collectionName: 'vectors', document: { title: 'NoVec', category: 'ai' } });               // missing field
+      await this.call('axiodb_insert_document', { sessionId: vsSession, dbName: 'McpDB', collectionName: 'vectors', document: { title: 'BadDim', category: 'ai', embedding: [1, 0] } }); // wrong dims
+
+      // 1. Basic cosine search — VecA should rank first with score ≈ 1.0
+      const basicRes = await this.call('axiodb_vector_search', {
+        sessionId: vsSession,
+        dbName: 'McpDB',
+        collectionName: 'vectors',
+        field: 'embedding',
+        vector: [1, 0, 0],
+        options: { topK: 3 },
+      });
+      assert.equal(basicRes.statusCode, 200);
+      const basicDocs = basicRes.data.documents;
+      assert.equal(basicDocs.length, 3);
+      assert.equal(basicDocs[0].title, 'VecA');
+      assert.ok(Math.abs(basicDocs[0]._score - 1.0) < 0.001, 'VecA cosine score should be ~1.0');
+      assert.equal(basicDocs[1].title, 'VecB');
+      assert.ok(typeof basicDocs[1]._score === 'number', '_score must be a number');
+
+      // 2. Invalid embedding docs are silently skipped — only 3 valid docs returned with topK: 10
+      const allRes = await this.call('axiodb_vector_search', {
+        sessionId: vsSession,
+        dbName: 'McpDB',
+        collectionName: 'vectors',
+        field: 'embedding',
+        vector: [1, 0, 0],
+        options: { topK: 10 },
+      });
+      assert.equal(allRes.statusCode, 200);
+      assert.equal(allRes.data.documents.length, 3);
+      const titles = allRes.data.documents.map((d) => d.title);
+      assert.ok(!titles.includes('NoVec'),  'doc with missing field must be skipped');
+      assert.ok(!titles.includes('BadDim'), 'doc with wrong dimensions must be skipped');
+
+      // 3. minScore threshold — only VecA has cosine score ≥ 0.9
+      const minScoreRes = await this.call('axiodb_vector_search', {
+        sessionId: vsSession,
+        dbName: 'McpDB',
+        collectionName: 'vectors',
+        field: 'embedding',
+        vector: [1, 0, 0],
+        options: { minScore: 0.9 },
+      });
+      assert.equal(minScoreRes.statusCode, 200);
+      assert.equal(minScoreRes.data.documents.length, 1);
+      assert.equal(minScoreRes.data.documents[0].title, 'VecA');
+
+      // 4. Hybrid search — query filter (category: 'ai') + vector search excludes VecC (category 'web')
+      const hybridRes = await this.call('axiodb_vector_search', {
+        sessionId: vsSession,
+        dbName: 'McpDB',
+        collectionName: 'vectors',
+        field: 'embedding',
+        vector: [1, 0, 0],
+        options: { topK: 5 },
+        query: { category: 'ai' },
+      });
+      assert.equal(hybridRes.statusCode, 200);
+      const hybridDocs = hybridRes.data.documents;
+      assert.equal(hybridDocs.length, 2);
+      assert.ok(!hybridDocs.map((d) => d.title).includes('VecC'), 'VecC (category: web) must be excluded by filter');
+
+      // 5. Euclidean distance metric — VecA is [0,0,0] away from itself
+      const eucRes = await this.call('axiodb_vector_search', {
+        sessionId: vsSession,
+        dbName: 'McpDB',
+        collectionName: 'vectors',
+        field: 'embedding',
+        vector: [1, 0, 0],
+        options: { metric: 'euclidean', topK: 1 },
+      });
+      assert.equal(eucRes.statusCode, 200);
+      assert.equal(eucRes.data.documents[0].title, 'VecA');
+      assert.ok(Math.abs(eucRes.data.documents[0]._score - 0.0) < 0.001, 'Euclidean distance to identical vector must be ~0');
+
+      // 6. Dot product metric — VecA still ranks first
+      const dotRes = await this.call('axiodb_vector_search', {
+        sessionId: vsSession,
+        dbName: 'McpDB',
+        collectionName: 'vectors',
+        field: 'embedding',
+        vector: [1, 0, 0],
+        options: { metric: 'dot', topK: 1 },
+      });
+      assert.equal(dotRes.statusCode, 200);
+      assert.equal(dotRes.data.documents[0].title, 'VecA');
+
+      // 7. Validation errors — missing field returns 400
+      const noFieldRes = await this.call('axiodb_vector_search', {
+        sessionId: vsSession,
+        dbName: 'McpDB',
+        collectionName: 'vectors',
+        field: '',
+        vector: [1, 0, 0],
+      });
+      assert.equal(noFieldRes.statusCode, 400);
+
+      // 8. Validation errors — empty vector returns 400
+      const emptyVecRes = await this.call('axiodb_vector_search', {
+        sessionId: vsSession,
+        dbName: 'McpDB',
+        collectionName: 'vectors',
+        field: 'embedding',
+        vector: [],
+      });
+      assert.equal(emptyVecRes.statusCode, 400);
+
+      await this.call('axiodb_logout', { sessionId: vsSession });
+    });
+
+    await this.test('Native HTTP MCP axiodb_vector_search over JSON-RPC 2.0: end-to-end search and hybrid mode', async () => {
+      // Login over native HTTP MCP
+      const loginRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0', id: 90,
+          method: 'tools/call',
+          params: { name: 'axiodb_login', arguments: { username: 'admin', password: 'admin' } },
+        }),
+      });
+      const loginPayload = JSON.parse((await loginRes.json()).result.content[0].text);
+      assert.equal(loginPayload.statusCode, 200);
+      const vsHttpSession = loginPayload.data.sessionId;
+
+      // Create a fresh collection for this test
+      const createColRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0', id: 91,
+          method: 'tools/call',
+          params: { name: 'axiodb_create_collection', arguments: { sessionId: vsHttpSession, dbName: 'McpDB', collectionName: 'http_vectors' } },
+        }),
+      });
+      const createColPayload = JSON.parse((await createColRes.json()).result.content[0].text);
+      assert.equal(createColPayload.statusCode, 201);
+
+      // Insert two documents with embeddings
+      await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0', id: 92,
+          method: 'tools/call',
+          params: { name: 'axiodb_insert_document', arguments: { sessionId: vsHttpSession, dbName: 'McpDB', collectionName: 'http_vectors', document: { name: 'Alpha', tag: 'x', emb: [1, 0, 0] } } },
+        }),
+      });
+      await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0', id: 93,
+          method: 'tools/call',
+          params: { name: 'axiodb_insert_document', arguments: { sessionId: vsHttpSession, dbName: 'McpDB', collectionName: 'http_vectors', document: { name: 'Beta',  tag: 'y', emb: [0, 1, 0] } } },
+        }),
+      });
+
+      // Basic vector search — Alpha should be top result
+      const vsRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0', id: 94,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_vector_search',
+            arguments: {
+              sessionId: vsHttpSession,
+              dbName: 'McpDB',
+              collectionName: 'http_vectors',
+              field: 'emb',
+              vector: [1, 0, 0],
+              options: { topK: 2 },
+            },
+          },
+        }),
+      });
+      const vsPayload = JSON.parse((await vsRes.json()).result.content[0].text);
+      assert.equal(vsPayload.statusCode, 200);
+      const vsDocs = vsPayload.data.documents;
+      assert.equal(vsDocs[0].name, 'Alpha');
+      assert.ok(Math.abs(vsDocs[0]._score - 1.0) < 0.001, 'Alpha cosine score must be ~1.0 over HTTP MCP');
+
+      // Hybrid search — filter by tag 'x' so only Alpha qualifies
+      const hybridRes = await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0', id: 95,
+          method: 'tools/call',
+          params: {
+            name: 'axiodb_vector_search',
+            arguments: {
+              sessionId: vsHttpSession,
+              dbName: 'McpDB',
+              collectionName: 'http_vectors',
+              field: 'emb',
+              vector: [1, 0, 0],
+              options: { topK: 5 },
+              query: { tag: 'x' },
+            },
+          },
+        }),
+      });
+      const hybridPayload = JSON.parse((await hybridRes.json()).result.content[0].text);
+      assert.equal(hybridPayload.statusCode, 200);
+      assert.equal(hybridPayload.data.documents.length, 1);
+      assert.equal(hybridPayload.data.documents[0].name, 'Alpha');
+
+      await fetch('http://localhost:27020/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0', id: 96,
+          method: 'tools/call',
+          params: { name: 'axiodb_logout', arguments: { sessionId: vsHttpSession } },
+        }),
+      });
+    });
+
     await this.test('Native HTTP MCP Server on port 27020 handles JSON-RPC 2.0 and tells unauthenticated agents to log in', async () => {
       // 1. GET /mcp health/discovery
       const healthRes = await fetch('http://localhost:27020/mcp');
