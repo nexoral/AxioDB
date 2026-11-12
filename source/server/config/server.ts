@@ -50,7 +50,7 @@ export default async function createAxioDBControlServer(
     SessionStore.startCleanupSweep();
     HttpTransactionManager.getInstance().startCleanupSweep();
     Logger.info(
-      `AxioDB Control Server is running on http://localhost:${ServerKeys.PORT}`,
+      `AxioDB HTTP Server is running on http://localhost:${ServerKeys.PORT}`,
     );
   } catch (err) {
     Logger.error("Failed to start AxioDB Control Server:", err);

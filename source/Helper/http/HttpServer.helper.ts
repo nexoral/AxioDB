@@ -57,19 +57,28 @@ export default class HttpServerHelper {
     const parsedUrl = new URL(rawUrl, "http://127.0.0.1");
     const path = parsedUrl.pathname;
 
-    const request: AxioHttpRequest = {
-      method: (req.method ?? "GET").toUpperCase(),
-      url: rawUrl,
-      path,
-      ip:
-        (typeof req.headers["x-forwarded-for"] === "string"
+    const remoteAddress = req.socket?.remoteAddress;
+    const isLoopback =
+      remoteAddress === "127.0.0.1" ||
+      remoteAddress === "::1" ||
+      remoteAddress === "::ffff:127.0.0.1" ||
+      remoteAddress === "localhost";
+    const trustProxy = isLoopback || process.env.AXIODB_TRUST_PROXY === "true";
+
+    const forwardedIp = trustProxy
+      ? (typeof req.headers["x-forwarded-for"] === "string"
           ? req.headers["x-forwarded-for"].split(",")[0].trim()
           : undefined) ||
         (typeof req.headers["x-real-ip"] === "string"
           ? req.headers["x-real-ip"].trim()
-          : undefined) ||
-        req.socket.remoteAddress ||
-        "127.0.0.1",
+          : undefined)
+      : undefined;
+
+    const request: AxioHttpRequest = {
+      method: (req.method ?? "GET").toUpperCase(),
+      url: rawUrl,
+      path,
+      ip: forwardedIp || remoteAddress || "127.0.0.1",
       query: (() => {
         const queryMap: Record<string, unknown> = {};
         for (const [key, value] of parsedUrl.searchParams) {

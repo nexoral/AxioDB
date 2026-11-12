@@ -7,7 +7,7 @@ import { CommandHandler } from '../handler/CommandHandler';
 import { RequestContext } from '../connection/RequestContext';
 import { TCPRequest, TCPResponse } from '../types/protocol.types';
 import { MessageFramer } from './protocol';
-import { DEFAULT_TCP_PORT, ErrorMessage, StatusCode } from './keys';
+import { CONNECTION_TIMEOUT, DEFAULT_TCP_PORT, ErrorMessage, StatusCode } from './keys';
 import { CommandType } from '../types/command.types';
 import AuthEvents from '../../Services/Auth/AuthEvents.service';
 import ConnectionRateLimiter from '../connection/ConnectionRateLimiter';
@@ -75,7 +75,17 @@ export default async function createAxioDBTCPServer(
   });
 
   const connectionListener = (socket: Socket): void => {
+    const idleTimeout = Number(process.env.AXIODB_TCP_IDLE_TIMEOUT) || CONNECTION_TIMEOUT;
+    socket.setTimeout(idleTimeout);
+    socket.on('timeout', () => {
+      Logger.warn(`[AxioDB TCP] Socket inactive for 60s from ${socket.remoteAddress}, closing connection.`);
+      socket.destroy();
+    });
+    socket.on('data', () => {
+      socket.setTimeout(idleTimeout);
+    });
     handleNewConnection(socket, connectionManager, commandHandler);
+    socket.setTimeout(idleTimeout);
   };
 
   if (tlsOptions) {
@@ -100,16 +110,11 @@ export default async function createAxioDBTCPServer(
     commandHandler.getDBHandler().stopCleanupSweep();
   });
 
-  server.on('listening', () => {
-    const address = server.address();
-    Logger.info(`[AxioDB TCP Server] Listening on port ${typeof address === 'object' ? address?.port : port}`);
-  });
-
   // Start listening
   const host = process.env.AXIODB_HOST || "127.0.0.1";
   server.listen(port, host, () => {
     Logger.info(
-      `[AxioDB TCP Server] Started successfully on port ${port}${tlsOptions ? ' (TLS)' : ''}`,
+      `[AxioDB TCP Server] Started Listening on port ${port}${tlsOptions ? ' (TLS)' : ''}`,
     );
   });
 

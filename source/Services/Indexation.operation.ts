@@ -65,10 +65,11 @@ export class AxioDB {
   private MCP: boolean = false;
   private readonly AdminPassword?: string;
   private TLS: boolean = false;
-  private ready: Promise<void>;
+  public readonly ready: Promise<void>;
   private _initializing = false;
   private TLSCertPath?: string;
   private TLSKeyPath?: string;
+  private _cleanLock?: () => void;
 
   constructor(options: AxioDBOptions = {}) {
     if (AxioDB._instance) {
@@ -114,8 +115,7 @@ export class AxioDB {
       }
     }
 
-    this._initializing = true;
-    this.ready = this.initializeRoot().finally(() => { this._initializing = false; });
+    this.ready = this.initializeRoot();
   }
 
   /**
@@ -146,8 +146,135 @@ export class AxioDB {
         Logger.info(`AxioDB folder created at: ${this.currentPATH}`);
       }
     }
+
+    const lockPath = path.join(this.currentPATH, General.PID_Lock_File);
+    try {
+      const storedPid = (await fs.promises.readFile(lockPath, "utf8")).trim();
+      const numericPid = Number(storedPid);
+      if (!isNaN(numericPid) && numericPid > 0) {
+        let isAlive = false;
+        try {
+          process.kill(numericPid, 0);
+          isAlive = true;
+        } catch (e: unknown) {
+          const err = e as { code?: string; message?: string };
+          if (err.code === "EPERM") {
+            isAlive = true;
+          }
+        }
+        if (isAlive) {
+          throw new Error(
+            `Database directory is locked by another running process (PID: ${storedPid}).`,
+          );
+        }
+      }
+    } catch (e: unknown) {
+      const err = e as { code?: string; message?: string };
+      if (err.message && err.message.startsWith("Database directory is locked")) {
+        throw e;
+      }
+    }
+
+    if (fs.existsSync(lockPath)) {
+      try {
+        fs.chmodSync(lockPath, 0o600);
+      } catch {}
+    }
+    await fs.promises.writeFile(lockPath, String(process.pid), {
+      mode: 0o400,
+      encoding: "utf8",
+    });
+
+    let isShuttingDown = false;
+    let lockHandle: fs.promises.FileHandle | null = null;
+    let lockWatcher: fs.FSWatcher | null = null;
+    let lockTimer: NodeJS.Timeout | null = null;
+
+    try {
+      lockHandle = await fs.promises.open(lockPath, "r");
+    } catch {}
+
+    const ensureLock = (): void => {
+      if (isShuttingDown || !fs.existsSync(this.currentPATH)) return;
+      try {
+        if (!fs.existsSync(lockPath)) {
+          Logger.warn(
+            `[AxioDB Security] Tampering detected: ${General.PID_Lock_File} was removed externally. Restoring lock for PID ${process.pid}.`,
+          );
+          fs.writeFileSync(lockPath, String(process.pid), {
+            mode: 0o400,
+            encoding: "utf8",
+          });
+        } else {
+          const currentPid = fs.readFileSync(lockPath, "utf8").trim();
+          if (currentPid !== String(process.pid)) {
+            Logger.warn(
+              `[AxioDB Security] Tampering detected: ${General.PID_Lock_File} was altered externally (found PID: ${currentPid}). Restoring lock for PID ${process.pid}.`,
+            );
+            try {
+              fs.chmodSync(lockPath, 0o600);
+            } catch {}
+            fs.writeFileSync(lockPath, String(process.pid), {
+              mode: 0o400,
+              encoding: "utf8",
+            });
+          }
+        }
+      } catch {}
+    };
+
+    try {
+      lockWatcher = fs.watch(this.currentPATH, (_eventType, filename) => {
+        if (!filename || filename === General.PID_Lock_File) {
+          ensureLock();
+        }
+      });
+      lockWatcher.on("error", () => {});
+      lockWatcher.unref();
+    } catch {}
+
+    lockTimer = setInterval(ensureLock, 200);
+    lockTimer.unref();
+
+    const cleanLock = (): void => {
+      isShuttingDown = true;
+      if (lockTimer) clearInterval(lockTimer);
+      if (lockWatcher) {
+        try {
+          lockWatcher.close();
+        } catch {}
+      }
+      if (lockHandle) {
+        try {
+          lockHandle.close();
+        } catch {}
+      }
+      try {
+        if (fs.existsSync(lockPath)) {
+          const pid = fs.readFileSync(lockPath, "utf8").trim();
+          if (pid === String(process.pid)) {
+            try {
+              fs.chmodSync(lockPath, 0o600);
+            } catch {}
+            fs.unlinkSync(lockPath);
+          }
+        }
+      } catch {}
+    };
+
+    this._cleanLock = cleanLock;
+
+    process.once("exit", cleanLock);
+    process.once("SIGINT", cleanLock);
+    process.once("SIGTERM", cleanLock);
+
     if (this.HTTP || this.MCP || (this.TCP && this.TCPAuth)) {
-      await new AuthSeeder(this, this.AdminPassword).seedIfNeeded();
+      this._initializing = true;
+      try {
+        await new AuthSeeder(this, this.AdminPassword).seedIfNeeded();
+      } finally {
+        this._initializing = false;
+      }
       LoginRateLimiter.startCleanupSweep();
     }
     if (this.HTTP) {
@@ -166,7 +293,7 @@ export class AxioDB {
       });
     }
     if (this.MCP) {
-      Console.green("Starting AxioDB Native MCP Server (Port 27020)...");
+      Console.green("Starting AxioDB MCP Server...");
       startMcpServer(this).catch((error) => {
         Logger.error("[AxioDB MCP Server] Failed to start:", error);
       });
@@ -201,6 +328,13 @@ export class AxioDB {
     await stopMcpServer();
   }
 
+  /** Cleanly releases the directory PID lock and stops lock monitoring. */
+  public releaseLock(): void {
+    if (this._cleanLock) {
+      this._cleanLock();
+    }
+  }
+
   /**
    * Creates a new database folder and updates the metadata file.
    * @param DBName - The name of the database to create.
@@ -214,7 +348,6 @@ export class AxioDB {
     const exists = await this.folderManager.DirectoryExists(dbPath);
     if (exists.statusCode !== StatusCodes.OK) {
       await this.folderManager.CreateDirectory(dbPath);
-      Logger.info(`Database Created: ${dbPath}`);
     }
     const newDB = new Database(DBName, dbPath, this.cache);
     // Store database metadata in the DatabaseMap

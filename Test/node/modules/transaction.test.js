@@ -67,6 +67,45 @@ class TransactionTests extends TestRunner {
         assert.equal(user.data.documents[0].age, 26);
       });
 
+      await this.test('Transaction - Update nested properties preserves sibling properties', async () => {
+        await this.collection.insert({
+          name: 'TxNested',
+          email: 'nested@test.com',
+          age: 28,
+          profile: {
+            title: 'Engineer',
+            department: 'Core',
+            skills: ['TypeScript'],
+          },
+          settings: {
+            theme: 'dark',
+            notifications: true,
+          },
+        });
+
+        const txn = this.collection.beginTransaction();
+        await txn
+          .update(
+            { name: 'TxNested' },
+            {
+              profile: { department: 'Platform' },
+              settings: { theme: 'light' },
+            }
+          )
+          .commit();
+
+        const user = await this.collection.query({ name: 'TxNested' }).exec();
+        assert.isSuccess(user);
+        assert.equal(user.data.documents.length, 1);
+        const doc = user.data.documents[0];
+        assert.equal(doc.profile.title, 'Engineer');
+        assert.equal(doc.profile.department, 'Platform');
+        assert.deepEqual(doc.profile.skills, ['TypeScript']);
+        assert.equal(doc.settings.theme, 'light');
+        assert.equal(doc.settings.notifications, true);
+        assert.equal(doc.age, 28);
+      });
+
       await this.test('Transaction - Delete operations', async () => {
         // Add a user to delete
         await this.collection.insert({ name: 'TxDelete', email: 'delete@test.com', age: 40 });

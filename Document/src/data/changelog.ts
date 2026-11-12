@@ -12,6 +12,21 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "27.48.2",
+    date: "2026-11-12",
+    title: "Multi-process PID directory locking, reverse-proxy trust boundary validation, transaction deep-merge integrity, TCP Slowloris protection, and full Bun test parity",
+    changes: [
+      "Multi-Process Directory Isolation & PID Locking: Implemented non-blocking OS PID lock file (axiodb.pid.lock) with process liveness checks (process.kill(pid, 0)) and automatic exit cleanup, preventing conflicting WALs and data corruption across concurrent engine processes while gracefully recovering from stale locks after sudden crashes",
+      "Reverse-Proxy Security & IP Spoofing Prevention: Restricted X-Forwarded-For and X-Real-IP header evaluation to loopback addresses or when AXIODB_TRUST_PROXY=true is explicitly configured, defeating spoofed IP bypasses against failed login rate limiters",
+      "Transaction Deep Property Preservation & Prototype Shield: Upgraded transaction document updates to recursive deepMerge, preserving sibling nested properties while strictly filtering prototype-polluting keys (__proto__, constructor, prototype)",
+      "TCP Slowloris & Idle Socket Protection: Enforced 60-second connection inactivity timeouts (AXIODB_TCP_IDLE_TIMEOUT) destroying hung connections while resetting dynamically on active command frames",
+      "Corrupt Document Fault-Tolerance: Isolated corrupt or malformed .axiodb JSON document files during collection reads and document counting, ensuring damaged files do not crash queries or server processes",
+      "Session Security & Multi-Device Revocation: Invalidated all concurrent active sessions for a user upon self-service password changes, and enforced strict sub-millisecond TTL expiration boundaries in SessionStore",
+      "Engine Log Cleanliness: Removed redundant 'Database Created' and 'Collection Created' console logging from core service operations to maintain clean, production-grade output",
+      "Node & Bun Test Suite Parity: Synchronized all 14 test suites with complete cross-runtime parity between Node.js and Bun, adding NO_PROXY configuration for loopback test runners",
+    ],
+  },
+  {
     version: "27.47.1",
     date: "2026-11-10",
     title: "Strict typing compliance, route parameter validation, HTTP security headers, and OpenSSF Best Practices Gold & OSPS Baseline Level 3 Certifications",
