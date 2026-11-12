@@ -1144,6 +1144,141 @@ class CRUDTests extends TestRunner {
         assert.ok(pidRestored, 'Tampered lock file content must be restored back to owning process.pid');
       });
     });
+
+    // Vector & Semantic Search Operations
+    await this.describe('Vector & Semantic Search Operations', async () => {
+      let vectorColl;
+
+      await this.test('Setup vector collection with known embeddings and mixed documents', async () => {
+        vectorColl = await this.testDB.createCollection('VectorTestColl');
+        assert.exists(vectorColl);
+
+        // Valid embedding documents (dimension = 3)
+        await vectorColl.insert({ title: 'DocX', category: 'ai', vec: [1, 0, 0] });
+        await vectorColl.insert({ title: 'DocY', category: 'ai', vec: [0.7071, 0.7071, 0] });
+        await vectorColl.insert({ title: 'DocZ', category: 'web', vec: [0, 1, 0] });
+
+        // Edge case documents in same collection (mixed data)
+        await vectorColl.insert({ title: 'DocNoVec', category: 'ai' }); // missing field
+        await vectorColl.insert({ title: 'DocNullVec', category: 'ai', vec: null }); // null field
+        await vectorColl.insert({ title: 'DocStrVec', category: 'ai', vec: 'not_a_vector' }); // string field
+        await vectorColl.insert({ title: 'DocDimMismatch', category: 'ai', vec: [1, 0] }); // 2-dim instead of 3
+        await vectorColl.insert({ title: 'DocNaNVec', category: 'ai', vec: [1, NaN, 0] }); // NaN element
+      });
+
+      await this.test('Cosine similarity search ranks closest document first with _score', async () => {
+        const res = await vectorColl.vectorSearch('vec', [1, 0, 0], { topK: 3 });
+        assert.isSuccess(res);
+        const docs = res.data.documents;
+        assert.isAbove(docs.length, 0);
+        assert.equal(docs[0].title, 'DocX');
+        assert.ok(Math.abs(docs[0]._score - 1.0) < 0.001);
+        assert.equal(docs[1].title, 'DocY');
+        assert.ok(Math.abs(docs[1]._score - 0.7071) < 0.01);
+        assert.equal(docs[2].title, 'DocZ');
+        assert.ok(Math.abs(docs[2]._score - 0.0) < 0.001);
+      });
+
+      await this.test('Mixed documents without valid embeddings are safely skipped without errors', async () => {
+        const res = await vectorColl.vectorSearch('vec', [1, 0, 0], { topK: 10 });
+        assert.isSuccess(res);
+        const docs = res.data.documents;
+        // Only DocX, DocY, DocZ have valid 3-dim vectors
+        assert.equal(docs.length, 3);
+        const titles = docs.map((d) => d.title);
+        assert.ok(!titles.includes('DocNoVec'));
+        assert.ok(!titles.includes('DocNullVec'));
+        assert.ok(!titles.includes('DocStrVec'));
+        assert.ok(!titles.includes('DocDimMismatch'));
+        assert.ok(!titles.includes('DocNaNVec'));
+      });
+
+      await this.test('Hybrid search: normal query filter + vector search combined', async () => {
+        // Only category === "ai" should be considered (excludes DocZ which is "web")
+        const res = await vectorColl
+          .query({ category: 'ai' })
+          .vectorSearch('vec', [1, 0, 0], { topK: 5 })
+          .exec();
+        assert.isSuccess(res);
+        const docs = res.data.documents;
+        assert.equal(docs.length, 2);
+        assert.equal(docs[0].title, 'DocX');
+        assert.equal(docs[1].title, 'DocY');
+      });
+
+      await this.test('minScore filter excludes results below similarity threshold', async () => {
+        const res = await vectorColl.vectorSearch('vec', [1, 0, 0], { minScore: 0.9 });
+        assert.isSuccess(res);
+        const docs = res.data.documents;
+        assert.equal(docs.length, 1);
+        assert.equal(docs[0].title, 'DocX');
+      });
+
+      await this.test('Dot product and Euclidean distance metrics', async () => {
+        const dotRes = await vectorColl.vectorSearch('vec', [1, 0, 0], { metric: 'dot', topK: 1 });
+        assert.isSuccess(dotRes);
+        assert.equal(dotRes.data.documents[0].title, 'DocX');
+
+        const eucRes = await vectorColl.vectorSearch('vec', [1, 0, 0], { metric: 'euclidean', topK: 1 });
+        assert.isSuccess(eucRes);
+        assert.equal(eucRes.data.documents[0].title, 'DocX');
+        assert.ok(Math.abs(eucRes.data.documents[0]._score - 0.0) < 0.001);
+      });
+
+      await this.test('Vector search on empty collection returns empty array gracefully', async () => {
+        const emptyColl = await this.testDB.createCollection('EmptyVectorColl');
+        const res = await emptyColl.vectorSearch('vec', [1, 2, 3], { topK: 5 });
+        assert.isSuccess(res);
+        assert.equal(res.data.documents.length, 0);
+      });
+
+      await this.test('Validation rejects invalid vector parameters with informative errors', async () => {
+        let errEmptyField = null;
+        try {
+          vectorColl.query({}).vectorSearch('', [1, 2, 3]);
+        } catch (e) {
+          errEmptyField = e;
+        }
+        assert.exists(errEmptyField);
+        assert.ok(errEmptyField.message.includes('non-empty string'));
+
+        let errEmptyVec = null;
+        try {
+          vectorColl.query({}).vectorSearch('vec', []);
+        } catch (e) {
+          errEmptyVec = e;
+        }
+        assert.exists(errEmptyVec);
+        assert.ok(errEmptyVec.message.includes('non-empty array'));
+
+        let errNaNVec = null;
+        try {
+          vectorColl.query({}).vectorSearch('vec', [1, NaN, 3]);
+        } catch (e) {
+          errNaNVec = e;
+        }
+        assert.exists(errNaNVec);
+        assert.ok(errNaNVec.message.includes('finite numbers'));
+
+        let errBadTopK = null;
+        try {
+          vectorColl.query({}).vectorSearch('vec', [1, 2, 3], { topK: -5 });
+        } catch (e) {
+          errBadTopK = e;
+        }
+        assert.exists(errBadTopK);
+        assert.ok(errBadTopK.message.includes('positive integer'));
+
+        let errBadMetric = null;
+        try {
+          vectorColl.query({}).vectorSearch('vec', [1, 2, 3], { metric: 'invalid_metric' });
+        } catch (e) {
+          errBadMetric = e;
+        }
+        assert.exists(errBadMetric);
+        assert.ok(errBadMetric.message.includes('Unsupported metric'));
+      });
+    });
   }
 }
 

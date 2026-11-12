@@ -40,3 +40,20 @@ export interface DocumentWithFileName {
   fileName: string;
   data: Document;
 }
+
+/** Metric used for vector similarity calculations. */
+export type VectorMetric = "cosine" | "dot" | "euclidean";
+
+/** Configuration options for vector search queries. */
+export interface VectorSearchOptions {
+  topK?: number;
+  minScore?: number;
+  metric?: VectorMetric;
+}
+
+/** Internal vector search configuration. */
+export interface VectorSearchConfig {
+  field: string;
+  vector: number[];
+  options: VectorSearchOptions;
+}

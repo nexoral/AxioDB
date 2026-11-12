@@ -16,6 +16,7 @@ import AuthSeeder from "../Services/Auth/AuthSeeder.service";
 import ConnectionRateLimiter from "../tcp/connection/ConnectionRateLimiter";
 import TransactionManager from "../tcp/connection/TransactionManager";
 import DBHandler from "../tcp/handler/handlers/DB.handler";
+import VectorMath from "../utility/VectorMath.utils";
 
 const InstanceTypes = {
   Collection,
@@ -27,6 +28,7 @@ const InstanceTypes = {
   Converter,
   ResponseHelper,
   InMemoryCache,
+  VectorMath,
 };
 
 const CoreDBMS = {
@@ -45,6 +47,7 @@ export {
   InstanceTypes,
   OperatorRegistry,
   CoreDBMS,
+  VectorMath,
 };
 
 export default {
@@ -53,4 +56,5 @@ export default {
   InstanceTypes,
   OperatorRegistry,
   CoreDBMS,
+  VectorMath,
 };

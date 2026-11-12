@@ -2,7 +2,7 @@ import {
   ErrorInterface,
   SuccessInterface,
 } from "../../config/Interfaces/Helper/response.helper.interface";
-import { Document, SortSpec, ProjectionSpec } from "../../config/Interfaces/shared.types";
+import { Document, SortSpec, ProjectionSpec, VectorSearchOptions, VectorSearchConfig } from "../../config/Interfaces/shared.types";
 
 // Import All helpers
 import type { InMemoryCache } from "../../Memory/memory.operation";
@@ -15,6 +15,7 @@ import { General } from "../../config/Keys/Keys";
 import Searcher from "../../utility/Searcher.utils";
 import Sorting from "../../utility/SortData.utils";
 import { ReadIndex } from "../Index/ReadIndex.service";
+import VectorMath from "../../utility/VectorMath.utils";
 
 /**
  * Class representing a read operation.
@@ -34,6 +35,7 @@ export default class Reader {
   private readonly ResponseHelper: responseHelper;
   private AllData: Document[];
   private indexHint: string | undefined;
+  private vectorConfig: VectorSearchConfig | undefined;
 
   /**
    * Creates an instance of Read.
@@ -61,6 +63,7 @@ export default class Reader {
     this.ResponseHelper = new responseHelper();
     this.totalCount = false;
     this.AllData = [];
+    this.vectorConfig = undefined;
   }
 
   /**
@@ -81,6 +84,14 @@ export default class Reader {
       Object.keys(this.sort).length > 0 ? this.Converter.ToString(this.sort) : 'nosort',
       this.indexHint ?? 'nohint'
     ];
+    if (this.vectorConfig) {
+      components.push(
+        this.vectorConfig.field,
+        this.vectorConfig.options.metric ?? 'cosine',
+        this.vectorConfig.options.minScore?.toString() ?? 'nominscore',
+        this.vectorConfig.vector.join(',')
+      );
+    }
     return components.join('::');
   }
 
@@ -271,6 +282,7 @@ export default class Reader {
               (Object.keys(this.baseQuery).length === 1 && sortEntries[0][0] === Object.keys(this.baseQuery)[0])));
 
         if (
+          !this.vectorConfig &&
           !this.totalCount &&
           isSortCompatible &&
           this.limit !== undefined &&
@@ -286,6 +298,7 @@ export default class Reader {
         usedIndex = true;
       } else {
         const maxFiles =
+          !this.vectorConfig &&
           !this.totalCount &&
           Object.keys(this.baseQuery).length === 0 &&
           Object.keys(this.sort).length === 0 &&
@@ -294,6 +307,7 @@ export default class Reader {
             ? (this.skip || 0) + this.limit
             : undefined;
         const earlyLimit =
+          !this.vectorConfig &&
           !this.totalCount &&
           Object.keys(this.sort).length === 0 &&
           this.limit !== undefined &&
@@ -322,6 +336,7 @@ export default class Reader {
         // Apply searcher for complex queries or partial index matches
         const searcher: Searcher = new Searcher(ReadResponse.data as Record<string, unknown>[]);
         const searchLimit =
+          !this.vectorConfig &&
           Object.keys(this.sort).length === 0 && this.limit !== undefined && this.limit > 0
             ? (this.skip || 0) + this.limit
             : undefined;
@@ -393,12 +408,127 @@ export default class Reader {
    * Applies sorting if needed and returns data with skip/limit
    */
   private async applySortAndReturn(data: Document[]): Promise<SuccessInterface | ErrorInterface> {
+    if (this.vectorConfig) {
+      return this.applyVectorSearch(data);
+    }
     if (Object.keys(this.sort).length === 0) {
       return this.ApplySkipAndLimit(data);
     }
     const Sorter: Sorting = new Sorting(data, this.sort);
     const SortedData: Document[] = await Sorter.sort();
     return this.ApplySkipAndLimit(SortedData);
+  }
+
+  /**
+   * Scores and ranks documents based on vector similarity or distance.
+   */
+  private async applyVectorSearch(data: Document[]): Promise<SuccessInterface | ErrorInterface> {
+    if (!this.vectorConfig) {
+      return this.ApplySkipAndLimit(data);
+    }
+
+    const { field, vector, options } = this.vectorConfig;
+    const metric = options.metric || "cosine";
+    const minScore = options.minScore;
+    const targetDim = vector.length;
+
+    const scored: Array<Document & { _score: number }> = [];
+
+    for (let i = 0; i < data.length; i++) {
+      const doc = data[i];
+      if (!doc || typeof doc !== "object") continue;
+
+      const docVec = (doc as Record<string, unknown>)[field];
+      if (!VectorMath.isValidVector(docVec, targetDim)) {
+        continue;
+      }
+
+      let score = 0;
+      if (metric === "cosine") {
+        score = VectorMath.cosineSimilarity(vector, docVec);
+      } else if (metric === "dot") {
+        score = VectorMath.dotProduct(vector, docVec);
+      } else if (metric === "euclidean") {
+        score = VectorMath.euclideanDistance(vector, docVec);
+      }
+
+      if (metric === "euclidean") {
+        if (minScore !== undefined && score > minScore) {
+          continue;
+        }
+      } else {
+        if (minScore !== undefined && score < minScore) {
+          continue;
+        }
+      }
+
+      scored.push({
+        ...doc,
+        _score: Number(score.toFixed(6)),
+      });
+    }
+
+    if (metric === "euclidean") {
+      scored.sort((a, b) => a._score - b._score);
+    } else {
+      scored.sort((a, b) => b._score - a._score);
+    }
+
+    return this.ApplySkipAndLimit(scored);
+  }
+
+  /**
+   * Configures a vector semantic similarity search on the query results.
+   *
+   * @param field - Document field name containing vector embeddings (number[]).
+   * @param targetVector - Target query vector to compare against.
+   * @param options - Configuration options (topK, minScore, metric).
+   * @returns This Reader instance for chainable execution.
+   */
+  public vectorSearch(
+    field: string,
+    targetVector: number[],
+    options: VectorSearchOptions = {},
+  ): Reader {
+    if (typeof field !== "string" || field.trim().length === 0) {
+      throw new Error("Vector field name must be a non-empty string");
+    }
+    if (!Array.isArray(targetVector) || targetVector.length === 0) {
+      throw new Error("Target vector must be a non-empty array of numbers");
+    }
+    for (let i = 0; i < targetVector.length; i++) {
+      const val = targetVector[i];
+      if (typeof val !== "number" || !Number.isFinite(val)) {
+        throw new Error("Target vector elements must be finite numbers");
+      }
+    }
+    if (options.topK !== undefined) {
+      if (typeof options.topK !== "number" || !Number.isInteger(options.topK) || options.topK <= 0) {
+        throw new Error("topK must be a positive integer");
+      }
+      this.limit = options.topK;
+    }
+    if (options.minScore !== undefined) {
+      if (typeof options.minScore !== "number" || !Number.isFinite(options.minScore)) {
+        throw new Error("minScore must be a finite number");
+      }
+    }
+    if (options.metric !== undefined) {
+      const validMetrics = ["cosine", "dot", "euclidean"];
+      if (!validMetrics.includes(options.metric)) {
+        throw new Error(
+          `Unsupported metric: ${options.metric}. Supported metrics are: cosine, dot, euclidean`,
+        );
+      }
+    }
+
+    this.vectorConfig = {
+      field: field.trim(),
+      vector: targetVector,
+      options,
+    };
+
+    return this;
   }
 
   /**
@@ -606,7 +736,7 @@ export default class Reader {
     FinalData: Document[],
   ): Promise<SuccessInterface | ErrorInterface> {
     // Special keys
-    const SpecialKeys = ["documentId"];
+    const SpecialKeys = ["documentId", "_score"];
 
     // Apply Project
     if (Object.keys(this.project).length !== 0) {
