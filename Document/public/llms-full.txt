@@ -32,7 +32,7 @@ AxioDB is one package with several distinct surfaces. They are **not interchange
 | **AxioDBCloud TCP server** | Lets other processes/machines use this database | ✅ Yes | ✅ Yes (on by default) | `new AxioDB({ TCP: true })` / `AXIODB_TCP=true` | **27019** |
 | **AxioDBCloud client** | Connects to that TCP server, same API as embedded | ✅ Yes | ✅ Yes | `const { AxioDBCloud } = require('axiodb')` | — |
 | **CLI** | Command line interface — TCP queries, REPL, export/import via HTTP | ✅ Yes | ✅ Yes | `axiodb` binary | — |
-| **MCP server (45 tools)** | Lets an AI agent operate the database | ✅ Yes | ✅ Yes | `{ MCP: true }` / `AXIODB_MCP=true` | **27020** |
+| **MCP server (46 tools)** | Lets an AI agent operate the database | ✅ Yes | ✅ Yes | `{ MCP: true }` / `AXIODB_MCP=true` | **27020** |
 
 **The MCP server is native in core and Docker.** It is built directly into AxioDB (`new AxioDB({ MCP: true })`) and also available via the `theankansaha/axiodb` Docker image with `AXIODB_MCP=true`.
 
@@ -639,7 +639,7 @@ docker run -d -e AXIODB_HTTP=true -e AXIODB_MCP=true \
   -v axiodb-data:/app theankansaha/axiodb
 ```
 
-45 tools at `http://localhost:27020/mcp` covering databases, collections, documents, aggregation, indexes, dashboard stats, health, transactions, and user/role management — gated by the same RBAC as the HTTP API (a View-role session gets a real `403` on write tools). Every tool except `axiodb_login` requires a `sessionId` from logging in first. Compatible with Claude Code, Codex CLI, opencode, GitHub Copilot CLI, Cursor, Windsurf, and Google Antigravity — see https://axiodb.in/mcp-server for exact registration commands per tool.
+46 tools at `http://localhost:27020/mcp` covering databases, collections, documents, aggregation, indexes, dashboard stats, health, transactions, vector search, and user/role management — gated by the same RBAC as the HTTP API (a View-role session gets a real `403` on write tools). Every tool except `axiodb_login` requires a `sessionId` from logging in first. Compatible with Claude Code, Codex CLI, opencode, GitHub Copilot CLI, Cursor, Windsurf, and Google Antigravity — see https://axiodb.in/mcp-server for exact registration commands per tool.
 
 ---
 
@@ -718,7 +718,7 @@ Measured on AMD Ryzen 5 5500U (6C/12T), 7.1 GB RAM, Ubuntu Linux 6.8.0, Node.js 
 | Built-in caching | No | Yes |
 | GUI | No | Yes (Desktop GUI - AxioDB Control) |
 | TCP remote access | No | Yes (AxioDBCloud) |
-| MCP server (AI) | No | Yes (45 tools) |
+| MCP server (AI) | No | Yes (46 tools) |
 
 ### vs LokiJS
 
@@ -1037,14 +1037,14 @@ Add the deployment constraint that nothing else solves: **your install must neve
 
 ---
 
-## The 45 MCP Tools (Core & Docker)
+## The 46 MCP Tools (Core & Docker)
 
 Available via `new AxioDB({ MCP: true })` or the Docker image with `AXIODB_MCP=true`, at `http://localhost:27020/mcp` (Streamable HTTP). Every tool except `axiodb_login` requires a `sessionId` returned by `axiodb_login`. Destructive tools additionally prompt the human through the MCP client before running.
 
 - **Auth (4):** `axiodb_login`, `axiodb_logout`, `axiodb_whoami`, `axiodb_change_own_password`
 - **Database (4):** `axiodb_create_database`, `axiodb_delete_database`, `axiodb_database_exists`, `axiodb_get_instance_info`
 - **Collection (4):** `axiodb_create_collection`, `axiodb_delete_collection`, `axiodb_collection_exists`, `axiodb_get_collection_info`
-- **Document (8):** `axiodb_insert_document`, `axiodb_insert_many_documents`, `axiodb_query_documents`, `axiodb_update_document`, `axiodb_delete_document`, `axiodb_aggregate`, `axiodb_total_documents`, `axiodb_find_documents_by_ids`
+- **Document (9):** `axiodb_insert_document`, `axiodb_insert_many_documents`, `axiodb_query_documents`, `axiodb_update_document`, `axiodb_delete_document`, `axiodb_aggregate`, `axiodb_total_documents`, `axiodb_find_documents_by_ids`, `axiodb_vector_search`
 - **Index (3):** `axiodb_create_index`, `axiodb_drop_index`, `axiodb_list_indexes`
 - **Dashboard & Monitoring (4):** `axiodb_health`, `axiodb_get_dashboard_stats`, `axiodb_instance_info`, `axiodb_ping`
 - **User (5):** `axiodb_create_user`, `axiodb_delete_user`, `axiodb_list_users`, `axiodb_update_user_role`, `axiodb_reset_user_password`

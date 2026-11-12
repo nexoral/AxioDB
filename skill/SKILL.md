@@ -44,7 +44,7 @@ AxioDB features are strictly partitioned across specific surfaces:
 3. **TCP Remote Access (Port 27019)**:
    - High-throughput binary protocol used by `AxioDBCloud` client with connection pooling (`maxPoolSize: 10`) and RBAC authentication.
 4. **MCP Server (Port 27020)**:
-   - Native in core (`new AxioDB({ MCP: true })`) and Docker (`AXIODB_MCP=true`). Exposes 45 database management tools over Streamable HTTP for AI agents.
+   - Native in core (`new AxioDB({ MCP: true })`) and Docker (`AXIODB_MCP=true`). Exposes 46 database management tools over Streamable HTTP for AI agents.
 5. **Desktop GUI (Electron)**:
    - Standalone native desktop viewer connecting over TCP or HTTP.
 

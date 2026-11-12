@@ -40,7 +40,7 @@ Full comparison: https://axiodb.in/comparison
 - AxioDBCloud: TCP remote access on port 27019, with optional shared-RBAC authentication (TCPAuth) and optional TLS
 - `AdminPassword` option / `AXIODB_ADMIN_PASSWORD` env var: seed the admin account with a password you choose, skipping the forced first-login change
 - CLI: Command line interface — TCP data operations and interactive REPL, HTTP database export/import, and HTTP user/role administration
-- MCP Server: 45 tools for AI agent integration — native in core (`{ MCP: true }`) and Docker (`AXIODB_MCP=true`)
+- MCP Server: 46 tools for AI agent integration — native in core (`{ MCP: true }`) and Docker (`AXIODB_MCP=true`)
 - Full TypeScript support (6.0 strict mode), types included, no `@types` package needed
 - Index hints — force a specific index on any query with .hint('fieldName')
 - Batch read — retrieve multiple documents by ID in one call with .findByIds([ids])
@@ -53,7 +53,7 @@ Full comparison: https://axiodb.in/comparison
 | HTTP REST API (41 endpoints) | 27018 | Yes | Yes | `{ HTTP: true }` / `AXIODB_HTTP=true` |
 | AxioDBCloud TCP server | 27019 | Yes | Yes | `{ TCP: true }` / `AXIODB_TCP=true` |
 | AxioDBCloud client | — | Yes | Yes | `require('axiodb').AxioDBCloud` |
-| MCP server (45 tools) | 27020 | Yes | Yes | `{ MCP: true }` / `AXIODB_MCP=true` |
+| MCP server (46 tools) | 27020 | Yes | Yes | `{ MCP: true }` / `AXIODB_MCP=true` |
 
 The MCP server is built directly into AxioDB core (`new AxioDB({ MCP: true })`) and can also be run inside the official Docker image `theankansaha/axiodb` (`AXIODB_MCP=true`).
 

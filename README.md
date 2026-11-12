@@ -78,11 +78,13 @@ npx skills add nexoral/AxioDB --skill skill
 * 📄 **Native JSON (No SQL Migrations):** Store raw objects directly. Perfect for AI agents, chats, and apps where data structures change often and SQL schemas are painful.
 * 🛡️ **Safe from Crashes & Corruption:** Uses real ACID transactions and Write-Ahead Logging (WAL). Even if your app or server crashes mid-write, your data stays intact.
 * ⚡ **Fast In-Memory Caching:** Delivers sub-millisecond (<1ms) reads with a built-in memory cache and fast disk indexes.
+* 🔍 **Native Vector Search:** Exact k-NN similarity search (Cosine, Dot, Euclidean) with hybrid query+vector filtering. Available in embedded, HTTP, TCP, and MCP surfaces — zero extra dependencies.
 * 🤖 **AI-Ready:** Works out-of-the-box with AI coding assistants (Cursor, Claude Code, Copilot) via our official agent skill.
 
 ## When to Use It
 
 **Great for:**
+* **AI Semantic Search & RAG** — Perform exact k-NN vector similarity search for agent episodic memory and retrieval-augmented generation.
 * **AI Agent Memory** — Save conversation history, tool calls, and agent state locally.
 * **Desktop & Electron Apps** — An embedded database that never breaks on user machines during updates.
 * **CLI Tools & Local Apps** — Save and query data easily without running a database server.
@@ -105,7 +107,8 @@ Everything below is included in the main zero-dependency package — no extra se
 * 🛡️ **Crash-Proof Data Safety** — Incomplete writes roll back automatically if your app, server, or power cuts out mid-operation, ensuring your data is never corrupted.
 * ⚡ **Sub-Millisecond Reads (<1ms)** — Delivers blazing-fast queries with automatic in-memory caching and disk indexing, without needing to configure a separate Redis layer.
 * 🔍 **Rich Querying & Data Joins** — Filter documents with intuitive operators (`$gt`, `$in`, `$regex`), paginate, sort, and join multiple collections with aggregation pipelines (`$lookup`).
-* 🤖 **Built-in AI Agent MCP Server** — Pass `{ MCP: true }` to instantly boot an official Model Context Protocol server on port 27020, giving Claude, Cursor, and autonomous AI agents 45 tools to manage database state.
+* 🔍 **Native Vector Search & Semantic Similarity** — Exact k-NN search with Cosine, Dot, and Euclidean metrics, hybrid query+vector filtering, Worker Thread acceleration, and zero extra dependencies — available in embedded, HTTP, TCP, and MCP surfaces.
+* 🤖 **Built-in AI Agent MCP Server** — Pass `{ MCP: true }` to instantly boot an official Model Context Protocol server on port 27020, giving Claude, Cursor, and autonomous AI agents 46 tools to manage database state.
 * 🌐 **Built-in HTTP REST & TCP Servers** — Turn on `{ HTTP: true }` (port 27018) or `{ TCP: true }` (port 27019) whenever you need remote microservices, worker processes, or client apps to talk to the same database.
 
 ### 🛠️ Optional Companion Tools

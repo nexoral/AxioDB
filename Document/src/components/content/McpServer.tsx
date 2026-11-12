@@ -160,7 +160,7 @@ const McpServer: React.FC = () => {
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
                 Connect AI coding assistants and autonomous agents directly to AxioDB via the{" "}
                 <strong>Model Context Protocol (MCP)</strong>. AxioDB includes a built-in MCP server
-                providing <strong>45 tools</strong> on port <strong>27020</strong> with full RBAC authentication,
+                providing <strong>46 tools</strong> on port <strong>27020</strong> with full RBAC authentication,
                 JSON-RPC 2.0 / SSE support, and zero external dependencies.
               </p>
 

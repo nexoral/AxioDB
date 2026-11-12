@@ -64,25 +64,22 @@ const result = await users.query({ age: { $gt: 25 } }).exec();
 console.log(result.data.documents);`,
     },
     {
-      label: "AI agent",
+      label: "Vector search",
       language: "javascript",
-      code: `// Persist agent turns & execution state
-const agentDB = await db.createDB('AgentState');
-const sessions = await agentDB.createCollection('sessions');
+      code: `// Semantic similarity search for AI memory & RAG
+const db = new AxioDB();
+const memory = await (await db.createDB('AgentDB')).createCollection('memory');
 
-await sessions.insert({
-  sessionId: 'agent_run_1024',
-  role: 'assistant',
-  toolCalls: [{ name: 'web_search', status: 'completed' }],
-  tokens: 380,
-  timestamp: Date.now(),
+await memory.insert({ text: 'TypeScript guide', embedding: [0.12, 0.85, -0.34] });
+await memory.insert({ text: 'Coffee brewing', embedding: [-0.65, 0.12, 0.78] });
+
+// Find closest semantic matches with Cosine similarity
+const results = await memory.vectorSearch('embedding', [0.14, 0.84, -0.32], {
+  topK: 2,
+  minScore: 0.80,
+  metric: 'cosine'
 });
-
-// Retrieve ordered session history
-const history = await sessions
-  .query({ sessionId: 'agent_run_1024' })
-  .Sort({ timestamp: 1 })
-  .exec();`,
+console.log(results.data.documents);`,
     },
     {
       label: "Insert",
@@ -407,8 +404,8 @@ const Introduction: React.FC = () => {
             </h1>
 
             <p className="text-lg text-gray-600 leading-relaxed max-w-xl mb-8">
-              A fast, zero-setup embedded database for when you need reliable storage without running a separate server.
-              Built for TypeScript apps and AI agents to safely persist and query dynamic JSON state.
+              A fast, zero-setup embedded database with native vector search for when you need reliable storage without running a separate server.
+              Built for TypeScript apps and AI agents to safely persist, query dynamic JSON state, and perform semantic similarity search.
               Just <code className="font-mono text-accent-700">npm install axiodb</code> and start querying with pure JavaScript objects.
             </p>
 
@@ -750,7 +747,7 @@ const Introduction: React.FC = () => {
               </div>
               <p className="text-sm text-gray-600">
                 Native Model Context Protocol (MCP) server built directly into AxioDB core —
-                45 tools on port 27020 for AI agents (Claude Code, Cursor, Windsurf, Codex, Antigravity).
+                46 tools on port 27020 for AI agents (Claude Code, Cursor, Windsurf, Codex, Antigravity).
                 Start directly in TypeScript with <code className="font-mono text-purple-700 bg-purple-50 px-1 py-0.5 rounded">new AxioDB(&#123; MCP: true &#125;)</code> or run in Docker.
               </p>
             </div>
@@ -905,7 +902,6 @@ const Introduction: React.FC = () => {
               <div className="text-accent-700 mb-2">$ node app.js</div>
               <div className="text-gray-700 mb-1">✓ AxioDB initialized</div>
               <div className="text-gray-700 mb-1">✓ Database ready at ./AxioDB</div>
-              <div className="text-gray-700 mb-3">✓ GUI available on localhost:27018</div>
               <div className="text-gray-600 mb-3">💡 Think SQLite, but pure TypeScript NoSQL with rich queries</div>
               <div className="text-gray-600 mb-4">🎯 Perfect for: AI Agents • TypeScript Apps • Desktop &amp; CLI Tools • Local-First Systems</div>
               <div className="flex items-center">
@@ -1219,11 +1215,11 @@ const Introduction: React.FC = () => {
                 <Bot className="h-8 w-8 text-white" />
               </div>
               <h3 className="text-2xl font-bold text-gray-900">
-                AI Agents & State Persistence
+                AI Agents & Vector Memory
               </h3>
             </div>
             <p className="text-gray-600 leading-relaxed text-lg">
-              Persist conversation logs, tool execution traces, in-flight agent state, and structured task queues locally without spinning up a cloud database or wrestling with SQL migrations.
+              Persist conversation logs, tool execution traces, in-flight agent state, and structured task queues locally. Perform instant semantic similarity search for episodic agent memory and local RAG without external vector databases or SQL migrations.
             </p>
           </div>
         </div>
@@ -1314,91 +1310,95 @@ const Introduction: React.FC = () => {
           What's New
         </div>
         <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-          AdminPassword — set the admin password at startup
+          Vector Search — Native Semantic & AI Similarity Search
         </h2>
         <p className="text-lg text-gray-600 mb-8 max-w-4xl">
-          The seeded <code className="font-mono">admin/admin</code> account is flagged{" "}
-          <code className="font-mono">mustChangePassword</code>, and only the HTTP API or GUI can
-          clear that flag. Start the server with the GUI disabled and there was no way to choose a
-          password — TCP rejected every login and nothing could recover it.{" "}
-          <code className="font-mono">AdminPassword</code> closes that gap.
+          Find documents by semantic meaning and mathematical similarity rather than exact keyword matches.
+          AxioDB delivers native Exact k-NN vector search with 100% recall, instant ACID writes, and worker-thread parallel acceleration — with zero native dependencies.
         </p>
 
-        {/* How to set it, per surface */}
+        {/* How to use it, per surface */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-white border border-gray-200 rounded-[3px] p-5">
-            <h3 className="font-semibold text-gray-900 mb-3">In your app</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Pure Vector Search</h3>
             <CodeBlock
               language="javascript"
-              code={`const db = new AxioDB({
-  TCP: true,
-  TCPAuth: true,
-  AdminPassword: 'my-secret-password',
-});`}
+              code={`const results = await memories.vectorSearch(
+  'embedding',
+  queryVector,
+  { topK: 5, minScore: 0.80, metric: 'cosine' }
+);`}
             />
           </div>
           <div className="bg-white border border-gray-200 rounded-[3px] p-5">
-            <h3 className="font-semibold text-gray-900 mb-3">In the CLI</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Hybrid Search (Filter + Vector)</h3>
             <CodeBlock
-              language="bash"
-              code={`axiodb serve tcp-auth my-secret-password
-axiodb serve full my-secret-password`}
+              language="javascript"
+              code={`const results = await memories
+  .query({ category: 'tech' })
+  .vectorSearch('embedding', queryVector, { topK: 5 })
+  .exec();`}
             />
           </div>
           <div className="bg-white border border-gray-200 rounded-[3px] p-5">
-            <h3 className="font-semibold text-gray-900 mb-3">In Docker</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">In AI Agents (MCP Tool)</h3>
             <CodeBlock
-              language="bash"
-              code={`docker run -d \\
-  -e AXIODB_HTTP=false \\
-  -e AXIODB_ADMIN_PASSWORD=my-secret-password \\
-  theankansaha/axiodb`}
+              language="json"
+              code={`{
+  "name": "axiodb_vector_search",
+  "arguments": {
+    "dbName": "AgentDB",
+    "collectionName": "memories",
+    "field": "embedding",
+    "vector": [0.14, 0.84, -0.32]
+  }
+}`}
             />
           </div>
         </div>
 
-        {/* What it guarantees, plus the fail-fast rules it now backs */}
+        {/* What it guarantees */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-gray-50 border border-gray-200 rounded-[3px] p-5">
             <h3 className="font-semibold text-gray-900 mb-3">What you get</h3>
             <ul className="space-y-2 text-gray-600">
               <li className="flex items-start gap-2">
                 <span className="text-green-600 font-bold">✓</span>
-                <span>One account across embedded, HTTP, GUI, TCP, MCP and the CLI — they all read the same <code className="font-mono">config</code> database</span>
+                <span><strong>100% Exact Recall:</strong> Exact k-NN mathematically guarantees ground-truth closest matches without graph approximation misses</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 font-bold">✓</span>
-                <span>Sets <code className="font-mono">mustChangePassword: false</code>, so logins work immediately</span>
+                <span><strong>Instant Writes (&lt;1ms):</strong> Embeddings are stored immediately with ACID safety — no background index builds or graph warmup delays</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 font-bold">✓</span>
-                <span>Read on first start only — a container restart never resets a password you have since changed</span>
+                <span><strong>Worker-Thread Acceleration:</strong> Parallel worker threads automatically compute vector distances on collections above 150 documents</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 font-bold">✓</span>
-                <span>Additive: omit it and the <code className="font-mono">admin/admin</code> + forced-change behaviour is unchanged</span>
+                <span><strong>Multi-Metric Support:</strong> Cosine similarity, Dot product, and Euclidean distance with automatic <code className="font-mono">_score</code> attribution</span>
               </li>
             </ul>
           </div>
 
           <div className="bg-gray-50 border border-gray-200 rounded-[3px] p-5">
-            <h3 className="font-semibold text-gray-900 mb-3">Now enforced, not just documented</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Available across all surfaces</h3>
             <ul className="space-y-2 text-gray-600">
               <li className="flex items-start gap-2">
-                <span className="text-amber-600 font-bold">!</span>
-                <span><code className="font-mono">axiodb serve tcp-auth</code> <strong>requires</strong> a password and exits without one</span>
+                <span className="text-green-600 font-bold">✓</span>
+                <span><strong>Embedded Library:</strong> Direct collection shortcut and fluent query builder chaining</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-amber-600 font-bold">!</span>
-                <span>The Docker image refuses to start when TCP auth is on, <code className="font-mono">AXIODB_HTTP</code> is off and no password is set</span>
+                <span className="text-green-600 font-bold">✓</span>
+                <span><strong>AxioDB Cloud TCP:</strong> High-performance binary protocol (<code className="font-mono">port 27019</code>) with connection pooling</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-gray-600">—</span>
-                <span><code className="font-mono">http</code> and <code className="font-mono">full</code> keep it optional: their control server can rotate the password</span>
+                <span className="text-green-600 font-bold">✓</span>
+                <span><strong>HTTP REST API:</strong> <code className="font-mono">POST /api/operation/vector-search/</code> (<code className="font-mono">port 27018</code>) for any language</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-gray-600">—</span>
-                <span><Link to="/create-database" className="underline">Full option reference →</Link></span>
+                <span className="text-green-600 font-bold">✓</span>
+                <span><Link to="/vector-search" className="underline font-semibold text-accent-700">Full Vector Search Documentation &amp; Examples →</Link></span>
               </li>
             </ul>
           </div>

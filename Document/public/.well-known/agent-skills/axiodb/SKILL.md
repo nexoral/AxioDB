@@ -604,7 +604,7 @@ docker run -d \
   theankansaha/axiodb
 ```
 
-MCP endpoint: `http://localhost:27020/mcp` — 45 tools for AI agents.
+MCP endpoint: `http://localhost:27020/mcp` — 46 tools for AI agents.
 
 ### With TLS
 
@@ -701,7 +701,7 @@ http://localhost:27020/mcp
 
 ### What it provides
 
-45 tools covering: database CRUD, collection CRUD, document CRUD, aggregation,
+46 tools covering: database CRUD, collection CRUD, document CRUD, aggregation,
 index management, dashboard stats, health checks, transaction operations
 (BEGIN/COMMIT/ROLLBACK/SAVEPOINT), and user/role management.
 
