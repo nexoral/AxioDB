@@ -46,8 +46,14 @@ export interface TCPRequest {
     limit?: number;
     skip?: number;
     sort?: Record<string, 1 | -1>;
+    project?: Record<string, 0 | 1>;
     findOne?: boolean;
     hint?: string;
+    vectorConfig?: {
+      field: string;
+      vector: number[];
+      options?: Record<string, unknown>;
+    };
 
     // Aggregation parameters
     pipeline?: object[];
@@ -55,6 +61,11 @@ export interface TCPRequest {
     // Index parameters
     fieldNames?: string[];
     indexName?: string;
+
+    // Vector search parameters
+    field?: string;
+    vector?: number[];
+    options?: Record<string, unknown>;
 
     // Transaction parameters
     transactionId?: string;

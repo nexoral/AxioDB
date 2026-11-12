@@ -258,6 +258,12 @@ export class MessageValidator {
         }
         break;
 
+      case CommandType.VECTOR_SEARCH:
+        if (!params.dbName || !params.collectionName || !params.field || !Array.isArray(params.vector) || (params.vector as unknown[]).length === 0) {
+          throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName, collectionName, field, vector`);
+        }
+        break;
+
       case CommandType.CREATE_INDEX:
         if (!params.dbName || !params.collectionName || !params.fieldNames) {
           throw new Error(`${ErrorMessage.MISSING_REQUIRED_PARAMS}: dbName, collectionName, fieldNames`);

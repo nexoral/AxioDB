@@ -65,6 +65,33 @@ export default class CollectionProxy {
     });
   }
 
+  /**
+   * Performs vector similarity search on this collection.
+   *
+   * @param field - Document field containing vector embeddings.
+   * @param vector - Query vector to compare against.
+   * @param options - Optional: topK, minScore, metric ("cosine"|"dot"|"euclidean").
+   * @returns Matching documents with `_score` field.
+   *
+   * @example
+   * ```ts
+   * const results = await collection.vectorSearch("embedding", queryVector, {
+   *   topK: 5,
+   *   minScore: 0.80,
+   *   metric: "cosine",
+   * });
+   * ```
+   */
+  async vectorSearch(field: string, vector: number[], options: Record<string, unknown> = {}): Promise<unknown> {
+    return await this.client.sendCommand(CommandType.VECTOR_SEARCH, {
+      dbName: this.dbName,
+      collectionName: this.collectionName,
+      field,
+      vector,
+      options,
+    });
+  }
+
   async newIndex(...fieldNames: string[]): Promise<unknown> {
     return await this.client.sendCommand(CommandType.CREATE_INDEX, {
       dbName: this.dbName,

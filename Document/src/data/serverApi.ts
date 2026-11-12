@@ -1389,6 +1389,77 @@ file: [database.tar.gz file]`,
             { code: 500, description: "Internal Server Error - Aggregation failed" },
           ],
         },
+        {
+          method: "POST",
+          path: "/api/operation/vector-search/",
+          description: "Performs semantic vector similarity search using Exact k-NN with cosine, dot product, or euclidean metrics.",
+          parameters: [
+            {
+              name: "dbName",
+              type: "query",
+              dataType: "string",
+              required: true,
+              description: "The name of the database",
+            },
+            {
+              name: "collectionName",
+              type: "query",
+              dataType: "string",
+              required: true,
+              description: "The name of the collection",
+            },
+            {
+              name: "field",
+              type: "body",
+              dataType: "string",
+              required: true,
+              description: "Field name containing the stored embeddings",
+            },
+            {
+              name: "vector",
+              type: "body",
+              dataType: "array",
+              required: true,
+              description: "Target query vector (numbers array)",
+            },
+            {
+              name: "options",
+              type: "body",
+              dataType: "object",
+              required: false,
+              description: "Optional topK, minScore, and metric ('cosine' | 'dot' | 'euclidean')",
+            },
+          ],
+          requestBody: `{
+  "field": "embedding",
+  "vector": [0.14, 0.84, -0.32, 0.44],
+  "options": {
+    "topK": 5,
+    "minScore": 0.80,
+    "metric": "cosine"
+  }
+}`,
+          responseExample: `{
+  "statusCode": 200,
+  "message": "Vector search completed successfully",
+  "data": {
+    "documents": [
+      {
+        "title": "TypeScript Guide",
+        "_score": 0.9998
+      }
+    ],
+    "totalDocuments": 1
+  }
+}`,
+          statusCodes: [
+            { code: 200, description: "Success - Returns matching documents ranked by _score" },
+            { code: 400, description: "Bad Request - Missing field, vector, or invalid parameters" },
+            { code: 403, description: "Forbidden - Reserved system database" },
+            { code: 404, description: "Not Found - Database or collection does not exist" },
+            { code: 500, description: "Internal Server Error - Vector search failed" },
+          ],
+        },
       ],
     },
     {

@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertCircle, Brain, CheckCircle, Compass, Cpu, Layers, Sparkles, Zap } from "lucide-react";
+import { AlertCircle, Bot, Brain, CheckCircle, Compass, Cpu, Globe, Layers, Server, Sparkles, Zap } from "lucide-react";
 import CodeBlock from "../ui/CodeBlock";
 import Seo from "../ui/Seo";
 
@@ -108,6 +108,72 @@ class AgentMemory {
       .exec();
 
     return memory.data.documents;
+  }
+}`,
+
+    cloudClient: `// 6. Vector Search with AxioDB Cloud (TCP Client)
+const { AxioDBCloud } = require("axiodb");
+
+// Connect to AxioDB TCP server (port 27019)
+const client = new AxioDBCloud("axiodb://127.0.0.1:27019", {
+  username: "admin",      // Required if TCP server runs with TCPAuth: true
+  password: "password123"
+});
+await client.connect();
+
+// Open database and collection proxy
+const db = await client.createDB("AgentDB");
+const memories = await db.createCollection("memories");
+
+const queryVector = [0.14, 0.84, -0.32, 0.44];
+
+// Pure vector similarity search over TCP
+const results = await memories.vectorSearch("embedding", queryVector, {
+  topK: 5,
+  minScore: 0.80,
+  metric: "cosine"
+});
+
+console.log(results.documents);
+
+// Hybrid search over TCP (Query filter + vector ranking)
+const hybrid = await memories
+  .query({ category: "tech" })
+  .vectorSearch("embedding", queryVector, { topK: 5 })
+  .exec();
+
+console.log(hybrid.data.documents);`,
+
+    httpApi: `# 7. Vector Search via HTTP REST API (Port 27018)
+# Endpoint: POST /api/operation/vector-search/?dbName=<DB>&collectionName=<COLLECTION>
+curl -X POST "http://127.0.0.1:27018/api/operation/vector-search/?dbName=AgentDB&collectionName=memories" \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer <AUTH_TOKEN>" \\
+  -d '{
+    "field": "embedding",
+    "vector": [0.14, 0.84, -0.32, 0.44],
+    "options": {
+      "topK": 5,
+      "minScore": 0.80,
+      "metric": "cosine"
+    }
+  }'`,
+
+    mcpTool: `// 8. MCP (Model Context Protocol) AI Agent Tool: axiodb_vector_search
+// Call from Cursor, Claude Desktop, or custom LLM agent via MCP port 27020:
+{
+  "name": "axiodb_vector_search",
+  "arguments": {
+    "sessionId": "active_session_token",
+    "dbName": "AgentDB",
+    "collectionName": "memories",
+    "field": "embedding",
+    "vector": [0.14, 0.84, -0.32, 0.44],
+    "options": {
+      "topK": 5,
+      "minScore": 0.80,
+      "metric": "cosine"
+    }
   }
 }`
   };
@@ -249,12 +315,48 @@ class AgentMemory {
         </div>
 
         {/* Step 5: Agent Episodic Memory */}
-        <div className="mb-12">
+        <div className="mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">5. AI Agent Episodic Memory Pattern</h3>
           <p className="text-gray-600 text-sm mb-3">
             Store conversations and recall only the relevant past episodes matching the user's current intent:
           </p>
           <CodeBlock code={codeExamples.agentMemory} language="javascript" />
+        </div>
+
+        {/* Step 6: AxioDB Cloud Client */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+            <Server className="w-5 h-5 text-accent-600" />
+            6. AxioDB Cloud (TCP Client)
+          </h3>
+          <p className="text-gray-600 text-sm mb-3">
+            Search remote collections over AxioDB's high-performance binary TCP protocol (port <code className="bg-gray-100 px-1 py-0.5 rounded font-mono">27019</code>) using the official <code className="bg-gray-100 px-1 py-0.5 rounded font-mono text-accent-700">AxioDBCloud</code> client:
+          </p>
+          <CodeBlock code={codeExamples.cloudClient} language="javascript" />
+        </div>
+
+        {/* Step 7: HTTP REST API */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+            <Globe className="w-5 h-5 text-emerald-600" />
+            7. HTTP REST API
+          </h3>
+          <p className="text-gray-600 text-sm mb-3">
+            Integrate vector search into any language (Python, Go, Rust, cURL) via AxioDB's HTTP Fastify server (port <code className="bg-gray-100 px-1 py-0.5 rounded font-mono">27018</code>):
+          </p>
+          <CodeBlock code={codeExamples.httpApi} language="bash" />
+        </div>
+
+        {/* Step 8: MCP AI Agent Tool */}
+        <div className="mb-12">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+            <Bot className="w-5 h-5 text-indigo-600" />
+            8. Model Context Protocol (MCP) Tool
+          </h3>
+          <p className="text-gray-600 text-sm mb-3">
+            Expose vector search directly to AI agents in Cursor, Claude Desktop, or Windsurf via AxioDB's built-in MCP server (<code className="bg-gray-100 px-1 py-0.5 rounded font-mono">axiodb_vector_search</code>):
+          </p>
+          <CodeBlock code={codeExamples.mcpTool} language="json" />
         </div>
 
         {/* Available Metrics */}

@@ -12,6 +12,8 @@ export default class ReaderProxy {
   private sortValue?: object;
   private findOneValue: boolean = false;
   private hintValue?: string;
+  private projectValue?: Record<string, 0 | 1>;
+  private vectorConfigValue?: { field: string; vector: number[]; options?: Record<string, unknown> };
 
   constructor(client: AxioDBCloud, dbName: string, collectionName: string, query: object) {
     this.client = client;
@@ -45,6 +47,16 @@ export default class ReaderProxy {
     return this;
   }
 
+  setProject(project: Record<string, 0 | 1>): this {
+    this.projectValue = project;
+    return this;
+  }
+
+  vectorSearch(field: string, vector: number[], options?: Record<string, unknown>): this {
+    this.vectorConfigValue = { field, vector, options };
+    return this;
+  }
+
   async exec(): Promise<unknown> {
     const params: Record<string, unknown> = {
       dbName: this.dbName,
@@ -62,6 +74,14 @@ export default class ReaderProxy {
 
     if (this.sortValue) {
       params.sort = this.sortValue;
+    }
+
+    if (this.projectValue) {
+      params.project = this.projectValue;
+    }
+
+    if (this.vectorConfigValue) {
+      params.vectorConfig = this.vectorConfigValue;
     }
 
     if (this.findOneValue) {

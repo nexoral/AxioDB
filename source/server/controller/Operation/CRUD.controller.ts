@@ -568,4 +568,53 @@ export default class CRUDController {
       aggregationResult.data,
     );
   }
+
+  /**
+   * Performs vector similarity search on a collection.
+   *
+   * POST /api/document/vector-search/
+   * Query params: dbName, collectionName
+   * Body: { field: string, vector: number[], options?: { topK, minScore, metric } }
+   */
+  public async runVectorSearch(request: AxioHttpRequest) {
+    const { dbName, collectionName } = request.query as { dbName: string; collectionName: string };
+
+    if (!dbName || typeof dbName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid database name");
+    }
+    if (!collectionName || typeof collectionName !== "string") {
+      return buildResponse(StatusCodes.BAD_REQUEST, "Invalid collection name");
+    }
+    if (isReservedDatabaseName(dbName)) {
+      return buildResponse(StatusCodes.FORBIDDEN, "This is a reserved system database");
+    }
+
+    const body = (request.body ?? {}) as Record<string, unknown>;
+    const field = body.field;
+    const vector = body.vector;
+    const options = (body.options ?? {}) as Record<string, unknown>;
+
+    if (typeof field !== "string" || field.trim().length === 0) {
+      return buildResponse(StatusCodes.BAD_REQUEST, "field must be a non-empty string");
+    }
+    if (!Array.isArray(vector) || vector.length === 0) {
+      return buildResponse(StatusCodes.BAD_REQUEST, "vector must be a non-empty array of numbers");
+    }
+
+    const colOrError = await this.getExistingCollection(dbName, collectionName);
+    if ("statusCode" in colOrError) return colOrError;
+    const DB_Collection = colOrError;
+
+    try {
+      const result = await DB_Collection.vectorSearch(
+        field.trim(),
+        vector as number[],
+        options as Record<string, unknown>,
+      );
+      return buildResponse(StatusCodes.OK, "Vector search completed successfully", result.data);
+    } catch (err) {
+      Logger.error("Vector search failed", err);
+      return buildResponse(StatusCodes.INTERNAL_SERVER_ERROR, "Vector search failed");
+    }
+  }
 }

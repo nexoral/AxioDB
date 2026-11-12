@@ -117,6 +117,7 @@ Machine-readable limits and the full boundary table: https://axiodb.in/llms-full
 - [AxioDB Control (Desktop GUI)](https://axiodb.in/gui)
 - [Docker Deployment](https://axiodb.in/docker)
 - [MCP Server (AI Agent Integration)](https://axiodb.in/mcp-server)
+- [Vector Search (AI & Semantic)](https://axiodb.in/vector-search)
 - [Troubleshooting](https://axiodb.in/troubleshooting)
 - [Changelog](https://axiodb.in/changelog)
 - [Performance Benchmarks](https://axiodb.in/performance)

@@ -1710,5 +1710,61 @@ export function buildMcpTools(
       ),
   );
 
+  register(
+    {
+      name: "axiodb_vector_search",
+      description:
+        "Perform semantic / AI vector similarity search on a collection. Pass the embedding field name, a query vector (array of numbers), and optional options (topK, minScore, metric). Returns documents ranked by similarity score (_score field). Use for AI memory, semantic search, RAG pipelines, and recommendation systems.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          sessionId: { type: "string", description: "Active session ID obtained from axiodb_login" },
+          dbName: { type: "string", description: "Target database name (or 'name')" },
+          name: { type: "string", description: "Alias for dbName" },
+          collectionName: { type: "string", description: "Target collection name (or 'collection')" },
+          collection: { type: "string", description: "Alias for collectionName" },
+          field: { type: "string", description: "Document field that contains the stored embedding vector (e.g. 'embedding')" },
+          vector: {
+            type: "array",
+            items: { type: "number" },
+            description: "Query embedding vector — must have the same dimensions as stored vectors",
+          },
+          options: {
+            type: "object",
+            description: "Optional search options",
+            properties: {
+              topK: { type: "number", description: "Maximum number of results to return (default: all)" },
+              minScore: { type: "number", description: "Minimum similarity score threshold (0–1 for cosine/dot, distance for euclidean)" },
+              metric: { type: "string", enum: ["cosine", "dot", "euclidean"], description: "Similarity metric (default: cosine)" },
+            },
+          },
+        },
+        required: ["sessionId", "field", "vector"],
+      },
+    },
+    PERMISSIONS.DOCUMENT_QUERY,
+    async (args) => {
+      const dbName = extractDbName(args);
+      const collectionName = extractCollectionName(args);
+      const field = args.field as string;
+      const vector = args.vector as number[];
+      const options = (args.options ?? {}) as Record<string, unknown>;
+
+      if (typeof field !== "string" || field.trim().length === 0) {
+        return { statusCode: 400, message: "field must be a non-empty string" };
+      }
+      if (!Array.isArray(vector) || vector.length === 0) {
+        return { statusCode: 400, message: "vector must be a non-empty array of numbers" };
+      }
+
+      return crudController.runVectorSearch(
+        mockRequest({
+          query: { dbName, collectionName },
+          body: { field: field.trim(), vector, options },
+        }),
+      );
+    },
+  );
+
   return tools;
 }

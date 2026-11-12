@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Thu, 12 Nov 2026 07:51:44 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 12 Nov 2026 10:20:45 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v27.48.2 — Multi-process PID directory locking, reverse-proxy trust boundary validation, transaction deep-merge integrity, TCP Slowloris protection, and full Bun test parity</title>
