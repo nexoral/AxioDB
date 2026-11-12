@@ -203,7 +203,77 @@ const report = await products.aggregate([
 
 ---
 
-## 9. ACID Transactions
+## 9. Vector Search
+
+AxioDB provides exact k-NN vector similarity search with zero native dependencies. Store embeddings as `number[]` arrays on any document field, then search by similarity.
+
+### Embedded
+
+```typescript
+// Store documents with vector embeddings
+await products.insert({
+  title: "Noise-cancelling headphones",
+  category: "audio",
+  embedding: [0.12, 0.85, 0.34, /* ... */],
+});
+
+// Search: shorthand (no pre-filter)
+const results = await products.vectorSearch("embedding", queryVector, {
+  topK: 5,          // return top 5 matches (default: 10)
+  minScore: 0.75,   // minimum similarity score threshold
+  metric: "cosine", // "cosine" (default) | "dot" | "euclidean"
+});
+// results.data.documents — each has a `_score` field (similarity score)
+
+// Search: chainable query builder (with pre-filter)
+const filtered = await products
+  .query({ category: "audio" })       // pre-filter before vector ranking
+  .vectorSearch("embedding", queryVector, { topK: 5, metric: "cosine" })
+  .exec();
+```
+
+### TCP Client (`AxioDBCloud`)
+
+```typescript
+// Same as embedded — direct method on collection
+const results = await collection.vectorSearch("embedding", queryVector, {
+  topK: 5,
+  minScore: 0.75,
+  metric: "cosine",
+});
+```
+
+### HTTP API (POST)
+
+```
+POST /api/document/vector-search/
+Headers: Cookie: sessionId=<token>
+Body: {
+  "dbName": "mydb",
+  "collectionName": "products",
+  "field": "embedding",
+  "vector": [0.12, 0.85, 0.34],
+  "options": { "topK": 5, "minScore": 0.75, "metric": "cosine" }
+}
+```
+
+### Options
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `topK` | `number` | `10` | Maximum number of results to return |
+| `minScore` | `number` | `0` (none) | Minimum similarity score (0–1 for cosine/dot, raw for euclidean) |
+| `metric` | `"cosine" \| "dot" \| "euclidean"` | `"cosine"` | Distance/similarity function |
+
+Results include a `_score` field on each document. Cosine and dot product return higher = more similar; euclidean returns lower = more similar.
+
+### MCP Tool
+
+`axiodb_vector_search` — requires `sessionId`, `dbName`, `collectionName`, `field`, `vector`, and optional `options`.
+
+---
+
+## 10. ACID Transactions
 
 Transactions provide atomic multi-operation staging with commit and rollback:
 

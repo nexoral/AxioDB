@@ -871,6 +871,62 @@ const docs = await users.query({ age: { $gte: 18, $lte: 65 } }).exec();
 
 ---
 
+## Part 9: Vector Search
+
+Exact k-NN similarity search over `number[]` embedding fields. Zero native dependencies, Worker Thread accelerated, available on all surfaces.
+
+### Embedded
+
+```javascript
+// Store documents with embeddings
+await products.insert({ title: "Headphones", embedding: [0.12, 0.85, 0.34] });
+
+// Shorthand (no pre-filter)
+const results = await products.vectorSearch("embedding", queryVector, {
+  topK: 5,          // max results (default: 10)
+  minScore: 0.75,   // minimum score threshold
+  metric: "cosine", // "cosine" (default) | "dot" | "euclidean"
+});
+// results.data.documents — each has a `_score` similarity field
+
+// Chainable with pre-filter
+const filtered = await products
+  .query({ category: "audio" })
+  .vectorSearch("embedding", queryVector, { topK: 5 })
+  .exec();
+```
+
+### TCP Client (`AxioDBCloud`)
+
+```javascript
+const results = await collection.vectorSearch("embedding", queryVector, {
+  topK: 5, minScore: 0.75, metric: "cosine",
+});
+```
+
+### HTTP API
+
+```
+POST /api/document/vector-search/
+Body: { "dbName": "mydb", "collectionName": "products",
+        "field": "embedding", "vector": [...],
+        "options": { "topK": 5, "minScore": 0.75, "metric": "cosine" } }
+```
+
+### MCP
+
+Tool: `axiodb_vector_search` — params: `dbName`, `collectionName`, `field`, `vector`, `options`.
+
+### Metric reference
+
+| Metric | Higher = | Typical use |
+|---|---|---|
+| `cosine` | More similar | Normalized text/image embeddings |
+| `dot` | More similar | Unnormalized embeddings, max-inner-product |
+| `euclidean` | Less similar (lower distance) | Raw spatial data |
+
+---
+
 ## Things agents get wrong
 
 - **No `collection.findAll()`** — use `collection.query({}).exec()`.
