@@ -1094,6 +1094,55 @@ class CRUDTests extends TestRunner {
         assert.exists(line, 'child process should output stale lock status');
         assert.equal(line, 'STALE_STATUS=OVERWRITTEN', 'stale lock should be overwritten by child process PID');
       });
+
+      await this.test('Active lock file is created read-only (0o400) and self-heals if deleted or modified during runtime', async () => {
+        const lockPath = path.join(this.testDir, 'CRUDTestDB', 'axiodb.pid.lock');
+        assert.ok(fs.existsSync(lockPath), 'Lock file should exist while DB instance is active');
+
+        // Check read-only permission (0o400)
+        let writeFailed = false;
+        try {
+          fs.writeFileSync(lockPath, 'tampered_content', 'utf8');
+        } catch {
+          writeFailed = true;
+        }
+        assert.ok(writeFailed, 'Direct write to 0o400 lock file should fail with EACCES');
+
+        // Test self-healing on deletion
+        fs.unlinkSync(lockPath);
+        assert.ok(!fs.existsSync(lockPath), 'Lock file temporarily unlinked');
+
+        // Wait up to 600ms for watcher/heartbeat self-healing to recreate it
+        let restored = false;
+        for (let i = 0; i < 15; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          if (fs.existsSync(lockPath)) {
+            const content = fs.readFileSync(lockPath, 'utf8').trim();
+            if (content === String(process.pid)) {
+              restored = true;
+              break;
+            }
+          }
+        }
+        assert.ok(restored, 'Lock file must be automatically self-healed and restored with process.pid');
+
+        // Test self-healing on external modification
+        fs.chmodSync(lockPath, 0o600);
+        fs.writeFileSync(lockPath, '999999', 'utf8');
+
+        let pidRestored = false;
+        for (let i = 0; i < 15; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          if (fs.existsSync(lockPath)) {
+            const content = fs.readFileSync(lockPath, 'utf8').trim();
+            if (content === String(process.pid)) {
+              pidRestored = true;
+              break;
+            }
+          }
+        }
+        assert.ok(pidRestored, 'Tampered lock file content must be restored back to owning process.pid');
+      });
     });
   }
 }

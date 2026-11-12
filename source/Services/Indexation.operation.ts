@@ -69,6 +69,7 @@ export class AxioDB {
   private _initializing = false;
   private TLSCertPath?: string;
   private TLSKeyPath?: string;
+  private _cleanLock?: () => void;
 
   constructor(options: AxioDBOptions = {}) {
     if (AxioDB._instance) {
@@ -174,18 +175,94 @@ export class AxioDB {
       }
     }
 
-    await fs.promises.writeFile(lockPath, String(process.pid), "utf8");
+    if (fs.existsSync(lockPath)) {
+      try {
+        fs.chmodSync(lockPath, 0o600);
+      } catch {}
+    }
+    await fs.promises.writeFile(lockPath, String(process.pid), {
+      mode: 0o400,
+      encoding: "utf8",
+    });
+
+    let isShuttingDown = false;
+    let lockHandle: fs.promises.FileHandle | null = null;
+    let lockWatcher: fs.FSWatcher | null = null;
+    let lockTimer: NodeJS.Timeout | null = null;
+
+    try {
+      lockHandle = await fs.promises.open(lockPath, "r");
+    } catch {}
+
+    const ensureLock = (): void => {
+      if (isShuttingDown || !fs.existsSync(this.currentPATH)) return;
+      try {
+        if (!fs.existsSync(lockPath)) {
+          Logger.warn(
+            `[AxioDB Security] Tampering detected: ${General.PID_Lock_File} was removed externally. Restoring lock for PID ${process.pid}.`,
+          );
+          fs.writeFileSync(lockPath, String(process.pid), {
+            mode: 0o400,
+            encoding: "utf8",
+          });
+        } else {
+          const currentPid = fs.readFileSync(lockPath, "utf8").trim();
+          if (currentPid !== String(process.pid)) {
+            Logger.warn(
+              `[AxioDB Security] Tampering detected: ${General.PID_Lock_File} was altered externally (found PID: ${currentPid}). Restoring lock for PID ${process.pid}.`,
+            );
+            try {
+              fs.chmodSync(lockPath, 0o600);
+            } catch {}
+            fs.writeFileSync(lockPath, String(process.pid), {
+              mode: 0o400,
+              encoding: "utf8",
+            });
+          }
+        }
+      } catch {}
+    };
+
+    try {
+      lockWatcher = fs.watch(this.currentPATH, (_eventType, filename) => {
+        if (!filename || filename === General.PID_Lock_File) {
+          ensureLock();
+        }
+      });
+      lockWatcher.on("error", () => {});
+      lockWatcher.unref();
+    } catch {}
+
+    lockTimer = setInterval(ensureLock, 200);
+    lockTimer.unref();
 
     const cleanLock = (): void => {
+      isShuttingDown = true;
+      if (lockTimer) clearInterval(lockTimer);
+      if (lockWatcher) {
+        try {
+          lockWatcher.close();
+        } catch {}
+      }
+      if (lockHandle) {
+        try {
+          lockHandle.close();
+        } catch {}
+      }
       try {
         if (fs.existsSync(lockPath)) {
           const pid = fs.readFileSync(lockPath, "utf8").trim();
           if (pid === String(process.pid)) {
+            try {
+              fs.chmodSync(lockPath, 0o600);
+            } catch {}
             fs.unlinkSync(lockPath);
           }
         }
       } catch {}
     };
+
+    this._cleanLock = cleanLock;
 
     process.once("exit", cleanLock);
     process.once("SIGINT", cleanLock);
@@ -249,6 +326,13 @@ export class AxioDB {
   /** Stops the native MCP HTTP server if active. */
   public async stopMCPServer(): Promise<void> {
     await stopMcpServer();
+  }
+
+  /** Cleanly releases the directory PID lock and stops lock monitoring. */
+  public releaseLock(): void {
+    if (this._cleanLock) {
+      this._cleanLock();
+    }
   }
 
   /**
