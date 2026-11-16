@@ -70,7 +70,7 @@ Canonical 15-target version registry across the repository:
 * `Document/index.html` → JSON-LD `softwareVersion`
 * `Document/public/feed.xml` → RSS feed title + guid
 * `Docker/README.md` → shield badge version
-* `skill/SKILL.md` → version tag
+* `axiodb/SKILL.md` → version tag
 
 `Scripts/versionController.sh` rewrites all of the above; regen artifacts with `npx tsx scripts/generate-seo-files.ts`.
 </version_sync_registry>

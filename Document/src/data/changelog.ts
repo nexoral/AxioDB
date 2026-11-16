@@ -317,9 +317,9 @@ export const changelog: ChangelogEntry[] = [
     date: "2026-11-02",
     title: "AxioDB Agent Skill ecosystem and packaging optimizations",
     changes: [
-      "Skill: introduced complete progressive-disclosure agent skill (skill/) with technical runbooks, architecture specifications, and surface boundary definitions (MCP Docker-only)",
-      "Scripts: added targeted operational scripts for component installation (install_axiodb.sh), multi-profile Docker orchestration (run_docker.sh), and system diagnostics (diagnose.sh)",
-      "Sync: integrated skill version tracking into versionController.sh and added skill/ to .npmignore",
+      "Skill: introduced complete progressive-disclosure agent skill (axiodb/) with technical runbooks, architecture specifications, and surface boundary definitions (MCP Docker-only)",
+      "Scripts: added targeted operational scripts for component installation and diagnostics",
+      "Sync: integrated skill version tracking into versionController.sh and added axiodb/ to .npmignore",
     ],
   },
   {

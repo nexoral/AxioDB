@@ -1,5 +1,5 @@
 ---
-name: skill
+name: axiodb
 description: >-
   Expert operational guide, runbook, and architectural reference for AxioDB (version 28.51.10).
   Use this skill when developing, querying, installing, configuring, troubleshooting,
