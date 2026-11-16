@@ -548,60 +548,71 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            if (!fs.existsSync('audit-report.json')) {
-              console.log('No audit-report.json found');
-              return;
-            }
+            let md = '';
 
             let report;
-            try {
-              report = JSON.parse(fs.readFileSync('audit-report.json', 'utf8'));
-            } catch (e) {
-              console.log('Failed to parse audit report JSON', e);
-              return;
+            let isValid = false;
+
+            if (fs.existsSync('audit-report.json')) {
+              try {
+                report = JSON.parse(fs.readFileSync('audit-report.json', 'utf8'));
+                if (report && !report.error && report.metadata && report.metadata.vulnerabilities && typeof report.metadata.vulnerabilities.total === 'number') {
+                  isValid = true;
+                }
+              } catch (e) {
+                console.log('Failed to parse audit report JSON', e);
+              }
             }
 
-            const metadata = report.metadata || {};
-            const vulns = metadata.vulnerabilities || {};
-            const critical = vulns.critical || 0;
-            const high = vulns.high || 0;
-            const moderate = vulns.moderate || 0;
-            const low = vulns.low || 0;
-            const total = vulns.total || 0;
-
-            let md = `### 🔒 Security Audit Report (CVE Check)\n\n`;
-            md += `<table width="100%">\n`;
-            md += `  <thead>\n`;
-            md += `    <tr>\n`;
-            md += `      <th align="left" width="50%">Severity Level</th>\n`;
-            md += `      <th align="center" width="50%">Vulnerabilities</th>\n`;
-            md += `    </tr>\n`;
-            md += `  </thead>\n`;
-            md += `  <tbody>\n`;
-            md += `    <tr><td>🔴 <b>Critical</b></td><td align="center">${critical}</td></tr>\n`;
-            md += `    <tr><td>🟠 <b>High</b></td><td align="center">${high}</td></tr>\n`;
-            md += `    <tr><td>🟡 <b>Moderate</b></td><td align="center">${moderate}</td></tr>\n`;
-            md += `    <tr><td>🔵 <b>Low</b></td><td align="center">${low}</td></tr>\n`;
-            md += `    <tr><td>📦 <b>Total Dependencies Scanned</b></td><td align="center">${metadata.dependencies?.total || 0}</td></tr>\n`;
-            md += `  </tbody>\n`;
-            md += `</table>\n\n`;
-
-            if (total === 0) {
-              md += `✅ **Zero known CVE vulnerabilities detected.** All dependencies passed clean!\n`;
+            if (!isValid) {
+              const errorReason = (report && report.error && report.error.summary)
+                ? report.error.summary
+                : 'npm audit output missing or invalid JSON structure.';
+              md = `### 🔒 Security Audit Report (CVE Check)\n\n⚠️ **Security audit report is unavailable:** ${errorReason}\n`;
+              await core.summary.addRaw(md).write();
+              core.setFailed(`Security audit data unavailable: ${errorReason}`);
             } else {
-              md += `⚠️ **Found ${total} advisory issue(s).**\n\n`;
-              md += `#### 📋 Vulnerability Details & CVE References\n\n`;
+              const metadata = report.metadata;
+              const vulns = metadata.vulnerabilities;
+              const critical = vulns.critical || 0;
+              const high = vulns.high || 0;
+              const moderate = vulns.moderate || 0;
+              const low = vulns.low || 0;
+              const total = vulns.total;
+
+              md = `### 🔒 Security Audit Report (CVE Check)\n\n`;
               md += `<table width="100%">\n`;
               md += `  <thead>\n`;
               md += `    <tr>\n`;
-              md += `      <th align="left" width="20%">Package</th>\n`;
-              md += `      <th align="center" width="15%">Severity</th>\n`;
-              md += `      <th align="left" width="30%">CVE / Title</th>\n`;
-              md += `      <th align="left" width="15%">Vulnerable Range</th>\n`;
-              md += `      <th align="left" width="20%">Fix Status</th>\n`;
+              md += `      <th align="left" width="50%">Severity Level</th>\n`;
+              md += `      <th align="center" width="50%">Vulnerabilities</th>\n`;
               md += `    </tr>\n`;
               md += `  </thead>\n`;
               md += `  <tbody>\n`;
+              md += `    <tr><td>🔴 <b>Critical</b></td><td align="center">${critical}</td></tr>\n`;
+              md += `    <tr><td>🟠 <b>High</b></td><td align="center">${high}</td></tr>\n`;
+              md += `    <tr><td>🟡 <b>Moderate</b></td><td align="center">${moderate}</td></tr>\n`;
+              md += `    <tr><td>🔵 <b>Low</b></td><td align="center">${low}</td></tr>\n`;
+              md += `    <tr><td>📦 <b>Total Dependencies Scanned</b></td><td align="center">${metadata.dependencies?.total || 0}</td></tr>\n`;
+              md += `  </tbody>\n`;
+              md += `</table>\n\n`;
+
+              if (total === 0) {
+                md += `✅ **Zero known CVE vulnerabilities detected.** All dependencies passed clean!\n`;
+              } else {
+                md += `⚠️ **Found ${total} advisory issue(s).**\n\n`;
+                md += `#### 📋 Vulnerability Details & CVE References\n\n`;
+                md += `<table width="100%">\n`;
+                md += `  <thead>\n`;
+                md += `    <tr>\n`;
+                md += `      <th align="left" width="20%">Package</th>\n`;
+                md += `      <th align="center" width="15%">Severity</th>\n`;
+                md += `      <th align="left" width="30%">CVE / Title</th>\n`;
+                md += `      <th align="left" width="15%">Vulnerable Range</th>\n`;
+                md += `      <th align="left" width="20%">Fix Status</th>\n`;
+                md += `    </tr>\n`;
+                md += `  </thead>\n`;
+                md += `  <tbody>\n`;
               
               const details = report.vulnerabilities || {};
               for (const [pkg, info] of Object.entries(details)) {
@@ -640,11 +651,12 @@ jobs:
               md += `</table>\n\n`;
             }
 
-            // Write to Workflow Step Summary & Annotations
-            await core.summary.addRaw(md).write();
+              // Write to Workflow Step Summary & Annotations
+              await core.summary.addRaw(md).write();
 
-            if (critical > 0 || high > 0) {
-              core.error(`Found ${critical} critical and ${high} high severity CVE vulnerabilities.`);
+              if (critical > 0 || high > 0) {
+                core.error(`Found ${critical} critical and ${high} high severity CVE vulnerabilities.`);
+              }
             }
 
             // Post or Update Pull Request Comment
