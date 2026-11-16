@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "28.50.8",
+    version: "28.51.9",
     date: "2026-11-16",
     title: "AI context architecture standardization, cross-platform agent ignore protocol, CI pipeline optimizations, and dual-runtime benchmark integration",
     changes: [
