@@ -1,0 +1,34 @@
+# AI Agent Ignore Rules - Prevent context pollution and token waste
+node_modules/
+**/node_modules/
+.git/
+
+# Compiled build outputs (agents should read source/ instead)
+lib/
+dist/
+axiodb.js
+axiodb.d.ts
+AxioDB
+Docker/build/
+Docker/types/
+electron/dist/
+electron/dist-electron/
+electron/release/
+electron/.vite/
+Document/.vite/
+Document/.wrangler/
+
+# Test & benchmark runtime generated databases
+Test/Test*
+TestCRUD/
+/TestDB
+benchmark/Benchmark_TempData/
+
+# Knowledge graph & raw dump outputs
+graphify-out/
+package-lock.json
+
+# Local agent caches
+.gemini/
+.claude/settings.json
+.claude/settings.local.json
