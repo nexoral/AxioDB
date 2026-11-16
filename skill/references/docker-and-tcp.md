@@ -52,6 +52,20 @@ docker run -d \
   theankansaha/axiodb
 ```
 
+### Unauthenticated Profile (Trusted / Private Network Only)
+
+Runs AxioDB without TCP authentication for local automated test runners or internal VPCs:
+
+```bash
+docker run -d \
+  --name axiodb-server \
+  -p 27018:27018 \
+  -p 27019:27019 \
+  -e AXIODB_TCP_AUTH_ENABLED=false \
+  -v axiodb-data:/app \
+  theankansaha/axiodb
+```
+
 ---
 
 ## 3. Environment Variables Reference
@@ -164,4 +178,24 @@ services:
 
 volumes:
   axiodb_data:
+
+---
+
+## 6. Container Lifecycle & Maintenance
+
+### Stopping and Removing Container
+```bash
+docker stop axiodb-server 2>/dev/null || true
+docker rm -f axiodb-server 2>/dev/null || true
+```
+
+### Viewing Live Logs
+```bash
+docker logs -f --tail 100 axiodb-server
+```
+
+### Volume Inspection
+```bash
+docker volume inspect axiodb-data
+```
 ```

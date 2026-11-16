@@ -23,7 +23,7 @@ Choose the appropriate mode based on the user's requirement:
 | :--- | :--- | :--- | :--- |
 | **Local Node.js Service** | Embedded Core | In-process | Read [core-api-and-syntax.md](references/core-api-and-syntax.md) |
 | **Remote Node.js / Microservice** | `AxioDBCloud` TCP | Port `27019` | Read [docker-and-tcp.md](references/docker-and-tcp.md) |
-| **Containerized Deployment** | Docker Image | `27018` & `27019` | Run [run_docker.sh](scripts/run_docker.sh) |
+| **Containerized Deployment** | Docker Image | `27018` & `27019` | Read [docker-and-tcp.md](references/docker-and-tcp.md) |
 | **AI Agent Tool Calling** | MCP Server | Port `27020` | Core (`{ MCP: true }`) / Docker (`AXIODB_MCP=true`) |
 | **HTTP REST API** | HTTP Server | Port `27018` | Start with `HTTP: true` or `AXIODB_HTTP=true` |
 | **Desktop App (Visual GUI)** | Electron GUI | Desktop OS | Download from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest) |
@@ -64,26 +64,27 @@ npm install axiodb
 For native Desktop GUI or CLI binaries, download directly from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest). For platform matrices and setup options, read [installation-and-setup.md](references/installation-and-setup.md).
 
 ### B. Launching Docker Containers
-When asked to start AxioDB via Docker, use the pre-configured runner:
+When asked to start AxioDB via Docker, run the standard container:
 ```bash
 # Standard profile (HTTP 27018 + TCP 27019 with auth)
-./skill/scripts/run_docker.sh standard "<ADMIN_PASSWORD>"
+docker run -d --name axiodb -p 27018:27018 -p 27019:27019 -v axiodb-data:/app/data -e AXIODB_ADMIN_PASSWORD="<ADMIN_PASSWORD>" theankansaha/axiodb:latest
 
-# Headless TCP profile (no HTTP, port 27019 with seeded password)
-./skill/scripts/run_docker.sh headless "<ADMIN_PASSWORD>"
+# MCP profile for AI agents (HTTP 27018 + TCP 27019 + MCP 27020)
+docker run -d --name axiodb -p 27018:27018 -p 27019:27019 -p 27020:27020 -v axiodb-data:/app/data -e AXIODB_ADMIN_PASSWORD="<ADMIN_PASSWORD>" -e AXIODB_MCP=true theankansaha/axiodb:latest
 
-# MCP profile for AI agents (Ports 27018, 27019, 27020)
-./skill/scripts/run_docker.sh mcp "<ADMIN_PASSWORD>"
-
-# Unauthenticated profile (trusted private network only)
-./skill/scripts/run_docker.sh no-auth
+# Headless TCP profile (TCP 27019 only, no HTTP)
+docker run -d --name axiodb -p 27019:27019 -v axiodb-data:/app/data -e AXIODB_ADMIN_PASSWORD="<ADMIN_PASSWORD>" theankansaha/axiodb:latest
 ```
-For volume mounts, environment variables, and Docker Compose templates, read [docker-and-tcp.md](references/docker-and-tcp.md).
+For volume mounts, environment variables, full profiles, and Docker Compose templates, read [docker-and-tcp.md](references/docker-and-tcp.md).
 
 ### C. System Diagnostics & Health Checks
-When troubleshooting connection errors, port conflicts, or container status:
+When troubleshooting connection errors, port conflicts, or container status, consult [system-diagnostics.md](references/system-diagnostics.md):
 ```bash
-./skill/scripts/diagnose.sh
+# Check port availability (27018 HTTP, 27019 TCP, 27020 MCP)
+lsof -ti :27018 -i :27019 -i :27020
+
+# Probe HTTP API health
+curl -s -m 2 http://localhost:27018/api/health
 ```
 
 ---
