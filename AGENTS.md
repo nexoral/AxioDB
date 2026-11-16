@@ -108,10 +108,10 @@ Update README, `Document/` (port 5173), `Dockerfile`, and JSDoc with code in sam
 Always ask user permission before:
 * `git commit` — confirm message and changes
 * `git push` — confirm branch and remote
-* `npm run node-test` (full suite) — may be slow
+* `npm run node-test` (full suite) or heavy suites (`read` benchmarks 100k records) — ask first
 * Launching sub-agents (explore/plan) — costly and time-consuming; user may already know the answer or have a better approach
 Do NOT ask for:
-* `npm run node-test <suite>` (scoped) — run directly
+* `npm run node-test <suite>` (light scoped suites, e.g. `crud`, `auth`, `mcp-confirm`) — run directly
 * `npm run build` — run directly
 * `npm run lint` — run directly
 
@@ -121,7 +121,7 @@ When user approves deploying sub-agents, their prompt must include:
 1. Mandate to read the target service folder's `AGENTS.md` before starting work.
 2. Root DOs & DON'Ts summary.
 3. Pointer to [ARCHITECTURE.md](ARCHITECTURE.md) for full system architecture and zero-grep directory maps.
-4. Scope boundary: Sub-agents may only write code, edit files, and run `npm run build` to verify compilation. They must NOT run tests — sub-agents report completion back to the parent, who executes all tests.
+4. Scope boundary: Sub-agents may only write code, edit files, and run `npm run build` to verify compilation. They must NOT run tests (especially heavy suites like `read` with 100k records) — sub-agents report completion back to the parent, who executes targeted tests.
 
 ## Never assume
 
