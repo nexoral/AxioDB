@@ -2,28 +2,26 @@
 
 **AxioDB** — Embedded NoSQL Database for TypeScript & AI Agents. Zero native deps, TS 6.0 strict → CJS, Node ≥22 (engine minimum; Docker runs on Node 23; verified on Node, Bun & Deno), singleton, file-per-doc, `InMemoryCache`, Worker Threads, ACID transactions & WAL, HTTP 27018, TCP 27019.
 
-## Directory Layout
+## Subsystems & Scoped Guides
 
-```
-source/
-  config/        # DB init, Keys, constants
-  Services/      # Collection, Database, Index, Transaction, Auth, Aggregation
-  engine/        # Core query engine, storage engine
-  Memory/        # InMemoryCache, IndexCache
-  tcp/           # TCP server (27019), handler/
-  server/        # HTTP Fastify (27018), router/ + controller/
-  client/        # *Proxy.ts — TCP client wrappers
-  Helper/        # Static stateless helpers
-  utility/       # Shared utils (ResponseHelper, etc.)
-Test/
-  modules/       # 14 test suites (JS, node-based)
-  helpers/       # TestRunner, assertions, fixtures
-Docker/          # Dockerfile, MCP config
-Document/        # Vite docs site (port 5173), SEO scripts, AI artifacts
-cli/             # CLI commands
-Email/           # Cloudflare Email Worker Agent (triage, vectorless RAG, auto-responder)
-skill/           # Agent skill, runbooks, references, scripts
-```
+When working in a subsystem, read its scoped `AGENTS.md` for local rules and architecture:
+
+* **`source/`** — Core DBMS engine ([source/AGENTS.md](source/AGENTS.md))
+  * Strict TS, dual-write cache, core-to-surface fan-out workflows
+* **`Test/`** — Test suites & harness ([Test/AGENTS.md](Test/AGENTS.md))
+  * 14 integration suites, custom `TestRunner`, child process isolation
+* **`Document/`** — Vite docs site port 5173 ([Document/AGENTS.md](Document/AGENTS.md))
+  * `serverApi.ts` single API source, 15-target version sync
+* **`cli/`** — Standalone Go CLI ([cli/AGENTS.md](cli/AGENTS.md))
+  * Go 1.22, Cobra commands, interactive REPL, TCP wire protocol
+* **`electron/`** — Desktop GUI app ([electron/AGENTS.md](electron/AGENTS.md))
+  * Electron 34, React 19, Zustand, multi-platform packaging
+* **`Email/`** — Cloudflare Email Worker Agent ([Email/AGENTS.md](Email/AGENTS.md))
+  * Workers AI, vectorless RAG, Postal-MIME, Resend auto-responder
+* **`Docker/`** — Container runtime ([Docker/AGENTS.md](Docker/AGENTS.md))
+  * Multi-surface image (27018, 27019, MCP 27020), `runner.js`
+* **`Scripts/`** — Release & packaging automation ([Scripts/AGENTS.md](Scripts/AGENTS.md))
+  * `versionController.sh`, binary cross-compilation, installers
 
 ## Constraints — never violate
 

@@ -41,7 +41,7 @@ Cross-platform binaries are built by `Scripts/BinBuilder.sh` and `.github/workfl
 
 ## Hard rules
 
-* `cli/VERSION` is the one source of truth; `cmd/version.go`'s `var cliVersion` must match it in source (the release build overrides it via ldflags). Both are in the 13-place version list.
+* `cli/VERSION` is the one source of truth; `cmd/version.go`'s `var cliVersion` must match it in source (the release build overrides it via ldflags). Both are in the 15-place version list.
 * Never print secrets — the `-u/-p` flags, connection strings, and TLS material must not be echoed.
 * Respect the global flags in `cmd/root.go` (`-c/--connection-string`, `--host`, `--port`, `--tls*`, `-o json|table`, `--timeout`, `--db`, `--collection`, `--http-*`) rather than inventing ad-hoc ones.
 * Default TCP port is **27019**; export/import HTTP defaults to **27018**. `serve` seeds `admin`/`admin` (mirrors `source/config/Keys/Permissions.ts`) — never change that pairing without changing the core.
