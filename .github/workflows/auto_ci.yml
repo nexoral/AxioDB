@@ -28,6 +28,7 @@ jobs:
               - 'Docker/**'
               - 'Test/**'
               - 'package.json'
+              - 'package-lock.json'
 
   code_quality_gate:
     name: "Code Quality — ESLint & TypeScript Gate"
@@ -521,7 +522,8 @@ jobs:
 
   security_audit:
     name: "Security — CVE Audit Gate"
-    needs: [detect_changes, test]  # Wait for change detection and all test matrix jobs to complete
+    needs: [detect_changes]
+    if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
