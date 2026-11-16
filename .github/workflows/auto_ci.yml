@@ -278,7 +278,7 @@ jobs:
     needs: [detect_changes, auth_rbac_gate, tcp_auth_rbac_gate, tcp_noauth_compat_gate, http_api_gate, tcp_transaction_gate, tcp_tls_gate, mcp_functional_gate]
     if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
-    name: "Gate 8 — Full Test Suite"
+    name: "Gate 8 — Benchmark Suite"
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -306,20 +306,16 @@ jobs:
       - name: Build Project
         run: npm run build
 
-      - name: Run CRUD tests
-        run: npm run node-test crud
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: latest
 
-      - name: Run Transaction tests
-        run: npm run node-test transaction
+      - name: Run Benchmark with Node.js
+        run: npm run benchmark
 
-      - name: Run Read Optimization tests
-        run: npm run node-test read
-
-      - name: Run Crash Recovery tests
-        run: npm run node-test crash-recovery
-
-      - name: Run MCP Confirmation tests
-        run: npm run node-test mcp-confirm
+      - name: Run Benchmark with Bun
+        run: npm run bun-benchmark
 
   auto-merge:
     name: "auto-merge"
