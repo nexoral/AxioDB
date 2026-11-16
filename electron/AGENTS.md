@@ -8,18 +8,17 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `electron
 
 Electron 34 · electron-builder 25 · Vite 6 + `@vitejs/plugin-react-swc` (renderer) · React 19 · Tailwind v4 · Zustand · Axios · Recharts · `concurrently` + `wait-on` for dev.
 
-## Layout
+## Directory Map
 
-```
-main/            main.cts (entry), preload.cts — compiled to dist-electron/main.cjs
-src/             renderer (React) — api/ (client.js, authApi.js), components/, config/key.js,
-                 layout/ (Sidebar.jsx, StatusBar.jsx, Titlebar.jsx), pages/, store/, utils/,
-                 App.jsx, main.jsx, index.html
-resources/       build resources + icons (icon.png, icons/) — bundled via extraResources
-electron-builder.json   packaging config (targets, icons, nsis options)
-vite.config.js   renderer build → dist/
-dist/ · dist-electron/ · release/   generated, gitignored
-```
+* **`main/`** — Electron main process (TypeScript compiled to CJS)
+  * `main.cts` (entrypoint), `preload.cts` (secure IPC context bridge) $\rightarrow$ compiled to `dist-electron/`
+* **`src/`** — React renderer process (Vite 6, React 19, Tailwind v4, Zustand)
+  * `api/` — API clients (`client.js`, `authApi.js`) connecting to AxioDB HTTP server
+  * `layout/` — Shell layout components (`Sidebar.jsx`, `StatusBar.jsx`, `Titlebar.jsx`)
+  * `pages/`, `components/`, `store/`, `utils/`, `config/key.js`
+* **`resources/`** — App icons and assets bundled into packaging (`extraResources`)
+* **`electron-builder.json`** — Multi-platform packaging configuration (`.deb`, `.AppImage`, `.exe`, `.zip`)
+* **`vite.config.js`** — Renderer build configuration outputting to `dist/`
 
 ## Commands
 

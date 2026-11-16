@@ -4,22 +4,15 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Test/` s
 
 **Role** — the project's whole test surface. No Jest/Mocha — a small hand-rolled runner. Suites are **node-based JavaScript** run against the **compiled** `lib/` build, so `npm run build` must pass first.
 
-## Layout
+## Directory Map
 
-```
-AGENTS.md                 agent instructions (root of Test/ only)
-bun/                      Bun test suite
-  run.js                  orchestrator — spawns each suite in a child process with Bun
-  helpers/                TestRunner, assertions, fixtures
-  modules/*.test.js       the 14 suites running under Bun
-deno/                     Deno test suite
-node/
-  run.js                  orchestrator — spawns each suite in a child process with Node
-  helpers/TestRunner.js   base class: test(), describe(), run(), printResults()
-  helpers/assertions.js   assert.* (isSuccess, isError, throws, equal, includes, …)
-  helpers/fixtures.js     shared sample data
-  modules/*.test.js       the suites
-```
+* **`node/`** — Primary Node.js test runner & suites
+  * `run.js` — Orchestrator spawning suites in child processes
+  * `helpers/` — `TestRunner.js` (base class), `assertions.js` (`assert.*`), `fixtures.js` (shared data)
+  * `modules/*.test.js` — 14 integration test suites
+* **`bun/`** — Bun runtime verification test runner
+  * `run.js` (orchestrator), `helpers/`, `modules/*.test.js`
+* **`deno/`** — Deno runtime verification test suite
 
 ## The 14 suites
 

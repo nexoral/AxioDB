@@ -4,15 +4,13 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Scripts/
 
 **Role** — bash automation shared by devs and CI. Version sync, Go binary builds, packaging, and the git pre-commit hook. These are the **source of truth for the version-bump pipeline** — keep them authoritative and idempotent.
 
-## Files
+## Directory Map
 
-```
-versionController.sh   version sync engine + interactive target picker (see below)
-BinBuilder.sh          cross-compiles the Go CLI → cli/bin/axiodb_{os}_{arch} (5 platforms)
-PackageBuilder.sh      wraps the linux binary into .deb/.rpm-style packages via xpack
-AiGraphBuilder.sh      installs graphify (pipx-first) + optionally builds the code graph
-setup.sh               installs the .git/hooks/pre-commit hook (no-op without .git)
-```
+* **`versionController.sh`** — Interactive/automated version synchronization engine across all 15 targets
+* **`BinBuilder.sh`** — Cross-compiles Go CLI binaries for 12 target platforms (`linux`, `darwin`, `windows`)
+* **`PackageBuilder.sh`** — Wraps Linux binaries into `.deb`/`.rpm` distribution packages via xpack
+* **`AiGraphBuilder.sh`** — Installs graphify (pipx-first) and rebuilds the codebase AST knowledge graph
+* **`setup.sh`** — Developer environment setup script configuring `.git/hooks/pre-commit`
 
 ## versionController.sh
 

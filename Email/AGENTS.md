@@ -8,29 +8,16 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Email/` 
 
 Cloudflare Workers (compatibility date `2024-02-28`) · `postal-mime` (email MIME parsing) · `resend` (transactional email reply dispatch) · Cloudflare Workers AI (`@cf/meta/llama-3.1-8b-instruct`, `@cf/meta/llama-3.3-70b-instruct-fp8-fast`) · Cloudflare KV (`EMAIL_KV` for daily AI and Resend rate limit counters) · Cloudflare Email Routing.
 
-## Layout
+## Directory Map
 
-```
-index.js              entrypoint: exports default worker email handler from src/config/index.js
-wrangler.toml         Cloudflare Worker config (AI binding, KV namespaces, vars, placement)
-package.json          ESM module dependencies (postal-mime, resend)
-src/
-  config/
-    index.js          orchestrates the end-to-end email pipeline (triage → RAG → writer → send)
-    constants.js      KV keys, AI models, and configuration constants
-    prompts.js        system prompts for triage and response generation
-  triage/
-    decisionEngine.js fast triage classifier with Clef/Flash model (DROP, FORWARD, REPLY + urgency)
-  rag/
-    knowledgeBase.js  fetches AxioDB documentation context for RAG
-    vectorlessRag.js  in-memory keyword and TF-IDF relevance retriever over documentation
-  writer/
-    modelExtractor.js invokes multi-model writer routing and parses structured outputs
-    jsonParser.js     safely extracts JSON verdicts from model responses
-  utils/
-    counter.js        KV quota helpers (readCount, bumpCount)
-    emailSender.js    Resend API reply sender and Cloudflare message.forward() dispatcher
-```
+* **`index.js`** — Worker entrypoint exporting default email handler
+* **`wrangler.toml`** — Cloudflare Worker configuration (Workers AI binding, `EMAIL_KV`, secrets)
+* **`src/`** — Worker agent source
+  * `config/` — Pipeline orchestrator (`index.js`), system prompts (`prompts.js`), model constants (`constants.js`)
+  * `triage/` — `decisionEngine.js` (fast classification: `DROP`, `FORWARD`, `REPLY`)
+  * `rag/` — `knowledgeBase.js` & `vectorlessRag.js` (TF-IDF documentation context retrieval)
+  * `writer/` — `modelExtractor.js` & `jsonParser.js` (multi-model response generation and JSON parsing)
+  * `utils/` — `counter.js` (KV quota enforcement), `emailSender.js` (Resend & Cloudflare forwarding)
 
 ## Commands
 

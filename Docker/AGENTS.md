@@ -4,14 +4,12 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Docker/`
 
 **Role** — ships the compiled core (`lib/`) plus three surfaces in one container: HTTP REST API **27018**, TCP AxioDBCloud **27019**, opt-in MCP server **27020**. Image `theankansaha/axiodb`. Container runtime runs on Node 23 (`node:23-alpine`), while base engine maintains Node ≥22 compatibility.
 
-## Layout
+## Directory Map
 
-```
-Dockerfile        node:23-alpine (Node 23 container runtime); drops to non-root `axiodb`; HEALTHCHECK → healthcheck.js
-runner.js         entrypoint: maps env → AxioDB options (including MCP), validates combos, UV_THREADPOOL_SIZE
-healthcheck.js    probes HTTP /health + a real TCP PING/PONG round-trip
-README.md         user-facing docs + version badge
-```
+* **`Dockerfile`** — Container build definition (`node:23-alpine`), non-root `axiodb` user, port exposures
+* **`runner.js`** — Container entrypoint mapping environment variables to AxioDB options (HTTP, TCP, MCP)
+* **`healthcheck.js`** — Container health probe verifying HTTP `/health` and TCP `PING`/`PONG` round-trip
+* **`README.md`** — User-facing container documentation and environment variable reference
 
 ## Build context is assembled by CI
 

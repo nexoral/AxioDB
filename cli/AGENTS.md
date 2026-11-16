@@ -8,21 +8,19 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `cli/` sp
 
 Go **1.22** · module `github.com/nexoral/axiodb-cli` · Cobra (commands) · chzyer/readline (REPL) · google/uuid.
 
-## Layout
+## Directory Map
 
-```
-main.go              → cmd.Execute()
-cmd/                 cobra commands: root.go, connect.go, db.go, collection.go, document.go,
-                     index.go, transaction.go, auth_management.go, health.go, ping.go,
-                     serve.go (+ serve_test.go), db_export.go, db_import.go, version.go
-pkg/protocol/        wire protocol — client.go, message.go, auth.go
-pkg/commands/        command implementations — db, collection, document, index, transaction, health
-pkg/httpclient/      HTTP client for export/import against 27018
-pkg/serve/           launcher.go, runtime.go, mode.go (+ *_test.go) — local temp server
-internal/config/     config.go
-Scripts/             install.sh, install.ps1 — user installers (shipped in releases)
-VERSION              plain-text version (single source)
-```
+* **`main.go`** — Entrypoint invoking `cmd.Execute()`
+* **`cmd/`** — Cobra CLI commands and flags
+  * `root.go`, `connect.go`, `db.go`, `collection.go`, `document.go`, `index.go`, `transaction.go`, `auth_management.go`, `health.go`, `ping.go`, `serve.go`, `db_export.go`, `db_import.go`, `version.go`
+* **`pkg/`** — Core Go packages
+  * `protocol/` — Wire protocol client (`client.go`, `message.go`, `auth.go`)
+  * `commands/` — Command execution logic (db, collection, document, index, transaction, health)
+  * `httpclient/` — HTTP client communicating with Fastify server on port 27018
+  * `serve/` — Local temporary database runner (`launcher.go`, `runtime.go`, `mode.go`)
+* **`internal/config/`** — CLI configuration management (`config.go`)
+* **`Scripts/`** — User installation scripts (`install.sh`, `install.ps1`)
+* **`VERSION`** — Plain-text version file (single source of truth for CLI version)
 
 ## Commands
 

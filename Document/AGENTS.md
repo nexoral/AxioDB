@@ -8,20 +8,19 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Document
 
 React 18 · Vite 6 · `vite-react-ssg` (SSG) · Tailwind CSS **v3** (`tailwind.config.js` + PostCSS) · `tsx` scripts · Turndown for markdown twins. This is **TypeScript** (`.tsx`/`.ts`).
 
-## Layout
+## Directory Map
 
-```
-src/
-  data/         serverApi.ts (SINGLE SOURCE for API docs + openapi.json), changelog.ts, breadcrumbs.ts
-  components/   content/ (page bodies), layout/ (Footer.tsx …), ui/
-  services/, hooks/, styles/, Assets/
-scripts/
-  generate-seo-files.ts   prebuild: sitemap, llms.txt/llms-full.txt, openapi.json, feed.xml
-  generate-markdown.ts    postbuild: markdown twins
-  audit-crawler-access.mjs
-public/       llms.txt, llms-full.txt, openapi.json, feed.xml, sitemap.xml, robots.txt, _headers, .well-known/
-wrangler.toml Cloudflare Pages config — build output "AxioDB_Docs"
-```
+* **`src/`** — Vite & React frontend source
+  * `data/` — `serverApi.ts` (SINGLE SOURCE for API docs & `openapi.json`), `changelog.ts`, `breadcrumbs.ts`
+  * `components/` — `content/` (documentation page bodies), `layout/` (`Footer.tsx`, navigation), `ui/`
+  * `services/`, `hooks/`, `styles/`, `Assets/`
+* **`scripts/`** — Build & AI artifact generation automation
+  * `generate-seo-files.ts` — Prebuild: generates `llms.txt`, `llms-full.txt`, `openapi.json`, `feed.xml`, `sitemap.xml`
+  * `generate-markdown.ts` — Postbuild: generates markdown twin pages
+  * `audit-crawler-access.mjs` — SEO and bot crawler accessibility validator
+* **`public/`** — Static web and AI crawler artifacts
+  * `llms.txt`, `llms-full.txt`, `openapi.json`, `feed.xml`, `sitemap.xml`, `robots.txt`, `.well-known/`
+* **`wrangler.toml`** — Cloudflare Pages deployment configuration (build output: `AxioDB_Docs`)
 
 ## Commands
 
