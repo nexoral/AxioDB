@@ -1,4 +1,4 @@
-name: CI Checks and Auto Merge
+name: PR Sanity Check
 
 on:
   pull_request:
@@ -311,75 +311,154 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache Bun dependencies
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-latest-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-latest-
+            ${{ runner.os }}-bun-
+
       - name: Run Benchmark with Node.js
         run: npm run benchmark
 
       - name: Run Benchmark with Bun
         run: npm run bun-benchmark
 
-  auto-merge:
-    name: "auto-merge"
+  security_audit:
+    name: "Security — CVE Audit Gate"
     needs: [detect_changes, test]  # Wait for change detection and all test matrix jobs to complete
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
-    # Run if tests weren't needed for this change (irrelevant paths only), or if they ran and passed.
-    # `always()` is required so this job still runs when `test` was skipped rather than succeeded.
-    if: always() && (needs.detect_changes.outputs.run_test != 'true' || needs.test.result == 'success')
-
     steps:
       - name: Checkout PR branch
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: 'lts/*'
           cache: 'npm'
 
-      - name: Cache node modules
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      - name: Run npm audit (JSON)
+        id: audit
+        run: |
+          npm audit --json > audit-report.json || true
+
+      - name: Annotate and Comment Audit Report
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-22-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-22-
-            ${{ runner.os }}-node-
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('audit-report.json')) {
+              console.log('No audit-report.json found');
+              return;
+            }
 
-      # Version comparison: Ensure new version > main branch version.
-      # Only relevant when the PR actually touches code/test paths - skip entirely
-      # for e.g. docs-only PRs, where bumping package.json isn't expected.
-      - name: Get version from current PR
-        id: pr_version
-        if: needs.detect_changes.outputs.run_test == 'true'
-        run: echo "version_pr=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+            let report;
+            try {
+              report = JSON.parse(fs.readFileSync('audit-report.json', 'utf8'));
+            } catch (e) {
+              console.log('Failed to parse audit report JSON', e);
+              return;
+            }
 
-      - name: Get version from main branch
-        id: main_version
-        if: needs.detect_changes.outputs.run_test == 'true'
+            const metadata = report.metadata || {};
+            const vulns = metadata.vulnerabilities || {};
+            const critical = vulns.critical || 0;
+            const high = vulns.high || 0;
+            const moderate = vulns.moderate || 0;
+            const low = vulns.low || 0;
+            const total = vulns.total || 0;
+
+            let md = `### 🔒 Security Audit Report (CVE Check)\n\n`;
+            md += `| Severity | Vulnerabilities |\n`;
+            md += `| :--- | :--- |\n`;
+            md += `| 🔴 **Critical** | ${critical} |\n`;
+            md += `| 🟠 **High** | ${high} |\n`;
+            md += `| 🟡 **Moderate** | ${moderate} |\n`;
+            md += `| 🔵 **Low** | ${low} |\n`;
+            md += `| 📦 **Total Dependencies Scanned** | ${metadata.dependencies?.total || 0} |\n\n`;
+
+            if (total === 0) {
+              md += `✅ **Zero known CVE vulnerabilities detected.** All dependencies passed clean!\n`;
+            } else {
+              md += `⚠️ **Found ${total} advisory issue(s).**\n\n`;
+              md += `#### 📋 Vulnerability Details & CVE References\n\n`;
+              md += `| Package | Severity | CVE / Title | Vulnerable Range | Fix Status |\n`;
+              md += `| :--- | :--- | :--- | :--- | :--- |\n`;
+              
+              const details = report.vulnerabilities || {};
+              for (const [pkg, info] of Object.entries(details)) {
+                // Extract advisory titles / CVE URLs from the 'via' array
+                let cveInfo = 'Advisory';
+                if (Array.isArray(info.via)) {
+                  const advisories = info.via
+                    .filter(v => typeof v === 'object' && v !== null)
+                    .map(v => v.url ? `[${v.title || v.source || 'Advisory'}](${v.url})` : (v.title || v.source));
+                  if (advisories.length > 0) {
+                    cveInfo = advisories.join(', ');
+                  } else {
+                    const parentPkgs = info.via.filter(v => typeof v === 'string');
+                    if (parentPkgs.length > 0) {
+                      cveInfo = `Via: ${parentPkgs.join(', ')}`;
+                    }
+                  }
+                }
+
+                let fixText = 'No direct fix';
+                if (info.fixAvailable === true) {
+                  fixText = '✅ `npm audit fix`';
+                } else if (typeof info.fixAvailable === 'object' && info.fixAvailable !== null) {
+                  fixText = `Upgrade to \`${info.fixAvailable.name}@${info.fixAvailable.version}\``;
+                }
+
+                md += `| \`${pkg}\` | **${info.severity.toUpperCase()}** | ${cveInfo} | \`${info.range || 'N/A'}\` | ${fixText} |\n`;
+              }
+              md += `\n`;
+            }
+
+            // Write to Workflow Step Summary & Annotations
+            await core.summary.addRaw(md).write();
+
+            if (critical > 0 || high > 0) {
+              core.error(`Found ${critical} critical and ${high} high severity CVE vulnerabilities.`);
+            }
+
+            // Post or Update Pull Request Comment
+            if (context.payload.pull_request) {
+              const prNumber = context.payload.pull_request.number;
+              try {
+                const { data: comments } = await github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                });
+
+                const botComment = comments.find(c => c.body.includes('### 🔒 Security Audit Report (CVE Check)'));
+                if (botComment) {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: botComment.id,
+                    body: md,
+                  });
+                } else {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                    body: md,
+                  });
+                }
+              } catch (err) {
+                console.log('Unable to post PR comment (e.g. external fork token limit):', err.message);
+              }
+            }
+
+      - name: Enforce High/Critical Failure
         run: |
-          git fetch origin main
-          echo "version_main=$(git show origin/main:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8')).version")" >> $GITHUB_OUTPUT
-
-      - name: Compare Versions
-        id: version_check
-        if: needs.detect_changes.outputs.run_test == 'true'
-        run: |
-          echo "PR Version: ${{ steps.pr_version.outputs.version_pr }}"
-          echo "Main Version: ${{ steps.main_version.outputs.version_main }}"
-          if [ "$(printf '%s\n' "${{ steps.pr_version.outputs.version_pr }}" "${{ steps.main_version.outputs.version_main }}" | sort -V | tail -n 1)" = "${{ steps.pr_version.outputs.version_pr }}" ] && [ "${{ steps.pr_version.outputs.version_pr }}" != "${{ steps.main_version.outputs.version_main }}" ]; then
-            echo "version_ok=true" >> $GITHUB_OUTPUT
-          else
-            echo "error: Version in PR (${{ steps.pr_version.outputs.version_pr }}) must be higher than main branch (${{ steps.main_version.outputs.version_main }})."
-            exit 1
-          fi
-
-      - name: Enable Auto Merge
-        if: success() && (needs.detect_changes.outputs.run_test != 'true' || steps.version_check.outputs.version_ok == 'true')
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_TOKEN }}
-        run: |
-          gh pr merge ${{ github.event.pull_request.number }} --auto --merge
+          npm audit --audit-level=high

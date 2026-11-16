@@ -1,11 +1,9 @@
 name: "CodeQL Analysis"
 
 on:
-  push:
+  pull_request:
     branches: [ "main" ]
-  schedule:
-    # Runs daily at 10:30 AM IST (05:00 UTC)
-    - cron: '0 5 * * *'
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 permissions: read-all
