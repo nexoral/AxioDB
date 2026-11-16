@@ -62,18 +62,7 @@ items.find(i => i.id === targetId);
 
 ## Tests
 
-Framework: custom `TestRunner` + `assert` from `Test/node/helpers/`. Run all: `npm run node-test`. Single suite: `npm run node-test crud`. New test file: `Test/node/modules/{feature}.test.js`, extend `TestRunner`, use `fixtures` for data, clean up in `setUp()`/`tearDown()`.
-
-```js
-const TestRunner = require('../helpers/TestRunner');
-const { assert } = require('../helpers/assertions');
-
-class MyTests extends TestRunner {
-  constructor() { super('My Test Suite'); }
-  async setUp() { /* create temp dir, init DB */ }
-  async tearDown() { /* rm temp dir */ }
-}
-```
+Framework: custom `TestRunner` + `assert` from `Test/node/helpers/`. Run all: `npm run node-test`. Single suite: `npm run node-test crud`. New test file: `Test/node/modules/{feature}.test.js`, extend `TestRunner`, use `fixtures` for data, clean up in `setUp()`/`tearDown()`. Isolated child processes — singleton forbids sharing.
 
 ## Version sync (15 places — all must match)
 
