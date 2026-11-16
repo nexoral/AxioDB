@@ -32,7 +32,7 @@ jobs:
 
   code_quality_gate:
     name: "Code Quality — ESLint & TypeScript Gate"
-    needs: [detect_changes]
+    needs: [detect_changes, test]
     if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -522,7 +522,7 @@ jobs:
 
   security_audit:
     name: "Security — CVE Audit Gate"
-    needs: [detect_changes]
+    needs: [detect_changes, code_quality_gate]
     if: needs.detect_changes.outputs.run_test == 'true'
     runs-on: ubuntu-latest
     permissions:
