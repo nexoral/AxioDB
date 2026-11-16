@@ -2,7 +2,7 @@
 
 ## 1. What is AxioDB?
 
-AxioDB is an embedded NoSQL database for Node.js designed as a pure TypeScript/JavaScript alternative to SQLite, LowDB, NeDB, and raw JSON files.
+AxioDB is an embedded database for AI agents designed as a pure TypeScript/JavaScript alternative to SQLite, LowDB, NeDB, and raw JSON files. Everything you expect from a production database without having to run a database.
 It provides:
 - **Zero Native Dependencies**: No `node-gyp`, no Python build toolchain, no platform-specific C/C++ binaries. Runs cleanly anywhere Node.js runs.
 - **Node Requirement**: Minimum Node.js `>= 20.0.0` (Docker container runs on Node 23).

@@ -1,7 +1,7 @@
 # AxioDB — Agent Instructions
 
 <system_overview>
-**AxioDB** — Embedded NoSQL Database for TypeScript & AI Agents. Zero native deps, TS 6.0 strict → CJS, Node ≥22 (engine minimum; Docker runs on Node 23; verified on Node, Bun & Deno), singleton, file-per-doc, `InMemoryCache`, Worker Threads, ACID transactions & WAL, HTTP 27018, TCP 27019.
+**AxioDB** — Embedded Database for AI Agents. Everything you expect from a production database without having to run a database. Zero native deps, TS 6.0 strict → CJS, Node ≥22 (engine minimum; Docker runs on Node 23; verified on Node, Bun & Deno), singleton, file-per-doc, `InMemoryCache`, Worker Threads, ACID transactions & WAL, HTTP 27018, TCP 27019.
 
 > For the full system architecture, dual-write lifecycles, and zero-grep codebase map, read [ARCHITECTURE.md](ARCHITECTURE.md).
 </system_overview>

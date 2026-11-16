@@ -1,6 +1,6 @@
 ---
 name: axiodb
-description: Embedded NoSQL Database for TypeScript & AI Agents. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js, Bun & Deno. Load when adding local/embedded storage, agent state, or document persistence to a project.
+description: Embedded Database for AI Agents. Everything you expect from a production database without having to run a database. Load when adding local/embedded storage, agent state, or document persistence to a project.
 license: MIT
 ---
 
@@ -17,11 +17,7 @@ skills/knowledge directory and consult it before writing any AxioDB code.
 
 # AxioDB
 
-Embedded NoSQL Database for TypeScript & AI Agents. Zero-native
-document database with ACID transactions & in-memory cache — verified on
-Node.js (>= 20), Bun v1.4.0, and Deno v2.9.6. Pure JavaScript/TypeScript — no node-gyp,
-no `.node` binaries, no `electron-rebuild`, no separate server process. Advanced queries
-over plain JavaScript objects, ACID transactions, and zero native dependencies.
+Embedded Database for AI Agents. Everything you expect from a production database without having to run a database. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js (>= 20), Bun v1.4.0, and Deno v2.9.6. Pure JavaScript/TypeScript — no node-gyp, no `.node` binaries, no `electron-rebuild`, no separate server process. Advanced queries over plain JavaScript objects, ACID transactions, and zero native dependencies.
 
 AxioDB has two ways to use it:
 1. **Embedded** — `new AxioDB()` in your Node.js process (no network, no server)

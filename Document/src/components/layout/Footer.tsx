@@ -68,8 +68,7 @@ const Footer: React.FC = () => (
             <span className="text-lg font-semibold text-gray-900">AxioDB</span>
           </Link>
           <p className="text-sm text-gray-500 leading-relaxed mb-4 max-w-xs">
-            The embedded NoSQL database for Node.js. Advanced queries, ACID
-            transactions, zero native dependencies.
+            The embedded database for AI agents. Everything you expect from a production database without having to run a database.
           </p>
           <div className="flex items-center gap-2 mb-4">
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] bg-accent-600 text-white text-xs font-semibold">

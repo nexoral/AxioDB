@@ -9,7 +9,7 @@
 <system_overview>
 ## 1. System Overview & Architecture Topology
 
-AxioDB is an embedded NoSQL Document Database engineered for TypeScript runtimes (Node.js ≥22, Bun, Deno) and AI Agent memory workflows. It operates with zero native dependencies (pure TypeScript compiled to CommonJS via `tsup`), an in-process singleton lifecycle, dual-write memory caching, ACID transactions with Write-Ahead Logging (WAL), and multi-surface network accessibility.
+AxioDB is an embedded database engineered for AI agents and modern runtimes (Node.js ≥22, Bun, Deno). Everything you expect from a production database without having to run a database. It operates with zero native dependencies (pure TypeScript compiled to CommonJS via `tsup`), an in-process singleton lifecycle, dual-write memory caching, ACID transactions with Write-Ahead Logging (WAL), and multi-surface network accessibility.
 
 ```
                                ┌────────────────────────────────────────────────────────┐

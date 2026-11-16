@@ -2,8 +2,8 @@
   <img src="https://axiodb.in/AXioDB.png" alt="AxioDB Logo" width="120" height="120" />
 </p>
 
-<h1 align="center">Embedded NoSQL Database for TypeScript & Ai Agents</h1>
-<p align="center"><b>Zero-native embedded database with ACID transactions & in-memory cache — verified on Node.js & Bun.</b></p>
+<h1 align="center">Embedded Database for AI Agents</h1>
+<p align="center"><b>Everything you expect from a production database without having to run a database.</b></p>
 
 <p align="center">
   <a href="#quick-start"><img src="https://img.shields.io/badge/Install-npm%20i%20axiodb-cb3837?style=for-the-badge&logo=npm" alt="npm install axiodb" /></a>

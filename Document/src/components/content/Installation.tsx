@@ -32,8 +32,8 @@ const Installation: React.FC = () => {
     <>
     <section id="installation" className="pt-12 scroll-mt-20">
       <Seo
-        title="Install AxioDB - Embedded NoSQL Database Installation Guide"
-        description="Install AxioDB in seconds with npm. Zero native dependencies, no node-gyp, no compilation. Verified on Node.js (>=22) and Bun for TypeScript and AI agent apps."
+        title="Install AxioDB - Embedded Database for AI Agents Installation Guide"
+        description="Install AxioDB in seconds with npm. Zero native dependencies, no node-gyp, no compilation. Everything you expect from a production database without having to run a database."
         path="/installation"
         ogType="article"
       />
