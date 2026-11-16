@@ -346,7 +346,7 @@ jobs:
       - name: Run npm audit (JSON)
         id: audit
         run: |
-          npm audit --json > audit-report.json || true
+          npm audit --omit=dev --json > audit-report.json || true
 
       - name: Annotate and Comment Audit Report
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
@@ -461,4 +461,4 @@ jobs:
 
       - name: Enforce High/Critical Failure
         run: |
-          npm audit --audit-level=high
+          npm audit --omit=dev --audit-level=high

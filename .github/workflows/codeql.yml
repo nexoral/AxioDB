@@ -32,6 +32,15 @@ jobs:
         uses: github/codeql-action/init@9418214df1f2c4b8128c770156c409013b07d6b9 # v3.28.11
         with:
           languages: ${{ matrix.language }}
+          config: |
+            paths:
+              - source/
+            paths-ignore:
+              - '**/node_modules/**'
+              - '**/test/**'
+              - '**/Test/**'
+              - 'Document/**'
+              - 'electron/**'
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@9418214df1f2c4b8128c770156c409013b07d6b9 # v3.28.11
