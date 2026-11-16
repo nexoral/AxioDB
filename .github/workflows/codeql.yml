@@ -3,9 +3,11 @@ name: "CodeQL Analysis"
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    types: [opened, synchronize, reopened, edited]
   schedule:
-    # Runs daily at 10:30 AM IST (05:00 UTC)
-    - cron: '0 5 * * *'
+    - cron: '30 1 * * 0'
   workflow_dispatch:
 
 permissions: read-all
@@ -34,6 +36,16 @@ jobs:
         uses: github/codeql-action/init@9418214df1f2c4b8128c770156c409013b07d6b9 # v3.28.11
         with:
           languages: ${{ matrix.language }}
+          config: |
+            paths:
+              - source/
+              - Docker/runner.js
+            paths-ignore:
+              - '**/node_modules/**'
+              - '**/test/**'
+              - '**/Test/**'
+              - 'Document/**'
+              - 'electron/**'
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@9418214df1f2c4b8128c770156c409013b07d6b9 # v3.28.11
