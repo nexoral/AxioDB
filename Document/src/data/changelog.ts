@@ -12,6 +12,19 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "28.52.11",
+    date: "2026-11-16",
+    title: "Brand realignment, modular Anthropic hybrid XML agent skill architecture, and supply-chain hardening",
+    changes: [
+      "Brand Realignment: Standardized repository-wide product branding and tagline to 'Embedded Database for AI Agents — Everything you expect from a production database without having to run a database' across documentation, CLI, Docker, Electron GUI, and AI artifacts",
+      "Modular Agent Skill Architecture: Restructured the official AxioDB agent skill into 11 single-responsibility runbooks under axiodb/ adhering to Anthropic hybrid XML-Markdown boundaries and a strict 150-line per-file ceiling to eliminate cognitive load and prompt bleed",
+      "Progressive Disclosure: Redesigned axiodb/SKILL.md as a lightweight 85-line router with deterministic decision matrices and explicit parent-to-child trigger rules for CRUD, vector search, transactions, and diagnostics",
+      "Supply-Chain Security & Hardening: Eliminated executable shell scripts from skill packages, replacing them with declarative Markdown operational runbooks (system-diagnostics.md, docker-deployment.md), resolving Socket and Snyk security assessment flags",
+      "Skill Namespace Synchronization: Renamed the skill identifier and package namespace from 'skill' to 'axiodb' across the installation command (npx skills add nexoral/AxioDB --skill axiodb), discovery endpoints, and documentation",
+      "Dependency Audit: Upgraded package-lock dependencies to eliminate all high and critical CVE advisories",
+    ],
+  },
+  {
     version: "28.51.10",
     date: "2026-11-16",
     title: "AI context architecture standardization, cross-platform agent ignore protocol, CI pipeline optimizations, and automated code quality & security CVE audit gates",
@@ -317,9 +330,9 @@ export const changelog: ChangelogEntry[] = [
     date: "2026-11-02",
     title: "AxioDB Agent Skill ecosystem and packaging optimizations",
     changes: [
-      "Skill: introduced complete progressive-disclosure agent skill (skill/) with technical runbooks, architecture specifications, and surface boundary definitions (MCP Docker-only)",
-      "Scripts: added targeted operational scripts for component installation (install_axiodb.sh), multi-profile Docker orchestration (run_docker.sh), and system diagnostics (diagnose.sh)",
-      "Sync: integrated skill version tracking into versionController.sh and added skill/ to .npmignore",
+      "Skill: introduced complete progressive-disclosure agent skill (axiodb/) with technical runbooks, architecture specifications, and surface boundary definitions (MCP Docker-only)",
+      "Scripts: added targeted operational scripts for component installation and diagnostics",
+      "Sync: integrated skill version tracking into versionController.sh and added axiodb/ to .npmignore",
     ],
   },
   {

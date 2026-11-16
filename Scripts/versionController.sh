@@ -115,10 +115,18 @@ sync_docker() {
 
 sync_skill() {
   local NEW_VERSION="$1"
-  if [ -f "skill/SKILL.md" ]; then
-    sed -i "s/(version [0-9]\+\.[0-9]\+\.[0-9]\+)/(version ${NEW_VERSION})/g" skill/SKILL.md
-    sed -i "s/(v[0-9]\+\.[0-9]\+\.[0-9]\+)/(v${NEW_VERSION})/g" skill/SKILL.md
-    echo -e "  ${GREEN}Updated${NC} skill/SKILL.md"
+  if [ -f "axiodb/SKILL.md" ]; then
+    sed -i "s/(version [0-9]\+\.[0-9]\+\.[0-9]\+)/(version ${NEW_VERSION})/g" axiodb/SKILL.md
+    sed -i "s/(v[0-9]\+\.[0-9]\+\.[0-9]\+)/(v${NEW_VERSION})/g" axiodb/SKILL.md
+    echo -e "  ${GREEN}Updated${NC} axiodb/SKILL.md"
+  fi
+  if [ -d "Document/public/.well-known/agent-skills/axiodb" ]; then
+    cp axiodb/SKILL.md Document/public/.well-known/agent-skills/axiodb/SKILL.md
+    echo -e "  ${GREEN}Synced${NC} Document/public/.well-known/agent-skills/axiodb/SKILL.md"
+    if [ -f "Document/scripts/generate-seo-files.ts" ]; then
+      (cd Document && npx tsx scripts/generate-seo-files.ts >/dev/null 2>&1)
+      echo -e "  ${GREEN}Regenerated${NC} Document/public/.well-known/agent-skills/index.json digest"
+    fi
   fi
 }
 
@@ -241,7 +249,7 @@ select_targets() {
     "3) Electron GUI (electron/package.json + src/layout/StatusBar.jsx)"
     "4) Document site (package.json + llms.txt + llms-full.txt + index.html + changelog.ts + Footer.tsx)"
     "5) Docker (Docker/README.md version badge)"
-    "6) Skill (skill/SKILL.md)"
+    "6) Skill (axiodb/SKILL.md)"
     "7) Email Worker (Email/package.json)"
   )
 

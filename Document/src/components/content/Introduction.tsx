@@ -838,11 +838,11 @@ const Introduction: React.FC = () => {
             <div className="flex items-center justify-between gap-3 bg-gray-900 px-4 py-2.5 rounded-[3px] font-mono text-xs text-white border border-gray-800 w-full lg:w-auto flex-shrink-0">
               <div className="flex items-center gap-2 overflow-x-auto py-0.5">
                 <span className="text-gray-500 select-none">$</span>
-                <span className="text-sky-300 font-medium select-all">npx skills add nexoral/AxioDB --skill skill</span>
+                <span className="text-sky-300 font-medium select-all">npx skills add nexoral/AxioDB --skill axiodb</span>
               </div>
               <button
                 type="button"
-                onClick={() => copyCommand("npx skills add nexoral/AxioDB --skill skill")}
+                onClick={() => copyCommand("npx skills add nexoral/AxioDB --skill axiodb")}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[2px] bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-medium transition-colors border border-gray-700 flex-shrink-0"
                 title="Copy command"
               >
