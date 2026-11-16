@@ -1,9 +1,12 @@
 # source/ — AxioDB Core (Agent Instructions)
 
+<subsystem_role>
 Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `source/` specifics — read the root first.
 
 **Role** — the embedded engine. Compiled by `tsc` to `lib/`, published as the `axiodb` npm package (`main: ./lib/config/DB.js`). Every other folder (`cli/`, `Docker/`, `electron/`, `Document/`) is a surface on top of this. Source of truth for HTTP 27018, TCP 27019.
+</subsystem_role>
 
+<directory_map>
 ## Directory Map
 
 * **`config/`** — Database initialization, constants, and typing
@@ -24,7 +27,9 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `source/`
   * `mcp/` (`McpServer.helper.ts`, `McpTools.helper.ts`), `http/`, `{Feature}.helper.ts`
 * **`utility/`** — Specialized performance utilities
   * `BufferLoaderWithWorker`, `Searcher`, `SortData`, `VectorMath.utils.ts`
+</directory_map>
 
+<commands>
 ## Commands (from repo root)
 
 ```bash
@@ -32,7 +37,9 @@ npm run build   # tsc → lib/ — MANDATORY after every change
 npm run lint    # eslint source/
 npm run node-test crud # one suite; `npm run node-test` = all 14 (ask first, slow)
 ```
+</commands>
 
+<hard_rules>
 ## Hard rules
 
 * `lib/` is generated `tsc` output and is **gitignored** — never hand-edit it, never commit it.
@@ -65,10 +72,13 @@ function parse(input: any) {}                 // ❌ any — use unknown + guard
 if (a) { if (b) { if (c) { if (d) {} } } }    // ❌ nesting > 3 — extract a helper
 items.find(i => i.id === id);                 // ❌ Array.find in hot path — use Map
 ```
+</hard_rules>
 
+<done_checklist>
 ## Done for this folder
 
 - [ ] `npm run build` clean, `npm run lint` clean
 - [ ] `Test/node/modules/` covers the change; scoped suite green
 - [ ] No `any`; SOLID + DRY; singleton / dual-write / TTL patterns intact
 - [ ] HTTP + TCP (+ client proxy) updated if the surface changed; docs + JSDoc same commit
+</done_checklist>

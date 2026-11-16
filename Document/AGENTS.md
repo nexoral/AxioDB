@@ -1,5 +1,6 @@
 # Document/ — Docs Site (Agent Instructions)
 
+<subsystem_role>
 Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Document/` specifics — read the root first.
 
 **Role** — the public documentation site (axiodb.in) and the project's **single source for AI artifacts**. Vite + React, pre-rendered with `vite-react-ssg`, deployed to Cloudflare Pages. Dev server on **5173**.
@@ -7,7 +8,9 @@ Global rules live in [../AGENTS.md](../AGENTS.md). This file only adds `Document
 ## Stack
 
 React 18 · Vite 6 · `vite-react-ssg` (SSG) · Tailwind CSS **v3** (`tailwind.config.js` + PostCSS) · `tsx` scripts · Turndown for markdown twins. This is **TypeScript** (`.tsx`/`.ts`).
+</subsystem_role>
 
+<directory_map>
 ## Directory Map
 
 * **`src/`** — Vite & React frontend source
@@ -21,7 +24,9 @@ React 18 · Vite 6 · `vite-react-ssg` (SSG) · Tailwind CSS **v3** (`tailwind.c
 * **`public/`** — Static web and AI crawler artifacts
   * `llms.txt`, `llms-full.txt`, `openapi.json`, `feed.xml`, `sitemap.xml`, `robots.txt`, `.well-known/`
 * **`wrangler.toml`** — Cloudflare Pages deployment configuration (build output: `AxioDB_Docs`)
+</directory_map>
 
+<commands>
 ## Commands
 
 ```bash
@@ -31,7 +36,9 @@ npm run build    # prebuild → SSG build → postbuild (three steps, all run by
 npm run lint
 npx tsx scripts/generate-seo-files.ts   # regen AI artifacts only
 ```
+</commands>
 
+<hard_rules>
 ## Hard rules
 
 * **Single source:** API reference comes from `src/data/serverApi.ts`, which feeds both the rendered docs and `public/openapi.json`. Edit the data file — never the generated `openapi.json` by hand.
@@ -43,7 +50,9 @@ npx tsx scripts/generate-seo-files.ts   # regen AI artifacts only
 ## AI artifacts (regenerate, don't hand-edit where generated)
 
 `public/llms.txt`, `llms-full.txt`, `openapi.json`, `feed.xml`, `sitemap.xml` are produced by the scripts above and also by the version-bump pipeline. Regenerate rather than editing generated bodies.
+</hard_rules>
 
+<version_sync_registry>
 ## Version sync (15 places — all must match)
 
 Canonical 15-target version registry across the repository:
@@ -64,10 +73,13 @@ Canonical 15-target version registry across the repository:
 * `skill/SKILL.md` → version tag
 
 `Scripts/versionController.sh` rewrites all of the above; regen artifacts with `npx tsx scripts/generate-seo-files.ts`.
+</version_sync_registry>
 
+<done_checklist>
 ## Done for this folder
 
 - [ ] `npm run build` passes (prebuild + SSG + postbuild all green)
 - [ ] `npm run lint` clean
 - [ ] `serverApi.ts` updated (not `openapi.json`); AI artifacts regenerated
 - [ ] All 15 version touchpoints match root
+</done_checklist>

@@ -1,9 +1,12 @@
 # AxioDB — Agent Instructions
 
+<system_overview>
 **AxioDB** — Embedded NoSQL Database for TypeScript & AI Agents. Zero native deps, TS 6.0 strict → CJS, Node ≥22 (engine minimum; Docker runs on Node 23; verified on Node, Bun & Deno), singleton, file-per-doc, `InMemoryCache`, Worker Threads, ACID transactions & WAL, HTTP 27018, TCP 27019.
 
 > For the full system architecture, dual-write lifecycles, and zero-grep codebase map, read [ARCHITECTURE.md](ARCHITECTURE.md).
+</system_overview>
 
+<subsystems_map>
 ## Subsystems & Scoped Guides
 
 When working in a subsystem, read its scoped `AGENTS.md` for local rules and architecture:
@@ -24,7 +27,9 @@ When working in a subsystem, read its scoped `AGENTS.md` for local rules and arc
   * Multi-surface image (27018, 27019, MCP 27020), `runner.js`
 * **`Scripts/`** — Release & packaging automation ([Scripts/AGENTS.md](Scripts/AGENTS.md))
   * `versionController.sh`, binary cross-compilation, installers
+</subsystems_map>
 
+<constraints>
 ## Constraints — never violate
 
 * No `any`. Use `unknown` + guard. No `eval`, `setTimeout` hacks, temp fixes.
@@ -32,7 +37,9 @@ When working in a subsystem, read its scoped `AGENTS.md` for local rules and arc
 * All registries JSONL append-only, last-line-wins, truncated when empty; filenames via `General` `source/config/Keys/Keys.ts` — never hardcode.
 * Dual-write indexes: memory + disk; randomized TTL 5–15m to prevent cache stampedes. Details in `source/AGENTS.md`.
 * Inputs validated (reject non-object/array), path sanitized `replace(/[^a-zA-Z0-9-_]/g,'_')+path.join`, never log secrets/stack.
+</constraints>
 
+<rules>
 ## Rules — non-negotiable
 
 1. `npm run build` after every change — never ship TS errors.
@@ -42,7 +49,9 @@ When working in a subsystem, read its scoped `AGENTS.md` for local rules and arc
 5. **No over-engineering, no naive shortcuts**: Minimal and maintainable, but scale-appropriate. Avoid needless abstractions, and never use naive in-process shortcuts that fail at scale (e.g. multi-instance, large batch volume).
 6. **No unnecessary comments**: Code must be self-explanatory. Never add obvious/conversational comments; comment only complex algorithms, security, or non-obvious invariants.
 7. **Core → surfaces sync**: new core feature (`Services/Collection`, `Index`, `Transaction`, etc.) → ask user: expose via HTTP 27018 / CLI / MCP 27020 / Docker / GUI? If yes, implement consistently (HTTP `server/router+controller`, TCP `tcp/handler` + `client/*Proxy`, CLI `cli/cmd`, MCP `Helper/mcp/McpTools`, `Document/` docs + AI) with same RBAC/tests.
+</rules>
 
+<code_standards>
 ## Code standards
 
 SOLID + DRY: duplicate logic (2+ files) → `source/Helper/{Feature}.helper.ts` static stateless. Naming: files `{Feature}.{operation|service|helper}.ts`, PascalCase classes, camelCase verbs, `UPPER_SNAKE_CASE` consts. Magic strings → enums/`as const`. Nesting >3 → refactor. Try-catch every async; log detailed, return friendly via `ResponseHelper`. Perf: cache before disk, `Promise.all`, `Map` not `Array.find` loop.
@@ -59,19 +68,12 @@ if (a) { if (b) { if (c) { if (d) { ... } } } }
 // ❌ Never use Array.find in hot paths — use Map
 items.find(i => i.id === targetId);
 ```
+</code_standards>
 
+<testing_and_verification>
 ## Tests
 
 Framework: custom `TestRunner` in child processes (singleton forbids sharing). Run all: `npm run node-test`. Single suite: `npm run node-test <suite>`. Suite authoring details in `Test/AGENTS.md`.
-
-## Version sync (15 places — all must match)
-
-All releases must sync version across all 15 project targets (core, lock, electron, Document, Email, cli, Docker, docs, AI artifacts). Full 15-target registry in `Document/AGENTS.md`.
-Regen AI artifacts: `cd Document && npx tsx scripts/generate-seo-files.ts`
-
-## Documentation — same commit as code
-
-Update README, `Document/` (port 5173), `Dockerfile`, and JSDoc with code in same commit. Never blur surfaces. API single source: `Document/src/data/serverApi.ts` (see `Document/AGENTS.md`).
 
 ## Commands
 
@@ -87,7 +89,20 @@ Workflows: Core features fan out to HTTP (27018), TCP (27019), and Client Proxie
 
 ## Graphify (optional)
 After file changes, if graphify is available and `graphify-out/` exists, rebuild: `python3 -c "import graphify" 2>/dev/null && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" || echo "graphify not installed — skipping graph rebuild"`
+</testing_and_verification>
 
+<documentation_and_versioning>
+## Version sync (15 places — all must match)
+
+All releases must sync version across all 15 project targets (core, lock, electron, Document, Email, cli, Docker, docs, AI artifacts). Full 15-target registry in `Document/AGENTS.md`.
+Regen AI artifacts: `cd Document && npx tsx scripts/generate-seo-files.ts`
+
+## Documentation — same commit as code
+
+Update README, `Document/` (port 5173), `Dockerfile`, and JSDoc with code in same commit. Never blur surfaces. API single source: `Document/src/data/serverApi.ts` (see `Document/AGENTS.md`).
+</documentation_and_versioning>
+
+<governance>
 ## Ask before action
 
 Always ask user permission before:
@@ -116,7 +131,9 @@ When user approves deploying sub-agents, their prompt must include:
 
 * Branches: `main` (production), `maintainer/<name>` (personal). Never force-push `main`.
 * Commits: conventional format (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`). One logical change per commit.
+</governance>
 
+<done_checklist>
 ## Done checklist
 
 - [ ] `npm run build` passes
@@ -127,3 +144,4 @@ When user approves deploying sub-agents, their prompt must include:
 - [ ] AI artifacts updated + regenerated, version synced (15 places)
 - [ ] No `any`, SOLID+DRY, patterns (singleton/dual-write/TTL) followed
 - [ ] Security validated · No perf regressions
+</done_checklist>
