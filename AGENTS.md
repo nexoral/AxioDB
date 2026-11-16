@@ -121,6 +121,7 @@ When user approves deploying sub-agents, their prompt must include:
 1. Mandate to read the target service folder's `AGENTS.md` before starting work.
 2. Root DOs & DON'Ts summary.
 3. Pointer to [ARCHITECTURE.md](ARCHITECTURE.md) for full system architecture and zero-grep directory maps.
+4. Scope boundary: Sub-agents may only write code, edit files, and run `npm run build` to verify compilation. They must NOT run tests — sub-agents report completion back to the parent, who executes all tests.
 
 ## Never assume
 
