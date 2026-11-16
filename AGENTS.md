@@ -2,6 +2,8 @@
 
 **AxioDB** — Embedded NoSQL Database for TypeScript & AI Agents. Zero native deps, TS 6.0 strict → CJS, Node ≥22 (engine minimum; Docker runs on Node 23; verified on Node, Bun & Deno), singleton, file-per-doc, `InMemoryCache`, Worker Threads, ACID transactions & WAL, HTTP 27018, TCP 27019.
 
+> For the full system architecture, dual-write lifecycles, and zero-grep codebase map, read [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ## Subsystems & Scoped Guides
 
 When working in a subsystem, read its scoped `AGENTS.md` for local rules and architecture:
@@ -97,6 +99,13 @@ Do NOT ask for:
 * `npm run node-test <suite>` (scoped) — run directly
 * `npm run build` — run directly
 * `npm run lint` — run directly
+
+## Sub-agent delegation (when approved)
+
+When user approves deploying sub-agents, their prompt must include:
+1. Mandate to read the target service folder's `AGENTS.md` before starting work.
+2. Root DOs & DON'Ts summary.
+3. Pointer to [ARCHITECTURE.md](ARCHITECTURE.md) for full system architecture and zero-grep directory maps.
 
 ## Never assume
 
