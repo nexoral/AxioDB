@@ -643,28 +643,13 @@ async function runBenchmark() {
   console.log(`  ${c.bright}Node Process Peak RAM:${c.reset}        RSS: ${bytesToMB(peakRss)} MB | Heap: ${bytesToMB(peakMemory)} MB`);
   console.log(`  ${c.bright}Node Process Final RAM:${c.reset}       RSS: ${bytesToMB(finalMem.rss)} MB | Heap: ${bytesToMB(finalMem.heapUsed)} MB`);
 
-  // Dynamic comparison estimation based on sample document
-  const sampleDoc = generateBatch(0, 1)[0];
-  const sampleDocBytes = Buffer.byteLength(JSON.stringify(sampleDoc));
-  const estRawJsonBytes = (sampleDocBytes + 1) * opts.docs + 2;
-  const estLowDBBytes = estRawJsonBytes + 30;
-  const estSQLiteBytes = Math.ceil(((sampleDocBytes * 0.85) + 48) * opts.docs / 4096) * 4096;
-
-  console.log(`\n  ${c.bright}${c.magenta}On-Disk Storage Footprint (${opts.docs.toLocaleString()} Documents):${c.reset}`);
-  console.log(`  ${c.dim}• Total Directory Size (With Indexes):${c.reset}    ${c.green}${bytesToReadable(storageFootprint.totalBytes)}${c.reset} (${bytesToMB(storageFootprint.totalBytes)} MB)`);
-  console.log(`  ${c.dim}• Data Only Size (Excluding Indexes):${c.reset}     ${c.green}${bytesToReadable(storageFootprint.withoutIndexBytes)}${c.reset} (${bytesToMB(storageFootprint.withoutIndexBytes)} MB)`);
-  console.log(`  ${c.dim}• Index Storage Overhead (JSONL / Meta):${c.reset}  ${bytesToReadable(storageFootprint.indexBytes)} (${((storageFootprint.indexBytes / Math.max(storageFootprint.totalBytes, 1)) * 100).toFixed(1)}% of total)`);
-
   console.log(`\n  ${c.bright}Storage & Architecture Comparison (${opts.docs.toLocaleString()} Records):${c.reset}`);
-  console.log(`  ┌─────────────────────────┬──────────────┬──────────────┬────────────────────────────────────┐`);
-  console.log(`  │ Database Engine         │ Disk Size    │ Storage Type │ Trade-off / Advantage              │`);
-  console.log(`  ├─────────────────────────┼──────────────┼──────────────┼────────────────────────────────────┤`);
-  console.log(`  │ ${c.cyan}AxioDB (Data Only)${c.reset}      │ ${bytesToReadable(storageFootprint.withoutIndexBytes).padEnd(12)} │ File-per-doc │ Zero native C++ deps; atomic WAL   │`);
-  console.log(`  │ ${c.cyan}AxioDB (With Indexes)${c.reset}   │ ${bytesToReadable(storageFootprint.totalBytes).padEnd(12)} │ Data + JSONL │ Sub-ms indexed point reads & cache │`);
-  console.log(`  │ SQLite (Table + Indexes)│ ${('~' + bytesToReadable(estSQLiteBytes)).padEnd(12)} │ Single file  │ Requires C++ native build toolchain│`);
-  console.log(`  │ LowDB (JSON File)       │ ${('~' + bytesToReadable(estLowDBBytes)).padEnd(12)} │ Monolithic   │ Rewrites entire file on every write│`);
-  console.log(`  │ Raw JSON File           │ ${('~' + bytesToReadable(estRawJsonBytes)).padEnd(12)} │ Single Array │ No indexing; O(N) memory to parse  │`);
-  console.log(`  └─────────────────────────┴──────────────┴──────────────┴────────────────────────────────────┘`);
+  console.log(`  ┌─────────────────────────┬──────────────┬──────────────┐`);
+  console.log(`  │ Database Engine         │ Disk Size    │ Storage Type │`);
+  console.log(`  ├─────────────────────────┼──────────────┼──────────────┤`);
+  console.log(`  │ ${c.cyan}AxioDB (Data Only)${c.reset}      │ ${bytesToReadable(storageFootprint.withoutIndexBytes).padEnd(12)} │ File-per-doc │`);
+  console.log(`  │ ${c.cyan}AxioDB (With Indexes)${c.reset}   │ ${bytesToReadable(storageFootprint.totalBytes).padEnd(12)} │ Data + JSONL │`);
+  console.log(`  └─────────────────────────┴──────────────┴──────────────┘`);
 
   // Final cleanup of the temporary directory
   if (!opts.keepData) {
