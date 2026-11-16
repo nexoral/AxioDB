@@ -120,9 +120,13 @@ sync_skill() {
     sed -i "s/(v[0-9]\+\.[0-9]\+\.[0-9]\+)/(v${NEW_VERSION})/g" axiodb/SKILL.md
     echo -e "  ${GREEN}Updated${NC} axiodb/SKILL.md"
   fi
-  if [ -f "Document/public/.well-known/agent-skills/axiodb/SKILL.md" ]; then
+  if [ -d "Document/public/.well-known/agent-skills/axiodb" ]; then
     cp axiodb/SKILL.md Document/public/.well-known/agent-skills/axiodb/SKILL.md
     echo -e "  ${GREEN}Synced${NC} Document/public/.well-known/agent-skills/axiodb/SKILL.md"
+    if [ -f "Document/scripts/generate-seo-files.ts" ]; then
+      (cd Document && npx tsx scripts/generate-seo-files.ts >/dev/null 2>&1)
+      echo -e "  ${GREEN}Regenerated${NC} Document/public/.well-known/agent-skills/index.json digest"
+    fi
   fi
 }
 

@@ -68,11 +68,15 @@ const user = await users
   .findOne(true)
   .exec();
 
-// Efficient document count without loading full documents into memory
-const count = await users
+// Query count alongside paginated documents (returns { documents, totalDocuments })
+const page = await users
   .query({ active: true })
   .setCount(true)
+  .Limit(25)
   .exec();
+
+// Fast collection-level total count without loading document files into memory
+const totalCount = await users.totalDocuments();
 ```
 
 ### Supported Comparison & Logical Operators

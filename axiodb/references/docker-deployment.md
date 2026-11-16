@@ -3,7 +3,7 @@
 <docker_profiles>
 ## 1. Container Profiles
 
-Image: `theankansaha/axiodb:latest` (or pinned version `theankansaha/axiodb:28.51.10`)
+Image: `theankansaha/axiodb:latest` (or pinned version `theankansaha/axiodb:28.52.11`)
 
 ### Profile A: Standard (HTTP 27018 + TCP 27019 with Auth)
 ```bash
@@ -11,7 +11,7 @@ docker run -d \
   --name axiodb \
   -p 27018:27018 \
   -p 27019:27019 \
-  -v axiodb-data:/app/data \
+  -v axiodb-data:/app/AxioDB \
   -e AXIODB_ADMIN_PASSWORD="<ADMIN_PASSWORD>" \
   theankansaha/axiodb:latest
 ```
@@ -23,7 +23,7 @@ docker run -d \
   -p 27018:27018 \
   -p 27019:27019 \
   -p 27020:27020 \
-  -v axiodb-data:/app/data \
+  -v axiodb-data:/app/AxioDB \
   -e AXIODB_ADMIN_PASSWORD="<ADMIN_PASSWORD>" \
   -e AXIODB_MCP=true \
   theankansaha/axiodb:latest
@@ -34,7 +34,8 @@ docker run -d \
 docker run -d \
   --name axiodb \
   -p 27019:27019 \
-  -v axiodb-data:/app/data \
+  -v axiodb-data:/app/AxioDB \
+  -e AXIODB_HTTP=false \
   -e AXIODB_ADMIN_PASSWORD="<ADMIN_PASSWORD>" \
   theankansaha/axiodb:latest
 ```
@@ -44,7 +45,8 @@ docker run -d \
 docker run -d \
   --name axiodb-dev \
   -p 27019:27019 \
-  -e AXIODB_TCP_AUTH=false \
+  -v axiodb-data:/app/AxioDB \
+  -e AXIODB_TCP_AUTH_ENABLED=false \
   theankansaha/axiodb:latest
 ```
 </docker_profiles>
@@ -65,14 +67,14 @@ services:
       - "27019:27019"   # Binary TCP Remote Access
       - "27020:27020"   # MCP Streamable HTTP AI Server
     environment:
-      AXIODB_ADMIN_PASSWORD: "StrongSecretPassword123"
+      AXIODB_ADMIN_PASSWORD: "${AXIODB_ADMIN_PASSWORD:?AXIODB_ADMIN_PASSWORD is required}"
       AXIODB_MCP: "true"
-      AXIODB_TCP_AUTH: "true"
+      AXIODB_TCP_AUTH_ENABLED: "true"
       AXIODB_CACHE: "true"
     volumes:
-      - axiodb_storage:/app/data
+      - axiodb_storage:/app/AxioDB
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:27018/api/health"]
+      test: ["CMD", "node", "healthcheck.js"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -90,8 +92,8 @@ volumes:
 | :--- | :--- | :--- |
 | `AXIODB_ADMIN_PASSWORD` | unset | Seeds admin password on initial database boot and clears forced password change. |
 | `AXIODB_MCP` | `false` | Enables MCP Server on port 27020 exposing 46 tools for AI agents. |
-| `AXIODB_TCP_AUTH` | `true` | Enforces RBAC authentication on port 27019. Set `false` for open dev TCP. |
-| `AXIODB_HTTP` | `true` | Starts Fastify HTTP REST API server on port 27018. |
+| `AXIODB_TCP_AUTH_ENABLED` | `true` | Enforces RBAC authentication on port 27019. Set `false` for open dev TCP. |
+| `AXIODB_HTTP` | `true` | Starts Fastify HTTP REST API server on port 27018. Set `false` for headless TCP. |
 | `AXIODB_CACHE` | `true` | Activates built-in memory cache layer with 5–15m jitter. |
 </env_variables>
 

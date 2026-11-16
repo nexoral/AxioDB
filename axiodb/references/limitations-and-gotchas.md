@@ -28,8 +28,9 @@ AxioDB enforces a strict singleton pattern per Node.js process:
 ## 4. TCP First-Login Password Rotation
 
 * AxioDB seeds a default `admin` user with password `admin`.
-* **Gotcha**: For security, TCP connections reject initial `admin/admin` credentials until changed via HTTP Control Server (`http://localhost:27018`), Desktop GUI, or seeded via `AXIODB_ADMIN_PASSWORD`.
-* **Headless Bypass**: When starting headless instances or Docker containers, supply `AXIODB_ADMIN_PASSWORD=<custom_password>` on initial creation to clear the forced password rotation automatically.
+* **Gotcha**: For security, TCP connections reject initial `admin/admin` credentials until changed via HTTP Control Server (`http://localhost:27018`), Desktop GUI, or seeded with a custom password on initial boot.
+* **Embedded Headless Bypass**: For in-process code, pass `AdminPassword: process.env.AXIODB_ADMIN_PASSWORD` in `new AxioDB({ TCP: true, HTTP: false, AdminPassword: "..." })`.
+* **Docker Headless Bypass**: In container environments, pass `-e AXIODB_ADMIN_PASSWORD=<custom_password>` on initial creation to clear the forced password rotation automatically.
 </first_login_rotation>
 
 <append_only_registries>

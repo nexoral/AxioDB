@@ -25,6 +25,9 @@ try {
 
   // Commit: atomically flushes WAL records to disk and invalidates affected cache keys
   const result = await txn.commit();
+  if (!result.status) {
+    throw new Error(result.message || "Transaction commit failed");
+  }
 } catch (error) {
   // Rollback: discards uncommitted operations and clears WAL lock
   await txn.rollback();

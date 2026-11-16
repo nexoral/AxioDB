@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded Database for AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Mon, 16 Nov 2026 12:59:26 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 16 Nov 2026 13:27:33 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v28.52.11 — Brand realignment, modular Anthropic hybrid XML agent skill architecture, and supply-chain hardening</title>

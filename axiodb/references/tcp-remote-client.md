@@ -16,8 +16,10 @@
 ```typescript
 import { AxioDBCloud } from "axiodb";
 
-// Authenticated connection with custom pool options
-const client = new AxioDBCloud("axiodb://admin:StrongPassword@localhost:27019", {
+// Authenticated connection with credentials in options
+const client = new AxioDBCloud("axiodb://localhost:27019", {
+  username: "admin",
+  password: "StrongPassword",
   maxPoolSize: 10,    // Maximum concurrent pooled sockets (default: 10)
   timeout: 10000,     // Command timeout in milliseconds (default: 10000)
 });
@@ -30,7 +32,7 @@ const info = await client.getInstanceInfo();
 ```
 
 ### Unauthenticated TCP Connection (Dev / Internal Mesh)
-When the server runs with `AXIODB_TCP_AUTH=false`:
+When the server runs with `AXIODB_TCP_AUTH_ENABLED=false` in Docker or `TCPAuth: false` in embedded code:
 ```typescript
 const client = new AxioDBCloud("axiodb://localhost:27019");
 await client.connect();

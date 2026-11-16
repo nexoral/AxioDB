@@ -39,16 +39,16 @@ const db = new AxioDB({
 <indexing_strategy>
 ## 3. Secondary Indexing Strategy
 
-* **Index High-Frequency Filters**: Index fields used in query filters (`userId`, `email`, `status`).
-* **Use Index Hints**: Always specify `.hint("fieldName")` for guaranteed O(1) index scans.
-* **Dual-Write Cost**: Every insert/update/delete updates memory and disk. Avoid indexing rarely filtered fields.
+* **Index High-Frequency Filters**: Index fields frequently evaluated in query filters (`userId`, `email`, `status`).
+* **Automatic Index Selection & Hints**: AxioDB automatically selects matching indexes. Use `.hint("fieldName")` only when a specific query plan has been verified or to override default selection.
+* **Dual-Write Cost**: Every insert/update/delete updates memory and disk simultaneously. Avoid indexing rarely filtered fields.
 </indexing_strategy>
 
 <security_hardening>
 ## 4. Security Hardening Checklist
 
 1. **Rotate Default Credentials**: Seeded `admin/admin` credentials reject TCP logins until rotated via HTTP API or seeded with `AXIODB_ADMIN_PASSWORD`.
-2. **Never Expose Unauthenticated TCP**: Keep `AXIODB_TCP_AUTH=true` unless operating inside an isolated Docker bridge network or private VPC.
+2. **Never Expose Unauthenticated TCP**: Keep `AXIODB_TCP_AUTH_ENABLED=true` (Docker) or `TCPAuth: true` (embedded) unless operating inside an isolated Docker bridge network or private VPC.
 3. **Connection Pooling**: Always reuse a single `AxioDBCloud` instance across microservices (`maxPoolSize: 10`). Never create socket clients per HTTP request.
 </security_hardening>
 

@@ -56,7 +56,7 @@ const db = new AxioDB({
 <testing_ephemeral_setup>
 ## 4. Ephemeral Setup for CI & Unit Tests
 
-To run integration tests in isolation without polluting local storage or causing concurrency collisions:
+To run integration tests in isolation without polluting storage. AxioDB enforces a singleton per process, so multi-suite test runners should execute suites in isolated child processes:
 
 ```typescript
 import { AxioDB } from "axiodb";
@@ -64,7 +64,7 @@ import fs from "fs/promises";
 import os from "os";
 import path from "path";
 
-// Setup ephemeral instance in temp folder
+// Setup ephemeral instance in isolated temp folder
 const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "axiodb-test-"));
 const db = new AxioDB({
   RootName: "TestDB",
@@ -77,8 +77,8 @@ const testCol = await database.createCollection("items");
 
 // ... Execute test assertions ...
 
-// Teardown: Stop instance and clean temp directory
-await db.stop();
+// Teardown: Cleanly release directory PID lock and remove temp folder
+db.releaseLock();
 await fs.rm(tempDir, { recursive: true, force: true });
 ```
 </testing_ephemeral_setup>

@@ -48,7 +48,7 @@ const filteredResults = await products
 | :--- | :--- | :--- | :--- |
 | **`cosine`** (default) | `[-1.0, 1.0]` | Text embeddings (OpenAI, Voyage, Cohere) | Measures directional angle between normalized vectors. Higher is closer. |
 | **`dot`** | `(-∞, +∞)` | Pre-normalized unit vectors | Dot product / inner product. Fast computation without magnitude division. |
-| **`euclidean`** | `[0.0, +∞)` | Coordinate / spatial / image embeddings | L2 geometric distance. Score converted so higher values represent closer proximity. |
+| **`euclidean`** | `[0.0, +∞)` | Spatial / image embeddings | Raw L2 distance. Lower values indicate closer proximity; results sort ascending, and minScore acts as a maximum distance ceiling. |
 </distance_metrics>
 
 <multi_surface_access>
@@ -58,7 +58,10 @@ const filteredResults = await products
 ```typescript
 import { AxioDBCloud } from "axiodb";
 
-const client = new AxioDBCloud("axiodb://admin:password@localhost:27019");
+const client = new AxioDBCloud("axiodb://localhost:27019", {
+  username: "admin",
+  password: "password",
+});
 await client.connect();
 
 const db = await client.createDB("catalog");
@@ -73,17 +76,17 @@ const matches = await collection.vectorSearch("embedding", queryVector, {
 
 ### HTTP REST API
 ```bash
-curl -X POST http://localhost:27018/api/document/vector-search/ \
+curl -X POST "http://localhost:27018/api/operation/vector-search/?dbName=catalog&collectionName=items" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <JWT_TOKEN>" \
   -d '{
-    "dbName": "catalog",
-    "collectionName": "items",
-    "fieldName": "embedding",
-    "queryVector": [0.15, 0.82, 0.30, -0.40],
-    "topK": 5,
-    "minScore": 0.75,
-    "metric": "cosine"
+    "field": "embedding",
+    "vector": [0.15, 0.82, 0.30, -0.40],
+    "options": {
+      "topK": 5,
+      "minScore": 0.75,
+      "metric": "cosine"
+    }
   }'
 ```
 

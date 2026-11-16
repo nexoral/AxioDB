@@ -11,11 +11,14 @@ Default surface ports:
 ```bash
 # Check if ports 27018, 27019, or 27020 are in use
 for PORT in 27018 27019 27020; do
-  PID=$(lsof -ti :"$PORT" 2>/dev/null || ss -tulpn "sport = :$PORT" 2>/dev/null | grep -o "pid=[0-9]*" | cut -d= -f2 || true)
-  if [ -n "$PID" ]; then
-    echo "Port $PORT is IN USE by PID: $PID"
+  if command -v lsof >/dev/null 2>&1; then
+    PID=$(lsof -ti :"$PORT" 2>/dev/null || true)
+    [ -n "$PID" ] && echo "Port $PORT is IN USE by PID: $PID" || echo "Port $PORT is FREE"
+  elif command -v ss >/dev/null 2>&1; then
+    OUT=$(ss -tulpn "sport = :$PORT" 2>/dev/null | grep ":$PORT" || true)
+    [ -n "$OUT" ] && echo "Port $PORT is IN USE" || echo "Port $PORT is FREE"
   else
-    echo "Port $PORT is FREE"
+    echo "Port $PORT status UNKNOWN (neither lsof nor ss available)"
   fi
 done
 ```
@@ -51,7 +54,8 @@ docker logs --tail 50 -f axiodb
 ```bash
 # Probe HTTP REST server health (Port 27018)
 curl -s -m 2 http://localhost:27018/api/health
-# Expected output: {"status":"healthy"}
+# Expected output:
+# {"statusCode":200,"message":"Server is healthy","data":{"status":"ok","timestamp":"...","uptimeSeconds":123}}
 
 # Test TCP socket connection (Port 27019)
 nc -zv 127.0.0.1 27019
