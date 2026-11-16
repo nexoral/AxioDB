@@ -1,160 +1,84 @@
 # AxioDB Installation and Setup Guide
 
+<package_install>
 ## 1. Core NPM Package Installation
 
-For Node.js applications (backend services, API servers, Express/Fastify/NestJS), install the embedded engine directly:
+AxioDB is a pure TypeScript/JavaScript package requiring Node.js >= 22 (or Bun >= 1.4.0). No C++ compiler or native build step required:
 
 ```bash
 # Using npm
-npm install axiodb@latest
+npm install axiodb
 
 # Using pnpm
-pnpm add axiodb@latest
+pnpm add axiodb
 
 # Using yarn
-yarn add axiodb@latest
+yarn add axiodb
 ```
+</package_install>
 
-**System Requirements**:
-- Node.js `>= 20.0.0`
-- Zero external native dependencies required (no build tools needed).
+<binary_downloads>
+## 2. CLI Tool & Desktop GUI
 
----
+### Standalone Terminal CLI (Go Binary)
+The AxioDB CLI provides an interactive REPL shell and export/backup tools without Node.js:
+1. Download from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest) for your target platform (`linux_amd64`, `darwin_arm64`, `windows_amd64.exe`).
+2. Make executable and move to PATH:
+   ```bash
+   chmod +x axiodb && sudo mv axiodb /usr/local/bin/
+   axiodb --version
+   ```
 
-## 2. CLI Tool Installation
+### Desktop GUI (Electron App)
+For visual collection browsing and index inspection without a web browser:
+* Download `.AppImage` / `.deb` (Linux), `.dmg` (macOS), or `.exe` installer (Windows) from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest).
+</binary_downloads>
 
-The AxioDB CLI provides a MongoDB-style interactive REPL, admin commands, and temporary server spinning.
+<control_server>
+## 3. In-Code HTTP & TCP Server Options
 
-### Download from GitHub Releases
-
-Pre-compiled standalone binaries with SHA-256 checksums are published on [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest):
-
-- **Linux (x64 / arm64)**: `axiodb_linux_amd64` / `axiodb_linux_arm64`
-- **macOS (Intel / Apple Silicon)**: `axiodb_darwin_amd64` / `axiodb_darwin_arm64`
-- **Windows (x64 / arm64)**: `axiodb_windows_amd64.exe` / `axiodb_windows_arm64.exe`
-
-Quick setup example on Linux/macOS:
-```bash
-# Download binary (replace linux_amd64 with your OS/architecture)
-curl -fsSL https://github.com/nexoral/AxioDB/releases/latest/download/axiodb_linux_amd64 -o axiodb
-chmod +x axiodb
-sudo mv axiodb /usr/local/bin/
-```
-
-### Verify CLI Installation
-
-```bash
-axiodb version
-axiodb --help
-```
-
----
-
-## 3. Desktop GUI Installation (Electron App)
-
-AxioDB provides a cross-platform desktop application featuring visual database inspection, card-based document viewing, and live performance metrics.
-
-### Download from GitHub Releases
-
-Download the installer or portable package for your platform from [GitHub Releases](https://github.com/nexoral/AxioDB/releases/latest):
-- **Linux**: Download `.deb` (Debian/Ubuntu) or `.AppImage` (portable).
-- **macOS**: Download `.zip`, extract, and move `AxioDB Control.app` into `/Applications`.
-- **Windows**: Download `.exe` installer (NSIS) and run the setup wizard.
-
----
-
-## 4. HTTP Control Server & REST API
-
-AxioDB includes an HTTP Control Server serving Fastify REST API endpoints on port `27018`.
-
-### Starting the HTTP Control Server in Node.js Code
+Start the HTTP Fastify server (Port 27018) or TCP server (Port 27019) directly within your Node.js application:
 
 ```typescript
 import { AxioDB } from "axiodb";
 
-// Enable the HTTP Control Server
 const db = new AxioDB({
-  HTTP: true,                    // Launches HTTP Control Server on port 27018
-  RootName: "MyProductionDB",    // Root database directory name
-  CustomPath: "./data",          // Directory where databases persist
+  RootName: "ProductionDB",
+  CustomPath: "./data",
+  HTTP: true,             // Enable REST API on port 27018
+  TCP: true,              // Enable binary TCP on port 27019
+  AdminPassword: "MyAdminPassword123", // Pre-seed password to bypass TCP lock
+  Cache: true,
 });
-
-// Access http://localhost:27018/api/* for REST endpoints
 ```
+</control_server>
 
-### Starting via Docker
+<testing_ephemeral_setup>
+## 4. Ephemeral Setup for CI & Unit Tests
 
-```bash
-docker run -d \
-  --name axiodb-server \
-  -p 27018:27018 \
-  -p 27019:27019 \
-  -v axiodb-data:/app \
-  theankansaha/axiodb
-```
-Visiting `http://localhost:27018` displays welcome and desktop GUI installation commands. All REST endpoints are under `/api/*`.
-
----
-
-## 5. Mock / Ephemeral Server for Testing & CI
-
-When writing tests or CI/CD pipelines, you frequently need an isolated AxioDB server without persisting test data.
-
-### Option A: Using CLI Temporary Server (`axiodb serve`)
-
-The CLI includes a built-in command to spin up temporary local servers:
-
-```bash
-# 1. Start HTTP REST API only (Port 27018)
-axiodb serve http
-
-# 2. Start TCP server without auth (Port 27019)
-axiodb serve tcp
-
-# 3. Start TCP server with authentication and initial admin password
-axiodb serve tcp-auth "<ADMIN_PASSWORD>"
-
-# 4. Start Full stack (HTTP 27018 + TCP 27019 with auth)
-axiodb serve full "<ADMIN_PASSWORD>"
-```
-
-### Option B: Ephemeral In-Memory / Isolated Temp Directory in Code
-
-For unit/integration test suites (e.g., Jest, Vitest, Mocha), initialize AxioDB in a temporary directory and tear it down after testing:
+To run integration tests in isolation without polluting local storage or causing concurrency collisions:
 
 ```typescript
 import { AxioDB } from "axiodb";
-import fs from "fs";
-import path from "path";
+import fs from "fs/promises";
 import os from "os";
+import path from "path";
 
-describe("Database Integration Tests", () => {
-  let db: AxioDB;
-  let tempDir: string;
-
-  beforeAll(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "axiodb-test-"));
-    db = new AxioDB({
-      RootName: "TestDB",
-      CustomPath: tempDir,
-      Cache: true,
-      minTTL: 1,
-      maxTTL: 2,
-    });
-  });
-
-  afterAll(() => {
-    fs.rmSync(tempDir, { recursive: true, force: true });
-  });
-
-  test("should insert and query document", async () => {
-    const database = await db.createDB("testing");
-    const col = await database.createCollection("items");
-    const doc = await col.insert({ sku: "TEST-01", price: 99 });
-    expect(doc.status).toBe(true);
-
-    const queryResult = await col.query({ sku: "TEST-01" }).exec();
-    expect(queryResult.status).toBe(true);
-  });
+// Setup ephemeral instance in temp folder
+const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "axiodb-test-"));
+const db = new AxioDB({
+  RootName: "TestDB",
+  CustomPath: tempDir,
+  Cache: false,           // Disable cache to ensure 100% disk roundtrip
 });
+
+const database = await db.createDB("test_db");
+const testCol = await database.createCollection("items");
+
+// ... Execute test assertions ...
+
+// Teardown: Stop instance and clean temp directory
+await db.stop();
+await fs.rm(tempDir, { recursive: true, force: true });
 ```
+</testing_ephemeral_setup>

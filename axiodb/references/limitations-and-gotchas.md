@@ -1,37 +1,40 @@
 # AxioDB Limitations and Technical Gotchas
 
+<singleton_constraint>
 ## 1. Process Singleton Constraint
 
 AxioDB enforces a strict singleton pattern per Node.js process:
-- Calling `new AxioDB()` twice in the same runtime throws an exception.
-- When running automated test suites (Jest/Mocha), test files must either share the instance or run in isolated child processes (`jest --runInBand` or separate worker processes).
+* Calling `new AxioDB()` twice in the same runtime throws an exception.
+* When running automated test suites, test files must either share the instance or run in isolated child processes (`npm run node-test` uses child process isolation).
+</singleton_constraint>
 
----
-
+<storage_overhead>
 ## 2. File-per-Document Architecture
 
-- **Inode Usage**: Because each document is stored as an individual JSON file (`<doc_id>.json`), storing tens of millions of documents requires filesystem inode planning.
-- **Directory Limits**: Filesystems handle tens of thousands of files per directory well, but for massive collections, consider partitioning documents logically across collections.
+* **Filesystem Block Allocation**: Because each document is stored as an individual JSON file (`<doc_id>.json`), each document occupies at least one filesystem block (typically 4 KB) regardless of file size.
+* **Inode Planning**: Storing millions of documents requires filesystem inode awareness. For multi-million document workloads, partition documents across logical collections or databases.
+* **Read Amplification on Scans**: Full unindexed scans open one file per document. Always build secondary indexes and specify `.hint("field")` for high-volume collections.
+</storage_overhead>
 
----
+<mcp_initiation>
+## 3. MCP Server Initiation & AI Tooling
 
-## 3. MCP Server Initiation
+* Initiated in core via `new AxioDB({ MCP: true })` or inside Docker via `AXIODB_MCP=true` on port `27020`.
+* AI agents target `http://localhost:27020/mcp` over Streamable HTTP.
+* Tools require an active authenticated session with appropriate RBAC permissions.
+</mcp_initiation>
 
-- The Model Context Protocol (MCP) server can be initiated directly in TypeScript/JavaScript core via `new AxioDB({ MCP: true })` or run inside the official Docker image (`theankansaha/axiodb`) via `AXIODB_MCP=true` on port `27020`.
-- AI agents (Antigravity, Claude Code, Cursor, Windsurf, Copilot) connecting over Streamable HTTP target `http://localhost:27020/mcp`.
-- Every tool except `axiodb_login` requires an active `sessionId` with appropriate RBAC permissions.
+<first_login_rotation>
+## 4. TCP First-Login Password Rotation
 
----
+* AxioDB seeds a default `admin` user with password `admin`.
+* **Gotcha**: For security, TCP connections reject initial `admin/admin` credentials until changed via HTTP Control Server (`http://localhost:27018`), Desktop GUI, or seeded via `AXIODB_ADMIN_PASSWORD`.
+* **Headless Bypass**: When starting headless instances or Docker containers, supply `AXIODB_ADMIN_PASSWORD=<custom_password>` on initial creation to clear the forced password rotation automatically.
+</first_login_rotation>
 
-## 4. TCP First-Login Authentication Requirement
-
-- AxioDB seeds a default `admin` user with password `admin`.
-- **Gotcha**: For security, TCP connections reject the initial `admin/admin` credentials until the password is changed via the HTTP Control Server (`http://localhost:27018`), Desktop GUI, or initialized via `AXIODB_ADMIN_PASSWORD`.
-- **Headless Bypass**: When starting headless instances or automated Docker containers without GUI access, you **must** supply `AXIODB_ADMIN_PASSWORD=<custom_password>` on initial creation. This automatically clears the password change requirement.
-
----
-
+<append_only_registries>
 ## 5. Append-Only Registries
 
-- Metadata (`metadata.jsonl`) and secondary indexes (`.indexes/*.jsonl`) use append-only logging for crash resilience.
-- The latest line always wins. Over extended periods of high mutation churn, registry files grow until pruned or truncated.
+* Metadata (`metadata.jsonl`) and secondary indexes (`.indexes/*.jsonl`) use append-only logging for crash resilience.
+* The latest line always wins. Over extended periods of high mutation churn, registry files grow until truncated.
+</append_only_registries>
