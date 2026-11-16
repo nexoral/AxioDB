@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded Database for AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Mon, 16 Nov 2026 12:17:24 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 16 Nov 2026 12:18:40 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v28.51.10 — AI context architecture standardization, cross-platform agent ignore protocol, CI pipeline optimizations, and automated code quality &amp; security CVE audit gates</title>
@@ -166,7 +166,7 @@
       <link>https://axiodb.in/changelog</link>
       <guid isPermaLink="false">axiodb-22.28.1</guid>
       <pubDate>Mon, 02 Nov 2026 00:00:00 GMT</pubDate>
-      <description>Skill: introduced complete progressive-disclosure agent skill (skill/) with technical runbooks, architecture specifications, and surface boundary definitions (MCP Docker-only) | Scripts: added targeted operational scripts for component installation (install_axiodb.sh), multi-profile Docker orchestration (run_docker.sh), and system diagnostics (diagnose.sh) | Sync: integrated skill version tracking into versionController.sh and added skill/ to .npmignore</description>
+      <description>Skill: introduced complete progressive-disclosure agent skill (axiodb/) with technical runbooks, architecture specifications, and surface boundary definitions (MCP Docker-only) | Scripts: added targeted operational scripts for component installation and diagnostics | Sync: integrated skill version tracking into versionController.sh and added axiodb/ to .npmignore</description>
     </item>
     <item>
       <title>AxioDB v22.28.0 — Performance &amp; scale benchmark suite with dynamic engineering recommendations &amp; storage analysis</title>
