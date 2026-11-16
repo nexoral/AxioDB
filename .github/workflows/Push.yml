@@ -346,6 +346,9 @@ jobs:
       - name: Run MCP Confirmation tests
         run: npm run node-test mcp-confirm
 
+      - name: Run Benchmark
+        run: npm run benchmark
+
   bun_matrix_test:
     needs: [detect_changes, auth_rbac_gate, tcp_auth_rbac_gate, tcp_noauth_compat_gate, http_api_gate, tcp_transaction_gate, tcp_tls_gate, mcp_functional_gate]
     if: needs.detect_changes.outputs.run_test == 'true'
@@ -386,6 +389,9 @@ jobs:
 
       - name: Run MCP Confirmation tests
         run: bun run bun-test mcp-confirm
+
+      - name: Run Benchmark
+        run: npm run bun-benchmark
 
   publish_to_npm:
     needs: [detect_changes, node_matrix_test, bun_matrix_test]
