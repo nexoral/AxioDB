@@ -303,7 +303,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        node-version: [22.x, 23.x, 24.x, 25.x, 26.x]
+        node-version: [latest, 26.x, 24.x, 22.x]
       fail-fast: false
     name: "Gate 8 — Node Matrix Test (Node ${{ matrix.node-version }})"
     steps:
@@ -346,6 +346,9 @@ jobs:
       - name: Run MCP Confirmation tests
         run: npm run node-test mcp-confirm
 
+      - name: Run Benchmark
+        run: npm run benchmark
+
   bun_matrix_test:
     needs: [detect_changes, auth_rbac_gate, tcp_auth_rbac_gate, tcp_noauth_compat_gate, http_api_gate, tcp_transaction_gate, tcp_tls_gate, mcp_functional_gate]
     if: needs.detect_changes.outputs.run_test == 'true'
@@ -354,7 +357,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        bun-version: [latest, 1.4.4, 1.4.3, 1.4.2, 1.4.1, 1.4.0]
+        bun-version: [latest, 1.4.4, 1.3.14]
       fail-fast: false
     name: "Gate 8 — Bun Matrix Test (Bun ${{ matrix.bun-version }})"
     steps:
@@ -386,6 +389,9 @@ jobs:
 
       - name: Run MCP Confirmation tests
         run: bun run bun-test mcp-confirm
+
+      - name: Run Benchmark
+        run: npm run bun-benchmark
 
   publish_to_npm:
     needs: [detect_changes, node_matrix_test, bun_matrix_test]
@@ -504,6 +510,8 @@ jobs:
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: '1.22'
+          cache: true
+          cache-dependency-path: cli/go.sum
 
       - name: Read CLI version
         id: version
@@ -594,6 +602,19 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: electron/package-lock.json
+
+      - name: Cache electron-builder artifacts
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+          key: ${{ runner.os }}-electron-builder-${{ hashFiles('electron/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-builder-
 
       - name: Install Wine (for Windows cross-compile)
         if: steps.check.outputs.exists == 'false'
@@ -606,7 +627,7 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         run: |
           cd electron
-          npm install
+          npm ci
           npm run build:renderer
           npm run build:main
           npx electron-builder --linux deb AppImage --win nsis --mac zip

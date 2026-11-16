@@ -643,131 +643,13 @@ async function runBenchmark() {
   console.log(`  ${c.bright}Node Process Peak RAM:${c.reset}        RSS: ${bytesToMB(peakRss)} MB | Heap: ${bytesToMB(peakMemory)} MB`);
   console.log(`  ${c.bright}Node Process Final RAM:${c.reset}       RSS: ${bytesToMB(finalMem.rss)} MB | Heap: ${bytesToMB(finalMem.heapUsed)} MB`);
 
-  // Dynamic comparison estimation based on sample document
-  const sampleDoc = generateBatch(0, 1)[0];
-  const sampleDocBytes = Buffer.byteLength(JSON.stringify(sampleDoc));
-  const estRawJsonBytes = (sampleDocBytes + 1) * opts.docs + 2;
-  const estLowDBBytes = estRawJsonBytes + 30;
-  const estSQLiteBytes = Math.ceil(((sampleDocBytes * 0.85) + 48) * opts.docs / 4096) * 4096;
-
-  console.log(`\n  ${c.bright}${c.magenta}On-Disk Storage Footprint (${opts.docs.toLocaleString()} Documents):${c.reset}`);
-  console.log(`  ${c.dim}• Total Directory Size (With Indexes):${c.reset}    ${c.green}${bytesToReadable(storageFootprint.totalBytes)}${c.reset} (${bytesToMB(storageFootprint.totalBytes)} MB)`);
-  console.log(`  ${c.dim}• Data Only Size (Excluding Indexes):${c.reset}     ${c.green}${bytesToReadable(storageFootprint.withoutIndexBytes)}${c.reset} (${bytesToMB(storageFootprint.withoutIndexBytes)} MB)`);
-  console.log(`  ${c.dim}• Index Storage Overhead (JSONL / Meta):${c.reset}  ${bytesToReadable(storageFootprint.indexBytes)} (${((storageFootprint.indexBytes / Math.max(storageFootprint.totalBytes, 1)) * 100).toFixed(1)}% of total)`);
-
   console.log(`\n  ${c.bright}Storage & Architecture Comparison (${opts.docs.toLocaleString()} Records):${c.reset}`);
-  console.log(`  ┌─────────────────────────┬──────────────┬──────────────┬────────────────────────────────────┐`);
-  console.log(`  │ Database Engine         │ Disk Size    │ Storage Type │ Trade-off / Advantage              │`);
-  console.log(`  ├─────────────────────────┼──────────────┼──────────────┼────────────────────────────────────┤`);
-  console.log(`  │ ${c.cyan}AxioDB (Data Only)${c.reset}      │ ${bytesToReadable(storageFootprint.withoutIndexBytes).padEnd(12)} │ File-per-doc │ Zero native C++ deps; atomic WAL   │`);
-  console.log(`  │ ${c.cyan}AxioDB (With Indexes)${c.reset}   │ ${bytesToReadable(storageFootprint.totalBytes).padEnd(12)} │ Data + JSONL │ Sub-ms indexed point reads & cache │`);
-  console.log(`  │ SQLite (Table + Indexes)│ ${('~' + bytesToReadable(estSQLiteBytes)).padEnd(12)} │ Single file  │ Requires C++ native build toolchain│`);
-  console.log(`  │ LowDB (JSON File)       │ ${('~' + bytesToReadable(estLowDBBytes)).padEnd(12)} │ Monolithic   │ Rewrites entire file on every write│`);
-  console.log(`  │ Raw JSON File           │ ${('~' + bytesToReadable(estRawJsonBytes)).padEnd(12)} │ Single Array │ No indexing; O(N) memory to parse  │`);
-  console.log(`  └─────────────────────────┴──────────────┴──────────────┴────────────────────────────────────┘`);
-
-  // Dynamic Architectural Recommendations (computed directly from the run's metrics)
-  console.log(`\n  ${c.bright}${c.cyan}Dynamic Engineering Recommendations (Based on this Run):${c.reset}`);
-
-  const recommendations = [];
-
-  // 1. Query Indexing Strategy
-  const numIndexAdvantage = Number(indexAdvantage);
-  if (!isNaN(numIndexAdvantage) && numIndexAdvantage > 50) {
-    recommendations.push({
-      topic: "Indexing Crucial",
-      text: `Indexed lookups delivered ${numIndexAdvantage.toFixed(1)}x speedup (${indexedReadStats.p50}ms vs ${unindexedReadStats.p50}ms unindexed). Always index fields used in .query(); unindexed scans inspect all ${opts.docs.toLocaleString()} files on disk, causing heavy I/O wait.`
-    });
-  } else {
-    recommendations.push({
-      topic: "Indexing Status",
-      text: `Indexed lookups averaged ${indexedReadStats.p50}ms. As data volume scales beyond ${opts.docs.toLocaleString()} records, ensure query predicates have corresponding indexes.`
-    });
-  }
-
-  // 2. Targeted Mutations (Update & Delete)
-  const unindexedUpdateP50 = Number(unindexedUpdateStats.p50);
-  const indexedUpdateP50 = Number(indexedUpdateStats.p50);
-  const unindexedDeleteP50 = Number(unindexedDeleteStats.p50);
-  const indexedDeleteP50 = Number(indexedDeleteStats.p50);
-  const updateDiff = indexedUpdateP50 > 0 ? (unindexedUpdateP50 / indexedUpdateP50).toFixed(1) : "10+";
-  const deleteDiff = indexedDeleteP50 > 0 ? (unindexedDeleteP50 / indexedDeleteP50).toFixed(1) : "10+";
-
-  if (unindexedUpdateP50 > 150 || Number(updateDiff) >= 2) {
-    recommendations.push({
-      topic: "Targeted Mutations",
-      text: `Mutating via indexed fields is ${updateDiff}x faster for updates (${indexedUpdateStats.p50}ms vs ${unindexedUpdateStats.p50}ms) and ${deleteDiff}x faster for deletes (${indexedDeleteStats.p50}ms vs ${unindexedDeleteStats.p50}ms). Always target records by documentId or indexed keys in .UpdateOne() and .deleteOne().`
-    });
-  }
-
-  // 3. Storage Overhead & Index Pruning
-  const indexRatio = storageFootprint.totalBytes > 0 ? (storageFootprint.indexBytes / storageFootprint.totalBytes) : 0;
-  const indexPercent = (indexRatio * 100).toFixed(1);
-  if (indexRatio > 0.40) {
-    recommendations.push({
-      topic: "Index Pruning",
-      text: `Index files account for ${indexPercent}% (${bytesToReadable(storageFootprint.indexBytes)}) of total on-disk storage. Avoid indexing low-cardinality flags (e.g. isActive) or long text to conserve disk space and minimize multi-index update overhead.`
-    });
-  } else {
-    recommendations.push({
-      topic: "Storage Footprint",
-      text: `Index storage overhead is lean (${indexPercent}% of total directory size), delivering sub-millisecond point lookups without excessive disk usage.`
-    });
-  }
-
-  // 4. In-Memory Cache Optimization
-  const numCacheSpeedup = cacheSpeedup !== null ? Number(cacheSpeedup) : NaN;
-  if (!isNaN(numCacheSpeedup) && numCacheSpeedup > 10) {
-    recommendations.push({
-      topic: "InMemoryCache",
-      text: `Hot-path cache yielded ${numCacheSpeedup.toFixed(1)}x acceleration (${warmStats.avg}ms warm vs ${Number(coldMs).toFixed(2)}ms cold). Keep { Cache: true } enabled for read-heavy records (e.g. user sessions, profiles, configs) to bypass disk and index lookups completely.`
-    });
-  } else if (!isNaN(numCacheSpeedup)) {
-    recommendations.push({
-      topic: "InMemoryCache",
-      text: `Hot-path cache yielded ${numCacheSpeedup.toFixed(1)}x speedup (${warmStats.avg}ms warm vs ${Number(coldMs).toFixed(2)}ms cold). Leverage { Cache: true } for repeating query patterns.`
-    });
-  }
-
-  // 5. Bulk Ingestion & Batch Sizing
-  if (overallIngestRate > 0) {
-    const activeBatch = opts.batchSize || opts.batch || 3000;
-    recommendations.push({
-      topic: "Batch Ingestion",
-      text: `Ingestion sustained ${overallIngestRate.toLocaleString()} docs/sec in batches of ${activeBatch.toLocaleString()}. For large bulk workloads, keeping batch sizes between 2,500 and 5,000 amortizes fsync overhead while keeping memory usage stable.`
-    });
-  }
-
-  // 6. Memory & Host Headroom
-  const freeRamGB = os.freemem() / 1e9;
-  if (freeRamGB < 2.0) {
-    recommendations.push({
-      topic: "Host RAM Tuning",
-      text: `Host system has ${freeRamGB.toFixed(2)} GB free RAM. For heavy workloads, use moderate batch sizes (2,000–3,000) to keep Node RSS headroom safe (${bytesToMB(peakRss)} MB peak observed).`
-    });
-  } else {
-    recommendations.push({
-      topic: "RAM Headroom",
-      text: `Node process consumed ${bytesToMB(peakMemory)} MB peak heap (${bytesToMB(peakRss)} MB RSS) with ${freeRamGB.toFixed(2)} GB host RAM remaining. Memory scaling is well within safe operating limits.`
-    });
-  }
-
-  // 7. Architectural Workload Fit
-  if (opts.docs <= 30000) {
-    recommendations.push({
-      topic: "Workload Fit",
-      text: `At ${opts.docs.toLocaleString()} records, AxioDB is in its ideal sweet spot: pure JavaScript with zero C++ native compiler dependencies, instant cold starts, and sub-millisecond indexed queries make it ideal for CLI utilities, Electron/Tauri desktop apps, and embedded services.`
-    });
-  } else {
-    recommendations.push({
-      topic: "High Volume Scale",
-      text: `At ${opts.docs.toLocaleString()} records, always run on SSD/NVMe storage and use WAL-backed insertMany() for bulk operations, ensuring hot query paths have dedicated indexes.`
-    });
-  }
-
-  recommendations.forEach((rec, idx) => {
-    console.log(`  ${c.dim}[${idx + 1}]${c.reset} ${c.bright}${rec.topic}:${c.reset} ${rec.text}`);
-  });
+  console.log(`  ┌─────────────────────────┬──────────────┬──────────────┐`);
+  console.log(`  │ Database Engine         │ Disk Size    │ Storage Type │`);
+  console.log(`  ├─────────────────────────┼──────────────┼──────────────┤`);
+  console.log(`  │ ${c.cyan}AxioDB (Data Only)${c.reset}      │ ${bytesToReadable(storageFootprint.withoutIndexBytes).padEnd(12)} │ File-per-doc │`);
+  console.log(`  │ ${c.cyan}AxioDB (With Indexes)${c.reset}   │ ${bytesToReadable(storageFootprint.totalBytes).padEnd(12)} │ Data + JSONL │`);
+  console.log(`  └─────────────────────────┴──────────────┴──────────────┘`);
 
   // Final cleanup of the temporary directory
   if (!opts.keepData) {
