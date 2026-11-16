@@ -30,7 +30,7 @@ skill/           # Agent skill, runbooks, references, scripts
 * No `any`. Use `unknown` + guard. No `eval`, `setTimeout` hacks, temp fixes.
 * Singleton: `new AxioDB()` twice throws; tests run isolated child processes.
 * All registries JSONL append-only, last-line-wins, truncated when empty; filenames via `General` `source/config/Keys/Keys.ts` — never hardcode.
-* Dual-write indexes: memory + disk; random TTL `5-15m` — `InMemoryCache` randomizes between the configurable `minTTL`/`maxTTL` options; `IndexCache` hardcodes `Math.floor(Math.random()*(MAX_TTL_MS-MIN_TTL_MS+1)+MIN_TTL_MS)`.
+* Dual-write indexes: memory + disk; randomized TTL 5–15m to prevent cache stampedes. Details in `source/AGENTS.md`.
 * Inputs validated (reject non-object/array), path sanitized `replace(/[^a-zA-Z0-9-_]/g,'_')+path.join`, never log secrets/stack.
 
 ## Rules — non-negotiable
@@ -62,30 +62,16 @@ items.find(i => i.id === targetId);
 
 ## Tests
 
-Framework: custom `TestRunner` + `assert` from `Test/node/helpers/`. Run all: `npm run node-test`. Single suite: `npm run node-test crud`. New test file: `Test/node/modules/{feature}.test.js`, extend `TestRunner`, use `fixtures` for data, clean up in `setUp()`/`tearDown()`. Isolated child processes — singleton forbids sharing.
+Framework: custom `TestRunner` in child processes (singleton forbids sharing). Run all: `npm run node-test`. Single suite: `npm run node-test <suite>`. Suite authoring details in `Test/AGENTS.md`.
 
 ## Version sync (15 places — all must match)
 
-* `package.json` → `"version"`
-* `package-lock.json` → auto via `npm install`
-* `electron/package.json` → `"version"`
-* `Document/package.json` → `"version"`
-* `Email/package.json` → `"version"`
-* `cli/VERSION` → plain text version
-* `cli/cmd/version.go` → `var cliVersion`
-* `Document/src/data/changelog.ts` → latest entry
-* `Document/src/components/layout/Footer.tsx` → displayed version
-* `Document/public/llms.txt` → version line
-* `Document/public/llms-full.txt` → version line
-* `Document/index.html` → JSON-LD `softwareVersion`
-* `Document/public/feed.xml` → RSS feed title + guid
-* `Docker/README.md` → shield badge version
-* `skill/SKILL.md` → version tag
+All releases must sync version across all 15 project targets (core, lock, electron, Document, Email, cli, Docker, docs, AI artifacts). Full 15-target registry in `Document/AGENTS.md`.
 Regen AI artifacts: `cd Document && npx tsx scripts/generate-seo-files.ts`
 
 ## Documentation — same commit as code
 
-README, `Document/` (`npm run dev` 5173), `Dockerfile` ports/env, JSDoc with `@param/@returns/@throws/@example`. Single source: `Document/src/data/serverApi.ts` → docs + `openapi.json`. Never blur: core · HTTP API 27018 · TCP 27019 · MCP 27020 (core & Docker) · Desktop App (Electron).
+Update README, `Document/` (port 5173), `Dockerfile`, and JSDoc with code in same commit. Never blur surfaces. API single source: `Document/src/data/serverApi.ts` (see `Document/AGENTS.md`).
 
 ## Commands
 
@@ -97,7 +83,7 @@ npm run lint               # ESLint
 cd Document && npm run dev # docs 5173
 ```
 
-Workflows: `Services/Collection/collection.operation.ts` → typed try-catch → HTTP `server/router+controller` → TCP `tcp/handler` → tests → docs+AI → build/test. Helper: `Helper/{Feature}.helper.ts`. TCP: `tcp/handler/{cmd}.ts` + `client/{Feature}Proxy.ts` → command map → tests → docs.
+Workflows: Core features fan out to HTTP (27018), TCP (27019), and Client Proxies. Call chain details in `source/AGENTS.md`.
 
 ## Graphify (optional)
 After file changes, if graphify is available and `graphify-out/` exists, rebuild: `python3 -c "import graphify" 2>/dev/null && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" || echo "graphify not installed — skipping graph rebuild"`

@@ -45,15 +45,24 @@ npx tsx scripts/generate-seo-files.ts   # regen AI artifacts only
 
 `public/llms.txt`, `llms-full.txt`, `openapi.json`, `feed.xml`, `sitemap.xml` are produced by the scripts above and also by the version-bump pipeline. Regenerate rather than editing generated bodies.
 
-## Version sync (this folder — many touchpoints)
+## Version sync (15 places — all must match)
 
+Canonical 15-target version registry across the repository:
+* `package.json` → `"version"`
+* `package-lock.json` → auto via `npm install`
+* `electron/package.json` → `"version"`
 * `Document/package.json` → `"version"`
-* `src/data/changelog.ts` → newest entry version
-* `src/components/layout/Footer.tsx` → displayed version
-* `index.html` → JSON-LD `softwareVersion`
-* `public/llms.txt` → "Current version:" line · `public/llms-full.txt` → "Version:" line
-* `public/feed.xml` → RSS title + guid
-* `src/components/content/ControlGui.tsx` → versioned installer filenames (`axiodb-control_<ver>_amd64.deb`, `...-<ver>.AppImage`)
+* `Email/package.json` → `"version"`
+* `cli/VERSION` → plain text version
+* `cli/cmd/version.go` → `var cliVersion`
+* `Document/src/data/changelog.ts` → latest entry
+* `Document/src/components/layout/Footer.tsx` → displayed version
+* `Document/public/llms.txt` → version line
+* `Document/public/llms-full.txt` → version line
+* `Document/index.html` → JSON-LD `softwareVersion`
+* `Document/public/feed.xml` → RSS feed title + guid
+* `Docker/README.md` → shield badge version
+* `skill/SKILL.md` → version tag
 
 `Scripts/versionController.sh` rewrites all of the above; regen artifacts with `npx tsx scripts/generate-seo-files.ts`.
 
