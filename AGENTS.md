@@ -38,9 +38,10 @@ skill/           # Agent skill, runbooks, references, scripts
 1. `npm run build` after every change — never ship TS errors.
 2. `Test/node/modules/` must be updated for any feature; `npm run node-test` all 14 suites `crud|transaction|read|aggregation|auth|http-api|tcp-auth|tcp-noauth|tcp-transaction|tcp-tls|crash-recovery|mcp-confirm|mcp-functional|cache-options`.
 3. Never leave incomplete work — Done checklist must pass.
-4. Read before edit; follow existing patterns.
-5. Production-grade only.
-6. **Core → surfaces sync**: new core feature (`Services/Collection`, `Index`, `Transaction`, etc.) → ask user: expose via HTTP 27018 / CLI / MCP 27020 / Docker / GUI? If yes, implement consistently (HTTP `server/router+controller`, TCP `tcp/handler` + `client/*Proxy`, CLI `cli/cmd`, MCP `Helper/mcp/McpTools`, `Document/` docs + AI) with same RBAC/tests.
+4. **Research before edit — zero trial-and-error**: Trace call chains and contracts first; no speculative fixes. Deliver confident, production-grade solutions.
+5. **No over-engineering, no naive shortcuts**: Minimal and maintainable, but scale-appropriate. Avoid needless abstractions, and never use naive in-process shortcuts that fail at scale (e.g. multi-instance, large batch volume).
+6. **No unnecessary comments**: Code must be self-explanatory. Never add obvious/conversational comments; comment only complex algorithms, security, or non-obvious invariants.
+7. **Core → surfaces sync**: new core feature (`Services/Collection`, `Index`, `Transaction`, etc.) → ask user: expose via HTTP 27018 / CLI / MCP 27020 / Docker / GUI? If yes, implement consistently (HTTP `server/router+controller`, TCP `tcp/handler` + `client/*Proxy`, CLI `cli/cmd`, MCP `Helper/mcp/McpTools`, `Document/` docs + AI) with same RBAC/tests.
 
 ## Code standards
 
@@ -51,13 +52,10 @@ SOLID + DRY: duplicate logic (2+ files) → `source/Helper/{Feature}.helper.ts` 
 ```ts
 // ❌ Never hardcode filenames — use Keys.ts
 const dir = './data/MyDB';
-
 // ❌ Never use any — use unknown + type guard
 function parse(input: any) { ... }
-
 // ❌ Never nest >3 levels — extract helper
 if (a) { if (b) { if (c) { if (d) { ... } } } }
-
 // ❌ Never use Array.find in hot paths — use Map
 items.find(i => i.id === targetId);
 ```
@@ -113,7 +111,7 @@ cd Document && npm run dev # docs 5173
 Workflows: `Services/Collection/collection.operation.ts` → typed try-catch → HTTP `server/router+controller` → TCP `tcp/handler` → tests → docs+AI → build/test. Helper: `Helper/{Feature}.helper.ts`. TCP: `tcp/handler/{cmd}.ts` + `client/{Feature}Proxy.ts` → command map → tests → docs.
 
 ## Graphify (optional)
-After file changes, if graphify is available and `graphify-out/` exists, rebuild: `python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))"`
+After file changes, if graphify is available and `graphify-out/` exists, rebuild: `python3 -c "import graphify" 2>/dev/null && python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))" || echo "graphify not installed — skipping graph rebuild"`
 
 ## Ask before action
 
@@ -122,7 +120,6 @@ Always ask user permission before:
 * `git push` — confirm branch and remote
 * `npm run node-test` (full suite) — may be slow
 * Launching sub-agents (explore/plan) — costly and time-consuming; user may already know the answer or have a better approach
-
 Do NOT ask for:
 * `npm run node-test <suite>` (scoped) — run directly
 * `npm run build` — run directly
@@ -130,14 +127,13 @@ Do NOT ask for:
 
 ## Never assume
 
-* If confused or unclear about anything — ask the user. Don't guess.
-* Do web search when you need external data or documentation.
-* Ask mid-task too, not just at the start. Always prefer asking over assuming — wrong assumptions waste more time than a quick question.
+* **Clarify with operational context**: When requirements lack detail, never assume naive local implementations. Ask targeted questions addressing environment (single vs multi-instance/container), concurrency, batch sizes, and data volume.
+* Web search for external docs; ask mid-task rather than guessing — wrong assumptions waste time.
 
 ## Git
 
 * Branches: `main` (production), `maintainer/<name>` (personal). Never force-push `main`.
-* Commits: conventional format — `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`. One logical change per commit.
+* Commits: conventional format (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`). One logical change per commit.
 
 ## Done checklist
 
@@ -146,7 +142,6 @@ Do NOT ask for:
 - [ ] `npm run lint` passes
 - [ ] Docs updated (README, Document, Dockerfile, JSDoc)
 - [ ] Changelog if major/breaking
-- [ ] AI artifacts updated + regenerated, version synced (16 places)
+- [ ] AI artifacts updated + regenerated, version synced (15 places)
 - [ ] No `any`, SOLID+DRY, patterns (singleton/dual-write/TTL) followed
-- [ ] Security validated
-- [ ] No perf regressions
+- [ ] Security validated · No perf regressions
