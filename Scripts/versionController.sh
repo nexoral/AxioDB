@@ -120,6 +120,10 @@ sync_skill() {
     sed -i "s/(v[0-9]\+\.[0-9]\+\.[0-9]\+)/(v${NEW_VERSION})/g" axiodb/SKILL.md
     echo -e "  ${GREEN}Updated${NC} axiodb/SKILL.md"
   fi
+  if [ -f "Document/public/.well-known/agent-skills/axiodb/SKILL.md" ]; then
+    cp axiodb/SKILL.md Document/public/.well-known/agent-skills/axiodb/SKILL.md
+    echo -e "  ${GREEN}Synced${NC} Document/public/.well-known/agent-skills/axiodb/SKILL.md"
+  fi
 }
 
 sync_electron_version_label() {
