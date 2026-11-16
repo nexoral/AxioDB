@@ -504,6 +504,8 @@ jobs:
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: '1.22'
+          cache: true
+          cache-dependency-path: cli/go.sum
 
       - name: Read CLI version
         id: version
@@ -594,6 +596,19 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: electron/package-lock.json
+
+      - name: Cache electron-builder artifacts
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.cache/electron
+            ~/.cache/electron-builder
+          key: ${{ runner.os }}-electron-builder-${{ hashFiles('electron/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-builder-
 
       - name: Install Wine (for Windows cross-compile)
         if: steps.check.outputs.exists == 'false'
@@ -606,7 +621,7 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         run: |
           cd electron
-          npm install
+          npm ci
           npm run build:renderer
           npm run build:main
           npx electron-builder --linux deb AppImage --win nsis --mac zip
