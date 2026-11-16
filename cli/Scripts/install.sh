@@ -174,7 +174,7 @@ panel_bottom() {
 }
 
 echo ""
-echo -e "  ${CYAN}${BOLD}✦ AxioDB${NC} ${DIM}— Next-Gen Embedded NoSQL Database for TypeScript & AI Agents${NC}"
+echo -e "  ${CYAN}${BOLD}✦ AxioDB${NC} ${DIM}— Embedded Database for AI Agents${NC}"
 echo -e "  ${CYAN}$(make_bar $(( TERM_WIDTH - 2 )))${NC}"
 echo -e "  ${DIM}●${NC} System: ${BOLD}${OS}-${ARCH}${NC}   ${DIM}●${NC} Release: ${CYAN}v${VERSION}${NC}   ${DIM}●${NC} Engine: ${BOLD}Zero Native Deps${NC}"
 echo ""

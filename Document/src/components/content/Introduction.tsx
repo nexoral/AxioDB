@@ -360,8 +360,8 @@ const Introduction: React.FC = () => {
     <>
     <section id="introduction" className="scroll-mt-20">
       <Seo
-        title="AxioDB - Embedded NoSQL Database for TypeScript & AI Agents"
-        description="Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun. Advanced queries with pure JavaScript objects."
+        title="AxioDB - Embedded Database for AI Agents"
+        description="Everything you expect from a production database without having to run a database. Zero-native document database with ACID transactions & in-memory cache — verified on Node.js & Bun."
         path="/"
       />
       {/* Hero Section - two-column layout mirroring nodejs.org: headline,
@@ -398,14 +398,14 @@ const Introduction: React.FC = () => {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-normal mb-6 text-gray-900 leading-[1.1] tracking-tight">
-              Embedded NoSQL Database
+              Embedded Database
               <br />
-              for TypeScript & AI Agents
+              for AI Agents
             </h1>
 
             <p className="text-lg text-gray-600 leading-relaxed max-w-xl mb-8">
-              A fast, zero-setup embedded database with native vector search for when you need reliable storage without running a separate server.
-              Built for TypeScript apps and AI agents to safely persist, query dynamic JSON state, and perform semantic similarity search.
+              Everything you expect from a production database without having to run a database.
+              Built for AI agents and modern apps to safely persist, query dynamic JSON state, and perform semantic similarity search with zero native dependencies.
               Just <code className="font-mono text-accent-700">npm install axiodb</code> and start querying with pure JavaScript objects.
             </p>
 

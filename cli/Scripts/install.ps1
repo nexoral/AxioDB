@@ -110,7 +110,7 @@ try {
 
 Write-Host ""
 Write-Host "  ✦ AxioDB " -NoNewline -ForegroundColor Cyan
-Write-Host "— Next-Gen Embedded NoSQL Database for TypeScript & AI Agents" -ForegroundColor DarkGray
+Write-Host "— Embedded Database for AI Agents" -ForegroundColor DarkGray
 Write-Host ("  " + (Make-Bar ($termWidth - 2))) -ForegroundColor Cyan
 Write-Host "  ● " -NoNewline -ForegroundColor DarkGray
 Write-Host "System:  " -NoNewline -ForegroundColor Gray

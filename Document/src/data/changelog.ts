@@ -12,16 +12,19 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "28.51.9",
+    version: "28.51.10",
     date: "2026-11-16",
-    title: "AI context architecture standardization, cross-platform agent ignore protocol, CI pipeline optimizations, and dual-runtime benchmark integration",
+    title: "AI context architecture standardization, cross-platform agent ignore protocol, CI pipeline optimizations, and automated code quality & security CVE audit gates",
     changes: [
       "AI Context & Anti-Hallucination Architecture: Standardized all repository instruction files using Anthropic hybrid XML-Markdown boundaries (<system_overview>, <constraints>, <rules>, <governance>, <directory_map>), establishing root AGENTS.md as the canonical source of truth with 3-line pointer symmetry across CLAUDE.md, .github/copilot-instructions.md, .cursorrules, .windsurfrules, and .kiro/steering/guidelines.md",
       "Comprehensive Zero-Grep Map (ARCHITECTURE.md): Codified an exhaustive zero-grep architectural map documenting core engine files, call chains, dual-write cache lifecycles (5–15m jitter TTL), and ACID WAL commit stages (~4,160 GPT tokens)",
       "Cross-Platform AI Ignore Specification: Introduced standalone .agentignore, .cursorignore, and .claudeignore rules to prevent background agent indexing and context pollution across Windows, macOS, and Linux",
       "Deterministic Sub-Agent Delegation Protocol: Codified strict delegation rules ensuring sub-agents focus exclusively on writing code and verifying builds, barring execution of heavy test benchmarks to protect runner latency",
+      "Automated PR Code Quality Gate: Integrated real-time ESLint and strict TypeScript type-checking gate into CI, reporting structured 100% full-width status summaries and file-level diagnostic annotations directly on pull requests",
+      "Security CVE Audit & Advisory Gate: Added automated npm audit dependency vulnerability analysis with structural JSON validation, advisory references, remediation paths, and high/critical severity gate enforcement",
       "CI Workflow Optimization & Multi-Platform Caching: Enabled Go module/build caching, npm lockfile caching, and electron-builder runtime caching in release pipelines, eliminating redundant downloads across 12 cross-compiled Go targets and Electron desktop builds",
       "Dual-Runtime Matrix & EOL Deprecation: Standardized CI test matrices to test strictly against supported, non-EOL runtimes (Node.js [latest, 26.x, 24.x, 22.x] and Bun [latest, 1.4.4, 1.3.14]) while integrating automated performance benchmarks into Gate 8 verification",
+      "Targeted CodeQL Analysis: Scoped static application security testing strictly to core DBMS engine paths (source/) and container runtime (Docker/runner.js) on pull requests targeting main",
     ],
   },
   {

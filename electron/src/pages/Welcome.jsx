@@ -11,7 +11,7 @@ const HIGHLIGHTS = [
       </svg>
     ),
     title: "Pure JavaScript Speed",
-    description: "Embedded NoSQL database with zero native bindings, zero node-gyp, and instant cold starts.",
+    description: "Embedded database for AI agents with zero native bindings, zero node-gyp, and instant cold starts.",
   },
   {
     icon: (

@@ -7,8 +7,8 @@ const Comparison: React.FC = () => {
     <>
     <section id="comparison" className="pt-12 scroll-mt-20">
       <Seo
-        title="AxioDB vs SQLite, LowDB, NeDB - Embedded NoSQL Database Comparison"
-        description="Compare AxioDB against SQLite (better-sqlite3), LowDB, NeDB, and raw JSON. Discover why zero-native embedded NoSQL with ACID transactions is ideal for TypeScript apps and AI agents."
+        title="AxioDB vs SQLite, LowDB, NeDB - Embedded Database Comparison"
+        description="Compare AxioDB against SQLite (better-sqlite3), LowDB, NeDB, and raw JSON. Discover why a zero-native embedded database with ACID transactions is ideal for AI agents."
         path="/comparison"
         ogType="article"
       />

@@ -280,7 +280,7 @@ function buildAgentSkillsIndex(skillMd: string): string {
           name: "axiodb",
           type: "skill-md",
           description:
-            "Use AxioDB, an embedded NoSQL database for Node.js with advanced queries and zero native dependencies.",
+            "Use AxioDB, an embedded database for AI agents with advanced queries, vector search, and zero native dependencies.",
           url: `${SITE_URL}/.well-known/agent-skills/axiodb/SKILL.md`,
           digest: `sha256:${createHash("sha256").update(skillMd).digest("hex")}`,
           license: "MIT",
@@ -312,7 +312,7 @@ function buildRssFeed(): string {
   <channel>
     <title>AxioDB Changelog</title>
     <link>${SITE_URL}/changelog</link>
-    <description>Release notes and version history for AxioDB: Embedded NoSQL Database for TypeScript &amp; AI Agents (verified on Node.js, Bun &amp; Deno).</description>
+    <description>Release notes and version history for AxioDB: Embedded Database for AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
     <atom:link href="${SITE_URL}/feed.xml" rel="self" type="application/rss+xml" />
