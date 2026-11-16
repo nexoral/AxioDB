@@ -5,12 +5,12 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded Database for AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Mon, 16 Nov 2026 11:12:53 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 16 Nov 2026 11:14:42 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v28.51.9 — AI context architecture standardization, cross-platform agent ignore protocol, CI pipeline optimizations, and automated code quality &amp; security CVE audit gates</title>
+      <title>AxioDB v28.51.10 — AI context architecture standardization, cross-platform agent ignore protocol, CI pipeline optimizations, and automated code quality &amp; security CVE audit gates</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-28.51.9</guid>
+      <guid isPermaLink="false">axiodb-28.51.10</guid>
       <pubDate>Mon, 16 Nov 2026 00:00:00 GMT</pubDate>
       <description>AI Context &amp; Anti-Hallucination Architecture: Standardized all repository instruction files using Anthropic hybrid XML-Markdown boundaries (&lt;system_overview&gt;, &lt;constraints&gt;, &lt;rules&gt;, &lt;governance&gt;, &lt;directory_map&gt;), establishing root AGENTS.md as the canonical source of truth with 3-line pointer symmetry across CLAUDE.md, .github/copilot-instructions.md, .cursorrules, .windsurfrules, and .kiro/steering/guidelines.md | Comprehensive Zero-Grep Map (ARCHITECTURE.md): Codified an exhaustive zero-grep architectural map documenting core engine files, call chains, dual-write cache lifecycles (5–15m jitter TTL), and ACID WAL commit stages (~4,160 GPT tokens) | Cross-Platform AI Ignore Specification: Introduced standalone .agentignore, .cursorignore, and .claudeignore rules to prevent background agent indexing and context pollution across Windows, macOS, and Linux</description>
     </item>
