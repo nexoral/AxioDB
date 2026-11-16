@@ -29,6 +29,199 @@ jobs:
               - 'Test/**'
               - 'package.json'
 
+  code_quality_gate:
+    name: "Code Quality — ESLint & TypeScript Gate"
+    needs: [detect_changes]
+    if: needs.detect_changes.outputs.run_test == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint (JSON format)
+        id: eslint_run
+        run: |
+          npm run lint -- -f json > eslint-report.json || true
+
+      - name: Run TypeScript Strict Check
+        id: tsc_run
+        run: |
+          npx tsc --noEmit 2>&1 > tsc-output.txt || true
+          if [ $? -eq 0 ]; then
+            echo "tsc_status=success" >> $GITHUB_OUTPUT
+          else
+            echo "tsc_status=failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment Code Quality Report
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let eslintData = [];
+            let totalErrors = 0;
+            let totalWarnings = 0;
+            let fileViolations = [];
+
+            if (fs.existsSync('eslint-report.json')) {
+              try {
+                const raw = fs.readFileSync('eslint-report.json', 'utf8');
+                const idx = raw.indexOf('[');
+                if (idx !== -1) {
+                  eslintData = JSON.parse(raw.slice(idx));
+                  for (const f of eslintData) {
+                    totalErrors += f.errorCount || 0;
+                    totalWarnings += f.warningCount || 0;
+                    if ((f.errorCount || 0) > 0 || (f.warningCount || 0) > 0) {
+                      const cleanPath = f.filePath.replace(process.cwd() + '/', '');
+                      for (const msg of f.messages) {
+                        fileViolations.push({
+                          file: cleanPath,
+                          line: msg.line,
+                          col: msg.column,
+                          severity: msg.severity === 2 ? '🔴 Error' : '🟡 Warning',
+                          rule: msg.ruleId || 'syntax',
+                          message: msg.message
+                        });
+                      }
+                    }
+                  }
+                }
+              } catch (e) {
+                console.log('Failed to parse eslint-report.json', e);
+              }
+            }
+
+            let tscOutput = '';
+            let tscPassed = true;
+            if (fs.existsSync('tsc-output.txt')) {
+              tscOutput = fs.readFileSync('tsc-output.txt', 'utf8').trim();
+              if (tscOutput.length > 0 && !tscOutput.includes('npm notice')) {
+                // If there's real compiler error text
+                const lines = tscOutput.split('\n').filter(l => !l.startsWith('npm notice'));
+                if (lines.length > 0) {
+                  tscPassed = false;
+                }
+              }
+            }
+
+            let md = `### 💎 Code Quality Report\n\n`;
+            md += `<table width="100%">\n`;
+            md += `  <thead>\n`;
+            md += `    <tr>\n`;
+            md += `      <th align="left" width="40%">Quality Check</th>\n`;
+            md += `      <th align="center" width="20%">Status</th>\n`;
+            md += `      <th align="center" width="20%">Errors</th>\n`;
+            md += `      <th align="center" width="20%">Warnings</th>\n`;
+            md += `    </tr>\n`;
+            md += `  </thead>\n`;
+            md += `  <tbody>\n`;
+            md += `    <tr>\n`;
+            md += `      <td><b>ESLint (<code>source/</code>)</b></td>\n`;
+            md += `      <td align="center">${totalErrors === 0 ? '✅ Passed' : '❌ Failed'}</td>\n`;
+            md += `      <td align="center">${totalErrors}</td>\n`;
+            md += `      <td align="center">${totalWarnings}</td>\n`;
+            md += `    </tr>\n`;
+            md += `    <tr>\n`;
+            md += `      <td><b>TypeScript Strictness (<code>tsc --noEmit</code>)</b></td>\n`;
+            md += `      <td align="center">${tscPassed ? '✅ Passed' : '❌ Failed'}</td>\n`;
+            md += `      <td align="center">${tscPassed ? 0 : 'Type Errors'}</td>\n`;
+            md += `      <td align="center">0</td>\n`;
+            md += `    </tr>\n`;
+            md += `  </tbody>\n`;
+            md += `</table>\n\n`;
+
+            if (totalErrors === 0 && totalWarnings === 0 && tscPassed) {
+              md += `🎉 **100% clean code quality!** Zero lint violations and strict TypeScript types satisfied across all ${eslintData.length || 129} core engine files.\n`;
+            } else {
+              md += `⚠️ **Code quality issues detected in PR:**\n\n`;
+              if (fileViolations.length > 0) {
+                md += `#### 📋 ESLint Issues\n\n`;
+                md += `<table width="100%">\n`;
+                md += `  <thead>\n`;
+                md += `    <tr>\n`;
+                md += `      <th align="center" width="15%">Severity</th>\n`;
+                md += `      <th align="left" width="35%">Location</th>\n`;
+                md += `      <th align="left" width="20%">Rule</th>\n`;
+                md += `      <th align="left" width="30%">Message</th>\n`;
+                md += `    </tr>\n`;
+                md += `  </thead>\n`;
+                md += `  <tbody>\n`;
+                for (const v of fileViolations.slice(0, 15)) {
+                  md += `    <tr>\n`;
+                  md += `      <td align="center">${v.severity}</td>\n`;
+                  md += `      <td><code>${v.file}:${v.line}:${v.col}</code></td>\n`;
+                  md += `      <td><code>${v.rule}</code></td>\n`;
+                  md += `      <td>${v.message}</td>\n`;
+                  md += `    </tr>\n`;
+                }
+                md += `  </tbody>\n`;
+                md += `</table>\n\n`;
+                if (fileViolations.length > 15) {
+                  md += `*...and ${fileViolations.length - 15} more issues.*\n\n`;
+                }
+              }
+              if (!tscPassed && tscOutput) {
+                md += `#### 🛑 TypeScript Compiler Errors\n\`\`\`\n${tscOutput.slice(0, 1500)}\n\`\`\`\n`;
+              }
+            }
+
+            // Step Summary
+            await core.summary.addRaw(md).write();
+
+            if (totalErrors > 0 || !tscPassed) {
+              core.error(`Code Quality Gate failed: ${totalErrors} ESLint errors, TypeScript passed: ${tscPassed}`);
+            }
+
+            // Post or Update Pull Request Comment
+            if (context.payload.pull_request) {
+              const prNumber = context.payload.pull_request.number;
+              try {
+                const { data: comments } = await github.rest.issues.listComments({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                });
+
+                const botComment = comments.find(c => c.body.includes('### 💎 Code Quality Report'));
+                if (botComment) {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: botComment.id,
+                    body: md,
+                  });
+                } else {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: prNumber,
+                    body: md,
+                  });
+                }
+              } catch (err) {
+                console.log('Unable to post PR comment:', err.message);
+              }
+            }
+
+      - name: Enforce Zero Lint & Type Errors
+        run: |
+          npm run lint
+          npx tsc --noEmit
+
   auth_rbac_gate:
     name: "Gate 1 — Auth (RBAC) Test Suite"
     needs: [detect_changes]
@@ -375,21 +568,38 @@ jobs:
             const total = vulns.total || 0;
 
             let md = `### 🔒 Security Audit Report (CVE Check)\n\n`;
-            md += `| Severity | Vulnerabilities |\n`;
-            md += `| :--- | :--- |\n`;
-            md += `| 🔴 **Critical** | ${critical} |\n`;
-            md += `| 🟠 **High** | ${high} |\n`;
-            md += `| 🟡 **Moderate** | ${moderate} |\n`;
-            md += `| 🔵 **Low** | ${low} |\n`;
-            md += `| 📦 **Total Dependencies Scanned** | ${metadata.dependencies?.total || 0} |\n\n`;
+            md += `<table width="100%">\n`;
+            md += `  <thead>\n`;
+            md += `    <tr>\n`;
+            md += `      <th align="left" width="50%">Severity Level</th>\n`;
+            md += `      <th align="center" width="50%">Vulnerabilities</th>\n`;
+            md += `    </tr>\n`;
+            md += `  </thead>\n`;
+            md += `  <tbody>\n`;
+            md += `    <tr><td>🔴 <b>Critical</b></td><td align="center">${critical}</td></tr>\n`;
+            md += `    <tr><td>🟠 <b>High</b></td><td align="center">${high}</td></tr>\n`;
+            md += `    <tr><td>🟡 <b>Moderate</b></td><td align="center">${moderate}</td></tr>\n`;
+            md += `    <tr><td>🔵 <b>Low</b></td><td align="center">${low}</td></tr>\n`;
+            md += `    <tr><td>📦 <b>Total Dependencies Scanned</b></td><td align="center">${metadata.dependencies?.total || 0}</td></tr>\n`;
+            md += `  </tbody>\n`;
+            md += `</table>\n\n`;
 
             if (total === 0) {
               md += `✅ **Zero known CVE vulnerabilities detected.** All dependencies passed clean!\n`;
             } else {
               md += `⚠️ **Found ${total} advisory issue(s).**\n\n`;
               md += `#### 📋 Vulnerability Details & CVE References\n\n`;
-              md += `| Package | Severity | CVE / Title | Vulnerable Range | Fix Status |\n`;
-              md += `| :--- | :--- | :--- | :--- | :--- |\n`;
+              md += `<table width="100%">\n`;
+              md += `  <thead>\n`;
+              md += `    <tr>\n`;
+              md += `      <th align="left" width="20%">Package</th>\n`;
+              md += `      <th align="center" width="15%">Severity</th>\n`;
+              md += `      <th align="left" width="30%">CVE / Title</th>\n`;
+              md += `      <th align="left" width="15%">Vulnerable Range</th>\n`;
+              md += `      <th align="left" width="20%">Fix Status</th>\n`;
+              md += `    </tr>\n`;
+              md += `  </thead>\n`;
+              md += `  <tbody>\n`;
               
               const details = report.vulnerabilities || {};
               for (const [pkg, info] of Object.entries(details)) {
@@ -398,7 +608,7 @@ jobs:
                 if (Array.isArray(info.via)) {
                   const advisories = info.via
                     .filter(v => typeof v === 'object' && v !== null)
-                    .map(v => v.url ? `[${v.title || v.source || 'Advisory'}](${v.url})` : (v.title || v.source));
+                    .map(v => v.url ? `<a href="${v.url}">${v.title || v.source || 'Advisory'}</a>` : (v.title || v.source));
                   if (advisories.length > 0) {
                     cveInfo = advisories.join(', ');
                   } else {
@@ -411,14 +621,21 @@ jobs:
 
                 let fixText = 'No direct fix';
                 if (info.fixAvailable === true) {
-                  fixText = '✅ `npm audit fix`';
+                  fixText = '✅ <code>npm audit fix</code>';
                 } else if (typeof info.fixAvailable === 'object' && info.fixAvailable !== null) {
-                  fixText = `Upgrade to \`${info.fixAvailable.name}@${info.fixAvailable.version}\``;
+                  fixText = `Upgrade to <code>${info.fixAvailable.name}@${info.fixAvailable.version}</code>`;
                 }
 
-                md += `| \`${pkg}\` | **${info.severity.toUpperCase()}** | ${cveInfo} | \`${info.range || 'N/A'}\` | ${fixText} |\n`;
+                md += `    <tr>\n`;
+                md += `      <td><code>${pkg}</code></td>\n`;
+                md += `      <td align="center"><b>${info.severity.toUpperCase()}</b></td>\n`;
+                md += `      <td>${cveInfo}</td>\n`;
+                md += `      <td><code>${info.range || 'N/A'}</code></td>\n`;
+                md += `      <td>${fixText}</td>\n`;
+                md += `    </tr>\n`;
               }
-              md += `\n`;
+              md += `  </tbody>\n`;
+              md += `</table>\n\n`;
             }
 
             // Write to Workflow Step Summary & Annotations
