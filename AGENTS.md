@@ -42,13 +42,14 @@ When working in a subsystem, read its scoped `AGENTS.md` for local rules and arc
 <rules>
 ## Rules — non-negotiable
 
-1. `npm run build` after every change — never ship TS errors.
-2. `Test/node/modules/` must be updated for any feature; `npm run node-test` all 14 suites `crud|transaction|read|aggregation|auth|http-api|tcp-auth|tcp-noauth|tcp-transaction|tcp-tls|crash-recovery|mcp-confirm|mcp-functional|cache-options`.
-3. Never leave incomplete work — Done checklist must pass.
-4. **Research before edit — zero trial-and-error**: Trace call chains and contracts first; no speculative fixes. Deliver confident, production-grade solutions.
-5. **No over-engineering, no naive shortcuts**: Minimal and maintainable, but scale-appropriate. Avoid needless abstractions, and never use naive in-process shortcuts that fail at scale (e.g. multi-instance, large batch volume).
-6. **No unnecessary comments**: Code must be self-explanatory. Never add obvious/conversational comments; comment only complex algorithms, security, or non-obvious invariants.
-7. **Core → surfaces sync**: new core feature (`Services/Collection`, `Index`, `Transaction`, etc.) → ask user: expose via HTTP 27018 / CLI / MCP 27020 / Docker / GUI? If yes, implement consistently (HTTP `server/router+controller`, TCP `tcp/handler` + `client/*Proxy`, CLI `cli/cmd`, MCP `Helper/mcp/McpTools`, `Document/` docs + AI) with same RBAC/tests.
+1. **Code Decision Ladder**: Before writing code, evaluate in order: (1) Does it need to exist? (2) Already in codebase? (3) Standard lib/platform? (4) Already-installed dep — never add a dep for a few lines. (5) One line? Write one line. (6) Otherwise: minimum code that works.
+2. **Deletion beats addition**: Keep values in the form the platform already gives — no unnecessary conversions, wrappers, or boilerplate.
+3. **Research before edit — zero trial-and-error**: Trace call chains and contracts first; map scope (callers, tests, fixtures, config, exports) and what it could break. No speculative fixes or naive shortcuts that fail at scale.
+4. **Bug fix protocol**: Grep every caller of the touched function first, fix the root cause once in shared code — never patch each callsite separately.
+5. **Safeguards & Tests**: Code moved or merged keeps error handling. `npm run build` after every change — never ship TS errors. Update `Test/node/modules/` for any feature (all 14 suites must pass).
+6. **No unnecessary comments**: Code must be self-explanatory. Mark deliberate shortcuts with `// ponytail: <ceiling> — <upgrade path>`.
+7. **Core → surfaces sync**: New core feature (`Services/Collection`, `Index`, `Transaction`, etc.) → ask user: expose via HTTP 27018 / CLI / MCP 27020 / Docker / GUI? If yes, implement consistently with same RBAC/tests.
+8. **Reply discipline**: End every implementation reply with 1–2 lines: what was skipped/not checked + any risk the user must know.
 </rules>
 
 <code_standards>
