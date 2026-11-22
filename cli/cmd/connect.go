@@ -430,6 +430,54 @@ func handleDBCommand(client *protocol.Client, input, db, coll string) error {
 		}
 		printJSON(resp)
 
+	case strings.HasPrefix(input, "db.") && strings.Contains(input, ".vectorSearch("):
+		if coll == "" {
+			return fmt.Errorf("no collection selected")
+		}
+		parts := strings.SplitN(input, ".vectorSearch(", 2)
+		if len(parts) < 2 {
+			return fmt.Errorf("syntax: db.<coll>.vectorSearch(<field>, <vector>, [options])")
+		}
+		argsStr := strings.TrimSuffix(parts[1], ")")
+		var rawArgs []json.RawMessage
+		if err := json.Unmarshal([]byte("["+argsStr+"]"), &rawArgs); err != nil || len(rawArgs) < 2 {
+			return fmt.Errorf("syntax: db.<coll>.vectorSearch(\"<field>\", [vector], [options])")
+		}
+		var field string
+		if err := json.Unmarshal(rawArgs[0], &field); err != nil {
+			return fmt.Errorf("invalid field string: %w", err)
+		}
+		var vector []float64
+		if err := json.Unmarshal(rawArgs[1], &vector); err != nil {
+			return fmt.Errorf("invalid vector array: %w", err)
+		}
+		opts := commands.VectorSearchOptions{
+			Field:  field,
+			Vector: vector,
+		}
+		if len(rawArgs) > 2 {
+			var optMap map[string]interface{}
+			if err := json.Unmarshal(rawArgs[2], &optMap); err == nil {
+				if topK, ok := optMap["topK"].(float64); ok {
+					opts.TopK = int(topK)
+				}
+				if minScore, ok := optMap["minScore"].(float64); ok {
+					opts.MinScore = &minScore
+				}
+				if metric, ok := optMap["metric"].(string); ok {
+					opts.Metric = metric
+				}
+				if query, ok := optMap["query"]; ok {
+					opts.Query = query
+				}
+			}
+		}
+		resp, err := commands.VectorSearch(client, db, coll, opts)
+		if err != nil {
+			return err
+		}
+		printJSON(resp)
+
 	case strings.HasPrefix(input, "db.") && strings.Contains(input, ".createIndex("):
 		if coll == "" {
 			return fmt.Errorf("no collection selected")
@@ -660,6 +708,7 @@ func printREPLHelp() {
   db.<coll>.deleteMany(<query>)   Delete many documents
   db.<coll>.aggregate(<pipeline>) Run aggregation
   db.<coll>.countDocuments()      Count documents
+  db.<coll>.vectorSearch(<f>, <v>) Vector similarity search
   db.<coll>.createIndex(<fields>) Create index
   db.<coll>.dropIndex(<name>)     Drop index
   db.<coll>.getIndexes()          List indexes

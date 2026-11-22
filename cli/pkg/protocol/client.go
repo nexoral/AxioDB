@@ -44,7 +44,7 @@ func NewClient(cfg ClientConfig) *Client {
 }
 
 func (c *Client) Connect() error {
-	addr := fmt.Sprintf("%s:%d", c.config.Host, c.config.Port)
+	addr := net.JoinHostPort(c.config.Host, fmt.Sprintf("%d", c.config.Port))
 
 	if c.config.TLSEnabled {
 		tlsCfg := &tls.Config{

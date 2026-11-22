@@ -343,11 +343,7 @@ const { parentPort, workerData } = require('worker_threads');
 
 ${MATCHES_QUERY_FN}
 
-if (workerData && Array.isArray(workerData.chunk)) {
-  const chunk = workerData.chunk;
-  const query = workerData.query;
-  const isUpdated = Boolean(workerData.isUpdated);
-  const additionalField = workerData.aditionalFiled || workerData.additionalFiled;
+function searchChunk(chunk, query, isUpdated, additionalField) {
   const result = [];
   const len = chunk.length;
 
@@ -360,6 +356,27 @@ if (workerData && Array.isArray(workerData.chunk)) {
       }
     }
   }
+
+  return result;
+}
+
+if (parentPort) {
+  parentPort.on('message', (msg) => {
+    try {
+      if (msg && Array.isArray(msg.chunk)) {
+        const additionalField = msg.aditionalFiled || msg.additionalFiled || msg.additionalField;
+        const result = searchChunk(msg.chunk, msg.query, Boolean(msg.isUpdated), additionalField);
+        parentPort.postMessage({ jobId: msg.jobId, result });
+      }
+    } catch (error) {
+      parentPort.postMessage({ jobId: msg.jobId, error: String(error) });
+    }
+  });
+}
+
+if (workerData && Array.isArray(workerData.chunk)) {
+  const additionalField = workerData.aditionalFiled || workerData.additionalFiled;
+  const result = searchChunk(workerData.chunk, workerData.query, Boolean(workerData.isUpdated), additionalField);
 
   if (parentPort) {
     parentPort.postMessage(result);
