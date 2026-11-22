@@ -310,7 +310,7 @@ const VectorSearchTab = ({ selectedDatabase, selectedCollection }) => {
             </div>
 
             <div className="text-xs bg-slate-50 p-2 rounded-md border border-slate-100 overflow-x-auto">
-              <ObjectView data={doc} initialExpandedDepth={1} />
+              <ObjectView value={doc} maxHeight={250} />
             </div>
           </motion.div>
         ))}

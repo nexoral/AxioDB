@@ -1,4 +1,5 @@
 // Predefined permission catalogue and role matrix for the Control Server's RBAC system.
+import { General } from "./Keys";
 
 export const PERMISSIONS = {
   DB_VIEW: "db:view",
@@ -125,7 +126,9 @@ export const RESERVED_DB_NAME = "config";
 
 /** The `config` database backs the RBAC system and must never be reachable through the generic Database/Collection/Operation routes. */
 export function isReservedDatabaseName(name: string): boolean {
-  return typeof name === "string" && name.toLowerCase() === RESERVED_DB_NAME;
+  if (typeof name !== "string") return false;
+  const lower = name.toLowerCase();
+  return lower === RESERVED_DB_NAME || lower === General.PID_Lock_File.toLowerCase() || lower.endsWith(".lock");
 }
 
 export const CONFIG_USERS_COLLECTION = "users";

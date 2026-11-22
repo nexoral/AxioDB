@@ -417,7 +417,7 @@ export class AxioDB {
     if ("data" in totalDatabases) {
       const databasesList = totalDatabases.data as string[];
       const visibleDatabases: string[] = databasesList.filter(
-        (db: string) => db.toLowerCase() !== RESERVED_DB_NAME,
+        (db: string) => db.toLowerCase() !== RESERVED_DB_NAME && db !== General.PID_Lock_File && !db.endsWith(".lock"),
       );
       const FinalDatabaseInfo: FinalDatabaseInfo = {
         CurrentPath: this.RootName,

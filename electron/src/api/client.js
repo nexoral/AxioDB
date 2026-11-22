@@ -159,6 +159,14 @@ apiClient.interceptors.response.use(
   }
 );
 
+export const insertManyDocuments = async (dbName, collectionName, documents) => {
+  const response = await apiClient.post(
+    `/api/operation/create-many/?dbName=${encodeURIComponent(dbName)}&collectionName=${encodeURIComponent(collectionName)}`,
+    documents
+  );
+  return response.data;
+};
+
 export const vectorSearch = async (dbName, collectionName, { field, vector, options = {}, query }) => {
   const payload = {
     field,
