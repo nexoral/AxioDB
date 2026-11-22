@@ -12,6 +12,16 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "28.53.12",
+    date: "2026-11-23",
+    title: "Standalone Go CLI vector similarity search integration and worker search thread pool optimization",
+    changes: [
+      "Go CLI Vector Search: Added 'axiodb document vector-search' command supporting --field, --vector, --vector-file, --top-k, --min-score, --metric (cosine, dot, euclidean), and --query pre-filtering over TCP wire protocol (port 27019)",
+      "Interactive Shell Vector Search: Extended REPL shell with 'db.<coll>.vectorSearch(<field>, <vector>, [options])' support",
+      "Worker Search Pooling: Optimized parallel in-memory query evaluation in Searcher.utils.ts and workerScript.engine.ts using persistent WorkerPool instances to eliminate thread creation latency and CPU thrashing",
+    ],
+  },
+  {
     version: "28.52.11",
     date: "2026-11-16",
     title: "Brand realignment, modular Anthropic hybrid XML agent skill architecture, and supply-chain hardening",

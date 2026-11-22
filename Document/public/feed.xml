@@ -5,12 +5,12 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded Database for AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Mon, 16 Nov 2026 13:27:33 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 22 Nov 2026 23:03:35 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>AxioDB v28.52.11 — Brand realignment, modular Anthropic hybrid XML agent skill architecture, and supply-chain hardening</title>
+      <title>AxioDB v28.53.12 — Brand realignment, modular Anthropic hybrid XML agent skill architecture, and supply-chain hardening</title>
       <link>https://axiodb.in/changelog</link>
-      <guid isPermaLink="false">axiodb-28.52.11</guid>
+      <guid isPermaLink="false">axiodb-28.53.12</guid>
       <pubDate>Mon, 16 Nov 2026 00:00:00 GMT</pubDate>
       <description>Brand Realignment: Standardized repository-wide product branding and tagline to 'Embedded Database for AI Agents — Everything you expect from a production database without having to run a database' across documentation, CLI, Docker, Electron GUI, and AI artifacts | Modular Agent Skill Architecture: Restructured the official AxioDB agent skill into 11 single-responsibility runbooks under axiodb/ adhering to Anthropic hybrid XML-Markdown boundaries and a strict 150-line per-file ceiling to eliminate cognitive load and prompt bleed | Progressive Disclosure: Redesigned axiodb/SKILL.md as a lightweight 85-line router with deterministic decision matrices and explicit parent-to-child trigger rules for CRUD, vector search, transactions, and diagnostics</description>
     </item>
