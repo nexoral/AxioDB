@@ -159,5 +159,21 @@ apiClient.interceptors.response.use(
   }
 );
 
+export const vectorSearch = async (dbName, collectionName, { field, vector, options = {}, query }) => {
+  const payload = {
+    field,
+    vector,
+    options,
+  };
+  if (query && Object.keys(query).length > 0) {
+    payload.query = query;
+  }
+  const response = await apiClient.post(
+    `/api/operation/vector-search/?dbName=${encodeURIComponent(dbName)}&collectionName=${encodeURIComponent(collectionName)}`,
+    payload
+  );
+  return response.data;
+};
+
 export default apiClient;
 export { customIpcAdapter, sanitizeHeaders, sanitizeErrorMessage };

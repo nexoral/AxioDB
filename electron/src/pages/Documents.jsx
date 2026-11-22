@@ -14,6 +14,7 @@ import DocumentCard from "../components/document/DocumentCard";
 import { Skeleton } from "../components/ui/Feedback";
 import QueryHistoryModal from "../components/query/QueryHistoryModal";
 import SavedQueriesModal from "../components/query/SavedQueriesModal";
+import VectorSearchTab from "../components/query/VectorSearchTab";
 
 const Documents = () => {
   const {
@@ -650,6 +651,19 @@ const Documents = () => {
             >
               Query Console
             </button>
+            <button
+              onClick={() => setActiveTab("vector")}
+              className={`px-3 py-1 rounded-md transition-all flex items-center gap-1.5 ${
+                activeTab === "vector"
+                  ? "bg-white text-emerald-700 shadow-xs font-semibold"
+                  : "hover:text-slate-900"
+              }`}
+            >
+              <svg className="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Vector Search
+            </button>
           </div>
 
           {activeTab === "documents" && (
@@ -1031,6 +1045,16 @@ const Documents = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ==========================================
+          TAB 3: VECTOR SEARCH
+         ========================================== */}
+      {activeTab === "vector" && (
+        <VectorSearchTab
+          selectedDatabase={selectedDatabase}
+          selectedCollection={selectedCollection}
+        />
       )}
 
       {/* Modals with autocomplete field suggestions */}
