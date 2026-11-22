@@ -384,6 +384,85 @@ var documentCountCmd = &cobra.Command{
 	},
 }
 
+var documentVectorSearchCmd = &cobra.Command{
+	Use:   "vector-search",
+	Short: "Perform semantic vector similarity search on a collection",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		cfg, err := config.FromFlags(cmd)
+		if err != nil {
+			return err
+		}
+		if cfg.DB == "" || cfg.Collection == "" {
+			return fmt.Errorf("--db and --collection flags are required")
+		}
+
+		field, _ := cmd.Flags().GetString("field")
+		if field == "" {
+			return fmt.Errorf("--field flag is required")
+		}
+
+		vectorStr, _ := cmd.Flags().GetString("vector")
+		vectorFile, _ := cmd.Flags().GetString("vector-file")
+
+		var vectorBytes []byte
+		if vectorFile != "" {
+			data, err := os.ReadFile(vectorFile)
+			if err != nil {
+				return fmt.Errorf("reading vector file: %w", err)
+			}
+			vectorBytes = data
+		} else if vectorStr != "" {
+			vectorBytes = []byte(vectorStr)
+		} else {
+			return fmt.Errorf("either --vector or --vector-file is required")
+		}
+
+		var vector []float64
+		if err := json.Unmarshal(vectorBytes, &vector); err != nil {
+			return fmt.Errorf("invalid vector JSON array: %w", err)
+		}
+		if len(vector) == 0 {
+			return fmt.Errorf("vector must not be empty")
+		}
+
+		topK, _ := cmd.Flags().GetInt("top-k")
+		metric, _ := cmd.Flags().GetString("metric")
+		queryStr, _ := cmd.Flags().GetString("query")
+
+		opts := commands.VectorSearchOptions{
+			Field:  field,
+			Vector: vector,
+			TopK:   topK,
+			Metric: metric,
+		}
+
+		if cmd.Flags().Changed("min-score") {
+			minScore, _ := cmd.Flags().GetFloat64("min-score")
+			opts.MinScore = &minScore
+		}
+
+		if queryStr != "" {
+			var query interface{}
+			if err := json.Unmarshal([]byte(queryStr), &query); err != nil {
+				return fmt.Errorf("invalid query JSON: %w", err)
+			}
+			opts.Query = query
+		}
+
+		client, err := cfg.ConnectAndAuth()
+		if err != nil {
+			return err
+		}
+		defer client.Disconnect()
+
+		resp, err := commands.VectorSearch(client, cfg.DB, cfg.Collection, opts)
+		if err != nil {
+			return err
+		}
+		return printOutput(cfg.Output, resp)
+	},
+}
+
 func init() {
 	documentQueryCmd.Flags().Int("limit", 0, "Limit results")
 	documentQueryCmd.Flags().Int("skip", 0, "Skip results")
@@ -393,6 +472,14 @@ func init() {
 
 	documentUpdateByQueryCmd.Flags().Bool("many", false, "Update multiple documents")
 	documentDeleteByQueryCmd.Flags().Bool("many", false, "Delete multiple documents")
+
+	documentVectorSearchCmd.Flags().String("field", "embedding", "Vector field name")
+	documentVectorSearchCmd.Flags().String("vector", "", "Vector JSON array (e.g. '[0.1, 0.2]')")
+	documentVectorSearchCmd.Flags().String("vector-file", "", "Path to file containing vector JSON array")
+	documentVectorSearchCmd.Flags().Int("top-k", 5, "Maximum number of results to return")
+	documentVectorSearchCmd.Flags().Float64("min-score", 0, "Minimum similarity score threshold")
+	documentVectorSearchCmd.Flags().String("metric", "cosine", "Distance metric: cosine, dot, or euclidean")
+	documentVectorSearchCmd.Flags().String("query", "", "Optional pre-filter query JSON")
 
 	documentCmd.AddCommand(documentInsertCmd)
 	documentCmd.AddCommand(documentInsertManyCmd)
@@ -405,5 +492,6 @@ func init() {
 	documentCmd.AddCommand(documentDeleteByQueryCmd)
 	documentCmd.AddCommand(documentAggregateCmd)
 	documentCmd.AddCommand(documentCountCmd)
+	documentCmd.AddCommand(documentVectorSearchCmd)
 	rootCmd.AddCommand(documentCmd)
 }

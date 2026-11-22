@@ -1209,6 +1209,58 @@ async function executeTcpRequest(fullUrl: URL, config: {
     };
   }
 
+  // 14b. Vector Search
+  if (pathname.includes("/api/operation/vector-search")) {
+    const dbName = String(query.dbName || query.databaseName || body.dbName || body.databaseName || "");
+    const collectionName = String(query.collectionName || body.collectionName || "");
+    const field = String(body.field || query.field || "embedding");
+    const vector = Array.isArray(body.vector) ? body.vector : [];
+    const options = (body.options && typeof body.options === "object") ? body.options : {};
+    const queryFilter = (body.query && typeof body.query === "object") ? body.query : undefined;
+
+    const res = await tcpBridge.sendCommand(host, port, "VECTOR_SEARCH", {
+      dbName,
+      collectionName,
+      field,
+      vector,
+      options,
+      query: queryFilter,
+    }, timeout, isTls);
+
+    if (res.statusCode && res.statusCode >= 400) {
+      return {
+        status: res.statusCode,
+        statusText: "Error",
+        headers: {},
+        data: {
+          statusCode: res.statusCode,
+          message: res.message || res.error || "Failed to perform vector search",
+          error: res.error,
+        },
+      };
+    }
+
+    let vectorDocs: unknown[] = [];
+    if (Array.isArray(res.data)) {
+      vectorDocs = res.data;
+    } else if (res.data && typeof res.data === "object") {
+      const d = res.data as Record<string, unknown>;
+      if (Array.isArray(d.data)) vectorDocs = d.data;
+      else if (Array.isArray(d.documents)) vectorDocs = d.documents;
+    }
+
+    return {
+      status: res.statusCode || 200,
+      statusText: "OK",
+      headers: {},
+      data: {
+        statusCode: res.statusCode || 200,
+        message: res.message || "Vector search completed successfully",
+        data: vectorDocs,
+      },
+    };
+  }
+
   // 15. Metrics & System Diagnostics
   if (pathname.includes("/api/system")) {
     const res = await tcpBridge.sendCommand(host, port, "GET_SYSTEM_INFO", {}, timeout, isTls);

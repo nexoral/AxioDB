@@ -1,6 +1,6 @@
 {
   "name": "axiodb",
-  "version": "28.52.11",
+  "version": "28.53.12",
   "description": "Embedded Database for AI Agents. Everything you expect from a production database without having to run a database.",
   "main": "./axiodb.js",
   "types": "./axiodb.d.ts",

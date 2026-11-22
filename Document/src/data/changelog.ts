@@ -12,6 +12,19 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
+    version: "28.53.12",
+    date: "2026-11-23",
+    title: "Vector similarity search across CLI & Electron Control GUI, dual-protocol bulk ingestion, and search worker pooling",
+    changes: [
+      "Electron Vector Search Playground: Added dedicated Vector Search workspace with real-time similarity metrics (cosine, dot, euclidean), interactive threshold filters, latency benchmarking, and metadata pre-filtering over both HTTP (27018) and TCP (27019)",
+      "Electron Bulk Ingestion: Enhanced document insertion modal with dual Single and Bulk modes, native JSON file drag-and-drop / upload, and dynamic document array validation",
+      "Go CLI Vector Search: Added 'axiodb document vector-search' command supporting --field, --vector, --vector-file, --top-k, --min-score, --metric, and --query pre-filtering over TCP wire protocol",
+      "Interactive Shell Vector Search: Extended REPL shell with 'db.<coll>.vectorSearch(<field>, <vector>, [options])' support",
+      "Worker Search Pooling: Optimized parallel in-memory query evaluation in Searcher.utils.ts and workerScript.engine.ts using persistent WorkerPool instances to eliminate thread creation latency and CPU thrashing",
+      "Root System Lock Isolation: Excluded axiodb.pid.lock process singleton files from getDatabaseList() and isReservedDatabaseName() catalog scans across all surfaces",
+    ],
+  },
+  {
     version: "28.52.11",
     date: "2026-11-16",
     title: "Brand realignment, modular Anthropic hybrid XML agent skill architecture, and supply-chain hardening",

@@ -201,3 +201,46 @@ func TotalDocuments(client *protocol.Client, dbName, collectionName string) (*pr
 	}
 	return resp, nil
 }
+
+type VectorSearchOptions struct {
+	Field    string
+	Vector   []float64
+	TopK     int
+	MinScore *float64
+	Metric   string
+	Query    interface{}
+}
+
+func VectorSearch(client *protocol.Client, dbName, collectionName string, opts VectorSearchOptions) (*protocol.Response, error) {
+	options := map[string]interface{}{}
+	if opts.TopK > 0 {
+		options["topK"] = opts.TopK
+	}
+	if opts.MinScore != nil {
+		options["minScore"] = *opts.MinScore
+	}
+	if opts.Metric != "" {
+		options["metric"] = opts.Metric
+	}
+
+	params := map[string]interface{}{
+		"dbName":         dbName,
+		"collectionName": collectionName,
+		"field":          opts.Field,
+		"vector":         opts.Vector,
+		"options":        options,
+	}
+	if opts.Query != nil {
+		params["query"] = opts.Query
+	}
+
+	resp, err := client.Send("VECTOR_SEARCH", params)
+	if err != nil {
+		return nil, fmt.Errorf("vector search: %w", err)
+	}
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("vector search failed: %s", resp.Error)
+	}
+	return resp, nil
+}
+

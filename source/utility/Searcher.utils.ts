@@ -1,6 +1,5 @@
-import { Worker } from "worker_threads";
-import os from "os";
 import RegexGuard from "../Helper/RegexGuard.helper";
+import WorkerPool, { calculateOptimalWorkers } from "../Helper/WorkerPool.helper";
 import { workerSearchScript } from "../engine/node/workerScript.engine";
 
 // Compiled query cache for reusable regex and Set objects
@@ -214,7 +213,8 @@ export default class Searcher {
     }
 
     // Parallel search for large datasets with complex queries
-    const numWorkers = Math.min(os.cpus().length, Math.max(1, Math.ceil(this.data.length / 1000)));
+    const pool = WorkerPool.getPool(workerSearchScript, undefined, true);
+    const numWorkers = calculateOptimalWorkers();
     const chunkSize = Math.ceil(this.data.length / numWorkers);
 
     const tasks: Promise<Record<string, unknown>[]>[] = [];
@@ -222,26 +222,23 @@ export default class Searcher {
     for (let i = 0; i < numWorkers; i++) {
       const start = i * chunkSize;
       const end = Math.min(start + chunkSize, this.data.length);
+      if (start >= end) break;
       const dataChunk = this.data.slice(start, end);
 
       tasks.push(
-        new Promise((resolve, reject) => {
-          const worker = new Worker(workerSearchScript, {
-            eval: true,
-            workerData: {
-              chunk: dataChunk,
-              query,
-              isUpdated: this.isUpdated,
-              additionalFiled,
-            },
-          });
-
-          worker.on("message", resolve);
-          worker.on("error", reject);
-          worker.on("exit", (code) => {
-            if (code !== 0)
-              reject(new Error(`Worker stopped with code ${code}`));
-          });
+        pool.execute<
+          {
+            chunk: Record<string, unknown>[];
+            query: Record<string, unknown>;
+            isUpdated: boolean;
+            additionalFiled?: string | number;
+          },
+          Record<string, unknown>[]
+        >({
+          chunk: dataChunk,
+          query,
+          isUpdated: this.isUpdated,
+          additionalFiled,
         }),
       );
     }
