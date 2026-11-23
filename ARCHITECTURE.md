@@ -47,6 +47,8 @@ AxioDB is an embedded database engineered for AI agents and modern runtimes (Nod
 * **HTTP REST API (Port 27018)**: Fastify-based HTTP server with session cookie auth, role-based access control (RBAC), and document CRUD endpoints (`source/server/`).
 * **TCP Server (Port 27019)**: High-performance raw TCP server running a custom framed protocol with optional TCPAuth (`source/tcp/`).
 * **MCP Server (Port 27020 / Stdio)**: Model Context Protocol server exposing database query and mutation tools directly to AI coding agents (`source/Helper/mcp/`).
+* **Standalone Go CLI**: Standalone binary (`cli/`) providing command-line management and interactive MongoDB-syntax REPL over TCP (27019).
+* **Electron Desktop GUI (AxioDB Control)**: Cross-platform management desktop app (`electron/`) connecting over HTTP (27018) or TCP (27019), featuring Document explorers, Bulk Ingestion, and the Vector Search Playground.
 * **Vite Documentation Site (Port 5173)**: Interactive documentation, playground, and live schema browser (`Document/`).
 * **Cloudflare Email Worker**: Serverless email triage agent using vectorless RAG for auto-responding to technical issues (`Email/`).
 </system_overview>
@@ -206,10 +208,37 @@ AI Agent requests tool call via MCP (Stdio / Port 27020)
    └── NO  ──► Proceed Directly
                 │
                 ▼
-3. Dispatch to Core Service (`Collection`, `Database`, `Aggregation`)
+3. Dispatch to Core Service (`Collection`, `Database`, `Aggregation`, `VectorSearch`)
                 │
                 ▼
 4. Format Structured JSON Output & Return to Agent
+```
+</lifecycle>
+
+<lifecycle name="vector_similarity_search">
+### 4.4 Worker-Thread Vector Similarity Search
+
+```
+Caller (HTTP / TCP / CLI / GUI / MCP) ──► Target Collection & Target Embedding
+                                                  │
+                                                  ▼
+                         1. Pre-filter Documents if Filter Query Provided (`Searcher.utils.ts`)
+                                                  │
+                                                  ▼
+                         2. Dispatch Chunks to Worker Threads (`BufferLoaderWithWorker.utils.ts`)
+                            - Compute Vector Similarity Math (`VectorMath.utils.ts`):
+                              • Cosine Similarity
+                              • Dot Product
+                              • Euclidean Distance
+                                                  │
+                                                  ▼
+                         3. Aggregate Top-K Matching Candidates Across Workers
+                                                  │
+                                                  ▼
+                         4. Apply minScore Threshold & Sort by Similarity Descending
+                                                  │
+                                                  ▼
+                         5. Return Ranked Results with Scores to Client Surface
 ```
 </lifecycle>
 </execution_lifecycles>
