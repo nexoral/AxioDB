@@ -1,7 +1,7 @@
 # AxioDB — Master Knowledge Base
 
 > **Target Audience:** AxioDB Dev Team, Vector-Less RAG Pipelines, Autonomous AI Agents, and Production Engineers.  
-> **Package Version:** `28.54.13` | **License:** MIT | **Runtime:** Node.js `>= 20.0.0`, Bun `>= 1.4.0`, Deno `>= 2.9.6`, Electron.  
+> **Package Version:** `28.54.13` | **License:** MIT | **Runtime:** Node.js `>= 22.0.0`, Bun `>= 1.4.0`, Deno `>= 2.9.6`, Electron.  
 > **Official Distribution:** [npm: axiodb](https://www.npmjs.com/package/axiodb) | [GitHub: nexoral/AxioDB](https://github.com/nexoral/AxioDB) | [Docs: axiodb.in](https://axiodb.in)  
 > **Purpose:** Single complete source of truth. Contains all architectures, constants, APIs, schemas, protocols, tools, endpoints, troubleshooting playbooks, and design patterns.
 
@@ -38,7 +38,7 @@ AxioDB is an embedded NoSQL document database written entirely in strict TypeScr
 - **In-process embedded execution:** Runs directly inside the host process memory space. No separate database server daemon (`mongod`, `postgres`, `mysqld`) to install or configure.
 
 **Installation Across Runtimes:**
-- **Node.js (>= 20.0.0):** `npm install axiodb`
+- **Node.js (>= 22.0.0):** `npm install axiodb`
 - **Bun (>= 1.4.0):** `bun add axiodb`
 - **Deno (>= 2.9.6):** `deno add npm:axiodb`
 - **Official Docker Container:** `docker run -d -p 27018:27018 -p 27019:27019 -p 27020:27020 theankansaha/axiodb`
