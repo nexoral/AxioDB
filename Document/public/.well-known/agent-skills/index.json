@@ -6,7 +6,7 @@
       "type": "skill-md",
       "description": "Use AxioDB, an embedded database for AI agents with advanced queries, vector search, and zero native dependencies.",
       "url": "https://axiodb.in/.well-known/agent-skills/axiodb/SKILL.md",
-      "digest": "sha256:aa99c5e4645d52cf39b037f6040c319d7c4ab434b80fe458d3c22d19364ccf01",
+      "digest": "sha256:3a24826204dbd58ef67bbb63521433a7ff2ca38b941e4f14cec34434ee7a4bf9",
       "license": "MIT",
       "homepage": "https://axiodb.in"
     }
