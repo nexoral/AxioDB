@@ -5,7 +5,7 @@
     <link>https://axiodb.in/changelog</link>
     <description>Release notes and version history for AxioDB: Embedded Database for AI Agents (verified on Node.js, Bun &amp; Deno).</description>
     <language>en</language>
-    <lastBuildDate>Mon, 23 Nov 2026 17:58:41 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 23 Nov 2026 18:28:41 GMT</lastBuildDate>
     <atom:link href="https://axiodb.in/feed.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>AxioDB v28.54.13 — Vector similarity search across CLI &amp; Electron Control GUI, dual-protocol bulk ingestion, and search worker pooling</title>

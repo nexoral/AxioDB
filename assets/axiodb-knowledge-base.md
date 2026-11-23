@@ -1,7 +1,7 @@
 # AxioDB — Master Knowledge Base
 
 > **Target Audience:** AxioDB Dev Team, Vector-Less RAG Pipelines, Autonomous AI Agents, and Production Engineers.  
-> **Package Version:** `28.53.12` | **License:** MIT | **Runtime:** Node.js `>= 20.0.0`, Bun `>= 1.4.0`, Deno `>= 2.9.6`, Electron.  
+> **Package Version:** `28.54.13` | **License:** MIT | **Runtime:** Node.js `>= 20.0.0`, Bun `>= 1.4.0`, Deno `>= 2.9.6`, Electron.  
 > **Official Distribution:** [npm: axiodb](https://www.npmjs.com/package/axiodb) | [GitHub: nexoral/AxioDB](https://github.com/nexoral/AxioDB) | [Docs: axiodb.in](https://axiodb.in)  
 > **Purpose:** Single complete source of truth. Contains all architectures, constants, APIs, schemas, protocols, tools, endpoints, troubleshooting playbooks, and design patterns.
 
@@ -624,7 +624,7 @@ Fastify server running on **port 27018**:
 - `DELETE /api/operation/delete/by-id/`: Delete document by ID.
 - `DELETE /api/operation/delete/by-query/`: Delete documents matching query.
 - `POST /api/operation/aggregate/`: Execute aggregation pipeline.
-- `POST /api/operation/vector-search/`: Flat-scan vector similarity search using worker threads across embeddings (`field`, `vector`, `topK`, `metric`, `minScore`, `query`).
+- `POST /api/operation/vector-search/`: Flat-scan vector similarity search using worker threads across embeddings (`field`, `vector`, `options: { topK, metric, minScore }`, `query`).
 
 ---
 

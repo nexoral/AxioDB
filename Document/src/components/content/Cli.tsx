@@ -98,7 +98,7 @@ axiodb:mydb:users> db.users.insert({name: "Bob", age: 25})
 axiodb:mydb:users> db.users.updateOne({name: "Bob"}, {\$set: {age: 26}})
 axiodb:mydb:users> db.users.deleteOne({name: "Bob"})
 axiodb:mydb:users> db.users.countDocuments()
-axiodb:mydb:users> db.users.vectorSearch({field: "embedding", vector: [0.1, 0.2, 0.3], topK: 5, metric: "cosine"})
+axiodb:mydb:users> db.users.vectorSearch("embedding", [0.1, 0.2, 0.3], {"topK": 5, "metric": "cosine"})
 axiodb:mydb:users> exit`;
 
 const USAGE_EXPORT_IMPORT = `# Export database over TCP (:27019 default, saves mydb.tar.gz in current directory)

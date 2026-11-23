@@ -529,11 +529,94 @@ async function runBenchmark() {
   printPercentiles(unindexedUpdateStats);
 
   // -------------------------------------------------------------
-  // PHASE 4: Delete Latency: Indexed vs Unindexed
+  // PHASE 4: Vector Similarity Search (Worker-Thread Flat Scan)
   // -------------------------------------------------------------
-  console.log(`\n${c.bright}${c.blue}[5/7] Testing Delete Latency (deleteOne: Indexed vs Unindexed)...${c.reset}`);
+  let vectorStats = null;
+  let vectorQPS = 0;
+  let hybridStats = null;
+  let hybridQPS = 0;
+  let hybridAdvantage = null;
 
-  // 4A: Indexed Deletes
+  if (opts.vectorDim > 0 && opts.vectorQueries > 0 && totalInserted > 0) {
+    console.log(`\n${c.bright}${c.blue}[5/7] Testing Vector Similarity Search (${opts.vectorDim}-dim, ${opts.vectorMetric})...${c.reset}`);
+
+    // 4A: Pure Vector Search (Full Dataset Flat Scan)
+    console.log(`  ${c.dim}• 4A: Pure Vector Search (${opts.vectorQueries} queries across all ${totalInserted.toLocaleString()} docs)...${c.reset}`);
+    const vectorLatencies = [];
+    const vStartTotal = process.hrtime.bigint();
+
+    for (let v = 0; v < opts.vectorQueries; v++) {
+      const probeVector = generateVector(opts.vectorDim);
+      const vStart = process.hrtime.bigint();
+      const res = await collection.vectorSearch('embedding', probeVector, {
+        topK: opts.vectorTopK,
+        metric: opts.vectorMetric
+      });
+      const vDuration = nsToMs(process.hrtime.bigint() - vStart);
+
+      if (res && (res.status === true || res.statusCode === 200) && res.data?.documents?.length > 0) {
+        vectorLatencies.push(vDuration);
+      }
+    }
+
+    if (vectorLatencies.length > 0) {
+      const totalVectorTimeMs = nsToMs(process.hrtime.bigint() - vStartTotal);
+      vectorQPS = safeRate(vectorLatencies.length, totalVectorTimeMs);
+      vectorStats = calculatePercentiles(vectorLatencies);
+
+      console.log(`  ${c.green}✓ Pure Vector Searches:${c.reset} ${vectorLatencies.length}/${opts.vectorQueries} successful (${c.bright}${vectorQPS.toLocaleString()} QPS${c.reset})`);
+      printPercentiles(vectorStats);
+    } else {
+      console.log(`  ${c.yellow}⚠ Pure Vector Searches: 0 successful samples${c.reset}`);
+    }
+
+    // 4B: Hybrid Vector Search (Filter Query + Vector Search)
+    console.log(`\n  ${c.dim}• 4B: Hybrid Vector Search (${opts.vectorQueries} queries pre-filtered on 'region: us-east')...${c.reset}`);
+    const hybridLatencies = [];
+    const hStartTotal = process.hrtime.bigint();
+
+    for (let v = 0; v < opts.vectorQueries; v++) {
+      const probeVector = generateVector(opts.vectorDim);
+      const hStart = process.hrtime.bigint();
+      const res = await collection
+        .query({ region: 'us-east' })
+        .vectorSearch('embedding', probeVector, {
+          topK: opts.vectorTopK,
+          metric: opts.vectorMetric
+        })
+        .exec();
+      const hDuration = nsToMs(process.hrtime.bigint() - hStart);
+
+      if (res && (res.status === true || res.statusCode === 200) && res.data?.documents?.length > 0) {
+        hybridLatencies.push(hDuration);
+      }
+    }
+
+    if (hybridLatencies.length > 0) {
+      const totalHybridTimeMs = nsToMs(process.hrtime.bigint() - hStartTotal);
+      hybridQPS = safeRate(hybridLatencies.length, totalHybridTimeMs);
+      hybridStats = calculatePercentiles(hybridLatencies);
+
+      console.log(`  ${c.green}✓ Hybrid Vector Searches:${c.reset} ${hybridLatencies.length}/${opts.vectorQueries} successful (${c.bright}${hybridQPS.toLocaleString()} QPS${c.reset})`);
+      printPercentiles(hybridStats);
+
+      if (vectorStats && Number(hybridStats.avg) > 0) {
+        hybridAdvantage = (Number(vectorStats.avg) / Number(hybridStats.avg)).toFixed(1);
+        console.log(`  ${c.cyan}⚡ Filter Advantage:${c.reset} Pre-filtered hybrid search is ${c.bright}${hybridAdvantage}x faster${c.reset} than pure scan`);
+      }
+    } else {
+      console.log(`  ${c.yellow}⚠ Hybrid Vector Searches: 0 successful samples${c.reset}`);
+    }
+  } else {
+    console.log(`\n${c.dim}[5/7] Vector search benchmark skipped (--dim=0 or insufficient documents).${c.reset}`);
+  }
+
+  // -------------------------------------------------------------
+  // PHASE 5: Delete Latency: Indexed vs Unindexed
+  // -------------------------------------------------------------
+  console.log(`\n${c.bright}${c.blue}[6/7] Testing Delete Latency (deleteOne: Indexed vs Unindexed)...${c.reset}`);
+
+  // 5A: Indexed Deletes
   console.log(`  ${c.dim}• Testing Indexed deleteOne (${indexedDeleteCount} deletions by indexed 'email')...${c.reset}`);
   const indexedDeleteLatencies = [];
 
@@ -555,7 +638,7 @@ async function runBenchmark() {
   console.log(`  ${c.green}✓ Indexed Deletions:${c.reset} ${indexedDeleteLatencies.length}/${indexedDeleteCount} successful`);
   printPercentiles(indexedDeleteStats);
 
-  // 4B: Unindexed Deletes
+  // 5B: Unindexed Deletes
   console.log(`\n  ${c.dim}• Testing Unindexed deleteOne (${unindexedDeleteCount} deletions by 'unindexedTag')...${c.reset}`);
   const unindexedDeleteLatencies = [];
 
@@ -576,79 +659,6 @@ async function runBenchmark() {
   const unindexedDeleteStats = calculatePercentiles(unindexedDeleteLatencies);
   console.log(`  ${c.green}✓ Unindexed Deletions:${c.reset} ${unindexedDeleteLatencies.length}/${unindexedDeleteCount} successful`);
   printPercentiles(unindexedDeleteStats);
-
-  // -------------------------------------------------------------
-  // PHASE 5: Vector Similarity Search (Worker-Thread Flat Scan)
-  // -------------------------------------------------------------
-  let vectorStats = null;
-  let vectorQPS = 0;
-  let hybridStats = null;
-  let hybridQPS = 0;
-  let hybridAdvantage = null;
-
-  if (opts.vectorDim > 0 && opts.vectorQueries > 0) {
-    console.log(`\n${c.bright}${c.blue}[6/7] Testing Vector Similarity Search (${opts.vectorDim}-dim, ${opts.vectorMetric})...${c.reset}`);
-
-    // 6A: Pure Vector Search (Full Dataset Flat Scan)
-    console.log(`  ${c.dim}• 6A: Pure Vector Search (${opts.vectorQueries} queries across all ${totalInserted.toLocaleString()} docs)...${c.reset}`);
-    const vectorLatencies = [];
-    const vStartTotal = process.hrtime.bigint();
-
-    for (let v = 0; v < opts.vectorQueries; v++) {
-      const probeVector = generateVector(opts.vectorDim);
-      const vStart = process.hrtime.bigint();
-      const res = await collection.vectorSearch('embedding', probeVector, {
-        topK: opts.vectorTopK,
-        metric: opts.vectorMetric
-      });
-      const vDuration = nsToMs(process.hrtime.bigint() - vStart);
-
-      if (res && (res.status === true || res.statusCode === 200) && res.data?.documents?.length > 0) {
-        vectorLatencies.push(vDuration);
-      }
-    }
-
-    const totalVectorTimeMs = nsToMs(process.hrtime.bigint() - vStartTotal);
-    vectorQPS = safeRate(opts.vectorQueries, totalVectorTimeMs);
-    vectorStats = calculatePercentiles(vectorLatencies);
-
-    console.log(`  ${c.green}✓ Pure Vector Searches:${c.reset} ${vectorLatencies.length}/${opts.vectorQueries} successful (${c.bright}${vectorQPS.toLocaleString()} QPS${c.reset})`);
-    printPercentiles(vectorStats);
-
-    // 6B: Hybrid Vector Search (Filter Query + Vector Search)
-    console.log(`\n  ${c.dim}• 6B: Hybrid Vector Search (${opts.vectorQueries} queries pre-filtered on 'region: us-east')...${c.reset}`);
-    const hybridLatencies = [];
-    const hStartTotal = process.hrtime.bigint();
-
-    for (let v = 0; v < opts.vectorQueries; v++) {
-      const probeVector = generateVector(opts.vectorDim);
-      const hStart = process.hrtime.bigint();
-      const res = await collection
-        .query({ region: 'us-east' })
-        .vectorSearch('embedding', probeVector, {
-          topK: opts.vectorTopK,
-          metric: opts.vectorMetric
-        })
-        .exec();
-      const hDuration = nsToMs(process.hrtime.bigint() - hStart);
-
-      if (res && (res.status === true || res.statusCode === 200) && res.data?.documents?.length > 0) {
-        hybridLatencies.push(hDuration);
-      }
-    }
-
-    const totalHybridTimeMs = nsToMs(process.hrtime.bigint() - hStartTotal);
-    hybridQPS = safeRate(opts.vectorQueries, totalHybridTimeMs);
-    hybridStats = calculatePercentiles(hybridLatencies);
-
-    console.log(`  ${c.green}✓ Hybrid Vector Searches:${c.reset} ${hybridLatencies.length}/${opts.vectorQueries} successful (${c.bright}${hybridQPS.toLocaleString()} QPS${c.reset})`);
-    printPercentiles(hybridStats);
-
-    hybridAdvantage = (Number(vectorStats.avg) / Math.max(Number(hybridStats.avg), 0.001)).toFixed(1);
-    console.log(`  ${c.cyan}⚡ Filter Advantage:${c.reset} Pre-filtered hybrid search is ${c.bright}${hybridAdvantage}x faster${c.reset} than pure scan`);
-  } else {
-    console.log(`\n${c.dim}[6/7] Vector search benchmark skipped (--dim=0).${c.reset}`);
-  }
 
   // -------------------------------------------------------------
   // PHASE 6: In-Memory Cache & ACID Transactions
