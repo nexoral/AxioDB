@@ -1,7 +1,7 @@
 # AxioDB — Master Knowledge Base
 
 > **Target Audience:** AxioDB Dev Team, Vector-Less RAG Pipelines, Autonomous AI Agents, and Production Engineers.  
-> **Package Version:** `24.34.4` | **License:** MIT | **Runtime:** Node.js `>= 20.0.0`, Bun `>= 1.4.0`, Deno `>= 2.9.6`, Electron.  
+> **Package Version:** `28.54.13` | **License:** MIT | **Runtime:** Node.js `>= 20.0.0`, Bun `>= 1.4.0`, Deno `>= 2.9.6`, Electron.  
 > **Official Distribution:** [npm: axiodb](https://www.npmjs.com/package/axiodb) | [GitHub: nexoral/AxioDB](https://github.com/nexoral/AxioDB) | [Docs: axiodb.in](https://axiodb.in)  
 > **Purpose:** Single complete source of truth. Contains all architectures, constants, APIs, schemas, protocols, tools, endpoints, troubleshooting playbooks, and design patterns.
 
@@ -15,16 +15,17 @@
 5. [ACID Transactions, Write-Ahead Logging & Crash Recovery](#5-acid-transactions-write-ahead-logging--crash-recovery)
 6. [Core Query Engine & All 19 Operators (Reader, Update, Delete)](#6-core-query-engine--all-19-operators-reader-update-delete)
 7. [Aggregation Pipeline (19 Stages & OperatorRegistry)](#7-aggregation-pipeline-19-stages--operatorregistry)
-8. [The 45 Model Context Protocol (MCP) AI Tools Reference](#8-the-45-model-context-protocol-mcp-ai-tools-reference)
-9. [The 41 HTTP REST API Endpoints Specification](#9-the-41-http-rest-api-endpoints-specification)
-10. [The 32 AxioDBCloud TCP Wire Protocol Commands & AxioDBCloud Client SDK](#10-the-32-axiodbcloud-tcp-wire-protocol-commands)
+8. [The 46 Model Context Protocol (MCP) AI Tools Reference](#8-the-46-model-context-protocol-mcp-ai-tools-reference)
+9. [The 42 HTTP REST API Endpoints Specification](#9-the-42-http-rest-api-endpoints-specification)
+10. [The 33 AxioDBCloud TCP Wire Protocol Commands & AxioDBCloud Client SDK](#10-the-33-axiodbcloud-tcp-wire-protocol-commands)
 11. [RBAC Security, Permissions Matrix & Rate Limiting](#11-rbac-security-permissions-matrix--rate-limiting)
 12. [Internal Constants, File Keys & System Identifiers](#12-internal-constants-file-keys--system-identifiers)
 13. [Go CLI Reference & Interactive REPL Commands](#13-go-cli-reference--interactive-repl-commands)
 14. [Vector-Less Database Design Patterns for AI Teams](#14-vector-less-database-design-patterns-for-ai-teams)
-15. [Pros, Cons & Strategic Decision Matrix](#15-pros-cons--strategic-decision-matrix)
-16. [Complete Troubleshooting, Errors & Recovery Playbook](#16-complete-troubleshooting-errors--recovery-playbook)
-17. [Exhaustive Frequently Asked Questions (FAQ)](#17-exhaustive-frequently-asked-questions-faq)
+15. [AxioDB Control Desktop GUI App (Electron)](#15-axiodb-control-desktop-gui-app-electron)
+16. [Pros, Cons & Strategic Decision Matrix](#16-pros-cons--strategic-decision-matrix)
+17. [Complete Troubleshooting, Errors & Recovery Playbook](#17-complete-troubleshooting-errors--recovery-playbook)
+18. [Exhaustive Frequently Asked Questions (FAQ)](#18-exhaustive-frequently-asked-questions-faq)
 
 ---
 
@@ -48,9 +49,10 @@ In AI agent and RAG systems, traditional vector databases rely on high-dimension
 2. **Heavy computational overhead:** Massive RAM footprint and GPU/SIMD requirements.
 3. **50–200ms latency:** Embedding model inference bottlenecks every query.
 
-AxioDB provides the foundational storage for **Vector-Less RAG & Agent State**:
+AxioDB provides the foundational storage for **Vector-Less RAG & Agent State**, alongside an embedded worker-thread **Vector Search** engine:
 - **Deterministic Multi-Key Indexing:** Sub-millisecond (<1ms) exact attribute and category lookups.
 - **Taxonomy & Inverted Token Queries:** Array-based keyword indexing using `$in`, `$all`, and `$elemMatch`.
+- **Worker-Thread Vector Search:** Parallelized flat scan for dense embeddings (`cosine`, `dot`, `euclidean`) over HTTP (`/api/operation/vector-search`), TCP (`0x2A`), CLI (`document vector-search`), and Electron GUI without external vector database dependencies.
 - **Graph Traversal via `$lookup`:** Single-collection and cross-collection relational joins without an external graph database.
 - **ACID Transaction Checkpoints:** Savepoints and rollbacks for speculative agent reasoning trees.
 - **Native MCP Server (Port 27020):** 45 built-in tools allowing LLMs to directly inspect, query, and mutate structured state.
@@ -466,7 +468,7 @@ OperatorRegistry.registerAccumulator('$customJaccard', (collection, expr) => {
 
 ---
 
-## 8. The 45 Model Context Protocol (MCP) AI Tools Reference
+## 8. The 46 Model Context Protocol (MCP) AI Tools Reference
 
 The native MCP server runs on **port 27020** at `/mcp` (Streamable HTTP / SSE transport), allowing AI coding assistants and autonomous agents (Cursor, Claude Code, Windsurf) to directly query, insert, and manage AxioDB databases.
 
@@ -562,10 +564,11 @@ All tools except `axiodb_login` require an active `sessionId`:
 | 43 | `axiodb_create_role` | Security | Create a new custom role with specific permissions. |
 | 44 | `axiodb_delete_role` | Security | Delete a custom role (must have no assigned users). |
 | 45 | `axiodb_list_permissions` | Security | List the complete system permission catalogue. |
+| 46 | `axiodb_vector_search` | Search | Perform flat-scan vector similarity search using worker threads across embeddings (`cosine`, `dot`, `euclidean`). |
 
 ---
 
-## 9. The 41 HTTP REST API Endpoints Specification
+## 9. The 42 HTTP REST API Endpoints Specification
 
 Fastify server running on **port 27018**:
 
@@ -621,10 +624,11 @@ Fastify server running on **port 27018**:
 - `DELETE /api/operation/delete/by-id/`: Delete document by ID.
 - `DELETE /api/operation/delete/by-query/`: Delete documents matching query.
 - `POST /api/operation/aggregate/`: Execute aggregation pipeline.
+- `POST /api/operation/vector-search/`: Flat-scan vector similarity search using worker threads across embeddings (`field`, `vector`, `options: { topK, metric, minScore }`, `query`).
 
 ---
 
-## 10. The 32 AxioDBCloud TCP Wire Protocol Commands
+## 10. The 33 AxioDBCloud TCP Wire Protocol Commands
 
 TCP binary-framed server running on **port 27019**:
 
@@ -660,6 +664,7 @@ TCP binary-framed server running on **port 27019**:
 30. `SAVEPOINT`: Mark transaction savepoint.
 31. `ROLLBACK_TO_SAVEPOINT`: Rollback transaction to savepoint.
 32. `RELEASE_SAVEPOINT`: Release savepoint marker.
+33. `OP_VECTOR_SEARCH` (`0x2A` / 42): Flat-scan vector similarity search using worker threads across embeddings (`cosine`, `dot`, `euclidean`).
 
 ### 10.2 Remote TCP Client SDK (`AxioDBCloud`)
 
@@ -833,6 +838,7 @@ Supported Shell Commands:
 - `db.<coll>.update(<query>, <update>)`: Flat-merge update documents.
 - `db.<coll>.delete(<query>)`: Delete documents matching query.
 - `db.<coll>.count()`: Return total document count in collection.
+- `db.<coll>.vectorSearch({ field: "<field>", vector: [...], topK: 10, metric: "cosine" })`: Vector similarity search.
 - `db.<coll>.newIndex(<field>)`: Create an in-memory & disk index on field.
 - `db.<coll>.listIndexes()`: View active indexes on collection.
 - `db.<coll>.dropIndex(<field>)`: Delete index from collection.
@@ -854,7 +860,7 @@ Supported Shell Commands:
 
 ### 13.6 Document CRUD & Queries (`axiodb document`)
 - `axiodb document insert '<json>' --db <db> --collection <coll>`: Insert single document.
-- `axiodb document insert-many '<jsonArray>' --db <db> --collection <coll>`: Insert batch of documents.
+- `axiodb document insert-many '<jsonArray>' --db <db> --collection <coll>`: Insert batch of documents (bulk insert).
 - `axiodb document query --filter '<json>' --sort '<json>' --limit 10 --skip 0 --db <db> --collection <coll>`: Filter documents.
 - `axiodb document get <id> --db <db> --collection <coll>`: Point lookup by documentId.
 - `axiodb document find-by-ids <id1> <id2> --db <db> --collection <coll>`: Batch point lookup.
@@ -864,6 +870,7 @@ Supported Shell Commands:
 - `axiodb document delete-by-query --filter '<json>' --db <db> --collection <coll>`: Batch delete matching documents.
 - `axiodb document aggregate '<pipelineJsonArray>' --db <db> --collection <coll>`: Run aggregation pipeline.
 - `axiodb document count --filter '<json>' --db <db> --collection <coll>`: Count matching documents.
+- `axiodb document vector-search --field <field> --vector '<jsonArray>' --top-k 10 --metric cosine --db <db> --collection <coll>`: Flat-scan vector similarity search over TCP (metrics: `cosine`, `dot`, `euclidean`; supports `--vector-file <path>`, `--min-score <float>`, and pre-filter `--query '<json>'`).
 
 ### 13.7 Index Management (`axiodb index`)
 - `axiodb index create <field...> --db <db> --collection <coll>`: Create index on field(s).
@@ -957,7 +964,30 @@ try {
 
 ---
 
-## 15. Pros, Cons & Strategic Decision Matrix
+## 15. AxioDB Control Desktop GUI App (Electron)
+
+AxioDB ships an official cross-platform desktop management interface **"AxioDB Control"** (`electron/` directory, package `com.axiodb.control`) built on Electron 34, React 19, and Tailwind CSS v4.
+
+### 15.1 Dual-Surface Connectivity (HTTP 27018 & TCP 27019)
+The desktop client features an IPC bridge (`electron/main/main.cts`) that allows users to manage AxioDB instances over either:
+- **HTTP REST API (Port 27018):** Web-compatible control plane with cookie/token session auth.
+- **TCP Wire Protocol (Port 27019):** Low-latency binary socket connection via `AxioDBCloud` bridge with zero HTTP overhead.
+
+### 15.2 Vector Search Playground Tab
+Inside the Documents view for any collection, users can switch to the **`[ ⚡ Vector Search ]`** tab (AI Agent symbol):
+- **Similarity Metrics:** Interactive dropdown supporting `cosine`, `dot product`, and `euclidean` distance metrics.
+- **Query Vector Input:** Paste raw float arrays (`[0.12, -0.45, 0.88]`) directly or configure the target vector field path.
+- **Top-K & Score Filtering:** Real-time slider and numeric inputs for Top-K limits and minimum similarity score threshold.
+- **Structured Object View:** Results render in collapsible JSON tree inspectors showing matched document attributes and computed similarity scores.
+
+### 15.3 Bulk Document Ingestion (JSON Upload)
+Inside the Insert Document modal, users can toggle between:
+- **Single Mode:** Insert individual JSON document objects.
+- **Bulk Mode:** Paste JSON arrays (`[{...}, {...}]`) or upload `.json` files directly from disk, with instant real-time non-empty document counting before executing batch insertion over HTTP or TCP.
+
+---
+
+## 16. Pros, Cons & Strategic Decision Matrix
 
 | Dimension | Ideal for AxioDB | Send to PostgreSQL / MongoDB |
 |---|---|---|
@@ -969,7 +999,7 @@ try {
 
 ---
 
-## 16. Complete Troubleshooting, Errors & Recovery Playbook
+## 17. Complete Troubleshooting, Errors & Recovery Playbook
 
 ### 1. `Error: Only one instance of AxioDB is allowed.`
 * **Root Cause:** Calling `new AxioDB()` twice in the same process.
@@ -1008,7 +1038,7 @@ try {
 
 ---
 
-## 17. Exhaustive Frequently Asked Questions (FAQ)
+## 18. Exhaustive Frequently Asked Questions (FAQ)
 
 **Q: Is AxioDB a drop-in replacement for MongoDB?**  
 A: No. AxioDB is an embedded engine running in-process inside your application. It uses similar object query syntax but requires zero external server daemon.

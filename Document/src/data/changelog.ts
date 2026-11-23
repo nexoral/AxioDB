@@ -12,7 +12,7 @@ export interface ChangelogEntry {
  */
 export const changelog: ChangelogEntry[] = [
   {
-    version: "28.53.12",
+    version: "28.54.13",
     date: "2026-11-23",
     title: "Vector similarity search across CLI & Electron Control GUI, dual-protocol bulk ingestion, and search worker pooling",
     changes: [

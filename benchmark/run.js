@@ -43,13 +43,31 @@ function parseArgs() {
     unindexedSamples: 25,  // Unindexed full-scan lookups (scan over dataset)
     updateQueries: 100,    // Indexed updates
     deleteQueries: 50,     // Indexed deletes
+    vectorDim: 64,         // Vector dimension length (0 to disable)
+    vectorQueries: 25,     // Vector similarity searches to benchmark
+    vectorMetric: 'cosine', // cosine | dot | euclidean
+    vectorTopK: 10,        // Top-K nearest neighbors
     keepData: false,       // Auto-delete temp data by default
     dir: DEFAULT_BENCHMARK_DIR
   };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg.startsWith('--docs=')) {
+    if (arg.startsWith('--dim=')) {
+      const val = parseInt(arg.split('=')[1], 10);
+      if (!isNaN(val) && val >= 0) options.vectorDim = val;
+    } else if (arg === '--dim' && i + 1 < args.length) {
+      const val = parseInt(args[++i], 10);
+      if (!isNaN(val) && val >= 0) options.vectorDim = val;
+    } else if (arg.startsWith('--vector-queries=')) {
+      const val = parseInt(arg.split('=')[1], 10);
+      if (!isNaN(val) && val >= 0) options.vectorQueries = val;
+    } else if (arg === '--vector-queries' && i + 1 < args.length) {
+      const val = parseInt(args[++i], 10);
+      if (!isNaN(val) && val >= 0) options.vectorQueries = val;
+    } else if (arg.startsWith('--vector-metric=')) {
+      options.vectorMetric = arg.split('=')[1].trim();
+    } else if (arg.startsWith('--docs=')) {
       const val = parseInt(arg.split('=')[1], 10);
       if (!isNaN(val) && val > 0) options.docs = val;
     } else if (arg === '--docs' && i + 1 < args.length) {
@@ -98,6 +116,9 @@ Options:
   --batch=N, --batch N       Batch chunk size for insertMany (default: 3000)
   --queries=N, --queries N   Number of random indexed lookups to test (default: 500)
   --unindexed=N              Number of unindexed full-scan operations to sample (default: 25)
+  --dim=N                    Vector embedding dimension length (default: 64, 0 to disable)
+  --vector-queries=N         Number of vector searches to test (default: 25)
+  --vector-metric=NAME       Vector metric: cosine | dot | euclidean (default: cosine)
   --dir=PATH                 Custom benchmark temp directory (default: ./benchmark/Benchmark_TempData)
   --keep                     Keep benchmark database files after run (default: auto-clean)
   --help, -h                 Show this help message
@@ -232,12 +253,29 @@ function printPercentiles(stats, indent = '    ') {
   console.log(`${indent}${c.dim}• p99:${c.reset}  ${stats.p99.padStart(7)} ms | ${c.dim}Max:${c.reset}  ${stats.max.padStart(7)} ms | ${c.dim}Avg:${c.reset}       ${stats.avg.padStart(7)} ms`);
 }
 
+// Fast random normalized vector generator
+function generateVector(dim) {
+  if (!dim || dim <= 0) return undefined;
+  const vec = new Array(dim);
+  let sumSq = 0;
+  for (let i = 0; i < dim; i++) {
+    const val = (Math.random() * 2) - 1;
+    vec[i] = val;
+    sumSq += val * val;
+  }
+  const norm = Math.sqrt(sumSq) || 1;
+  for (let i = 0; i < dim; i++) {
+    vec[i] = Number((vec[i] / norm).toFixed(4));
+  }
+  return vec;
+}
+
 // Fast document batch generator with both indexed and unindexed fields
-function generateBatch(startIdx, count) {
+function generateBatch(startIdx, count, vectorDim = 0) {
   const batch = new Array(count);
   for (let i = 0; i < count; i++) {
     const id = startIdx + i;
-    batch[i] = {
+    const doc = {
       // Indexed fields: email, age, score, name
       name: `User_${id}`,
       email: `user_${id}@bench.axiodb.org`,
@@ -253,6 +291,10 @@ function generateBatch(startIdx, count) {
       active: id % 2 === 0,
       createdAt: new Date().toISOString()
     };
+    if (vectorDim > 0) {
+      doc.embedding = generateVector(vectorDim);
+    }
+    batch[i] = doc;
   }
   return batch;
 }
@@ -307,7 +349,7 @@ async function runBenchmark() {
     if (mem.rss > peakRss) peakRss = mem.rss;
   };
 
-  console.log(`\n${c.bright}${c.blue}[1/6] Initializing Database & Indexes...${c.reset}`);
+  console.log(`\n${c.bright}${c.blue}[1/7] Initializing Database & Indexes...${c.reset}`);
   const db = new AxioDB({ HTTP: false, RootName: 'BenchmarkDB', CustomPath: opts.dir });
   const testDB = await db.createDB('BenchDB');
   const collection = await testDB.createCollection('Users');
@@ -322,7 +364,7 @@ async function runBenchmark() {
   // -------------------------------------------------------------
   // PHASE 1: Bulk Ingestion (insertMany)
   // -------------------------------------------------------------
-  console.log(`\n${c.bright}${c.blue}[2/6] Ingesting ${opts.docs.toLocaleString()} Documents in Batches of ${opts.batchSize.toLocaleString()}...${c.reset}`);
+  console.log(`\n${c.bright}${c.blue}[2/7] Ingesting ${opts.docs.toLocaleString()} Documents in Batches of ${opts.batchSize.toLocaleString()}...${c.reset}`);
   const totalBatches = Math.ceil(opts.docs / opts.batchSize);
   let totalInserted = 0;
 
@@ -330,7 +372,7 @@ async function runBenchmark() {
 
   for (let b = 0; b < totalBatches; b++) {
     const currentBatchCount = Math.min(opts.batchSize, opts.docs - totalInserted);
-    const batch = generateBatch(totalInserted, currentBatchCount);
+    const batch = generateBatch(totalInserted, currentBatchCount, opts.vectorDim);
 
     const batchStart = process.hrtime.bigint();
     const res = await collection.insertMany(batch);
@@ -384,7 +426,7 @@ async function runBenchmark() {
   // -------------------------------------------------------------
   // PHASE 2: Read Latency: Indexed vs Unindexed
   // -------------------------------------------------------------
-  console.log(`\n${c.bright}${c.blue}[3/6] Testing Read Latency (Indexed vs Unindexed)...${c.reset}`);
+  console.log(`\n${c.bright}${c.blue}[3/7] Testing Read Latency (Indexed vs Unindexed)...${c.reset}`);
 
   // 2A: Indexed Point Reads
   console.log(`  ${c.dim}• Testing Indexed Point Reads (${readQueryCount.toLocaleString()} random exact matches)...${c.reset}`);
@@ -442,7 +484,7 @@ async function runBenchmark() {
   // -------------------------------------------------------------
   // PHASE 3: Update Latency: Indexed vs Unindexed
   // -------------------------------------------------------------
-  console.log(`\n${c.bright}${c.blue}[4/6] Testing Update Latency (UpdateOne: Indexed vs Unindexed)...${c.reset}`);
+  console.log(`\n${c.bright}${c.blue}[4/7] Testing Update Latency (UpdateOne: Indexed vs Unindexed)...${c.reset}`);
 
   // 3A: Indexed Updates
   console.log(`  ${c.dim}• Testing Indexed UpdateOne (${indexedUpdateCount} queries on indexed 'email')...${c.reset}`);
@@ -487,11 +529,94 @@ async function runBenchmark() {
   printPercentiles(unindexedUpdateStats);
 
   // -------------------------------------------------------------
-  // PHASE 4: Delete Latency: Indexed vs Unindexed
+  // PHASE 4: Vector Similarity Search (Worker-Thread Flat Scan)
   // -------------------------------------------------------------
-  console.log(`\n${c.bright}${c.blue}[5/6] Testing Delete Latency (deleteOne: Indexed vs Unindexed)...${c.reset}`);
+  let vectorStats = null;
+  let vectorQPS = 0;
+  let hybridStats = null;
+  let hybridQPS = 0;
+  let hybridAdvantage = null;
 
-  // 4A: Indexed Deletes
+  if (opts.vectorDim > 0 && opts.vectorQueries > 0 && totalInserted > 0) {
+    console.log(`\n${c.bright}${c.blue}[5/7] Testing Vector Similarity Search (${opts.vectorDim}-dim, ${opts.vectorMetric})...${c.reset}`);
+
+    // 4A: Pure Vector Search (Full Dataset Flat Scan)
+    console.log(`  ${c.dim}• 4A: Pure Vector Search (${opts.vectorQueries} queries across all ${totalInserted.toLocaleString()} docs)...${c.reset}`);
+    const vectorLatencies = [];
+    const vStartTotal = process.hrtime.bigint();
+
+    for (let v = 0; v < opts.vectorQueries; v++) {
+      const probeVector = generateVector(opts.vectorDim);
+      const vStart = process.hrtime.bigint();
+      const res = await collection.vectorSearch('embedding', probeVector, {
+        topK: opts.vectorTopK,
+        metric: opts.vectorMetric
+      });
+      const vDuration = nsToMs(process.hrtime.bigint() - vStart);
+
+      if (res && (res.status === true || res.statusCode === 200) && res.data?.documents?.length > 0) {
+        vectorLatencies.push(vDuration);
+      }
+    }
+
+    if (vectorLatencies.length > 0) {
+      const totalVectorTimeMs = nsToMs(process.hrtime.bigint() - vStartTotal);
+      vectorQPS = safeRate(vectorLatencies.length, totalVectorTimeMs);
+      vectorStats = calculatePercentiles(vectorLatencies);
+
+      console.log(`  ${c.green}✓ Pure Vector Searches:${c.reset} ${vectorLatencies.length}/${opts.vectorQueries} successful (${c.bright}${vectorQPS.toLocaleString()} QPS${c.reset})`);
+      printPercentiles(vectorStats);
+    } else {
+      console.log(`  ${c.yellow}⚠ Pure Vector Searches: 0 successful samples${c.reset}`);
+    }
+
+    // 4B: Hybrid Vector Search (Filter Query + Vector Search)
+    console.log(`\n  ${c.dim}• 4B: Hybrid Vector Search (${opts.vectorQueries} queries pre-filtered on 'region: us-east')...${c.reset}`);
+    const hybridLatencies = [];
+    const hStartTotal = process.hrtime.bigint();
+
+    for (let v = 0; v < opts.vectorQueries; v++) {
+      const probeVector = generateVector(opts.vectorDim);
+      const hStart = process.hrtime.bigint();
+      const res = await collection
+        .query({ region: 'us-east' })
+        .vectorSearch('embedding', probeVector, {
+          topK: opts.vectorTopK,
+          metric: opts.vectorMetric
+        })
+        .exec();
+      const hDuration = nsToMs(process.hrtime.bigint() - hStart);
+
+      if (res && (res.status === true || res.statusCode === 200) && res.data?.documents?.length > 0) {
+        hybridLatencies.push(hDuration);
+      }
+    }
+
+    if (hybridLatencies.length > 0) {
+      const totalHybridTimeMs = nsToMs(process.hrtime.bigint() - hStartTotal);
+      hybridQPS = safeRate(hybridLatencies.length, totalHybridTimeMs);
+      hybridStats = calculatePercentiles(hybridLatencies);
+
+      console.log(`  ${c.green}✓ Hybrid Vector Searches:${c.reset} ${hybridLatencies.length}/${opts.vectorQueries} successful (${c.bright}${hybridQPS.toLocaleString()} QPS${c.reset})`);
+      printPercentiles(hybridStats);
+
+      if (vectorStats && Number(hybridStats.avg) > 0) {
+        hybridAdvantage = (Number(vectorStats.avg) / Number(hybridStats.avg)).toFixed(1);
+        console.log(`  ${c.cyan}⚡ Filter Advantage:${c.reset} Pre-filtered hybrid search is ${c.bright}${hybridAdvantage}x faster${c.reset} than pure scan`);
+      }
+    } else {
+      console.log(`  ${c.yellow}⚠ Hybrid Vector Searches: 0 successful samples${c.reset}`);
+    }
+  } else {
+    console.log(`\n${c.dim}[5/7] Vector search benchmark skipped (--dim=0 or insufficient documents).${c.reset}`);
+  }
+
+  // -------------------------------------------------------------
+  // PHASE 5: Delete Latency: Indexed vs Unindexed
+  // -------------------------------------------------------------
+  console.log(`\n${c.bright}${c.blue}[6/7] Testing Delete Latency (deleteOne: Indexed vs Unindexed)...${c.reset}`);
+
+  // 5A: Indexed Deletes
   console.log(`  ${c.dim}• Testing Indexed deleteOne (${indexedDeleteCount} deletions by indexed 'email')...${c.reset}`);
   const indexedDeleteLatencies = [];
 
@@ -513,7 +638,7 @@ async function runBenchmark() {
   console.log(`  ${c.green}✓ Indexed Deletions:${c.reset} ${indexedDeleteLatencies.length}/${indexedDeleteCount} successful`);
   printPercentiles(indexedDeleteStats);
 
-  // 4B: Unindexed Deletes
+  // 5B: Unindexed Deletes
   console.log(`\n  ${c.dim}• Testing Unindexed deleteOne (${unindexedDeleteCount} deletions by 'unindexedTag')...${c.reset}`);
   const unindexedDeleteLatencies = [];
 
@@ -536,9 +661,9 @@ async function runBenchmark() {
   printPercentiles(unindexedDeleteStats);
 
   // -------------------------------------------------------------
-  // PHASE 5: In-Memory Cache & ACID Transactions
+  // PHASE 6: In-Memory Cache & ACID Transactions
   // -------------------------------------------------------------
-  console.log(`\n${c.bright}${c.blue}[6/6] Testing InMemoryCache & ACID Transaction Integrity...${c.reset}`);
+  console.log(`\n${c.bright}${c.blue}[7/7] Testing InMemoryCache & ACID Transaction Integrity...${c.reset}`);
 
   // Cache test
   let warmStats = calculatePercentiles([]);
@@ -628,6 +753,12 @@ async function runBenchmark() {
   console.log(`${c.bright}${c.cyan}╚═══════════════════════════════════════════════════════════════════╝${c.reset}`);
 
   console.log(`  ${c.bright}Dataset Scale:${c.reset}                 ${opts.docs.toLocaleString()} Documents`);
+  if (vectorStats) {
+    console.log(`  ${c.bright}Pure Vector Search (${opts.vectorDim}-dim ${opts.vectorMetric}):${c.reset} ${c.green}${vectorQPS.toLocaleString()} QPS${c.reset} (p50: ${vectorStats.p50}ms | p95: ${vectorStats.p95}ms | p99: ${vectorStats.p99}ms)`);
+  }
+  if (hybridStats) {
+    console.log(`  ${c.bright}Hybrid Vector Search (Pre-filtered):${c.reset} ${c.green}${hybridQPS.toLocaleString()} QPS${c.reset} (p50: ${hybridStats.p50}ms | p95: ${hybridStats.p95}ms | ${c.cyan}${hybridAdvantage}x faster${c.reset})`);
+  }
   console.log(`  ${c.bright}Ingestion Throughput:${c.reset}          ${c.green}${overallIngestRate.toLocaleString()} docs/sec${c.reset} (${totalInserted.toLocaleString()} docs in ${(totalIngestTimeMs / 1000).toFixed(2)}s)`);
   console.log(`  ${c.bright}Indexed Point Read (QPS):${c.reset}      ${c.green}${readQPS.toLocaleString()} QPS${c.reset} (p50: ${indexedReadStats.p50}ms | p95: ${indexedReadStats.p95}ms | p99: ${indexedReadStats.p99}ms)`);
   console.log(`  ${c.bright}Unindexed Read Scan (QPS):${c.reset}     ${unindexedReadQPS.toLocaleString()} QPS (p50: ${unindexedReadStats.p50}ms | p95: ${unindexedReadStats.p95}ms)`);

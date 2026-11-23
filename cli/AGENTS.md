@@ -15,7 +15,7 @@ Go **1.22** · module `github.com/nexoral/axiodb-cli` · Cobra (commands) · chz
 
 * **`main.go`** — Entrypoint invoking `cmd.Execute()`
 * **`cmd/`** — Cobra CLI commands and flags
-  * `root.go`, `connect.go`, `db.go`, `collection.go`, `document.go`, `index.go`, `transaction.go`, `auth_management.go`, `health.go`, `ping.go`, `serve.go`, `db_export.go`, `db_import.go`, `version.go`
+  * `root.go`, `connect.go` (REPL with `vectorSearch()`), `db.go`, `collection.go`, `document.go` (CRUD + `vector-search`), `index.go`, `transaction.go`, `auth_management.go`, `health.go`, `ping.go`, `serve.go`, `db_export.go`, `db_import.go`, `version.go`
 * **`pkg/`** — Core Go packages
   * `protocol/` — Wire protocol client (`client.go`, `message.go`, `auth.go`)
   * `commands/` — Command execution logic (db, collection, document, index, transaction, health)

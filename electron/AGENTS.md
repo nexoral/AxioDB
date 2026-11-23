@@ -16,9 +16,9 @@ Electron 34 · electron-builder 25 · Vite 6 + `@vitejs/plugin-react-swc` (rende
 * **`main/`** — Electron main process (TypeScript compiled to CJS)
   * `main.cts` (entrypoint), `preload.cts` (secure IPC context bridge) $\rightarrow$ compiled to `dist-electron/`
 * **`src/`** — React renderer process (Vite 6, React 19, Tailwind v4, Zustand)
-  * `api/` — API clients (`client.js`, `authApi.js`) connecting to AxioDB HTTP server
+  * `api/` — API clients (`client.js`, `authApi.js`) connecting to AxioDB HTTP / TCP bridge (includes `vectorSearch`, `insertManyDocuments`)
   * `layout/` — Shell layout components (`Sidebar.jsx`, `StatusBar.jsx`, `Titlebar.jsx`)
-  * `pages/`, `components/`, `store/`, `utils/`, `config/key.js`
+  * `pages/`, `components/` (includes `VectorSearchTab.jsx`, `InsertDocumentModal.jsx` with JSON file bulk upload), `store/`, `utils/`, `config/key.js`
 * **`resources/`** — App icons and assets bundled into packaging (`extraResources`)
 * **`electron-builder.json`** — Multi-platform packaging configuration (`.deb`, `.AppImage`, `.exe`, `.zip`)
 * **`vite.config.js`** — Renderer build configuration outputting to `dist/`

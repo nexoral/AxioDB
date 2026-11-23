@@ -1,7 +1,7 @@
 # AxioDB Docker Image
 
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com/)
-[![AxioDB](https://img.shields.io/badge/AxioDB-28.53.12-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
+[![AxioDB](https://img.shields.io/badge/AxioDB-28.54.13-blue?style=for-the-badge)](https://www.npmjs.com/package/axiodb)
 
 This Docker image provides AxioDB: Embedded Database for AI Agents. Everything you expect from a production database without having to run a database. Verified on Node.js, Bun & Deno. It includes a REST API server, TCP remote access (AxioDBCloud), and an optional MCP server for AI agent integration.
 
