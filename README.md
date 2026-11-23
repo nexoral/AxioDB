@@ -172,6 +172,7 @@ All surfaces default to on, seeded with an `admin` account. See [Docker/README.m
 | [axiodb.in](https://axiodb.in/) | Documentation home |
 | [Create a database](https://axiodb.in/create-database) | Constructor options, collections, indexes |
 | [API reference](https://axiodb.in/api-reference) | Full method signatures and types |
+| [Vector search](https://axiodb.in/vector-search) | Worker-thread vector similarity search (cosine, dot, euclidean) |
 | [AxioDBCloud](https://axiodb.in/cloud) | Remote TCP access, TLS, authentication |
 | [Server API](https://axiodb.in/server-api) | The 41 HTTP endpoints |
 | [CLI](https://axiodb.in/cli) | Go CLI reference |

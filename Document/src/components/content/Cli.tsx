@@ -49,6 +49,16 @@ axiodb -c axiodb://127.0.0.1:27019 document query '{"age":{"$gt":25}}' \\
 axiodb -c axiodb://127.0.0.1:27019 document query '{"email":"alice@example.com"}' \\
   --db mydb --collection users --hint email
 
+# Vector search over TCP
+axiodb -c axiodb://127.0.0.1:27019 document vector-search \\
+  --db mydb --collection items --field embedding \\
+  --vector '[0.023, -0.41, 0.88, 0.12]' --top-k 5 --metric cosine
+
+# Vector search with embedding loaded from a file and metadata query filter
+axiodb -c axiodb://127.0.0.1:27019 document vector-search \\
+  --db mydb --collection items --field embedding \\
+  --vector-file ./query_vector.json --query '{"category":"electronics"}' --min-score 0.7
+
 # Find several documents by ID
 axiodb -c axiodb://127.0.0.1:27019 document find-by-ids '["id1","id2"]' \\
   --db mydb --collection users
@@ -88,6 +98,7 @@ axiodb:mydb:users> db.users.insert({name: "Bob", age: 25})
 axiodb:mydb:users> db.users.updateOne({name: "Bob"}, {\$set: {age: 26}})
 axiodb:mydb:users> db.users.deleteOne({name: "Bob"})
 axiodb:mydb:users> db.users.countDocuments()
+axiodb:mydb:users> db.users.vectorSearch({field: "embedding", vector: [0.1, 0.2, 0.3], topK: 5, metric: "cosine"})
 axiodb:mydb:users> exit`;
 
 const USAGE_EXPORT_IMPORT = `# Export database over TCP (:27019 default, saves mydb.tar.gz in current directory)
@@ -495,7 +506,7 @@ const CliPage: React.FC = () => {
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Features</h2>
         <div className="grid md:grid-cols-2 gap-4">
           {[
-            { title: "TCP Data Operations", desc: "Database, collection, document CRUD, aggregation, indexing, counts, hints, find-by-IDs, and transactions" },
+            { title: "TCP Data Operations", desc: "Database, collection, document CRUD, aggregation, indexing, vector similarity search, counts, hints, find-by-IDs, and transactions" },
             { title: "Health & Telemetry", desc: "Check TCP health and retrieve instance diagnostics and stats with 'axiodb info' and 'axiodb stats'" },
             { title: "User & Role Administration", desc: "Manage users, roles, and permissions directly over TCP or HTTP with shared RBAC" },
             { title: "Interactive REPL", desc: "MongoDB shell syntax with tab autocomplete" },
